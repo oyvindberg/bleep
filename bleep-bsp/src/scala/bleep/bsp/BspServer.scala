@@ -43,6 +43,9 @@ class BspServer(
     */
   private val activeRequests = ConcurrentHashMap[String, CancellationToken]()
 
+  /** Tracks diagnostic state across compilation cycles for the BSP reset protocol (issue #526). */
+  private val diagnosticTracker = BspDiagnosticTracker()
+
   /** Set the build state (called after loading build configuration) */
   def setBuildState(state: BuildState): Unit =
     buildState.set(Some(state))
@@ -516,6 +519,8 @@ class BspServer(
     val taskId = "compile-and-link"
     sendTaskStart(params.originId, taskId, s"Compiling and linking ${params.targets.size} target(s)...")
 
+    diagnosticTracker.startCycle()
+
     var hasErrors = false
     var wasCancelled = false
 
@@ -585,6 +590,9 @@ class BspServer(
       if wasCancelled || cancellation.isCancelled then StatusCode.Cancelled
       else if hasErrors then StatusCode.Error
       else StatusCode.Ok
+
+    // Clear stale diagnostics for files that had errors last cycle but not this one
+    clearStaleDiagnostics()
 
     sendTaskFinish(params.originId, taskId, statusCode)
 
@@ -863,7 +871,10 @@ class BspServer(
       }
 
       for {
-        _ <- IO(sendTaskStart(params.originId, taskId, s"Compiling ${projectConfigs.size} project(s)..."))
+        _ <- IO {
+          diagnosticTracker.startCycle()
+          sendTaskStart(params.originId, taskId, s"Compiling ${projectConfigs.size} project(s)...")
+        }
 
         // Use ParallelProjectCompiler
         buildResult <- ParallelProjectCompiler.build(
@@ -890,6 +901,8 @@ class BspServer(
             else StatusCode.Error
         }
 
+        // Clear stale diagnostics for files that had errors last cycle but not this one
+        _ <- IO(clearStaleDiagnostics())
         _ <- IO(sendTaskFinish(params.originId, taskId, statusCode))
       } yield CompileResult(
         originId = params.originId,
@@ -899,6 +912,17 @@ class BspServer(
       )
     }
   }
+
+  /** Send empty diagnostics with reset=true for files that had errors in the previous compilation but are now clean. */
+  private def clearStaleDiagnostics(): Unit =
+    diagnosticTracker.filesToClear().foreach { case (docUri, targetUri) =>
+      sendDiagnostics(
+        TextDocumentIdentifier(uri = Uri(java.net.URI.create(docUri))),
+        BuildTargetIdentifier(uri = Uri(java.net.URI.create(targetUri))),
+        Nil,
+        reset = true
+      )
+    }
 
   /** Convert old LanguageConfig to new ProjectLanguage */
   private def convertToProjectLanguage(config: LanguageConfig): ProjectLanguage = config match {
@@ -952,11 +976,12 @@ class BspServer(
         }
 
         targetId.foreach { tId =>
+          val reset = diagnosticTracker.recordDiagnostic(docUri.value, tId.uri.value)
           sendDiagnostics(
             TextDocumentIdentifier(uri = docUri),
             tId,
             List(diagnostic),
-            reset = false
+            reset = reset
           )
         }
       }
@@ -1713,11 +1738,12 @@ class BspServer(
           case None    => Uri(java.net.URI.create("file:///unknown"))
         }
 
+        val reset = diagnosticTracker.recordDiagnostic(docUri.value, targetId.uri.value)
         sendDiagnostics(
           TextDocumentIdentifier(uri = docUri),
           targetId,
           List(diagnostic),
-          reset = false
+          reset = reset
         )
       }
     }

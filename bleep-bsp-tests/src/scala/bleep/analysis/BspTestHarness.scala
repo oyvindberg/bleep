@@ -30,7 +30,7 @@ object BspTestHarness {
   sealed trait BspEvent
   object BspEvent {
     case class LogMessage(messageType: Int, message: String) extends BspEvent
-    case class PublishDiagnostics(uri: String, targetUri: String, diagnostics: List[DiagnosticInfo]) extends BspEvent
+    case class PublishDiagnostics(uri: String, targetUri: String, diagnostics: List[DiagnosticInfo], reset: Boolean) extends BspEvent
     case class TaskStart(taskId: String, message: Option[String]) extends BspEvent
     case class TaskProgress(taskId: String, message: Option[String]) extends BspEvent
     case class TaskFinish(taskId: String, statusCode: Int, message: Option[String]) extends BspEvent
@@ -376,9 +376,15 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
                   column = Some(d.range.start.character)
                 )
               }
-              val buffer = collectedDiagnostics.getOrElseUpdate(uri, mutable.Buffer())
-              buffer ++= diagnostics
-              collectedEvents += BspEvent.PublishDiagnostics(uri, targetUri, diagnostics.toList)
+              val reset = diagParams.reset
+              if (reset) {
+                // reset=true means replace all diagnostics for this (doc, target)
+                collectedDiagnostics(uri) = mutable.Buffer.from(diagnostics)
+              } else {
+                val buffer = collectedDiagnostics.getOrElseUpdate(uri, mutable.Buffer())
+                buffer ++= diagnostics
+              }
+              collectedEvents += BspEvent.PublishDiagnostics(uri, targetUri, diagnostics.toList, reset)
             } catch { case _: Exception => () }
           }
 

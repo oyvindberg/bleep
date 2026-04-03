@@ -106,6 +106,9 @@ class MultiWorkspaceBspServer(
   /** Operation IDs registered by this connection (for cleanup on disconnect) */
   private val myOperationIds = ConcurrentHashMap.newKeySet[String]()
 
+  /** Tracks diagnostic state across compilation cycles for the BSP reset protocol (issue #526). */
+  private val diagnosticTracker = BspDiagnosticTracker()
+
   /** Run the server message loop with concurrent request handling.
     *
     * Notifications (like $/cancelRequest) are processed immediately. Requests are spawned in background fibers so the main loop stays responsive.
@@ -1182,6 +1185,8 @@ class MultiWorkspaceBspServer(
   private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
+    diagnosticTracker.startCycle()
+
     // Parse link options from arguments
     val args = params.arguments.getOrElse(List.empty)
     val linkOpts = parseLinkOptions(args)
@@ -1432,6 +1437,9 @@ class MultiWorkspaceBspServer(
         val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
         traceRecorder.writeTrace(tracePath).unsafeRunSync()
       }
+
+      // Clear stale diagnostics for files that had errors last cycle but not this one
+      clearStaleDiagnostics()
 
       ioResult match {
         case Success(dag) =>
@@ -2109,12 +2117,14 @@ class MultiWorkspaceBspServer(
         val targetId = buildTargetId(started.buildPaths, project)
         val textDocument = error.path.map(p => TextDocumentIdentifier(Uri(p.toUri)))
 
+        val docId = textDocument.getOrElse(TextDocumentIdentifier(Uri(java.net.URI.create("unknown"))))
+        val reset = diagnosticTracker.recordDiagnostic(docId.uri.value, targetId.uri.value)
         val publishParams = PublishDiagnosticsParams(
-          textDocument = textDocument.getOrElse(TextDocumentIdentifier(Uri(java.net.URI.create("unknown")))),
+          textDocument = docId,
           buildTarget = targetId,
           originId = originId,
           diagnostics = List(diagnostic),
-          reset = false
+          reset = reset
         )
 
         sendNotification("build/publishDiagnostics", publishParams)
@@ -3071,6 +3081,19 @@ class MultiWorkspaceBspServer(
         logger.withContext("method", method).withContext("error", e.getMessage).error("Failed to send notification", e)
     }
   }
+
+  /** Send empty diagnostics with reset=true for files that had errors in the previous compilation but are now clean. */
+  private def clearStaleDiagnostics(): Unit =
+    diagnosticTracker.filesToClear().foreach { case (docUri, targetUri) =>
+      val publishParams = PublishDiagnosticsParams(
+        textDocument = TextDocumentIdentifier(Uri(java.net.URI.create(docUri))),
+        buildTarget = BuildTargetIdentifier(uri = Uri(java.net.URI.create(targetUri))),
+        originId = None,
+        diagnostics = Nil,
+        reset = true
+      )
+      sendNotification("build/publishDiagnostics", publishParams)
+    }
 
   /** Create a project-scoped logger that sends BSP log messages */
   private def projectLogger(project: CrossProjectName): BspProjectLogger = new BspProjectLogger {
