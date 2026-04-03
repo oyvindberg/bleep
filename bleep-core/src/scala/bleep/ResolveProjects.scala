@@ -25,18 +25,17 @@ trait ResolveProjects {
 object ResolveProjects {
   type Projects = SortedMap[model.CrossProjectName, Lazy[ResolvedProject]]
 
-  case class Result(build: model.Build.Exploded, projects: Projects, bspServerClasspathSource: bsp.BspServerClasspathSource)
+  case class Result(build: model.Build, projects: Projects, bspServerClasspathSource: bsp.BspServerClasspathSource)
 
   object InMemory extends ResolveProjects {
     override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Result = {
-      val exploded = build.dropBuildFile
-      val projects: Projects = rewriteDependentData(exploded.explodedProjects).apply[ResolvedProject] { (crossName, project, eval) =>
+      val projects: Projects = rewriteDependentData(build.explodedProjects).apply[ResolvedProject] { (crossName, project, eval) =>
         def get(depName: model.CrossProjectName): ResolvedProject =
           eval(depName).forceGet(s"${crossName.value} => ${depName.value}")
 
         resolveProject(pre, resolver, crossName, project, build, getResolvedProject = get)
       }
-      Result(exploded, projects, bspServerClasspathSource = bsp.BspServerClasspathSource.FromCoursier(resolver))
+      Result(build, projects, bspServerClasspathSource = bsp.BspServerClasspathSource.FromCoursier(resolver))
     }
   }
 
