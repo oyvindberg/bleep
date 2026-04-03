@@ -143,9 +143,19 @@ object BspServerDaemon {
 
         case Left(err: LockError.RecoverableError) =>
           if (remainingAttempts > 0) {
-            logger.warn(s"Caught $err, trying again in $retryPeriod")
-            Thread.sleep(retryPeriod.toMillis)
-            loop(remainingAttempts - 1)
+            // Check if the lock is held by a dead process (stale lock from crash/kill -9).
+            // If so, clean up immediately instead of waiting the full retry period.
+            if (isLockStale(lockFiles.pidFile, logger)) {
+              logger.warn(s"Detected stale lock (holding process is dead), cleaning up")
+              Files.deleteIfExists(lockFiles.pidFile)
+              Files.deleteIfExists(lockFiles.lockFile)
+              Files.deleteIfExists(lockFiles.socketPaths.path)
+              loop(remainingAttempts - 1)
+            } else {
+              logger.warn(s"Caught $err, trying again in $retryPeriod")
+              Thread.sleep(retryPeriod.toMillis)
+              loop(remainingAttempts - 1)
+            }
           } else {
             logger.error(s"Recoverable lock error after max attempts: $err")
             System.exit(1)
@@ -163,6 +173,23 @@ object BspServerDaemon {
 
     loop(maxAttempts)
   }
+
+  /** Check if a lock is stale by reading the PID file and verifying the process is alive. */
+  private def isLockStale(pidFile: Path, logger: Logger): Boolean =
+    try
+      if (Files.exists(pidFile)) {
+        val pid = Files.readString(pidFile).trim.toLong
+        val alive = ProcessHandle.of(pid).isPresent
+        if (!alive) logger.info(s"Process $pid from PID file is dead")
+        !alive
+      } else {
+        false
+      }
+    catch {
+      case e: Exception =>
+        logger.debug(s"Could not check PID file: ${e.getMessage}")
+        false
+    }
 
   private def runWithLock(config: DaemonConfig, socketPaths: SocketPaths, logger: Logger): Unit = {
     val shutdownRequested = AtomicBoolean(false)
