@@ -260,7 +260,7 @@ jobs:
       - name: Release
         run: |
           chmod +x ./artifacts/bleep-x86_64-pc-linux/bleep
-          ./artifacts/bleep-x86_64-pc-linux/bleep --dev publish
+          ./artifacts/bleep-x86_64-pc-linux/bleep --dev publish sonatype
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
