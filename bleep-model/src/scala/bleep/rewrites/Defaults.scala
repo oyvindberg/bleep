@@ -24,6 +24,8 @@ object Defaults {
       jsNodeVersion = None,
       jvmOptions = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.BuildDir}"))),
       jvmRuntimeOptions = model.Options.empty,
+      jvmEnvironment = model.EnvironmentVars.empty,
+      jvmAgents = model.JsonSet.empty,
       nativeVersion = None,
       nativeGc = None,
       nativeBuildTarget = None,

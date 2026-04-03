@@ -89,7 +89,17 @@ object BleepBuildConverter {
     val javaConfig = bleepProject.flatMap(_.java)
     val platform = bleepProject.flatMap(_.platform)
     val isTest = bleepProject.exists(_.isTestProject.getOrElse(false))
-    val language = detectLanguage(resolved, kotlinConfig, javaConfig, platform, isTest)
+    val language0 = detectLanguage(resolved, kotlinConfig, javaConfig, platform, isTest)
+
+    // For Kotlin test projects, add -Xfriend-paths so tests can access `internal` members
+    val language = language0 match {
+      case kt: ProjectLanguage.Kotlin if isTest =>
+        val friendPaths = computeFriendPaths(crossName, started)
+        if (friendPaths.nonEmpty) {
+          kt.copy(kotlinOptions = kt.kotlinOptions :+ s"-Xfriend-paths=${friendPaths.mkString(",")}")
+        } else kt
+      case other => other
+    }
 
     // Use the same path structure as BuildPaths.targetDir: name/crossId
     val targetDir = started.buildPaths.bleepBloopDir.resolve(crossName.name.value).resolve(crossName.crossId.fold("")(_.value))
@@ -157,10 +167,27 @@ object BleepBuildConverter {
           case _ =>
             // JVM platform (default)
             val jvmTarget = kotlinConfig.flatMap(_.jvmTarget).getOrElse("11")
+            val pluginOptions = resolveCompilerPlugins(kotlinVersion, kotlinConfig.map(_.compilerPlugins.values.toList).getOrElse(Nil))
+            // Extract Java release from java options (--release X, -source X, -target X)
+            // Options may be rendered as separate strings ("--release", "21") or combined ("--release=21")
+            val javaRelease = javaConfig.flatMap { java =>
+              val opts = java.options.render
+              val releaseIdx = opts.indexOf("--release")
+              val sourceIdx = opts.indexOf("-source")
+              val targetIdx = opts.indexOf("-target")
+              if (releaseIdx >= 0 && releaseIdx + 1 < opts.size) opts(releaseIdx + 1).toIntOption
+              else if (sourceIdx >= 0 && sourceIdx + 1 < opts.size) opts(sourceIdx + 1).toIntOption
+              else if (targetIdx >= 0 && targetIdx + 1 < opts.size) opts(targetIdx + 1).toIntOption
+              else
+                opts.collectFirst {
+                  case opt if opt.startsWith("--release=") => opt.stripPrefix("--release=").toIntOption
+                }.flatten
+            }
             ProjectLanguage.Kotlin(
               kotlinVersion = kotlinVersion.kotlinVersion,
               jvmTarget = jvmTarget,
-              kotlinOptions = options
+              kotlinOptions = options ++ pluginOptions,
+              javaRelease = javaRelease
             )
         }
 
@@ -199,7 +226,8 @@ object BleepBuildConverter {
             ProjectLanguage.Kotlin(
               kotlinVersion = kotlinLang.version,
               jvmTarget = "11",
-              kotlinOptions = kotlinLang.options
+              kotlinOptions = kotlinLang.options,
+              javaRelease = None
             )
         }
     }
@@ -210,6 +238,51 @@ object BleepBuildConverter {
       case Some(deps) => deps.iterator.map(_.value).toSet
       case None       => Set.empty
     }
+
+  /** Compute -Xfriend-paths for Kotlin test projects.
+    *
+    * In Maven/Gradle, test sources are part of the same Kotlin module as main sources, so they can access `internal` members. In bleep, test projects are
+    * separate projects. The Kotlin compiler's -Xfriend-paths flag restores this access for the dependency's output directory.
+    */
+  private def computeFriendPaths(crossName: CrossProjectName, started: Started): List[String] =
+    started.build.explodedProjects.get(crossName) match {
+      case Some(project) =>
+        project.dependsOn.values.flatMap { depName =>
+          val depCrossName = CrossProjectName(depName, crossName.crossId)
+          val resolved =
+            if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName) else started.build.explodedProjects.keys.find(_.name == depName)
+          resolved.flatMap { cn =>
+            started.resolvedProjects.get(cn).flatMap { lazyResolved =>
+              scala.util.Try(lazyResolved.forceGet).toOption.map(_.classesDir.toString)
+            }
+          }
+        }.toList
+      case None =>
+        Nil
+    }
+
+  /** Resolve Kotlin compiler plugin JARs and generate compiler options.
+    *
+    * Maps plugin IDs (spring, jpa, allopen, noarg, etc.) to their Maven artifacts, resolves the JARs via coursier, and generates `-Xplugin=<path>` and
+    * `-P plugin:<id>:preset=<preset>` options.
+    */
+  private def resolveCompilerPlugins(kotlinVersion: model.VersionKotlin, pluginIds: List[String]): List[String] = {
+    if (pluginIds.isEmpty) return Nil
+
+    val pluginJarPaths = pluginIds.map { pluginId =>
+      CompilerResolver.resolveKotlinPlugin(pluginId, kotlinVersion)
+    }
+
+    val xpluginOpt = List(s"-Xplugin=${pluginJarPaths.map(_.toString).mkString(",")}")
+
+    val presetOpts = pluginIds.flatMap {
+      case "spring" => List("-P", "plugin:org.jetbrains.kotlin.allopen:preset=spring")
+      case "jpa"    => List("-P", "plugin:org.jetbrains.kotlin.noarg:preset=jpa")
+      case _        => Nil
+    }
+
+    xpluginOpt ++ presetOpts
+  }
 
   /** Get transitive dependencies for a set of projects. */
   def transitiveDependencies(

@@ -20,7 +20,7 @@ enum ProjectLanguage {
   case ScalaJava(scalaVersion: String, scalaOptions: List[String], javaRelease: Option[Int], javaOptions: List[String] = Nil)
 
   /** Kotlin/JVM compiled by K2JVMCompiler */
-  case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String])
+  case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String], javaRelease: Option[Int])
 
   /** Kotlin/JS compiled by K2JSCompiler
     *
@@ -356,7 +356,21 @@ object KotlinProjectCompiler extends ProjectCompiler {
         Files.createDirectories(config.outputDir)
         val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
         val fullClasspath = config.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
-        val options = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
+        // Use --release from the project's Java config (imported from maven.compiler.source/target/release)
+        // Fall back to Kotlin's jvmTarget if no explicit Java release is configured
+        val javaRelease = config.language match {
+          case kt: ProjectLanguage.Kotlin => kt.javaRelease.orElse(kt.jvmTarget.toIntOption.filter(_ >= 9))
+          case _                          => None
+        }
+        val baseOptions = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
+        val options = javaRelease match {
+          case Some(rel) =>
+            val list = new java.util.ArrayList[String](baseOptions)
+            list.add("--release")
+            list.add(rel.toString)
+            list
+          case None => baseOptions
+        }
 
         val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
         val success = task.call()

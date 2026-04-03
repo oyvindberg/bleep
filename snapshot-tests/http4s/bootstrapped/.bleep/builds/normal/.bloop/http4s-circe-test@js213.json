@@ -83,7 +83,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_2.13/3.6.0/vault_sjs1_2.13-3.6.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn-test/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn-test/js213/test-classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/js213/classes",
@@ -106,7 +106,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/js213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/js213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/js213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.js/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/test/resources"

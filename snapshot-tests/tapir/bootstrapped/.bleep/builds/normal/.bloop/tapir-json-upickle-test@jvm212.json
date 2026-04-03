@@ -58,7 +58,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/upickle/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle-test/jvm212/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle-test/jvm212/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/upickle/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/upickle/src/test/resources"

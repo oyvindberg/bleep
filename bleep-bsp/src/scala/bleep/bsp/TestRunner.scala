@@ -22,14 +22,18 @@ object TestRunner {
   case class Options(
       jvmOptions: List[String],
       testArgs: List[String],
-      idleTimeout: FiniteDuration
+      idleTimeout: FiniteDuration,
+      environment: Map[String, String],
+      workingDirectory: Option[Path]
   )
 
   object Options {
     val default: Options = Options(
       jvmOptions = Nil,
       testArgs = Nil,
-      idleTimeout = 2.minutes
+      idleTimeout = 2.minutes,
+      environment = Map.empty,
+      workingDirectory = None
     )
   }
 
@@ -66,7 +70,7 @@ object TestRunner {
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
-    pool.acquire(classpath, options.jvmOptions, runnerClass).use { jvm =>
+    pool.acquire(classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
       executeWithIdleTimeout(
         project = project,
         suiteName = suiteName,

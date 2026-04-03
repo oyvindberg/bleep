@@ -320,19 +320,56 @@ class CompilationCoordinator(
     IO.blocking {
       Files.createDirectories(outputDir)
 
-      // Convert to SourceFile format
-      val sourceFiles = sources.map { case (path, content) => SourceFile(path, content) }.toSeq
-
-      val input = CompilationInput(
-        sources = sourceFiles,
-        classpath = classpath,
-        outputDir = outputDir,
-        config = config
-      )
-
-      val compiler = Compiler.forConfig(config)
-      compiler.compile(input, DiagnosticListener.noop, CancellationToken.never)
+      config match {
+        case kotlinConfig: KotlinConfig =>
+          compileMixedKotlinJava(sources, classpath, outputDir, kotlinConfig)
+        case _ =>
+          val sourceFiles = sources.map { case (path, content) => SourceFile(path, content) }.toSeq
+          val input = CompilationInput(sourceFiles, classpath, outputDir, config)
+          val compiler = Compiler.forConfig(config)
+          compiler.compile(input, DiagnosticListener.noop, CancellationToken.never)
+      }
     }
+
+  /** Mixed Kotlin+Java compilation: Java first, then Kotlin.
+    *
+    * Java is compiled first so that Kotlin can resolve Java types from the output directory. This handles the common case of generated Java sources (Avro,
+    * OpenAPI) in Kotlin projects. For the reverse case (Java depending on Kotlin), a compile order flag could be added to the model later.
+    */
+  private def compileMixedKotlinJava(
+      sources: Map[Path, String],
+      classpath: Seq[Path],
+      outputDir: Path,
+      kotlinConfig: KotlinConfig
+  ): CompilationResult = {
+    val kotlinSources = sources.filter { case (p, _) => p.toString.endsWith(".kt") || p.toString.endsWith(".kts") }
+    val javaSources = sources.filter { case (p, _) => p.toString.endsWith(".java") }
+
+    if (javaSources.isEmpty) {
+      // Pure Kotlin — no split needed
+      val sourceFiles = sources.map { case (path, content) => SourceFile(path, content) }.toSeq
+      val input = CompilationInput(sourceFiles, classpath, outputDir, kotlinConfig)
+      return KotlinSourceCompiler.compile(input, DiagnosticListener.noop, CancellationToken.never)
+    }
+
+    // Step 1: Compile Java with javac
+    val javaSourceFiles = javaSources.map { case (path, content) => SourceFile(path, content) }.toSeq
+    val javaConfig = JavaConfig(release = Some(kotlinConfig.jvmTarget.toIntOption.getOrElse(11)))
+    val javaInput = CompilationInput(javaSourceFiles, classpath, outputDir, javaConfig)
+    val javaResult = Compiler.forConfig(javaConfig).compile(javaInput, DiagnosticListener.noop, CancellationToken.never)
+
+    javaResult match {
+      case _: CompilationSuccess =>
+        if (kotlinSources.nonEmpty) {
+          // Step 2: Compile Kotlin — only .kt files, Java .class files already in outputDir
+          val kotlinSourceFiles = kotlinSources.map { case (path, content) => SourceFile(path, content) }.toSeq
+          val kotlinClasspath = classpath :+ outputDir
+          val kotlinInput = CompilationInput(kotlinSourceFiles, kotlinClasspath, outputDir, kotlinConfig)
+          KotlinSourceCompiler.compile(kotlinInput, DiagnosticListener.noop, CancellationToken.never)
+        } else javaResult
+      case failed => failed
+    }
+  }
 }
 
 object CompilationCoordinator {

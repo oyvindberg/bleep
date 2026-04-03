@@ -31,7 +31,7 @@ jobs:
           # triggering sourcegen during compile (which can hit threading bugs
           # in the released BSP server)
           bleep sourcegen
-          bleep compile bleep-cli
+          bleep compile
           # publish locally so the dev script's BSP server uses our code
           bleep my-publish-local
           bleep config compile-server stop-all
@@ -139,7 +139,7 @@ jobs:
       - name: Build native image (non-windows)
         run: |
           bleep sourcegen
-          bleep compile bleep-cli
+          bleep compile
           bleep my-publish-local
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
@@ -161,7 +161,7 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
       - name: Compile (windows)
-        run: bleep compile bleep-cli
+        run: bleep compile
         shell: cmd
         if: runner.os == 'Windows'
       - name: Restart compile server before publish (windows)
@@ -247,7 +247,7 @@ jobs:
       - name: Publish bleep-bsp and test-runner locally
         run: |
           bleep sourcegen
-          bleep compile bleep-cli
+          bleep compile
           bleep my-publish-local
           bleep config compile-server stop-all
       - name: Download artifacts

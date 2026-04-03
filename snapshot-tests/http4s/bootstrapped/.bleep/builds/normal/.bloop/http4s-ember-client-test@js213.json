@@ -94,7 +94,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-client/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/js213/test-classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes",
@@ -138,7 +138,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-client-test/js213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-client-test/js213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-client-test/js213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/js-jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/js-native/src/test/resources",

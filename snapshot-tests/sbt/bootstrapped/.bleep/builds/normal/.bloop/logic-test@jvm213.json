@@ -66,7 +66,7 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-relation/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/logic-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/logic-test/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/logic-test/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-logic/src/test/resources"
     ],

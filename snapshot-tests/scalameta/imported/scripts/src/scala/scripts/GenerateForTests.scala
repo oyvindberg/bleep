@@ -10,9 +10,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("tests@native213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@native213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -42,7 +42,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -51,9 +52,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@jvm211").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@jvm211""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -83,7 +84,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -92,9 +94,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@native212").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@native212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -124,7 +126,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -133,9 +136,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@jvm212").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@jvm212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -165,7 +168,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -174,9 +178,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -206,7 +210,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -215,9 +220,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@js212").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@js212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -247,7 +252,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -256,9 +262,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@js213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@js213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -288,7 +294,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -297,9 +304,9 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
 
 
     targets.foreach { target =>
-      if (Set("tests@jvm213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|tests@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -329,7 +336,8 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

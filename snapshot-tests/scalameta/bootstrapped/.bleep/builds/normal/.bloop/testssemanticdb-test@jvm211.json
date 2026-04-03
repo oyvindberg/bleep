@@ -127,7 +127,7 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests-semanticdb/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testssemanticdb-test/jvm211",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testssemanticdb-test/jvm211/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testssemanticdb-test/jvm211/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests-semanticdb/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests-semanticdb/src/test/resources"

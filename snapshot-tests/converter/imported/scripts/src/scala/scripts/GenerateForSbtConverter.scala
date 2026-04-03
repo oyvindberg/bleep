@@ -10,13 +10,14 @@ object GenerateForSbtConverter extends BleepCodegenScript("GenerateForSbtConvert
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("sbt-converter").contains(target.project.value)) {
-        val to = target.resources.resolve("sbt/sbt.autoplugins")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|sbt-converter""".stripMargin).contains(target.project.value)) {
+        val to = target.resources.resolve(s"""|sbt/sbt.autoplugins""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|org.scalablytyped.converter.plugin.ScalablyTypedConverterExternalNpmPlugin
       |org.scalablytyped.converter.plugin.ScalablyTypedConverterGenSourcePlugin
       |org.scalablytyped.converter.plugin.ScalablyTypedConverterPlugin
-      |org.scalablytyped.converter.plugin.ScalablyTypedPluginBase""".stripMargin
+      |org.scalablytyped.converter.plugin.ScalablyTypedPluginBase
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

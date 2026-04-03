@@ -10,9 +10,9 @@ object GenerateForSbtBloop extends BleepCodegenScript("GenerateForSbtBloop") {
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("sbt-bloop").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|sbt-bloop""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package bloop.integrations.sbt
       |
@@ -26,7 +26,8 @@ object GenerateForSbtBloop extends BleepCodegenScript("GenerateForSbtBloop") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -35,10 +36,11 @@ object GenerateForSbtBloop extends BleepCodegenScript("GenerateForSbtBloop") {
 
 
     targets.foreach { target =>
-      if (Set("sbt-bloop").contains(target.project.value)) {
-        val to = target.resources.resolve("sbt/sbt.autoplugins")
-        started.logger.withContext(target.project).warn(s"Writing $to")
-        val content = s"""|bloop.integrations.sbt.BloopPlugin""".stripMargin
+      if (Set(s"""|sbt-bloop""".stripMargin).contains(target.project.value)) {
+        val to = target.resources.resolve(s"""|sbt/sbt.autoplugins""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
+        val content = s"""|bloop.integrations.sbt.BloopPlugin
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

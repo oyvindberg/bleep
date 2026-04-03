@@ -187,11 +187,14 @@ object BspServerDaemon {
     // Single consolidated shutdown hook with defined ordering:
     // 1. Signal shutdown to accept loop
     // 2. Flush metrics (while processes still alive)
-    // 3. Kill descendant processes (belt-and-suspenders cleanup)
+    // 3. Dump thread stacks from all child JVMs (for debugging hung builds)
+    // 4. Kill descendant processes
     Runtime.getRuntime.addShutdownHook(new Thread("bsp-shutdown") {
       override def run(): Unit = {
         shutdownRequested.set(true)
         try BspMetrics.shutdown()
+        catch { case _: Exception => () }
+        try bleep.internal.ChildProcessDiagnostics.dumpAll(System.err)
         catch { case _: Exception => () }
         try
           ProcessHandle.current().descendants().forEach { ph =>

@@ -10,9 +10,9 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("http4s-server-test@js213", "http4s-server-test@js3").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-server-test@js213""".stripMargin, s"""|http4s-server-test@js3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.http4s.server.test
       |
@@ -26,7 +26,8 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -35,9 +36,9 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
 
 
     targets.foreach { target =>
-      if (Set("http4s-server-test@native213", "http4s-server-test@native3").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-server-test@native213""".stripMargin, s"""|http4s-server-test@native3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.http4s.server.test
       |
@@ -51,7 +52,8 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -60,9 +62,9 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
 
 
     targets.foreach { target =>
-      if (Set("http4s-server-test@jvm213", "http4s-server-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-server-test@jvm213""".stripMargin, s"""|http4s-server-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.http4s.server.test
       |
@@ -76,7 +78,8 @@ object GenerateForHttp4sServerTest extends BleepCodegenScript("GenerateForHttp4s
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

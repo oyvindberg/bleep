@@ -80,7 +80,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/testing/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-testing-test/js213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-testing-test/js213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-testing-test/js213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/testing/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/testing/src/test/resources"

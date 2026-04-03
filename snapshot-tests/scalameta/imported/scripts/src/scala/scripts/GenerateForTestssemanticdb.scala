@@ -10,9 +10,9 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("testssemanticdb@jvm213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|testssemanticdb@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -42,7 +42,8 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -51,9 +52,9 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
 
 
     targets.foreach { target =>
-      if (Set("testssemanticdb@jvm211").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|testssemanticdb@jvm211""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -83,7 +84,8 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -92,9 +94,9 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
 
 
     targets.foreach { target =>
-      if (Set("testssemanticdb@jvm212").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|testssemanticdb@jvm212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -124,7 +126,8 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

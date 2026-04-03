@@ -68,7 +68,7 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/scalatest/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-scalatest-test/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-scalatest-test/jvm3/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-scalatest-test/jvm3/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/scalatest/src/test/resources"
     ],

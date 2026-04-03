@@ -90,7 +90,7 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm212/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm212/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/test/resources"
     ],

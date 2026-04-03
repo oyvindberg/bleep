@@ -172,7 +172,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server-sync-test",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server-sync-test/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server-sync-test/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/sync/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/sync/src/test/resources"

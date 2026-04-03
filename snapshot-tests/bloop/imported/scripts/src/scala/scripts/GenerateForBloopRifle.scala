@@ -10,9 +10,9 @@ object GenerateForBloopRifle extends BleepCodegenScript("GenerateForBloopRifle")
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("bloop-rifle").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|bloop-rifle""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package bloop.rifle.internal
       |
@@ -30,7 +30,8 @@ object GenerateForBloopRifle extends BleepCodegenScript("GenerateForBloopRifle")
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

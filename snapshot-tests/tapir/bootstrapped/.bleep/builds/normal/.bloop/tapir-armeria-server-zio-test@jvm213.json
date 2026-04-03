@@ -147,7 +147,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-test/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-test/jvm213/test-classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-zio/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats/jvm213/classes",
@@ -194,7 +194,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-zio-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-zio-test/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server-zio-test/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/zio/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/zio/src/test/resources"

@@ -61,7 +61,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum-test/js212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum-test/js212/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum-test/js212/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/test/resources"

@@ -422,34 +422,44 @@ object KotlinSourceCompiler extends Compiler {
       // Note: outputDirs must contain both classesDir (destination) and workingDir
       val outputDirs: java.util.Collection[File] = Set(input.outputDir.toFile, cacheDirFile).asJava
 
-      val runnerConstructor = setup.incrementalRunnerClass.getDeclaredConstructors
-        .find(_.getParameterCount == 7)
-        .orElse(setup.incrementalRunnerClass.getDeclaredConstructors.find(_.getParameterCount == 6))
-        .getOrElse(throw new NoSuchMethodException("Could not find IncrementalJvmCompilerRunner constructor"))
+      val buildHistoryFile = cacheDir.resolve("build-history.bin").toFile
 
-      val runner = if runnerConstructor.getParameterCount == 7 then {
-        // Kotlin 2.x constructor: (workingDir, reporter, buildHistoryFile, outputDirs, classpathChanges, extensions, features)
-        val buildHistoryFile = cacheDir.resolve("build-history.bin").toFile
-        runnerConstructor.newInstance(
+      val allConstructors = setup.incrementalRunnerClass.getDeclaredConstructors
+      debug(
+        s"IncrementalJvmCompilerRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}"
+      )
+
+      val runner = tryConstructRunner(
+        allConstructors,
+        7,
+        Array[Object](
           cacheDirFile,
-          setup.buildReporterInstance,
+          setup.buildReporterInstance.asInstanceOf[Object],
           buildHistoryFile,
           outputDirs,
-          setup.classpathChangesInstance,
+          setup.classpathChangesInstance.asInstanceOf[Object],
           kotlinExtensions,
-          icFeatures
+          icFeatures.asInstanceOf[Object]
         )
-      } else {
-        // Older constructor: (workingDir, reporter, outputDirs, classpathChanges, extensions, features)
-        runnerConstructor.newInstance(
-          cacheDirFile,
-          setup.buildReporterInstance,
-          outputDirs,
-          setup.classpathChangesInstance,
-          kotlinExtensions,
-          icFeatures
+      )
+        .orElse(
+          tryConstructRunner(
+            allConstructors,
+            6,
+            Array[Object](
+              cacheDirFile,
+              setup.buildReporterInstance.asInstanceOf[Object],
+              outputDirs,
+              setup.classpathChangesInstance.asInstanceOf[Object],
+              kotlinExtensions,
+              icFeatures.asInstanceOf[Object]
+            )
+          )
         )
-      }
+        .getOrElse {
+          debug(s"No matching IncrementalJvmCompilerRunner constructor found, falling back to non-incremental compilation")
+          return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
+        }
 
       // Create K2JVMCompilerArguments
       val arguments = setup.argumentsClass.getDeclaredConstructor().newInstance()
@@ -480,6 +490,9 @@ object KotlinSourceCompiler extends Compiler {
       // Suppress warnings
       val setSuppressWarnings = setup.argumentsClass.getMethod("setSuppressWarnings", classOf[Boolean])
       setSuppressWarnings.invoke(arguments, java.lang.Boolean.TRUE)
+
+      // Apply additional compiler options (e.g., -Xfriend-paths, -Xjsr305)
+      applyCompilerOptions(setup, arguments, config.options)
 
       // Create MessageCollector proxy
       val messageCollectorProxy = createMessageCollectorProxy(setup, listener, collectedErrors, cancellation)
@@ -646,6 +659,9 @@ object KotlinSourceCompiler extends Compiler {
       val setSuppressWarnings = setup.argumentsClass.getMethod("setSuppressWarnings", classOf[Boolean])
       setSuppressWarnings.invoke(arguments, java.lang.Boolean.TRUE)
 
+      // Apply additional compiler options (e.g., -Xfriend-paths, -Xjsr305)
+      applyCompilerOptions(setup, arguments, config.options)
+
       // Create MessageCollector proxy
       val messageCollectorProxy = createMessageCollectorProxy(setup, listener, collectedErrors, cancellation)
 
@@ -708,6 +724,85 @@ object KotlinSourceCompiler extends Compiler {
         CompilationFailure(List(err))
     }
   }
+
+  /** Try to construct IncrementalJvmCompilerRunner with the given parameter count and args. */
+  private def tryConstructRunner(constructors: Array[java.lang.reflect.Constructor[?]], paramCount: Int, args: Array[Object]): Option[Any] =
+    constructors.find(_.getParameterCount == paramCount).flatMap { ctor =>
+      try Some(ctor.newInstance(args: _*))
+      catch {
+        case e: Exception =>
+          debug(s"Constructor with $paramCount params failed: ${e.getClass.getSimpleName}: ${e.getMessage}")
+          None
+      }
+    }
+
+  /** Apply additional compiler options to the K2JVMCompilerArguments object.
+    *
+    * Uses the Kotlin compiler's own parseCommandLineArguments to handle all option formats (-X flags, etc.). Falls back to direct setter for -Xfriend-paths
+    * since it needs special handling as an Array<String>.
+    */
+  private def applyCompilerOptions(setup: CachedCompilerSetup, arguments: Any, options: List[String]): Unit =
+    if (options.nonEmpty) {
+      // Handle -Xfriend-paths specially via direct setter (it's an Array<String> not a simple flag)
+      val friendPathOpt = options.collectFirst { case opt if opt.startsWith("-Xfriend-paths=") => opt.stripPrefix("-Xfriend-paths=") }
+      friendPathOpt.foreach { paths =>
+        try {
+          val setFriendPaths = setup.argumentsClass.getMethod("setFriendPaths", classOf[Array[String]])
+          setFriendPaths.invoke(arguments, paths.split(",").asInstanceOf[AnyRef])
+        } catch {
+          case _: NoSuchMethodException =>
+            debug(s"K2JVMCompilerArguments.setFriendPaths not found, skipping friend-paths")
+        }
+      }
+
+      // Handle -Xplugin specially via direct setter (pluginClasspaths is Array<String>)
+      val pluginPathOpt = options.collectFirst { case opt if opt.startsWith("-Xplugin=") => opt.stripPrefix("-Xplugin=") }
+      pluginPathOpt.foreach { paths =>
+        try {
+          val setPlugins = setup.argumentsClass.getMethod("setPluginClasspaths", classOf[Array[String]])
+          setPlugins.invoke(arguments, paths.split(",").asInstanceOf[AnyRef])
+        } catch {
+          case _: NoSuchMethodException =>
+            debug(s"K2JVMCompilerArguments.setPluginClasspaths not found, skipping plugins")
+        }
+      }
+
+      // Handle -P plugin options via setPluginOptions (Array<String> of "plugin:id:key=value")
+      val pluginOptions = {
+        val paired = options.sliding(2, 1).toList
+        paired.collect { case List("-P", value) if value.startsWith("plugin:") => value }
+      }
+      if (pluginOptions.nonEmpty) {
+        try {
+          val setPluginOptions = setup.argumentsClass.getMethod("setPluginOptions", classOf[Array[String]])
+          setPluginOptions.invoke(arguments, pluginOptions.toArray.asInstanceOf[AnyRef])
+        } catch {
+          case _: NoSuchMethodException =>
+            debug(s"K2JVMCompilerArguments.setPluginOptions not found, skipping -P options")
+        }
+      }
+
+      // For remaining options, use parseCommandLineArguments
+      val remainingOpts = options.filter(opt => !opt.startsWith("-Xfriend-paths=") && !opt.startsWith("-Xplugin=") && opt != "-P" && !opt.startsWith("plugin:"))
+      if (remainingOpts.nonEmpty) {
+        try {
+          val cliToolClass = setup.loader.loadClass("org.jetbrains.kotlin.cli.common.CLITool")
+          val parseMethod = cliToolClass.getDeclaredMethod("parseArguments", classOf[Array[String]], setup.argumentsClass.getSuperclass.getSuperclass)
+          parseMethod.setAccessible(true)
+          parseMethod.invoke(null, remainingOpts.toArray, arguments)
+        } catch {
+          case _: Exception =>
+            // Fallback: try setting options as internalArguments
+            try {
+              val setInternal = setup.argumentsClass.getMethod("setInternalArguments", classOf[java.util.List[?]])
+              setInternal.invoke(arguments, remainingOpts.asJava)
+            } catch {
+              case _: Exception =>
+                debug(s"Could not apply compiler options: ${remainingOpts.mkString(", ")}")
+            }
+        }
+      }
+    }
 
   /** Create a MessageCollector proxy that streams diagnostics */
   private def createMessageCollectorProxy(

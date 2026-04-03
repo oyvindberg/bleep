@@ -78,7 +78,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/jawn/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-js-artifact-size+test-test/js213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-js-artifact-size+test-test/js213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-js-artifact-size+test-test/js213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/js-artifact-size-test/src/test/resources"
     ],

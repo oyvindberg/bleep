@@ -1485,7 +1485,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
       val language = ProjectLanguage.Kotlin(
         kotlinVersion = "2.3.0",
         jvmTarget = "11",
-        kotlinOptions = Nil
+        kotlinOptions = Nil,
+        javaRelease = None
       )
 
       val config = ProjectConfig(

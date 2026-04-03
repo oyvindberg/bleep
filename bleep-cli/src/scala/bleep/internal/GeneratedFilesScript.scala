@@ -26,38 +26,44 @@ object GeneratedFilesScript {
       */
     implicit val string: Repr[String] = {
       val pipe = "|"
-      val quote = "\""
       val space = " "
-      val tripleQuote = quote * 3
-      val triggersTripleQuote = Set('\r', '\n', '\\', '"')
-      val MaxStringLiteral = 5000
+      val tripleQuote = "\"\"\""
+      // JVM constant pool limit is 65535 bytes per UTF8 string.
+      // Stay well under to account for multi-byte chars.
+      val MaxChunkBytes = 40000
       (str, indent) =>
-        val cleaned = str.replace("\\", "\\\\\\\\")
-        val groups = cleaned
-          .grouped(MaxStringLiteral)
-          .map { str =>
-            if (str.exists(triggersTripleQuote))
-              str
-                .replace("$", "$$")
-                .replace(tripleQuote, s"$${\"\\\"\" * 3}")
-                .split("\n")
-                .mkString(
-                  start = s"s$tripleQuote$pipe",
-                  sep = s"\n${space * indent}$pipe",
-                  end = s"$tripleQuote.stripMargin"
-                )
-            else s"$quote$str$quote"
-          }
-          .toList
-
-        groups match {
-          case List(one) => one
-          case more =>
-            more.mkString(
-              "new String(",
-              ") + new String(",
-              ")"
+        // Always use triple-quoted string with s-interpolator and stripMargin.
+        // In Scala 3, s"""...""" processes standard escape sequences (\n, \", \\, etc.),
+        // so backslashes must be doubled to survive evaluation.
+        // $ must be escaped as $$, and """ must use interpolation.
+        def renderChunk(chunk: String): String =
+          chunk
+            .replace("\\", "\\\\")
+            .replace("$", "$$")
+            .replace(tripleQuote, s"$${\"\\\"\" * 3}")
+            .split("\n", -1)
+            .mkString(
+              start = s"s$tripleQuote$pipe",
+              sep = s"\n${space * indent}$pipe",
+              end = s"$tripleQuote.stripMargin"
             )
+
+        // Split into chunks on line boundaries to stay under JVM string limit
+        val chunks = List.newBuilder[String]
+        val current = new StringBuilder
+        for (line <- str.split("\n", -1)) {
+          if (current.nonEmpty && current.length + line.length + 1 > MaxChunkBytes) {
+            chunks += current.toString
+            current.clear()
+          }
+          if (current.nonEmpty) current.append('\n')
+          current.append(line)
+        }
+        if (current.nonEmpty) chunks += current.toString
+
+        chunks.result() match {
+          case List(one) => renderChunk(one)
+          case more      => more.map(renderChunk).mkString("(", " + ", ")")
         }
     }
 
@@ -128,7 +134,7 @@ object GeneratedFilesScript {
     targets.foreach { target =>
       if (${Repr.str(projectsWithFile.map(_.value).toSet, 6)}.contains(target.project.value)) {
         val to = target.$dir.resolve(${Repr.str(file.toRelPath.toString, 8)})
-        started.logger.withContext(target.project).warn(s"Writing $$to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $$to")
         val content = ${Repr.str(file.contents, 6)}
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)

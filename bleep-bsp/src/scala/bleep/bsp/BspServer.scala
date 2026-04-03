@@ -905,7 +905,7 @@ class BspServer(
     case sc: ScalaConfig =>
       ProjectLanguage.ScalaJava(sc.version, sc.options, None) // ScalaConfig doesn't have Java release
     case kc: KotlinConfig =>
-      ProjectLanguage.Kotlin(kc.version, kc.jvmTarget, kc.options)
+      ProjectLanguage.Kotlin(kc.version, kc.jvmTarget, kc.options, None)
     case jc: JavaConfig =>
       ProjectLanguage.JavaOnly(jc.release, jc.options, jc.ecjVersion)
   }

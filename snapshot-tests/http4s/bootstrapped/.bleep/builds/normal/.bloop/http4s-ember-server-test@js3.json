@@ -91,11 +91,11 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-client/js3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/js3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/js3/test-classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/js3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/js3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/js3/test-classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/js3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js3/scripts.GenerateForHttp4sCore",
@@ -142,7 +142,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server-test/js3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server-test/js3/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server-test/js3/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js-jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js-native/src/test/resources",

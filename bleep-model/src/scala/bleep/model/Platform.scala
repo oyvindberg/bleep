@@ -20,6 +20,8 @@ case class Platform(
     jvmOptions: Options,
     //      runtimeHome: Option[Path],
     jvmRuntimeOptions: Options,
+    jvmEnvironment: EnvironmentVars,
+    jvmAgents: JsonSet[Dep],
     //        classpath: Option[List[Path]],
     //        resources: Option[List[Path]]
     nativeVersion: Option[VersionScalaNative],
@@ -57,6 +59,8 @@ case class Platform(
       //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
       jvmOptions = jvmOptions.intersect(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
+      jvmEnvironment = jvmEnvironment.intersect(other.jvmEnvironment),
+      jvmAgents = jvmAgents.intersect(other.jvmAgents),
       nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
       nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
@@ -81,6 +85,8 @@ case class Platform(
       //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
       jvmOptions = jvmOptions.removeAll(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
+      jvmEnvironment = jvmEnvironment.removeAll(other.jvmEnvironment),
+      jvmAgents = jvmAgents.removeAll(other.jvmAgents),
       nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
       nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
@@ -105,6 +111,8 @@ case class Platform(
       //          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
       jvmOptions = jvmOptions.union(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
+      jvmEnvironment = jvmEnvironment.union(other.jvmEnvironment),
+      jvmAgents = jvmAgents.union(other.jvmAgents),
       nativeVersion = nativeVersion.orElse(other.nativeVersion),
       nativeGc = nativeGc.orElse(other.nativeGc),
       nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
@@ -118,7 +126,7 @@ case class Platform(
 
   override def isEmpty: Boolean =
     name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
-      jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
+      jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty && jvmEnvironment.isEmpty && jvmAgents.isEmpty &&
       nativeVersion.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty && nativeLinkerReleaseMode.isEmpty && nativeLTO.isEmpty && nativeMultithreading.isEmpty && nativeOptimize.isEmpty && nativeEmbedResources.isEmpty && nativeUseIncrementalCompilation.isEmpty
 }
 
@@ -136,6 +144,8 @@ object Platform {
         jsNodeVersion = None,
         jvmOptions = jvmOptions,
         jvmRuntimeOptions = jvmRuntimeOptions,
+        jvmEnvironment = EnvironmentVars.empty,
+        jvmAgents = JsonSet.empty,
         nativeVersion = None,
         nativeGc = None,
         nativeBuildTarget = None,
@@ -176,6 +186,8 @@ object Platform {
         jsNodeVersion = jsNodeVersion,
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
+        jvmEnvironment = EnvironmentVars.empty,
+        jvmAgents = JsonSet.empty,
         nativeVersion = None,
         nativeGc = None,
         nativeBuildTarget = None,
@@ -218,6 +230,8 @@ object Platform {
         jsNodeVersion = None,
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
+        jvmEnvironment = EnvironmentVars.empty,
+        jvmAgents = JsonSet.empty,
         nativeVersion = Some(nativeVersion),
         nativeGc = nativeGc,
         nativeBuildTarget = nativeBuildTarget,

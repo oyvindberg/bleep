@@ -10,9 +10,9 @@ object GenerateForCommon extends BleepCodegenScript("GenerateForCommon") {
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("common@jvm212", "common@js213", "common@jvm211", "common@jvm213", "common@native212", "common@js212", "common@native213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|common@native213""".stripMargin, s"""|common@js213""".stripMargin, s"""|common@jvm211""".stripMargin, s"""|common@native212""".stripMargin, s"""|common@js212""".stripMargin, s"""|common@jvm212""".stripMargin, s"""|common@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.internal
       |
@@ -26,7 +26,8 @@ object GenerateForCommon extends BleepCodegenScript("GenerateForCommon") {
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

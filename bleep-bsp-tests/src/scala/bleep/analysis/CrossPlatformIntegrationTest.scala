@@ -192,6 +192,7 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
       version = Some(VersionKotlin("2.3.0")),
       options = Options.empty,
       jvmTarget = None,
+      compilerPlugins = JsonSet.empty,
       js = Some(
         KotlinJs(
           moduleKind = Some(KotlinJsModuleKind.ESModule),
@@ -220,6 +221,7 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
       version = Some(VersionKotlin("2.3.0")),
       options = Options.empty,
       jvmTarget = None,
+      compilerPlugins = JsonSet.empty,
       js = None,
       native = Some(
         KotlinNative(
@@ -249,6 +251,7 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
       version = Some(VersionKotlin("2.3.0")),
       options = Options.empty,
       jvmTarget = Some("17"),
+      compilerPlugins = JsonSet.empty,
       js = Some(KotlinJs.empty.copy(moduleKind = Some(KotlinJsModuleKind.CommonJS))),
       native = None
     )
@@ -257,6 +260,7 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
       version = Some(VersionKotlin("2.3.0")),
       options = Options.empty,
       jvmTarget = Some("21"),
+      compilerPlugins = JsonSet.empty,
       js = Some(KotlinJs.empty.copy(moduleKind = Some(KotlinJsModuleKind.ESModule))),
       native = None
     )

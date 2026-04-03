@@ -121,7 +121,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-stub4-server/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-cats/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-test/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-test/jvm213/test-classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
@@ -155,7 +155,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-cats-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-cats-test/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-cats-test/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/cats/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/cats/src/test/resources"

@@ -146,9 +146,10 @@ projects:
     dependencies:
       - org.scala-sbt:test-interface:1.0
       - net.aichler:jupiter-interface:0.11.1
+      - org.junit.platform:junit-platform-launcher:1.9.1
       - org.junit.vintage:junit-vintage-engine:5.9.1
     java:
-      options: -proc:none
+      options: -proc:none --release 8
     platform:
       name: jvm
     sources: ./src/main/java

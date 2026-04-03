@@ -10,9 +10,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/FormDataDecoderDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/FormDataDecoderDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -24,7 +24,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("FormDataDecoder.scala:26: FormDataDecoder") {
@@ -75,7 +75,8 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |)), "Valid(Bar(List(Foo(a1,true), Foo(a2,false)),Foo(fa,false),true))")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -84,9 +85,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/HeadersDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/HeadersDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -98,7 +99,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("Headers.scala:95: withContentLength") {
@@ -129,7 +130,8 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |      assertEquals(sbtDoctestReplString(const.withContentLength(`Content-Length`.unsafeFromLong(1024))), "Headers(Content-Length: 1024, Content-Type: text/plain)")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -138,9 +140,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/HttpVersionDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/HttpVersionDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -152,7 +154,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("HttpVersion.scala:47: render") {
@@ -168,7 +170,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |
       |  test("HttpVersion.scala:152: fromString") {
-      |    //example at line 155: HttpVersion.fromString(\\\\"HTTP/1.1\\\\")
+      |    //example at line 155: HttpVersion.fromString(\\"HTTP/1.1\\")
       |    
       |      assertEquals(sbtDoctestReplString(HttpVersion.fromString("HTTP/1.1")), "Right(HTTP/1.1)")
       |  }
@@ -183,7 +185,8 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |      assertEquals(sbtDoctestReplString(HttpVersion.fromVersion(1, 10)), "Left(org.http4s.ParseFailure: Invalid HTTP version: major must be <= 9: 10)")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -192,9 +195,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/MessageDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/MessageDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -206,7 +209,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("Message.scala:142: putHeaders") {
@@ -241,7 +244,8 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |      assertEquals(sbtDoctestReplString(req2.headers.get[Accept]), "Some(Accept(NonEmptyList(application/*, text/*)))")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -250,9 +254,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/QueryOpsDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/QueryOpsDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -264,18 +268,19 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("QueryOps.scala:59: ++?") {
       |    import org.http4s.implicits._
       |
-      |    //example at line 63: uri\\\\"www.scala.com\\\\".++?(\\\\"key\\\\" -> List(\\\\"value1\\\\", \\\\"value2\\\\", \\\\"va ...
+      |    //example at line 63: uri\\"www.scala.com\\".++?(\\"key\\" -> List(\\"value1\\", \\"value2\\", \\"va ...
       |    sbtDoctestTypeEquals(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3")))((uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))): Uri)
       |      assertEquals(sbtDoctestReplString(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))), "www.scala.com?key=value1&key=value2&key=value3")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -284,9 +289,9 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/headers/Transfer-EncodingDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+      if (Set(s"""|http4s-core-test@jvm213""".stripMargin, s"""|http4s-core-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/headers/Transfer-EncodingDoctest.scala""".stripMargin)
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s.headers
       |
       |import _root_.munit._
@@ -298,7 +303,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("Transfer-Encoding.scala:53: filter") {
@@ -315,7 +320,8 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |      assertEquals(sbtDoctestReplString(te.filter(_ => false)), "None")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
