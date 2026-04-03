@@ -22,7 +22,8 @@ class BspDiagnosticTracker {
   /** Files that had diagnostics in the previous compilation cycle */
   @volatile private var previousFiles: Set[FileTarget] = Set.empty
 
-  /** Files that have received at least one diagnostic in the current cycle. `add()` returns true if the element was newly added (= first diagnostic = reset). */
+  /** Files that have received at least one diagnostic in the current cycle. `add()` returns true if the element was newly added (= first diagnostic = reset).
+    */
   private val currentFiles: ConcurrentHashMap.KeySetView[FileTarget, java.lang.Boolean] =
     ConcurrentHashMap.newKeySet()
 
