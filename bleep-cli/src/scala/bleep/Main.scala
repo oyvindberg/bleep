@@ -465,7 +465,7 @@ object Main {
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
             Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid))
           ),
-          Opts.subcommand("publish-local", "publishes your project locally") {
+          Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local')") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
               Opts.option[String]("version", "version you will publish"),
@@ -487,6 +487,57 @@ object Main {
               )
               commands.PublishLocal(watch, options, buildOpts)
             }
+          },
+          Opts.subcommand("publish", "publish artifacts to a named resolver, local-ivy, or sonatype") {
+            val dynVerFallback: () => String = () => new bleep.plugin.dynver.DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile).version
+
+            def publishOpts(target: commands.Publish.Target): Opts[BleepBuildCommand] =
+              (
+                Opts.option[String]("version", "version to publish (default: from git tags)").orNone,
+                Opts.flag("assert-release", "fail if git state would produce a snapshot version").orFalse,
+                Opts.flag("dry-run", "show what would be published without uploading").orFalse,
+                projectNames,
+                commonBuildOpts
+              ).mapN { case (version, assertRel, dryRun, projects, buildOpts) =>
+                commands.Publish(
+                  false,
+                  commands.Publish.Options(version, Some(dynVerFallback), assertRel, dryRun, target, projects, ManifestCreator.default),
+                  buildOpts
+                )
+              }
+
+            val builtinSubcommands: List[Opts[BleepBuildCommand]] = List(
+              Opts.subcommand("local-ivy", "publish to local ivy2 cache")(publishOpts(commands.Publish.Target.LocalIvy)),
+              Opts.subcommand("sonatype", "publish to Sonatype / Maven Central (with GPG signing)") {
+                (
+                  Opts.option[String]("version", "version to publish (default: from git tags)").orNone,
+                  Opts.flag("assert-release", "fail if git state would produce a snapshot version").orFalse,
+                  projectNames,
+                  commonBuildOpts
+                ).mapN { case (version, assertRel, projects, buildOpts) =>
+                  commands.PublishSonatype(
+                    commands.PublishSonatype.Options(version, assertRel, projects, ManifestCreator.default),
+                    buildOpts
+                  )
+                }
+              },
+              Opts.subcommand[BleepBuildCommand]("setup", "interactive setup wizard for publishing")(
+                Opts(commands.PublishSetup(started.pre.logger, started.pre.userPaths, Some(started)))
+              )
+            )
+
+            // Dynamic subcommands from named resolvers in bleep.yaml
+            val resolverSubcommands: List[Opts[BleepBuildCommand]] =
+              started.build.resolvers.values
+                .flatMap(_.name)
+                .filterNot(n => commands.Publish.ReservedNames.contains(n.value))
+                .map { resolverName =>
+                  Opts.subcommand(resolverName.value, s"publish to resolver '${resolverName.value}'")(
+                    publishOpts(commands.Publish.Target.Resolver(resolverName))
+                  )
+                }
+
+            (builtinSubcommands ++ resolverSubcommands).foldK
           },
           Opts.subcommand("dist", "creates a folder with a runnable distribution") {
             (
@@ -594,6 +645,21 @@ object Main {
             ),
             Opts.subcommand[BleepCommand]("max-memory-clear", "remove test runner max heap setting (use JVM default)")(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(testRunnerMaxMemory = None))).map(_ => ()))
+            )
+          ).foldK
+        ),
+        Opts.subcommand("auth", "configure authentication for private repositories (Artifact Registry, GitHub Packages, GitLab)")(
+          List(
+            Opts.subcommand[BleepCommand]("setup", "interactive setup for private repository authentication")(
+              Opts(() => commands.PublishSetup(logger, userPaths, None).run())
+            ),
+            Opts.subcommand[BleepCommand]("list", "list configured authentications")(
+              Opts(() => commands.ConfigAuthList(logger, userPaths).run())
+            ),
+            Opts.subcommand[BleepCommand]("remove", "remove authentication for a repository URI prefix")(
+              Opts.argument[String]("uri-prefix").map { uriStr => () =>
+                commands.ConfigAuthRemove(logger, userPaths, java.net.URI.create(uriStr)).run()
+              }
             )
           ).foldK
         )

@@ -331,7 +331,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       val repos = build.resolvers.values
       assert(repos.size === 1)
       val repo = repos.head.asInstanceOf[model.Repository.Maven]
-      assert(repo.name === Some("spring-milestones"))
+      assert(repo.name === Some(model.ResolverName("spring-milestones")))
     } finally {
       Files.deleteIfExists(tempFile)
       bleep.internal.FileUtils.deleteDirectory(tempDir)

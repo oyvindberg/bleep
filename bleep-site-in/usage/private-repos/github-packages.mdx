@@ -1,0 +1,73 @@
+
+# GitHub Packages
+
+## Setup
+
+1. Install [GitHub CLI](https://cli.github.com/)
+2. Run `gh auth login`
+3. Add a named resolver to your `bleep.yaml`:
+
+```yaml
+resolvers:
+  - name: my-packages
+    type: maven
+    uri: github://myname/myrepo
+```
+
+No bleep auth configuration needed — `gh` handles it.
+
+## Resolving dependencies
+
+```yaml
+resolvers:
+  - name: my-packages
+    type: maven
+    uri: github://myname/myrepo
+
+projects:
+  myapp:
+    dependencies:
+      - io.github.myname:some-lib:1.0.0
+```
+
+`github://owner/repo` resolves to `https://maven.pkg.github.com/owner/repo`. Credentials come from `gh auth token` (~66ms).
+
+## Publishing
+
+```bash
+bleep publish my-packages              # all publishable projects
+bleep publish my-packages mylib        # specific project
+```
+
+### Full example
+
+```yaml
+resolvers:
+  - name: my-packages
+    type: maven
+    uri: github://myname/myrepo
+
+templates:
+  template-publishable:
+    publish:
+      groupId: io.github.myname
+
+projects:
+  mylib:
+    extends: template-publishable
+```
+
+```bash
+git tag v0.1.0
+bleep publish my-packages
+```
+
+## Troubleshooting
+
+### "gh not found"
+
+Install the GitHub CLI from https://cli.github.com/, then run `gh auth login`.
+
+### "GitHub CLI not authenticated"
+
+Run `gh auth login` and ensure you have `read:packages` and `write:packages` scopes.

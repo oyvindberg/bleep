@@ -1,0 +1,79 @@
+
+# Google Artifact Registry
+
+## Setup
+
+1. Install [Google Cloud SDK](https://cloud.google.com/sdk/install)
+2. Run `gcloud auth login`
+3. Add a named resolver to your `bleep.yaml`:
+
+```yaml
+resolvers:
+  - name: company-releases
+    type: maven
+    uri: artifactregistry://europe-north1-maven.pkg.dev/my-project/my-repo
+```
+
+That's it. This resolver is used for both fetching dependencies and publishing.
+
+### Multiple GCP accounts
+
+If you have multiple gcloud accounts, configure which one to use:
+
+```bash
+bleep config auth setup
+```
+
+Or manually in `~/.config/bleep/config.yaml`:
+
+```yaml
+authentications:
+  artifactregistry://europe-north1-maven.pkg.dev/my-project:
+    account: you@company.com
+```
+
+The URI prefix matches all repositories under it. With a single gcloud account, no configuration is needed.
+
+## Resolving dependencies
+
+Dependencies are resolved automatically from the named resolver:
+
+```yaml
+resolvers:
+  - name: company-releases
+    type: maven
+    uri: artifactregistry://europe-north1-maven.pkg.dev/my-project/my-repo
+
+projects:
+  myapp:
+    dependencies:
+      - com.mycompany:internal-lib:1.0.0
+```
+
+Bleep rewrites `artifactregistry://` to `https://` and acquires a token via `gcloud auth print-access-token`. Tokens are fetched lazily — only when dependencies actually need resolving.
+
+## Publishing
+
+```bash
+bleep publish company-releases           # all publishable projects
+bleep publish company-releases mylib      # specific project
+bleep publish company-releases --version 1.0.0   # explicit version
+```
+
+The resolver name becomes a subcommand — with tab completion.
+
+Bleep generates the Maven layout (JAR, POM, sources, javadoc) with MD5/SHA1 checksums and uploads via HTTP PUT with the same gcloud credentials used for resolving.
+
+## Troubleshooting
+
+### "gcloud not found"
+
+Install the Google Cloud SDK from https://cloud.google.com/sdk/install, then run `gcloud auth login`.
+
+### "GCP credentials expired"
+
+Run `gcloud auth login` to re-authenticate.
+
+### Token fetch is slow (~2s)
+
+The `gcloud` CLI is Python-based. This only happens when dependencies actually need resolving or when publishing — not at bleep startup. The token is cached in-memory for the duration of the process.

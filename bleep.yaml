@@ -20,7 +20,12 @@ projects:
       # note: weird binary incompatibility when bumping this for scala3
     - org.typelevel::cats-core:2.9.0
     - org.typelevel::cats-parse:1.0.0
-    dependsOn: bleep-core
+    dependsOn:
+    - bleep-core
+    - bleep-plugin-ci-release
+    - bleep-plugin-dynver
+    - bleep-plugin-pgp
+    - bleep-plugin-sonatype
     extends:
     - template-common
     - template-scala-3
@@ -208,18 +213,21 @@ projects:
       strict: false
   scripts:
     dependencies:
-    - build.bleep::bleep-plugin-ci-release:${BLEEP_VERSION}
     - build.bleep::bleep-plugin-mdoc:${BLEEP_VERSION}
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}
     - build.bleep::bleep-plugin-scalafix:${BLEEP_VERSION}
     extends:
     - template-common
     - template-scala-3
+    publish:
+      enabled: false
   scripts-init:
     dependencies: build.bleep::bleep-plugin-dynver:${BLEEP_VERSION}
     extends:
     - template-common
     - template-scala-3
+    publish:
+      enabled: false
 scripts:
   generate-docs:
     main: bleep.scripts.GenDocumentation
@@ -230,14 +238,8 @@ scripts:
   it:
     main: bleep.scripts.It
     project: scripts
-  my-publish-local:
-    main: bleep.scripts.PublishLocal
-    project: scripts
   native-image:
     main: bleep.scripts.GenNativeImage
-    project: scripts
-  publish:
-    main: bleep.scripts.Publish
     project: scripts
   scalafix:
     main: bleep.scripts.Scalafix
@@ -248,6 +250,18 @@ templates:
       options: -proc:none
     platform:
       name: jvm
+    publish:
+      groupId: build.bleep
+      url: https://github.com/oyvindberg/bleep/
+      description: A bleeping fast build tool!
+      developers:
+      - id: oyvindberg
+        name: Øyvind Raddum Berg
+        url: https://github.com/oyvindberg
+      licenses:
+      - name: MIT
+        url: http://opensource.org/licenses/MIT
+        distribution: repo
     scala:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked

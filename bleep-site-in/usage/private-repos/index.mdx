@@ -1,0 +1,180 @@
+
+# Publishing & Private Repositories
+
+Bleep has built-in support for publishing artifacts and resolving dependencies from private Maven repositories.
+
+## Getting started: making your build publishable
+
+Starting from a basic `bleep.yaml`, you need two things: a `publish` config on your projects and a named resolver if publishing to a private registry.
+
+### Step 1: Add `publish` to your projects
+
+The `publish` field marks a project as publishable. At minimum, set `groupId`:
+
+```yaml
+projects:
+  mylib:
+    publish:
+      groupId: com.mycompany
+```
+
+Use a template to share config across projects. Test projects are automatically excluded — any project with `isTestProject: true` is never published, even if it inherits `publish` from a template.
+
+```yaml
+templates:
+  template-common:
+    publish:
+      groupId: com.mycompany
+      description: Our shared libraries
+      url: https://github.com/mycompany/mylibs
+      developers:
+        - id: teamlead
+          name: Team Lead
+          url: https://github.com/teamlead
+      licenses:
+        - name: MIT
+          url: http://opensource.org/licenses/MIT
+          distribution: repo
+
+projects:
+  mylib:
+    extends: template-common          # published
+
+  mylib-utils:
+    extends: template-common          # published
+
+  mylib-tests:
+    extends: template-common
+    isTestProject: true               # not published (test projects are always skipped)
+```
+
+This means you can safely put `publish` in your common template without worrying about test projects leaking into your releases.
+
+### Step 2: Add a named resolver (for private repos)
+
+If publishing to a private registry, declare it as a named resolver:
+
+```yaml
+resolvers:
+  - name: company-releases
+    type: maven
+    uri: artifactregistry://europe-north1-maven.pkg.dev/my-project/my-repo
+```
+
+This resolver is used for both fetching dependencies and publishing. The name becomes a publish subcommand.
+
+### Step 3: Publish
+
+```bash
+bleep publish company-releases           # all publishable projects
+bleep publish company-releases mylib      # specific project
+```
+
+Version is derived from git tags automatically. Tag with `v` prefix:
+
+```bash
+git tag v1.0.0
+bleep publish company-releases
+```
+
+## Command reference
+
+```bash
+bleep publish <target> [--version X] [--assert-release] [projects...]
+```
+
+| Target | Description |
+|--------|-------------|
+| `local-ivy` | Publish to local `~/.ivy2` cache |
+| `sonatype` | Publish to Maven Central (GPG signing + staging) |
+| `setup` | Interactive setup wizard |
+| *resolver-name* | Publish to a named resolver from `bleep.yaml` |
+
+Named resolvers appear as subcommands automatically — with tab completion and help text.
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--version X` | Override version (default: from git tags via DynVer) |
+| `--assert-release` | Fail if git state would produce a snapshot version |
+
+## Supported providers
+
+| Provider | Resolver scheme | CLI tool | Auth config needed |
+|----------|----------------|----------|-------------------|
+| [Google Artifact Registry](artifact-registry) | `artifactregistry://` | `gcloud` | Account (if multiple) |
+| [GitHub Packages](github-packages) | `github://` | `gh` | None |
+| [GitLab Package Registry](gitlab-packages) | `gitlab://` | `glab` | None |
+| [Sonatype / Maven Central](sonatype) | built-in | — | Env vars + GPG |
+
+Each provider page covers both resolving and publishing in detail.
+
+## The `publish` config
+
+All fields merge through templates using the same rules as other bleep config.
+
+| Field | Description |
+|-------|-------------|
+| `groupId` | Maven groupId (required for publishing) |
+| `description` | Project description (POM) |
+| `url` | Project homepage (POM) |
+| `organization` | Organization name (POM) |
+| `developers` | List of `{id, name, url}` (POM) |
+| `licenses` | List of `{name, url, distribution}` (POM) |
+| `sonatypeProfileName` | Sonatype profile (defaults to groupId) |
+| `sonatypeCredentialHost` | Sonatype host (defaults to central.sonatype.com) |
+
+Projects without `publish` are never published. Projects with `isTestProject: true` are also never published, even if they inherit `publish` from a template.
+
+## Version management
+
+Version is determined by (in priority order):
+
+1. `--version X` flag — explicit override
+2. Git tags via DynVer — automatic from `git describe`
+
+DynVer examples:
+- On tag `v1.0.0` (clean) → `1.0.0`
+- 3 commits after `v1.0.0` → `1.0.0+3-abcdef12`
+- No tags → `0.0.0+N-abcdef12`
+
+### Release assertions
+
+Use `--assert-release` to fail if the git state would produce a snapshot version:
+
+```bash
+bleep publish sonatype --assert-release
+```
+
+This checks DynVer structurally — fails if there are commits after the tag, the working tree is dirty, or no tags exist. Useful in CI to prevent accidental snapshot publishes.
+
+## Interactive setup
+
+```bash
+bleep publish setup
+```
+
+Walks you through configuring auth for private repos and (for Sonatype) generating GPG keys.
+
+## Managing auth
+
+```bash
+bleep config auth setup    # interactive setup
+bleep config auth list     # list configured authentications
+bleep config auth remove <uri-prefix>
+```
+
+## Troubleshooting
+
+### "No publishable projects found"
+
+Add `publish` config with at least `groupId` to your projects or templates. Projects without `publish` are skipped.
+
+### Version issues
+
+Ensure your repo has git tags (`git tag v0.1.0`). Without tags, DynVer falls back to `0.0.0+N-hash`, which some registries may reject for releases. Use `--version` to override, or `--assert-release` to catch this in CI.
+
+### Resolver not found
+
+The resolver name must match a named resolver in your `bleep.yaml`. Check `resolvers:` section. Unnamed resolvers (plain URIs) cannot be used as publish targets.

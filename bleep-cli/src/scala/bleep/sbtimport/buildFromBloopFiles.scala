@@ -194,7 +194,8 @@ object buildFromBloopFiles {
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty,
         libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
-        ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel)
+        ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),
+        publish = None
       )
     }
 

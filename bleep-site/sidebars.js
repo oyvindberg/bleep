@@ -56,6 +56,35 @@ const sidebars = {
                     type: "doc",
                     label: "Build rewrites",
                     id: "usage/build-rewrites",
+                }, {
+                    type: "category",
+                    label: "Private repositories",
+                    link: {
+                        type: "doc",
+                        id: "usage/private-repos/index",
+                    },
+                    items: [
+                        {
+                            type: "doc",
+                            label: "Google Artifact Registry",
+                            id: "usage/private-repos/artifact-registry",
+                        },
+                        {
+                            type: "doc",
+                            label: "GitHub Packages",
+                            id: "usage/private-repos/github-packages",
+                        },
+                        {
+                            type: "doc",
+                            label: "GitLab Package Registry",
+                            id: "usage/private-repos/gitlab-packages",
+                        },
+                        {
+                            type: "doc",
+                            label: "Sonatype / Maven Central",
+                            id: "usage/private-repos/sonatype",
+                        },
+                    ],
                 },
             ],
         },

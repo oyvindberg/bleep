@@ -33,7 +33,7 @@ jobs:
           bleep sourcegen
           bleep compile
           # publish locally so the dev script's BSP server uses our code
-          bleep my-publish-local
+          bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
 
@@ -139,8 +139,8 @@ jobs:
       - name: Build native image (non-windows)
         run: |
           bleep sourcegen
-          bleep compile
-          bleep my-publish-local
+          bleep compile bleep-cli
+          bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
           ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
@@ -169,8 +169,8 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
       - name: Publish locally (windows)
-        run: bleep my-publish-local
-        shell: cmd
+        shell: bash
+        run: bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
         if: runner.os == 'Windows'
       - name: Setup GraalVM (windows)
         uses: graalvm/setup-graalvm@v1
@@ -247,8 +247,8 @@ jobs:
       - name: Publish bleep-bsp and test-runner locally
         run: |
           bleep sourcegen
-          bleep compile
-          bleep my-publish-local
+          bleep compile bleep-cli
+          bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
       - name: Download artifacts
         uses: actions/download-artifact@v8

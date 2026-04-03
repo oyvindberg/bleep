@@ -80,7 +80,8 @@ object generateBuildFromMaven {
         testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
-        ignoreEvictionErrors = None
+        ignoreEvictionErrors = None,
+        publish = None
       )
 
       val buildWithScript = buildFile1.copy(
