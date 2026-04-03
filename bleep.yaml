@@ -157,8 +157,6 @@ projects:
       options: -proc:none --release 8
     platform:
       name: jvm
-    publish:
-      enabled: false
     sources: ./src/main/java
     resources: ./src/main/resources
   bleep-bsp:
