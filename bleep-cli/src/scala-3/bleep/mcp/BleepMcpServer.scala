@@ -177,7 +177,7 @@ object BleepMcpServer {
     description = Some(
       "Compile bleep projects. Returns compact summary (error counts, diff). Errors stream per-project as they finish. Call bleep.status for full diagnostic details. Use verbose=true only when you need every diagnostic in the response."
     ),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Compile"), readOnlyHint = Some(true), openWorldHint = Some(false)))
   ) { (input, ctx) =>
     executeBspOperation(s, input.projects, input.verbose, ctx).map(textResult)
@@ -188,7 +188,7 @@ object BleepMcpServer {
     description = Some(
       "Run tests for bleep projects. Returns compact summary (pass/fail counts, diff). Failures stream as they occur. Call bleep.status for full details. Use verbose=true only when you need full failure messages/stacktraces."
     ),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Test"), readOnlyHint = Some(true), openWorldHint = Some(false)))
   ) { (input, ctx) =>
     executeBspTestOperation(s, input.projects, input.only, input.exclude, input.verbose, ctx)
@@ -198,7 +198,7 @@ object BleepMcpServer {
   private def sourcegenTool(s: ToolState): ToolDef[IO, ProjectsInput, Nothing] = ToolDef.unstructured[IO, ProjectsInput](
     name = "bleep.sourcegen",
     description = Some("Run source generators for bleep projects. Only affects projects that have sourcegen scripts defined."),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Source Generate"), destructiveHint = Some(false), openWorldHint = Some(false)))
   ) { (input, _) =>
     val started = s.started
@@ -226,7 +226,7 @@ object BleepMcpServer {
   private def fmtTool(s: ToolState): ToolDef[IO, ProjectsInput, Nothing] = ToolDef.unstructured[IO, ProjectsInput](
     name = "bleep.fmt",
     description = Some("Format Scala and Java source files using scalafmt and google-java-format. Optionally limit to specific projects."),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Format"), destructiveHint = Some(false), openWorldHint = Some(false)))
   ) { (input, _) =>
     val projects = resolveProjects(s.started, input.projects)
@@ -241,7 +241,7 @@ object BleepMcpServer {
   private def cleanTool(s: ToolState): ToolDef[IO, ProjectsInput, Nothing] = ToolDef.unstructured[IO, ProjectsInput](
     name = "bleep.clean",
     description = Some("Delete build outputs for bleep projects. Removes compiled classes and other build artifacts."),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Clean"), destructiveHint = Some(true), openWorldHint = Some(false)))
   ) { (input, _) =>
     val projects = resolveProjects(s.started, input.projects)
@@ -268,7 +268,7 @@ object BleepMcpServer {
     description = Some(
       "Compile and run a project or script. Checks scripts first, then projects. Returns stdout/stderr and exit code. Has a timeout to prevent hanging on long-running processes."
     ),
-    taskMode = TaskMode.AsyncOnly,
+    taskMode = TaskMode.AsyncAllowed,
     annotations = Some(ToolAnnotations(title = Some("Run"), destructiveHint = Some(false), openWorldHint = Some(false)))
   ) { (input, ctx) =>
     val timeoutSeconds = input.timeoutSeconds.getOrElse(60)
