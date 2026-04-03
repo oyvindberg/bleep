@@ -6,8 +6,7 @@ import _root_.mcp.server.{InputDef, InputSchema}
 
 /** Typed input definitions for MCP tools.
   *
-  * Uses InputDef.raw with case classes and circe Decoders. Named tuples would be cleaner but require -source 3.5+
-  * and this project uses -source 3.4.
+  * Uses InputDef.raw with case classes and circe Decoders. Named tuples would be cleaner but require -source 3.5+ and this project uses -source 3.4.
   *
   * All decoders are strict: they reject unknown fields and fail on wrong types instead of silently falling back to defaults.
   */

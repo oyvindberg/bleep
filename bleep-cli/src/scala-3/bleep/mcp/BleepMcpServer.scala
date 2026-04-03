@@ -28,8 +28,8 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   *
   * Connects to the bleep-bsp daemon and translates BSP events into MCP tool results and notifications. Runs on stdio transport.
   *
-  * Build operations run as async tasks — the client gets a task ID back immediately and receives progress updates. File watching is exposed
-  * as a resource with an updates stream.
+  * Build operations run as async tasks — the client gets a task ID back immediately and receives progress updates. File watching is exposed as a resource with
+  * an updates stream.
   */
 object BleepMcpServer {
 
@@ -403,10 +403,10 @@ object BleepMcpServer {
     ResourceDef[IO, String](
       uri = "bleep://watch",
       name = "File Watcher",
-      description = Some("Source file watcher. Subscribable — emits notifications when source files in the build change. Call bleep.compile or bleep.test to rebuild."),
+      description =
+        Some("Source file watcher. Subscribable — emits notifications when source files in the build change. Call bleep.compile or bleep.test to rebuild."),
       mimeType = Some("application/json"),
-      handler = (_: ResourceContext[IO]) =>
-        IO.pure(Some(Json.obj("message" -> Json.fromString("Subscribe to receive file change notifications.")).noSpaces)),
+      handler = (_: ResourceContext[IO]) => IO.pure(Some(Json.obj("message" -> Json.fromString("Subscribe to receive file change notifications.")).noSpaces)),
       updates = fs2.Stream.fromQueueUnterminated(sourceChangeQueue)
     )
   )
