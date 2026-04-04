@@ -675,6 +675,16 @@ object Main {
               }
             )
           ).foldK
+        ),
+        Opts.subcommand("remote-cache", "configure remote build cache credentials")(
+          List(
+            Opts.subcommand[BleepCommand]("setup", "interactive setup for S3 remote cache credentials")(
+              Opts(commands.ConfigRemoteCacheSetup(logger, userPaths))
+            ),
+            Opts.subcommand[BleepCommand]("clear", "remove remote cache credentials from config")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(remoteCacheCredentials = None)).map(_ => ()))
+            )
+          ).foldK
         )
       ).foldK
     )
