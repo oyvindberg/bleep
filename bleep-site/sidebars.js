@@ -61,6 +61,10 @@ const sidebars = {
                     label: "CI project invalidation",
                     id: "usage/ci-invalidation",
                 }, {
+                    type: "doc",
+                    label: "Remote build cache",
+                    id: "usage/remote-cache",
+                }, {
                     type: "category",
                     label: "Private repositories",
                     link: {

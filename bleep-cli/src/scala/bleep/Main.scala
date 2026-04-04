@@ -563,6 +563,16 @@ object Main {
               commands.Fmt(check, projects)
             }
           },
+          Opts.subcommand("remote-cache", "push and pull compiled classes to/from a remote S3-compatible cache")(
+            List(
+              Opts.subcommand("pull", "pull cached compiled classes from remote cache")(
+                projectNames.map(names => commands.RemoteCache.Pull(names))
+              ),
+              Opts.subcommand("push", "push compiled classes to remote cache")(
+                projectNames.map(names => commands.RemoteCache.Push(names))
+              )
+            ).foldK
+          ),
           Opts.subcommand("setup-dev-script", "setup a bash script which can run the code bleep has compiled")(
             (projectName, Opts.option[String]("main-class", "override main class").orNone).mapN { case (projectNames, main) =>
               new commands.SetupDevScript(started, projectNames, main)

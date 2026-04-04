@@ -1,0 +1,135 @@
+---
+title: Remote build cache
+---
+
+# Remote build cache
+
+Bleep can cache compiled classes in S3 (or any S3-compatible storage like MinIO, Cloudflare R2) so CI pipelines skip compilation for unchanged projects.
+
+## Setup
+
+Add to your `bleep.yaml`:
+
+```yaml
+remote-cache:
+  uri: s3://my-bleep-cache/builds
+  region: eu-north-1
+```
+
+Add credentials to `~/.config/bleep/config.yaml`:
+
+```yaml
+remoteCacheCredentials:
+  accessKeyId: AKIA...
+  secretAccessKey: wJal...
+```
+
+Or use environment variables (standard AWS convention):
+
+```bash
+export AWS_ACCESS_KEY_ID=AKIA...
+export AWS_SECRET_ACCESS_KEY=wJal...
+```
+
+## Usage
+
+```bash
+# Pull cached classes before building
+bleep remote-cache pull
+
+# Build only what changed
+bleep build invalidated --base origin/main | xargs bleep compile
+
+# Push compiled classes to cache
+bleep remote-cache push
+```
+
+## How it works
+
+Each project gets a SHA-256 **digest** computed from:
+- Project configuration (dependencies, compiler flags, Scala version, platform, etc.)
+- Source file contents (using git blob hashes for speed, with filesystem fallback)
+- Resource file contents (affects the digest but resources are NOT cached)
+- Transitive dependency project digests (changes propagate downstream)
+
+Cache entries are tar.gz archives stored at `s3://bucket/prefix/<project>/<digest>.tar.gz` containing the compiled classes directory and zinc incremental analysis.
+
+### Pull behavior
+- Checks if each project's digest matches a cached archive
+- Skips projects that are already compiled locally
+- Downloads and extracts matching archives
+- Zinc analysis is included so subsequent incremental compilation works correctly
+
+### Push behavior
+- For each compiled project, checks if the cache already has an entry for that digest
+- Uploads tar.gz of classes + zinc analysis for new entries
+- Skips projects that aren't compiled or are already cached
+
+## CI integration
+
+### GitHub Actions
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - name: Pull cache
+        run: bleep remote-cache pull
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Build changed projects
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
+
+      - name: Push cache
+        run: bleep remote-cache push
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+### GitLab CI
+
+```yaml
+build:
+  script:
+    - bleep remote-cache pull
+    - bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | xargs bleep compile
+    - bleep remote-cache push
+```
+
+## S3-compatible services
+
+The remote cache works with any S3-compatible service:
+
+### MinIO (self-hosted)
+
+```yaml
+remote-cache:
+  uri: http://minio.internal:9000/bleep-cache/builds
+  region: us-east-1
+```
+
+### Cloudflare R2
+
+```yaml
+remote-cache:
+  uri: https://<account-id>.r2.cloudflarestorage.com/bleep-cache/builds
+  region: auto
+```
+
+### AWS S3
+
+```yaml
+remote-cache:
+  uri: s3://my-bleep-cache/builds
+  region: eu-north-1
+```
