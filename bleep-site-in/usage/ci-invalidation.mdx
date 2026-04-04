@@ -1,0 +1,104 @@
+---
+title: CI project invalidation
+---
+
+# CI project invalidation
+
+Bleep can compute exactly which projects are affected by a set of changes, so your CI pipeline only rebuilds and retests what's necessary.
+
+## Usage
+
+```bash
+bleep build invalidated --base <commitish>
+```
+
+The `--base` parameter is a git commitish — typically the base branch of a PR:
+
+```bash
+# Compare against the main branch
+bleep build invalidated --base origin/main
+
+# Compare against a specific commit
+bleep build invalidated --base abc1234
+```
+
+Output is one project name per line, ready for piping:
+
+```bash
+bleep build invalidated --base origin/main | xargs bleep compile
+bleep build invalidated --base origin/main | xargs bleep test
+```
+
+Use `--json` for structured output:
+
+```bash
+bleep build invalidated --base origin/main --json
+# ["bleep-core","bleep-cli","bleep-tests"]
+```
+
+## What counts as "invalidated"
+
+A project is invalidated if **any** of the following changed between the base commit and HEAD:
+
+1. **Build configuration** — dependencies, Scala/Java/Kotlin version, compiler options, platform settings, templates, or any other field in `bleep.yaml` that affects the project
+2. **Source files** — any file under the project's source or resource directories was added, modified, or deleted (detected via `git diff`)
+3. **Transitive dependents** — if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes sourcegen script dependencies.
+
+New projects (present in HEAD but not in the base) are always invalidated.
+
+## GitHub Actions example
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for git diff
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - name: Find affected projects
+        id: affected
+        run: |
+          PROJECTS=$(bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }})
+          echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
+          if [ -z "$PROJECTS" ]; then
+            echo "No projects affected"
+          else
+            echo "Affected projects:"
+            echo "$PROJECTS"
+          fi
+
+      - name: Compile affected projects
+        if: steps.affected.outputs.projects != ''
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
+
+      - name: Test affected projects
+        if: steps.affected.outputs.projects != ''
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep test
+```
+
+## GitLab CI example
+
+```yaml
+build:
+  script:
+    - PROJECTS=$(bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
+    - |
+      if [ -n "$PROJECTS" ]; then
+        echo "$PROJECTS" | xargs bleep compile
+        echo "$PROJECTS" | xargs bleep test
+      else
+        echo "No projects affected, skipping build"
+      fi
+```
+
+## How it works
+
+1. Loads `bleep.yaml` from the base commit via `git show`
+2. Compares the fully expanded project configuration (after template application) between base and HEAD
+3. Runs `git diff --name-only` to detect changed source and resource files
+4. Maps changed files to their owning projects
+5. Computes the transitive closure of dependents for all directly affected projects
