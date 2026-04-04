@@ -10,7 +10,16 @@ object BspProxy {
   def run(pre: Prebootstrapped): ExitCode = {
     val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
     val build = pre.existingBuild.buildFile.forceGet.getOrElse {
-      model.BuildFile(model.$schema, model.BleepVersion.current, model.JsonMap.empty, model.JsonMap.empty, model.JsonList.empty, model.JsonMap.empty, None, None)
+      model.BuildFile(
+        model.$schema,
+        model.BleepVersion.current,
+        model.JsonMap.empty,
+        model.JsonMap.empty,
+        model.JsonList.empty,
+        model.JsonMap.empty,
+        None,
+        None
+      )
     }
     val resolver = CoursierResolver.Factory.default(pre, config, build)
 

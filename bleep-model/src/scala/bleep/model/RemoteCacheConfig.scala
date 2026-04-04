@@ -8,7 +8,7 @@ import java.net.URI
 
 /** Remote build cache configuration. Stored in `bleep.yaml` (shared by all contributors).
   *
-  * Credentials are stored separately in `~/.config/bleep/config.yaml` or via `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` environment variables.
+  * Credentials are stored separately in `~/.config/bleep/config.yaml` or via `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment variables.
   */
 case class RemoteCacheConfig(
     uri: URI,
@@ -23,7 +23,7 @@ object RemoteCacheConfig {
   implicit val encoder: Encoder[RemoteCacheConfig] = deriveEncoder
 }
 
-/** Remote cache credentials. Stored in user config (`~/.config/bleep/config.yaml`). Falls back to `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` environment
+/** Remote cache credentials. Stored in user config (`~/.config/bleep/config.yaml`). Falls back to `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment
   * variables.
   */
 case class RemoteCacheCredentials(
@@ -37,7 +37,7 @@ object RemoteCacheCredentials {
 
   def fromEnv(): Option[RemoteCacheCredentials] =
     for {
-      key <- sys.env.get("AWS_ACCESS_KEY_ID")
-      secret <- sys.env.get("AWS_SECRET_ACCESS_KEY")
+      key <- sys.env.get("BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID")
+      secret <- sys.env.get("BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY")
     } yield RemoteCacheCredentials(key, secret)
 }

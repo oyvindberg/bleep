@@ -127,7 +127,7 @@ object RemoteCache {
       .orElse(model.RemoteCacheCredentials.fromEnv())
       .getOrElse(
         throw new BleepException.Text(
-          "No remote cache credentials found. Set remoteCacheCredentials in ~/.config/bleep/config.yaml or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env vars."
+          "No remote cache credentials found. Set remoteCacheCredentials in ~/.config/bleep/config.yaml or BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID/BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY env vars."
         )
       )
 }
