@@ -45,6 +45,9 @@ object ProjectDigest {
 
           val md = MessageDigest.getInstance("SHA-256")
 
+          // 0. Bleep version (different versions produce different compilation output)
+          md.update(build.$version.value.getBytes("UTF-8"))
+
           // 1. Project config (deterministic YAML, excluding publish which doesn't affect compilation)
           val configForDigest = project.copy(publish = None)
           val configYaml = yaml.encodeShortened(configForDigest)

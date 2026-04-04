@@ -77,7 +77,7 @@ object RemoteCache {
     }
   }
 
-  case class Push(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+  case class Push(projects: Array[model.CrossProjectName], force: Boolean) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       val cacheConfig = started.build match {
         case fb: model.Build.FileBacked => fb.file.`remote-cache`
@@ -114,7 +114,7 @@ object RemoteCache {
                   if (!Files.isDirectory(projectPaths.classes) || !Files.list(projectPaths.classes).findAny().isPresent) {
                     notCompiled.incrementAndGet()
                     started.logger.debug(s"${crossName.value}: not compiled, skipping")
-                  } else if (client.headObject(key)) {
+                  } else if (!force && client.headObject(key)) {
                     skipped.incrementAndGet()
                     started.logger.debug(s"${crossName.value}: already in cache")
                   } else {

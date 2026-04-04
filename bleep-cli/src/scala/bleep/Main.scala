@@ -569,7 +569,7 @@ object Main {
                 projectNames.map(names => commands.RemoteCache.Pull(names))
               ),
               Opts.subcommand("push", "push compiled classes to remote cache")(
-                projectNames.map(names => commands.RemoteCache.Push(names))
+                (projectNames, Opts.flag("force", "overwrite existing cache entries").orFalse).mapN(commands.RemoteCache.Push.apply)
               )
             ).foldK
           ),

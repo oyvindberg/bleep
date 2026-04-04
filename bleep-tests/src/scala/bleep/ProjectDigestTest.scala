@@ -50,7 +50,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       // This value must remain stable across platforms and versions.
       // If it changes, remote cache entries become invalid.
       info(s"empty project digest: $digest")
-      digest shouldBe "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+      digest shouldBe "16ea4ae6513b95a99268b71c93bf4a99fbda9cbb2d55cee6945e960b7b847eac"
     } finally deleteRecursively(workspace)
   }
 
@@ -65,7 +65,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
       info(s"project-with-dep digest: $digest")
-      digest shouldBe "f3061cdc50db44978246c6b8f6b62093e3d9243f6986890b31cc57bbaa12a406"
+      digest shouldBe "64cfbf35cc787c673827f4fb553b5690355de91987c9618e81315c350defe2c3"
     } finally deleteRecursively(workspace)
   }
 
