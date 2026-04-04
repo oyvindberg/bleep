@@ -2,6 +2,8 @@ package bleep
 package commands
 
 import java.nio.file.{Files, Path}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{Executors, Future as JFuture}
 import scala.collection.immutable.SortedMap
 
 /** Remote build cache: pull pre-compiled classes from S3, push after building.
@@ -14,6 +16,8 @@ import scala.collection.immutable.SortedMap
   * Zinc analysis IS included so incremental compilation works correctly after pulling.
   */
 object RemoteCache {
+
+  private val Parallelism = 16
 
   case class Pull(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
@@ -32,34 +36,42 @@ object RemoteCache {
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPull = if (projects.nonEmpty) projects.toSet else digests.keySet
 
-          var pulled = 0
-          var skipped = 0
-          var notFound = 0
+          val pulled = AtomicInteger(0)
+          val skipped = AtomicInteger(0)
+          val notFound = AtomicInteger(0)
+
+          val executor = Executors.newVirtualThreadPerTaskExecutor()
+          val futures = new java.util.ArrayList[JFuture[?]]()
 
           projectsToPull.toList.sorted.foreach { crossName =>
             digests.get(crossName) match {
               case None =>
                 started.logger.warn(s"Project ${crossName.value} not in build, skipping")
               case Some(digest) =>
-                val key = cacheKey(prefix, crossName, digest)
-                val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
+                futures.add(executor.submit((() => {
+                  val key = cacheKey(prefix, crossName, digest)
+                  val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
 
-                if (Files.isDirectory(projectPaths.classes) && Files.list(projectPaths.classes).findAny().isPresent) {
-                  skipped += 1
-                  started.logger.debug(s"${crossName.value}: already compiled, skipping")
-                } else if (client.headObject(key)) {
-                  val archive = client.getObject(key)
-                  TarGz.unpack(archive, projectPaths.targetDir)
-                  pulled += 1
-                  started.logger.info(s"${crossName.value}: pulled from cache (${archive.length / 1024}KB)")
-                } else {
-                  notFound += 1
-                  started.logger.debug(s"${crossName.value}: not in cache")
-                }
+                  if (Files.isDirectory(projectPaths.classes) && Files.list(projectPaths.classes).findAny().isPresent) {
+                    skipped.incrementAndGet()
+                    started.logger.debug(s"${crossName.value}: already compiled, skipping")
+                  } else if (client.headObject(key)) {
+                    val archive = client.getObject(key)
+                    TarGz.unpack(archive, projectPaths.targetDir)
+                    pulled.incrementAndGet()
+                    started.logger.info(s"${crossName.value}: pulled from cache (${archive.length / 1024}KB)")
+                  } else {
+                    notFound.incrementAndGet()
+                    started.logger.debug(s"${crossName.value}: not in cache")
+                  }
+                }): Runnable))
             }
           }
 
-          started.logger.info(s"Remote cache pull: $pulled pulled, $skipped already compiled, $notFound not cached (${projectsToPull.size} total)")
+          futures.forEach(_.get())
+          executor.shutdown()
+
+          started.logger.info(s"Remote cache pull: ${pulled.get()} pulled, ${skipped.get()} already compiled, ${notFound.get()} not cached (${projectsToPull.size} total)")
           Right(())
       }
     }
@@ -82,35 +94,48 @@ object RemoteCache {
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPush = if (projects.nonEmpty) projects.toSet else digests.keySet
 
-          var pushed = 0
-          var skipped = 0
-          var notCompiled = 0
+          val pushed = AtomicInteger(0)
+          val skipped = AtomicInteger(0)
+          val notCompiled = AtomicInteger(0)
+
+          val semaphore = new java.util.concurrent.Semaphore(Parallelism)
+          val executor = Executors.newVirtualThreadPerTaskExecutor()
+          val futures = new java.util.ArrayList[JFuture[?]]()
 
           projectsToPush.toList.sorted.foreach { crossName =>
             digests.get(crossName) match {
               case None =>
                 started.logger.warn(s"Project ${crossName.value} not in build, skipping")
               case Some(digest) =>
-                val key = cacheKey(prefix, crossName, digest)
-                val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
+                futures.add(executor.submit((() => {
+                  val key = cacheKey(prefix, crossName, digest)
+                  val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
 
-                if (!Files.isDirectory(projectPaths.classes) || !Files.list(projectPaths.classes).findAny().isPresent) {
-                  notCompiled += 1
-                  started.logger.debug(s"${crossName.value}: not compiled, skipping")
-                } else if (client.headObject(key)) {
-                  skipped += 1
-                  started.logger.debug(s"${crossName.value}: already in cache")
-                } else {
-                  // Pack classes dir + zinc analysis
-                  val archive = TarGz.pack(projectPaths.targetDir)
-                  client.putObject(key, archive)
-                  pushed += 1
-                  started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
-                }
+                  if (!Files.isDirectory(projectPaths.classes) || !Files.list(projectPaths.classes).findAny().isPresent) {
+                    notCompiled.incrementAndGet()
+                    started.logger.debug(s"${crossName.value}: not compiled, skipping")
+                  } else if (client.headObject(key)) {
+                    skipped.incrementAndGet()
+                    started.logger.debug(s"${crossName.value}: already in cache")
+                  } else {
+                    // Pack classes dir + zinc analysis — do this outside semaphore (CPU work)
+                    val archive = TarGz.pack(projectPaths.targetDir)
+                    // Limit concurrent uploads to avoid overwhelming the network
+                    semaphore.acquire()
+                    try {
+                      client.putObject(key, archive)
+                      pushed.incrementAndGet()
+                      started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
+                    } finally semaphore.release()
+                  }
+                }): Runnable))
             }
           }
 
-          started.logger.info(s"Remote cache push: $pushed pushed, $skipped already cached, $notCompiled not compiled (${projectsToPush.size} total)")
+          futures.forEach(_.get())
+          executor.shutdown()
+
+          started.logger.info(s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)")
           Right(())
       }
     }
