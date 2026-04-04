@@ -78,6 +78,37 @@ object ZincBridge {
     */
   private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
 
+  /** ReadWriteMappers for portable zinc analysis files.
+    *
+    * Uses RootPaths with three machine-dependent roots: source root (build dir), library root (coursier cache), product root (build output dir). Zinc
+    * relativizes these paths on write and rebases on read, making analysis files portable across machines.
+    *
+    * Computed lazily and cached — the roots are constant for the lifetime of the JVM.
+    */
+  private lazy val analysisMappers: xsbti.compile.analysis.ReadWriteMappers = {
+    // Build dir: inferred from the bleep BSP socket directory convention
+    // For the BSP server, the build dir is set when handling initialize.
+    // As a fallback, use cwd.
+    val buildDir = analysisBuildDir.get()
+    val coursierCache = coursier.cache.CacheDefaults.location.toPath
+    val rootPaths = xsbti.compile.analysis.RootPaths.getPaths(
+      buildDir.toFile,
+      coursierCache.toFile,
+      buildDir.toFile // products are under buildDir (.bleep/builds/normal/.bloop/*/classes)
+    )
+    new xsbti.compile.analysis.ReadWriteMappers(
+      xsbti.compile.analysis.ReadMapper.getMachineIndependentMapper(rootPaths),
+      xsbti.compile.analysis.WriteMapper.getMachineIndependentMapper(rootPaths)
+    )
+  }
+
+  /** The build directory, set by the BSP server during initialize. Used for analysis mappers. */
+  private val analysisBuildDir = new java.util.concurrent.atomic.AtomicReference[Path](Path.of(System.getProperty("user.dir")))
+
+  /** Set the build directory for analysis mappers. Called by MultiWorkspaceBspServer during initialize. */
+  def setBuildDir(buildDir: Path): Unit =
+    analysisBuildDir.set(buildDir)
+
   // ─── Pre-Zinc noop detection via unix:ctime manifest ──────────────────────
   // On macOS/Linux, st_ctime (inode change time) is kernel-managed and updated
   // by ALL file operations (cp, mv, rsync -a, tar x, touch -t, echo >, git ops).
@@ -1023,7 +1054,7 @@ object ZincBridge {
           Some(classDir -> cached)
         } else {
           try {
-            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers)
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
               analysisCache.put(analysisFile, new SoftReference(analysis))
@@ -1212,7 +1243,7 @@ object ZincBridge {
     debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
     if (Files.exists(analysisFile)) {
       try {
-        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers)
         val contents = store.get()
         if (contents.isPresent) {
           val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]
@@ -1270,7 +1301,7 @@ object ZincBridge {
         val sample = cpHashes.take(3).map(fh => s"${fh.file}:${fh.hash}").mkString(", ")
         debug(s"[ZincBridge] Saving with classpath hashes: $sample")
       }
-      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile)
+      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile, analysisMappers)
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis

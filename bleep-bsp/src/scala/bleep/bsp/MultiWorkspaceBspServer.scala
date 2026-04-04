@@ -599,6 +599,8 @@ class MultiWorkspaceBspServer(
           .withContext("workspace", buildRoot.toString)
           .withContext("variant", variant.toString)
           .info("Build loaded")
+        // Set build dir for portable zinc analysis mappers
+        ZincBridge.setBuildDir(buildRoot)
       case Left(err) =>
         val msg = s"Failed to load build: ${err.getMessage}"
         buildLoadError.set(Some(msg))
