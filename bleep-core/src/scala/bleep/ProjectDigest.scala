@@ -97,8 +97,12 @@ object ProjectDigest {
           // Clean directory — use git blob hashes (fast, no file I/O)
           val gitHashes = gitLsTree(buildDir, dir)
           if (gitHashes.nonEmpty) {
-            gitHashes.foreach { case (path, hash) =>
-              md.update(path.getBytes("UTF-8"))
+            // git ls-tree returns paths relative to repo root. Make them relative to dir.
+            val dirRelToRepo = buildDir.relativize(dir).toString
+            val dirPrefix = if (dirRelToRepo.isEmpty) "" else dirRelToRepo + "/"
+            gitHashes.foreach { case (repoRelPath, hash) =>
+              val relPath = if (repoRelPath.startsWith(dirPrefix)) repoRelPath.substring(dirPrefix.length) else repoRelPath
+              md.update(relPath.getBytes("UTF-8"))
               md.update(hash.getBytes("UTF-8"))
             }
           } else {
@@ -165,7 +169,11 @@ object ProjectDigest {
       case NonFatal(_) => Nil
     }
 
-  /** Hash all files under a directory by reading their contents. Files are sorted by relative path for determinism. */
+  /** Hash all files under a directory using git-compatible blob hashes. Files are sorted by relative path for determinism.
+    *
+    * Computes the same hash as `git hash-object` for each file: `SHA-1("blob <size>\0" + content)`. This ensures filesystem hashing produces the same digest as
+    * git ls-tree hashing for identical content.
+    */
   private def hashFilesystem(md: MessageDigest, dir: Path): Unit = {
     val files = scala.util
       .Using(Files.walk(dir)) { stream =>
@@ -175,8 +183,22 @@ object ProjectDigest {
 
     files.foreach { file =>
       val relPath = dir.relativize(file).toString
+      val content = Files.readAllBytes(file)
+      val blobHash = gitBlobHash(content)
       md.update(relPath.getBytes("UTF-8"))
-      md.update(Files.readAllBytes(file))
+      md.update(blobHash.getBytes("UTF-8"))
     }
+  }
+
+  /** Compute the git blob hash for file content: `SHA-1("blob <size>\0" + content)`.
+    *
+    * This matches what `git hash-object` produces, ensuring consistency between filesystem and git ls-tree hashing paths.
+    */
+  private def gitBlobHash(content: Array[Byte]): String = {
+    val header = s"blob ${content.length}\u0000"
+    val sha1 = MessageDigest.getInstance("SHA-1")
+    sha1.update(header.getBytes("UTF-8"))
+    sha1.update(content)
+    Checksums.byteArrayToHexString(sha1.digest())
   }
 }

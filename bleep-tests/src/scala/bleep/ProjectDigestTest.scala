@@ -179,6 +179,41 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(workspace)
   }
 
+  test("filesystem hashing matches git hashing after commit") {
+    val workspace = Files.createTempDirectory("bleep-digest-git-test-")
+    try {
+      // Init a fresh git repo
+      scala.sys.process.Process(List("git", "init"), workspace.toFile).!!
+      scala.sys.process.Process(List("git", "config", "user.email", "test@test.com"), workspace.toFile).!!
+      scala.sys.process.Process(List("git", "config", "user.name", "test"), workspace.toFile).!!
+
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 42 }")
+      Files.writeString(srcDir.resolve("Bar.scala"), "object Bar")
+
+      val p = model.Project.empty.copy(
+        sources = model.JsonSet(SortedSet(RelPath.force("src/scala")))
+      )
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      // Digest with uncommitted files (uses filesystem hashing)
+      val digestBefore = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      // Commit everything
+      scala.sys.process.Process(List("git", "add", "."), workspace.toFile).!!
+      scala.sys.process.Process(List("git", "commit", "-m", "init"), workspace.toFile).!!
+
+      // Digest with committed files (uses git ls-tree hashing)
+      val digestAfter = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      info(s"before commit (filesystem): $digestBefore")
+      info(s"after commit (git ls-tree): $digestAfter")
+      digestBefore shouldBe digestAfter
+    } finally deleteRecursively(workspace)
+  }
+
   test("resource changes affect digest") {
     val workspace = createTempWorkspace()
     try {
