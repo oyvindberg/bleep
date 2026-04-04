@@ -40,7 +40,8 @@ object BleepDevDeps {
     "bleep-plugin-native-image" -> cpn("bleep-plugin-native-image"),
     "bleep-plugin-pgp" -> cpn("bleep-plugin-pgp"),
     "bleep-plugin-scalafix" -> cpn("bleep-plugin-scalafix"),
-    "bleep-plugin-sonatype" -> cpn("bleep-plugin-sonatype")
+    "bleep-plugin-sonatype" -> cpn("bleep-plugin-sonatype"),
+    "bleep-test-runner" -> cpn("bleep-test-runner")
   )
 
   /** Hardcoded transitive `build.bleep::*` dependencies for each artifact.
@@ -70,7 +71,8 @@ object BleepDevDeps {
       "bleep-model",
       "bleep-nosbt",
       "bleep-bsp-protocol"
-    )
+    ),
+    "bleep-test-runner" -> Set.empty
   )
 
   /** Compute the class dir path for a CrossProjectName within a build directory.

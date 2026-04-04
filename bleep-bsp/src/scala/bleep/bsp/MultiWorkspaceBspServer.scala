@@ -2339,28 +2339,39 @@ class MultiWorkspaceBspServer(
     (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
   }
 
-  /** Fetch bleep-test-runner via coursier using bleep's resolver. Cached after first resolution. */
+  /** Fetch bleep-test-runner and its dependencies.
+    *
+    * Uses `${BLEEP_VERSION}` so the TemplatedVersions resolver handles version rewriting: for dev builds this resolves the test-runner class dir from
+    * BleepDevDeps, for release builds it resolves the published JAR from Coursier.
+    *
+    * For dev builds, BleepDevDeps only returns class dirs (no transitive external deps like test-interface). We always resolve the external deps separately so
+    * the forked test JVM has everything it needs.
+    */
   @volatile private var cachedTestRunnerJars: List[Path] = _
 
   private def fetchTestRunnerViaCoursier(started: Started): List[Path] = {
     val cached = cachedTestRunnerJars
     if (cached != null) return cached
 
-    val version = model.BleepVersion.current.value
-    val dep = model.Dep.Java("build.bleep", "bleep-test-runner", version)
+    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", model.Replacements.known.BleepVersion)
+    val externalDeps = Set[model.Dep](
+      model.Dep.Java("org.scala-sbt", "test-interface", "1.0"),
+      model.Dep.Java("net.aichler", "jupiter-interface", "0.11.1"),
+      model.Dep.Java("org.junit.platform", "junit-platform-launcher", "1.9.1"),
+      model.Dep.Java("org.junit.vintage", "junit-vintage-engine", "5.9.1")
+    )
+    val allDeps = externalDeps + testRunnerDep
 
     val result = started.resolver.force(
-      Set(dep),
+      allDeps,
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
       libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
-      context = s"resolving bleep-test-runner:$version",
+      context = "resolving bleep-test-runner",
       model.IgnoreEvictionErrors.No
     )
 
     if (result.jars.isEmpty) {
-      throw new RuntimeException(
-        s"bleep-test-runner resolution returned no jars for version $version"
-      )
+      throw new RuntimeException("bleep-test-runner resolution returned no jars")
     }
 
     cachedTestRunnerJars = result.jars
