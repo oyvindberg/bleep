@@ -42,7 +42,8 @@ object templatesInfer {
         scripts = model.JsonMap(build.scripts),
         resolvers = build.resolvers,
         projects = model.JsonMap(finishedProjects),
-        jvm = build.jvm
+        jvm = build.jvm,
+        `remote-cache` = None
       )
 
     val build2 = inlineTrivialTemplates(build1)

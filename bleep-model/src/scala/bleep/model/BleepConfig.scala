@@ -7,7 +7,8 @@ case class BleepConfig(
     compileServerMode: Option[CompileServerMode],
     authentications: Option[Authentications],
     logTiming: Option[Boolean],
-    bspServerConfig: Option[BspServerConfig]
+    bspServerConfig: Option[BspServerConfig],
+    remoteCacheCredentials: Option[RemoteCacheCredentials]
 ) {
   def compileServerModeOrDefault: CompileServerMode = compileServerMode.getOrElse(CompileServerMode.Shared)
   def bspServerConfigOrDefault: BspServerConfig = bspServerConfig.getOrElse(BspServerConfig.default)
@@ -18,7 +19,8 @@ object BleepConfig {
     compileServerMode = None,
     authentications = None,
     logTiming = None,
-    bspServerConfig = None
+    bspServerConfig = None,
+    remoteCacheCredentials = None
   )
 
   implicit val decoder: Decoder[BleepConfig] = deriveDecoder
