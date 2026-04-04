@@ -48,35 +48,56 @@ object TarGz {
     *   directory to extract into (created if needed)
     */
   def unpack(archive: Array[Byte], targetDir: Path): Unit = {
-    Files.createDirectories(targetDir)
-    val gzIn = new GZIPInputStream(new ByteArrayInputStream(archive))
-    val headerBuf = new Array[Byte](512)
+    // Extract to a temp dir first, then rename for atomicity.
+    // This prevents partial state if the process is killed mid-extraction.
+    val tmpDir = targetDir.resolveSibling(targetDir.getFileName.toString + ".cache-tmp-" + ProcessHandle.current().pid())
+    try {
+      Files.createDirectories(tmpDir)
+      val gzIn = new GZIPInputStream(new ByteArrayInputStream(archive))
+      val headerBuf = new Array[Byte](512)
 
-    var done = false
-    while (!done) {
-      val bytesRead = readFully(gzIn, headerBuf)
-      if (bytesRead < 512 || isZeroBlock(headerBuf)) {
-        done = true
-      } else {
-        val name = extractString(headerBuf, 0, 100)
-        val size = extractOctal(headerBuf, 124, 12)
+      var done = false
+      while (!done) {
+        val bytesRead = readFully(gzIn, headerBuf)
+        if (bytesRead < 512 || isZeroBlock(headerBuf)) {
+          done = true
+        } else {
+          val name = extractString(headerBuf, 0, 100)
+          val size = extractOctal(headerBuf, 124, 12)
 
-        if (name.nonEmpty && size >= 0) {
-          val content = new Array[Byte](size.toInt)
-          readFully(gzIn, content)
+          if (name.nonEmpty && size >= 0) {
+            val content = new Array[Byte](size.toInt)
+            readFully(gzIn, content)
 
-          // Skip padding to 512-byte boundary
-          val padding = (512 - (size % 512).toInt) % 512
-          if (padding > 0) gzIn.skipNBytes(padding)
+            // Skip padding to 512-byte boundary
+            val padding = (512 - (size % 512).toInt) % 512
+            if (padding > 0) gzIn.skipNBytes(padding)
 
-          val targetFile = targetDir.resolve(name)
-          Files.createDirectories(targetFile.getParent)
-          Files.write(targetFile, content)
+            val targetFile = tmpDir.resolve(name)
+            Files.createDirectories(targetFile.getParent)
+            Files.write(targetFile, content)
         }
       }
     }
 
-    gzIn.close()
+      gzIn.close()
+
+      // Move extracted files into target dir
+      Files.createDirectories(targetDir)
+      scala.util.Using(Files.list(tmpDir)) { stream =>
+        stream.forEach { entry =>
+          val dest = targetDir.resolve(tmpDir.relativize(entry))
+          // Delete existing target if present, then move
+          if (Files.isDirectory(dest)) internal.FileUtils.deleteDirectory(dest)
+          else Files.deleteIfExists(dest)
+          Files.move(entry, dest, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+        }
+      }
+    } finally {
+      // Clean up temp dir
+      try internal.FileUtils.deleteDirectory(tmpDir)
+      catch { case _: Exception => () }
+    }
   }
 
   // ============================================================================
