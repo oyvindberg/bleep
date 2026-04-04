@@ -40,7 +40,8 @@ object BleepDevDeps {
     "bleep-plugin-native-image" -> cpn("bleep-plugin-native-image"),
     "bleep-plugin-pgp" -> cpn("bleep-plugin-pgp"),
     "bleep-plugin-scalafix" -> cpn("bleep-plugin-scalafix"),
-    "bleep-plugin-sonatype" -> cpn("bleep-plugin-sonatype")
+    "bleep-plugin-sonatype" -> cpn("bleep-plugin-sonatype"),
+    "bleep-test-runner" -> cpn("bleep-test-runner")
   )
 
   /** Hardcoded transitive `build.bleep::*` dependencies for each artifact.
@@ -53,15 +54,15 @@ object BleepDevDeps {
     "bleep-model" -> Set.empty,
     "bleep-nosbt" -> Set.empty,
     "bleep-bsp-protocol" -> Set("bleep-model"),
-    "bleep-core" -> Set("bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-dynver" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-git-versioning" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-jni" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-mdoc" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-native-image" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-pgp" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-scalafix" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
-    "bleep-plugin-sonatype" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol"),
+    "bleep-core" -> Set("bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-dynver" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-git-versioning" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-jni" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-mdoc" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-native-image" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-pgp" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-scalafix" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
+    "bleep-plugin-sonatype" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
     "bleep-plugin-ci-release" -> Set(
       "bleep-plugin-dynver",
       "bleep-plugin-pgp",
@@ -69,8 +70,10 @@ object BleepDevDeps {
       "bleep-core",
       "bleep-model",
       "bleep-nosbt",
-      "bleep-bsp-protocol"
-    )
+      "bleep-bsp-protocol",
+      "bleep-test-runner"
+    ),
+    "bleep-test-runner" -> Set.empty
   )
 
   /** Compute the class dir path for a CrossProjectName within a build directory.

@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-M5
+$version: 1.0.0-M6
 jvm:
   # TODO: graalvm-community:25.0.2 is not available for macos-15-intel (x86_64) in coursier's JVM index.
   # Need to either wait for index update, pin x86 macOS to 25.0.1, or drop x86 macOS CI.
