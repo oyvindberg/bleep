@@ -154,11 +154,12 @@ object S3Client {
       val path = uri.getPath.stripPrefix("/")
       val slashIdx = path.indexOf('/')
       val bucket = if (slashIdx > 0) path.substring(0, slashIdx) else path
+      val portPart = if (uri.getPort > 0) s":${uri.getPort}" else ""
       new S3Client(
         logger,
         bucket,
         region,
-        URI.create(s"${uri.getScheme}://${uri.getHost}:${uri.getPort}"),
+        URI.create(s"${uri.getScheme}://${uri.getHost}$portPart"),
         credentials.accessKeyId,
         credentials.secretAccessKey
       )
