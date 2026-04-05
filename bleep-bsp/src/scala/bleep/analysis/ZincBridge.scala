@@ -1833,8 +1833,8 @@ private[analysis] object EcjCompiler {
 /** Portable zinc analysis for cross-machine cache, following sbt 2's approach.
   *
   * Two mechanisms work together:
-  *   1. '''FileConverter''' (`MappedFileConverter`): passed to zinc via `CompileOptions.converter`. Zinc uses it to create ALL VirtualFileRefs (sources, products,
-  *      binaries) with marker-prefixed IDs like `${BASE}/src/Foo.scala`. This is the sbt 2 approach.
+  *   1. '''FileConverter''' (`MappedFileConverter`): passed to zinc via `CompileOptions.converter`. Zinc uses it to create ALL VirtualFileRefs (sources,
+  *      products, binaries) with marker-prefixed IDs like `${BASE}/src/Foo.scala`. This is the sbt 2 approach.
   *   2. '''ReadWriteMappers''': handle Path-typed fields in analysis (output dir, source dir, classpath entries) which zinc stores as `java.nio.file.Path`, not
   *      `VirtualFileRef`. The mappers relativize on write and rebase on read.
   *
