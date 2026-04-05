@@ -72,11 +72,12 @@ object ZincBridge {
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to parsed
-    * CompileAnalysis. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same build,
-    * while allowing GC to reclaim them when heap is tight.
+  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime, analysis).
+    * The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry is discarded
+    * and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same
+    * build, while allowing GC to reclaim them when heap is tight.
     */
-  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
+  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[(Long, CompileAnalysis)]]()
 
   /** Create ReadWriteMappers for portable zinc analysis.
     *
@@ -1052,9 +1053,12 @@ object ZincBridge {
     // dependency is referenced by multiple projects in the same build.
     val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
       if (Files.exists(analysisFile)) {
+        val currentMtime = Files.getLastModifiedTime(analysisFile).toMillis
         val cached = {
           val ref = analysisCache.get(analysisFile)
-          if (ref != null) ref.get() else null
+          val entry = if (ref != null) ref.get() else null
+          // Invalidate if file changed on disk (e.g. after remote-cache pull)
+          if (entry != null && entry._1 == currentMtime) entry._2 else null
         }
         if (cached != null) {
           Some(classDir -> cached)
@@ -1063,7 +1067,7 @@ object ZincBridge {
             val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
-              analysisCache.put(analysisFile, new SoftReference(analysis))
+              analysisCache.put(analysisFile, new SoftReference((currentMtime, analysis)))
               classDir -> analysis
             }
           } catch {
@@ -1315,7 +1319,8 @@ object ZincBridge {
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis
-      analysisCache.put(analysisFile, new SoftReference(analysis))
+      val mtime = Files.getLastModifiedTime(analysisFile).toMillis
+      analysisCache.put(analysisFile, new SoftReference((mtime, analysis)))
     } catch {
       case e: Exception =>
         try Files.deleteIfExists(tempFile)
