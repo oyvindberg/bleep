@@ -752,6 +752,8 @@ class MultiWorkspaceBspServer(
           )
         } yield {
           loadedBuilds.put(workspaceRoot, started)
+          // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
+          bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
           started
         }
     }
@@ -842,6 +844,8 @@ class MultiWorkspaceBspServer(
             bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver)
           )((_, _, _) => Right(started)) // Reload returns the same build
           loadedBuilds.put(buildRoot, started)
+          // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
+          bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
           started
         }
     }

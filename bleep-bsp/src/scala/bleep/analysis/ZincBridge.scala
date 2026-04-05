@@ -72,30 +72,49 @@ object ZincBridge {
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to parsed
-    * CompileAnalysis. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same build,
-    * while allowing GC to reclaim them when heap is tight.
+  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime, analysis).
+    * The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry is discarded
+    * and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same
+    * build, while allowing GC to reclaim them when heap is tight.
     */
-  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
+  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[(Long, CompileAnalysis)]]()
 
-  /** ReadWriteMappers for portable zinc analysis files.
+  /** Create ReadWriteMappers for portable zinc analysis.
     *
-    * Uses RootPaths with three machine-dependent roots: source root (build dir), library root (coursier cache), product root (build output dir). Zinc
-    * relativizes these paths on write and rebases on read, making analysis files portable across machines.
+    * The build dir is inferred by finding `.bleep/` in the analysis file path. Three machine-dependent path roots are relativized/rebased:
+    *   - `${BASE}/` — build directory (sources, output dirs)
+    *   - `${LIB}/` — coursier cache (library JARs)
+    *   - `${JDK}/` — JDK installation (runtime classes)
     *
-    * Computed lazily and cached — the roots are constant for the lifetime of the JVM.
+    * Paths not under any known root are stored absolute (assumed same-machine). This handles both cross-machine portability (remote cache) and backward
+    * compatibility (old analysis files without markers load fine).
     */
-  /** Create ReadWriteMappers for portable zinc analysis, derived from the analysis file path.
-    *
-    * The build dir is inferred by finding `.bleep/` in the path. Relativizes Path entries (classpath, output/source dirs) so analysis is machine-independent
-    * for those fields. VirtualFileRef entries (source/binary/product) keep absolute paths for now — cross-machine portability for those needs VirtualFile-level
-    * changes (tracked in #546).
-    */
-  // Mappers disabled for now — they partially relativize Path entries but cause issues.
-  // The PlainVirtualFile extends BasicVirtualFileRef fix should be sufficient for same-machine cache.
-  // Cross-machine portability tracked in #546.
-  private def analysisMappers(analysisFile: Path): xsbti.compile.analysis.ReadWriteMappers =
-    xsbti.compile.analysis.ReadWriteMappers.getEmptyMappers()
+  private[analysis] def analysisMappers(analysisFile: Path): xsbti.compile.analysis.ReadWriteMappers = {
+    val buildDir = inferBuildDir(analysisFile)
+    buildDir match {
+      case Some(bd) =>
+        debug(s"[ZincBridge] Using portable mappers for $analysisFile (buildDir=$bd)")
+        new xsbti.compile.analysis.ReadWriteMappers(
+          PortableAnalysisMappers.readMapper(bd),
+          PortableAnalysisMappers.writeMapper(bd)
+        )
+      case None =>
+        debug(s"[ZincBridge] Cannot infer build dir from $analysisFile — using empty mappers")
+        xsbti.compile.analysis.ReadWriteMappers.getEmptyMappers()
+    }
+  }
+
+  /** Infer the build directory by finding `.bleep/` in the path. */
+  private[analysis] def inferBuildDir(analysisFile: Path): Option[Path] = {
+    var p = analysisFile.toAbsolutePath.normalize().getParent
+    while (p != null) {
+      if (p.getFileName != null && p.getFileName.toString == ".bleep") {
+        return Some(p.getParent)
+      }
+      p = p.getParent
+    }
+    None
+  }
 
   // ─── Pre-Zinc noop detection via unix:ctime manifest ──────────────────────
   // On macOS/Linux, st_ctime (inode change time) is kernel-managed and updated
@@ -1034,9 +1053,12 @@ object ZincBridge {
     // dependency is referenced by multiple projects in the same build.
     val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
       if (Files.exists(analysisFile)) {
+        val currentMtime = Files.getLastModifiedTime(analysisFile).toMillis
         val cached = {
           val ref = analysisCache.get(analysisFile)
-          if (ref != null) ref.get() else null
+          val entry = if (ref != null) ref.get() else null
+          // Invalidate if file changed on disk (e.g. after remote-cache pull)
+          if (entry != null && entry._1 == currentMtime) entry._2 else null
         }
         if (cached != null) {
           Some(classDir -> cached)
@@ -1045,7 +1067,7 @@ object ZincBridge {
             val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
-              analysisCache.put(analysisFile, new SoftReference(analysis))
+              analysisCache.put(analysisFile, new SoftReference((currentMtime, analysis)))
               classDir -> analysis
             }
           } catch {
@@ -1194,7 +1216,11 @@ object ZincBridge {
       javacOptions,
       100, // maxErrors
       sourcePositionMapper,
-      CompileOrder.JavaThenScala
+      CompileOrder.JavaThenScala,
+      Optional.empty[Path](), // temporaryClassesDir
+      Optional.of[xsbti.FileConverter](PortableAnalysisMappers.fileConverter(config.outputDir)),
+      Optional.empty[xsbti.compile.analysis.ReadStamps](),
+      Optional.empty[xsbti.compile.Output]()
     )
 
     debug(s"[ZincBridge] Current setup: outputDir=$outputDir, order=JavaThenScala")
@@ -1293,7 +1319,8 @@ object ZincBridge {
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis
-      analysisCache.put(analysisFile, new SoftReference(analysis))
+      val mtime = Files.getLastModifiedTime(analysisFile).toMillis
+      analysisCache.put(analysisFile, new SoftReference((mtime, analysis)))
     } catch {
       case e: Exception =>
         try Files.deleteIfExists(tempFile)
@@ -1808,20 +1835,130 @@ private[analysis] object EcjCompiler {
   }
 }
 
-/** VirtualFile implementation wrapping a Path. Extends BasicVirtualFileRef so that equals() works symmetrically with deserialized analysis entries (which use
-  * BasicVirtualFileRef). Also implements PathBasedFile so Scala 3 compiler can get the path back.
+/** Portable zinc analysis for cross-machine cache, following sbt 2's approach.
   *
-  * CRITICAL: Must extend BasicVirtualFileRef, not just implement VirtualFileRef. BasicVirtualFileRef.equals() checks `instanceof BasicVirtualFileRef` — if we
-  * don't extend it, stamp lookups fail (all sources appear "new" → full recompile).
+  * Two mechanisms work together:
+  *   1. '''FileConverter''' (`MappedFileConverter`): passed to zinc via `CompileOptions.converter`. Zinc uses it to create ALL VirtualFileRefs (sources,
+  *      products, binaries) with marker-prefixed IDs like `${BASE}/src/Foo.scala`. This is the sbt 2 approach.
+  *   2. '''ReadWriteMappers''': handle Path-typed fields in analysis (output dir, source dir, classpath entries) which zinc stores as `java.nio.file.Path`, not
+  *      `VirtualFileRef`. The mappers relativize on write and rebase on read.
+  *
+  * Three marker roots:
+  *   - `${BASE}` — build directory (sources, output dirs, generated sources)
+  *   - `${LIB}` — coursier cache (library JARs, Scala compiler)
+  *   - `${JDK}` — JDK home (runtime classes, ct.sym)
+  *
+  * Backward compatible: old analysis files without markers load fine (absolute paths pass through unchanged).
   */
-private class PlainVirtualFile(val path: Path)
-    extends xsbti.BasicVirtualFileRef({
-      // Normalize to forward slashes for platform independence (BasicVirtualFileRef constructor does this too)
-      java.io.File.separatorChar match {
-        case '\\' => path.toString.replace('\\', '/')
-        case _    => path.toString
-      }
-    })
+private[analysis] object PortableAnalysisMappers {
+  val BaseMarker = "${BASE}"
+  val LibMarker = "${LIB}"
+  val JdkMarker = "${JDK}"
+
+  lazy val coursierCacheDir: Path =
+    coursier.cache.CacheDefaults.location.toPath.toAbsolutePath.normalize()
+
+  lazy val jdkDir: Path =
+    Path.of(System.getProperty("java.home")).toAbsolutePath.normalize()
+
+  /** Create a MappedFileConverter with our root paths. Zinc uses this to create ALL VirtualFileRefs with marker-prefixed IDs. */
+  def fileConverter(buildDir: Path): sbt.internal.inc.MappedFileConverter = {
+    val bd = buildDir.toAbsolutePath.normalize()
+    // Infer the project root by finding .bleep/ in the output dir path
+    val projectRoot = ZincBridge.inferBuildDir(bd).getOrElse(bd)
+    sbt.internal.inc.MappedFileConverter(
+      Map(
+        "BASE" -> projectRoot,
+        "LIB" -> coursierCacheDir,
+        "JDK" -> jdkDir
+      ),
+      true // allowMachinePath — paths not under any root stay absolute
+    )
+  }
+
+  /** Relativize an absolute path using marker prefixes. Unknown roots stay absolute. */
+  private def relativizePath(p: Path, buildDir: Path): Path = {
+    val abs = p.toAbsolutePath.normalize()
+    if (abs.startsWith(buildDir)) {
+      val rel = buildDir.relativize(abs).toString.replace('\\', '/')
+      if (rel.isEmpty) Path.of(BaseMarker) else Path.of(s"$BaseMarker/$rel")
+    } else if (abs.startsWith(coursierCacheDir)) {
+      val rel = coursierCacheDir.relativize(abs).toString.replace('\\', '/')
+      if (rel.isEmpty) Path.of(LibMarker) else Path.of(s"$LibMarker/$rel")
+    } else if (abs.startsWith(jdkDir)) {
+      val rel = jdkDir.relativize(abs).toString.replace('\\', '/')
+      if (rel.isEmpty) Path.of(JdkMarker) else Path.of(s"$JdkMarker/$rel")
+    } else {
+      abs
+    }
+  }
+
+  /** Absolutize a marker-prefixed path to a local absolute path. Non-marker paths returned as-is. */
+  private def absolutizePath(p: Path, buildDir: Path): Path = {
+    val str = p.toString.replace('\\', '/')
+    if (str.startsWith(s"$BaseMarker/")) buildDir.resolve(str.stripPrefix(s"$BaseMarker/"))
+    else if (str == BaseMarker) buildDir
+    else if (str.startsWith(s"$LibMarker/")) coursierCacheDir.resolve(str.stripPrefix(s"$LibMarker/"))
+    else if (str == LibMarker) coursierCacheDir
+    else if (str.startsWith(s"$JdkMarker/")) jdkDir.resolve(str.stripPrefix(s"$JdkMarker/"))
+    else if (str == JdkMarker) jdkDir
+    else p // Absolute path from same machine or unknown root — pass through
+  }
+
+  def writeMapper(buildDir: Path): xsbti.compile.analysis.WriteMapper = {
+    val bd = buildDir.toAbsolutePath.normalize()
+    new xsbti.compile.analysis.WriteMapper {
+      // VirtualFileRef: identity — all VFRs already have marker-prefixed IDs via MappedFileConverter (sbt 2 approach)
+      override def mapSourceFile(sourceFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = sourceFile
+      override def mapBinaryFile(binaryFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = binaryFile
+      override def mapProductFile(productFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = productFile
+      // Path: relativize to marker form
+      override def mapOutputDir(outputDir: Path): Path = relativizePath(outputDir, bd)
+      override def mapSourceDir(sourceDir: Path): Path = relativizePath(sourceDir, bd)
+      override def mapClasspathEntry(classpathEntry: Path): Path = relativizePath(classpathEntry, bd)
+      // Everything else: identity
+      override def mapJavacOption(javacOption: String): String = javacOption
+      override def mapScalacOption(scalacOption: String): String = scalacOption
+      override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
+      override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
+      override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp
+      override def mapMiniSetup(miniSetup: xsbti.compile.MiniSetup): xsbti.compile.MiniSetup = miniSetup
+    }
+  }
+
+  def readMapper(buildDir: Path): xsbti.compile.analysis.ReadMapper = {
+    val bd = buildDir.toAbsolutePath.normalize()
+    new xsbti.compile.analysis.ReadMapper {
+      // VirtualFileRef: identity — IDs stay as markers. MappedFileConverter.toPath() resolves them.
+      override def mapSourceFile(sourceFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = sourceFile
+      override def mapBinaryFile(binaryFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = binaryFile
+      override def mapProductFile(productFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = productFile
+      // Path: rebase markers to local absolute paths
+      override def mapOutputDir(outputDir: Path): Path = absolutizePath(outputDir, bd)
+      override def mapSourceDir(sourceDir: Path): Path = absolutizePath(sourceDir, bd)
+      override def mapClasspathEntry(classpathEntry: Path): Path = absolutizePath(classpathEntry, bd)
+      // Everything else: identity
+      override def mapJavacOption(javacOption: String): String = javacOption
+      override def mapScalacOption(scalacOption: String): String = scalacOption
+      override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
+      override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
+      override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp
+      override def mapMiniSetup(miniSetup: xsbti.compile.MiniSetup): xsbti.compile.MiniSetup = miniSetup
+    }
+  }
+}
+
+/** VirtualFile with machine-independent IDs, matching sbt 2's MappedVirtualFile approach.
+  *
+  * The `id()` uses marker-prefixed paths: `${BASE}/relative`, `${LIB}/relative`, `${JDK}/relative`. This makes the zinc Analysis portable across machines at
+  * compile time — analysis entries store virtual IDs, not absolute paths. When zinc needs actual file content, `toPath()` resolves the virtual ID back to a
+  * real path using the configured roots.
+  *
+  * Extends BasicVirtualFileRef so equals()/hashCode() work symmetrically with deserialized analysis entries (which use BasicVirtualFileRef). PathBasedFile is
+  * needed for Scala 3 compiler bridge.
+  */
+private[bleep] class PlainVirtualFile private (val path: Path, virtualId: String)
+    extends xsbti.BasicVirtualFileRef(virtualId)
     with VirtualFile
     with xsbti.PathBasedFile {
   def contentHash(): Long =
@@ -1831,11 +1968,37 @@ private class PlainVirtualFile(val path: Path)
       0L
     }
   def input(): java.io.InputStream = Files.newInputStream(path)
-
-  // PathBasedFile interface - required for Scala 3 compiler bridge
   def toPath(): Path = path
 }
 
-object PlainVirtualFile {
-  def apply(path: Path): PlainVirtualFile = new PlainVirtualFile(path)
+private[bleep] object PlainVirtualFile {
+  import PortableAnalysisMappers.{coursierCacheDir, jdkDir, BaseMarker, JdkMarker, LibMarker}
+
+  @volatile private var buildDir: Path = _
+
+  /** Set the build directory root. Must be called before compilation starts. The coursier cache and JDK dirs are detected automatically. */
+  def setBuildDir(dir: Path): Unit =
+    buildDir = dir.toAbsolutePath.normalize()
+
+  def apply(path: Path): PlainVirtualFile = {
+    val abs = path.toAbsolutePath.normalize()
+    val bd = buildDir // volatile read once
+
+    val virtualId =
+      if (bd != null && abs.startsWith(bd))
+        s"$BaseMarker/${bd.relativize(abs).toString.replace('\\', '/')}"
+      else if (abs.startsWith(coursierCacheDir))
+        s"$LibMarker/${coursierCacheDir.relativize(abs).toString.replace('\\', '/')}"
+      else if (abs.startsWith(jdkDir))
+        s"$JdkMarker/${jdkDir.relativize(abs).toString.replace('\\', '/')}"
+      else {
+        // Unknown root — use absolute path (same-machine only)
+        java.io.File.separatorChar match {
+          case '\\' => abs.toString.replace('\\', '/')
+          case _    => abs.toString
+        }
+      }
+
+    new PlainVirtualFile(abs, virtualId)
+  }
 }
