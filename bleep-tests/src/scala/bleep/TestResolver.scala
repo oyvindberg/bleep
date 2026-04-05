@@ -32,7 +32,7 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
 
       inMemoryCache.get(request) match {
         case Some(value) => Right(value)
-        case None =>
+        case None        =>
           underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors).map {
             case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
               sys.error("tests are not allowed to use changing artifacts as it will be too slow")

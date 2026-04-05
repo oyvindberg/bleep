@@ -282,7 +282,7 @@ object Dep {
 
   implicit val encodes: Encoder[Dep] =
     Encoder.instance {
-      case d if d.isSimple => d.repr.asJson
+      case d if d.isSimple       => d.repr.asJson
       case x: Dep.JavaDependency =>
         Json
           .obj(

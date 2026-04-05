@@ -66,7 +66,7 @@ object BuildPatch {
             }
 
             affected.crossProjectsByProjectName.get(name) match {
-              case None => Some((name, p2))
+              case None                          => Some((name, p2))
               case Some(affectedCrossForProject) =>
                 val nonAffected = build.explodedProjectsByName(name).keySet -- affectedCrossForProject.keySet
                 // easy case: if we delete all cross projects when drop the whole thing

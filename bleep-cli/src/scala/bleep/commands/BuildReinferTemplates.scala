@@ -25,7 +25,7 @@ case class BuildReinferTemplates(ignoreWhenInferringTemplates: Set[model.Project
       after = model.Build.FileBacked(newBuildFile).dropBuildFile.dropTemplates
     ) match {
       case empty if empty.isEmpty => ()
-      case diffs =>
+      case diffs                  =>
         started.logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => started.logger.withContext("projectName", projectName.value).error(msg) }
     }

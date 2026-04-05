@@ -309,7 +309,7 @@ object CoursierResolver {
 
   def asCoursierDeps(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, List[Dependency]] =
     bleepDeps.foldLeft[Either[CoursierError, List[Dependency]]](Right(Nil)) {
-      case (e @ Left(_), _) => e
+      case (e @ Left(_), _)       => e
       case (Right(acc), bleepDep) =>
         bleepDep.asDependency(versionCombo) match {
           case Left(errorMessage) => Left(InvalidVersionCombo(errorMessage))
@@ -340,7 +340,7 @@ object CoursierResolver {
           if (Files.exists(cachePath)) {
             Cached.readLeanCache(logger, cachePath, deps, underlying.params, versionCombo, libraryVersionSchemes) match {
               case Some(result) => Some(result)
-              case None =>
+              case None         =>
                 Files.delete(cachePath)
                 None
             }
@@ -348,7 +348,7 @@ object CoursierResolver {
 
         cachedResult match {
           case Some(value) => Right(value)
-          case None =>
+          case None        =>
             val depNames = deps.map(_.baseModuleName.value)
             val ctxLogger = logger.withContext("cachePath", cachePath).withContext("depNames", depNames).withContext("versionCombo", versionCombo.toString)
             ctxLogger.debug(s"coursier cache miss")

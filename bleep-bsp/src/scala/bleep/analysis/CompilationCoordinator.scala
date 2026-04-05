@@ -111,7 +111,7 @@ object CrossProcessLock {
       else
         tryAcquire(lockPath).flatMap {
           case Some(lock) => IO.pure(Some(lock))
-          case None =>
+          case None       =>
             IO.sleep(100.millis) >> loop(remaining - 100.millis)
         }
     loop(timeout)
@@ -138,7 +138,7 @@ object CrossProcessLock {
 
   private def isLockStale(lockPath: Path): IO[Boolean] =
     readLockInfo(lockPath).flatMap {
-      case None => IO.pure(true) // No info = stale
+      case None                 => IO.pure(true) // No info = stale
       case Some((pid, started)) =>
         for {
           processAlive <- IO.blocking {

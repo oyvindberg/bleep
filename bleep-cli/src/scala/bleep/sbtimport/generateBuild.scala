@@ -38,7 +38,7 @@ object generateBuild {
     // complain if we have done illegal rewrites during templating
     model.Build.diffProjects(Defaults.add(normalizedBuild, destinationPaths), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
       case empty if empty.isEmpty => ()
-      case diffs =>
+      case diffs                  =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => logger.withContext("projectName", projectName.value).error(msg) }
     }
@@ -52,7 +52,7 @@ object generateBuild {
       else Some(GeneratedFilesScript(scriptsPkg, inputData.generatedFiles))
 
     maybeGenerators match {
-      case None => Map(destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1))
+      case None             => Map(destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1))
       case Some(generators) =>
         val scalaVersion =
           normalizedBuild.explodedProjects.values
@@ -134,7 +134,7 @@ object generateBuild {
 
       // Filter by Scala version
       val scalaVersionMatches = filtering.filterScalaVersions match {
-        case None => true
+        case None                  => true
         case Some(allowedVersions) =>
           project.scala.flatMap(_.version) match {
             case Some(projectScalaVersion) => allowedVersions.toList.contains(projectScalaVersion)
@@ -144,7 +144,7 @@ object generateBuild {
 
       // Filter by platform
       val platformMatches = filtering.filterPlatforms match {
-        case None => true
+        case None                   => true
         case Some(allowedPlatforms) =>
           project.platform match {
             case Some(platform) =>

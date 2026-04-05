@@ -17,8 +17,8 @@ object ModuleSplitStyleJS {
     List(FewestModules.id, SmallestModules.id, SmallModulesFor.id)
 
   implicit val encodeModuleSplitStyleJS: Encoder[ModuleSplitStyleJS] = Encoder.instance {
-    case ModuleSplitStyleJS.FewestModules   => Json.obj(("splitStyle", Json.fromString("FewestModules")))
-    case ModuleSplitStyleJS.SmallestModules => Json.obj(("splitStyle", Json.fromString("SmallestModules")))
+    case ModuleSplitStyleJS.FewestModules      => Json.obj(("splitStyle", Json.fromString("FewestModules")))
+    case ModuleSplitStyleJS.SmallestModules    => Json.obj(("splitStyle", Json.fromString("SmallestModules")))
     case m: ModuleSplitStyleJS.SmallModulesFor =>
       Json.obj(("splitStyle", Json.fromString("SmallModulesFor")), ("packages", m.packages.asJson))
   }

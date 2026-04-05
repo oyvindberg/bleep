@@ -200,7 +200,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   def assertSameIshBloopFiles(inputProjects: sbtimport.ImportInputData, started: Started): Assertion = {
     started.resolvedProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
-      case (crossProjectName, lazyOutputFile) =>
+      case (crossProjectName, lazyOutputFile)                           =>
         val output = BloopConversions.toBloopConfig(lazyOutputFile.forceGet).project
         val input = inputProjects.projects(crossProjectName).bloopFile.project
 

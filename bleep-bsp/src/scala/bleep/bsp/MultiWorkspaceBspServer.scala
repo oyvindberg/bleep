@@ -728,7 +728,7 @@ class MultiWorkspaceBspServer(
   private def loadBuild(workspaceRoot: Path, variant: model.BuildVariant): Either[BleepException, Started] =
     Option(loadedBuilds.get(workspaceRoot)) match {
       case Some(existing) => Right(existing)
-      case None =>
+      case None           =>
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(workspaceRoot)
         val buildPaths = BuildPaths(workspaceRoot, buildLoader, variant)
@@ -773,7 +773,7 @@ class MultiWorkspaceBspServer(
     // Check if already loaded
     Option(loadedBuilds.get(buildRoot)) match {
       case Some(existing) => Right(existing)
-      case None =>
+      case None           =>
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(buildRoot)
         val buildPaths = BuildPaths(buildRoot, buildLoader, variant)
@@ -853,7 +853,7 @@ class MultiWorkspaceBspServer(
       case Some(ws) =>
         buildLoadError.get() match {
           case Some(err) => Left(err)
-          case None =>
+          case None      =>
             Option(loadedBuilds.get(ws)) match {
               case Some(started) => Right(started)
               case None          => Left(s"Build not yet loaded for workspace $ws")
@@ -1693,7 +1693,7 @@ class MultiWorkspaceBspServer(
               raw
           BleepBspProtocol.TestOptions.decode(json) match {
             case Right(opts) => opts
-            case Left(err) =>
+            case Left(err)   =>
               logger.withContext("error", err.getMessage).withContext("raw", raw.take(200)).warn("Failed to decode TestOptions")
               BleepBspProtocol.TestOptions.empty
           }
@@ -3063,7 +3063,7 @@ class MultiWorkspaceBspServer(
           .withContext("timeoutMs", e.timeoutMs)
           .warn("sendTestEvent: SuiteTimedOut")
       case _: E.CompileProgress => () // too noisy
-      case _ =>
+      case _                    =>
         logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).warn("sendTestEvent")
     }
     sendEvent(originId, taskId, event)

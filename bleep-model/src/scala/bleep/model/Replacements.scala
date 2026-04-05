@@ -23,7 +23,7 @@ class Replacements private (val sortedValues: List[(String, String)]) {
         while (last < str.length)
           str.indexOf(from, last) match {
             case -1 => last = str.length
-            case n =>
+            case n  =>
               def beforeOk: Boolean =
                 if (n == 0) true
                 else {

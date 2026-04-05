@@ -41,7 +41,7 @@ case class Started(
   def chosenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     maybeFromCommandLine match {
       case Some(fromCommandLine) => fromCommandLine.sorted
-      case None =>
+      case None                  =>
         activeProjectsFromPath match {
           case None           => build.explodedProjects.keys.toArray.sorted
           case Some(nonEmpty) => nonEmpty

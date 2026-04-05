@@ -212,7 +212,7 @@ object SbtUpdateReport {
     def lookupProject(mv: coursier.core.Resolution.ModuleVersion): Option[Project] =
       res.projectCache.get(mv) match {
         case Some((_, p)) => Some(p)
-        case _ =>
+        case _            =>
           interProjectDependencies.find { p =>
             val tuple = (p.module, p.version)
             mv == tuple

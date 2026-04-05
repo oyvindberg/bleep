@@ -76,7 +76,7 @@ case class Run(
   private def resolveMain(started: Started, maybeSpecifiedMain: Option[String]): Either[BleepException, String] =
     maybeSpecifiedMain match {
       case Some(mainClass) => Right(mainClass)
-      case None =>
+      case None            =>
         started.logger.info("No main class specified in build or command line. discovering...")
         BspQuery.withServer(started) { server =>
           discoverMain(started.logger, server, BspQuery.buildTarget(started.buildPaths, project))

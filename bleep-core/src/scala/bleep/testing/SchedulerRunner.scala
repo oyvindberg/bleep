@@ -189,7 +189,7 @@ class SchedulerInterpreter(
         if (state.done) IO.pure(state)
         else
           readLine.flatMap {
-            case None => IO.pure(state.copy(done = true))
+            case None       => IO.pure(state.copy(done = true))
             case Some(line) =>
               TestProtocol.decodeResponse(line) match {
                 case Right(TestProtocol.TestResponse.TestStarted(_, _)) =>
@@ -199,7 +199,7 @@ class SchedulerInterpreter(
                   val testStatus = TestStatus.fromString(status)
                   val newState = testStatus match {
                     case TestStatus.Passed => state.copy(passed = state.passed + 1)
-                    case s if s.isFailure =>
+                    case s if s.isFailure  =>
                       state.copy(
                         failed = state.failed + 1,
                         failures = state.failures :+ TestFailureInfo(TestName(test), message, throwable)

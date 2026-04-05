@@ -21,7 +21,7 @@ class FetchNode(logger: CacheLogger, ec: ExecutionContext) {
     val cache = ArchiveCache[Task]().withCache(fileCache)
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {
-      case Left(value) => throw new BleepException.Cause(value, s"couldn't download node $nodeVersion from url $url")
+      case Left(value)   => throw new BleepException.Cause(value, s"couldn't download node $nodeVersion from url $url")
       case Right(folder) =>
         val binaryName = if (OsArch.current.os == model.Os.Windows) "node.exe" else "bin/node"
         val nodeBin = folder.toPath / folder.getName.replace(".tar.gz", "").replace(".zip", "") / binaryName

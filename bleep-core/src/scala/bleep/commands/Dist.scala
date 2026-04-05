@@ -32,10 +32,10 @@ case class Dist(watch: Boolean, options: Dist.Options, buildOpts: CommonBuildOpt
         .run(started)
       mainClass <- options.overrideMain match {
         case Some(x) => Right(x)
-        case None =>
+        case None    =>
           started.build.explodedProjects(options.project).platform.flatMap(_.mainClass) match {
             case Some(x) => Right(x)
-            case None =>
+            case None    =>
               BspQuery.withServer(started) { server =>
                 discoverMain(started.logger, server, BspQuery.buildTarget(started.buildPaths, options.project))
               }

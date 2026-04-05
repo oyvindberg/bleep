@@ -78,8 +78,8 @@ object cli {
           new ProcessIO(
             writeInput = os =>
               in match {
-                case In.No     => ()
-                case In.Attach => BasicIO.connectToIn(os)
+                case In.No             => ()
+                case In.Attach         => BasicIO.connectToIn(os)
                 case In.Provided(data) =>
                   os.write(data)
                   os.close()

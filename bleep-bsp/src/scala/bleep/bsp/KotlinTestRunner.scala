@@ -39,7 +39,7 @@ object KotlinTestRunner {
     ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
-        case None =>
+        case None         =>
           IO.blocking {
             val discoveryScript = createDiscoveryScript(jsOutput)
             val scriptPath = Files.createTempFile("kotlin-js-discover-", ".js")
@@ -99,7 +99,7 @@ object KotlinTestRunner {
     ): IO[TestResult] =
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
-        case None =>
+        case None         =>
           IO.blocking {
             val runnerScript = createTestRunnerScript(jsOutput, suites)
             val scriptPath = Files.createTempFile("kotlin-js-test-", ".js")
@@ -356,7 +356,7 @@ object KotlinTestRunner {
         killSignal: Deferred[IO, KillReason]
     ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
       killSignal.tryGet.flatMap {
-        case Some(reason) => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
+        case Some(reason)                        => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
         case None if !Files.isExecutable(binary) =>
           IO.pure(ProcessRunner.DiscoveryResult.Failed(s"Kotlin/Native binary is not executable: $binary"))
         case None =>
@@ -453,7 +453,7 @@ object KotlinTestRunner {
     ): IO[TestResult] =
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
-        case None =>
+        case None         =>
           IO.blocking {
             if (!Files.isExecutable(binary)) {
               binary.toFile.setExecutable(true): Unit
@@ -470,7 +470,6 @@ object KotlinTestRunner {
             env.foreach { case (k, v) => pb.environment().put(k, v) }
 
             (Ref.of[IO, NativeRunState](NativeRunState.empty), StderrBuffer.create(eventHandler)).flatMapN { (stateRef, stderrBuffer) =>
-
               def finishCurrentSuite: IO[Unit] =
                 stateRef
                   .modify { st =>

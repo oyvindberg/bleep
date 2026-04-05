@@ -98,7 +98,7 @@ object BleepDevDeps {
     val buildDir = devBuildDir(dep.version)
     val baseName = dep.baseModuleName.value
     artifacts.get(baseName) match {
-      case None => Nil
+      case None          => Nil
       case Some(selfCpn) =>
         val selfDir = classDir(buildDir, selfCpn)
         if (Files.isDirectory(selfDir)) {

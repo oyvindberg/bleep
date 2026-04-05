@@ -757,7 +757,7 @@ object Main {
 
   def maybeRunWithDifferentVersion(args: Array[String], logger: Logger, buildLoader: BuildLoader, opts: CommonOpts): ExitCode =
     buildLoader match {
-      case BuildLoader.NonExisting(_) => ExitCode.Success
+      case BuildLoader.NonExisting(_)     => ExitCode.Success
       case existing: BuildLoader.Existing =>
         val correctPlatform = OsArch.current match {
           case OsArch.MacosArm64(freedFromJail) => !freedFromJail
@@ -862,7 +862,7 @@ object Main {
 
           bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
-              case Left(be) => fatal("", logger, be)
+              case Left(be)   => fatal("", logger, be)
               case Right(pre) =>
                 bsp.BspProxy.run(pre)
             }
@@ -879,7 +879,7 @@ object Main {
 
           bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
-              case Left(be) => fatal("", logger, be)
+              case Left(be)   => fatal("", logger, be)
               case Right(pre) =>
                 mcp.McpServerRunner.run(pre)
             }

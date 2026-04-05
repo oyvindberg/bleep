@@ -16,7 +16,7 @@ class FetchSbt(logger: CacheLogger, ec: ExecutionContext) {
     val os = JvmChannel.defaultOs()
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {
-      case Left(value) => throw new BleepException.Cause(value, s"couldn't download sbt version $version from url $url")
+      case Left(value)   => throw new BleepException.Cause(value, s"couldn't download sbt version $version from url $url")
       case Right(folder) =>
         val bin = folder.toPath / "sbt/bin" / (if (os == "windows") "sbt.bat" else "sbt")
         if (!bin.toFile.exists()) {

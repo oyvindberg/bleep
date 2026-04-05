@@ -242,7 +242,7 @@ object ZincBridge {
     while (depIter.hasNext) {
       val (outputDir, depAnalysisFile) = depIter.next()
       manifest.depAnalysisStats.get(outputDir) match {
-        case None => return None
+        case None                => return None
         case Some(expectedMtime) =>
           if (!Files.exists(depAnalysisFile)) return None
           val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
@@ -307,7 +307,7 @@ object ZincBridge {
     while (dirIter.hasNext) {
       val dir = dirIter.next()
       manifest.sourceDirStats.get(dir) match {
-        case None => return None
+        case None           => return None
         case Some(expected) =>
           if (!Files.isDirectory(dir)) return None
           val stat = statFile(dir)
@@ -367,7 +367,7 @@ object ZincBridge {
         case other                 => Path.of(other.id())
       }
       manifest.sourceStats.get(path) match {
-        case None => return None
+        case None           => return None
         case Some(expected) =>
           val stat = statFile(path)
           if (

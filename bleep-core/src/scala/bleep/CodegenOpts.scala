@@ -24,7 +24,7 @@ object CodegenOpts {
     }
 
     projects.result() match {
-      case Nil => throw new IllegalAccessException("A project name should have been passed")
+      case Nil                    => throw new IllegalAccessException("A project name should have been passed")
       case nonEmptyProjectStrings =>
         val projectNames = nonEmptyProjectStrings.map { p =>
           model.CrossProjectName.fromString(p).getOrElse {

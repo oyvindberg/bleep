@@ -92,7 +92,7 @@ class TemplateTest extends SnapshotTest {
     val post = model.Build.FileBacked(buildFile).dropBuildFile.dropTemplates
     model.Build.diffProjects(Defaults.add(pre, null), post) match {
       case empty if empty.isEmpty => ()
-      case diffs =>
+      case diffs                  =>
         diffs.foreach { case (projectName, msg) => System.err.println(s"$projectName: $msg") }
         fail("Project templating did illegal rewrites. ")
     }

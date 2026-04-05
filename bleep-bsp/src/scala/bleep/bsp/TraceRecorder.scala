@@ -152,13 +152,13 @@ ${traceEvents.mkString(",\n")}
     private def escapeJson(s: String): String = {
       val sb = new StringBuilder("\"")
       s.foreach {
-        case '"'  => sb.append("\\\"")
-        case '\\' => sb.append("\\\\")
-        case '\b' => sb.append("\\b")
-        case '\f' => sb.append("\\f")
-        case '\n' => sb.append("\\n")
-        case '\r' => sb.append("\\r")
-        case '\t' => sb.append("\\t")
+        case '"'          => sb.append("\\\"")
+        case '\\'         => sb.append("\\\\")
+        case '\b'         => sb.append("\\b")
+        case '\f'         => sb.append("\\f")
+        case '\n'         => sb.append("\\n")
+        case '\r'         => sb.append("\\r")
+        case '\t'         => sb.append("\\t")
         case c if c < ' ' =>
           sb.append("\\u")
           sb.append(f"${c.toInt}%04x")

@@ -189,8 +189,8 @@ object BuildCreateNew {
           kotlin = None,
           platform = Some(
             platformId match {
-              case model.PlatformId.Jvm => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
-              case model.PlatformId.Js  => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
+              case model.PlatformId.Jvm    => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
+              case model.PlatformId.Js     => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
               case model.PlatformId.Native =>
                 model.Platform.Native(model.VersionScalaNative.ScalaNative05, Some("immix"), None, None, None, None, None, None, None, None)
             }

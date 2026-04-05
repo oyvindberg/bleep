@@ -205,7 +205,7 @@ object ClasspathAnalyzer {
         val typeOpt = start.getDecl(typeName(head))
         termOpt match {
           case Some(pkg: PackageSymbol) => navigateToSymbol(pkg, tail)
-          case _ =>
+          case _                        =>
             typeOpt match {
               case Some(cls: ClassSymbol) => navigateToSymbol(cls, tail)
               case _                      => None

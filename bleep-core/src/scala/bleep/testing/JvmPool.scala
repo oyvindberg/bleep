@@ -315,7 +315,7 @@ object JvmPool {
         }
         TestProtocol.decodeResponse(line) match {
           case Right(TestProtocol.TestResponse.Ready) => ()
-          case Right(other) =>
+          case Right(other)                           =>
             throw new IOException(s"Expected Ready, got: $other")
           case Left(err) =>
             throw new IOException(s"Failed to decode response: $err, line: $line")
@@ -406,7 +406,7 @@ object JvmPool {
             } else {
               TestProtocol.decodeResponse(line) match {
                 case Right(response) => Some(response)
-                case Left(err) =>
+                case Left(err)       =>
                   jvm.markProtocolDirty()
                   Some(
                     TestProtocol.TestResponse.Error(

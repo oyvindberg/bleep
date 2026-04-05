@@ -20,7 +20,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val dependency = "org.http4s::http4s-core"
     DependencyUpgrader.singleDepParser.parseAll(dependency) match {
 
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val org = value._1
         val module = value._2.getOrElse("")
@@ -33,7 +33,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val dependency = "org.springframework:spring-boot-starter-web"
     DependencyUpgrader.singleDepParser.parseAll(dependency) match {
 
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val org = value._1
         val module = value._2.getOrElse("")
@@ -44,7 +44,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
   test("parses single dependency - only organization") {
     val dependency = "org.http4s"
     DependencyUpgrader.singleDepParser.parseAll(dependency) match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val org = value._1
         val module = value._2
@@ -69,7 +69,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, false)
 
     upgrades match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val moduleName = value.head._2.baseModuleName.value
         (value.size, moduleName) shouldBe (1, "http4s-dsl")
@@ -80,7 +80,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s"), DependencyUpdateTestFixture.foundByDep, false, false)
 
     upgrades match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val modules = List("http4s-dsl", "http4s-core")
         assert(value.values.map(_.baseModuleName.value) === modules)
@@ -98,7 +98,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, false)
 
     upgrades match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val version = value.head._2.version
         assert(version === "0.23.28")
@@ -110,7 +110,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.springframework:spring-boot-starter-web"), DependencyUpdateTestFixture.foundByDep, false, false)
 
     upgrades match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val version = value.head._2.version
         assert(version === "3.3.4")
@@ -121,7 +121,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, true)
 
     upgrades match {
-      case Left(_) => assert(false)
+      case Left(_)      => assert(false)
       case Right(value) =>
         val version = value.head._2.version
         assert(version === "1.0.0-M41")
