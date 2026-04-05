@@ -285,6 +285,9 @@ object Main {
               Opts.subcommand("evicted", "show eviction warnings for project")(
                 projectNames.map(projectNames => commands.Evicted(projectNames))
               ),
+              Opts.subcommand("invalidated", "compute which projects need rebuild/retest vs a base git commit")(
+                commands.BuildInvalidated.opts
+              ),
               newCommand(started.pre.logger, started.pre.userPaths, started.buildPaths.cwd)
             ).foldK
           ),

@@ -57,6 +57,10 @@ const sidebars = {
                     label: "Build rewrites",
                     id: "usage/build-rewrites",
                 }, {
+                    type: "doc",
+                    label: "CI project invalidation",
+                    id: "usage/ci-invalidation",
+                }, {
                     type: "category",
                     label: "Private repositories",
                     link: {
