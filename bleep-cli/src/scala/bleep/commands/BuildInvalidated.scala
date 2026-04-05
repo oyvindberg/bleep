@@ -57,7 +57,7 @@ case class BuildInvalidated(
         try
           scala.sys.process
             .Process(
-              List("git", "diff", "--name-only", s"$base..HEAD"),
+              List("git", "diff", "--name-only", base),
               buildDir.toFile
             )
             .!!
