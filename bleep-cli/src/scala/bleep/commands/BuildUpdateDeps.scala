@@ -115,7 +115,7 @@ object DependencyUpgrader {
     val singleDepParsed = singleDep.map(dep => singleDepParser.parseAll(dep))
 
     singleDepParsed match {
-      case None => Right(findUpgrades(foundByDep, scalaStewardMode, allowPrerelease))
+      case None            => Right(findUpgrades(foundByDep, scalaStewardMode, allowPrerelease))
       case Some(parsedDep) =>
         filterDependencies(foundByDep, parsedDep, singleDep.getOrElse("")).map { filtered =>
           findUpgrades(filtered, scalaStewardMode, allowPrerelease)
@@ -129,7 +129,7 @@ object DependencyUpgrader {
       depName: String
   ): Either[BleepException.Text, Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)]] =
     parsedDep match {
-      case Left(_) => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
+      case Left(_)              => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
       case Right((org, module)) =>
         val toUpdate = foundByDep.filter { case ((bleepDep, _), _) =>
           module.map(bleepDep.baseModuleName.value.equalsIgnoreCase).getOrElse(true) && bleepDep.organization.value.equalsIgnoreCase(org)

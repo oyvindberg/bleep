@@ -186,7 +186,7 @@ object KotlinSourceCompiler extends Compiler {
 
     val config = input.config match {
       case c: KotlinConfig => c
-      case other =>
+      case other           =>
         val err =
           CompilerError(None, 0, 0, s"KotlinSourceCompiler requires KotlinConfig, got ${other.getClass.getSimpleName}", None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
@@ -817,7 +817,7 @@ object KotlinSourceCompiler extends Compiler {
       new java.lang.reflect.InvocationHandler {
         override def invoke(proxy: Any, method: java.lang.reflect.Method, methodArgs: Array[AnyRef]): AnyRef =
           method.getName match {
-            case "clear" => null
+            case "clear"     => null
             case "hasErrors" =>
               if cancellation.isCancelled then throw setup.canceledExceptionClass.getDeclaredConstructor().newInstance().asInstanceOf[Throwable]
               java.lang.Boolean.valueOf(collectedErrors.exists(_.severity == CompilerError.Severity.Error))

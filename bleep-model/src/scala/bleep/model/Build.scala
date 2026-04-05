@@ -42,7 +42,7 @@ sealed trait Build {
             case None =>
               throw new BleepException.Text(s"$crossProjectName: depends on non-existing project $depName")
             case Some(unambiguous) if unambiguous.size == 1 => unambiguous.head
-            case Some(depCrossVersions) =>
+            case Some(depCrossVersions)                     =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
               val thisScalaVersion = p.scala.flatMap(_.version)
@@ -202,7 +202,7 @@ object Build {
     allProjects.foreach { projectName =>
       (before.explodedProjects.get(projectName), after.explodedProjects.get(projectName)) match {
         case (Some(before), Some(after)) if after == before => ()
-        case (Some(before), Some(after)) =>
+        case (Some(before), Some(after))                    =>
           val onlyInBefore = yaml.encodeShortened(before.removeAll(after))
           val onlyInAfter = yaml.encodeShortened(after.removeAll(before))
           diffs += ((projectName, s"before: $onlyInBefore, after: $onlyInAfter"))

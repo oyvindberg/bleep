@@ -22,7 +22,7 @@ case class RelPath private (segments: Array[String]) {
 
   def extension: Option[String] =
     name match {
-      case None => None
+      case None       => None
       case Some(name) =>
         name.split('.') match {
           case Array(_) => None
@@ -103,7 +103,7 @@ object RelPath {
     val out = mutable.ArrayBuffer.empty[String]
     strings.foreach {
       case "" | "." => ()
-      case ".." =>
+      case ".."     =>
         if (out.forall(_ == ".."))
           out += ".."
         else

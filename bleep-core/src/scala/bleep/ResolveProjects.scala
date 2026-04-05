@@ -459,7 +459,7 @@ object ResolveProjects {
         val key = f(i)
         val builder = map.get(key) match {
           case Some(existing) => existing
-          case None =>
+          case None           =>
             val newBuilder = makeBuilder
             map(key) = newBuilder
             newBuilder

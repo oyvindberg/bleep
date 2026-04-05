@@ -76,7 +76,7 @@ object ScalaJsToolchain {
   def forVersion(scalaJsVersion: String, scalaVersion: String): ScalaJsToolchain = {
     val majorVersion = scalaJsVersion.split('.').headOption.getOrElse("1")
     majorVersion match {
-      case "1" => new ScalaJs1Bridge(scalaJsVersion, scalaVersion)
+      case "1"   => new ScalaJs1Bridge(scalaJsVersion, scalaVersion)
       case other =>
         throw new IllegalArgumentException(s"Unsupported Scala.js version: $scalaJsVersion (major version $other)")
     }

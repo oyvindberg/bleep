@@ -49,8 +49,8 @@ object KotlinBuildTarget {
           while continue do {
             val key = in.readKeyAsString()
             key match {
-              case "kotlinVersion" => kotlinVersion = in.readString(null)
-              case "jvmTarget"     => jvmTarget = in.readString(null)
+              case "kotlinVersion"  => kotlinVersion = in.readString(null)
+              case "jvmTarget"      => jvmTarget = in.readString(null)
               case "kotlincOptions" =>
                 val builder = List.newBuilder[String]
                 if in.isNextToken('[') then

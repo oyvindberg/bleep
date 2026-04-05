@@ -95,7 +95,7 @@ object Authentications {
     Codec.from(
       Decoder.instance { c =>
         c.as[Option[Json]].flatMap {
-          case None => Right(empty)
+          case None       => Right(empty)
           case Some(json) =>
             keyAwareEntryDecoder(keyDecoder).decodeJson(json).map(m => Authentications(m))
         }

@@ -12,7 +12,7 @@ case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger, stdout
     val programName = BleepExecutable.findCurrentBleep(logger) match {
       case Some(CoursierInstallation(scriptPath, _)) => scriptPath.getFileName.toString
       case Some(binary: BleepExecutable.Binary)      => binary.command.getFileName.toString
-      case _ =>
+      case _                                         =>
         logger.warn("Doesn't know name of a Bleep executable. Falling back to 'bleep'")
         "bleep"
     }

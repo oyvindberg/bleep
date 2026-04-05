@@ -459,7 +459,7 @@ object TaskDag {
     val linkTasks = testProjects.flatMap { project =>
       platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
-        case Some(platform) =>
+        case Some(platform)                =>
           Some(LinkTask(project, platform, releaseMode = false, isTest = true))
       }
     }
@@ -499,7 +499,7 @@ object TaskDag {
     val linkTasks = projects.flatMap { project =>
       platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
-        case Some(platform) =>
+        case Some(platform)                =>
           Some(LinkTask(project, platform, releaseMode, isTest = false))
       }
     }

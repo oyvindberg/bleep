@@ -79,7 +79,7 @@ object ScalaNativeTestRunner {
       killSignal: Deferred[IO, KillReason]
   ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
     killSignal.tryGet.flatMap {
-      case Some(reason) => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
+      case Some(reason)                        => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
       case None if !Files.isExecutable(binary) =>
         IO.pure(ProcessRunner.DiscoveryResult.Failed(s"Binary is not executable: $binary"))
       case None =>
@@ -157,7 +157,7 @@ object ScalaNativeTestRunner {
   ): IO[TestResult] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
-      case None =>
+      case None         =>
         IO.blocking {
           if (!Files.isExecutable(binary)) {
             binary.toFile.setExecutable(true): Unit
@@ -272,7 +272,7 @@ object ScalaNativeTestRunner {
   ): IO[TestResult] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
-      case None =>
+      case None         =>
         val work = IO.interruptible {
           runTestsViaAdapterBlocking(binary, suites, framework, eventHandler, env, workingDir, scalaNativeVersion)
         }
@@ -280,7 +280,7 @@ object ScalaNativeTestRunner {
         Outcome
           .raceKill(killSignal)(work)
           .flatMap {
-            case Left(result) => IO.pure(result)
+            case Left(result)  => IO.pure(result)
             case Right(reason) =>
               IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
           }

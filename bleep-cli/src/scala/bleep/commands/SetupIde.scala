@@ -49,7 +49,7 @@ case class SetupIde(maybeSelectedProjects: Option[List[String]], forceJvm: Boole
       Some(started.buildPaths.buildDir / "build.sbt").filter(FileUtils.exists),
       Some(started.buildPaths.buildDir / "project").filter(FileUtils.exists)
     ).flatten match {
-      case Nil => ()
+      case Nil       => ()
       case conflicts =>
         LazyList
           .from(0)

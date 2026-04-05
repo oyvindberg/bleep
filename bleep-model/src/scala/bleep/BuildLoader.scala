@@ -37,7 +37,7 @@ object BuildLoader {
 
     val json: Lazy[Either[BleepException, Json]] =
       str.map {
-        case Left(be) => Left(be)
+        case Left(be)       => Left(be)
         case Right(jsonStr) =>
           try
             yaml.parse(jsonStr).left.map(th => new BleepException.InvalidJson(bleepYaml, th))
@@ -51,7 +51,7 @@ object BuildLoader {
 
     val buildFile: Lazy[Either[BleepException, model.BuildFile]] =
       json.map {
-        case Left(be) => Left(be)
+        case Left(be)    => Left(be)
         case Right(json) =>
           json.as[model.BuildFile] match {
             case Left(th)     => Left(new BleepException.InvalidJson(bleepYaml, th))

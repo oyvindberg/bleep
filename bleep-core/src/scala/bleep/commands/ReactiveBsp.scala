@@ -346,7 +346,7 @@ case class ReactiveBsp(
       // Retry once if the server crashed (e.g. after `bleep clean` deleted class files).
       // Kill the dead server, start a fresh one, and reconnect.
       bspOperation = attemptBspOperation.flatMap {
-        case ReactiveBsp.BspAttemptResult.Success => IO.unit
+        case ReactiveBsp.BspAttemptResult.Success       => IO.unit
         case ReactiveBsp.BspAttemptResult.ServerCrashed =>
           IO(bspLogger.warn("BSP server crashed, restarting and retrying...")) >>
             IO(diagLog("[RETRY] Server crashed, killing stale server and retrying")) >>
@@ -560,7 +560,7 @@ case class ReactiveBsp(
                 data <- Option(testResult.getData)
                 jsonStr = data.toString
                 result <- BleepBspProtocol.TestRunResult.decode(jsonStr) match {
-                  case Right(r) => Some(r)
+                  case Right(r)  => Some(r)
                   case Left(err) =>
                     bspLogger.warn(s"Failed to decode TestRunResult: ${err.getMessage}, json: $jsonStr")
                     None

@@ -193,7 +193,7 @@ object BspServerOperations {
 
     def poll(deadline: Long): IO[Unit] =
       isReady.flatMap {
-        case true => IO.unit
+        case true  => IO.unit
         case false =>
           IO.realTime.flatMap { now =>
             if (now.toMillis >= deadline) {
@@ -274,7 +274,7 @@ object BspServerOperations {
     val pidFile = socketDir.resolve("pid")
 
     readPid(pidFile).flatMap {
-      case None => cleanup(socketDir)
+      case None      => cleanup(socketDir)
       case Some(pid) =>
         val graceful = sendShutdownSignal(pid) >>
           waitForProcessExit(pid, config.shutdownGracePeriod)
@@ -302,7 +302,7 @@ object BspServerOperations {
   def waitForProcessExit(pid: Long, timeout: FiniteDuration): IO[Unit] = {
     def poll(deadline: Long): IO[Unit] =
       IO.blocking(ProcessHandle.of(pid).isEmpty).flatMap {
-        case true => IO.unit
+        case true  => IO.unit
         case false =>
           IO.realTime.flatMap { now =>
             if (now.toMillis >= deadline) {
@@ -369,7 +369,7 @@ object BspServerOperations {
 
     IO.blocking(Files.exists(lockFile)).flatMap {
       case false => IO.pure(false)
-      case true =>
+      case true  =>
         readPid(pidFile).flatMap {
           case None      => IO.pure(true) // Lock but no PID = zombie
           case Some(pid) => isProcessAlive(pid).map(!_)
@@ -386,7 +386,7 @@ object BspServerOperations {
   def forceKillAndCleanup(socketDir: Path): IO[Unit] = {
     val pidFile = socketDir.resolve("pid")
     readPid(pidFile).flatMap {
-      case None => cleanup(socketDir)
+      case None      => cleanup(socketDir)
       case Some(pid) =>
         forceKill(pid) >>
           // Wait for the process to actually exit (up to 5 seconds) instead of a blind sleep.

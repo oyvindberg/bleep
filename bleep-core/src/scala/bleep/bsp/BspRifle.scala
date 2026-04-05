@@ -223,7 +223,7 @@ object BspRifle {
     }
 
     BspServerOperations.readPid(pidFile).flatMap {
-      case None => IO.pure(None)
+      case None      => IO.pure(None)
       case Some(pid) =>
         BspServerOperations.isProcessAlive(pid).map {
           case false => None

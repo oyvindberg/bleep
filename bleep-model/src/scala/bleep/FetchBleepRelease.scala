@@ -44,7 +44,7 @@ object FetchBleepRelease {
       }
 
     maybeUrl match {
-      case Left(msg) => Left(new BleepException.Text(msg))
+      case Left(msg)  => Left(new BleepException.Text(msg))
       case Right(uri) =>
         val fetching: Future[Either[ArtifactError, File]] = ArchiveCache[Task]()
           .withCache(FileCache().withLogger(cacheLogger))

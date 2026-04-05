@@ -140,7 +140,7 @@ case class ProjectDag(
   /** Get the maximum parallelism possible (width of widest layer) */
   def maxParallelism: Int =
     topologicalOrder match {
-      case Left(_) => 0
+      case Left(_)      => 0
       case Right(order) =>
         var completed = Set.empty[String]
         var maxWidth = 0

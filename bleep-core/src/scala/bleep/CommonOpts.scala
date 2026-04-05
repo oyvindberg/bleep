@@ -25,11 +25,11 @@ object CommonOpts {
     var idx = 0
     while (idx < args.length) {
       args(idx) match {
-        case "--no-color"        => noColor = true
-        case "--debug"           => debug = true
-        case "--dev"             => dev = true
-        case "--no-bsp-progress" => noBspProgress = true
-        case "--log-as-json"     => logAsJson = true
+        case "--no-color"                                      => noColor = true
+        case "--debug"                                         => debug = true
+        case "--dev"                                           => dev = true
+        case "--no-bsp-progress"                               => noBspProgress = true
+        case "--log-as-json"                                   => logAsJson = true
         case "-d" | "--directory" if args.isDefinedAt(idx + 1) =>
           directory = Some(args(idx + 1))
           idx += 1

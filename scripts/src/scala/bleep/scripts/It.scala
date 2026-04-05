@@ -56,7 +56,7 @@ object It extends BleepScript("It") {
     var action = Option.empty[String]
 
     demo.script(bleep).lines().map(_.trim).forEach {
-      case "" => ()
+      case ""                                 => ()
       case comment if comment.startsWith("#") =>
         action = Some(comment.trim.dropWhile(c => c == '#' || c == ' ').takeWhile(c => c.isUnicodeIdentifierPart || c == ' '))
       case bat if bat.startsWith("bat") => // don't need to cat files here, and bat isn't necessarily installed everywhere

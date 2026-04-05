@@ -99,7 +99,7 @@ object ProcessTestRunner {
     Outcome
       .raceKill(config.killSignal)(work)
       .flatMap {
-        case Left(result) => IO.pure(result)
+        case Left(result)  => IO.pure(result)
         case Right(reason) =>
           config.getRunState.map { state =>
             config.eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))

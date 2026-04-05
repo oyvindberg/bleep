@@ -19,11 +19,11 @@ object Repository {
 
   implicit val repoEncoder: Encoder[Repository] =
     Encoder.instance {
-      case Repository.Maven(None, uri)        => uri.asJson
-      case Repository.Maven(Some(name), uri)  => Json.obj("type" -> "maven".asJson, "uri" -> uri.asJson, "name" -> name.value.asJson)
-      case Repository.Ivy(None, uri)          => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
-      case Repository.Ivy(Some(name), uri)    => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson, "name" -> name.value.asJson)
-      case Repository.MavenFolder(None, path) => Json.obj("type" -> "maven-folder".asJson, "path" -> Json.fromString(path.toString))
+      case Repository.Maven(None, uri)              => uri.asJson
+      case Repository.Maven(Some(name), uri)        => Json.obj("type" -> "maven".asJson, "uri" -> uri.asJson, "name" -> name.value.asJson)
+      case Repository.Ivy(None, uri)                => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
+      case Repository.Ivy(Some(name), uri)          => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson, "name" -> name.value.asJson)
+      case Repository.MavenFolder(None, path)       => Json.obj("type" -> "maven-folder".asJson, "path" -> Json.fromString(path.toString))
       case Repository.MavenFolder(Some(name), path) =>
         Json.obj("type" -> "maven-folder".asJson, "path" -> Json.fromString(path.toString), "name" -> name.value.asJson)
     }

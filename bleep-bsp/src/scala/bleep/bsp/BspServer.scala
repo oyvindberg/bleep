@@ -678,7 +678,7 @@ class BspServer(
       }
       val scalaVersion = project.languageConfig match {
         case sc: ScalaConfig => sc.version
-        case other =>
+        case other           =>
           throw new IllegalStateException(s"Scala.js project ${project.name} has non-Scala language config: $other")
       }
       val config = if (project.outputDir.toString.contains("release")) {
@@ -695,7 +695,7 @@ class BspServer(
       }
       val scalaVersion = project.languageConfig match {
         case sc: ScalaConfig => sc.version
-        case other =>
+        case other           =>
           throw new IllegalStateException(s"Scala Native project ${project.name} has non-Scala language config: $other")
       }
       TaskDag.LinkPlatform.ScalaNative(version, scalaVersion, ScalaNativeLinkConfig.Debug)

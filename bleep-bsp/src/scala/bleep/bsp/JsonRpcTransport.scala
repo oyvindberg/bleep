@@ -336,8 +336,8 @@ class JsonRpcTransport(
     */
   def readMessage(): Option[JsonRpcRequest] =
     readMessageTyped() match {
-      case ReadResult.Message(request) => Some(request)
-      case ReadResult.EndOfStream      => None
+      case ReadResult.Message(request)  => Some(request)
+      case ReadResult.EndOfStream       => None
       case ReadResult.ParseError(error) =>
         System.err.println(s"[BSP] Parse error: $error")
         None

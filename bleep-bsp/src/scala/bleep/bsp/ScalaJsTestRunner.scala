@@ -36,7 +36,7 @@ object ScalaJsTestRunner {
   ): IO[ProcessRunner.DiscoveryResult[List[DiscoveredSuites]]] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
-      case None =>
+      case None         =>
         IO.blocking {
           val discoveryScript = createDiscoveryScript(linkedJs, frameworkNames)
           val scriptPath = Files.createTempFile("scalajs-discover-", ".js")
@@ -90,7 +90,7 @@ object ScalaJsTestRunner {
   ): IO[TestResult] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
-      case None =>
+      case None         =>
         IO.blocking {
           val runnerScript = createTestRunnerScript(linkedJs, moduleKind, suites)
           val scriptPath = Files.createTempFile("scalajs-test-", ".js")

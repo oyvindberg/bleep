@@ -97,7 +97,7 @@ object runSbt {
           .info("Discovered projects")
 
         val scalaVersionOutput = filtering.filterScalaVersions match {
-          case None => result
+          case None                  => result
           case Some(allowedVersions) =>
             val allowedSet = allowedVersions.toList.toSet
             val filteredScalaVersions = result.scalaVersions.filter { case (version, _) => allowedSet.contains(version) }

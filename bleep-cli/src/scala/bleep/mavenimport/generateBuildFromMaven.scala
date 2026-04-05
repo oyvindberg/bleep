@@ -32,7 +32,7 @@ object generateBuildFromMaven {
     // Validate no illegal rewrites occurred during templating
     model.Build.diffProjects(Defaults.add(normalizedBuild, destinationPaths), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
       case empty if empty.isEmpty => ()
-      case diffs =>
+      case diffs                  =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => logger.withContext("projectName", projectName.value).error(msg) }
     }
@@ -126,7 +126,7 @@ object generateBuildFromMaven {
       val isExcluded = allExcludedProjects.contains(crossProjectName.name)
 
       val scalaVersionMatches = filtering.filterScalaVersions match {
-        case None => true
+        case None                  => true
         case Some(allowedVersions) =>
           project.scala.flatMap(_.version) match {
             case Some(projectScalaVersion) => allowedVersions.toList.contains(projectScalaVersion)
@@ -135,7 +135,7 @@ object generateBuildFromMaven {
       }
 
       val platformMatches = filtering.filterPlatforms match {
-        case None => true
+        case None                   => true
         case Some(allowedPlatforms) =>
           project.platform match {
             case Some(platform) => platform.name.exists(allowedPlatforms.toList.contains)

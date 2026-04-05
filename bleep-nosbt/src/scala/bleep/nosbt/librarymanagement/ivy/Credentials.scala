@@ -22,7 +22,7 @@ object Credentials {
   def allDirect(sc: Seq[Credentials]): Seq[DirectCredentials] = sc map toDirect
   def toDirect(c: Credentials): DirectCredentials = c match {
     case dc: DirectCredentials => dc
-    case fc: FileCredentials =>
+    case fc: FileCredentials   =>
       loadCredentials(fc.path) match {
         case Left(err) => sys.error(err)
         case Right(dc) => dc

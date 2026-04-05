@@ -17,7 +17,7 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
             var res: Res = Res.NoMatch
             while (remainingArgs.nonEmpty)
               completeOpts(remainingArgs)(command.options) match {
-                case Res.NoMatch => return Res.NoMatch
+                case Res.NoMatch          => return Res.NoMatch
                 case matched: Res.Matched =>
                   res = matched
                   remainingArgs = remainingArgs.drop(matched.consumed)

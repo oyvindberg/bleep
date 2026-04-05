@@ -17,9 +17,9 @@ sealed trait VersionCombo {
 
   def libraries(isTest: Boolean): List[Dep] =
     this match {
-      case VersionCombo.Java                  => Nil
-      case VersionCombo.Kotlin(kotlinVersion) => kotlinVersion.libraries
-      case VersionCombo.Jvm(scalaVersion)     => scalaVersion.libraries
+      case VersionCombo.Java                      => Nil
+      case VersionCombo.Kotlin(kotlinVersion)     => kotlinVersion.libraries
+      case VersionCombo.Jvm(scalaVersion)         => scalaVersion.libraries
       case VersionCombo.Js(scalaVersion, scalaJs) =>
         val testLibs = if (isTest) List(scalaJs.testInterface, scalaJs.testBridge) else Nil
 

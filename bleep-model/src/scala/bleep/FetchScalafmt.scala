@@ -29,7 +29,7 @@ object FetchScalafmt {
   private def fetchStandalone(fileCache: FileCache[Task], ec: ExecutionContext, url: String): Path = {
     val bin = Await.result(fileCache.file(Artifact(url)).run.value(ec), Duration.Inf)
     bin match {
-      case Left(err) => throw new BleepException.ArtifactResolveError(err, "scalafmt")
+      case Left(err)   => throw new BleepException.ArtifactResolveError(err, "scalafmt")
       case Right(file) =>
         file.setExecutable(true)
         file.toPath
@@ -40,10 +40,10 @@ object FetchScalafmt {
     val cache = ArchiveCache[Task]().withCache(fileCache)
     val bin = Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf)
     bin match {
-      case Left(err) => throw new BleepException.ArtifactResolveError(err, "scalafmt")
+      case Left(err)  => throw new BleepException.ArtifactResolveError(err, "scalafmt")
       case Right(dir) =>
         FetchBleepRelease.findExecutable(dir) match {
-          case Left(msg) => throw new BleepException.Text(s"Could not find scalafmt executable: $msg")
+          case Left(msg)   => throw new BleepException.Text(s"Could not find scalafmt executable: $msg")
           case Right(file) =>
             file.setExecutable(true)
             file.toPath

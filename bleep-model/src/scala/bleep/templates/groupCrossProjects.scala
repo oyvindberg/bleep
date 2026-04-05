@@ -6,7 +6,7 @@ object groupCrossProjects {
   def apply(projects: Map[model.CrossProjectName, model.ProjectWithExploded]): Map[model.ProjectName, model.ProjectWithExploded] =
     projects.toSeq.groupBy(_._1.name).map {
       case (name, Seq((model.CrossProjectName(_, None), one))) => (name, one)
-      case (name, crossProjects) =>
+      case (name, crossProjects)                               =>
         val compressingProjectByCrossId: Seq[(model.CrossId, model.ProjectWithExploded)] =
           crossProjects.map { case (crossProjectName, p) => (crossProjectName.crossId.get, p) }
 

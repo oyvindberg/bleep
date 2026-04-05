@@ -108,74 +108,75 @@ object TestRunner {
       lastActivityAt <- Ref.of[IO, Long](startTime)
 
       /** Process responses from the forked JVM - streams events in real-time */
-      processResponses = for {
-        passedCount <- Ref.of[IO, Int](0)
-        failedCount <- Ref.of[IO, Int](0)
-        skippedCount <- Ref.of[IO, Int](0)
-        failures <- Ref.of[IO, List[String]](Nil)
+      processResponses =
+        for {
+          passedCount <- Ref.of[IO, Int](0)
+          failedCount <- Ref.of[IO, Int](0)
+          skippedCount <- Ref.of[IO, Int](0)
+          failures <- Ref.of[IO, List[String]](Nil)
 
-        // Process each response as it arrives (streaming, not batching)
-        _ <- jvm
-          .runSuite(suiteName, framework, testArgs)
-          .evalMap {
-            case TestProtocol.TestResponse.TestStarted(_, test) =>
-              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))
+          // Process each response as it arrives (streaming, not batching)
+          _ <- jvm
+            .runSuite(suiteName, framework, testArgs)
+            .evalMap {
+              case TestProtocol.TestResponse.TestStarted(_, test) =>
+                now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))
 
-            case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
-              val status = TestStatus.fromString(statusStr)
-              val updateCount =
-                if (status == TestStatus.Passed) passedCount.update(_ + 1)
-                else if (status.isFailure) failedCount.update(_ + 1) >> failures.update(test :: _)
-                else skippedCount.update(_ + 1)
-              updateCount >> now.flatMap { ts =>
-                // Reset idle timeout on each test completion
-                lastActivityAt.set(ts) >>
-                  emit(
-                    TaskDag.DagEvent.TestFinished(
-                      project = project,
-                      suite = SuiteName(suiteName),
-                      test = TestName(test),
-                      status = status,
-                      durationMs = durationMs,
-                      message = message,
-                      throwable = throwable,
-                      timestamp = ts
+              case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
+                val status = TestStatus.fromString(statusStr)
+                val updateCount =
+                  if (status == TestStatus.Passed) passedCount.update(_ + 1)
+                  else if (status.isFailure) failedCount.update(_ + 1) >> failures.update(test :: _)
+                  else skippedCount.update(_ + 1)
+                updateCount >> now.flatMap { ts =>
+                  // Reset idle timeout on each test completion
+                  lastActivityAt.set(ts) >>
+                    emit(
+                      TaskDag.DagEvent.TestFinished(
+                        project = project,
+                        suite = SuiteName(suiteName),
+                        test = TestName(test),
+                        status = status,
+                        durationMs = durationMs,
+                        message = message,
+                        throwable = throwable,
+                        timestamp = ts
+                      )
                     )
-                  )
-              }
+                }
 
-            case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
-              // Use the higher of accumulated individual counts vs authoritative SuiteDone.
-              // Individual TestFinished events may be partially received (stream ended early),
-              // so SuiteDone provides a correction floor.
-              passedCount.update(c => math.max(c, passed)) >>
-                failedCount.update(c => math.max(c, failed)) >>
-                skippedCount.update(c => math.max(c, skipped))
+              case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
+                // Use the higher of accumulated individual counts vs authoritative SuiteDone.
+                // Individual TestFinished events may be partially received (stream ended early),
+                // so SuiteDone provides a correction floor.
+                passedCount.update(c => math.max(c, passed)) >>
+                  failedCount.update(c => math.max(c, failed)) >>
+                  skippedCount.update(c => math.max(c, skipped))
 
-            case TestProtocol.TestResponse.Log(level, message, suite) =>
-              val isError = level == "error" || level == "stderr"
-              val effectiveSuite = suite.getOrElse(suiteName)
-              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
+              case TestProtocol.TestResponse.Log(level, message, suite) =>
+                val isError = level == "error" || level == "stderr"
+                val effectiveSuite = suite.getOrElse(suiteName)
+                now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
 
-            case TestProtocol.TestResponse.Error(message, _) =>
-              // Protocol errors - emit as test failure
-              failedCount.update(_ + 1) >>
-                failures.update(s"[Error] $message" :: _)
+              case TestProtocol.TestResponse.Error(message, _) =>
+                // Protocol errors - emit as test failure
+                failedCount.update(_ + 1) >>
+                  failures.update(s"[Error] $message" :: _)
 
-            case TestProtocol.TestResponse.Ready =>
-              IO.unit
+              case TestProtocol.TestResponse.Ready =>
+                IO.unit
 
-            case TestProtocol.TestResponse.ThreadDump(_) =>
-              IO.unit
-          }
-          .compile
-          .drain
+              case TestProtocol.TestResponse.ThreadDump(_) =>
+                IO.unit
+            }
+            .compile
+            .drain
 
-        passed <- passedCount.get
-        failed <- failedCount.get
-        skipped <- skippedCount.get
-        failureList <- failures.get
-      } yield SuiteResult(passed, failed, skipped, failureList.reverse)
+          passed <- passedCount.get
+          failed <- failedCount.get
+          skipped <- skippedCount.get
+          failureList <- failures.get
+        } yield SuiteResult(passed, failed, skipped, failureList.reverse)
 
       // Idle timeout: polls lastActivityAt every second and fires when no activity for idleTimeout duration
       idleTimeoutIO = {

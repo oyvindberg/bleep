@@ -13,7 +13,7 @@ class BuildProjectMove(parent: Path, projectNames: NonEmptyList[model.ProjectNam
 
     val result: Either[BleepException, (SortedMap[Path, Path], BuildFile)] =
       projectNames.foldLeft[Either[BleepException, (SortedMap[Path, Path], model.BuildFile)]](Right((SortedMap.empty, buildFile))) {
-        case (Left(err), _) => Left(err)
+        case (Left(err), _)                           => Left(err)
         case (Right((moves, buildFile)), projectName) =>
           moveOne(started, parent, projectName, buildFile).map { case (newMoves, newBuildFile) => (moves ++ newMoves, newBuildFile) }
       }
