@@ -85,12 +85,29 @@ object ZincBridge {
     *
     * Computed lazily and cached — the roots are constant for the lifetime of the JVM.
     */
-  // Note: zinc's ReadWriteMappers only relativize Path entries (classpath, output/source dirs)
-  // but NOT VirtualFileRef entries (source/binary/product file paths in the analysis).
-  // Using partial mappers breaks the round-trip: write relativizes Paths, read can't find them.
-  // For same-machine remote cache this is fine — absolute paths match.
-  // Cross-machine portability needs a custom mapper that handles VirtualFileRef too.
-  // See: https://github.com/oyvindberg/bleep/issues/546
+  /** Create ReadWriteMappers for portable zinc analysis, derived from the analysis file path.
+    *
+    * The build dir is inferred by finding `.bleep/` in the path. Relativizes Path entries (classpath, output/source dirs) so analysis is machine-independent for
+    * those fields. VirtualFileRef entries (source/binary/product) keep absolute paths for now — cross-machine portability for those needs VirtualFile-level changes
+    * (tracked in #546).
+    */
+  private def analysisMappers(analysisFile: Path): xsbti.compile.analysis.ReadWriteMappers = {
+    val absPath = analysisFile.toAbsolutePath.toString
+    val bleepIdx = absPath.indexOf("/.bleep/")
+    if (bleepIdx < 0) return xsbti.compile.analysis.ReadWriteMappers.getEmptyMappers()
+
+    val buildDir = Path.of(absPath.substring(0, bleepIdx))
+    val coursierCache = coursier.cache.CacheDefaults.location.toPath
+    val rootPaths = xsbti.compile.analysis.RootPaths.getPaths(
+      buildDir.toFile,
+      coursierCache.toFile,
+      buildDir.toFile
+    )
+    new xsbti.compile.analysis.ReadWriteMappers(
+      xsbti.compile.analysis.ReadMapper.getMachineIndependentMapper(rootPaths),
+      xsbti.compile.analysis.WriteMapper.getMachineIndependentMapper(rootPaths)
+    )
+  }
 
   // ─── Pre-Zinc noop detection via unix:ctime manifest ──────────────────────
   // On macOS/Linux, st_ctime (inode change time) is kernel-managed and updated
@@ -117,7 +134,7 @@ object ZincBridge {
   private val NoopManifestVersion: Byte = 3
 
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
-  private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
+  private val debugEnabled = System.getProperty("bleep.zinc.debug", "true").toBoolean
 
   private[analysis] def debug(msg: String): Unit = {
     // Only print to stderr if debug is explicitly enabled via -Dbleep.zinc.debug=true
@@ -1037,7 +1054,7 @@ object ZincBridge {
           Some(classDir -> cached)
         } else {
           try {
-            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
               analysisCache.put(analysisFile, new SoftReference(analysis))
@@ -1226,7 +1243,7 @@ object ZincBridge {
     debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
     if (Files.exists(analysisFile)) {
       try {
-        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
         val contents = store.get()
         if (contents.isPresent) {
           val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]
@@ -1284,7 +1301,7 @@ object ZincBridge {
         val sample = cpHashes.take(3).map(fh => s"${fh.file}:${fh.hash}").mkString(", ")
         debug(s"[ZincBridge] Saving with classpath hashes: $sample")
       }
-      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile)
+      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile, analysisMappers(analysisFile))
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis
