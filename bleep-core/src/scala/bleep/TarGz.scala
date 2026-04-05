@@ -62,7 +62,9 @@ object TarGz {
         if (bytesRead < 512 || isZeroBlock(headerBuf)) {
           done = true
         } else {
-          val name = extractString(headerBuf, 0, 100)
+          val namePart = extractString(headerBuf, 0, 100)
+          val prefix = extractString(headerBuf, 345, 155)
+          val name = if (prefix.nonEmpty) s"$prefix/$namePart" else namePart
           val size = extractOctal(headerBuf, 124, 12)
 
           if (name.nonEmpty && size >= 0) {
@@ -107,7 +109,20 @@ object TarGz {
   private def writeTarEntry(out: java.io.OutputStream, name: String, content: Array[Byte]): Unit = {
     val header = new Array[Byte](512)
     val nameBytes = name.getBytes("UTF-8")
-    System.arraycopy(nameBytes, 0, header, 0, math.min(nameBytes.length, 100))
+
+    if (nameBytes.length <= 100) {
+      System.arraycopy(nameBytes, 0, header, 0, nameBytes.length)
+    } else {
+      // POSIX ustar: split into prefix (offset 345, 155 bytes) + name (offset 0, 100 bytes)
+      // Split at the last '/' that keeps name <= 100 bytes
+      val splitIdx = name.lastIndexOf('/', math.min(name.length, 100) - 1)
+      if (splitIdx <= 0 || splitIdx > 155 || name.length - splitIdx - 1 > 100)
+        throw new IllegalArgumentException(s"Path too long for tar: $name (${name.length} chars)")
+      val prefix = name.substring(0, splitIdx)
+      val suffix = name.substring(splitIdx + 1)
+      System.arraycopy(suffix.getBytes("UTF-8"), 0, header, 0, suffix.length)
+      System.arraycopy(prefix.getBytes("UTF-8"), 0, header, 345, prefix.length)
+    }
 
     // File mode: 0644
     writeOctal(header, 100, 8, 0x1a4)
