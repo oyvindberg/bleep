@@ -22,7 +22,7 @@ case class ConfigRemoteCacheSetup(logger: Logger, userPaths: UserPaths) extends 
         )
         overrideIdx match {
           case Some(1) => promptAndStore()
-          case _ =>
+          case _       =>
             logger.info("No changes made. Remote cache will use environment variables.")
             Right(())
         }
