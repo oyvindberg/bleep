@@ -87,9 +87,9 @@ object ZincBridge {
     */
   /** Create ReadWriteMappers for portable zinc analysis, derived from the analysis file path.
     *
-    * The build dir is inferred by finding `.bleep/` in the path. Relativizes Path entries (classpath, output/source dirs) so analysis is machine-independent for
-    * those fields. VirtualFileRef entries (source/binary/product) keep absolute paths for now — cross-machine portability for those needs VirtualFile-level changes
-    * (tracked in #546).
+    * The build dir is inferred by finding `.bleep/` in the path. Relativizes Path entries (classpath, output/source dirs) so analysis is machine-independent
+    * for those fields. VirtualFileRef entries (source/binary/product) keep absolute paths for now — cross-machine portability for those needs VirtualFile-level
+    * changes (tracked in #546).
     */
   // Mappers disabled for now — they partially relativize Path entries but cause issues.
   // The PlainVirtualFile extends BasicVirtualFileRef fix should be sufficient for same-machine cache.

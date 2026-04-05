@@ -78,9 +78,9 @@ object TarGz {
             val targetFile = tmpDir.resolve(name)
             Files.createDirectories(targetFile.getParent)
             Files.write(targetFile, content)
+          }
         }
       }
-    }
 
       gzIn.close()
 
@@ -95,11 +95,10 @@ object TarGz {
           Files.move(entry, dest, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
         }
       }
-    } finally {
+    } finally
       // Clean up temp dir
       try internal.FileUtils.deleteDirectory(tmpDir)
       catch { case _: Exception => () }
-    }
   }
 
   // ============================================================================

@@ -8,7 +8,8 @@ import java.net.URI
 
 /** Remote build cache configuration. Stored in `bleep.yaml` (shared by all contributors).
   *
-  * Credentials are stored separately in `~/.config/bleep/config.yaml` or via `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment variables.
+  * Credentials are stored separately in `~/.config/bleep/config.yaml` or via `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY`
+  * environment variables.
   */
 case class RemoteCacheConfig(
     uri: URI,
@@ -23,8 +24,8 @@ object RemoteCacheConfig {
   implicit val encoder: Encoder[RemoteCacheConfig] = deriveEncoder
 }
 
-/** Remote cache credentials. Stored in user config (`~/.config/bleep/config.yaml`). Falls back to `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment
-  * variables.
+/** Remote cache credentials. Stored in user config (`~/.config/bleep/config.yaml`). Falls back to `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` /
+  * `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment variables.
   */
 case class RemoteCacheCredentials(
     accessKeyId: String,

@@ -7,7 +7,8 @@ import ryddig.Logger
   *
   * Prompts for AWS access key ID and secret access key, then stores them in `~/.config/bleep/config.yaml`.
   *
-  * Credentials can also be provided via `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment variables (no setup needed).
+  * Credentials can also be provided via `BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID` / `BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY` environment variables (no setup
+  * needed).
   */
 case class ConfigRemoteCacheSetup(logger: Logger, userPaths: UserPaths) extends BleepCommand {
   override def run(): Either[BleepException, Unit] =

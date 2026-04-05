@@ -97,10 +97,9 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
 
           // Step 3: Verify analysis exists
           val analysisDir = workspace.resolve("target/classes/.zinc")
-          val analysisExists = Files.exists(analysisDir) || {
+          val analysisExists = Files.exists(analysisDir) ||
             // Analysis might be elsewhere — check target dir
             Files.walk(workspace.resolve("target")).toScala(List).exists(_.getFileName.toString == "analysis.zip")
-          }
           info(s"Analysis exists: $analysisExists")
 
           // Step 4: Pack the target dir
@@ -125,9 +124,7 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
 
           // Check events for compilation indicators
           val logMessages = client.logMessages
-          val compiledMessages = logMessages.filter(m =>
-            m.contains("compiling") || m.contains("compiled") || m.contains("Compiling")
-          )
+          val compiledMessages = logMessages.filter(m => m.contains("compiling") || m.contains("compiled") || m.contains("Compiling"))
           info(s"Second compile messages: ${compiledMessages.mkString(", ")}")
 
           // The key test: after round-trip, zinc should NOT do a clean build

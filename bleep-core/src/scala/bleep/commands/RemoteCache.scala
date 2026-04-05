@@ -71,7 +71,9 @@ object RemoteCache {
           futures.forEach(_.get())
           executor.shutdown()
 
-          started.logger.info(s"Remote cache pull: ${pulled.get()} pulled, ${skipped.get()} already compiled, ${notFound.get()} not cached (${projectsToPull.size} total)")
+          started.logger.info(
+            s"Remote cache pull: ${pulled.get()} pulled, ${skipped.get()} already compiled, ${notFound.get()} not cached (${projectsToPull.size} total)"
+          )
           Right(())
       }
     }
@@ -135,7 +137,9 @@ object RemoteCache {
           futures.forEach(_.get())
           executor.shutdown()
 
-          started.logger.info(s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)")
+          started.logger.info(
+            s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
+          )
           Right(())
       }
     }
