@@ -11,11 +11,10 @@ cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/c
 
 There is an action available to install Bleep. It picks up the wanted Bleep version from `bleep.yaml`, so make sure to run it after checkout:
 ```yaml
-  - uses: actions/checkout@v2
+  - uses: actions/checkout@v4
     with:
       submodules: recursive
-      repo-token: ${{ secrets.GITHUB_TOKEN }}
-  - uses: bleep-build/bleep-setup-action@0.0.2
+  - uses: bleep-build/bleep-setup-action@v1
 ```
 
 ## Nix
