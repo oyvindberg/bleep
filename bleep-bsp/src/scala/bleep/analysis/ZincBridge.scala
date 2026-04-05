@@ -92,6 +92,7 @@ object ZincBridge {
     val buildDir = inferBuildDir(analysisFile)
     buildDir match {
       case Some(bd) =>
+        debug(s"[ZincBridge] Using portable mappers for $analysisFile (buildDir=$bd)")
         new xsbti.compile.analysis.ReadWriteMappers(
           PortableAnalysisMappers.readMapper(bd),
           PortableAnalysisMappers.writeMapper(bd)
@@ -1211,7 +1212,11 @@ object ZincBridge {
       javacOptions,
       100, // maxErrors
       sourcePositionMapper,
-      CompileOrder.JavaThenScala
+      CompileOrder.JavaThenScala,
+      Optional.empty[Path](), // temporaryClassesDir
+      Optional.of[xsbti.FileConverter](PortableAnalysisMappers.fileConverter(config.outputDir)),
+      Optional.empty[xsbti.compile.analysis.ReadStamps](),
+      Optional.empty[xsbti.compile.Output]()
     )
 
     debug(s"[ZincBridge] Current setup: outputDir=$outputDir, order=JavaThenScala")
@@ -1825,11 +1830,13 @@ private[analysis] object EcjCompiler {
   }
 }
 
-/** Portable zinc analysis mappers for cross-machine cache.
+/** Portable zinc analysis for cross-machine cache, following sbt 2's approach.
   *
-  * Follows sbt 2's approach: VirtualFileRef IDs are already machine-independent (marker-prefixed by PlainVirtualFile at compile time), so VirtualFileRef
-  * mappers are identity. Only the Path-typed fields in analysis (output dir, source dir, classpath entries) need relativizing/rebasing, since zinc stores those
-  * as java.nio.file.Path.
+  * Two mechanisms work together:
+  *   1. '''FileConverter''' (`MappedFileConverter`): passed to zinc via `CompileOptions.converter`. Zinc uses it to create ALL VirtualFileRefs (sources, products,
+  *      binaries) with marker-prefixed IDs like `${BASE}/src/Foo.scala`. This is the sbt 2 approach.
+  *   2. '''ReadWriteMappers''': handle Path-typed fields in analysis (output dir, source dir, classpath entries) which zinc stores as `java.nio.file.Path`, not
+  *      `VirtualFileRef`. The mappers relativize on write and rebase on read.
   *
   * Three marker roots:
   *   - `${BASE}` — build directory (sources, output dirs, generated sources)
@@ -1848,6 +1855,21 @@ private[analysis] object PortableAnalysisMappers {
 
   lazy val jdkDir: Path =
     Path.of(System.getProperty("java.home")).toAbsolutePath.normalize()
+
+  /** Create a MappedFileConverter with our root paths. Zinc uses this to create ALL VirtualFileRefs with marker-prefixed IDs. */
+  def fileConverter(buildDir: Path): sbt.internal.inc.MappedFileConverter = {
+    val bd = buildDir.toAbsolutePath.normalize()
+    // Infer the project root by finding .bleep/ in the output dir path
+    val projectRoot = ZincBridge.inferBuildDir(bd).getOrElse(bd)
+    sbt.internal.inc.MappedFileConverter(
+      Map(
+        "BASE" -> projectRoot,
+        "LIB" -> coursierCacheDir,
+        "JDK" -> jdkDir
+      ),
+      true // allowMachinePath — paths not under any root stay absolute
+    )
+  }
 
   /** Relativize an absolute path using marker prefixes. Unknown roots stay absolute. */
   private def relativizePath(p: Path, buildDir: Path): Path = {
@@ -1881,7 +1903,7 @@ private[analysis] object PortableAnalysisMappers {
   def writeMapper(buildDir: Path): xsbti.compile.analysis.WriteMapper = {
     val bd = buildDir.toAbsolutePath.normalize()
     new xsbti.compile.analysis.WriteMapper {
-      // VirtualFileRef: identity — IDs already marker-prefixed by PlainVirtualFile (sbt 2 approach)
+      // VirtualFileRef: identity — all VFRs already have marker-prefixed IDs via MappedFileConverter (sbt 2 approach)
       override def mapSourceFile(sourceFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = sourceFile
       override def mapBinaryFile(binaryFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = binaryFile
       override def mapProductFile(productFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = productFile
@@ -1902,7 +1924,7 @@ private[analysis] object PortableAnalysisMappers {
   def readMapper(buildDir: Path): xsbti.compile.analysis.ReadMapper = {
     val bd = buildDir.toAbsolutePath.normalize()
     new xsbti.compile.analysis.ReadMapper {
-      // VirtualFileRef: identity — IDs stored as markers, matching current PlainVirtualFile IDs
+      // VirtualFileRef: identity — IDs stay as markers. MappedFileConverter.toPath() resolves them.
       override def mapSourceFile(sourceFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = sourceFile
       override def mapBinaryFile(binaryFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = binaryFile
       override def mapProductFile(productFile: xsbti.VirtualFileRef): xsbti.VirtualFileRef = productFile
