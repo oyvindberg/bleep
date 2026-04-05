@@ -133,3 +133,49 @@ remote-cache:
   uri: s3://my-bleep-cache/builds
   region: eu-north-1
 ```
+
+### Google Cloud Storage (S3-compatible)
+
+```yaml
+remote-cache:
+  uri: https://storage.googleapis.com/my-bleep-cache/builds
+  region: auto
+```
+
+Use HMAC keys for credentials (interoperability API).
+
+## Cache expiration
+
+Bleep doesn't manage cache expiration — configure a lifecycle rule on your bucket to automatically delete old entries.
+
+### AWS S3
+
+```bash
+aws s3api put-bucket-lifecycle-configuration \
+  --bucket my-bleep-cache \
+  --lifecycle-configuration '{
+    "Rules": [{
+      "ID": "expire-cache",
+      "Status": "Enabled",
+      "Filter": {},
+      "Expiration": {"Days": 30}
+    }]
+  }'
+```
+
+### Google Cloud Storage
+
+```bash
+gsutil lifecycle set /dev/stdin gs://my-bleep-cache <<'JSON'
+{
+  "rule": [{
+    "action": {"type": "Delete"},
+    "condition": {"age": 30}
+  }]
+}
+JSON
+```
+
+### Cloudflare R2
+
+Set object lifecycle rules in the R2 dashboard under **Settings > Object lifecycle rules**.

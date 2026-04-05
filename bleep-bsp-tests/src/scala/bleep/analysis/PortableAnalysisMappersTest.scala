@@ -20,9 +20,7 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
     try {
       Files.createDirectories(dir.resolve(".bleep"))
       f(dir)
-    } finally {
-      deleteRecursively(dir)
-    }
+    } finally deleteRecursively(dir)
   }
 
   private def deleteRecursively(path: Path): Unit =

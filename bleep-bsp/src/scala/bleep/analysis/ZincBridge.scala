@@ -1827,9 +1827,9 @@ private[analysis] object EcjCompiler {
 
 /** Portable zinc analysis mappers for cross-machine cache.
   *
-  * Follows sbt 2's approach: VirtualFileRef IDs are already machine-independent (marker-prefixed by PlainVirtualFile at compile time), so VirtualFileRef mappers
-  * are identity. Only the Path-typed fields in analysis (output dir, source dir, classpath entries) need relativizing/rebasing, since zinc stores those as
-  * java.nio.file.Path.
+  * Follows sbt 2's approach: VirtualFileRef IDs are already machine-independent (marker-prefixed by PlainVirtualFile at compile time), so VirtualFileRef
+  * mappers are identity. Only the Path-typed fields in analysis (output dir, source dir, classpath entries) need relativizing/rebasing, since zinc stores those
+  * as java.nio.file.Path.
   *
   * Three marker roots:
   *   - `${BASE}` — build directory (sources, output dirs, generated sources)
@@ -1924,8 +1924,8 @@ private[analysis] object PortableAnalysisMappers {
 /** VirtualFile with machine-independent IDs, matching sbt 2's MappedVirtualFile approach.
   *
   * The `id()` uses marker-prefixed paths: `${BASE}/relative`, `${LIB}/relative`, `${JDK}/relative`. This makes the zinc Analysis portable across machines at
-  * compile time — analysis entries store virtual IDs, not absolute paths. When zinc needs actual file content, `toPath()` resolves the virtual ID back to a real
-  * path using the configured roots.
+  * compile time — analysis entries store virtual IDs, not absolute paths. When zinc needs actual file content, `toPath()` resolves the virtual ID back to a
+  * real path using the configured roots.
   *
   * Extends BasicVirtualFileRef so equals()/hashCode() work symmetrically with deserialized analysis entries (which use BasicVirtualFileRef). PathBasedFile is
   * needed for Scala 3 compiler bridge.
@@ -1945,7 +1945,7 @@ private[bleep] class PlainVirtualFile private (val path: Path, virtualId: String
 }
 
 private[bleep] object PlainVirtualFile {
-  import PortableAnalysisMappers.{BaseMarker, LibMarker, JdkMarker, coursierCacheDir, jdkDir}
+  import PortableAnalysisMappers.{coursierCacheDir, jdkDir, BaseMarker, JdkMarker, LibMarker}
 
   @volatile private var buildDir: Path = _
 
