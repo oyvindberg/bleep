@@ -19,7 +19,7 @@ Bleep uses YAML for build configuration (`bleep.yaml`):
 
 ```yaml
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-RC7
+$version: 1.0.0-M7
 jvm:
   name: graalvm-community:24.0.1
 projects:
