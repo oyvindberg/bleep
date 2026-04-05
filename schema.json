@@ -709,6 +709,22 @@
         { "$ref": "#/$defs/Repository" },
         { "type": "array", "items": { "$ref": "#/$defs/Repository" } }
       ]
+    },
+    "remote-cache": {
+      "type": "object",
+      "description": "Remote build cache configuration for S3-compatible storage. Credentials go in ~/.config/bleep/config.yaml or BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID/BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY env vars.",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "description": "S3 bucket URI (e.g., s3://my-cache/builds) or S3-compatible endpoint (e.g., http://localhost:9000/bucket/prefix)"
+        },
+        "region": {
+          "type": "string",
+          "description": "AWS region (default: us-east-1)",
+          "default": "us-east-1"
+        }
+      },
+      "required": ["uri"]
     }
   },
   "required": [

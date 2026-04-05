@@ -563,6 +563,16 @@ object Main {
               commands.Fmt(check, projects)
             }
           },
+          Opts.subcommand("remote-cache", "push and pull compiled classes to/from a remote S3-compatible cache")(
+            List(
+              Opts.subcommand("pull", "pull cached compiled classes from remote cache")(
+                projectNames.map(names => commands.RemoteCache.Pull(names))
+              ),
+              Opts.subcommand("push", "push compiled classes to remote cache")(
+                (projectNames, Opts.flag("force", "overwrite existing cache entries").orFalse).mapN(commands.RemoteCache.Push.apply)
+              )
+            ).foldK
+          ),
           Opts.subcommand("setup-dev-script", "setup a bash script which can run the code bleep has compiled")(
             (projectName, Opts.option[String]("main-class", "override main class").orNone).mapN { case (projectNames, main) =>
               new commands.SetupDevScript(started, projectNames, main)
@@ -663,6 +673,16 @@ object Main {
               Opts.argument[String]("uri-prefix").map { uriStr => () =>
                 commands.ConfigAuthRemove(logger, userPaths, java.net.URI.create(uriStr)).run()
               }
+            )
+          ).foldK
+        ),
+        Opts.subcommand("remote-cache", "configure remote build cache credentials")(
+          List(
+            Opts.subcommand[BleepCommand]("setup", "interactive setup for S3 remote cache credentials")(
+              Opts(commands.ConfigRemoteCacheSetup(logger, userPaths))
+            ),
+            Opts.subcommand[BleepCommand]("clear", "remove remote cache credentials from config")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(remoteCacheCredentials = None)).map(_ => ()))
             )
           ).foldK
         )

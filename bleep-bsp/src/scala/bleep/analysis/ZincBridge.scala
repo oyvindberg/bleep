@@ -78,6 +78,25 @@ object ZincBridge {
     */
   private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
 
+  /** ReadWriteMappers for portable zinc analysis files.
+    *
+    * Uses RootPaths with three machine-dependent roots: source root (build dir), library root (coursier cache), product root (build output dir). Zinc
+    * relativizes these paths on write and rebases on read, making analysis files portable across machines.
+    *
+    * Computed lazily and cached — the roots are constant for the lifetime of the JVM.
+    */
+  /** Create ReadWriteMappers for portable zinc analysis, derived from the analysis file path.
+    *
+    * The build dir is inferred by finding `.bleep/` in the path. Relativizes Path entries (classpath, output/source dirs) so analysis is machine-independent
+    * for those fields. VirtualFileRef entries (source/binary/product) keep absolute paths for now — cross-machine portability for those needs VirtualFile-level
+    * changes (tracked in #546).
+    */
+  // Mappers disabled for now — they partially relativize Path entries but cause issues.
+  // The PlainVirtualFile extends BasicVirtualFileRef fix should be sufficient for same-machine cache.
+  // Cross-machine portability tracked in #546.
+  private def analysisMappers(analysisFile: Path): xsbti.compile.analysis.ReadWriteMappers =
+    xsbti.compile.analysis.ReadWriteMappers.getEmptyMappers()
+
   // ─── Pre-Zinc noop detection via unix:ctime manifest ──────────────────────
   // On macOS/Linux, st_ctime (inode change time) is kernel-managed and updated
   // by ALL file operations (cp, mv, rsync -a, tar x, touch -t, echo >, git ops).
@@ -1023,7 +1042,7 @@ object ZincBridge {
           Some(classDir -> cached)
         } else {
           try {
-            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
               analysisCache.put(analysisFile, new SoftReference(analysis))
@@ -1212,7 +1231,7 @@ object ZincBridge {
     debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
     if (Files.exists(analysisFile)) {
       try {
-        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
         val contents = store.get()
         if (contents.isPresent) {
           val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]
@@ -1270,7 +1289,7 @@ object ZincBridge {
         val sample = cpHashes.take(3).map(fh => s"${fh.file}:${fh.hash}").mkString(", ")
         debug(s"[ZincBridge] Saving with classpath hashes: $sample")
       }
-      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile)
+      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile, analysisMappers(analysisFile))
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis
@@ -1789,29 +1808,25 @@ private[analysis] object EcjCompiler {
   }
 }
 
-/** Simple VirtualFile implementation wrapping a Path. Implements PathBasedFile so Scala 3 compiler can get the path back.
+/** VirtualFile implementation wrapping a Path. Extends BasicVirtualFileRef so that equals() works symmetrically with deserialized analysis entries (which use
+  * BasicVirtualFileRef). Also implements PathBasedFile so Scala 3 compiler can get the path back.
+  *
+  * CRITICAL: Must extend BasicVirtualFileRef, not just implement VirtualFileRef. BasicVirtualFileRef.equals() checks `instanceof BasicVirtualFileRef` — if we
+  * don't extend it, stamp lookups fail (all sources appear "new" → full recompile).
   */
-private class PlainVirtualFile(val path: Path) extends VirtualFile with xsbti.PathBasedFile {
-  // On Windows, Path.toString uses backslashes which break javac filename matching in Zinc's
-  // Java compilation pipeline. Normalize to forward slashes so id() is platform-independent.
-  def id(): String = java.io.File.separatorChar match {
-    case '\\' => path.toString.replace('\\', '/')
-    case _    => path.toString
-  }
-  def name(): String = path.getFileName.toString
-  def names(): Array[String] = {
-    val count = path.getNameCount
-    (0 until count).map(i => path.getName(i).toString).toArray
-  }
+private class PlainVirtualFile(val path: Path)
+    extends xsbti.BasicVirtualFileRef({
+      // Normalize to forward slashes for platform independence (BasicVirtualFileRef constructor does this too)
+      java.io.File.separatorChar match {
+        case '\\' => path.toString.replace('\\', '/')
+        case _    => path.toString
+      }
+    })
+    with VirtualFile
+    with xsbti.PathBasedFile {
   def contentHash(): Long =
     if (Files.exists(path)) {
-      val content = Files.readAllBytes(path)
-      val result = sbt.internal.inc.HashUtil.farmHash(content)
-      // Only log occasionally to avoid spam - just first few calls per session
-      if (path.toString.contains("Build.scala")) {
-        ZincBridge.debug(s"[ZincBridge] contentHash for ${path.getFileName}: $result (hex: ${java.lang.Long.toHexString(result)})")
-      }
-      result
+      sbt.internal.inc.HashUtil.farmHash(Files.readAllBytes(path))
     } else {
       0L
     }
@@ -1819,20 +1834,6 @@ private class PlainVirtualFile(val path: Path) extends VirtualFile with xsbti.Pa
 
   // PathBasedFile interface - required for Scala 3 compiler bridge
   def toPath(): Path = path
-
-  override def toString: String = path.toString
-
-  // CRITICAL: hashCode MUST match BasicVirtualFileRef.hashCode() for HashMap lookups to work
-  // BasicVirtualFileRef uses: Objects.hash("xsbti.BasicVirtualFileRef", id)
-  // This allows stamp lookups to work when Zinc serializes analysis with BasicVirtualFileRef
-  // and we query it with PlainVirtualFile
-  override def hashCode(): Int = java.util.Objects.hash("xsbti.BasicVirtualFileRef", id())
-
-  // equals must work across different VirtualFileRef implementations
-  override def equals(obj: Any): Boolean = obj match {
-    case other: VirtualFileRef => id() == other.id()
-    case _                     => false
-  }
 }
 
 object PlainVirtualFile {

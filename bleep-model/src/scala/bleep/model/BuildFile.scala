@@ -10,7 +10,8 @@ case class BuildFile(
     scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
     resolvers: JsonList[Repository],
     projects: JsonMap[ProjectName, Project],
-    jvm: Option[Jvm]
+    jvm: Option[Jvm],
+    `remote-cache`: Option[RemoteCacheConfig]
 )
 
 object BuildFile {
@@ -34,7 +35,8 @@ object BuildFile {
         scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
         resolvers <- c.downField("resolvers").as[JsonList[Repository]]
         jvm <- c.downField("jvm").as[Option[Jvm]]
-      } yield BuildFile(schema, version, templates, scripts, resolvers, projects, jvm)
+        remoteCache <- c.downField("remote-cache").as[Option[RemoteCacheConfig]]
+      } yield BuildFile(schema, version, templates, scripts, resolvers, projects, jvm, remoteCache)
     )
 
   implicit val encodes: Encoder[BuildFile] = deriveEncoder

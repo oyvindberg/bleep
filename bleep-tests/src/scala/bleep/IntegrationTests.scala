@@ -44,7 +44,8 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    bspServerConfig = None
+    bspServerConfig = None,
+    remoteCacheCredentials = None
   )
 
   def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Assertion = {
