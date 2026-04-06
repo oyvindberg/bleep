@@ -81,8 +81,8 @@ object RemoteCache {
 
   case class Push(projects: Array[model.CrossProjectName], force: Boolean) extends BleepBuildCommand {
 
-    /** Check that a zinc analysis file is portable — no absolute paths that would break on another machine. Scans the binary protobuf for path-like strings that
-      * aren't marker-prefixed. Returns list of offending paths (empty = ok).
+    /** Check that a zinc analysis file is portable — no absolute paths that would break on another machine. Scans the binary protobuf for path-like strings
+      * that aren't marker-prefixed. Returns list of offending paths (empty = ok).
       */
     private def checkPortability(analysisFile: Path): List[String] = {
       if (!Files.exists(analysisFile)) return Nil // No analysis (e.g. Kotlin projects) — ok
@@ -94,7 +94,7 @@ object RemoteCache {
     }
 
     private def isMarkerPrefixed(s: String): Boolean =
-      s.startsWith("${BASE}") || s.startsWith("${LIB}") || s.startsWith("${JDK}")
+      s.startsWith("${BASE}") || s.startsWith("${LIB}") || s.startsWith("${JDK}") || s.startsWith("${IVY}")
 
     private def looksLikeAbsolutePath(s: String): Boolean =
       (s.startsWith("/") && s.length > 3 && s.charAt(1).isLetter) || // Unix: /Users/..., /home/..., /opt/...
@@ -165,7 +165,9 @@ object RemoteCache {
                     val absolutePaths = checkPortability(analysisFile)
                     absolutePaths match {
                       case head :: _ =>
-                        errors.add(s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile.")
+                        errors.add(
+                          s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile."
+                        )
                       case Nil =>
                         // Pack classes dir + zinc analysis
                         val archive = TarGz.pack(projectPaths.targetDir)
@@ -189,9 +191,11 @@ object RemoteCache {
             started.logger.info(
               s"Remote cache push: ${pushed.get()} pushed, ${errorList.size} failed portability check, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
             )
-            Left(new BleepException.Text(
-              s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
-            ))
+            Left(
+              new BleepException.Text(
+                s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
+              )
+            )
           } else {
             started.logger.info(
               s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"

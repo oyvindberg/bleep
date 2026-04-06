@@ -793,6 +793,7 @@ object ZincBridge {
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
         saveAnalysis(analysisFile, result.analysis, result.setup)
         checkCaseInsensitiveCollisions(result.analysis, config.name, diagnosticListener)
+        checkAnalysisPortability(result.analysis, config.name)
       }
 
       val classFiles = collectClassFiles(config.outputDir)
@@ -893,6 +894,22 @@ object ZincBridge {
           rendered = None,
           severity = CompilerError.Severity.Error
         )
+      )
+    }
+  }
+
+  /** Warn if any VirtualFileRef in the analysis has an absolute path instead of a marker prefix. This catches portability issues at compile time. */
+  private def checkAnalysisPortability(analysis: CompileAnalysis, projectName: String): Unit = {
+    val stamps = analysis.asInstanceOf[sbt.internal.inc.Analysis].stamps
+    val allVfrs = stamps.sources.keySet ++ stamps.products.keySet ++ stamps.libraries.keySet
+    val absoluteIds = allVfrs.iterator
+      .map(_.id())
+      .filter(id => !PortableAnalysisMappers.isMarkerPrefixed(id) && (id.startsWith("/") || (id.length > 2 && id.charAt(1) == ':')))
+      .take(5)
+      .toList
+    if (absoluteIds.nonEmpty) {
+      System.err.println(
+        s"[ZincBridge] WARNING: $projectName analysis contains ${absoluteIds.size}+ absolute path(s) — remote cache will not be portable. Examples: ${absoluteIds.mkString(", ")}"
       )
     }
   }
@@ -1881,6 +1898,7 @@ private[analysis] object PortableAnalysisMappers {
   val BaseMarker = "${BASE}"
   val LibMarker = "${LIB}"
   val JdkMarker = "${JDK}"
+  val IvyMarker = "${IVY}"
 
   lazy val coursierCacheDir: Path =
     coursier.cache.CacheDefaults.location.toPath.toAbsolutePath.normalize()
@@ -1888,13 +1906,22 @@ private[analysis] object PortableAnalysisMappers {
   lazy val jdkDir: Path =
     Path.of(System.getProperty("java.home")).toAbsolutePath.normalize()
 
+  lazy val ivyLocalDir: Path =
+    Path.of(System.getProperty("user.home"), ".ivy2", "local").toAbsolutePath.normalize()
+
+  val allMarkers: List[String] = List(BaseMarker, LibMarker, JdkMarker, IvyMarker)
+
+  def isMarkerPrefixed(id: String): Boolean =
+    allMarkers.exists(m => id.startsWith(m))
+
   /** Create a MappedFileConverter with our root paths. Zinc uses this to create ALL VirtualFileRefs with marker-prefixed IDs. */
   def fileConverter(buildDir: Path): sbt.internal.inc.MappedFileConverter =
     sbt.internal.inc.MappedFileConverter(
       Map(
         "BASE" -> buildDir.toAbsolutePath.normalize(),
         "LIB" -> coursierCacheDir,
-        "JDK" -> jdkDir
+        "JDK" -> jdkDir,
+        "IVY" -> ivyLocalDir
       ),
       true // allowMachinePath — paths not under any root stay absolute
     )
@@ -1911,6 +1938,9 @@ private[analysis] object PortableAnalysisMappers {
     } else if (abs.startsWith(jdkDir)) {
       val rel = jdkDir.relativize(abs).toString.replace('\\', '/')
       if (rel.isEmpty) Path.of(JdkMarker) else Path.of(s"$JdkMarker/$rel")
+    } else if (abs.startsWith(ivyLocalDir)) {
+      val rel = ivyLocalDir.relativize(abs).toString.replace('\\', '/')
+      if (rel.isEmpty) Path.of(IvyMarker) else Path.of(s"$IvyMarker/$rel")
     } else {
       abs
     }
@@ -1925,6 +1955,8 @@ private[analysis] object PortableAnalysisMappers {
     else if (str == LibMarker) coursierCacheDir
     else if (str.startsWith(s"$JdkMarker/")) jdkDir.resolve(str.stripPrefix(s"$JdkMarker/"))
     else if (str == JdkMarker) jdkDir
+    else if (str.startsWith(s"$IvyMarker/")) ivyLocalDir.resolve(str.stripPrefix(s"$IvyMarker/"))
+    else if (str == IvyMarker) ivyLocalDir
     else p // Absolute path from same machine or unknown root — pass through
   }
 
@@ -1995,7 +2027,7 @@ private[bleep] class PlainVirtualFile private (val path: Path, virtualId: String
 }
 
 private[bleep] object PlainVirtualFile {
-  import PortableAnalysisMappers.{coursierCacheDir, jdkDir, BaseMarker, JdkMarker, LibMarker}
+  import PortableAnalysisMappers.{coursierCacheDir, ivyLocalDir, jdkDir, BaseMarker, IvyMarker, JdkMarker, LibMarker}
 
   /** @deprecated No-op. BuildDir is now passed structurally via ProjectConfig. */
   def setBuildDir(dir: Path): Unit = ()
@@ -2011,6 +2043,8 @@ private[bleep] object PlainVirtualFile {
         s"$LibMarker/${coursierCacheDir.relativize(abs).toString.replace('\\', '/')}"
       else if (abs.startsWith(jdkDir))
         s"$JdkMarker/${jdkDir.relativize(abs).toString.replace('\\', '/')}"
+      else if (abs.startsWith(ivyLocalDir))
+        s"$IvyMarker/${ivyLocalDir.relativize(abs).toString.replace('\\', '/')}"
       else {
         // Unknown root — use absolute path (same-machine only)
         java.io.File.separatorChar match {
