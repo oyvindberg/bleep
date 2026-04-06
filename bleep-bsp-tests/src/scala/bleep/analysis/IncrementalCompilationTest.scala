@@ -192,7 +192,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         classpath = CompilerResolver.getScalaCompiler("3.3.3").allJars,
         outputDir = outputDir,
         language = language,
-        analysisDir = Some(outputDir.resolve(".zinc"))
+        analysisDir = Some(outputDir.resolve(".zinc")),
+        buildDir = outputDir.getParent
       )
 
       val (listener, compiledFiles, diagnostics) = trackingListener()
@@ -249,7 +250,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         classpath = CompilerResolver.getScalaCompiler("3.3.3").allJars,
         outputDir = outputDir,
         language = language,
-        analysisDir = Some(outputDir.resolve(".zinc"))
+        analysisDir = Some(outputDir.resolve(".zinc")),
+        buildDir = outputDir.getParent
       )
 
       import cats.effect.unsafe.implicits.global

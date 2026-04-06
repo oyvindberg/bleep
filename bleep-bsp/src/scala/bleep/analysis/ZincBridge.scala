@@ -72,10 +72,10 @@ object ZincBridge {
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime, analysis).
-    * The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry is discarded
-    * and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same
-    * build, while allowing GC to reclaim them when heap is tight.
+  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime,
+    * analysis). The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry
+    * is discarded and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects
+    * within the same build, while allowing GC to reclaim them when heap is tight.
     */
   private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[(Long, CompileAnalysis)]]()
 
@@ -216,7 +216,7 @@ object ZincBridge {
     Files.createDirectories(analysisDir)
     val analysisFile = analysisDir.resolve("analysis.zip")
 
-    val sources = collectSources(config.sources)
+    val sources = collectSources(config.sources, config.buildDir)
     if (sources.isEmpty) {
       ProjectCompileSuccess(config.outputDir, Set.empty, Some(analysisFile))
     } else {
@@ -752,6 +752,33 @@ object ZincBridge {
     diagnosticListener.onCompilePhase(config.name, CompilePhase.Analyzing)
 
     try {
+      // Detailed diagnostics: compare previous vs current setup to understand why zinc recompiles
+      if (hasPrevAnalysis) {
+        val prevSetup = inputs.previousResult().setup()
+        if (prevSetup.isPresent) {
+          val prev = prevSetup.get()
+          val curr = inputs.options()
+          val prevOut = prev.output.getSingleOutputAsPath.map(_.toString).orElse("?")
+          val currOut = curr.classesDirectory().toString
+          val outputMatch = prevOut == currOut
+          val prevCpLen = prev.options.classpathHash.length
+          val currCpLen = curr.classpath().length
+          // Check classpath hash match by comparing file paths
+          val prevCpPaths = prev.options.classpathHash.map(_.file().toString).sorted
+          val currCpPaths = curr.classpath().map(_.id()).sorted
+          val cpPathsMatch = java.util.Arrays.equals(prevCpPaths.asInstanceOf[Array[AnyRef]], currCpPaths.asInstanceOf[Array[AnyRef]])
+          debug(
+            s"[ZincBridge] SETUP CHECK for ${config.name}: outputMatch=$outputMatch (prev=$prevOut, curr=$currOut), cpLenMatch=${prevCpLen == currCpLen} ($prevCpLen vs $currCpLen), cpPathsMatch=$cpPathsMatch"
+          )
+          if (!cpPathsMatch && prevCpLen == currCpLen) {
+            // Find first mismatch
+            val zipped = prevCpPaths.zip(currCpPaths)
+            zipped.find { case (a, b) => a != b }.foreach { case (prev, curr) =>
+              debug(s"[ZincBridge] CLASSPATH MISMATCH for ${config.name}: prev=$prev, curr=$curr")
+            }
+          }
+        }
+      }
       debug(s"[ZincBridge] Starting compilation for ${config.name}")
       val result = compiler.compile(inputs, logger)
       debug(s"[ZincBridge] Compilation done for ${config.name}, hasModified=${result.hasModified}")
@@ -800,7 +827,7 @@ object ZincBridge {
     }
   }
 
-  private def collectSources(sourceDirs: Set[Path]): Array[VirtualFile] = {
+  private def collectSources(sourceDirs: Set[Path], buildDir: Path): Array[VirtualFile] = {
     val dirs = removeNestedDirs(sourceDirs)
     dirs.toArray.flatMap { srcDir =>
       if (Files.isDirectory(srcDir)) {
@@ -811,12 +838,12 @@ object ZincBridge {
               .asScala
               .filter(p => p.toString.endsWith(".scala") || p.toString.endsWith(".java"))
               .filter(Files.isRegularFile(_))
-              .map(p => PlainVirtualFile(p))
+              .map(p => PlainVirtualFile(p, buildDir))
               .toArray
           }
           .getOrElse(Array.empty[VirtualFile])
       } else if (Files.exists(srcDir) && (srcDir.toString.endsWith(".scala") || srcDir.toString.endsWith(".java"))) {
-        Array(PlainVirtualFile(srcDir))
+        Array(PlainVirtualFile(srcDir, buildDir))
       } else {
         Array.empty[VirtualFile]
       }
@@ -1042,7 +1069,7 @@ object ZincBridge {
     // Include output directory in classpath for incremental Java compilation.
     // When javac recompiles a subset of files, it needs to find already-compiled
     // classes from the same project (e.g., TestProtocol.class when compiling ForkedTestRunner.java)
-    val classpathVf = (outputDir +: config.classpath).map(p => PlainVirtualFile(p): VirtualFile).toArray
+    val classpathVf = (outputDir +: config.classpath).map(p => PlainVirtualFile(p, config.buildDir): VirtualFile).toArray
 
     val scalacOptions = language.scalaOptions.toArray
     val releaseOptions = language.javaRelease.map(r => Array(s"--release", r.toString)).getOrElse(Array.empty[String])
@@ -1218,7 +1245,7 @@ object ZincBridge {
       sourcePositionMapper,
       CompileOrder.JavaThenScala,
       Optional.empty[Path](), // temporaryClassesDir
-      Optional.of[xsbti.FileConverter](PortableAnalysisMappers.fileConverter(config.outputDir)),
+      Optional.of[xsbti.FileConverter](PortableAnalysisMappers.fileConverter(config.buildDir)),
       Optional.empty[xsbti.compile.analysis.ReadStamps](),
       Optional.empty[xsbti.compile.Output]()
     )
@@ -1862,19 +1889,15 @@ private[analysis] object PortableAnalysisMappers {
     Path.of(System.getProperty("java.home")).toAbsolutePath.normalize()
 
   /** Create a MappedFileConverter with our root paths. Zinc uses this to create ALL VirtualFileRefs with marker-prefixed IDs. */
-  def fileConverter(buildDir: Path): sbt.internal.inc.MappedFileConverter = {
-    val bd = buildDir.toAbsolutePath.normalize()
-    // Infer the project root by finding .bleep/ in the output dir path
-    val projectRoot = ZincBridge.inferBuildDir(bd).getOrElse(bd)
+  def fileConverter(buildDir: Path): sbt.internal.inc.MappedFileConverter =
     sbt.internal.inc.MappedFileConverter(
       Map(
-        "BASE" -> projectRoot,
+        "BASE" -> buildDir.toAbsolutePath.normalize(),
         "LIB" -> coursierCacheDir,
         "JDK" -> jdkDir
       ),
       true // allowMachinePath — paths not under any root stay absolute
     )
-  }
 
   /** Relativize an absolute path using marker prefixes. Unknown roots stay absolute. */
   private def relativizePath(p: Path, buildDir: Path): Path = {
@@ -1974,18 +1997,15 @@ private[bleep] class PlainVirtualFile private (val path: Path, virtualId: String
 private[bleep] object PlainVirtualFile {
   import PortableAnalysisMappers.{coursierCacheDir, jdkDir, BaseMarker, JdkMarker, LibMarker}
 
-  @volatile private var buildDir: Path = _
+  /** @deprecated No-op. BuildDir is now passed structurally via ProjectConfig. */
+  def setBuildDir(dir: Path): Unit = ()
 
-  /** Set the build directory root. Must be called before compilation starts. The coursier cache and JDK dirs are detected automatically. */
-  def setBuildDir(dir: Path): Unit =
-    buildDir = dir.toAbsolutePath.normalize()
-
-  def apply(path: Path): PlainVirtualFile = {
+  def apply(path: Path, buildDir: Path): PlainVirtualFile = {
     val abs = path.toAbsolutePath.normalize()
-    val bd = buildDir // volatile read once
+    val bd = buildDir.toAbsolutePath.normalize()
 
     val virtualId =
-      if (bd != null && abs.startsWith(bd))
+      if (abs.startsWith(bd))
         s"$BaseMarker/${bd.relativize(abs).toString.replace('\\', '/')}"
       else if (abs.startsWith(coursierCacheDir))
         s"$LibMarker/${coursierCacheDir.relativize(abs).toString.replace('\\', '/')}"

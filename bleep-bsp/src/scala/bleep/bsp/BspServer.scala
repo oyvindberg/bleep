@@ -834,7 +834,8 @@ class BspServer(
           classpath = project.classpath,
           outputDir = project.outputDir,
           language = language,
-          analysisDir = Some(project.outputDir.resolve(".zinc"))
+          analysisDir = Some(project.outputDir.resolve(".zinc")),
+          buildDir = workspaceRoot
         )
         // Get dependency names from target IDs
         val deps = project.dependsOn.flatMap { depId =>

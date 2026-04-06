@@ -1495,7 +1495,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
         classpath = CompilerTestLibraries.kotlinLibrary,
         outputDir = outputDir,
         language = language,
-        analysisDir = None
+        analysisDir = None,
+        buildDir = outputDir.getParent
       )
 
       import cats.effect.unsafe.implicits.global

@@ -18,7 +18,8 @@ class ParallelProjectCompilerTest extends AnyFunSuite with Matchers {
       classpath = Seq.empty,
       outputDir = dir.resolve(s"target/$name"),
       language = lang,
-      analysisDir = None
+      analysisDir = None,
+      buildDir = dir
     )
 
   private val noop = DiagnosticListener.noop

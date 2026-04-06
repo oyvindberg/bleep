@@ -391,7 +391,8 @@ object Compiler {
             classpath = input.classpath,
             outputDir = input.outputDir,
             language = language,
-            analysisDir = None // No analysis persistence for single compilations
+            analysisDir = None, // No analysis persistence for single compilations
+            buildDir = input.outputDir // standalone compilation — use output dir as root
           )
 
           // Wrap DiagnosticListener in the adapter

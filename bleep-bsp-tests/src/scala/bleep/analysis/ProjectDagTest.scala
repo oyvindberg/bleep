@@ -12,7 +12,8 @@ class ProjectDagTest extends AnyFunSuite with Matchers {
     classpath = Seq.empty,
     outputDir = Paths.get(s"target/$name"),
     language = ProjectLanguage.ScalaJava("3.3.3", Nil, None),
-    analysisDir = None
+    analysisDir = None,
+    buildDir = Paths.get(".")
   )
 
   test("empty DAG") {

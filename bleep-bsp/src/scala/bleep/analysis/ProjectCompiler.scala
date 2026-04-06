@@ -62,7 +62,8 @@ case class ProjectConfig(
     classpath: Seq[Path],
     outputDir: Path,
     language: ProjectLanguage,
-    analysisDir: Option[Path]
+    analysisDir: Option[Path],
+    buildDir: Path
 )
 
 /** Result of compiling a project */

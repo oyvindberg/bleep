@@ -727,8 +727,11 @@ class MultiWorkspaceBspServer(
 
   private def loadBuild(workspaceRoot: Path, variant: model.BuildVariant): Either[BleepException, Started] =
     Option(loadedBuilds.get(workspaceRoot)) match {
-      case Some(existing) => Right(existing)
-      case None           =>
+      case Some(existing) =>
+        // Always set buildDir — PlainVirtualFile needs it for marker-prefixed IDs
+        bleep.analysis.PlainVirtualFile.setBuildDir(existing.buildPaths.buildDir)
+        Right(existing)
+      case None =>
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(workspaceRoot)
         val buildPaths = BuildPaths(workspaceRoot, buildLoader, variant)
@@ -774,8 +777,10 @@ class MultiWorkspaceBspServer(
   ): Either[BleepException, Started] =
     // Check if already loaded
     Option(loadedBuilds.get(buildRoot)) match {
-      case Some(existing) => Right(existing)
-      case None           =>
+      case Some(existing) =>
+        bleep.analysis.PlainVirtualFile.setBuildDir(existing.buildPaths.buildDir)
+        Right(existing)
+      case None =>
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(buildRoot)
         val buildPaths = BuildPaths(buildRoot, buildLoader, variant)

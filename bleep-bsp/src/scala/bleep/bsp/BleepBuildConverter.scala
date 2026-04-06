@@ -111,7 +111,8 @@ object BleepBuildConverter {
       classpath = classpath,
       outputDir = outputDir,
       language = language,
-      analysisDir = analysisDir
+      analysisDir = analysisDir,
+      buildDir = started.buildPaths.buildDir
     )
   }
 

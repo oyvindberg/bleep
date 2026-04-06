@@ -35,48 +35,48 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
   // ── PlainVirtualFile ID tests ──────────────────────────────────────────
 
   test("PlainVirtualFile uses ${BASE} prefix for paths under build dir") {
-    withTempBuildDir("base-prefix") { buildDir =>
-      PlainVirtualFile.setBuildDir(buildDir)
-      val srcFile = buildDir.resolve("src/main/scala/Foo.scala")
+    withTempBuildDir("base-prefix") {
+      buildDir =>
+        val srcFile = buildDir.resolve("src/main/scala/Foo.scala")
       Files.createDirectories(srcFile.getParent)
       Files.writeString(srcFile, "object Foo")
 
-      val vf = PlainVirtualFile(srcFile)
+      val vf = PlainVirtualFile(srcFile, buildDir)
       vf.id() shouldBe "${BASE}/src/main/scala/Foo.scala"
       vf.path shouldBe srcFile.toAbsolutePath.normalize()
     }
   }
 
   test("PlainVirtualFile uses ${LIB} prefix for paths under coursier cache") {
-    withTempBuildDir("lib-prefix") { buildDir =>
-      PlainVirtualFile.setBuildDir(buildDir)
-      val coursierCache = PortableAnalysisMappers.coursierCacheDir
+    withTempBuildDir("lib-prefix") {
+      buildDir =>
+        val coursierCache = PortableAnalysisMappers.coursierCacheDir
 
       // Don't actually create files in the real coursier cache — just test the ID logic
       // We know the coursier cache dir, so construct a path under it
       val fakeJarPath = coursierCache.resolve("v1/https/repo1.maven.org/maven2/org/example/foo/1.0/foo-1.0.jar")
-      val vf = PlainVirtualFile(fakeJarPath)
+      val vf = PlainVirtualFile(fakeJarPath, buildDir)
       vf.id() should startWith("${LIB}/")
       vf.id() should endWith("foo-1.0.jar")
     }
   }
 
   test("PlainVirtualFile uses ${JDK} prefix for paths under java.home") {
-    withTempBuildDir("jdk-prefix") { buildDir =>
-      PlainVirtualFile.setBuildDir(buildDir)
-      val jdkDir = PortableAnalysisMappers.jdkDir
+    withTempBuildDir("jdk-prefix") {
+      buildDir =>
+        val jdkDir = PortableAnalysisMappers.jdkDir
 
       val rtPath = jdkDir.resolve("lib/modules")
-      val vf = PlainVirtualFile(rtPath)
+      val vf = PlainVirtualFile(rtPath, buildDir)
       vf.id() shouldBe "${JDK}/lib/modules"
     }
   }
 
   test("PlainVirtualFile uses absolute path for unknown roots") {
-    withTempBuildDir("unknown-root") { buildDir =>
-      PlainVirtualFile.setBuildDir(buildDir)
-      val randomPath = Path.of("/some/random/path/foo.jar")
-      val vf = PlainVirtualFile(randomPath)
+    withTempBuildDir("unknown-root") {
+      buildDir =>
+        val randomPath = Path.of("/some/random/path/foo.jar")
+      val vf = PlainVirtualFile(randomPath, buildDir)
       // Should be absolute, no marker prefix
       vf.id() should startWith("/")
       vf.id() should not contain "${BASE}"
@@ -85,13 +85,13 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
   }
 
   test("PlainVirtualFile equals/hashCode matches BasicVirtualFileRef with same ID") {
-    withTempBuildDir("equals-test") { buildDir =>
-      PlainVirtualFile.setBuildDir(buildDir)
-      val srcFile = buildDir.resolve("src/Hello.scala")
+    withTempBuildDir("equals-test") {
+      buildDir =>
+        val srcFile = buildDir.resolve("src/Hello.scala")
       Files.createDirectories(srcFile.getParent)
       Files.writeString(srcFile, "object Hello")
 
-      val vf = PlainVirtualFile(srcFile)
+      val vf = PlainVirtualFile(srcFile, buildDir)
       val basic = xsbti.VirtualFileRef.of(vf.id())
 
       // This is CRITICAL: zinc deserializes to BasicVirtualFileRef, and HashMap lookups

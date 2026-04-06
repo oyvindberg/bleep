@@ -102,7 +102,8 @@ trait PlatformTestHelper {
       classpath = scalaLibJars ++ sjsLibJars,
       outputDir = outDir,
       language = language,
-      analysisDir = None
+      analysisDir = None,
+      buildDir = outDir.getParent
     )
 
     val result = ZincBridge
@@ -169,7 +170,8 @@ trait PlatformTestHelper {
       classpath = fullClasspath,
       outputDir = outDir,
       language = language,
-      analysisDir = None
+      analysisDir = None,
+      buildDir = outDir.getParent
     )
 
     val result = ZincBridge
