@@ -793,7 +793,7 @@ object ZincBridge {
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
         saveAnalysis(analysisFile, result.analysis, result.setup)
         checkCaseInsensitiveCollisions(result.analysis, config.name, diagnosticListener)
-        checkAnalysisPortability(result.analysis, config.name)
+        checkAnalysisPortability(result.analysis, config.name, analysisFile)
       }
 
       val classFiles = collectClassFiles(config.outputDir)
@@ -898,19 +898,21 @@ object ZincBridge {
     }
   }
 
-  /** Warn if any VirtualFileRef in the analysis has an absolute path instead of a marker prefix. This catches portability issues at compile time. */
-  private def checkAnalysisPortability(analysis: CompileAnalysis, projectName: String): Unit = {
+  /** Check analysis portability and write warnings file next to analysis.zip. Read at push time. */
+  private def checkAnalysisPortability(analysis: CompileAnalysis, projectName: String, analysisFile: Path): Unit = {
     val stamps = analysis.asInstanceOf[sbt.internal.inc.Analysis].stamps
     val allVfrs = stamps.sources.keySet ++ stamps.products.keySet ++ stamps.libraries.keySet
     val absoluteIds = allVfrs.iterator
       .map(_.id())
       .filter(id => !PortableAnalysisMappers.isMarkerPrefixed(id) && (id.startsWith("/") || (id.length > 2 && id.charAt(1) == ':')))
-      .take(5)
+      .take(10)
       .toList
+
+    val warningsFile = analysisFile.resolveSibling("portability-warnings")
     if (absoluteIds.nonEmpty) {
-      System.err.println(
-        s"[ZincBridge] WARNING: $projectName analysis contains ${absoluteIds.size}+ absolute path(s) — remote cache will not be portable. Examples: ${absoluteIds.mkString(", ")}"
-      )
+      Files.writeString(warningsFile, absoluteIds.mkString("\n"))
+    } else {
+      Files.deleteIfExists(warningsFile)
     }
   }
 
