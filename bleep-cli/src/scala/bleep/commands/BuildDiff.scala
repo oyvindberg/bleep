@@ -6,7 +6,7 @@ import com.monovore.decline.Opts
 import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal
 
-case class BuildDiff(opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+case class BuildDiff(opts: BuildDiff.Options, projects: Array[model.CrossProjectName], outputMode: OutputMode) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val revision = opts.revision.getOrElse("HEAD")
 
@@ -23,18 +23,32 @@ case class BuildDiff(opts: BuildDiff.Options, projects: Array[model.CrossProject
       val newProjects = started.build.explodedProjects
       val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
       val filteredAllProjectNames = if (projects.isEmpty) allProjectNames else allProjectNames.intersect(projects.toSet)
-      filteredAllProjectNames.foreach { projectName =>
-        val header = s"Project ${fansi.Bold.On(projectName.value)}"
-        val old = oldProjects.getOrElse(projectName, model.Project.empty)
-        val new_ = newProjects.getOrElse(projectName, model.Project.empty)
-        val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Red(_))
-        val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Green(_))
-        (maybeRemoved, maybeAdded) match {
-          case (None, None)                 => ()
-          case (Some(removed), None)        => println(s"$header: \n$removed")
-          case (None, Some(added))          => println(s"$header: \n$added")
-          case (Some(removed), Some(added)) => println(s"$header: \n$removed$added")
-        }
+
+      outputMode match {
+        case OutputMode.Text =>
+          filteredAllProjectNames.foreach { projectName =>
+            val header = s"Project ${fansi.Bold.On(projectName.value)}"
+            val old = oldProjects.getOrElse(projectName, model.Project.empty)
+            val new_ = newProjects.getOrElse(projectName, model.Project.empty)
+            val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Red(_))
+            val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Green(_))
+            (maybeRemoved, maybeAdded) match {
+              case (None, None)                 => ()
+              case (Some(removed), None)        => println(s"$header: \n$removed")
+              case (None, Some(added))          => println(s"$header: \n$added")
+              case (Some(removed), Some(added)) => println(s"$header: \n$removed$added")
+            }
+          }
+        case OutputMode.Json =>
+          val diffs = filteredAllProjectNames.toList.flatMap { projectName =>
+            val old = oldProjects.getOrElse(projectName, model.Project.empty)
+            val new_ = newProjects.getOrElse(projectName, model.Project.empty)
+            val removed = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(yaml.encodeShortened(_))
+            val added = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(yaml.encodeShortened(_))
+            if (removed.isEmpty && added.isEmpty) None
+            else Some(ProjectDiff(projectName.value, removed, added))
+          }
+          CommandResult.print(CommandResult.success(DiffReport(diffs)))
       }
       ()
     }

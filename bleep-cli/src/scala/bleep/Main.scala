@@ -298,18 +298,18 @@ object Main {
               ),
               Opts.subcommand("diff", "diff effective project config compared to git HEAD or wanted revision")(
                 Opts.subcommand("effective", "show projects after applying templates")(
-                  (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
-                    commands.BuildDiff(opts, names)
+                  (projectNames, commands.BuildDiff.opts, outputMode).mapN { case (names, opts, mode) =>
+                    commands.BuildDiff(opts, names, mode)
                   }
                 )
               ),
               Opts.subcommand("show", "show projects in their different versions.")(
                 List(
                   Opts.subcommand("short", "the projects as you wrote it in YAML")(
-                    projectNamesNoCross.map(commands.BuildShow.Short.apply)
+                    (projectNamesNoCross, outputMode).mapN(commands.BuildShow.Short.apply)
                   ),
                   Opts.subcommand("effective", "the final project configuration after all templates have been applied")(
-                    projectNames.map(commands.BuildShow.Effective.apply)
+                    (projectNames, outputMode).mapN(commands.BuildShow.Effective.apply)
                   )
                 ).foldK
               ),
@@ -410,8 +410,8 @@ object Main {
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
-            testProjectNames.map { projectNames =>
-              commands.ListTests(projectNames)
+            (testProjectNames, outputMode).mapN { (projectNames, mode) =>
+              commands.ListTests(projectNames, mode)
             }
           ),
           Opts.subcommand("run", "run project or script")(

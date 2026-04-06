@@ -7,15 +7,23 @@ import ch.epfl.scala.bsp4j.ScalaTestClassesParams
 
 import scala.jdk.CollectionConverters.*
 
-case class ListTests(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+case class ListTests(projects: Array[model.CrossProjectName], outputMode: OutputMode) extends BleepBuildCommand {
 
   override def run(started: Started): Either[BleepException, Unit] =
     BspQuery.withServer(started) { server =>
       val all: Iterator[(model.CrossProjectName, String)] = testsByCrossProject(started, server)
 
-      all.toList.groupBy { case (pn, _) => pn.name }.foreach { case (pn, tuples) =>
-        started.logger.info(s"${pn.value}:")
-        tuples.foreach { case (_, cls) => started.logger.info(s"  $cls") }
+      outputMode match {
+        case OutputMode.Text =>
+          all.toList.groupBy { case (pn, _) => pn.name }.foreach { case (pn, tuples) =>
+            started.logger.info(s"${pn.value}:")
+            tuples.foreach { case (_, cls) => started.logger.info(s"  $cls") }
+          }
+        case OutputMode.Json =>
+          val grouped = all.toList.groupBy(_._1).toList.sortBy(_._1.value).map { case (pn, tuples) =>
+            ProjectTests(pn.value, tuples.map(_._2))
+          }
+          CommandResult.print(CommandResult.success(TestList(grouped)))
       }
 
       Right(())
