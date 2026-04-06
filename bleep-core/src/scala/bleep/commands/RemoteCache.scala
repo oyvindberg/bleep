@@ -80,6 +80,19 @@ object RemoteCache {
   }
 
   case class Push(projects: Array[model.CrossProjectName], force: Boolean) extends BleepBuildCommand {
+
+    /** Check that a zinc analysis file doesn't contain absolute paths from the build directory. Returns an error message if non-portable, None if ok. */
+    private def checkPortability(analysisFile: Path, buildDir: Path): Option[String] = {
+      if (!Files.exists(analysisFile)) return None // No analysis (e.g. Kotlin projects) — ok
+      val bytes = Files.readAllBytes(analysisFile)
+      val content = new String(bytes, java.nio.charset.StandardCharsets.ISO_8859_1)
+      val buildDirStr = buildDir.toAbsolutePath.normalize().toString
+      if (content.contains(buildDirStr))
+        Some(s"analysis contains absolute path '$buildDirStr' — not portable. Kill BSP servers and recompile.")
+      else
+        None
+    }
+
     override def run(started: Started): Either[BleepException, Unit] = {
       val cacheConfig = started.build match {
         case fb: model.Build.FileBacked => fb.file.`remote-cache`
@@ -99,6 +112,7 @@ object RemoteCache {
           val pushed = AtomicInteger(0)
           val skipped = AtomicInteger(0)
           val notCompiled = AtomicInteger(0)
+          val errors = new java.util.concurrent.ConcurrentLinkedQueue[String]()
 
           val semaphore = new java.util.concurrent.Semaphore(Parallelism)
           val executor = Executors.newVirtualThreadPerTaskExecutor()
@@ -120,15 +134,21 @@ object RemoteCache {
                     skipped.incrementAndGet()
                     started.logger.debug(s"${crossName.value}: already in cache")
                   } else {
-                    // Pack classes dir + zinc analysis — do this outside semaphore (CPU work)
-                    val archive = TarGz.pack(projectPaths.targetDir)
-                    // Limit concurrent uploads to avoid overwhelming the network
-                    semaphore.acquire()
-                    try {
-                      client.putObject(key, archive)
-                      pushed.incrementAndGet()
-                      started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
-                    } finally semaphore.release()
+                    // Verify analysis is portable before pushing
+                    val analysisFile = projectPaths.targetDir.resolve(".zinc/analysis.zip")
+                    checkPortability(analysisFile, started.buildPaths.buildDir) match {
+                      case Some(err) =>
+                        errors.add(s"${crossName.value}: $err")
+                      case None =>
+                        // Pack classes dir + zinc analysis
+                        val archive = TarGz.pack(projectPaths.targetDir)
+                        semaphore.acquire()
+                        try {
+                          client.putObject(key, archive)
+                          pushed.incrementAndGet()
+                          started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
+                        } finally semaphore.release()
+                    }
                   }
                 }): Runnable))
             }
@@ -137,10 +157,20 @@ object RemoteCache {
           futures.forEach(_.get())
           executor.shutdown()
 
-          started.logger.info(
-            s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
-          )
-          Right(())
+          val errorList = scala.jdk.CollectionConverters.IterableHasAsScala(errors).asScala.toList
+          if (errorList.nonEmpty) {
+            started.logger.info(
+              s"Remote cache push: ${pushed.get()} pushed, ${errorList.size} failed portability check, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
+            )
+            Left(new BleepException.Text(
+              s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
+            ))
+          } else {
+            started.logger.info(
+              s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
+            )
+            Right(())
+          }
       }
     }
   }
