@@ -42,7 +42,6 @@ object Main {
     val projectNameExact = "project name exact"
     val projectName = "project name"
     val projectNameNoCross = "project name (not cross id)"
-    val testProjectName = "test project name"
     val hasSourceGenProject = "project name (with sourcegen)"
     val platformName = "platform name"
     val scalaVersion = "scala version"
@@ -59,13 +58,24 @@ object Main {
       Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse
     ).mapN(CommonOpts.apply)
 
+  /** Output mode for request/response commands. Defaults to text. */
+  val outputMode: Opts[OutputMode] =
+    Opts
+      .option[String]("output", "output format: text or json", "o")
+      .withDefault("text")
+      .map {
+        case "json" => OutputMode.Json
+        case _      => OutputMode.Text
+      }
+
   /** Logging opts parsed by decline (not manually pre-parsed). Used in the build command path. */
   val loggingOpts: Opts[LoggingOpts] =
     (
       Opts.flag("no-color", "enable CI-friendly output").orFalse,
       Opts.flag("debug", "enable more output").orFalse,
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
-      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson)
+      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson),
+      outputMode
     ).mapN(LoggingOpts.apply)
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
@@ -115,12 +125,16 @@ object Main {
         .map(_.toList)
         .orNone
 
+    /** Accepts all project names. When none given, defaults to test projects only. Non-test projects will just be compiled. */
     val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(started.globs.testProjectNameMap)))
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
-        .map(started.chosenTestProjects)
+        .map {
+          case Some(explicit) => explicit
+          case None           => started.chosenTestProjects(None)
+        }
 
     val only: Opts[Option[NonEmptyList[String]]] =
       Opts
@@ -448,10 +462,32 @@ object Main {
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
-            projectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
+            (projectNames, outputMode).mapN { (projectNames, mode) =>
+              new BleepBuildCommand {
+                override def run(started: Started): Either[BleepException, Unit] = {
+                  val sorted = projectNames.map(_.value).sorted.toList
+                  mode match {
+                    case OutputMode.Text => sorted.foreach(started.logger.info(_))
+                    case OutputMode.Json => CommandResult.print(CommandResult.success(ProjectList(sorted)))
+                  }
+                  Right(())
+                }
+              }
+            }
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
-            testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
+            (testProjectNames, outputMode).mapN { (projectNames, mode) =>
+              new BleepBuildCommand {
+                override def run(started: Started): Either[BleepException, Unit] = {
+                  val sorted = projectNames.map(_.value).sorted.toList
+                  mode match {
+                    case OutputMode.Text => sorted.foreach(started.logger.info(_))
+                    case OutputMode.Json => CommandResult.print(CommandResult.success(ProjectList(sorted)))
+                  }
+                  Right(())
+                }
+              }
+            }
           ),
           Opts.subcommand("extract-info", "JSON output for IDE integration")(
             List(
@@ -989,7 +1025,6 @@ object Main {
                 case metavars.projectNameExact    => started.globs.exactProjectMap.keys.toList
                 case metavars.projectNameNoCross  => started.globs.projectNamesNoCrossMap.keys.toList
                 case metavars.projectName         => started.globs.projectNameMap.keys.toList
-                case metavars.testProjectName     => started.globs.testProjectNameMap.keys.toList
                 case metavars.projectOrScriptName => started.globs.exactProjectMap.keys.toList ++ started.build.scripts.keys.map(_.value)
                 case _                            => Nil
               })
@@ -1041,11 +1076,25 @@ object Main {
         }
       case Right((loggingOpts, cmd)) =>
         val commonOpts = loggingOpts.toCommonOpts(preOpts)
-        bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+        // JSON output mode: route logging to stderr so stdout is clean JSON
+        val loggerResource = loggingOpts.outputMode match {
+          case OutputMode.Json => bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths)
+          case OutputMode.Text => bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths)
+        }
+        loggerResource.use { logger =>
           replayStoredMessages(storingLogger, logger)
           val startedWithLogger = started.withLogger(logger)
           Try(cmd.run(startedWithLogger)) match {
-            case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Failure(th: BleepException) if loggingOpts.outputMode == OutputMode.Json =>
+              CommandResult.print(CommandResult.failure(th))
+              ExitCode.Failure
+            case Failure(th) if loggingOpts.outputMode == OutputMode.Json =>
+              CommandResult.print(CommandResult.Failure(th.getMessage))
+              ExitCode.Failure
+            case Failure(th) => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Success(Left(th)) if loggingOpts.outputMode == OutputMode.Json =>
+              CommandResult.print(CommandResult.failure(th))
+              ExitCode.Failure
             case Success(Left(th))  => fatal("command failed", logger, th)
             case Success(Right(())) => ExitCode.Success
           }
