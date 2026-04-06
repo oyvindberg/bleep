@@ -86,6 +86,14 @@ object Main {
         .orNone
         .map(started.chosenProjects)
 
+    /** Like projectNames but returns empty array when nothing specified, so publish commands can auto-discover publishable projects. */
+    val publishProjectNames: Opts[Array[model.CrossProjectName]] =
+      Opts
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
+        .map(_.toList.toArray.flatten)
+        .orNone
+        .map(_.getOrElse(Array.empty))
+
     val projectNameNoCross: Opts[model.ProjectName] =
       Opts.argument(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
@@ -499,7 +507,7 @@ object Main {
                 Opts.option[String]("version", "version to publish (default: from git tags)").orNone,
                 Opts.flag("assert-release", "fail if git state would produce a snapshot version").orFalse,
                 Opts.flag("dry-run", "show what would be published without uploading").orFalse,
-                projectNames,
+                publishProjectNames,
                 commonBuildOpts
               ).mapN { case (version, assertRel, dryRun, projects, buildOpts) =>
                 commands.Publish(
@@ -515,7 +523,7 @@ object Main {
                 (
                   Opts.option[String]("version", "version to publish (default: from git tags)").orNone,
                   Opts.flag("assert-release", "fail if git state would produce a snapshot version").orFalse,
-                  projectNames,
+                  publishProjectNames,
                   commonBuildOpts
                 ).mapN { case (version, assertRel, projects, buildOpts) =>
                   commands.PublishSonatype(
