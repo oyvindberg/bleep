@@ -406,3 +406,8 @@ This maintenance process ensures our liberated projects stay current while prese
 
 - **Never Use Default Parameters**: When defining methods or functions, always explicitly specify parameters
 - **NEVER Write Fallback Code**: Under NO circumstances write error-swallowing, fallback, or "graceful degradation" code. We fail hard. We fail often. But we NEVER have half-assed, half-baked code that pretends things are alright when they're not. If something can fail, it throws. If data can be missing, we throw. No `Option` wrapping to hide errors. No `.getOrElse` with silent defaults. No `Try(...).toOption`. No empty catch blocks. FAIL LOUDLY.
+- **No Global Mutable State**: Never use `@volatile var`, `ThreadLocal`, or singletons to pass data between components. Pass data structurally through parameters — case class fields, method arguments. If the BSP server serves multiple workspaces, each must get the correct data through the call chain, not via a shared global variable.
+- **Always Run `bleep fmt` Before Committing**: Every single commit. No exceptions. Do not wait for CI to tell you.
+- **Don't Defer Core Requirements**: If a feature's entire purpose depends on X (e.g. remote cache depends on cross-machine portability), X ships in the same PR. Never defer the thing that makes the feature actually work.
+- **Follow Existing Conventions**: Before creating tags, versions, names — look at what already exists. `v1.0.0-M7` means milestone, not RC. Check `git tag -l` before inventing version schemes.
+- **Test at Appropriate Scale**: When debugging, test with ONE small project first, not the entire build. Large generated projects (parsers) take minutes each and burn the CPU. Only run the full build for final verification.
