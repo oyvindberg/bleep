@@ -23,6 +23,12 @@ case class Started(
   def executionContext: ExecutionContext = pre.ec
   def resolvedJvm: Lazy[ResolvedJvm] = pre.resolvedJvm
 
+  /** Create a new Started with a different logger. Used to swap the StoringLogger for the real logger after decline parsing. */
+  def withLogger(newLogger: Logger): Started = {
+    val newPre = Prebootstrapped(newLogger, pre.userPaths, pre.buildPaths, pre.existingBuild, pre.ec)
+    new Started(newPre, rewrites, build, resolvedProjects, activeProjectsFromPath, config, resolver, bleepExecutable, bspServerClasspathSource)(reloadUsing)
+  }
+
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.project(crossName, build.explodedProjects(crossName))
 

@@ -59,6 +59,15 @@ object Main {
       Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse
     ).mapN(CommonOpts.apply)
 
+  /** Logging opts parsed by decline (not manually pre-parsed). Used in the build command path. */
+  val loggingOpts: Opts[LoggingOpts] =
+    (
+      Opts.flag("no-color", "enable CI-friendly output").orFalse,
+      Opts.flag("debug", "enable more output").orFalse,
+      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
+      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson)
+    ).mapN(LoggingOpts.apply)
+
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
     commonOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
@@ -74,7 +83,7 @@ object Main {
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
-  def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
+  def hasBuildOpts(started: Started): Opts[(LoggingOpts, BleepBuildCommand)] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
         .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
@@ -225,7 +234,7 @@ object Main {
 
     val updateSingleOrgOrModule = Opts.argument[String]("The dependency to update, alternatively only the organization name can be passed")
 
-    lazy val ret: Opts[BleepBuildCommand] = {
+    lazy val ret: Opts[(LoggingOpts, BleepBuildCommand)] = {
       val allCommands = List(
         List[Opts[BleepBuildCommand]](
           Opts.subcommand("build", "rewrite build")(
@@ -594,7 +603,7 @@ object Main {
         }
       )
 
-      commonOpts *> allCommands.flatten.foldK
+      (loggingOpts, allCommands.flatten.foldK).tupled
     }
 
     ret
@@ -754,8 +763,8 @@ object Main {
     )
 
   // there is a flag to change build directory. we need to intercept that very early
-  def cwdFor(opts: CommonOpts): Path =
-    opts.directory match {
+  def cwdFor(directory: Option[String]): Path =
+    directory match {
       case Some(str) if str.startsWith("/") => Paths.get(str)
       case Some(str)                        => FileUtils.cwd / str
       case None                             => FileUtils.cwd
@@ -763,7 +772,7 @@ object Main {
 
   val ec: ExecutionContext = ExecutionContext.global
 
-  def maybeRunWithDifferentVersion(args: Array[String], logger: Logger, buildLoader: BuildLoader, opts: CommonOpts): ExitCode =
+  def maybeRunWithDifferentVersion(args: Array[String], logger: Logger, buildLoader: BuildLoader, dev: Boolean): ExitCode =
     buildLoader match {
       case BuildLoader.NonExisting(_)     => ExitCode.Success
       case existing: BuildLoader.Existing =>
@@ -803,7 +812,7 @@ object Main {
           case Right(wantedVersion) if model.BleepVersion.current.isDevelopment =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you're running a snapshot")
             ExitCode.Success
-          case Right(wantedVersion) if opts.dev =>
+          case Right(wantedVersion) if dev =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
             ExitCode.Success
           case Right(wantedVersion) if !correctPlatform =>
@@ -862,9 +871,9 @@ object Main {
 
       case "bsp" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
-        val cwd = cwdFor(commonOpts)
+        val cwd = cwdFor(commonOpts.directory)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts.dev).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
           val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
@@ -879,9 +888,9 @@ object Main {
 
       case "mcp-server" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
-        val cwd = cwdFor(commonOpts)
+        val cwd = cwdFor(commonOpts.directory)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts.dev).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
           val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
@@ -895,31 +904,47 @@ object Main {
         }
 
       case args =>
-        val (commonOpts, restArgs) = CommonOpts.parse(args)
-        val cwd = cwdFor(commonOpts)
+        val (preOpts, restArgs) = PreBootstrapOpts.parse(args)
+        val cwd = cwdFor(preOpts.directory)
 
         val buildLoader = BuildLoader.find(cwd)
         val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-        // initialize just stdout logger first to avoid creating log file if we're just booting a new version immediately
-        val exitCode = bleepLoggers.stdoutNoLogFile(config, commonOpts).use { logger =>
-          maybeRunWithDifferentVersion(_args, logger, buildLoader, commonOpts)
-        }
+        // Use storing logger during version check + bootstrap. Real logger created after decline parsing.
+        val storingLogger = bleepLoggers.silent
+
+        val exitCode = maybeRunWithDifferentVersion(_args, storingLogger, buildLoader, preOpts.dev)
 
         exitCode.andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
-          bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
-            buildLoader match {
-              case noBuild: BuildLoader.NonExisting =>
+          buildLoader match {
+            case noBuild: BuildLoader.NonExisting =>
+              // No-build path: use CommonOpts (old flow) since noBuildOpts commands capture logger at construction
+              val commonOpts = CommonOpts.parse(args)._1
+              bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
                 run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
-              case existing: BuildLoader.Existing =>
-                val pre = Prebootstrapped(logger, userPaths, buildPaths, existing, ec)
-                bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
-                  case Left(th)       => fatal("Error while loading build", logger, th)
-                  case Right(started) => run(hasBuildOpts(started), restArgs, logger)(_.run(started))
-                }
-            }
+              }
+            case existing: BuildLoader.Existing =>
+              val pre = Prebootstrapped(storingLogger, userPaths, buildPaths, existing, ec)
+              bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
+                case Left(th) =>
+                  // Bootstrap failed — create fallback logger for error output
+                  val fallbackOpts = CommonOpts(
+                    noColor = false,
+                    debug = false,
+                    directory = preOpts.directory,
+                    dev = preOpts.dev,
+                    noBspProgress = false,
+                    logAsJson = LoggingOpts.defaultLogAsJson
+                  )
+                  bleepLoggers.stdoutAndFileLogging(config, fallbackOpts, buildPaths).use { logger =>
+                    replayStoredMessages(storingLogger, logger)
+                    fatal("Error while loading build", logger, th)
+                  }
+                case Right(started) =>
+                  runBuildCommand(hasBuildOpts(started), restArgs, preOpts, storingLogger, config, buildPaths, started)
+              }
           }
         }
     }
@@ -931,11 +956,11 @@ object Main {
 
   def withCompletions(_args: Array[String], userPaths: UserPaths, commonOpts: CommonOpts, args: List[String])(f: Completer.Res => ExitCode): ExitCode = {
     val (_, restArgs) = CommonOpts.parse(args)
-    val cwd = cwdFor(commonOpts)
+    val cwd = cwdFor(commonOpts.directory)
     // we can not log to stdout when completing. logger should be used sparingly
     val stderr = bleepLoggers.stderrWarn(commonOpts)
     val buildLoader = BuildLoader.find(cwd)
-    maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
+    maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts.dev).andThen {
 
       val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
@@ -992,5 +1017,55 @@ object Main {
           case Success(Left(th))  => fatal("command failed", logger, th)
           case Success(Right(())) => ExitCode.Success
         }
+    }
+
+  /** Parse a build command with decline, create the real logger from LoggingOpts, replay stored bootstrap messages, then run. */
+  private def runBuildCommand(
+      opts: Opts[(LoggingOpts, BleepBuildCommand)],
+      restArgs: List[String],
+      preOpts: PreBootstrapOpts,
+      storingLogger: Logger,
+      config: model.BleepConfig,
+      buildPaths: BuildPaths,
+      started: Started
+  ): ExitCode =
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
+      case Left(help) =>
+        help.errors match {
+          case List() =>
+            System.out.println(help)
+            ExitCode.Success
+          case _ =>
+            System.err.println(help)
+            ExitCode.Failure
+        }
+      case Right((loggingOpts, cmd)) =>
+        val commonOpts = loggingOpts.toCommonOpts(preOpts)
+        bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+          replayStoredMessages(storingLogger, logger)
+          val startedWithLogger = started.withLogger(logger)
+          Try(cmd.run(startedWithLogger)) match {
+            case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Success(Left(th))  => fatal("command failed", logger, th)
+            case Success(Right(())) => ExitCode.Success
+          }
+        }
+    }
+
+  /** Replay messages buffered by a StoringLogger to a real logger. */
+  private def replayStoredMessages(storingLogger: Logger, target: Logger): Unit =
+    storingLogger match {
+      case sl: ryddig.TypedLogger[?] if sl.underlying.isInstanceOf[Array[?]] =>
+        sl.underlying.asInstanceOf[Array[ryddig.Stored]].foreach { stored =>
+          val msg = stored.message.plainText
+          stored.metadata.logLevel match {
+            case ryddig.LogLevel.debug => target.debug(msg)
+            case ryddig.LogLevel.info  => target.info(msg)
+            case ryddig.LogLevel.warn  => target.warn(msg)
+            case ryddig.LogLevel.error => target.error(msg)
+            case _                     => target.info(msg)
+          }
+        }
+      case _ => ()
     }
 }
