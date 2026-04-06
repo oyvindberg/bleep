@@ -157,9 +157,11 @@ object RemoteCache {
             started.logger.info(
               s"Remote cache push: ${pushed.get()} pushed, ${errorList.size} failed portability check, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
             )
-            Left(new BleepException.Text(
-              s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
-            ))
+            Left(
+              new BleepException.Text(
+                s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
+              )
+            )
           } else {
             started.logger.info(
               s"Remote cache push: ${pushed.get()} pushed, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
