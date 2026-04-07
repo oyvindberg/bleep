@@ -74,8 +74,7 @@ object Main {
       Opts.flag("no-color", "enable CI-friendly output").orFalse,
       Opts.flag("debug", "enable more output").orFalse,
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
-      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson),
-      outputMode
+      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson)
     ).mapN(LoggingOpts.apply)
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
@@ -1077,22 +1076,22 @@ object Main {
       case Right((loggingOpts, cmd)) =>
         val commonOpts = loggingOpts.toCommonOpts(preOpts)
         // JSON output mode: route logging to stderr so stdout is clean JSON
-        val loggerResource = loggingOpts.outputMode match {
-          case OutputMode.Json => bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths)
-          case OutputMode.Text => bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths)
-        }
+        val jsonOutput = hasJsonOutput(restArgs)
+        val loggerResource =
+          if (jsonOutput) bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths)
+          else bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths)
         loggerResource.use { logger =>
           replayStoredMessages(storingLogger, logger)
           val startedWithLogger = started.withLogger(logger)
           Try(cmd.run(startedWithLogger)) match {
-            case Failure(th: BleepException) if loggingOpts.outputMode == OutputMode.Json =>
+            case Failure(th: BleepException) if jsonOutput =>
               CommandResult.print(CommandResult.failure(th))
               ExitCode.Failure
-            case Failure(th) if loggingOpts.outputMode == OutputMode.Json =>
+            case Failure(th) if jsonOutput =>
               CommandResult.print(CommandResult.Failure(th.getMessage))
               ExitCode.Failure
-            case Failure(th) => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
-            case Success(Left(th)) if loggingOpts.outputMode == OutputMode.Json =>
+            case Failure(th)                     => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Success(Left(th)) if jsonOutput =>
               CommandResult.print(CommandResult.failure(th))
               ExitCode.Failure
             case Success(Left(th))  => fatal("command failed", logger, th)
@@ -1100,6 +1099,18 @@ object Main {
           }
         }
     }
+
+  /** Check if restArgs contain -o json or --output json or --json (for stderr routing). */
+  private def hasJsonOutput(restArgs: List[String]): Boolean = {
+    val args = restArgs.toArray
+    var i = 0
+    while (i < args.length) {
+      if (args(i) == "--json") return true
+      if ((args(i) == "-o" || args(i) == "--output") && i + 1 < args.length && args(i + 1) == "json") return true
+      i += 1
+    }
+    false
+  }
 
   /** Replay messages buffered by a StoringLogger to a real logger. */
   private def replayStoredMessages(storingLogger: Logger, target: Logger): Unit =

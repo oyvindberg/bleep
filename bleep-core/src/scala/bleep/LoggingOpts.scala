@@ -12,8 +12,7 @@ case class LoggingOpts(
     noColor: Boolean,
     debug: Boolean,
     noBspProgress: Boolean,
-    logAsJson: Boolean,
-    outputMode: OutputMode
+    logAsJson: Boolean
 ) {
   def toCommonOpts(preOpts: PreBootstrapOpts): CommonOpts =
     CommonOpts(
