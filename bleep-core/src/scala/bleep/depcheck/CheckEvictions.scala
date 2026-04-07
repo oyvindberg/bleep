@@ -54,13 +54,23 @@ object CheckEvictions {
       res: Fetch.Result,
       logger: Logger
   ): Unit = {
+    val lines = warningLines(ewo, versionCombo, dependencies, res, logger)
+    lines.foreach(logger.warn(_))
+  }
+
+  def warningLines(
+      ewo: librarymanagement.EvictionWarningOptions,
+      versionCombo: model.VersionCombo,
+      dependencies: Seq[Dependency],
+      res: Fetch.Result,
+      logger: Logger
+  ): List[String] = {
     val finalReport: librarymanagement.UpdateReport = updateRun(dependencies, res, logger)
 
     val module: librarymanagement.ModuleDescriptor = dummyModuleDescriptor(versionCombo)
 
     val ew: librarymanagement.EvictionWarning = librarymanagement.EvictionWarning(module, ewo, finalReport)
-    ew.lines.foreach(logger.warn(_))
-    infoAllTheThings(ew).foreach(logger.info(_))
+    (ew.lines ++ infoAllTheThings(ew)).toList
   }
 
   def updateRun(dependencies: Seq[Dependency], res: Fetch.Result, logger: Logger): librarymanagement.UpdateReport = {

@@ -313,7 +313,7 @@ object Main {
                 ).foldK
               ),
               Opts.subcommand("evicted", "show eviction warnings for project")(
-                projectNames.map(projectNames => commands.Evicted(projectNames))
+                (projectNames, outputMode).mapN((projectNames, mode) => commands.Evicted(projectNames, mode))
               ),
               Opts.subcommand("invalidated", "compute which projects need rebuild/retest vs a base git commit")(
                 commands.BuildInvalidated.opts

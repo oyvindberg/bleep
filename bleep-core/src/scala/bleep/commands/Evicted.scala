@@ -5,7 +5,7 @@ import bleep.depcheck.CheckEvictions
 import bleep.nosbt.librarymanagement
 import cats.implicits.toTraverseOps
 
-case class Evicted(projectNames: Array[model.CrossProjectName]) extends BleepBuildCommand {
+case class Evicted(projectNames: Array[model.CrossProjectName], outputMode: OutputMode) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] =
     projectNames.toList
       .traverse { projectName =>
@@ -21,14 +21,28 @@ case class Evicted(projectNames: Array[model.CrossProjectName]) extends BleepBui
             project.libraryVersionSchemes.values,
             project.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
           )
-        } yield CheckEvictions.warnings(
-          ewo = librarymanagement.EvictionWarningOptions.full,
-          versionCombo = versionCombo,
-          dependencies = coursierDeps,
-          res = resolved,
-          logger = started.logger.withPath(s"project ${projectName.value}")
-        )
+        } yield {
+          val lines = CheckEvictions.warningLines(
+            ewo = librarymanagement.EvictionWarningOptions.full,
+            versionCombo = versionCombo,
+            dependencies = coursierDeps,
+            res = resolved,
+            logger = started.logger.withPath(s"project ${projectName.value}")
+          )
+          outputMode match {
+            case OutputMode.Text =>
+              lines.foreach(started.logger.withPath(s"project ${projectName.value}").warn(_))
+            case OutputMode.Json => ()
+          }
+          ProjectEvictions(projectName.value, lines)
+        }
         res.left.map(err => throw new BleepException.ResolveError(err, projectName.value))
       }
-      .map(_ => ())
+      .map { evictions =>
+        outputMode match {
+          case OutputMode.Text => ()
+          case OutputMode.Json =>
+            CommandResult.print(CommandResult.success(EvictionReport(evictions)))
+        }
+      }
 }
