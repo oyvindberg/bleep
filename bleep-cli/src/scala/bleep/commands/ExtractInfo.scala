@@ -97,7 +97,7 @@ object ExtractInfo {
       }
 
       val output = ProjectGraphOutput(projects = projects)
-      println(output.asJson.noSpaces)
+      CommandResult.print(CommandResult.success(output))
       Right(())
     }
   }
@@ -128,7 +128,7 @@ object ExtractInfo {
         }
 
       val output = ProjectGroupsOutput(groups = groups)
-      println(output.asJson.noSpaces)
+      CommandResult.print(CommandResult.success(output))
       Right(())
     }
   }
@@ -149,7 +149,7 @@ object ExtractInfo {
       }
 
       val output = ScriptsOutput(scripts = scripts)
-      println(output.asJson.noSpaces)
+      CommandResult.print(CommandResult.success(output))
       Right(())
     }
   }
@@ -170,7 +170,7 @@ object ExtractInfo {
       }
 
       val output = SourceGenOutput(sourcegens = sourcegens)
-      println(output.asJson.noSpaces)
+      CommandResult.print(CommandResult.success(output))
       Right(())
     }
   }
@@ -235,7 +235,7 @@ object ExtractInfo {
         scripts = scripts,
         sourcegens = sourcegens
       )
-      println(output.asJson.noSpaces)
+      CommandResult.print(CommandResult.success(output))
       Right(())
     }
   }

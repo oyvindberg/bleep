@@ -651,7 +651,16 @@ object Main {
     Opts.subcommand("config", "configure bleep here")(
       List(
         Opts.subcommand[BleepCommand]("file", "show configuration file location")(
-          Opts(() => Right(logger.warn(s"Config file is found in ${userPaths.configYaml}")))
+          outputMode.map { mode => () =>
+            mode match {
+              case OutputMode.Text =>
+                logger.warn(s"Config file is found in ${userPaths.configYaml}")
+                Right(())
+              case OutputMode.Json =>
+                CommandResult.print(CommandResult.success(ConfigLocation(userPaths.configYaml.toString)))
+                Right(())
+            }
+          }
         ),
         Opts.subcommand[BleepCommand]("log-timing-enable", "enable timing info in logs")(
           Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true))).map(_ => ()))
@@ -719,7 +728,7 @@ object Main {
               Opts(() => commands.PublishSetup(logger, userPaths, None).run())
             ),
             Opts.subcommand[BleepCommand]("list", "list configured authentications")(
-              Opts(() => commands.ConfigAuthList(logger, userPaths).run())
+              outputMode.map(mode => () => commands.ConfigAuthList(logger, userPaths, mode).run())
             ),
             Opts.subcommand[BleepCommand]("remove", "remove authentication for a repository URI prefix")(
               Opts.argument[String]("uri-prefix").map { uriStr => () =>
