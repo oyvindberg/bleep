@@ -15,7 +15,7 @@ object CommandResult {
   case class Failure(error: String) extends CommandResult
 
   implicit val encoder: Encoder[CommandResult] = Encoder.instance {
-    case Success(data)  => Json.obj("success" -> true.asJson, "data" -> data)
+    case Success(data)  => Json.obj("success" -> true.asJson).deepMerge(data)
     case Failure(error) => Json.obj("success" -> false.asJson, "error" -> error.asJson)
   }
 
