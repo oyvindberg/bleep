@@ -788,7 +788,11 @@ object ZincBridge {
         diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
       }
 
-      if (result.hasModified) {
+      // Save analysis when compilation produced changes OR when there was no previous
+      // analysis (clean build). On clean builds the cycle guard may short-circuit Zinc's
+      // shouldDoIncrementalCompilation, causing hasModified=false even though compilation
+      // happened. Without saving, downstream projects get a missing/null analysis → NPE.
+      if (result.hasModified || !hasPrevAnalysis) {
         diagnosticListener.onCompilePhase(config.name, CompilePhase.SavingAnalysis)
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
         saveAnalysis(analysisFile, result.analysis, result.setup)
