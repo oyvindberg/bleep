@@ -3,7 +3,7 @@ package bleep.mcp
 import bleep._
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import ch.linkyard.mcp.jsonrpc2.transport.StdioJsonRpcConnection
+import _root_.mcp.server.StdioTransport
 
 /** Entry point for the MCP server. Bootstraps the build, creates the MCP server, and runs on stdio.
   *
@@ -30,14 +30,11 @@ object McpServerRunner {
     var backoffMs = InitialBackoffMs
 
     while (true) {
-      val server = new BleepMcpServer(started)
-      val program = server
-        .start(
-          StdioJsonRpcConnection.create[IO],
-          e => IO(started.logger.error(s"MCP server error: $e", e))
-        )
-        .useForever
-        .as(bleep.ExitCode.Success)
+      val program = (for {
+        server <- BleepMcpServer.create(started)
+        transport <- StdioTransport[IO]()
+        _ <- server.serve(transport)
+      } yield ()).useForever
 
       try {
         program.unsafeRunSync()
