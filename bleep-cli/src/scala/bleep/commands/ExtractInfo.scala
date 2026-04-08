@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import io.circe.syntax.*
 import io.circe.Encoder
 
 /** JSON output commands for IDE integration.

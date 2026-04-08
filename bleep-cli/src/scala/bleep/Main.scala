@@ -48,15 +48,8 @@ object Main {
     val projectOrScriptName = "project or script name"
   }
 
-  val commonOpts: Opts[CommonOpts] =
-    (
-      Opts.flag("no-color", "enable CI-friendly output").orFalse,
-      Opts.flag("debug", "enable more output").orFalse,
-      Opts.option[String]("directory", "specify a project directory to use, instead of the current working directory", "d").orNone,
-      Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse,
-      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
-      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse
-    ).mapN(CommonOpts.apply)
+  // Note: --directory/-d and --dev are stripped by PreBootstrapOpts before decline runs.
+  // Only logging flags remain for decline to parse.
 
   /** Output mode for request/response commands. Defaults to text. */
   val outputMode: Opts[OutputMode] =
@@ -78,7 +71,7 @@ object Main {
     ).mapN(LoggingOpts.apply)
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
-    commonOpts *> List(
+    loggingOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, userPaths, buildPaths, logger),
       importMavenCmd(buildPaths, logger),
@@ -885,10 +878,10 @@ object Main {
     val exitCode: ExitCode = _args.toList match {
       case "_complete-zsh" :: current :: words =>
         // accept -d after completion point
-        val (commonOpts, _) = CommonOpts.parse(words)
+        val (preOpts, _) = PreBootstrapOpts.parse(words)
 
         val newWords = words.drop(1 /* arg0 */ ).padTo(current.toInt - 1, "")
-        withCompletions(_args, userPaths, commonOpts, newWords) { completions =>
+        withCompletions(_args, userPaths, preOpts, newWords) { completions =>
           println(Zsh.print(completions.value))
           ExitCode.Success
         }
@@ -896,17 +889,17 @@ object Main {
       case "_complete" :: compLine :: compCword :: compPoint :: _ =>
         val args = Completer.bashToArgs(compLine, compCword.toInt, compPoint.toInt)
         // accept -d after completion point
-        val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
+        val (preOpts, _) = PreBootstrapOpts.parse(compLine.split(" ").toList)
 
-        withCompletions(_args, userPaths, commonOpts, args) { completions =>
+        withCompletions(_args, userPaths, preOpts, args) { completions =>
           completions.value.foreach(c => println(c.value))
           ExitCode.Success
         }
 
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
-        val (commonOpts, _) = CommonOpts.parse(Nil)
-        val logger = bleepLoggers.stderrWarn(commonOpts)
+        val defaultOpts = PreBootstrapOpts.parse(Nil)._1.toLoggingOpts
+        val logger = bleepLoggers.stderrWarn(defaultOpts)
         FileWatching(logger, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         // verify TerminalSizeCache initialization works (SIGWINCH doesn't exist on Windows)
         BspClientDisplayProgress(logger).discard()
@@ -914,14 +907,15 @@ object Main {
         ExitCode.Success
 
       case "bsp" :: args =>
-        val (commonOpts, _) = CommonOpts.parse(args)
-        val cwd = cwdFor(commonOpts.directory)
+        val (preOpts, _) = PreBootstrapOpts.parse(args)
+        val lopts = preOpts.toLoggingOpts
+        val cwd = cwdFor(preOpts.directory)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts.dev).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(lopts), buildLoader, preOpts.dev).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
           val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+          bleepLoggers.stderrAndFileLogging(config, lopts, buildPaths).use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be)   => fatal("", logger, be)
               case Right(pre) =>
@@ -931,14 +925,15 @@ object Main {
         }
 
       case "mcp-server" :: args =>
-        val (commonOpts, _) = CommonOpts.parse(args)
-        val cwd = cwdFor(commonOpts.directory)
+        val (preOpts, _) = PreBootstrapOpts.parse(args)
+        val lopts = preOpts.toLoggingOpts
+        val cwd = cwdFor(preOpts.directory)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts.dev).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(lopts), buildLoader, preOpts.dev).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
           val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+          bleepLoggers.stderrAndFileLogging(config, lopts, buildPaths).use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be)   => fatal("", logger, be)
               case Right(pre) =>
@@ -964,9 +959,8 @@ object Main {
 
           buildLoader match {
             case noBuild: BuildLoader.NonExisting =>
-              // No-build path: use CommonOpts (old flow) since noBuildOpts commands capture logger at construction
-              val commonOpts = CommonOpts.parse(args)._1
-              bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+              // No-build path: create logger from pre-parsed opts (noBuildOpts commands capture logger at construction)
+              bleepLoggers.stdoutAndFileLogging(config, preOpts.toLoggingOpts, buildPaths).use { logger =>
                 run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
               }
             case existing: BuildLoader.Existing =>
@@ -974,15 +968,7 @@ object Main {
               bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                 case Left(th) =>
                   // Bootstrap failed — create fallback logger for error output
-                  val fallbackOpts = CommonOpts(
-                    noColor = false,
-                    debug = false,
-                    directory = preOpts.directory,
-                    dev = preOpts.dev,
-                    noBspProgress = false,
-                    logAsJson = LoggingOpts.defaultLogAsJson
-                  )
-                  bleepLoggers.stdoutAndFileLogging(config, fallbackOpts, buildPaths).use { logger =>
+                  bleepLoggers.stdoutAndFileLogging(config, preOpts.toLoggingOpts, buildPaths).use { logger =>
                     replayStoredMessages(storingLogger, logger)
                     fatal("Error while loading build", logger, th)
                   }
@@ -998,13 +984,14 @@ object Main {
   def main(args: Array[String]): Unit =
     System.exit(_main(args).value)
 
-  def withCompletions(_args: Array[String], userPaths: UserPaths, commonOpts: CommonOpts, args: List[String])(f: Completer.Res => ExitCode): ExitCode = {
-    val (_, restArgs) = CommonOpts.parse(args)
-    val cwd = cwdFor(commonOpts.directory)
+  def withCompletions(_args: Array[String], userPaths: UserPaths, preOpts: PreBootstrapOpts, args: List[String])(f: Completer.Res => ExitCode): ExitCode = {
+    val (_, restArgs) = PreBootstrapOpts.parse(args)
+    val cwd = cwdFor(preOpts.directory)
     // we can not log to stdout when completing. logger should be used sparingly
-    val stderr = bleepLoggers.stderrWarn(commonOpts)
+    val lopts = preOpts.toLoggingOpts
+    val stderr = bleepLoggers.stderrWarn(lopts)
     val buildLoader = BuildLoader.find(cwd)
-    maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts.dev).andThen {
+    maybeRunWithDifferentVersion(_args, stderr, buildLoader, preOpts.dev).andThen {
 
       val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
@@ -1083,12 +1070,11 @@ object Main {
             ExitCode.Failure
         }
       case Right((loggingOpts, cmd)) =>
-        val commonOpts = loggingOpts.toCommonOpts(preOpts)
         // JSON output mode: route logging to stderr so stdout is clean JSON
         val jsonOutput = hasJsonOutput(restArgs)
         val loggerResource =
-          if (jsonOutput) bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths)
-          else bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths)
+          if (jsonOutput) bleepLoggers.stderrAndFileLogging(config, loggingOpts, buildPaths)
+          else bleepLoggers.stdoutAndFileLogging(config, loggingOpts, buildPaths)
         loggerResource.use { logger =>
           replayStoredMessages(storingLogger, logger)
           val startedWithLogger = started.withLogger(logger)
@@ -1109,17 +1095,15 @@ object Main {
         }
     }
 
-  /** Check if restArgs contain -o json or --output json or --json (for stderr routing). */
-  private def hasJsonOutput(restArgs: List[String]): Boolean = {
-    val args = restArgs.toArray
-    var i = 0
-    while (i < args.length) {
-      if (args(i) == "--json") return true
-      if ((args(i) == "-o" || args(i) == "--output") && i + 1 < args.length && args(i + 1) == "json") return true
-      i += 1
+  /** Check if restArgs contain -o json or --output json or --output=json or --json (for stderr routing). */
+  private def hasJsonOutput(restArgs: List[String]): Boolean =
+    restArgs.exists {
+      case "--json" | "--output=json" | "-ojson" => true
+      case _                                     => false
+    } || restArgs.sliding(2).exists {
+      case List("-o" | "--output", "json") => true
+      case _                               => false
     }
-    false
-  }
 
   /** Replay messages buffered by a StoringLogger to a real logger. */
   private def replayStoredMessages(storingLogger: Logger, target: Logger): Unit =

@@ -35,19 +35,19 @@ object bleepLoggers {
   def silent: Logger =
     Loggers.storing()
 
-  def stdoutNoLogFile(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): LoggerResource[PrintStream] =
-    if (commonOpts.logAsJson) LoggerResource.flushable(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out))
-    else baseStdout(bleepConfig, commonOpts).map(Loggers.decodeJsonStream(BLEEP_JSON_EVENT, _))
+  def stdoutNoLogFile(bleepConfig: model.BleepConfig, opts: LoggingOpts): LoggerResource[PrintStream] =
+    if (opts.logAsJson) LoggerResource.flushable(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out))
+    else baseStdout(bleepConfig, opts).map(Loggers.decodeJsonStream(BLEEP_JSON_EVENT, _))
 
   def stdoutAndFileLogging(
       bleepConfig: model.BleepConfig,
-      commonOpts: CommonOpts,
+      opts: LoggingOpts,
       buildPaths: BuildPaths
   ): LoggerResource[(PrintStream, Option[BufferedWriter])] =
-    if (commonOpts.logAsJson) LoggerResource.pure(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out)).maybeZipWith(None)
+    if (opts.logAsJson) LoggerResource.pure(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out)).maybeZipWith(None)
     else {
       val fileLoggerResource = Loggers.path(buildPaths.logFile, LogPatterns.logFile)
-      baseStdout(bleepConfig, commonOpts)
+      baseStdout(bleepConfig, opts)
         .maybeZipWith(Some(fileLoggerResource))
         .map { logger =>
           // Install JUL bridge to file+screen logger (non-TUI default).
@@ -57,47 +57,47 @@ object bleepLoggers {
         }
     }
 
-  private def baseStdout(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): LoggerResource[PrintStream] =
+  private def baseStdout(bleepConfig: model.BleepConfig, opts: LoggingOpts): LoggerResource[PrintStream] =
     Loggers
       .stdout(
         LogPatterns.interface(
           startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None,
-          noColor = commonOpts.noColor
+          noColor = opts.noColor
         ),
-        disableProgress = commonOpts.noBspProgress
+        disableProgress = opts.noBspProgress
       )
-      .map(l => if (commonOpts.debug) l else l.withMinLogLevel(LogLevel.info))
+      .map(l => if (opts.debug) l else l.withMinLogLevel(LogLevel.info))
 
   // we need to use stderr in some situations
   // 1) BSP where stdout is already used for BSP protocol
   // 2) auto-complete, when stdout is used to communicate completions
   // 3) early, right after boot if we haven't set up proper logging
 
-  def stderrWarn(commonOpts: CommonOpts): TypedLogger[PrintStream] =
-    if (commonOpts.logAsJson) Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)
+  def stderrWarn(opts: LoggingOpts): TypedLogger[PrintStream] =
+    if (opts.logAsJson) Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)
     else Loggers.decodeJsonStream(BLEEP_JSON_EVENT, Loggers.stderr(LogPatterns.logFile).withMinLogLevel(LogLevel.warn))
 
-  def stderrAll(commonOpts: CommonOpts): TypedLogger[PrintStream] =
-    if (commonOpts.logAsJson) Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)
+  def stderrAll(opts: LoggingOpts): TypedLogger[PrintStream] =
+    if (opts.logAsJson) Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)
     else Loggers.decodeJsonStream(BLEEP_JSON_EVENT, Loggers.stderr(LogPatterns.logFile))
 
   def stderrAndFileLogging(
       bleepConfig: model.BleepConfig,
-      commonOpts: CommonOpts,
+      opts: LoggingOpts,
       buildPaths: BuildPaths
   ): LoggerResource[(PrintStream, Option[BufferedWriter])] =
-    if (commonOpts.logAsJson) LoggerResource.pure(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)).maybeZipWith(None)
+    if (opts.logAsJson) LoggerResource.pure(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.err)).maybeZipWith(None)
     else {
       LoggerResource
         .pure(
           Loggers.stderr(
             LogPatterns.interface(
               startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None,
-              noColor = commonOpts.noColor
+              noColor = opts.noColor
             )
           )
         )
-        .map(l => if (commonOpts.debug) l else l.withMinLogLevel(LogLevel.info))
+        .map(l => if (opts.debug) l else l.withMinLogLevel(LogLevel.info))
         .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
         .map { logger =>
           // Install JUL bridge to capture java.util.logging to file

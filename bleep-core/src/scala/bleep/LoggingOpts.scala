@@ -13,17 +13,7 @@ case class LoggingOpts(
     debug: Boolean,
     noBspProgress: Boolean,
     logAsJson: Boolean
-) {
-  def toCommonOpts(preOpts: PreBootstrapOpts): CommonOpts =
-    CommonOpts(
-      noColor = noColor,
-      debug = debug,
-      directory = preOpts.directory,
-      dev = preOpts.dev,
-      noBspProgress = noBspProgress,
-      logAsJson = logAsJson
-    )
-}
+)
 
 object LoggingOpts {
   val defaultLogAsJson: Boolean = propsOrEnv(CallerProcessAcceptsJsonEvents).nonEmpty
