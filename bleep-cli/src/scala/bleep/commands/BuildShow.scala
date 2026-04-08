@@ -17,9 +17,9 @@ object BuildShow {
         case OutputMode.Json =>
           val configs = projects.toList.map { projectName =>
             val p = build.file.projects.value(projectName)
-            ProjectConfig(projectName.value, yaml.encodeShortened(p))
+            ProjectConfigOutput(projectName.value, yaml.encodeShortened(p))
           }
-          CommandResult.print(CommandResult.success(ProjectConfigs(configs)))
+          CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
       }
       Right(())
     }
@@ -38,9 +38,9 @@ object BuildShow {
           val configs = projects.toList.map { crossProjectName =>
             val p0 = started.build.explodedProjects(crossProjectName)
             val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
-            ProjectConfig(crossProjectName.value, yaml.encodeShortened(p))
+            ProjectConfigOutput(crossProjectName.value, yaml.encodeShortened(p))
           }
-          CommandResult.print(CommandResult.success(ProjectConfigs(configs)))
+          CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
       }
       Right(())
     }

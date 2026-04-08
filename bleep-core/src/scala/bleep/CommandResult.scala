@@ -43,14 +43,14 @@ object TestList {
   implicit val encoder: Encoder[TestList] = deriveEncoder
 }
 
-case class ProjectConfig(name: String, config: String)
-object ProjectConfig {
-  implicit val encoder: Encoder[ProjectConfig] = deriveEncoder
+case class ProjectConfigOutput(name: String, config: String)
+object ProjectConfigOutput {
+  implicit val encoder: Encoder[ProjectConfigOutput] = deriveEncoder
 }
 
-case class ProjectConfigs(projects: List[ProjectConfig])
-object ProjectConfigs {
-  implicit val encoder: Encoder[ProjectConfigs] = deriveEncoder
+case class ProjectConfigOutputs(projects: List[ProjectConfigOutput])
+object ProjectConfigOutputs {
+  implicit val encoder: Encoder[ProjectConfigOutputs] = deriveEncoder
 }
 
 case class ProjectEvictions(project: String, warnings: List[String])
