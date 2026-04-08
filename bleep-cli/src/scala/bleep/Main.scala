@@ -85,7 +85,7 @@ object Main {
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
-  def hasBuildOpts(started: Started): Opts[(LoggingOpts, BleepBuildCommand)] = {
+  def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
         .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
@@ -240,7 +240,7 @@ object Main {
 
     val updateSingleOrgOrModule = Opts.argument[String]("The dependency to update, alternatively only the organization name can be passed")
 
-    lazy val ret: Opts[(LoggingOpts, BleepBuildCommand)] = {
+    lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
         List[Opts[BleepBuildCommand]](
           Opts.subcommand("build", "rewrite build")(
@@ -631,7 +631,7 @@ object Main {
         }
       )
 
-      (loggingOpts, allCommands.flatten.foldK).tupled
+      loggingOpts *> allCommands.flatten.foldK
     }
 
     ret
@@ -1051,7 +1051,7 @@ object Main {
 
   /** Parse a build command with decline, create the real logger from LoggingOpts, replay stored bootstrap messages, then run. */
   private def runBuildCommand(
-      opts: Opts[(LoggingOpts, BleepBuildCommand)],
+      opts: Opts[BleepBuildCommand],
       restArgs: List[String],
       preOpts: PreBootstrapOpts,
       storingLogger: Logger,
@@ -1069,7 +1069,8 @@ object Main {
             System.err.println(help)
             ExitCode.Failure
         }
-      case Right((loggingOpts, cmd)) =>
+      case Right(cmd) =>
+        val loggingOpts = preOpts.toLoggingOpts
         // JSON output mode: route logging to stderr so stdout is clean JSON
         val jsonOutput = hasJsonOutput(restArgs)
         val loggerResource =
