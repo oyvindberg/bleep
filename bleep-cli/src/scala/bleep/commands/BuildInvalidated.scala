@@ -92,7 +92,7 @@ case class BuildInvalidated(
     outputMode match {
       case OutputMode.Json =>
         CommandResult.print(CommandResult.success(ProjectList(sorted.toList.map(_.value))))
-      case OutputMode.Text =>
+      case OutputMode.Text | OutputMode.Raw =>
         sorted.foreach(n => println(n.value))
     }
 
@@ -111,9 +111,10 @@ object BuildInvalidated {
 
   private val outputOpt: Opts[OutputMode] =
     Opts
-      .option[String]("output", "output format: text or json", "o")
+      .option[String]("output", "output format: text, json, or raw", "o")
       .map {
         case "json" => OutputMode.Json
+        case "raw"  => OutputMode.Raw
         case _      => OutputMode.Text
       }
 

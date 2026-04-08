@@ -26,6 +26,8 @@ case class ConfigAuthList(logger: Logger, userPaths: UserPaths, outputMode: Outp
           else entries.foreach(e => logger.info(s"  ${e.uri} (${e.kind})"))
         case OutputMode.Json =>
           CommandResult.print(CommandResult.success(AuthList(entries)))
+        case OutputMode.Raw =>
+          entries.foreach(e => println(s"${e.uri}\t${e.kind}"))
       }
     }
 }

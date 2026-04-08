@@ -20,6 +20,12 @@ object BuildShow {
             ProjectConfigOutput(projectName.value, yaml.encodeShortened(p))
           }
           CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
+        case OutputMode.Raw =>
+          projects.toList.foreach { projectName =>
+            val p = build.file.projects.value(projectName)
+            println(projectName.value)
+            println(yaml.encodeShortened(p))
+          }
       }
       Right(())
     }
@@ -41,6 +47,13 @@ object BuildShow {
             ProjectConfigOutput(crossProjectName.value, yaml.encodeShortened(p))
           }
           CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
+        case OutputMode.Raw =>
+          projects.foreach { crossProjectName =>
+            val p0 = started.build.explodedProjects(crossProjectName)
+            val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
+            println(crossProjectName.value)
+            println(yaml.encodeShortened(p))
+          }
       }
       Right(())
     }

@@ -49,6 +49,19 @@ case class BuildDiff(opts: BuildDiff.Options, projects: Array[model.CrossProject
             else Some(ProjectDiff(projectName.value, removed, added))
           }
           CommandResult.print(CommandResult.success(DiffReport(diffs)))
+        case OutputMode.Raw =>
+          filteredAllProjectNames.foreach { projectName =>
+            val old = oldProjects.getOrElse(projectName, model.Project.empty)
+            val new_ = newProjects.getOrElse(projectName, model.Project.empty)
+            val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(yaml.encodeShortened(_))
+            val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(yaml.encodeShortened(_))
+            (maybeRemoved, maybeAdded) match {
+              case (None, None)                 => ()
+              case (Some(removed), None)        => println(s"Project ${projectName.value}: \n-$removed")
+              case (None, Some(added))          => println(s"Project ${projectName.value}: \n+$added")
+              case (Some(removed), Some(added)) => println(s"Project ${projectName.value}: \n-$removed+$added")
+            }
+          }
       }
       ()
     }

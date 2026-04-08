@@ -54,10 +54,11 @@ object Main {
   /** Output mode for request/response commands. Defaults to text. */
   val outputMode: Opts[OutputMode] =
     Opts
-      .option[String]("output", "output format: text or json", "o")
+      .option[String]("output", "output format: text, json, or raw", "o")
       .withDefault("text")
       .map {
         case "json" => OutputMode.Json
+        case "raw"  => OutputMode.Raw
         case _      => OutputMode.Text
       }
 
@@ -452,6 +453,7 @@ object Main {
                   mode match {
                     case OutputMode.Text => sorted.foreach(started.logger.info(_))
                     case OutputMode.Json => CommandResult.print(CommandResult.success(ProjectList(sorted)))
+                    case OutputMode.Raw  => sorted.foreach(println)
                   }
                   Right(())
                 }
@@ -466,6 +468,7 @@ object Main {
                   mode match {
                     case OutputMode.Text => sorted.foreach(started.logger.info(_))
                     case OutputMode.Json => CommandResult.print(CommandResult.success(ProjectList(sorted)))
+                    case OutputMode.Raw  => sorted.foreach(println)
                   }
                   Right(())
                 }
@@ -642,6 +645,9 @@ object Main {
                 Right(())
               case OutputMode.Json =>
                 CommandResult.print(CommandResult.success(ConfigLocation(userPaths.configYaml.toString)))
+                Right(())
+              case OutputMode.Raw =>
+                println(userPaths.configYaml)
                 Right(())
             }
           }
@@ -1062,23 +1068,23 @@ object Main {
         }
       case Right(cmd) =>
         val loggingOpts = preOpts.toLoggingOpts
-        // JSON output mode: route logging to stderr so stdout is clean JSON
-        val jsonOutput = hasJsonOutput(restArgs)
+        // Machine-readable output (json/raw): route logging to stderr so stdout is clean
+        val machineOutput = hasMachineOutput(restArgs)
         val loggerResource =
-          if (jsonOutput) bleepLoggers.stderrAndFileLogging(config, loggingOpts, buildPaths)
+          if (machineOutput) bleepLoggers.stderrAndFileLogging(config, loggingOpts, buildPaths)
           else bleepLoggers.stdoutAndFileLogging(config, loggingOpts, buildPaths)
         loggerResource.use { logger =>
           replayStoredMessages(storingLogger, logger)
           val startedWithLogger = started.withLogger(logger)
           Try(cmd.run(startedWithLogger)) match {
-            case Failure(th: BleepException) if jsonOutput =>
+            case Failure(th: BleepException) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
               ExitCode.Failure
-            case Failure(th) if jsonOutput =>
+            case Failure(th) if machineOutput =>
               CommandResult.print(CommandResult.Failure(th.getMessage))
               ExitCode.Failure
-            case Failure(th)                     => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
-            case Success(Left(th)) if jsonOutput =>
+            case Failure(th)                        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Success(Left(th)) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
               ExitCode.Failure
             case Success(Left(th))  => fatal("command failed", logger, th)
@@ -1087,14 +1093,14 @@ object Main {
         }
     }
 
-  /** Check if restArgs contain -o json or --output json or --output=json or --json (for stderr routing). */
-  private def hasJsonOutput(restArgs: List[String]): Boolean =
+  /** Check if restArgs request machine-readable output (json or raw) — logs should go to stderr. */
+  private def hasMachineOutput(restArgs: List[String]): Boolean =
     restArgs.exists {
-      case "--json" | "--output=json" | "-ojson" => true
-      case _                                     => false
+      case "--json" | "--output=json" | "-ojson" | "--output=raw" | "-oraw" => true
+      case _                                                                => false
     } || restArgs.sliding(2).exists {
-      case List("-o" | "--output", "json") => true
-      case _                               => false
+      case List("-o" | "--output", "json" | "raw") => true
+      case _                                       => false
     }
 
   /** Replay messages buffered by a StoringLogger to a real logger. */

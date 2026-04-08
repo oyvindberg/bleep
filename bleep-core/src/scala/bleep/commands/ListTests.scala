@@ -24,6 +24,11 @@ case class ListTests(projects: Array[model.CrossProjectName], outputMode: Output
             ProjectTests(pn.value, tuples.map(_._2))
           }
           CommandResult.print(CommandResult.success(TestList(grouped)))
+        case OutputMode.Raw =>
+          all.toList.groupBy { case (pn, _) => pn.name }.foreach { case (pn, tuples) =>
+            println(s"${pn.value}:")
+            tuples.foreach { case (_, cls) => println(s"  $cls") }
+          }
       }
 
       Right(())

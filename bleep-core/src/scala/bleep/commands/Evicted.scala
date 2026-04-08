@@ -33,6 +33,11 @@ case class Evicted(projectNames: Array[model.CrossProjectName], outputMode: Outp
             case OutputMode.Text =>
               lines.foreach(started.logger.withPath(s"project ${projectName.value}").warn(_))
             case OutputMode.Json => ()
+            case OutputMode.Raw  =>
+              if (lines.nonEmpty) {
+                println(projectName.value)
+                lines.foreach(l => println(s"  $l"))
+              }
           }
           ProjectEvictions(projectName.value, lines)
         }
@@ -40,8 +45,8 @@ case class Evicted(projectNames: Array[model.CrossProjectName], outputMode: Outp
       }
       .map { evictions =>
         outputMode match {
-          case OutputMode.Text => ()
-          case OutputMode.Json =>
+          case OutputMode.Text | OutputMode.Raw => ()
+          case OutputMode.Json                  =>
             CommandResult.print(CommandResult.success(EvictionReport(evictions)))
         }
       }
