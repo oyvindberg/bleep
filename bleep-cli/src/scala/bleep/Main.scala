@@ -61,17 +61,8 @@ object Main {
         case _      => OutputMode.Text
       }
 
-  /** Logging opts parsed by decline (not manually pre-parsed). Used in the build command path. */
-  val loggingOpts: Opts[LoggingOpts] =
-    (
-      Opts.flag("no-color", "enable CI-friendly output").orFalse,
-      Opts.flag("debug", "enable more output").orFalse,
-      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
-      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse.map(_ || LoggingOpts.defaultLogAsJson)
-    ).mapN(LoggingOpts.apply)
-
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
-    loggingOpts *> List(
+    List(
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, userPaths, buildPaths, logger),
       importMavenCmd(buildPaths, logger),
@@ -631,7 +622,7 @@ object Main {
         }
       )
 
-      loggingOpts *> allCommands.flatten.foldK
+      allCommands.flatten.foldK
     }
 
     ret

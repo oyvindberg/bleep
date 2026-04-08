@@ -3,8 +3,8 @@ package bleep
 import bleep.internal.bleepLoggers.CallerProcessAcceptsJsonEvents
 import bleep.internal.propsOrEnv
 
-/** Pre-bootstrap argument parser. Extracts all flags from args but only strips `--directory`/`-d` and `--dev` from the passthrough (those must be consumed
-  * before decline runs). Logging flags (--no-color, --debug, etc.) are recorded here AND left in the passthrough for decline to parse via LoggingOpts.
+/** Pre-bootstrap argument parser. Strips all known flags from the passthrough and records their values. The remaining args are passed to decline for subcommand
+  * parsing. Logging flags are consumed here (via `toLoggingOpts`) and NOT forwarded to decline.
   */
 case class PreBootstrapOpts(
     noColor: Boolean,
@@ -40,11 +40,11 @@ object PreBootstrapOpts {
         case "-d" | "--directory" if args.isDefinedAt(idx + 1) =>
           directory = Some(args(idx + 1))
           idx += 1
-        // These are recorded but NOT stripped (decline also parses them via loggingOpts)
-        case "--no-color"        => noColor = true; keepArgs += args(idx)
-        case "--debug"           => debug = true; keepArgs += args(idx)
-        case "--no-bsp-progress" => noBspProgress = true; keepArgs += args(idx)
-        case "--log-as-json"     => logAsJson = true; keepArgs += args(idx)
+        // These are stripped from passthrough (consumed here, not by decline)
+        case "--no-color"        => noColor = true
+        case "--debug"           => debug = true
+        case "--no-bsp-progress" => noBspProgress = true
+        case "--log-as-json"     => logAsJson = true
         case "--"                =>
           keepArgs ++= args.drop(idx)
           idx = Int.MaxValue - 1
