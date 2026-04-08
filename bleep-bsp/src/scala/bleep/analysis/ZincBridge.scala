@@ -688,7 +688,7 @@ object ZincBridge {
     val scalaInstance = getScalaInstance(language.scalaVersion)
     val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken, progressListener)
     val logger = new BleepLogger(diagnosticListener)
-    val reporter = new BleepReporter(diagnosticListener)
+    val reporter = new BleepReporter(diagnosticListener, config.buildDir)
 
     val previousResult = loadPreviousResult(analysisFile)
     val hasPrevAnalysis = previousResult.analysis().isPresent
@@ -806,7 +806,7 @@ object ZincBridge {
       success
     } catch {
       case e: xsbti.CompileFailed =>
-        ProjectCompileFailure(e.problems.toList.map(problemToError))
+        ProjectCompileFailure(e.problems.toList.map(p => problemToError(p, config.buildDir)))
       case e: IllegalArgumentException if e.getMessage == "requirement failed" =>
         // Corrupt analysis — wipe and signal clean rebuild needed
         System.err.println(s"[ZincBridge] ${config.name}: corrupt analysis detected (${e.getMessage}), deleting for clean rebuild")
@@ -1379,7 +1379,7 @@ object ZincBridge {
     }
   }
 
-  private def problemToError(problem: Problem): CompilerError = {
+  private def problemToError(problem: Problem, buildDir: Path): CompilerError = {
     val pos = problem.position()
     val severity = problem.severity() match {
       case xsbti.Severity.Error => CompilerError.Severity.Error
@@ -1387,7 +1387,11 @@ object ZincBridge {
       case xsbti.Severity.Info  => CompilerError.Severity.Info
     }
     CompilerError(
-      path = pos.sourcePath().toScala.map(Path.of(_)),
+      path = pos.sourcePath().toScala.map { sp =>
+        val p = Path.of(sp)
+        if (PortableAnalysisMappers.isMarkerPrefixed(sp)) PortableAnalysisMappers.absolutizePath(p, buildDir)
+        else p
+      },
       line = pos.line().toScala.map(_.intValue).getOrElse(0),
       column = pos.pointer().toScala.map(_.intValue).getOrElse(0),
       message = problem.message(),
@@ -1408,7 +1412,7 @@ object ZincBridge {
   }
 
   /** Reporter that forwards problems to DiagnosticListener */
-  private class BleepReporter(listener: DiagnosticListener) extends Reporter {
+  private class BleepReporter(listener: DiagnosticListener, buildDir: Path) extends Reporter {
     private var problemList = List.empty[Problem]
 
     def reset(): Unit = problemList = Nil
@@ -1419,7 +1423,7 @@ object ZincBridge {
 
     def log(problem: Problem): Unit = {
       problemList = problemList :+ problem
-      val error = problemToError(problem)
+      val error = problemToError(problem, buildDir)
       listener.onDiagnostic(error)
     }
 
@@ -1953,7 +1957,7 @@ private[analysis] object PortableAnalysisMappers {
   }
 
   /** Absolutize a marker-prefixed path to a local absolute path. Non-marker paths returned as-is. */
-  private def absolutizePath(p: Path, buildDir: Path): Path = {
+  private[analysis] def absolutizePath(p: Path, buildDir: Path): Path = {
     val str = p.toString.replace('\\', '/')
     if (str.startsWith(s"$BaseMarker/")) buildDir.resolve(str.stripPrefix(s"$BaseMarker/"))
     else if (str == BaseMarker) buildDir
