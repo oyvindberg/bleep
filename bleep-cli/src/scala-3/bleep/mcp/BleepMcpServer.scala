@@ -1479,8 +1479,10 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           df += "status" -> Json.fromString(e.status.wireValue)
           e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
           e.throwable.foreach { t =>
-            if (includeThrowables) df += "throwable" -> Json.fromString(stripAnsi(t))
-            else df += "throwable" -> Json.fromString("present. Use bleep.status for full stack trace")
+            if (includeThrowables) {
+              val collapsed = bleep.testing.StackTraceCycles.collapse(stripAnsi(t)).mkString("\n")
+              df += "throwable" -> Json.fromString(collapsed)
+            } else df += "throwable" -> Json.fromString("present. Use bleep.status for full stack trace")
           }
           Json.obj(df.result()*)
         }

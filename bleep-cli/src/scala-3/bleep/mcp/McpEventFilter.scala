@@ -55,7 +55,10 @@ object McpEventFilter {
         fields += "status" -> e.status.asJson
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         e.message.foreach(m => fields += "message" -> Json.fromString(m))
-        e.throwable.foreach(t => fields += "throwable" -> Json.fromString(t))
+        e.throwable.foreach { t =>
+          val collapsed = bleep.testing.StackTraceCycles.collapse(t).mkString("\n")
+          fields += "throwable" -> Json.fromString(collapsed)
+        }
         Some(Json.obj(fields.result()*))
 
       case e: E.SuiteFinished =>
