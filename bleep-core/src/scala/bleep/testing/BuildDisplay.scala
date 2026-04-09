@@ -275,16 +275,11 @@ object BuildSummary {
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              val stackLines = stack.split("\n").length
-              if (stackLines > 20)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             if (failure.output.nonEmpty) {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.take(30).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              if (failure.output.size > 30)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${failure.output.size - 30} more lines"
+              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             lines += ""
           }
@@ -301,10 +296,7 @@ object BuildSummary {
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              val stackLines = stack.split("\n").length
-              if (stackLines > 20)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             lines += ""
           }
@@ -334,16 +326,11 @@ object BuildSummary {
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              val stackLines = stack.split("\n").length
-              if (stackLines > 20)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             if (failure.output.nonEmpty) {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.take(30).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              if (failure.output.size > 30)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${failure.output.size - 30} more lines"
+              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             lines += ""
           }
@@ -360,10 +347,7 @@ object BuildSummary {
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-              val stackLines = stack.split("\n").length
-              if (stackLines > 20)
-                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
             lines += ""
           }
