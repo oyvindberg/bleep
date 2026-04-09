@@ -42,7 +42,6 @@ object Main {
     val projectNameExact = "project name exact"
     val projectName = "project name"
     val projectNameNoCross = "project name (not cross id)"
-    val testProjectName = "test project name"
     val hasSourceGenProject = "project name (with sourcegen)"
     val platformName = "platform name"
     val scalaVersion = "scala version"
@@ -106,12 +105,16 @@ object Main {
         .map(_.toList)
         .orNone
 
+    /** Accepts all project names. When none given, defaults to test projects only. Non-test projects will just be compiled. */
     val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(started.globs.testProjectNameMap)))
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
-        .map(started.chosenTestProjects)
+        .map {
+          case Some(explicit) => explicit
+          case None           => started.chosenTestProjects(None)
+        }
 
     val only: Opts[Option[NonEmptyList[String]]] =
       Opts
@@ -964,7 +967,6 @@ object Main {
                 case metavars.projectNameExact    => started.globs.exactProjectMap.keys.toList
                 case metavars.projectNameNoCross  => started.globs.projectNamesNoCrossMap.keys.toList
                 case metavars.projectName         => started.globs.projectNameMap.keys.toList
-                case metavars.testProjectName     => started.globs.testProjectNameMap.keys.toList
                 case metavars.projectOrScriptName => started.globs.exactProjectMap.keys.toList ++ started.build.scripts.keys.map(_.value)
                 case _                            => Nil
               })
