@@ -4,27 +4,57 @@ package commands
 import cats.data.NonEmptyList
 
 object BuildShow {
-  case class Short(projects: NonEmptyList[model.ProjectName]) extends BleepBuildCommand {
+  case class Short(projects: NonEmptyList[model.ProjectName], outputMode: OutputMode) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       val build = started.build.requireFileBacked("command build show short")
-      projects.toList.foreach { projectName =>
-        val p = build.file.projects.value(projectName)
-        println(fansi.Color.Red(projectName.value))
-        println(yaml.encodeShortened(p))
+      outputMode match {
+        case OutputMode.Text =>
+          projects.toList.foreach { projectName =>
+            val p = build.file.projects.value(projectName)
+            println(fansi.Color.Red(projectName.value))
+            println(yaml.encodeShortened(p))
+          }
+        case OutputMode.Json =>
+          val configs = projects.toList.map { projectName =>
+            val p = build.file.projects.value(projectName)
+            ProjectConfigOutput(projectName.value, yaml.encodeShortened(p))
+          }
+          CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
+        case OutputMode.Raw =>
+          projects.toList.foreach { projectName =>
+            val p = build.file.projects.value(projectName)
+            println(projectName.value)
+            println(yaml.encodeShortened(p))
+          }
       }
-
       Right(())
     }
   }
-  case class Effective(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+  case class Effective(projects: Array[model.CrossProjectName], outputMode: OutputMode) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
-      projects.foreach { crossProjectName =>
-        val p0 = started.build.explodedProjects(crossProjectName)
-        val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
-        println(fansi.Color.Red(crossProjectName.value))
-        println(yaml.encodeShortened(p))
+      outputMode match {
+        case OutputMode.Text =>
+          projects.foreach { crossProjectName =>
+            val p0 = started.build.explodedProjects(crossProjectName)
+            val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
+            println(fansi.Color.Red(crossProjectName.value))
+            println(yaml.encodeShortened(p))
+          }
+        case OutputMode.Json =>
+          val configs = projects.toList.map { crossProjectName =>
+            val p0 = started.build.explodedProjects(crossProjectName)
+            val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
+            ProjectConfigOutput(crossProjectName.value, yaml.encodeShortened(p))
+          }
+          CommandResult.print(CommandResult.success(ProjectConfigOutputs(configs)))
+        case OutputMode.Raw =>
+          projects.foreach { crossProjectName =>
+            val p0 = started.build.explodedProjects(crossProjectName)
+            val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
+            println(crossProjectName.value)
+            println(yaml.encodeShortened(p))
+          }
       }
-
       Right(())
     }
   }

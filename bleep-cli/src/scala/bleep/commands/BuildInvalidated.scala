@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
 
 case class BuildInvalidated(
     base: String,
-    json: Boolean
+    outputMode: OutputMode
 ) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val buildDir = started.buildPaths.buildDir
@@ -89,11 +89,11 @@ case class BuildInvalidated(
 
     // Step 5: Output
     val sorted = SortedSet.empty[model.CrossProjectName] ++ allInvalidated
-    if (json) {
-      val jsonArray = sorted.map(n => s""""${n.value}"""").mkString("[", ",", "]")
-      println(jsonArray)
-    } else {
-      sorted.foreach(n => println(n.value))
+    outputMode match {
+      case OutputMode.Json =>
+        CommandResult.print(CommandResult.success(ProjectList(sorted.toList.map(_.value))))
+      case OutputMode.Text | OutputMode.Raw =>
+        sorted.foreach(n => println(n.value))
     }
 
     Right(())
@@ -107,10 +107,21 @@ object BuildInvalidated {
     "b"
   )
 
-  val json: Opts[Boolean] = Opts.flag("json", "output as JSON array").orFalse
+  private val jsonFlag: Opts[OutputMode] = Opts.flag("json", "output as JSON (alias for --output json)").map(_ => OutputMode.Json)
+
+  private val outputOpt: Opts[OutputMode] =
+    Opts
+      .option[String]("output", "output format: text, json, or raw", "o")
+      .map {
+        case "json" => OutputMode.Json
+        case "raw"  => OutputMode.Raw
+        case _      => OutputMode.Text
+      }
+
+  val outputMode: Opts[OutputMode] = jsonFlag.orElse(outputOpt).withDefault(OutputMode.Text)
 
   val opts: Opts[BuildInvalidated] =
-    (base, json).mapN(BuildInvalidated.apply)
+    (base, outputMode).mapN(BuildInvalidated.apply)
 
   def computeReverseDeps(
       build: model.Build

@@ -14,10 +14,10 @@ abstract class BleepCodegenScript(val scriptName: String) {
   case class Target(project: model.CrossProjectName, sources: Path, resources: Path)
 
   def main(args: Array[String]): Unit = {
-    val (commonOpts, restArgs) = CommonOpts.parse(args.toList)
+    val (preOpts, restArgs) = PreBootstrapOpts.parse(args.toList)
     val (codegenOpts, restArgs2) = CodegenOpts.parse(restArgs)
 
-    bootstrap.forScript(scriptName, commonOpts, rewrites) { (started, commands) =>
+    bootstrap.forScript(scriptName, preOpts.toLoggingOpts, rewrites) { (started, commands) =>
       val dotBleepDir = started.buildPaths.dotBleepDir
 
       // Compute real and temp targets for each project

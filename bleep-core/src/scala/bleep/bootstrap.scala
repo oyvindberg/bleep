@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
-  def forScript(scriptName: String, commonOpts: CommonOpts, rewrites: List[BuildRewrite] = Nil)(f: (Started, Commands) => Unit): Unit = {
+  def forScript(scriptName: String, loggingOpts: LoggingOpts, rewrites: List[BuildRewrite] = Nil)(f: (Started, Commands) => Unit): Unit = {
     val userPaths = UserPaths.fromAppDirs
     val bleepConfig = BleepConfigOps.loadOrDefault(userPaths).orThrow
     val buildLoader = BuildLoader.find(FileUtils.cwd)
@@ -15,7 +15,7 @@ object bootstrap {
     val buildPaths = BuildPaths(FileUtils.cwd, buildLoader, buildVariant)
 
     val exitCode: ExitCode =
-      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).use { logger =>
+      bleepLoggers.stdoutNoLogFile(bleepConfig, loggingOpts).map(l => l.withPath(s"[script $scriptName]")).use { logger =>
         val ec = ExecutionContext.global
         val maybeStarted = for {
           existingBuild <- buildLoader.existing
