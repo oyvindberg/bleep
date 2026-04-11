@@ -25,6 +25,11 @@ const sidebars = {
             items: [
                 {
                     type: "doc",
+                    label: "Scripts",
+                    id: "usage/scripts",
+                },
+                {
+                    type: "doc",
                     label: "More stable builds",
                     id: "usage/stable-builds",
                 },
@@ -56,6 +61,10 @@ const sidebars = {
                     type: "doc",
                     label: "Build rewrites",
                     id: "usage/build-rewrites",
+                }, {
+                    type: "doc",
+                    label: "Source generation",
+                    id: "usage/sourcegen",
                 }, {
                     type: "doc",
                     label: "CI project invalidation",

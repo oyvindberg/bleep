@@ -1,74 +1,15 @@
 # But my build does much more!
 
-Yes, your build does other things.
+Yes, your build does other things. It generates code, publishes artifacts, builds websites, runs linters, spins up integration tests. Probably a lot more.
 
-It generates code, it distributes artifacts, it builds websites. Probably a lot more
+None of this has to live inside the build tool itself.
 
-But none of this has to be in the build itself!
+Bleep handles everything beyond `compile` / `test` / `run` with **scripts** — ordinary Scala programs that you write, debug, and run like any other. There is no DSL, no task graph, no macro magic, no plugin classloader — just code.
 
-### Introducing `scripts`
+There are two flavours:
 
-To take care of all these other tasks, Bleep introduces `scripts`.
-Defined in your build file as the `scripts` in a `package.json`,
-this mechanism allows you to run any class with a `main` method.
-```yaml
-projects:
-  myscripts:
-    dependencies:
-      - build.bleep::bleep-plugin-mdoc:${BLEEP_VERSION}
-    scala:
-      version: 3.2.0
-scripts:
-  generate-docs: myscripts/bleep.scripts.GenDocumentation
-```
-   
-### Running a script
-You can run the script like this, it can be tab-completed to save some keystrokes
-```sh
-$ bleep generate-docs
-```
+- **[Scripts](/docs/usage/scripts)** — a `main` method wired into the build. Runs with `bleep <script-name>`, has access to the build model, can invoke other bleep commands. Use this for publishing, docs generation, custom CI logic, and anything else that isn't compile/test/run.
 
+- **[Source generation](/docs/usage/sourcegen)** — a script that produces `.scala` / `.java` / resource files consumed by another project. Runs automatically before compilation, with proper invalidation and atomic failure handling. Use this for version strings, protobuf-generated code, OpenAPI clients, and anything else you'd have put in sbt's `sourceGenerators`.
 
-### Complete freedom:
-
-It might already be clear to you, but anyway:
-
-- you can start this program from bleep (`bleep generate-docs`), from your IDE, from anywhere
-- you can debug it like a normal program
-- you have all the structured info from the build, without having to express code in your build
-- you can include any dependencies you want, from any scala version. No class loader issues.
-- you can even write your scripts for any platform
-- Most interesting sbt plugins can be ported to Bleep quite easily! Bleep comes with some plugins already ported.
-
-### An example script
-
-This script uses `mdoc` and `docusaurus` plugins. Look how it composes the plugins, and how it parses command line arguments to determine which method (which used to be sbt task) to call.
-Also note that it refers to `scriptsProject`, compiles it, gives it to `mdoc` in order for it to compile snippets with classpath for that project.
-
-import GenNativeImage from '!!raw-loader!@site/../scripts/src/scala/bleep/scripts/GenDocumentation.scala';
-import CodeBlock from '@theme/CodeBlock';
-
-<CodeBlock language="scala" >{GenNativeImage}</CodeBlock>
-
-#### Composing plugins
-You can pass an instance of a plugin to another plugin. It's super clear and just normal code. This is what it looks like at use-site
-
-```scala
-val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
-val pgp = new PgpPlugin(
-  logger = started.logger,
-  maybeCredentials = None,
-  interactionService = InteractionService.DoesNotMaskYourPasswordExclamationOneOne
-)
-val sonatype = new Sonatype(
-  logger = started.logger,
-  sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
-  sonatypeProfileName = "build.bleep",
-  bundleName = "bleep",
-  version = dynVer.version,
-  sonatypeCredentialHost = Sonatype.sonatype01
-)
-val ciRelease = new CiReleasePlugin(started.logger, sonatype, dynVer, pgp)
-
-ciRelease.ciRelease(...)
-```
+The common thread: **it's all just code.** You can run it from your IDE, debug it with breakpoints, use any dependency from any Scala version, and reason about it the same way you reason about the rest of your codebase.
