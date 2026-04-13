@@ -271,7 +271,7 @@ jobs:
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
           bash .github/prepare-release.sh
       - name: Upload-to-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: "${{ steps.get_version.outputs.version-without-v }}"
           prerelease: false
