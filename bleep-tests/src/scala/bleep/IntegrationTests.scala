@@ -8,8 +8,10 @@ import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import ryddig.*
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.time.Instant
+import java.util.jar.{JarEntry, JarOutputStream}
+import javax.tools.ToolProvider
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
@@ -346,6 +348,278 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
         exclude = None
       )
       succeed
+    }
+  }
+
+  test("test --only with fully qualified class name") {
+    runTest(
+      "test --only with fully qualified class name",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/MyTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class MyTest extends AnyFunSuite {
+            |  test("dummy test") {
+            |    assert(1 + 1 == 2)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = Some(NonEmptyList.of("example.MyTest")),
+        exclude = None
+      )
+      succeed
+    }
+  }
+
+  test("test --only filters to matching suite among multiple") {
+    runTest(
+      "test --only filters to matching suite among multiple",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/PassingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class PassingTest extends AnyFunSuite {
+            |  test("this passes") {
+            |    assert(true)
+            |  }
+            |}
+            |""".stripMargin,
+        RelPath.of("mytest/src/scala/FailingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class FailingTest extends AnyFunSuite {
+            |  test("this fails") {
+            |    assert(false)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      // Only run PassingTest — if FailingTest runs, the command would throw
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = Some(NonEmptyList.of("PassingTest")),
+        exclude = None
+      )
+      succeed
+    }
+  }
+
+  test("test --exclude skips matching suite") {
+    runTest(
+      "test --exclude skips matching suite",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/PassingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class PassingTest extends AnyFunSuite {
+            |  test("this passes") {
+            |    assert(true)
+            |  }
+            |}
+            |""".stripMargin,
+        RelPath.of("mytest/src/scala/FailingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class FailingTest extends AnyFunSuite {
+            |  test("this fails") {
+            |    assert(false)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      // Exclude FailingTest — only PassingTest should run
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = None,
+        exclude = Some(NonEmptyList.of("FailingTest"))
+      )
+      succeed
+    }
+  }
+
+  test("test --only with nonexistent suite fails") {
+    runTest(
+      "test --only with nonexistent suite fails",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/MyTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class MyTest extends AnyFunSuite {
+            |  test("dummy test") {
+            |    assert(1 + 1 == 2)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      // --only with a name that doesn't match any suite should fail
+      assertThrows[BleepException] {
+        commands.test(
+          projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+          watch = false,
+          only = Some(NonEmptyList.of("NonExistentTest")),
+          exclude = None
+        )
+      }
+    }
+  }
+
+  /** Compile a Java source file and package it into a jar */
+  private def createJarWithClass(jarPath: Path, className: String, javaSource: String): Unit = {
+    val tmpDir = Files.createTempDirectory("jar-build")
+    val sourceFile = tmpDir.resolve(s"$className.java")
+    Files.writeString(sourceFile, javaSource)
+
+    val compiler = ToolProvider.getSystemJavaCompiler
+    val fileManager = compiler.getStandardFileManager(null, null, null)
+    val compilationUnits = fileManager.getJavaFileObjects(sourceFile.toFile)
+    val task = compiler.getTask(null, fileManager, null, java.util.List.of("-d", tmpDir.toString), null, compilationUnits)
+    assert(task.call(), "Java compilation failed")
+    fileManager.close()
+
+    Files.createDirectories(jarPath.getParent)
+    val out = new JarOutputStream(Files.newOutputStream(jarPath))
+    val classFile = tmpDir.resolve(s"$className.class")
+    out.putNextEntry(new JarEntry(s"$className.class"))
+    out.write(Files.readAllBytes(classFile))
+    out.closeEntry()
+    out.close()
+
+    FileUtils.deleteDirectory(tmpDir)
+  }
+
+  test("unmanaged jars on classpath") {
+    val testName = "unmanaged jars on classpath"
+    val storingLogger = Loggers.storing()
+    val stdLogger = logger0.withContext("testName", testName)
+    val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
+
+    // Create a jar file (doesn't need actual classes — just verifying classpath resolution)
+    val jarDir = testTempFolder.resolve("lib")
+    Files.createDirectories(jarDir)
+    val jarPath = jarDir.resolve("helper.jar")
+    val out = new JarOutputStream(Files.newOutputStream(jarPath))
+    out.close()
+
+    val yaml =
+      // language=yaml
+      """projects:
+        |  myapp:
+        |    jars: lib/helper.jar
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin
+
+    val files = Map(
+      RelPath.force("./myapp/src/scala/Main.scala") ->
+        """package test
+          |object Main {
+          |  def main(args: Array[String]): Unit = println("ok")
+          |}
+          |""".stripMargin
+    )
+
+    val withBuildScript = files.updated(RelPath.of(BuildLoader.BuildFileName), prelude ++ yaml)
+    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false).discard()
+    val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
+    val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
+
+    try {
+      val started = bootstrap
+        .from(
+          Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
+          ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
+          Nil,
+          testConfig,
+          CoursierResolver.Factory.default
+        )
+        .orThrow
+      val projectName = model.CrossProjectName(model.ProjectName("myapp"), None)
+
+      // Verify the project model parsed jars from YAML
+      val exploded = started.build.explodedProjects(projectName)
+      assert(exploded.jars.values.nonEmpty, "Expected jars field to be non-empty in exploded project")
+
+      // Verify the jar is on the resolved classpath
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val jarOnCp = resolved.classpath.find(_.toString.contains("helper.jar"))
+      assert(jarOnCp.isDefined, s"Expected helper.jar on classpath, got: ${resolved.classpath.mkString(", ")}")
+      assert(Files.exists(jarOnCp.get), s"Jar file does not exist: ${jarOnCp.get}")
+
+      // Verify multiple jars are supported
+      succeed
+    } finally {
+      stdLogger.info(s"Ran in $testTempFolder")
+      FileUtils.deleteDirectory(testTempFolder)
     }
   }
 

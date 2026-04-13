@@ -502,6 +502,20 @@
             }
           ]
         },
+        "jars": {
+          "description": "Unmanaged jar files to add to the classpath. Paths are relative to the build root directory.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
         "java": {
           "$ref": "#/$defs/Java"
         },

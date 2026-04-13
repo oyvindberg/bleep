@@ -270,9 +270,12 @@ object ResolveProjects {
       ResolvedProject.Resolution(modules)
     }
 
+    val unmanagedJars: List[Path] =
+      explodedProject.jars.values.map(rp => pre.buildPaths.buildDir.resolve(rp.toString)).toList
+
     val classPath: model.JsonSet[Path] =
       model.JsonSet.fromIterable(
-        allTransitiveResolved.values.flatMap(x => x.classesDir :: x.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars
+        allTransitiveResolved.values.flatMap(x => x.classesDir :: x.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars ++ unmanagedJars
       )
 
     val annotationProcessingGenSourcesDir = explodedJava.flatMap(_.annotationProcessing) match {
