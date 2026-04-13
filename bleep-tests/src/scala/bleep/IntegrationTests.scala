@@ -425,6 +425,183 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
     }
   }
 
+  test("test --only with fully qualified class name") {
+    runTest(
+      "test --only with fully qualified class name",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/MyTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class MyTest extends AnyFunSuite {
+            |  test("dummy test") {
+            |    assert(1 + 1 == 2)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = Some(NonEmptyList.of("example.MyTest")),
+        exclude = None
+      )
+      succeed
+    }
+  }
+
+  test("test --only filters to matching suite among multiple") {
+    runTest(
+      "test --only filters to matching suite among multiple",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/PassingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class PassingTest extends AnyFunSuite {
+            |  test("this passes") {
+            |    assert(true)
+            |  }
+            |}
+            |""".stripMargin,
+        RelPath.of("mytest/src/scala/FailingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class FailingTest extends AnyFunSuite {
+            |  test("this fails") {
+            |    assert(false)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = Some(NonEmptyList.of("PassingTest")),
+        exclude = None
+      )
+      succeed
+    }
+  }
+
+  test("test --exclude skips matching suite") {
+    runTest(
+      "test --exclude skips matching suite",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/PassingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class PassingTest extends AnyFunSuite {
+            |  test("this passes") {
+            |    assert(true)
+            |  }
+            |}
+            |""".stripMargin,
+        RelPath.of("mytest/src/scala/FailingTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class FailingTest extends AnyFunSuite {
+            |  test("this fails") {
+            |    assert(false)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        only = None,
+        exclude = Some(NonEmptyList.of("FailingTest"))
+      )
+      succeed
+    }
+  }
+
+  test("test --only with nonexistent suite fails") {
+    runTest(
+      "test --only with nonexistent suite fails",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/MyTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class MyTest extends AnyFunSuite {
+            |  test("dummy test") {
+            |    assert(1 + 1 == 2)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      assertThrows[BleepException] {
+        commands.test(
+          projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+          watch = false,
+          only = Some(NonEmptyList.of("NonExistentTest")),
+          exclude = None
+        )
+      }
+    }
+  }
+
   test("kotlin compilation") {
     runTest(
       "kotlin compilation",
