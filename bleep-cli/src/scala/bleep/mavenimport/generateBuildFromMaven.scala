@@ -72,6 +72,7 @@ object generateBuildFromMaven {
         sources = model.JsonSet.empty,
         resources = model.JsonSet.empty,
         dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-core", bleepTasksVersion.value)),
+        jars = model.JsonSet.empty,
         java = None,
         scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
         kotlin = None,
