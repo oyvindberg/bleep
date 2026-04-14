@@ -8,8 +8,9 @@ import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import ryddig.*
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.time.Instant
+import java.util.jar.JarOutputStream
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
@@ -346,6 +347,81 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
         exclude = None
       )
       succeed
+    }
+  }
+
+  /** Create an empty jar file at the given path */
+  private def createEmptyJar(jarPath: Path): Unit = {
+    Files.createDirectories(jarPath.getParent)
+    val out = new JarOutputStream(Files.newOutputStream(jarPath))
+    out.close()
+  }
+
+  test("unmanaged jars on classpath") {
+    val testName = "unmanaged jars on classpath"
+    val storingLogger = Loggers.storing()
+    val stdLogger = logger0.withContext("testName", testName)
+    val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
+
+    // Create jar files before syncing the bleep build
+    createEmptyJar(testTempFolder.resolve("lib/foo.jar"))
+    createEmptyJar(testTempFolder.resolve("lib/bar.jar"))
+
+    val yaml =
+      // language=yaml
+      """projects:
+        |  myapp:
+        |    jars:
+        |      - lib/foo.jar
+        |      - lib/bar.jar
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin
+
+    val files = Map(
+      RelPath.force("./myapp/src/scala/Main.scala") ->
+        """package test
+          |object Main {
+          |  def main(args: Array[String]): Unit = println("ok")
+          |}
+          |""".stripMargin
+    )
+
+    val withBuildScript = files.updated(RelPath.of(BuildLoader.BuildFileName), prelude ++ yaml)
+    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false).discard()
+    val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
+    val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
+
+    try {
+      val started = bootstrap
+        .from(
+          Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
+          ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
+          Nil,
+          testConfig,
+          CoursierResolver.Factory.default
+        )
+        .orThrow
+      val projectName = model.CrossProjectName(model.ProjectName("myapp"), None)
+
+      // Verify the project model parsed jars from YAML
+      val exploded = started.build.explodedProjects(projectName)
+      assert(exploded.jars.values.size === 2, s"Expected 2 jars, got: ${exploded.jars.values}")
+
+      // Verify both jars are on the resolved classpath
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val fooJar = resolved.classpath.find(_.toString.contains("foo.jar"))
+      val barJar = resolved.classpath.find(_.toString.contains("bar.jar"))
+      assert(fooJar.isDefined, s"Expected foo.jar on classpath, got: ${resolved.classpath.mkString(", ")}")
+      assert(barJar.isDefined, s"Expected bar.jar on classpath, got: ${resolved.classpath.mkString(", ")}")
+      assert(Files.exists(fooJar.get), s"Jar file does not exist: ${fooJar.get}")
+      assert(Files.exists(barJar.get), s"Jar file does not exist: ${barJar.get}")
+      succeed
+    } finally {
+      stdLogger.info(s"Ran in $testTempFolder")
+      FileUtils.deleteDirectory(testTempFolder)
     }
   }
 

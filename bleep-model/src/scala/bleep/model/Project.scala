@@ -15,6 +15,7 @@ case class Project(
     sources: JsonSet[RelPath],
     resources: JsonSet[RelPath],
     dependencies: JsonSet[Dep],
+    jars: JsonSet[RelPath],
     java: Option[Java],
     scala: Option[Scala],
     kotlin: Option[Kotlin],
@@ -37,6 +38,7 @@ case class Project(
       sources = sources.intersect(other.sources),
       resources = resources.intersect(other.resources),
       dependencies = dependencies.intersect(other.dependencies),
+      jars = jars.intersect(other.jars),
       java = java.zipCompat(other.java).map { case (_1, _2) => _1.intersect(_2) },
       scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
       kotlin = kotlin.zipCompat(other.kotlin).map { case (_1, _2) => _1.intersect(_2) },
@@ -60,6 +62,7 @@ case class Project(
       sources = sources.removeAll(other.sources),
       resources = resources.removeAll(other.resources),
       dependencies = dependencies.removeAll(other.dependencies),
+      jars = jars.removeAll(other.jars),
       java = removeAllFrom(java, other.java),
       scala = removeAllFrom(scala, other.scala),
       kotlin = removeAllFrom(kotlin, other.kotlin),
@@ -86,6 +89,7 @@ case class Project(
       sources = sources.union(other.sources),
       resources = resources.union(other.resources),
       dependencies = dependencies.union(other.dependencies),
+      jars = jars.union(other.jars),
       java = List(java, other.java).flatten.reduceOption(_ union _),
       scala = List(scala, other.scala).flatten.reduceOption(_ union _),
       kotlin = List(kotlin, other.kotlin).flatten.reduceOption(_ union _),
@@ -110,6 +114,7 @@ case class Project(
           sources,
           resources,
           dependencies,
+          jars,
           java,
           scala,
           kotlin,
@@ -130,6 +135,7 @@ case class Project(
       sources.isEmpty &&
       resources.isEmpty &&
       dependencies.isEmpty &&
+      jars.isEmpty &&
       java.fold(true)(_.isEmpty) &&
       scala.fold(true)(_.isEmpty) &&
       kotlin.fold(true)(_.isEmpty) &&
@@ -154,6 +160,7 @@ object Project {
     sources = JsonSet.empty,
     resources = JsonSet.empty,
     dependencies = JsonSet.empty,
+    jars = JsonSet.empty,
     java = None,
     scala = None,
     kotlin = None,

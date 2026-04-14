@@ -45,6 +45,11 @@ const sidebars = {
                 },
                 {
                     type: "doc",
+                    label: "Unmanaged jars",
+                    id: "usage/unmanaged-jars",
+                },
+                {
+                    type: "doc",
                     label: "Java Annotation Processing",
                     id: "usage/annotation-processing",
                 },

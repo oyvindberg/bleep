@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.*
-import bleep.analysis.*
+import bleep.analysis.{CompilerResolver, ProjectConfig, ProjectDag, ProjectLanguage}
 import bleep.model
 import bleep.model.{CrossProjectName, Java, Kotlin}
 
