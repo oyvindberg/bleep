@@ -1747,7 +1747,17 @@ class MultiWorkspaceBspServer(
             (discoverTask, _) =>
               discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
                 val filtered = filterSuites(suites, testOptions.only, testOptions.exclude)
-                (result, filtered)
+                if (testOptions.only.nonEmpty && filtered.isEmpty) {
+                  val msg = if (suites.nonEmpty) {
+                    val available = suites.map(_._1).mkString(", ")
+                    s"--only ${testOptions.only.mkString(", ")} matched no test suites in ${discoverTask.project.value}. Available suites: $available"
+                  } else {
+                    s"--only ${testOptions.only.mkString(", ")} matched no test suites in ${discoverTask.project.value}. No test suites were discovered"
+                  }
+                  (TaskDag.TaskResult.Failure(msg, Nil), Nil)
+                } else {
+                  (result, filtered)
+                }
               }
 
           val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) => {
@@ -2860,8 +2870,13 @@ class MultiWorkspaceBspServer(
               case _: TaskDag.LinkTask =>
                 None // Link tasks are not exposed via test protocol
 
-              case _: TaskDag.DiscoverTask =>
-                None // Discovery finished is handled by SuitesDiscovered event
+              case dt: TaskDag.DiscoverTask =>
+                result match {
+                  case TaskDag.TaskResult.Failure(msg, _) =>
+                    Some(BleepBspProtocol.Event.Error(msg, None, timestamp))
+                  case _ =>
+                    None // Discovery success is handled by SuitesDiscovered event
+                }
 
               case tt: TaskDag.TestSuiteTask =>
                 result match {
