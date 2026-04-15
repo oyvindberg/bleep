@@ -49,8 +49,27 @@ projects:
     - bleep-nosbt
     - bleep-bsp-protocol
     - bleep-test-runner
+    - bleepscript
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
+  bleepscript:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    publish:
+      groupId: build.bleep
+      url: https://github.com/oyvindberg/bleep/
+      description: A bleeping fast build tool!
+      developers:
+      - id: oyvindberg
+        name: Øyvind Raddum Berg
+        url: https://github.com/oyvindberg
+      licenses:
+      - name: MIT
+        url: http://opensource.org/licenses/MIT
+        distribution: repo
+    sources: ./src/main/java
   bleep-model:
     dependencies:
     - io.circe::circe-generic:0.14.15
