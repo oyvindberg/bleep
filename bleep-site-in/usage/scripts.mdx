@@ -87,6 +87,106 @@ Your script gets three things:
 
 That's the entire API. The rest is just Scala — use any library, call any method, debug with breakpoints.
 
+## Writing scripts in Java
+
+Scripts can also be written in plain Java via the `bleepscript` module. It wraps the Scala API — `BleepScript`, `Started`, `Commands`, `Build`, `Project`, `Dep` and so on — as Java records and interfaces, so a Java user never sees Scala types in their IDE.
+
+### 1. Create a Java-only project for scripts
+
+```yaml
+projects:
+  scripts-java:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    dependsOn:
+      - bleepscript    # or: build.bleep:bleepscript:${BLEEP_VERSION}
+      - bleep-core     # or: build.bleep::bleep-core:${BLEEP_VERSION}
+    sources: ./src/main/java
+```
+
+The dependency on `bleep-core` is needed at **runtime** — it contains the `ServiceLoader`-registered implementation that the `bleepscript` API dispatches to.
+
+### 2. Write the script
+
+```java
+// scripts-java/src/main/java/myscripts/Hello.java
+package myscripts;
+
+import bleepscript.BleepScript;
+import bleepscript.Commands;
+import bleepscript.Started;
+import java.util.List;
+
+public final class Hello extends BleepScript {
+  public Hello() {
+    super("hello");
+  }
+
+  @Override
+  public void run(Started started, Commands commands, List<String> args) {
+    started.logger().info("Hello from a Java bleep script!");
+    started.logger().info("Build has " + started.build().explodedProjects().size() + " projects");
+  }
+
+  public static void main(String[] args) {
+    new Hello().bootstrap(args);
+  }
+}
+```
+
+Three required pieces:
+
+1. **Extend `BleepScript`** and pass a name to the super constructor.
+2. **Override `run`** — the entry point, same shape as Scala but with `java.util.List<String>` and Java record/interface types.
+3. **Write `main`** — the static bootstrap trampoline that calls `bootstrap(args)`.
+
+### 3. Register it
+
+```yaml
+scripts:
+  hello:
+    project: scripts-java
+    main: myscripts.Hello
+```
+
+### 4. Run it
+
+```bash
+$ bleep hello
+```
+
+### API cheat sheet
+
+The same concepts as the Scala API, but everything is Java-native:
+
+| Scala                                       | Java                                                 |
+| ------------------------------------------- | ---------------------------------------------------- |
+| `started.logger`                            | `started.logger()`                                   |
+| `started.build.explodedProjects`            | `started.build().explodedProjects()` (`java.util.Map`) |
+| `started.buildPaths`                        | `started.buildPaths()` (record)                      |
+| `started.resolvedJvm`                       | `started.resolvedJvm()` (record)                     |
+| `commands.compile(List(name))`              | `commands.compile(List.of(name))`                    |
+| `Dep.Scala(org, name, v)`                   | `Deps.scalaDep(org, name, v)`                        |
+| `Dep.parse("org::name:1.0")`                | `Deps.parse("org::name:1.0")`                        |
+| `scala.Option[T]`                           | `java.util.Optional<T>`                              |
+| sealed trait `Dep`                          | sealed interface `Dep` with `Dep.Java` / `Dep.Scala` |
+
+`PublishOptions` uses a fluent builder:
+
+```java
+PublishOptions opts = PublishOptions.builder()
+    .groupId("com.example")
+    .version("1.0.0")
+    .toLocalIvy()                 // or .toMavenFolder(Path.of("..."))
+    .projects(CrossProjectName.of("my-project"))
+    .build();
+commands.publishLocal(opts);
+```
+
+For source generation, extend `BleepCodegenScript` instead — same two-method contract, framework handles temp-dir sync and stamp files.
+
 ## Running from your IDE
 
 Because a script is an ordinary `object` with a `main` method, you can right-click → Run in IntelliJ or VS Code. No special runner, no sbt-shell. This is especially useful when a script is misbehaving: set a breakpoint and step through it.
