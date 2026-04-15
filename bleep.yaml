@@ -252,6 +252,19 @@ projects:
     - template-scala-3
     publish:
       enabled: false
+  scripts-java:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3
+    dependsOn:
+      - bleepscript
+      - bleep-core
+    publish:
+      enabled: false
+    sources: ./src/main/java
   scripts-init:
     dependencies: build.bleep::bleep-plugin-dynver:${BLEEP_VERSION}
     extends:
@@ -275,6 +288,15 @@ scripts:
   scalafix:
     main: bleep.scripts.Scalafix
     project: scripts
+  hello:
+    main: bleepscript.examples.Hello
+    project: scripts-java
+  list-projects:
+    main: bleepscript.examples.ListProjects
+    project: scripts-java
+  show-deps:
+    main: bleepscript.examples.ShowDeps
+    project: scripts-java
 templates:
   template-common:
     java:
