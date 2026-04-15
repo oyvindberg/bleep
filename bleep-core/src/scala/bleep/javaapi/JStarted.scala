@@ -1,6 +1,6 @@
 package bleep.javaapi
 
-import bleep.{model, Started}
+import bleep.Started
 
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
@@ -15,7 +15,7 @@ final class JStarted(private[javaapi] val underlying: Started) extends bleepscri
   override def userPaths(): bleepscript.UserPaths = JModel.userPaths(underlying.userPaths)
 
   override def projectPaths(cross: bleepscript.CrossProjectName): bleepscript.ProjectPaths =
-    JModel.projectPaths(underlying.projectPaths(toCross(cross)))
+    JModel.projectPaths(underlying.projectPaths(JModel.toCross(cross)))
 
   override def jvmCommand(): Path = underlying.jvmCommand
 
@@ -30,18 +30,12 @@ final class JStarted(private[javaapi] val underlying: Started) extends bleepscri
     }
 
   override def exploded(cross: bleepscript.CrossProjectName): bleepscript.Project = {
-    val c = toCross(cross)
+    val c = JModel.toCross(cross)
     JModel.project(c, underlying.build.explodedProjects(c))
   }
 
   override def resolved(cross: bleepscript.CrossProjectName): bleepscript.ResolvedProject =
-    JModel.resolvedProject(underlying.resolvedProject(toCross(cross)))
+    JModel.resolvedProject(underlying.resolvedProject(JModel.toCross(cross)))
 
   override def bleepExecutable(): Path = underlying.bleepExecutable.forceGet.command
-
-  private def toCross(c: bleepscript.CrossProjectName): model.CrossProjectName =
-    model.CrossProjectName(
-      model.ProjectName(c.name),
-      if (c.crossId.isPresent) Some(model.CrossId(c.crossId.get)) else None
-    )
 }

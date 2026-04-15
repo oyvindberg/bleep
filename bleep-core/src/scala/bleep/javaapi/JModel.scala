@@ -17,6 +17,12 @@ object JModel {
       n.crossId.map(_.value).toJava
     )
 
+  def toCross(c: bleepscript.CrossProjectName): model.CrossProjectName =
+    model.CrossProjectName(
+      model.ProjectName(c.name),
+      if (c.crossId.isPresent) Some(model.CrossId(c.crossId.get)) else None
+    )
+
   def dep(d: model.Dep): bleepscript.Dep = d match {
     case j: model.Dep.JavaDependency =>
       new bleepscript.Dep.Java(

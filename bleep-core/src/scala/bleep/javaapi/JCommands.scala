@@ -12,13 +12,13 @@ final class JCommands(started: Started) extends bleepscript.Commands {
   private val underlying = new Commands(started)
 
   override def compile(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.compile(projects.asScala.iterator.map(toCross).toList, watch = false)
+    underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = false)
 
   override def compile(projects: java.util.List[bleepscript.CrossProjectName], watch: Boolean): Unit =
-    underlying.compile(projects.asScala.iterator.map(toCross).toList, watch = watch)
+    underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = watch)
 
   override def test(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.test(projects.asScala.iterator.map(toCross).toList, watch = false, only = None, exclude = None)
+    underlying.test(projects.asScala.iterator.map(JModel.toCross).toList, watch = false, only = None, exclude = None)
 
   override def test(
       projects: java.util.List[bleepscript.CrossProjectName],
@@ -27,14 +27,14 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       exclude: Optional[java.util.List[String]]
   ): Unit =
     underlying.test(
-      projects.asScala.iterator.map(toCross).toList,
+      projects.asScala.iterator.map(JModel.toCross).toList,
       watch = watch,
       only = toNel(only),
       exclude = toNel(exclude)
     )
 
   override def run(project: bleepscript.CrossProjectName): Unit =
-    underlying.run(toCross(project), None, Nil, raw = false, watch = false)
+    underlying.run(JModel.toCross(project), None, Nil, raw = false, watch = false)
 
   override def run(
       project: bleepscript.CrossProjectName,
@@ -44,7 +44,7 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       watch: Boolean
   ): Unit =
     underlying.run(
-      toCross(project),
+      JModel.toCross(project),
       toScalaOpt(overrideMainClass),
       args.asScala.toList,
       raw = raw,
@@ -52,7 +52,7 @@ final class JCommands(started: Started) extends bleepscript.Commands {
     )
 
   override def clean(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.clean(projects.asScala.iterator.map(toCross).toList)
+    underlying.clean(projects.asScala.iterator.map(JModel.toCross).toList)
 
   override def script(scriptName: String, args: java.util.List[String]): Unit =
     underlying.script(model.ScriptName(scriptName), args.asScala.toList, watch = false)
@@ -78,17 +78,11 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       groupId = options.groupId,
       version = options.version,
       publishTarget = target,
-      projects = options.projects.asScala.iterator.map(toCross).toArray,
+      projects = options.projects.asScala.iterator.map(JModel.toCross).toArray,
       manifestCreator = manifestCreator
     )
     underlying.publishLocal(opts, watch = watch)
   }
-
-  private def toCross(c: bleepscript.CrossProjectName): model.CrossProjectName =
-    model.CrossProjectName(
-      model.ProjectName(c.name),
-      if (c.crossId.isPresent) Some(model.CrossId(c.crossId.get)) else None
-    )
 
   private def toScalaOpt[T](o: Optional[T]): Option[T] =
     if (o.isPresent) Some(o.get) else None

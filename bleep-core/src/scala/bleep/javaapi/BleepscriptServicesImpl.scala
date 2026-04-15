@@ -1,6 +1,5 @@
 package bleep.javaapi
 
-import bleep.model.Dep as _
 import bleep.{bootstrap, model, BleepCodegenScript, PreBootstrapOpts, RelPath}
 
 import scala.jdk.CollectionConverters.*
