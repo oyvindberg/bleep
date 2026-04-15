@@ -31,4 +31,13 @@ public abstract class BleepCodegenScript {
   public final void bootstrap(String[] args) {
     BleepscriptServices.Holder.INSTANCE.forCodegen(name, thisClassName(), args, this);
   }
+
+  /**
+   * JVM entry point inherited by every subclass. See {@link BleepScript#main} for the underlying
+   * mechanism.
+   */
+  public static void main(String[] args) throws ReflectiveOperationException {
+    BleepCodegenScript script = Launcher.instantiate(BleepCodegenScript.class);
+    script.bootstrap(args);
+  }
 }

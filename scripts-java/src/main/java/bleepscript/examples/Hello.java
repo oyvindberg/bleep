@@ -6,15 +6,14 @@ import bleepscript.Started;
 import java.util.List;
 
 /**
- * The smallest possible bleep script written in Java.
- *
- * <p>Run with {@code bleep hello}. Every Java script follows the same three-step pattern:
+ * The smallest possible bleep script written in Java. Two steps:
  *
  * <ol>
  *   <li>Extend {@link BleepScript} and pass a name to the super constructor.
  *   <li>Implement {@link #run} — this is where your logic goes.
- *   <li>Write a tiny {@code main} that calls {@code bootstrap(args)}.
  * </ol>
+ *
+ * <p>Run with {@code bleep hello}.
  */
 public final class Hello extends BleepScript {
   public Hello() {
@@ -28,9 +27,5 @@ public final class Hello extends BleepScript {
     if (!args.isEmpty()) {
       started.logger().info("You passed args: " + args);
     }
-  }
-
-  public static void main(String[] args) {
-    new Hello().bootstrap(args);
   }
 }

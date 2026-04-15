@@ -17,12 +17,12 @@ import java.util.Objects;
  *     started.logger().info("hello");
  *     commands.compile(List.of(CrossProjectName.of("my-project")));
  *   }
- *
- *   public static void main(String[] args) {
- *     new MyScript().bootstrap(args);
- *   }
  * }
  * }</pre>
+ *
+ * <p>No explicit {@code main} method is required — the inherited {@link #main(String[])} below
+ * discovers the launched class via {@code sun.java.command} and instantiates it using a no-arg
+ * constructor.
  */
 public abstract class BleepScript {
   private final String name;
@@ -39,5 +39,15 @@ public abstract class BleepScript {
 
   public final void bootstrap(String[] args) {
     BleepscriptServices.Holder.INSTANCE.forScript(name, args, this);
+  }
+
+  /**
+   * JVM entry point inherited by every subclass. When the JVM launches {@code java MyScript ...},
+   * this method reads the main class name from {@code sun.java.command}, instantiates it via its
+   * no-arg constructor, and calls {@link #bootstrap(String[])}.
+   */
+  public static void main(String[] args) throws ReflectiveOperationException {
+    BleepScript script = Launcher.instantiate(BleepScript.class);
+    script.bootstrap(args);
   }
 }

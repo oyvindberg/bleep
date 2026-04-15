@@ -58,8 +58,4 @@ public final class ShowDeps extends BleepScript {
                       });
             });
   }
-
-  public static void main(String[] args) {
-    new ShowDeps().bootstrap(args);
-  }
 }

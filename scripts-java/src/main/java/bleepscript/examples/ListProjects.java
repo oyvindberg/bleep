@@ -41,8 +41,4 @@ public final class ListProjects extends BleepScript {
                       + platform);
         });
   }
-
-  public static void main(String[] args) {
-    new ListProjects().bootstrap(args);
-  }
 }
