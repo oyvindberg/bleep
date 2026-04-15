@@ -72,8 +72,12 @@ class BspServer(
       catch { case _: IllegalStateException => () } // JVM already shutting down
   }
 
-  /** Methods that run on a CE blocking fiber so the main loop can process cancellation. */
-  private val asyncMethods = Set("buildTarget/run")
+  /** Methods that run on a CE blocking fiber so the main loop can process cancellation.
+    *
+    * These are the long-running operations: compile, test, run. If they blocked the main loop, `$/cancelRequest` notifications would sit in the stdin buffer
+    * unread until the operation finished on its own — making cancellation effectively a no-op.
+    */
+  private val asyncMethods = Set("buildTarget/compile", "buildTarget/test", "buildTarget/run")
 
   /** Handle an incoming JSON-RPC request */
   private def handleRequest(request: JsonRpcRequest): Unit = {
