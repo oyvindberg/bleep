@@ -42,7 +42,7 @@ case class Dist(watch: Boolean, options: Dist.Options, buildOpts: CommonBuildOpt
           }
       }
     } yield {
-      val program = dist.Program(options.project.name.value, mainClass)
+      val program = dist.Program(options.project.name.value.replace('/', '-'), mainClass)
       dist(started, options.project, List(program), overridePath = options.overridePath)
     }
 }

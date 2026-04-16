@@ -4,6 +4,8 @@ package commands
 import bleep.internal.{jvmRunCommand, FileUtils}
 
 class SetupDevScript(started: Started, project: model.CrossProjectName, overrideMainClass: Option[String]) extends BleepCommand {
+  private val safeName = project.value.replace('/', '-')
+
   override def run(): Either[BleepException, Unit] =
     OsArch.current.os match {
       case model.Os.Windows =>
@@ -12,7 +14,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
           s"""@echo off
              |$cmd
              |""".stripMargin
-        val scriptFile = started.buildPaths.buildDir / s"${project.value}.bat"
+        val scriptFile = started.buildPaths.buildDir / s"$safeName.bat"
         FileUtils.writeString(started.logger, None, scriptFile, file)
         scriptFile.toFile.setExecutable(true)
         Right(())
@@ -24,7 +26,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
              |$cmd
              |""".stripMargin
 
-        val scriptFile = started.buildPaths.buildDir / s"${project.value}.sh"
+        val scriptFile = started.buildPaths.buildDir / s"$safeName.sh"
         FileUtils.writeString(started.logger, None, scriptFile, file)
         scriptFile.toFile.setExecutable(true)
         Right(())
