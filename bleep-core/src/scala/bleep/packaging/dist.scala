@@ -34,7 +34,7 @@ object dist {
             p.platform.flatMap(_.mainClass)
           )
         }
-        .map { case (crossName, bytes) => (RelPath.force(s"lib/${crossName.value}.jar"), bytes) }
+        .map { case (crossName, bytes) => (RelPath.force(s"lib/${crossName.value.replace('/', '-')}.jar"), bytes) }
 
     val fromResolvedExternal = resolvedProject.classpath.collect {
       case path if Files.isRegularFile(path) => (RelPath.force(s"lib/${path.getFileName}"), Files.readAllBytes(path))
