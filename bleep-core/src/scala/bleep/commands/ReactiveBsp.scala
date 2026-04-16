@@ -38,7 +38,8 @@ case class ReactiveBsp(
     linkOptions: Option[LinkOptions],
     flamegraph: Boolean,
     cancel: Boolean,
-    junitReportDir: Option[Path]
+    junitReportDir: Option[Path],
+    noCache: Boolean
 ) extends BleepBuildCommand {
 
   /** Persists across watch cycles for per-project diff (only used in DiffWatch mode) */
@@ -525,7 +526,9 @@ case class ReactiveBsp(
       bspLogger: ryddig.Logger,
       diagLog: String => Unit
   ): IO[Unit] = {
-    val commonArgs = if (flamegraph) List("--flamegraph") else Nil
+    val commonArgs =
+      (if (flamegraph) List("--flamegraph") else Nil) ++
+        (if (noCache) List("--no-cache") else Nil)
 
     mode match {
       case BuildMode.Compile =>
@@ -550,6 +553,7 @@ case class ReactiveBsp(
             val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, flamegraph)
             params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
             params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+            if (commonArgs.nonEmpty) params.setArguments(commonArgs.asJava)
             server.buildTargetTest(params)
           }
           .flatTap { testResult =>
@@ -845,6 +849,18 @@ class ReactiveBspClient(
       case PE.LockAcquired(project, waitedMs, timestamp) =>
         Some(BuildEvent.LockAcquired(project, waitedMs, timestamp))
 
+      case PE.CachePullStarted(project, timestamp) =>
+        Some(BuildEvent.CachePullStarted(project, timestamp))
+
+      case PE.CachePullFinished(project, status, durationMs, bytesDownloaded, timestamp) =>
+        Some(BuildEvent.CachePullFinished(project, status, durationMs, bytesDownloaded, timestamp))
+
+      case PE.CachePushStarted(project, timestamp) =>
+        Some(BuildEvent.CachePushStarted(project, timestamp))
+
+      case PE.CachePushFinished(project, status, durationMs, bytesUploaded, timestamp) =>
+        Some(BuildEvent.CachePushFinished(project, status, durationMs, bytesUploaded, timestamp))
+
       // Events not relevant for BuildDisplay
       case PE.TestRunFinished(_, _, _, _, _, _) => None
       case PE.DiscoveryStarted(_, _)            => None
@@ -873,7 +889,8 @@ object ReactiveBsp {
       projects: Array[model.CrossProjectName],
       displayMode: DisplayMode,
       flamegraph: Boolean,
-      cancel: Boolean
+      cancel: Boolean,
+      noCache: Boolean
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -886,7 +903,8 @@ object ReactiveBsp {
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = None
+    junitReportDir = None,
+    noCache = noCache
   )
 
   /** Create test-bsp command */
@@ -900,7 +918,8 @@ object ReactiveBsp {
       exclude: List[String],
       flamegraph: Boolean,
       cancel: Boolean,
-      junitReportDir: Option[Path]
+      junitReportDir: Option[Path],
+      noCache: Boolean
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -913,7 +932,8 @@ object ReactiveBsp {
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = junitReportDir
+    junitReportDir = junitReportDir,
+    noCache = noCache
   )
 
   /** Create link-bsp command */
@@ -923,7 +943,8 @@ object ReactiveBsp {
       displayMode: DisplayMode,
       options: LinkOptions,
       flamegraph: Boolean,
-      cancel: Boolean
+      cancel: Boolean,
+      noCache: Boolean
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -936,6 +957,7 @@ object ReactiveBsp {
     linkOptions = Some(options),
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = None
+    junitReportDir = None,
+    noCache = noCache
   )
 }

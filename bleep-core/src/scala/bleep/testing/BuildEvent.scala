@@ -281,6 +281,36 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
+  /** Remote cache pull started for a project */
+  case class CachePullStarted(
+      project: CrossProjectName,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** Remote cache pull finished for a project */
+  case class CachePullFinished(
+      project: CrossProjectName,
+      status: BleepBspProtocol.Event.CachePullStatus,
+      durationMs: Long,
+      bytesDownloaded: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** Remote cache push started for a project (runs asynchronously after compile) */
+  case class CachePushStarted(
+      project: CrossProjectName,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** Remote cache push finished for a project */
+  case class CachePushFinished(
+      project: CrossProjectName,
+      status: BleepBspProtocol.Event.CachePushStatus,
+      durationMs: Long,
+      bytesUploaded: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
   /** Authoritative test run completion from BSP response (not notification).
     *
     * The BSP TestResult response carries this in its data field. Because it uses reliable request-response (not fire-and-forget notifications), the client can

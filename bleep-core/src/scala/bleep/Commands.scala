@@ -17,8 +17,11 @@ class Commands(started: Started) {
   def clean(projects: List[model.CrossProjectName]): Unit =
     force(commands.Clean(projects.toArray))
 
-  def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.ReactiveBsp.compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false))
+  def compile(projects: List[model.CrossProjectName], watch: Boolean): Unit =
+    force(commands.ReactiveBsp.compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false, noCache = false))
+
+  def compile(projects: List[model.CrossProjectName]): Unit =
+    compile(projects, watch = false)
 
   def run(
       project: model.CrossProjectName,
@@ -46,7 +49,8 @@ class Commands(started: Started) {
         exclude = exclude.map(_.toList).getOrElse(Nil),
         flamegraph = false,
         cancel = false,
-        junitReportDir = None
+        junitReportDir = None,
+        noCache = false
       )
     )
 

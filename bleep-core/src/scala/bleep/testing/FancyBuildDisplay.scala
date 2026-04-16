@@ -489,6 +489,9 @@ object FancyBuildDisplay {
 
       case _: BuildEvent.WorkspaceBusy | _: BuildEvent.WorkspaceReady =>
         () // Handled below via workspaceBusy state
+
+      case _: BuildEvent.CachePullStarted | _: BuildEvent.CachePullFinished | _: BuildEvent.CachePushStarted | _: BuildEvent.CachePushFinished =>
+        () // Cache counters tracked in core via BuildStateReducer
     }
 
     // Return new state with updated core + TUI-specific fields

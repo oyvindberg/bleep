@@ -1384,7 +1384,9 @@ class MultiWorkspaceBspServer(
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+      val noCache = args.contains("--no-cache")
+      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1571,6 +1573,34 @@ class MultiWorkspaceBspServer(
       listener = makeHeapPressureListener(originId)
     )
 
+  /** Event sink for cache operations that forwards events over BSP using the same channel as compile/test events. */
+  private def makeCacheEventSink(originId: Option[String]): CompileCacheContext.EventSink =
+    new CompileCacheContext.EventSink {
+      def pullStarted(project: CrossProjectName, timestamp: Long): Unit =
+        sendEvent(originId, s"cache-pull:${project.value}", BleepBspProtocol.Event.CachePullStarted(project, timestamp))
+
+      def pullFinished(
+          project: CrossProjectName,
+          status: BleepBspProtocol.Event.CachePullStatus,
+          durationMs: Long,
+          bytes: Long,
+          timestamp: Long
+      ): Unit =
+        sendEvent(originId, s"cache-pull:${project.value}", BleepBspProtocol.Event.CachePullFinished(project, status, durationMs, bytes, timestamp))
+
+      def pushStarted(project: CrossProjectName, timestamp: Long): Unit =
+        sendEvent(originId, s"cache-push:${project.value}", BleepBspProtocol.Event.CachePushStarted(project, timestamp))
+
+      def pushFinished(
+          project: CrossProjectName,
+          status: BleepBspProtocol.Event.CachePushStatus,
+          durationMs: Long,
+          bytes: Long,
+          timestamp: Long
+      ): Unit =
+        sendEvent(originId, s"cache-push:${project.value}", BleepBspProtocol.Event.CachePushFinished(project, status, durationMs, bytes, timestamp))
+    }
+
   /** Send a structured event via BSP notification. Used for compile, link, and test events. */
   private def sendEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
     val eventJson = BleepBspProtocol.encode(event)
@@ -1741,7 +1771,10 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+          val cliArgs = params.arguments.getOrElse(List.empty)
+          val noCache = cliArgs.contains("--no-cache")
+          val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -2039,7 +2072,8 @@ class MultiWorkspaceBspServer(
       started: Started,
       workspace: Path,
       originId: Option[String],
-      heapPressureThreshold: Double
+      heapPressureThreshold: Double,
+      cacheContext: CompileCacheContext
   ): (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2059,6 +2093,15 @@ class MultiWorkspaceBspServer(
           if (noopResult.isDefined) {
             IO.pure(TaskDag.TaskResult.Success)
           } else {
+            // Try remote cache pull before taking any compile resources. A cache hit short-circuits
+            // compilation entirely — the classes + zinc analysis are extracted from the tarball,
+            // and downstream tasks in the DAG proceed as if we had compiled.
+            val maybePull: IO[Option[TaskDag.TaskResult]] = cacheContext.tryPull(compileTask.project).map {
+              case CompileCacheContext.PullResult.Hit       => Some(TaskDag.TaskResult.Success)
+              case CompileCacheContext.PullResult.NotCached => None
+              case CompileCacheContext.PullResult.Disabled  => None
+            }
+
             // Cooperative cancellation: set CancellationToken so advance() returns false
             val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
 
@@ -2076,7 +2119,8 @@ class MultiWorkspaceBspServer(
                             resultIO.flatMap { result =>
                               val dur = System.currentTimeMillis() - compileStartTime
                               val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)) >>
+                                IO.whenA(ok)(cacheContext.schedulePush(compileTask.project))
                             }
                           case _ =>
                             IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
@@ -2085,8 +2129,12 @@ class MultiWorkspaceBspServer(
               }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
-            cooperativeCancelIO.flatMap { cancelFiber =>
-              IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
+            maybePull.flatMap {
+              case Some(result) => IO.pure(result)
+              case None         =>
+                cooperativeCancelIO.flatMap { cancelFiber =>
+                  IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
+                }
             }
           }
       }

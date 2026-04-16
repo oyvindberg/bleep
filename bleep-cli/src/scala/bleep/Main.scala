@@ -316,12 +316,13 @@ object Main {
               ).mapN(_ || _),
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel) =>
+              cancel,
+              Opts.flag("no-cache", "disable remote cache pull/push for this build").orFalse
+            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, noCache) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, noCache)
             }
           ),
           Opts.subcommand("link", "link projects")(
@@ -340,8 +341,9 @@ object Main {
                 Opts.flag("quiet", "alias for --no-tui", "q").orFalse
               ).mapN(_ || _),
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel) =>
+              cancel,
+              Opts.flag("no-cache", "disable remote cache pull/push for this build").orFalse
+            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel, noCache) =>
               val linkOptions = commands.LinkOptions(
                 releaseMode = release,
                 sourceMaps = sourceMaps,
@@ -351,7 +353,7 @@ object Main {
                 optimize = optimize,
                 debugInfo = debugInfo
               )
-              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel)
+              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel, noCache)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
@@ -374,8 +376,9 @@ object Main {
               exclude,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
-              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir) =>
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              Opts.flag("no-cache", "disable remote cache pull/push for this build").orFalse
+            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir, noCache) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
@@ -389,7 +392,8 @@ object Main {
                 exclude = exclude.map(_.toList).getOrElse(Nil),
                 flamegraph = flamegraph,
                 cancel = cancel,
-                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_))
+                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                noCache = noCache
               )
             }
           ),

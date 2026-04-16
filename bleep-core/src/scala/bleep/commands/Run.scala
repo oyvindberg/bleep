@@ -57,7 +57,8 @@ case class Run(
         projects = Array(project),
         displayMode = buildOpts.displayMode,
         flamegraph = buildOpts.flamegraph,
-        cancel = buildOpts.cancel
+        cancel = buildOpts.cancel,
+        noCache = false
       )
       .run(started)
 
@@ -69,7 +70,8 @@ case class Run(
         displayMode = buildOpts.displayMode,
         options = LinkOptions.Debug,
         flamegraph = buildOpts.flamegraph,
-        cancel = buildOpts.cancel
+        cancel = buildOpts.cancel,
+        noCache = false
       )
       .run(started)
 

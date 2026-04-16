@@ -205,7 +205,8 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
           projects = projects,
           displayMode = buildOpts.displayMode,
           flamegraph = buildOpts.flamegraph,
-          cancel = buildOpts.cancel
+          cancel = buildOpts.cancel,
+          noCache = false
         )
         .run(started)
       version <- resolveVersion(started)

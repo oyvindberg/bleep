@@ -42,7 +42,14 @@ case class BuildState(
     compileFailures: List[ProjectCompileFailure],
     skippedProjects: List[SkippedProject],
     pendingOutput: Map[SuiteKey, List[String]],
-    totalTaskTimeMs: Long
+    totalTaskTimeMs: Long,
+    cacheEnabled: Boolean,
+    cacheHits: Int,
+    cacheMisses: Int,
+    cacheAlreadyCompiled: Int,
+    cachePushes: Int,
+    cachePullErrors: Int,
+    cachePushErrors: Int
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
@@ -86,7 +93,14 @@ case class BuildState(
       skippedProjects = skippedProjects.reverse,
       durationMs = durationMs,
       totalTaskTimeMs = totalTaskTimeMs,
-      wasCancelled = wasCancelled
+      wasCancelled = wasCancelled,
+      cacheEnabled = cacheEnabled,
+      cacheHits = cacheHits,
+      cacheMisses = cacheMisses,
+      cacheAlreadyCompiled = cacheAlreadyCompiled,
+      cachePushes = cachePushes,
+      cachePullErrors = cachePullErrors,
+      cachePushErrors = cachePushErrors
     )
   }
 }
@@ -126,7 +140,14 @@ object BuildState {
     compileFailures = Nil,
     skippedProjects = Nil,
     pendingOutput = Map.empty,
-    totalTaskTimeMs = 0
+    totalTaskTimeMs = 0,
+    cacheEnabled = false,
+    cacheHits = 0,
+    cacheMisses = 0,
+    cacheAlreadyCompiled = 0,
+    cachePushes = 0,
+    cachePullErrors = 0,
+    cachePushErrors = 0
   )
 }
 
@@ -441,5 +462,27 @@ object BuildStateReducer {
         runningTests = Set.empty,
         cancelledSuites = authoritativeCancelled
       )
+
+    case BuildEvent.CachePullFinished(_, status, _, _, _) =>
+      import bleep.bsp.protocol.BleepBspProtocol.Event.CachePullStatus as S
+      val s = state.copy(cacheEnabled = true)
+      status match {
+        case S.Hit             => s.copy(cacheHits = s.cacheHits + 1)
+        case S.Miss            => s.copy(cacheMisses = s.cacheMisses + 1)
+        case S.AlreadyCompiled => s.copy(cacheAlreadyCompiled = s.cacheAlreadyCompiled + 1)
+        case _: S.Error        => s.copy(cachePullErrors = s.cachePullErrors + 1)
+      }
+
+    case BuildEvent.CachePushFinished(_, status, _, _, _) =>
+      import bleep.bsp.protocol.BleepBspProtocol.Event.CachePushStatus as S
+      val s = state.copy(cacheEnabled = true)
+      status match {
+        case S.Success       => s.copy(cachePushes = s.cachePushes + 1)
+        case S.AlreadyCached => s
+        case _: S.Error      => s.copy(cachePushErrors = s.cachePushErrors + 1)
+      }
+
+    case _: BuildEvent.CachePullStarted | _: BuildEvent.CachePushStarted =>
+      state.copy(cacheEnabled = true)
   }
 }
