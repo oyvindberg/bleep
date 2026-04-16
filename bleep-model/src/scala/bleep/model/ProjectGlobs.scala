@@ -35,8 +35,21 @@ class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], expl
       }
       if (kotlinOnly.nonEmpty) Map("kotlin" -> kotlinOnly) else Map.empty
     }
+    val prefixGroups: Map[String, Array[CrossProjectName]] = {
+      val byPrefix = scala.collection.mutable.Map.empty[String, scala.collection.mutable.ArrayBuffer[CrossProjectName]]
+      projects.foreach { p =>
+        val segments = p.name.value.split('/')
+        var i = 1
+        while (i < segments.length) {
+          val prefix = segments.take(i).mkString("/")
+          byPrefix.getOrElseUpdate(prefix, scala.collection.mutable.ArrayBuffer.empty) += p
+          i += 1
+        }
+      }
+      byPrefix.iterator.map { case (k, v) => (k, v.toArray) }.toMap
+    }
 
-    javaProjects ++ kotlinProjects ++ crossIds ++ projectNames ++ crossNames
+    javaProjects ++ kotlinProjects ++ prefixGroups ++ crossIds ++ projectNames ++ crossNames
   }
 
   def exactProjectMap: Map[String, CrossProjectName] =
