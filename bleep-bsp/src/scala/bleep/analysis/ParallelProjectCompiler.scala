@@ -137,12 +137,13 @@ object ParallelProjectCompiler {
           if (allDone) {
             IO.unit
           } else if (cancellationToken.isCancelled) {
-            val remaining = dag.projects.keySet -- completedNames -- running
-            remaining.toList.traverse_ { name =>
-              val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
-              completedRef.update(_ + (name -> result)) >>
-                deferreds(name).complete(result).attempt.void
-            }
+            // Non-running projects never had fibers spawned, so nothing is awaiting their deferreds — skip them and
+            // let buildValidDag classify them as notStarted. But wait for already-running fibers to finish before
+            // returning, otherwise Zinc keeps writing class files after the "Cancelled" response has been sent.
+            if (running.nonEmpty)
+              signalRef.get.flatMap(_.get) >>
+                Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef))
+            else IO.unit
           } else {
             val hasFailures = completed.values.exists(!_.isSuccess)
             if (hasFailures && running.isEmpty) {
