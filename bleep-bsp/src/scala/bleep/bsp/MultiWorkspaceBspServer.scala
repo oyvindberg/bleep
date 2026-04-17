@@ -1380,7 +1380,7 @@ class MultiWorkspaceBspServer(
       }
 
       val noCache = args.contains("--no-cache")
-      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+      val cacheContext = RemoteCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
       val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode, withCache = cacheContext.isEnabled)
       debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, cache=${cacheContext.isEnabled})")
 
@@ -1388,7 +1388,7 @@ class MultiWorkspaceBspServer(
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
       val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
-      val (cachePullHandler, cachePushHandler) = makeCacheHandlers(cacheContext)
+      val (cachePullHandler, cachePushHandler) = RemoteCacheContext.handlers(cacheContext)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1576,8 +1576,8 @@ class MultiWorkspaceBspServer(
     )
 
   /** Event sink for cache operations that forwards events over BSP using the same channel as compile/test events. */
-  private def makeCacheEventSink(originId: Option[String]): CompileCacheContext.EventSink =
-    new CompileCacheContext.EventSink {
+  private def makeCacheEventSink(originId: Option[String]): RemoteCacheContext.EventSink =
+    new RemoteCacheContext.EventSink {
       def pullStarted(project: CrossProjectName, timestamp: Long): Unit =
         sendEvent(originId, s"cache-pull:${project.value}", BleepBspProtocol.Event.CachePullStarted(project, timestamp))
 
@@ -1719,7 +1719,7 @@ class MultiWorkspaceBspServer(
 
       val cliArgs = params.arguments.getOrElse(List.empty)
       val noCache = cliArgs.contains("--no-cache")
-      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+      val cacheContext = RemoteCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
 
       // Build the unified DAG with platforms
       val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms, withCache = cacheContext.isEnabled)
@@ -1780,7 +1780,7 @@ class MultiWorkspaceBspServer(
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
-          val (cachePullHandler, cachePushHandler) = makeCacheHandlers(cacheContext)
+          val (cachePullHandler, cachePushHandler) = RemoteCacheContext.handlers(cacheContext)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -2079,7 +2079,7 @@ class MultiWorkspaceBspServer(
       workspace: Path,
       originId: Option[String],
       heapPressureThreshold: Double,
-      cacheContext: CompileCacheContext
+      cacheContext: RemoteCacheContext
   ): (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2139,37 +2139,7 @@ class MultiWorkspaceBspServer(
       }
     }
 
-  /** Create handlers for CachePull and CachePush DAG tasks. Cache tasks always report Success — errors are surfaced via sink events and logged warnings, never
-    * as build failures.
-    */
-  private def makeCacheHandlers(
-      cacheContext: CompileCacheContext
-  ): (
-      (TaskDag.CachePullTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult],
-      (TaskDag.CachePushTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult]
-  ) = {
-    val pullHandler: (TaskDag.CachePullTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
-      (task, taskKillSignal) =>
-        taskKillSignal.tryGet.flatMap {
-          case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
-          case None         =>
-            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-            val doPull = cacheContext.tryPull(task.project).as(TaskDag.TaskResult.Success)
-            IO.race(doPull, waitForKill).map(_.merge)
-        }
-
-    val pushHandler: (TaskDag.CachePushTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
-      (task, taskKillSignal) =>
-        taskKillSignal.tryGet.flatMap {
-          case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
-          case None         =>
-            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-            val doPush = cacheContext.tryPush(task.project).as(TaskDag.TaskResult.Success)
-            IO.race(doPush, waitForKill).map(_.merge)
-        }
-
-    (pullHandler, pushHandler)
-  }
+  // Cache handler construction lives in RemoteCacheContext.handlers.
 
   /** Compile a single project (dependencies handled by TaskDag ordering).
     *
@@ -2939,7 +2909,7 @@ class MultiWorkspaceBspServer(
               case tt: TaskDag.TestSuiteTask =>
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
               case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
-                None // Cache events emitted directly via the event sink in CompileCacheContext
+                None // Cache events emitted directly via the event sink in RemoteCacheContext
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -2954,7 +2924,7 @@ class MultiWorkspaceBspServer(
                 None // Link tasks are not exposed via test protocol
 
               case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
-                None // Cache events emitted directly via the event sink in CompileCacheContext
+                None // Cache events emitted directly via the event sink in RemoteCacheContext
 
               case dt: TaskDag.DiscoverTask =>
                 result match {

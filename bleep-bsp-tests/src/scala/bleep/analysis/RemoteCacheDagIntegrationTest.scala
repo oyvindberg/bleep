@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.{CompileCacheContext, Outcome, TaskDag}
+import bleep.bsp.{Outcome, RemoteCacheContext, TaskDag}
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.{CachePullTask, CachePushTask, CompileTask, DagEvent, TaskId, TaskResult}
 import bleep.bsp.protocol.BleepBspProtocol
@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters.*
   *   - Cache-hit short-circuit: `wasHit == true` bypasses the real compile handler
   *   - `Disabled` context is a no-op
   *
-  * Tests avoid S3 entirely — they exercise the DAG + executor + `CompileCacheContext` seam using in-memory test doubles. Full end-to-end tests against a real
+  * Tests avoid S3 entirely — they exercise the DAG + executor + `RemoteCacheContext` seam using in-memory test doubles. Full end-to-end tests against a real
   * S3-compatible backend belong elsewhere (not on every CI run).
   */
 class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
@@ -43,7 +43,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
   }
 
   /** In-memory cache context driven by a predefined hit-set. */
-  private class FakeCache(hits: Set[CrossProjectName]) extends CompileCacheContext {
+  private class FakeCache(hits: Set[CrossProjectName]) extends RemoteCacheContext {
     val pulled = new ConcurrentLinkedQueue[CrossProjectName]()
     val pushed = new ConcurrentLinkedQueue[CrossProjectName]()
 
@@ -225,7 +225,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _          <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     order.asScala.toList shouldBe List("pull", "compile", "push")
@@ -249,7 +249,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d          <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     pushCalled.get() shouldBe false
@@ -271,7 +271,8 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     def record(tag: String): IO[Unit] = IO(events.add((tag, System.nanoTime())): Unit)
 
     val executor = TaskDag.executor(
-      compileHandler = (task, _) => record(s"compile:${task.project.value}") >> IO.sleep(scala.concurrent.duration.DurationInt(50).millis).as(TaskResult.Success),
+      compileHandler =
+        (task, _) => record(s"compile:${task.project.value}") >> IO.sleep(scala.concurrent.duration.DurationInt(50).millis).as(TaskResult.Success),
       linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
       discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
       testHandler = (_, _) => IO.pure(TaskResult.Success),
@@ -282,7 +283,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _          <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     val timeline = events.asScala.toList
@@ -310,7 +311,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d          <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     compileCalled.get() shouldBe true
@@ -341,7 +342,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     val task = CompileTask(project, Set.empty, cachePullDep = Some(TaskId.CachePull(project)))
     val result = (for {
       kill <- Deferred[IO, KillReason]
-      r    <- shortCircuiting(task, kill)
+      r <- shortCircuiting(task, kill)
     } yield r).unsafeRunSync()
 
     result shouldBe TaskResult.Success
@@ -366,19 +367,19 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     val task = CompileTask(project, Set.empty, cachePullDep = Some(TaskId.CachePull(project)))
     (for {
       kill <- Deferred[IO, KillReason]
-      _    <- shortCircuiting(task, kill)
+      _ <- shortCircuiting(task, kill)
     } yield ()).unsafeRunSync()
 
     realCompileCalled.get() shouldBe true
   }
 
   // ==========================================================================
-  // CompileCacheContext.Disabled tests
+  // RemoteCacheContext.Disabled tests
   // ==========================================================================
 
   test("Disabled cache context: isEnabled false, wasHit false, tryPull/tryPush are no-ops") {
     val project = projectName("a")
-    val ctx = CompileCacheContext.Disabled
+    val ctx = RemoteCacheContext.Disabled
 
     ctx.isEnabled shouldBe false
     ctx.wasHit(project).unsafeRunSync() shouldBe false
@@ -391,7 +392,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("EventSink.noop accepts all events without throwing") {
-    val sink = CompileCacheContext.EventSink.noop
+    val sink = RemoteCacheContext.EventSink.noop
     val project = projectName("a")
     sink.pullStarted(project, 0L)
     sink.pullFinished(project, BleepBspProtocol.Event.CachePullStatus.Hit, 10L, 1024L, 0L)
@@ -405,7 +406,7 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
     def append(s: String): Unit =
       recorded.updateAndGet(list => list :+ s): Unit
 
-    val sink = new CompileCacheContext.EventSink {
+    val sink = new RemoteCacheContext.EventSink {
       def pullStarted(project: CrossProjectName, timestamp: Long): Unit =
         append(s"pull-started:${project.value}")
       def pullFinished(
@@ -440,5 +441,210 @@ class RemoteCacheDagIntegrationTest extends AnyFunSuite with Matchers {
       "push-started:a",
       "push-finished:a:AlreadyCached"
     )
+  }
+
+  // ==========================================================================
+  // Cancellation tests (RemoteCacheContext.handlers)
+  // ==========================================================================
+
+  /** A cache context whose pull/push use `IO.never`, so we can reliably race cancellation against them. */
+  private class HangingCache extends RemoteCacheContext {
+    def isEnabled: Boolean = true
+    def tryPull(project: CrossProjectName): IO[Unit] = IO.never
+    def tryPush(project: CrossProjectName): IO[Unit] = IO.never
+    def wasHit(project: CrossProjectName): IO[Boolean] = IO.pure(false)
+  }
+
+  test("handlers: kill signal set BEFORE pull starts → pull reports Killed immediately") {
+    val (pull, _) = RemoteCacheContext.handlers(new HangingCache)
+    val project = projectName("a")
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      _ <- kill.complete(KillReason.UserRequest)
+      r <- pull(CachePullTask(project, Set.empty), kill)
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Killed(KillReason.UserRequest)
+  }
+
+  test("handlers: kill signal fired DURING pull → pull reports Killed (race wins)") {
+    val (pull, _) = RemoteCacheContext.handlers(new HangingCache)
+    val project = projectName("a")
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      fib <- pull(CachePullTask(project, Set.empty), kill).start
+      _ <- IO.sleep(scala.concurrent.duration.DurationInt(30).millis)
+      _ <- kill.complete(KillReason.UserRequest)
+      r <- fib.joinWithNever
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Killed(KillReason.UserRequest)
+  }
+
+  test("handlers: kill signal fired DURING push → push reports Killed") {
+    val (_, push) = RemoteCacheContext.handlers(new HangingCache)
+    val project = projectName("a")
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      fib <- push(CachePushTask(project), kill).start
+      _ <- IO.sleep(scala.concurrent.duration.DurationInt(30).millis)
+      _ <- kill.complete(KillReason.UserRequest)
+      r <- fib.joinWithNever
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Killed(KillReason.UserRequest)
+  }
+
+  test("executor: kill during pull → compile does not run (pull and downstream Killed)") {
+    val project = projectName("a")
+    val dag = TaskDag.buildCompileDag(Set(project), Map.empty, withCache = true)
+
+    val compileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
+    val (pullHandler, pushHandler) = RemoteCacheContext.handlers(new HangingCache)
+
+    val executor = TaskDag.executor(
+      compileHandler = (_, _) => IO(compileCalled.set(true)).as(TaskResult.Success),
+      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
+      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
+      testHandler = (_, _) => IO.pure(TaskResult.Success),
+      cachePullHandler = pullHandler,
+      cachePushHandler = pushHandler
+    )
+
+    val finalDag = (for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Deferred[IO, KillReason]
+      // Fire kill shortly after the DAG starts — the pull is hanging, so it'll race.
+      _ <- (IO.sleep(scala.concurrent.duration.DurationInt(50).millis) >> killSignal.complete(KillReason.UserRequest)).start
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
+    } yield d).unsafeRunSync()
+
+    // Compile must not have run — the executor marks the whole subtree as Killed
+    // once the kill signal fires (see TaskDag executor's "kill remaining" branch).
+    compileCalled.get() shouldBe false
+    finalDag.killed should contain(TaskId.CachePull(project))
+    finalDag.killed should contain(TaskId.Compile(project))
+    finalDag.killed should contain(TaskId.CachePush(project))
+  }
+
+  // ==========================================================================
+  // Pull/push failure tests (RemoteCacheContext.handlers)
+  // ==========================================================================
+
+  /** A cache context whose pull/push raise an exception. */
+  private class FailingCache extends RemoteCacheContext {
+    def isEnabled: Boolean = true
+    def tryPull(project: CrossProjectName): IO[Unit] =
+      IO.raiseError(new java.io.IOException(s"network down for ${project.value}"))
+    def tryPush(project: CrossProjectName): IO[Unit] =
+      IO.raiseError(new java.io.IOException(s"upload failed for ${project.value}"))
+    def wasHit(project: CrossProjectName): IO[Boolean] = IO.pure(false)
+  }
+
+  test("handlers: pull raising an exception is absorbed into Success (best-effort)") {
+    val (pull, _) = RemoteCacheContext.handlers(new FailingCache)
+    val project = projectName("a")
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      r <- pull(CachePullTask(project, Set.empty), kill)
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Success
+  }
+
+  test("handlers: push raising an exception is absorbed into Success (best-effort)") {
+    val (_, push) = RemoteCacheContext.handlers(new FailingCache)
+    val project = projectName("a")
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      r <- push(CachePushTask(project), kill)
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Success
+  }
+
+  test("executor: failing pull does NOT prevent compile from running") {
+    val project = projectName("a")
+    val dag = TaskDag.buildCompileDag(Set(project), Map.empty, withCache = true)
+
+    val compileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
+    val (pullHandler, pushHandler) = RemoteCacheContext.handlers(new FailingCache)
+
+    val executor = TaskDag.executor(
+      compileHandler = (_, _) => IO(compileCalled.set(true)).as(TaskResult.Success),
+      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
+      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
+      testHandler = (_, _) => IO.pure(TaskResult.Success),
+      cachePullHandler = pullHandler,
+      cachePushHandler = pushHandler
+    )
+
+    val finalDag = (for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
+    } yield d).unsafeRunSync()
+
+    // Pull was "absorbed" into Success so compile ran.
+    compileCalled.get() shouldBe true
+    finalDag.completed should contain(TaskId.CachePull(project))
+    finalDag.completed should contain(TaskId.Compile(project))
+    // And push fires despite its own error being absorbed.
+    finalDag.completed should contain(TaskId.CachePush(project))
+  }
+
+  test("executor: pull reporting Failure via raw handler propagates — compile becomes Skipped") {
+    // This documents the behavior WITHOUT RemoteCacheContext.handlers — a handler that
+    // reports Failure directly (bypassing best-effort absorption) WILL skip the compile.
+    // The production path uses RemoteCacheContext.handlers which absorbs errors, so this
+    // is only for handlers that opt out of best-effort semantics.
+    val project = projectName("a")
+    val dag = TaskDag.buildCompileDag(Set(project), Map.empty, withCache = true)
+
+    val compileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
+    val executor = TaskDag.executor(
+      compileHandler = (_, _) => IO(compileCalled.set(true)).as(TaskResult.Success),
+      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
+      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
+      testHandler = (_, _) => IO.pure(TaskResult.Success),
+      cachePullHandler = (_, _) => IO.pure(TaskResult.Failure("network error", Nil)),
+      cachePushHandler = (_, _) => IO.pure(TaskResult.Success)
+    )
+
+    val finalDag = (for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
+    } yield d).unsafeRunSync()
+
+    compileCalled.get() shouldBe false
+    finalDag.failed should contain(TaskId.CachePull(project))
+    finalDag.skipped should contain(TaskId.Compile(project))
+  }
+
+  test("handlers: simulated S3 HttpClient exception is absorbed (end-to-end-ish scenario)") {
+    // Stand in for the real failure mode: an S3 HTTP call inside Enabled.tryPull
+    // raising a transport exception that escapes RemoteCache.tryPull's NonFatal catch
+    // (e.g. OOM, interrupt). The outer handler must still absorb it.
+    val throwsTransport = new RemoteCacheContext {
+      def isEnabled: Boolean = true
+      def tryPull(project: CrossProjectName): IO[Unit] =
+        IO.blocking(throw new java.net.SocketTimeoutException("connect timed out"))
+      def tryPush(project: CrossProjectName): IO[Unit] = IO.unit
+      def wasHit(project: CrossProjectName): IO[Boolean] = IO.pure(false)
+    }
+    val (pull, _) = RemoteCacheContext.handlers(throwsTransport)
+
+    val result = (for {
+      kill <- Deferred[IO, KillReason]
+      r <- pull(CachePullTask(projectName("a"), Set.empty), kill)
+    } yield r).unsafeRunSync()
+
+    result shouldBe TaskResult.Success
   }
 }

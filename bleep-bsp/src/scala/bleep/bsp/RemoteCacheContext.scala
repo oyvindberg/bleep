@@ -1,10 +1,12 @@
 package bleep.bsp
 
-import bleep.commands.RemoteCache
-import bleep.{model, ProjectDigest, S3Client, Started}
+import bleep.bsp.Outcome.KillReason
+import bleep.bsp.TaskDag.{CachePullTask, CachePushTask, TaskResult}
 import bleep.bsp.protocol.BleepBspProtocol
+import bleep.commands.RemoteCache
 import bleep.model.CrossProjectName
-import cats.effect.IO
+import bleep.{model, ProjectDigest, S3Client, Started}
+import cats.effect.{Deferred, IO}
 import ryddig.Logger
 
 import java.util.concurrent.atomic.AtomicReference
@@ -19,7 +21,7 @@ import scala.collection.immutable.SortedMap
   * cache tasks at all in that case — `isEnabled` controls whether the DAG builder adds them.
   */
 /** Implementations may be provided outside this file — in particular, tests supply fakes that don't talk to S3. */
-trait CompileCacheContext {
+trait RemoteCacheContext {
 
   /** Whether this build cycle uses the remote cache. When false, no cache tasks appear in the DAG. */
   def isEnabled: Boolean
@@ -36,7 +38,7 @@ trait CompileCacheContext {
   def wasHit(project: CrossProjectName): IO[Boolean]
 }
 
-object CompileCacheContext {
+object RemoteCacheContext {
 
   /** Emitter for cache status events — the handler plumbs this to the BSP notification channel. */
   trait EventSink {
@@ -55,7 +57,7 @@ object CompileCacheContext {
     }
   }
 
-  object Disabled extends CompileCacheContext {
+  object Disabled extends RemoteCacheContext {
     def isEnabled: Boolean = false
     def tryPull(project: CrossProjectName): IO[Unit] = IO.unit
     def tryPush(project: CrossProjectName): IO[Unit] = IO.unit
@@ -70,7 +72,7 @@ object CompileCacheContext {
       hits: AtomicReference[Set[CrossProjectName]],
       logger: Logger,
       eventSink: EventSink
-  ) extends CompileCacheContext {
+  ) extends RemoteCacheContext {
 
     def isEnabled: Boolean = true
 
@@ -132,11 +134,51 @@ object CompileCacheContext {
       IO(hits.get().contains(project))
   }
 
+  /** Build DAG-executor handlers for the cache pull and push tasks.
+    *
+    * Both handlers:
+    *   - Honour the task kill signal by racing the IO against `killSignal.get`. If kill wins, report `Killed`.
+    *   - Absorb unexpected exceptions from `tryPull`/`tryPush` and report `Success` — the remote cache is best-effort and must never fail the build.
+    *     (`RemoteCacheContext.Enabled` already catches `NonFatal` inside `RemoteCache.tryPull/Push`; this outer guard defends against any exception that
+    *     slipped past it, e.g. from `IO.blocking` shutdown races.)
+    */
+  def handlers(
+      cacheContext: RemoteCacheContext
+  ): (
+      (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      (CachePushTask, Deferred[IO, KillReason]) => IO[TaskResult]
+  ) = {
+    def raceWithKill(
+        killSignal: Deferred[IO, KillReason],
+        work: IO[Unit]
+    ): IO[TaskResult] = {
+      val waitForKill = killSignal.get.map[TaskResult](TaskResult.Killed.apply)
+      val absorbed = work.handleError(_ => ()).as[TaskResult](TaskResult.Success)
+      IO.race(absorbed, waitForKill).map(_.merge)
+    }
+
+    val pullHandler: (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult] =
+      (task, killSignal) =>
+        killSignal.tryGet.flatMap {
+          case Some(reason) => IO.pure(TaskResult.Killed(reason))
+          case None         => raceWithKill(killSignal, cacheContext.tryPull(task.project))
+        }
+
+    val pushHandler: (CachePushTask, Deferred[IO, KillReason]) => IO[TaskResult] =
+      (task, killSignal) =>
+        killSignal.tryGet.flatMap {
+          case Some(reason) => IO.pure(TaskResult.Killed(reason))
+          case None         => raceWithKill(killSignal, cacheContext.tryPush(task.project))
+        }
+
+    (pullHandler, pushHandler)
+  }
+
   /** Build a cache context for a compile/test cycle. Returns `Disabled` if cache is unavailable (no config, no credentials, or user opted out).
     *
     * Performs the `ProjectDigest.computeAll` walk synchronously — this runs once at the top of `handleCompile`/`handleTest` before the DAG starts executing.
     */
-  def create(started: Started, noCache: Boolean, eventSink: EventSink): CompileCacheContext =
+  def create(started: Started, noCache: Boolean, eventSink: EventSink): RemoteCacheContext =
     if (noCache) Disabled
     else
       RemoteCache.configOpt(started) match {
