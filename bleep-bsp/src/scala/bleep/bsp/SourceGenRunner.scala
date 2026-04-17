@@ -316,30 +316,42 @@ object SourceGenRunner {
     Files.deleteIfExists(path): Unit
   }
 
-  /** Run a single sourcegen script, guarded by a per-script lock.
+  /** Run a single sourcegen script as a discrete step (caller provides the script project + its deps already compiled).
     *
-    * If another concurrent operation is already running this script, waits for it to complete, then re-checks timestamps. If outputs are now fresh, skips the
-    * run entirely.
+    * Timestamp-based short-circuit: if all target projects are already up-to-date relative to script inputs, returns `None` without forking.
+    *
+    * Guarded by a per-script semaphore so two concurrent DAG executions that happen to share a script don't fork it twice. When the second waiter gets the
+    * semaphore it re-checks timestamps — if the first caller already produced fresh outputs, the second skips.
+    *
+    * Returns `None` on success, `Some(error)` on failure. Never throws.
     */
+  def runOne(
+      started: Started,
+      script: ScriptDef.Main,
+      forProjects: Set[CrossProjectName],
+      killSignal: Deferred[IO, KillReason],
+      listener: SourceGenListener
+  ): IO[Option[String]] =
+    getScriptSemaphore(script.main).flatMap { sem =>
+      sem.permit.use { _ =>
+        val stillNeeded = projectsNeedingRegeneration(started, script, forProjects)
+        if (stillNeeded.isEmpty) {
+          listener.onLog(s"Sourcegen ${script.main} already up to date", false)
+          IO.pure(None)
+        } else {
+          runSingleScriptLocked(started, ScriptToRun(script, stillNeeded), killSignal, listener)
+        }
+      }
+    }
+
+  /** Legacy per-script entry point (kept for `runScripts` callers). */
   private def runSingleScript(
       started: Started,
       scriptToRun: ScriptToRun,
       killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] =
-    getScriptSemaphore(scriptToRun.script.main).flatMap { sem =>
-      sem.permit.use { _ =>
-        // Re-check timestamps under semaphore — a concurrent run may have already produced fresh outputs
-        val stillNeeded = projectsNeedingRegeneration(started, scriptToRun.script, scriptToRun.forProjects)
-        if (stillNeeded.isEmpty) {
-          listener.onLog(s"Sourcegen ${scriptToRun.script.main} already up to date (concurrent run completed)", false)
-          IO.pure(None)
-        } else {
-          val updatedScriptToRun = ScriptToRun(scriptToRun.script, stillNeeded)
-          runSingleScriptLocked(started, updatedScriptToRun, killSignal, listener)
-        }
-      }
-    }
+    runOne(started, scriptToRun.script, scriptToRun.forProjects, killSignal, listener)
 
   /** Run a single sourcegen script by forking a separate JVM. Caller must hold the script lock.
     *

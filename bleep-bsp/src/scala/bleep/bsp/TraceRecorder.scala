@@ -35,6 +35,7 @@ object TraceCategory {
   case object Link extends TraceCategory { val value = "link" }
   case object Discover extends TraceCategory { val value = "discover" }
   case object Test extends TraceCategory { val value = "test" }
+  case object Sourcegen extends TraceCategory { val value = "sourcegen" }
 }
 
 /** Records execution traces in Chrome Trace Event Format.

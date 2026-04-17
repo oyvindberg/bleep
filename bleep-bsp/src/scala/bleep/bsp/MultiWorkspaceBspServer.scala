@@ -1115,80 +1115,60 @@ class MultiWorkspaceBspServer(
     )
   }
 
-  /** Run sourcegen scripts for the given projects if any have them configured. Returns Right(summary message) on success or Left(error message) on failure.
+  /** Build the sourcegen plan for a set of in-scope projects.
+    *
+    * Walks the build model to discover every sourcegen script declared by any project in scope, and for each script collects its script-project plus that
+    * script project's transitive compile deps. Returns `SourcegenPlan.empty` when no scripts are declared.
     */
-  private def runSourcegenIfNeeded(
-      started: Started,
-      projects: Set[CrossProjectName],
-      originId: Option[String],
-      maxParallelism: Int,
-      cancellation: CancellationToken
-  ): Either[String, Option[String]] = {
-    val sourcegenScripts = SourceGenRunner.findScripts(started, projects)
-    if (sourcegenScripts.isEmpty) return Right(None)
-
-    debugLog(s"Found ${sourcegenScripts.size} sourcegen scripts")
-
-    val compileScriptProjects: Set[CrossProjectName] => IO[Boolean] = { scriptProjects =>
-      val scriptDag = BleepBuildConverter.toProjectDag(started, Some(scriptProjects))
-      val scriptDiagnostics = new DiagnosticListener {
-        def onDiagnostic(error: CompilerError): Unit =
-          debugLog(s"Sourcegen compile: ${error.message}")
-      }
-      ParallelProjectCompiler
-        .build(
-          dag = scriptDag,
-          parallelism = maxParallelism,
-          diagnosticListener = scriptDiagnostics,
-          cancellationToken = cancellation,
-          progressListener = ParallelProjectCompiler.BuildProgressListener.noop
-        )
-        .map(_.isSuccess)
+  private def buildSourcegenPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.SourcegenPlan = {
+    val perProject: Map[CrossProjectName, Set[bleep.model.ScriptDef.Main]] =
+      projects.iterator.flatMap { projectName =>
+        started.build.explodedProjects.get(projectName).toList.flatMap { project =>
+          val scripts: Set[bleep.model.ScriptDef.Main] =
+            project.sourcegen.values.iterator.collect { case s: bleep.model.ScriptDef.Main => s }.toSet
+          if (scripts.isEmpty) None else Some(projectName -> scripts)
+        }
+      }.toMap
+    if (perProject.isEmpty) TaskDag.SourcegenPlan.empty
+    else {
+      val allScripts = perProject.values.flatten.toSet
+      val scriptProjectDeps: Map[bleep.model.ScriptDef.Main, Set[CrossProjectName]] =
+        allScripts.iterator.map { script =>
+          val transitive = started.build.transitiveDependenciesFor(script.project).keySet + script.project
+          script -> transitive
+        }.toMap
+      TaskDag.SourcegenPlan(perProject, scriptProjectDeps)
     }
+  }
 
-    val sourcegenKillSignal = Deferred.unsafe[IO, KillReason]
-
-    val sourcegenListener = new SourceGenRunner.SourceGenListener {
-      def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit = {
+  /** Sourcegen handler factory. Runs a single script via `SourceGenRunner.runOne`, emits BSP progress/log events, and translates the result to a `TaskResult`.
+    * A failed sourcegen returns `TaskResult.Failure` → the DAG skips downstream `CompileTask`s.
+    */
+  private def makeSourcegenHandler(
+      started: Started,
+      originId: Option[String]
+  ): (TaskDag.SourcegenTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = {
+    val listener = new SourceGenRunner.SourceGenListener {
+      def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
         BspMetrics.recordSourcegenStart(scriptMain)
-        sendTestEvent(
-          originId,
-          s"sourcegen-$scriptMain",
-          BleepBspProtocol.Event.SourcegenStarted(scriptMain, forProjects.map(s => CrossProjectName.fromString(s).get), System.currentTimeMillis())
-        )
-      }
 
-      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit = {
+      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit =
         BspMetrics.recordSourcegenEnd(scriptMain, durationMs, success)
-        sendTestEvent(
-          originId,
-          s"sourcegen-$scriptMain",
-          BleepBspProtocol.Event.SourcegenFinished(scriptMain, success, durationMs, error, System.currentTimeMillis())
-        )
-      }
 
       def onLog(message: String, isError: Boolean): Unit =
-        if (isError) bspError(message)
-        else bspInfo(message)
+        if (isError) bspError(message) else bspInfo(message)
     }
-
-    val sourcegenResult = SourceGenRunner
-      .runScripts(
-        started = started,
-        scripts = sourcegenScripts,
-        compileProjects = compileScriptProjects,
-        killSignal = sourcegenKillSignal,
-        listener = sourcegenListener
-      )
-      .unsafeRunSync()
-
-    if (!sourcegenResult.isSuccess) {
-      Left(s"Sourcegen failed: ${sourcegenResult.failures.mkString("; ")}")
-    } else {
-      val msg = s"Sourcegen complete: ${sourcegenResult.scriptsRun} run, ${sourcegenResult.scriptsSkipped} skipped"
-      bspInfo(msg)
-      Right(Some(msg))
-    }
+    (sgt, killSignal) =>
+      killSignal.tryGet.flatMap {
+        case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
+        case None         =>
+          SourceGenRunner
+            .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
+            .map {
+              case None        => TaskDag.TaskResult.Success
+              case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
+            }
+      }
   }
 
   private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
@@ -1224,18 +1204,9 @@ class MultiWorkspaceBspServer(
       val allProjects = BleepBuildConverter.transitiveDependencies(projectsToCompile, started)
       debugLog(s"Compiling ${allProjects.size} projects (including dependencies)")
 
-      // Run sourcegen scripts if any projects have them
-      runSourcegenIfNeeded(started, allProjects, params.originId, maxParallelism, cancellation) match {
-        case Left(err) =>
-          bspError(err)
-          return CompileResult(
-            originId = params.originId,
-            statusCode = StatusCode.Error,
-            dataKind = None,
-            data = None
-          )
-        case Right(_) => ()
-      }
+      // Sourcegen plan — each target project's scripts, plus script-project dep closures.
+      // Tasks are added to the DAG below; failures propagate via normal dep semantics.
+      val sourcegenPlan = buildSourcegenPlan(started, allProjects)
 
       // Get all project dependencies (for TaskDag)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
@@ -1378,13 +1349,14 @@ class MultiWorkspaceBspServer(
       } else {
         BleepBspProtocol.BuildMode.Compile
       }
-      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode)
-      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode)")
+      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode, sourcegenPlan)
+      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size})")
 
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
       val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+      val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1406,7 +1378,7 @@ class MultiWorkspaceBspServer(
         (_, _) => IO.pure(TaskDag.TaskResult.Success)
 
       // Create executor
-      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
 
       // Create trace recorder (noop if not enabled)
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
@@ -1614,19 +1586,9 @@ class MultiWorkspaceBspServer(
       val serverConfig = freshConfig.bspServerConfigOrDefault
       val maxParallelism = serverConfig.effectiveParallelism
 
-      // Run sourcegen scripts if any test projects (or their dependencies) have them
+      // Sourcegen plan — scripts for test projects and their transitive deps.
       val allTestAndDeps = BleepBuildConverter.transitiveDependencies(testProjects, started)
-      runSourcegenIfNeeded(started, allTestAndDeps, params.originId, maxParallelism, cancellation) match {
-        case Left(err) =>
-          bspError(err)
-          return TestResult(
-            originId = params.originId,
-            statusCode = StatusCode.Error,
-            dataKind = None,
-            data = None
-          )
-        case Right(_) => ()
-      }
+      val sourcegenPlan = buildSourcegenPlan(started, allTestAndDeps)
 
       // Get all project dependencies (for compile tasks)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
@@ -1685,9 +1647,11 @@ class MultiWorkspaceBspServer(
         }
       }.toMap
 
-      // Build the unified DAG with platforms
-      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms)
-      debugLog(s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}")
+      // Build the unified DAG with platforms (includes sourcegen tasks if any)
+      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms, sourcegenPlan)
+      debugLog(
+        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}"
+      )
 
       // Parse test options from params
       val testOptions = (params.dataKind, params.data) match {
@@ -1742,6 +1706,7 @@ class MultiWorkspaceBspServer(
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+          val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -1814,8 +1779,8 @@ class MultiWorkspaceBspServer(
               LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
             }
 
-          // Create executor with link support
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+          // Create executor with link + sourcegen support
+          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
 
           // Run event consumer in background (auto-cancels when scope exits)
           // This ensures the fiber is cleaned up even if the request is cancelled
@@ -2735,10 +2700,11 @@ class MultiWorkspaceBspServer(
 
   /** Get trace category and name for a task. */
   private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-    case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
-    case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
-    case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
-    case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case ct: TaskDag.CompileTask    => (TraceCategory.Compile, ct.project.value)
+    case lt: TaskDag.LinkTask       => (TraceCategory.Link, lt.project.value)
+    case dt: TaskDag.DiscoverTask   => (TraceCategory.Discover, dt.project.value)
+    case tt: TaskDag.TestSuiteTask  => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case sgt: TaskDag.SourcegenTask => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2808,6 +2774,20 @@ class MultiWorkspaceBspServer(
     case _ => IO.unit
   }
 
+  /** Process sourcegen-specific DagEvents shared between consumeEvents and consumeCompileEvents. */
+  private def processSourcegenEvent(
+      event: TaskDag.DagEvent,
+      originId: Option[String]
+  ): IO[Unit] = event match {
+    case TaskDag.DagEvent.SourcegenStarted(_, scriptMain, forProjects, timestamp) =>
+      val protocolEvent = BleepBspProtocol.Event.SourcegenStarted(scriptMain, forProjects, timestamp)
+      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent))
+    case TaskDag.DagEvent.SourcegenFinished(_, scriptMain, success, durationMs, error, timestamp) =>
+      val protocolEvent = BleepBspProtocol.Event.SourcegenFinished(scriptMain, success, durationMs, error, timestamp)
+      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent))
+    case _ => IO.unit
+  }
+
   /** Wrap event processing with dead-client detection and kill signal propagation. */
   private def withDeadClientDetection(
       killSignal: Deferred[IO, Outcome.KillReason],
@@ -2857,6 +2837,8 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.DiscoveryStarted(dt.project, timestamp))
               case tt: TaskDag.TestSuiteTask =>
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
+              case _: TaskDag.SourcegenTask =>
+                None // Sourcegen is reported via DagEvent.SourcegenStarted/Finished, not TaskStarted/Finished
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -2902,6 +2884,9 @@ class MultiWorkspaceBspServer(
                   case TaskDag.TaskResult.TimedOut =>
                     Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project, tt.suiteName, durationMs, None, timestamp))
                 }
+
+              case _: TaskDag.SourcegenTask =>
+                None // Sourcegen is reported via DagEvent.SourcegenFinished, not TaskFinished
             }
             val failureRefUpdate = (task, result) match {
               case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
@@ -2950,9 +2935,11 @@ class MultiWorkspaceBspServer(
               totalIgnoredRef.update(_ + ignored) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
-          case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkProgress => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkFinished => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
+          case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
+          case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -3000,9 +2987,11 @@ class MultiWorkspaceBspServer(
             case _ => IO.unit
           }
 
-        case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkProgress => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkFinished => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
+        case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
+        case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
 
         case _ => IO.unit
       }
