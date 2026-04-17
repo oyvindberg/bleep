@@ -64,18 +64,17 @@ object TaskDag {
 
   /** Compile a project.
     *
-    * When `dependsOnCachePull = true`, the compile waits for its own `CachePullTask` to complete first so that — on a cache hit — the classes and Zinc analysis
-    * are already on disk and the compile handler can short-circuit to Success.
+    * `cachePullDep` is `Some` when remote-cache is enabled for this build — the compile task then depends on its own `CachePullTask`, so on a cache hit the
+    * classes and Zinc analysis are already on disk and the compile handler can short-circuit to Success.
     */
   case class CompileTask(
       project: CrossProjectName,
       projectDependencies: Set[CrossProjectName],
-      dependsOnCachePull: Boolean
+      cachePullDep: Option[TaskId.CachePull]
   ) extends Task {
     val id: TaskId = TaskId.Compile(project)
     val dependencies: Set[TaskId] =
-      projectDependencies.map(p => TaskId.Compile(p): TaskId) ++
-        (if (dependsOnCachePull) Set[TaskId](TaskId.CachePull(project)) else Set.empty[TaskId])
+      projectDependencies.map(p => TaskId.Compile(p): TaskId) ++ cachePullDep.toSet
   }
 
   /** Fetch pre-compiled classes + Zinc analysis from the remote cache.
@@ -471,7 +470,7 @@ object TaskDag {
     // Create compile tasks only
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps, dependsOnCachePull = withCache)
+      CompileTask(project, deps, cachePullDep = if (withCache) Some(TaskId.CachePull(project)) else None)
     }
 
     Dag.fromTasks(compileTasks.toSeq ++ cacheTasks(allProjects, withCache))
@@ -494,7 +493,7 @@ object TaskDag {
     // Create compile tasks for all projects (dependencies + test projects)
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps, dependsOnCachePull = withCache)
+      CompileTask(project, deps, cachePullDep = if (withCache) Some(TaskId.CachePull(project)) else None)
     }
 
     // Create link tasks for non-JVM test projects
@@ -543,7 +542,7 @@ object TaskDag {
     // Create compile tasks
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps, dependsOnCachePull = withCache)
+      CompileTask(project, deps, cachePullDep = if (withCache) Some(TaskId.CachePull(project)) else None)
     }
 
     // Create link tasks for target projects
