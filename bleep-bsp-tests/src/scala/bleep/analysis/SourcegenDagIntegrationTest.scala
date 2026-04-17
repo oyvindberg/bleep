@@ -131,6 +131,33 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     compileTasks(b).dependencies should contain(TaskId.Sourcegen(s))
   }
 
+  test("mixed DAG: project with sourcegen + project without — only the one with sourcegen gets a SourcegenTask dep") {
+    val withSg = projectName("with-sg")
+    val withoutSg = projectName("without-sg")
+    val scriptsProject = projectName("scripts")
+    val s = script(scriptsProject, "gen.Tool")
+
+    val plan = SourcegenPlan(
+      perProject = Map(withSg -> Set(s)), // withoutSg intentionally absent
+      scriptProjectDeps = Map(s -> Set(scriptsProject))
+    )
+
+    val dag = TaskDag.buildCompileDag(
+      projects = Set(withSg, withoutSg),
+      allProjectDeps = Map.empty,
+      sourcegen = plan
+    )
+
+    val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
+    sgTasks should have size 1
+    sgTasks.head.forProjects shouldBe Set(withSg)
+
+    val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
+    compileTasks(withSg).dependencies should contain(TaskId.Sourcegen(s))
+    // The other project has NO sourcegen dep — its CompileTask looks exactly like a no-sourcegen DAG.
+    compileTasks(withoutSg).dependencies shouldBe empty
+  }
+
   test("one target with multiple scripts: one SourcegenTask per unique script") {
     val target = projectName("target")
     val scriptsProject = projectName("scripts")
