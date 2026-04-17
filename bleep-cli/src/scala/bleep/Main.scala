@@ -731,13 +731,29 @@ object Main {
             )
           ).foldK
         ),
-        Opts.subcommand("remote-cache", "configure remote build cache credentials")(
+        Opts.subcommand("remote-cache", "configure remote build cache")(
           List(
             Opts.subcommand[BleepCommand]("setup", "interactive setup for S3 remote cache credentials")(
               Opts(commands.ConfigRemoteCacheSetup(logger, userPaths))
             ),
             Opts.subcommand[BleepCommand]("clear", "remove remote cache credentials from config")(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(remoteCacheCredentials = None)).map(_ => ()))
+            ),
+            Opts.subcommand[BleepCommand](
+              "request-timeout",
+              s"set per-request timeout for remote cache HTTP calls (HEAD/GET/PUT) in seconds (default: ${model.BspServerConfig.DefaultRemoteCacheRequestTimeoutSeconds})"
+            )(
+              Opts.argument[Int]("seconds").map { seconds => () =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(remoteCacheRequestTimeoutSeconds = Some(seconds)))).map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand](
+              "request-timeout-clear",
+              s"remove remote cache request timeout setting (use default: ${model.BspServerConfig.DefaultRemoteCacheRequestTimeoutSeconds}s)"
+            )(
+              Opts(() =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(remoteCacheRequestTimeoutSeconds = None))).map(_ => ())
+              )
             )
           ).foldK
         )

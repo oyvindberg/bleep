@@ -7,13 +7,17 @@ import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.{Duration, Instant, ZoneOffset}
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 /** Minimal S3 REST client using AWS Signature V4 and Java HttpClient. Zero external dependencies.
   *
   * Supports any S3-compatible service (AWS S3, MinIO, Cloudflare R2, etc.).
+  *
+  * Timeouts:
+  *   - Connect: 10s, fixed. Bounds DNS + TCP + TLS handshake.
+  *   - Request: `requestTimeoutSeconds`, configurable. Bounds the full send/receive lifetime.
   */
 class S3Client(
     logger: Logger,
@@ -21,9 +25,11 @@ class S3Client(
     region: String,
     endpoint: URI,
     accessKeyId: String,
-    secretAccessKey: String
+    secretAccessKey: String,
+    requestTimeoutSeconds: Int
 ) {
-  private val httpClient: HttpClient = HttpClient.newBuilder().build()
+  private val httpClient: HttpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(S3Client.ConnectTimeoutSeconds)).build()
+  private val requestTimeout: Duration = Duration.ofSeconds(requestTimeoutSeconds.toLong)
   private val service = "s3"
 
   /** Check if an object exists. */
@@ -112,6 +118,7 @@ class S3Client(
     val builder = HttpRequest
       .newBuilder(uri)
       .method(method, if (payload.isEmpty && method != "PUT") HttpRequest.BodyPublishers.noBody() else HttpRequest.BodyPublishers.ofByteArray(payload))
+      .timeout(requestTimeout)
       .header("Authorization", authorization)
       .header("x-amz-content-sha256", payloadHash)
       .header("x-amz-date", amzDate)
@@ -133,6 +140,9 @@ class S3Client(
 
 object S3Client {
 
+  /** Fixed TCP+TLS connect timeout. */
+  val ConnectTimeoutSeconds: Int = 10
+
   /** Create an S3Client from a remote cache config and credentials.
     *
     * Parses `s3://bucket/prefix` URIs. For non-S3 URIs, uses the URI directly as the endpoint.
@@ -140,7 +150,8 @@ object S3Client {
   def fromConfig(
       logger: Logger,
       cacheConfig: model.RemoteCacheConfig,
-      credentials: model.RemoteCacheCredentials
+      credentials: model.RemoteCacheCredentials,
+      requestTimeoutSeconds: Int
   ): S3Client = {
     val uri = cacheConfig.uri
     val region = cacheConfig.region.getOrElse("us-east-1")
@@ -148,7 +159,7 @@ object S3Client {
     if (uri.getScheme == "s3") {
       val bucket = uri.getHost
       val endpoint = URI.create(s"https://s3.$region.amazonaws.com")
-      new S3Client(logger, bucket, region, endpoint, credentials.accessKeyId, credentials.secretAccessKey)
+      new S3Client(logger, bucket, region, endpoint, credentials.accessKeyId, credentials.secretAccessKey, requestTimeoutSeconds)
     } else {
       // Non-S3 URI (e.g. MinIO, R2) — use URI as endpoint, extract bucket from first path segment
       val path = uri.getPath.stripPrefix("/")
@@ -161,7 +172,8 @@ object S3Client {
         region,
         URI.create(s"${uri.getScheme}://${uri.getHost}$portPart"),
         credentials.accessKeyId,
-        credentials.secretAccessKey
+        credentials.secretAccessKey,
+        requestTimeoutSeconds
       )
     }
   }

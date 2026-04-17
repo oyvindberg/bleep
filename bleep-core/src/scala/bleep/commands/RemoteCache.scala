@@ -56,7 +56,8 @@ object RemoteCache {
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml. Add:\n  remote-cache:\n    uri: s3://bucket/prefix\n    region: us-east-1"))
         case Some(config) =>
           val credentials = resolveCredentials(started)
-          val client = S3Client.fromConfig(started.logger, config, credentials)
+          val client =
+            S3Client.fromConfig(started.logger, config, credentials, started.config.bspServerConfigOrDefault.effectiveRemoteCacheRequestTimeoutSeconds)
           val prefix = S3Client.keyPrefix(config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
@@ -117,7 +118,8 @@ object RemoteCache {
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml"))
         case Some(config) =>
           val credentials = resolveCredentials(started)
-          val client = S3Client.fromConfig(started.logger, config, credentials)
+          val client =
+            S3Client.fromConfig(started.logger, config, credentials, started.config.bspServerConfigOrDefault.effectiveRemoteCacheRequestTimeoutSeconds)
           val prefix = S3Client.keyPrefix(config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)

@@ -42,7 +42,11 @@ case class BspServerConfig(
     /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory. When other compilations are running and heap exceeds this threshold, the
       * server delays starting new compilations until memory is freed. Default: 0.80
       */
-    heapPressureThreshold: Option[Double]
+    heapPressureThreshold: Option[Double],
+    /** Per-request timeout for remote-cache HTTP calls (HEAD/GET/PUT) in seconds. A failed pull fails the build — pass `--no-cache` to opt out when offline, or
+      * raise this setting if your connection is slow. Default: 30s.
+      */
+    remoteCacheRequestTimeoutSeconds: Option[Int]
 ) {
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
@@ -56,11 +60,15 @@ case class BspServerConfig(
 
   def effectiveHeapPressureThreshold: Double =
     heapPressureThreshold.getOrElse(BspServerConfig.DefaultHeapPressureThreshold)
+
+  def effectiveRemoteCacheRequestTimeoutSeconds: Int =
+    remoteCacheRequestTimeoutSeconds.getOrElse(BspServerConfig.DefaultRemoteCacheRequestTimeoutSeconds)
 }
 
 object BspServerConfig {
   val DefaultTestIdleTimeoutMinutes: Int = 2
   val DefaultHeapPressureThreshold: Double = 0.80
+  val DefaultRemoteCacheRequestTimeoutSeconds: Int = 30
 
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
@@ -68,7 +76,8 @@ object BspServerConfig {
     testIdleTimeoutMinutes = None,
     testRunnerMaxMemory = None,
     compileServerMaxMemory = None,
-    heapPressureThreshold = None
+    heapPressureThreshold = None,
+    remoteCacheRequestTimeoutSeconds = None
   )
 
   implicit val decoder: Decoder[BspServerConfig] = deriveDecoder

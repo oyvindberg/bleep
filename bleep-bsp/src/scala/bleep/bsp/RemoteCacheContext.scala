@@ -71,7 +71,8 @@ object RemoteCacheContext {
       digests: SortedMap[CrossProjectName, String],
       hits: AtomicReference[Set[CrossProjectName]],
       logger: Logger,
-      eventSink: EventSink
+      eventSink: EventSink,
+      requestTimeoutSeconds: Int
   ) extends RemoteCacheContext {
 
     def isEnabled: Boolean = true
@@ -96,7 +97,11 @@ object RemoteCacheContext {
                 eventSink.pullFinished(project, BleepBspProtocol.Event.CachePullStatus.Miss, end - start, 0L, end)
               case RemoteCache.PullOutcome.Error(reason) =>
                 eventSink.pullFinished(project, BleepBspProtocol.Event.CachePullStatus.Error(reason), end - start, 0L, end)
-                throw new BleepException.Text(s"Remote cache pull failed for ${project.value}: $reason. Pass --no-cache to opt out.")
+                throw new BleepException.Text(
+                  s"Remote cache pull failed for ${project.value}: $reason. " +
+                    s"Pass --no-cache to opt out, or increase the request timeout (currently ${requestTimeoutSeconds}s) with:\n" +
+                    s"  bleep config remote-cache request-timeout <seconds>"
+                )
             }
           }
       }
@@ -137,11 +142,12 @@ object RemoteCacheContext {
               started.logger.warn("remote-cache configured but no credentials available; disabling cache for this build")
               Disabled
             case Some(credentials) =>
-              val client = S3Client.fromConfig(started.logger, config, credentials)
+              val timeoutSeconds = started.config.bspServerConfigOrDefault.effectiveRemoteCacheRequestTimeoutSeconds
+              val client = S3Client.fromConfig(started.logger, config, credentials, timeoutSeconds)
               val prefix = S3Client.keyPrefix(config)
               val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
               val hits = new AtomicReference[Set[CrossProjectName]](Set.empty)
-              new Enabled(started, client, prefix, digests, hits, started.logger, eventSink)
+              new Enabled(started, client, prefix, digests, hits, started.logger, eventSink, timeoutSeconds)
           }
       }
 }
