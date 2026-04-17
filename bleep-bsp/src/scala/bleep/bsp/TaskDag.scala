@@ -79,13 +79,19 @@ object TaskDag {
 
   /** Fetch pre-compiled classes + Zinc analysis from the remote cache.
     *
-    * Optional task added only when remote-cache is enabled. Runs with no dependencies (can start immediately). A successful hit extracts the archive into
-    * `targetDir` and records the project in the executor's shared hit-set so the compile handler knows to skip. Misses and errors are also reported as Success
-    * — the build falls back to compilation.
+    * Optional task added only when remote-cache is enabled. Depends on the same upstream project compiles as the corresponding `CompileTask` — this keeps the
+    * pull *lazy*: it fires level-by-level through the dep DAG as upstream compiles (real or cache-hit) finish, rather than N parallel HEADs hammering the
+    * backend at t=0. Leaf projects still pull immediately since they have no upstream deps.
+    *
+    * A successful hit extracts the archive into `targetDir` and records the project in the executor's shared hit-set so the compile handler knows to skip.
+    * Misses and errors are reported as Success — the build falls back to compilation.
     */
-  case class CachePullTask(project: CrossProjectName) extends Task {
+  case class CachePullTask(
+      project: CrossProjectName,
+      projectDependencies: Set[CrossProjectName]
+  ) extends Task {
     val id: TaskId = TaskId.CachePull(project)
-    val dependencies: Set[TaskId] = Set.empty
+    val dependencies: Set[TaskId] = projectDependencies.map(p => TaskId.Compile(p): TaskId)
   }
 
   /** Upload successful compile output (classes + Zinc analysis) to the remote cache.
@@ -453,10 +459,22 @@ object TaskDag {
       buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false, withCache)
   }
 
-  /** Add cache-pull (before compile) and cache-push (after compile) tasks for every project in the set when `withCache` is true. */
-  private def cacheTasks(allProjects: Set[CrossProjectName], withCache: Boolean): Seq[Task] =
+  /** Add cache-pull (before compile) and cache-push (after compile) tasks for every project in the set when `withCache` is true.
+    *
+    * `CachePullTask` receives the same project-level upstream dependencies as its `CompileTask`, which keeps the pull lazy — it waits for upstream compiles
+    * before firing its own HEAD request.
+    */
+  private def cacheTasks(
+      allProjects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      withCache: Boolean
+  ): Seq[Task] =
     if (!withCache) Seq.empty
-    else allProjects.toSeq.flatMap(p => Seq[Task](CachePullTask(p), CachePushTask(p)))
+    else
+      allProjects.toSeq.flatMap { p =>
+        val deps = allProjectDeps.getOrElse(p, Set.empty).filter(allProjects.contains)
+        Seq[Task](CachePullTask(p, deps), CachePushTask(p))
+      }
 
   /** Build DAG for compile-only (no linking, no tests). */
   def buildCompileDag(
@@ -473,7 +491,7 @@ object TaskDag {
       CompileTask(project, deps, cachePullDep = if (withCache) Some(TaskId.CachePull(project)) else None)
     }
 
-    Dag.fromTasks(compileTasks.toSeq ++ cacheTasks(allProjects, withCache))
+    Dag.fromTasks(compileTasks.toSeq ++ cacheTasks(allProjects, allProjectDeps, withCache))
   }
 
   /** Build initial DAG for test execution.
@@ -510,7 +528,7 @@ object TaskDag {
       DiscoverTask(project, platforms.get(project))
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ cacheTasks(allProjects, withCache))
+    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ cacheTasks(allProjects, allProjectDeps, withCache))
   }
 
   /** Build initial DAG for test execution (JVM-only, no cache — for test harness). */
@@ -554,7 +572,7 @@ object TaskDag {
       }
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ cacheTasks(allProjects, withCache))
+    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ cacheTasks(allProjects, allProjectDeps, withCache))
   }
 
   /** Build DAG for linking (no cache — for test harness). */
