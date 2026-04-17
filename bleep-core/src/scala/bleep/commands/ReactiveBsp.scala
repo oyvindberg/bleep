@@ -855,12 +855,6 @@ class ReactiveBspClient(
       case PE.CachePullFinished(project, status, durationMs, bytesDownloaded, timestamp) =>
         Some(BuildEvent.CachePullFinished(project, status, durationMs, bytesDownloaded, timestamp))
 
-      case PE.CachePushStarted(project, timestamp) =>
-        Some(BuildEvent.CachePushStarted(project, timestamp))
-
-      case PE.CachePushFinished(project, status, durationMs, bytesUploaded, timestamp) =>
-        Some(BuildEvent.CachePushFinished(project, status, durationMs, bytesUploaded, timestamp))
-
       // Events not relevant for BuildDisplay
       case PE.TestRunFinished(_, _, _, _, _, _) => None
       case PE.DiscoveryStarted(_, _)            => None

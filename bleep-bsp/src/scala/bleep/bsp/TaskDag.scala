@@ -50,9 +50,6 @@ object TaskDag {
     case class CachePull(project: CrossProjectName) extends TaskId {
       val value: String = s"cache-pull:${project.value}"
     }
-    case class CachePush(project: CrossProjectName) extends TaskId {
-      val value: String = s"cache-push:${project.value}"
-    }
   }
 
   /** A task in the DAG */
@@ -83,8 +80,11 @@ object TaskDag {
     * pull *lazy*: it fires level-by-level through the dep DAG as upstream compiles (real or cache-hit) finish, rather than N parallel HEADs hammering the
     * backend at t=0. Leaf projects still pull immediately since they have no upstream deps.
     *
-    * A successful hit extracts the archive into `targetDir` and records the project in the executor's shared hit-set so the compile handler knows to skip.
-    * Misses and errors are reported as Success — the build falls back to compilation.
+    * Outcomes:
+    *   - Hit: archive extracted into `targetDir`, project recorded in hit-set, compile handler short-circuits to Success.
+    *   - Miss / AlreadyCompiled: pull reports Success, compile runs normally.
+    *   - Failure (network, auth, corrupted archive, etc.): pull reports Failure, compile is Skipped, build fails. No fallback — pass `--no-cache` to opt out
+    *     when offline.
     */
   case class CachePullTask(
       project: CrossProjectName,
@@ -92,16 +92,6 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.CachePull(project)
     val dependencies: Set[TaskId] = projectDependencies.map(p => TaskId.Compile(p): TaskId)
-  }
-
-  /** Upload successful compile output (classes + Zinc analysis) to the remote cache.
-    *
-    * Optional task added only when remote-cache is enabled. Depends on `CompileTask` for the same project; no downstream tasks depend on it, so it runs in
-    * parallel with downstream compiles/tests. Always reports Success — upload errors are surfaced via sink events, never as build failures.
-    */
-  case class CachePushTask(project: CrossProjectName) extends Task {
-    val id: TaskId = TaskId.CachePush(project)
-    val dependencies: Set[TaskId] = Set(TaskId.Compile(project))
   }
 
   /** Link a non-JVM project (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
@@ -459,10 +449,12 @@ object TaskDag {
       buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false, withCache)
   }
 
-  /** Add cache-pull (before compile) and cache-push (after compile) tasks for every project in the set when `withCache` is true.
+  /** Add cache-pull tasks (before compile) for every project in the set when `withCache` is true.
     *
     * `CachePullTask` receives the same project-level upstream dependencies as its `CompileTask`, which keeps the pull lazy — it waits for upstream compiles
     * before firing its own HEAD request.
+    *
+    * Push is NOT a DAG task — `bleep remote-cache push` is an explicit command run after a successful build.
     */
   private def cacheTasks(
       allProjects: Set[CrossProjectName],
@@ -471,9 +463,9 @@ object TaskDag {
   ): Seq[Task] =
     if (!withCache) Seq.empty
     else
-      allProjects.toSeq.flatMap { p =>
+      allProjects.toSeq.map { p =>
         val deps = allProjectDeps.getOrElse(p, Set.empty).filter(allProjects.contains)
-        Seq[Task](CachePullTask(p, deps), CachePushTask(p))
+        CachePullTask(p, deps): Task
       }
 
   /** Build DAG for compile-only (no linking, no tests). */
@@ -629,8 +621,8 @@ object TaskDag {
     ): IO[Dag]
   }
 
-  /** Default no-op cache handler — reports Success without doing anything. Used when the DAG has no CachePull/CachePush tasks. */
-  val noopCacheHandler: (Task, Deferred[IO, KillReason]) => IO[TaskResult] =
+  /** Default no-op cache handler — reports Success without doing anything. Used when the DAG has no CachePull tasks. */
+  val noopCachePullHandler: (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult] =
     (_, _) => IO.pure(TaskResult.Success)
 
   /** Create a DAG executor with task handlers */
@@ -643,8 +635,7 @@ object TaskDag {
     (_, _) => IO.pure((TaskResult.Success, LinkResult.NotApplicable)),
     discoverHandler,
     testHandler,
-    (t, k) => noopCacheHandler(t, k),
-    (t, k) => noopCacheHandler(t, k)
+    noopCachePullHandler
   )
 
   /** Backward compatibility: Create a DAG executor from handlers that don't use kill signal */
@@ -670,18 +661,16 @@ object TaskDag {
       linkHandler,
       discoverHandler,
       testHandler,
-      (t, k) => noopCacheHandler(t, k),
-      (t, k) => noopCacheHandler(t, k)
+      noopCachePullHandler
     )
 
-  /** Create a DAG executor with full task handler set (compile, link, discover, test, cache pull, cache push). */
+  /** Create a DAG executor with full task handler set (compile, link, discover, test, cache pull). */
   def executor(
       compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       linkHandler: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
       testHandler: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      cachePullHandler: (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      cachePushHandler: (CachePushTask, Deferred[IO, KillReason]) => IO[TaskResult]
+      cachePullHandler: (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult]
   ): DagExecutor = new DagExecutor {
 
     override def execute(
@@ -811,9 +800,6 @@ object TaskDag {
 
                   case cpt: CachePullTask =>
                     withRecovery(s"CachePull ${cpt.project.value}", taskKill)(cachePullHandler(cpt, taskKill))
-
-                  case cpt: CachePushTask =>
-                    withRecovery(s"CachePush ${cpt.project.value}", taskKill)(cachePushHandler(cpt, taskKill))
                 }
                 // Unregister this task's kill signal
                 _ <- taskKillSignals.update(_ - task.id)

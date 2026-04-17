@@ -47,9 +47,7 @@ case class BuildState(
     cacheHits: Int,
     cacheMisses: Int,
     cacheAlreadyCompiled: Int,
-    cachePushes: Int,
-    cachePullErrors: Int,
-    cachePushErrors: Int
+    cachePullErrors: Int
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
@@ -98,9 +96,7 @@ case class BuildState(
       cacheHits = cacheHits,
       cacheMisses = cacheMisses,
       cacheAlreadyCompiled = cacheAlreadyCompiled,
-      cachePushes = cachePushes,
-      cachePullErrors = cachePullErrors,
-      cachePushErrors = cachePushErrors
+      cachePullErrors = cachePullErrors
     )
   }
 }
@@ -145,9 +141,7 @@ object BuildState {
     cacheHits = 0,
     cacheMisses = 0,
     cacheAlreadyCompiled = 0,
-    cachePushes = 0,
-    cachePullErrors = 0,
-    cachePushErrors = 0
+    cachePullErrors = 0
   )
 }
 
@@ -473,16 +467,7 @@ object BuildStateReducer {
         case _: S.Error        => s.copy(cachePullErrors = s.cachePullErrors + 1)
       }
 
-    case BuildEvent.CachePushFinished(_, status, _, _, _) =>
-      import bleep.bsp.protocol.BleepBspProtocol.Event.CachePushStatus as S
-      val s = state.copy(cacheEnabled = true)
-      status match {
-        case S.Success       => s.copy(cachePushes = s.cachePushes + 1)
-        case S.AlreadyCached => s
-        case _: S.Error      => s.copy(cachePushErrors = s.cachePushErrors + 1)
-      }
-
-    case _: BuildEvent.CachePullStarted | _: BuildEvent.CachePushStarted =>
+    case _: BuildEvent.CachePullStarted =>
       state.copy(cacheEnabled = true)
   }
 }

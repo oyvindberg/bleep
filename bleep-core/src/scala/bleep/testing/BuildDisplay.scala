@@ -65,9 +65,7 @@ case class BuildSummary(
     cacheHits: Int,
     cacheMisses: Int,
     cacheAlreadyCompiled: Int,
-    cachePushes: Int,
-    cachePullErrors: Int,
-    cachePushErrors: Int
+    cachePullErrors: Int
 ) {
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
@@ -169,9 +167,7 @@ object BuildSummary {
       if (summary.cacheHits > 0) parts += s"${C.GREEN}${summary.cacheHits} hits${C.RESET}"
       if (summary.cacheMisses > 0) parts += s"${summary.cacheMisses} misses"
       if (summary.cacheAlreadyCompiled > 0) parts += s"${summary.cacheAlreadyCompiled} already-compiled"
-      if (summary.cachePushes > 0) parts += s"${summary.cachePushes} pushed"
-      if (summary.cachePullErrors > 0) parts += s"${C.YELLOW}${summary.cachePullErrors} pull errors${C.RESET}"
-      if (summary.cachePushErrors > 0) parts += s"${C.YELLOW}${summary.cachePushErrors} push errors${C.RESET}"
+      if (summary.cachePullErrors > 0) parts += s"${C.RED}${summary.cachePullErrors} errors${C.RESET}"
       val content = parts.result()
       lines += s"  Remote cache: ${if (content.isEmpty) "active" else content.mkString(", ")}"
     } else {
@@ -445,9 +441,7 @@ object BuildSummary {
     cacheHits = 0,
     cacheMisses = 0,
     cacheAlreadyCompiled = 0,
-    cachePushes = 0,
-    cachePullErrors = 0,
-    cachePushErrors = 0
+    cachePullErrors = 0
   )
 }
 
@@ -811,20 +805,7 @@ object BuildDisplay {
             logP(project, s"✅ cached (${kb}KB, ${durationMs}ms)")
           case S.Miss            => IO.unit
           case S.AlreadyCompiled => IO.unit
-          case S.Error(reason)   => logWarnP(project, s"⚠️ cache miss: $reason")
-        }
-
-      case BuildEvent.CachePushStarted(project, _) =>
-        if (!quietMode) logP(project, "📤 pushing to cache") else IO.unit
-
-      case BuildEvent.CachePushFinished(project, status, durationMs, bytesUploaded, _) =>
-        import bleep.bsp.protocol.BleepBspProtocol.Event.CachePushStatus as S
-        status match {
-          case S.Success =>
-            val kb = bytesUploaded / 1024
-            if (!quietMode) logP(project, s"☁️ pushed to cache (${kb}KB, ${durationMs}ms)") else IO.unit
-          case S.AlreadyCached => IO.unit
-          case S.Error(reason) => logWarnP(project, s"⚠️ push failed: $reason")
+          case S.Error(reason)   => logErrorP(project, s"❌ cache pull failed: $reason")
         }
     }
 
@@ -911,9 +892,7 @@ object BuildDisplay {
         if (s.cacheHits > 0) parts += s"${s.cacheHits} hits"
         if (s.cacheMisses > 0) parts += s"${s.cacheMisses} misses"
         if (s.cacheAlreadyCompiled > 0) parts += s"${s.cacheAlreadyCompiled} already-compiled"
-        if (s.cachePushes > 0) parts += s"${s.cachePushes} pushed"
-        if (s.cachePullErrors > 0) parts += s"${s.cachePullErrors} pull errors"
-        if (s.cachePushErrors > 0) parts += s"${s.cachePushErrors} push errors"
+        if (s.cachePullErrors > 0) parts += s"${s.cachePullErrors} errors"
         val list = parts.result()
         if (list.isEmpty) "active" else list.mkString(", ")
       }

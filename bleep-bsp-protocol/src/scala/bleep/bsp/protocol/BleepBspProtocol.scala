@@ -495,29 +495,6 @@ object BleepBspProtocol {
       }
     }
 
-    /** Outcome of a remote cache push attempt for a single project */
-    sealed trait CachePushStatus
-    object CachePushStatus {
-      case object Success extends CachePushStatus
-      case object AlreadyCached extends CachePushStatus
-      case class Error(reason: String) extends CachePushStatus
-
-      implicit val errorCodec: Codec[Error] = deriveCodec
-      implicit val encoder: Encoder[CachePushStatus] = Encoder.instance {
-        case Success       => Json.obj("type" -> "Success".asJson)
-        case AlreadyCached => Json.obj("type" -> "AlreadyCached".asJson)
-        case e: Error      => Json.obj("type" -> "Error".asJson, "data" -> e.asJson)
-      }
-      implicit val decoder: Decoder[CachePushStatus] = Decoder.instance { cursor =>
-        cursor.downField("type").as[String].flatMap {
-          case "Success"       => Right(Success)
-          case "AlreadyCached" => Right(AlreadyCached)
-          case "Error"         => cursor.downField("data").as[Error]
-          case other           => Left(DecodingFailure(s"Unknown CachePushStatus: $other", cursor.history))
-        }
-      }
-    }
-
     /** Remote cache pull started for a project */
     case class CachePullStarted(
         project: CrossProjectName,
@@ -530,21 +507,6 @@ object BleepBspProtocol {
         status: CachePullStatus,
         durationMs: Long,
         bytesDownloaded: Long,
-        timestamp: Long
-    ) extends Event
-
-    /** Remote cache push started for a project (runs asynchronously after compile) */
-    case class CachePushStarted(
-        project: CrossProjectName,
-        timestamp: Long
-    ) extends Event
-
-    /** Remote cache push finished for a project */
-    case class CachePushFinished(
-        project: CrossProjectName,
-        status: CachePushStatus,
-        durationMs: Long,
-        bytesUploaded: Long,
         timestamp: Long
     ) extends Event
 
@@ -598,8 +560,6 @@ object BleepBspProtocol {
     implicit val workspaceReadyCodec: Codec[WorkspaceReady] = deriveCodec
     implicit val cachePullStartedCodec: Codec[CachePullStarted] = deriveCodec
     implicit val cachePullFinishedCodec: Codec[CachePullFinished] = deriveCodec
-    implicit val cachePushStartedCodec: Codec[CachePushStarted] = deriveCodec
-    implicit val cachePushFinishedCodec: Codec[CachePushFinished] = deriveCodec
     implicit val errorCodec: Codec[Error] = deriveCodec
 
     implicit val encoder: Encoder[Event] = Encoder.instance {
@@ -640,8 +600,6 @@ object BleepBspProtocol {
       case e: WorkspaceReady      => Json.obj("type" -> "WorkspaceReady".asJson, "data" -> e.asJson)
       case e: CachePullStarted    => Json.obj("type" -> "CachePullStarted".asJson, "data" -> e.asJson)
       case e: CachePullFinished   => Json.obj("type" -> "CachePullFinished".asJson, "data" -> e.asJson)
-      case e: CachePushStarted    => Json.obj("type" -> "CachePushStarted".asJson, "data" -> e.asJson)
-      case e: CachePushFinished   => Json.obj("type" -> "CachePushFinished".asJson, "data" -> e.asJson)
       case e: Error               => Json.obj("type" -> "Error".asJson, "data" -> e.asJson)
     }
 
@@ -684,8 +642,6 @@ object BleepBspProtocol {
         case "WorkspaceReady"      => cursor.downField("data").as[WorkspaceReady]
         case "CachePullStarted"    => cursor.downField("data").as[CachePullStarted]
         case "CachePullFinished"   => cursor.downField("data").as[CachePullFinished]
-        case "CachePushStarted"    => cursor.downField("data").as[CachePushStarted]
-        case "CachePushFinished"   => cursor.downField("data").as[CachePushFinished]
         case "Error"               => cursor.downField("data").as[Error]
         case other                 => Left(DecodingFailure(s"Unknown event type: $other", cursor.history))
       }

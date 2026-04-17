@@ -1388,7 +1388,7 @@ class MultiWorkspaceBspServer(
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
       val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
-      val (cachePullHandler, cachePushHandler) = RemoteCacheContext.handlers(cacheContext)
+      val cachePullHandler = RemoteCacheContext.pullHandler(cacheContext)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1410,7 +1410,7 @@ class MultiWorkspaceBspServer(
         (_, _) => IO.pure(TaskDag.TaskResult.Success)
 
       // Create executor
-      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler, cachePushHandler)
+      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler)
 
       // Create trace recorder (noop if not enabled)
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
@@ -1575,7 +1575,7 @@ class MultiWorkspaceBspServer(
       listener = makeHeapPressureListener(originId)
     )
 
-  /** Event sink for cache operations that forwards events over BSP using the same channel as compile/test events. */
+  /** Event sink for cache pull operations that forwards events over BSP using the same channel as compile/test events. */
   private def makeCacheEventSink(originId: Option[String]): RemoteCacheContext.EventSink =
     new RemoteCacheContext.EventSink {
       def pullStarted(project: CrossProjectName, timestamp: Long): Unit =
@@ -1589,18 +1589,6 @@ class MultiWorkspaceBspServer(
           timestamp: Long
       ): Unit =
         sendEvent(originId, s"cache-pull:${project.value}", BleepBspProtocol.Event.CachePullFinished(project, status, durationMs, bytes, timestamp))
-
-      def pushStarted(project: CrossProjectName, timestamp: Long): Unit =
-        sendEvent(originId, s"cache-push:${project.value}", BleepBspProtocol.Event.CachePushStarted(project, timestamp))
-
-      def pushFinished(
-          project: CrossProjectName,
-          status: BleepBspProtocol.Event.CachePushStatus,
-          durationMs: Long,
-          bytes: Long,
-          timestamp: Long
-      ): Unit =
-        sendEvent(originId, s"cache-push:${project.value}", BleepBspProtocol.Event.CachePushFinished(project, status, durationMs, bytes, timestamp))
     }
 
   /** Send a structured event via BSP notification. Used for compile, link, and test events. */
@@ -1780,7 +1768,7 @@ class MultiWorkspaceBspServer(
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
-          val (cachePullHandler, cachePushHandler) = RemoteCacheContext.handlers(cacheContext)
+          val cachePullHandler = RemoteCacheContext.pullHandler(cacheContext)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -1854,7 +1842,7 @@ class MultiWorkspaceBspServer(
             }
 
           // Create executor with link support
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler, cachePushHandler)
+          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler)
 
           // Run event consumer in background (auto-cancels when scope exits)
           // This ensures the fiber is cleaned up even if the request is cancelled
@@ -2789,7 +2777,6 @@ class MultiWorkspaceBspServer(
     case dt: TaskDag.DiscoverTask   => (TraceCategory.Discover, dt.project.value)
     case tt: TaskDag.TestSuiteTask  => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
     case cpt: TaskDag.CachePullTask => (TraceCategory.CachePull, cpt.project.value)
-    case cpt: TaskDag.CachePushTask => (TraceCategory.CachePush, cpt.project.value)
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2908,7 +2895,7 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.DiscoveryStarted(dt.project, timestamp))
               case tt: TaskDag.TestSuiteTask =>
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
-              case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
+              case _: TaskDag.CachePullTask =>
                 None // Cache events emitted directly via the event sink in RemoteCacheContext
             }
             traceRecorder.recordStart(cat, name) >>
@@ -2923,7 +2910,7 @@ class MultiWorkspaceBspServer(
               case _: TaskDag.LinkTask =>
                 None // Link tasks are not exposed via test protocol
 
-              case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
+              case _: TaskDag.CachePullTask =>
                 None // Cache events emitted directly via the event sink in RemoteCacheContext
 
               case dt: TaskDag.DiscoverTask =>
