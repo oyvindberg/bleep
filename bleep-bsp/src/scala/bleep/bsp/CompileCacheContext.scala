@@ -18,7 +18,8 @@ import scala.collection.immutable.SortedMap
   * When no remote-cache is configured in bleep.yaml OR credentials are missing OR the user passed `--no-cache`, this context is `Disabled`. The DAG won't have
   * cache tasks at all in that case — `isEnabled` controls whether the DAG builder adds them.
   */
-sealed trait CompileCacheContext {
+/** Implementations may be provided outside this file — in particular, tests supply fakes that don't talk to S3. */
+trait CompileCacheContext {
 
   /** Whether this build cycle uses the remote cache. When false, no cache tasks appear in the DAG. */
   def isEnabled: Boolean
