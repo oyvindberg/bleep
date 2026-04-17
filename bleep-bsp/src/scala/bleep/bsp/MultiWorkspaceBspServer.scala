@@ -1378,15 +1378,17 @@ class MultiWorkspaceBspServer(
       } else {
         BleepBspProtocol.BuildMode.Compile
       }
-      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode)
-      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode)")
+
+      val noCache = args.contains("--no-cache")
+      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode, withCache = cacheContext.isEnabled)
+      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, cache=${cacheContext.isEnabled})")
 
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      val noCache = args.contains("--no-cache")
-      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
       val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
+      val (cachePullHandler, cachePushHandler) = makeCacheHandlers(cacheContext)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1408,7 +1410,7 @@ class MultiWorkspaceBspServer(
         (_, _) => IO.pure(TaskDag.TaskResult.Success)
 
       // Create executor
-      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler, cachePushHandler)
 
       // Create trace recorder (noop if not enabled)
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
@@ -1715,9 +1717,15 @@ class MultiWorkspaceBspServer(
         }
       }.toMap
 
+      val cliArgs = params.arguments.getOrElse(List.empty)
+      val noCache = cliArgs.contains("--no-cache")
+      val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
+
       // Build the unified DAG with platforms
-      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms)
-      debugLog(s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}")
+      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms, withCache = cacheContext.isEnabled)
+      debugLog(
+        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, cache=${cacheContext.isEnabled}"
+      )
 
       // Parse test options from params
       val testOptions = (params.dataKind, params.data) match {
@@ -1771,10 +1779,8 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          val cliArgs = params.arguments.getOrElse(List.empty)
-          val noCache = cliArgs.contains("--no-cache")
-          val cacheContext = CompileCacheContext.create(started, noCache, makeCacheEventSink(params.originId))
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, cacheContext)
+          val (cachePullHandler, cachePushHandler) = makeCacheHandlers(cacheContext)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -1848,7 +1854,7 @@ class MultiWorkspaceBspServer(
             }
 
           // Create executor with link support
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, cachePullHandler, cachePushHandler)
 
           // Run event consumer in background (auto-cancels when scope exits)
           // This ensures the fiber is cleaned up even if the request is cancelled
@@ -2082,63 +2088,88 @@ class MultiWorkspaceBspServer(
       taskKillSignal.tryGet.flatMap {
         case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
         case None    =>
-          // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
-          // Noop projects skip all waiting and don't consume concurrency slots.
-          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
-          val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
-          val noopResult = config.language match {
-            case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
-            case _                             => None
-          }
-          if (noopResult.isDefined) {
-            IO.pure(TaskDag.TaskResult.Success)
-          } else {
-            // Try remote cache pull before taking any compile resources. A cache hit short-circuits
-            // compilation entirely — the classes + zinc analysis are extracted from the tarball,
-            // and downstream tasks in the DAG proceed as if we had compiled.
-            val maybePull: IO[Option[TaskDag.TaskResult]] = cacheContext.tryPull(compileTask.project).map {
-              case CompileCacheContext.PullResult.Hit       => Some(TaskDag.TaskResult.Success)
-              case CompileCacheContext.PullResult.NotCached => None
-              case CompileCacheContext.PullResult.Disabled  => None
-            }
+          cacheContext.wasHit(compileTask.project).flatMap { hit =>
+            if (hit) {
+              // The preceding CachePullTask extracted classes + Zinc analysis into targetDir. Skip compilation entirely.
+              IO.pure(TaskDag.TaskResult.Success)
+            } else {
+              // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
+              // Noop projects skip all waiting and don't consume concurrency slots.
+              val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+              val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
+              val noopResult = config.language match {
+                case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
+                case _                             => None
+              }
+              if (noopResult.isDefined) {
+                IO.pure(TaskDag.TaskResult.Success)
+              } else {
+                // Cooperative cancellation: set CancellationToken so advance() returns false
+                val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
 
-            // Cooperative cancellation: set CancellationToken so advance() returns false
-            val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-
-            // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-            val gatedCompile = IO
-              .interruptible(compileSemaphore.acquire())
-              .bracket { _ =>
-                IO(activeCompileCount.incrementAndGet()) >>
-                  waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                    val compileStartTime = System.currentTimeMillis()
-                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses)
-                        .guaranteeCase {
-                          case cats.effect.Outcome.Succeeded(resultIO) =>
-                            resultIO.flatMap { result =>
-                              val dur = System.currentTimeMillis() - compileStartTime
-                              val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)) >>
-                                IO.whenA(ok)(cacheContext.schedulePush(compileTask.project))
+                // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+                val gatedCompile = IO
+                  .interruptible(compileSemaphore.acquire())
+                  .bracket { _ =>
+                    IO(activeCompileCount.incrementAndGet()) >>
+                      waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                        val compileStartTime = System.currentTimeMillis()
+                        IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                          compileProject(started, compileTask.project, originId, token, depAnalyses)
+                            .guaranteeCase {
+                              case cats.effect.Outcome.Succeeded(resultIO) =>
+                                resultIO.flatMap { result =>
+                                  val dur = System.currentTimeMillis() - compileStartTime
+                                  val ok = result == TaskDag.TaskResult.Success
+                                  IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                                }
+                              case _ =>
+                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
                             }
-                          case _ =>
-                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                        }
-                  }
-              }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
-            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+                      }
+                  }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
+                val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
-            maybePull.flatMap {
-              case Some(result) => IO.pure(result)
-              case None         =>
                 cooperativeCancelIO.flatMap { cancelFiber =>
                   IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
                 }
+              }
             }
           }
       }
     }
+
+  /** Create handlers for CachePull and CachePush DAG tasks. Cache tasks always report Success — errors are surfaced via sink events and logged warnings, never
+    * as build failures.
+    */
+  private def makeCacheHandlers(
+      cacheContext: CompileCacheContext
+  ): (
+      (TaskDag.CachePullTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult],
+      (TaskDag.CachePushTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult]
+  ) = {
+    val pullHandler: (TaskDag.CachePullTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
+      (task, taskKillSignal) =>
+        taskKillSignal.tryGet.flatMap {
+          case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
+          case None         =>
+            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+            val doPull = cacheContext.tryPull(task.project).as(TaskDag.TaskResult.Success)
+            IO.race(doPull, waitForKill).map(_.merge)
+        }
+
+    val pushHandler: (TaskDag.CachePushTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
+      (task, taskKillSignal) =>
+        taskKillSignal.tryGet.flatMap {
+          case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
+          case None         =>
+            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+            val doPush = cacheContext.tryPush(task.project).as(TaskDag.TaskResult.Success)
+            IO.race(doPush, waitForKill).map(_.merge)
+        }
+
+    (pullHandler, pushHandler)
+  }
 
   /** Compile a single project (dependencies handled by TaskDag ordering).
     *
@@ -2783,10 +2814,12 @@ class MultiWorkspaceBspServer(
 
   /** Get trace category and name for a task. */
   private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-    case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
-    case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
-    case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
-    case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case ct: TaskDag.CompileTask    => (TraceCategory.Compile, ct.project.value)
+    case lt: TaskDag.LinkTask       => (TraceCategory.Link, lt.project.value)
+    case dt: TaskDag.DiscoverTask   => (TraceCategory.Discover, dt.project.value)
+    case tt: TaskDag.TestSuiteTask  => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case cpt: TaskDag.CachePullTask => (TraceCategory.CachePull, cpt.project.value)
+    case cpt: TaskDag.CachePushTask => (TraceCategory.CachePush, cpt.project.value)
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2905,6 +2938,8 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.DiscoveryStarted(dt.project, timestamp))
               case tt: TaskDag.TestSuiteTask =>
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
+              case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
+                None // Cache events emitted directly via the event sink in CompileCacheContext
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -2917,6 +2952,9 @@ class MultiWorkspaceBspServer(
 
               case _: TaskDag.LinkTask =>
                 None // Link tasks are not exposed via test protocol
+
+              case _: TaskDag.CachePullTask | _: TaskDag.CachePushTask =>
+                None // Cache events emitted directly via the event sink in CompileCacheContext
 
               case dt: TaskDag.DiscoverTask =>
                 result match {

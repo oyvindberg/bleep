@@ -47,6 +47,12 @@ object TaskDag {
     case class Test(project: CrossProjectName, suiteName: SuiteName) extends TaskId {
       val value: String = s"test:${project.value}:${suiteName.value}"
     }
+    case class CachePull(project: CrossProjectName) extends TaskId {
+      val value: String = s"cache-pull:${project.value}"
+    }
+    case class CachePush(project: CrossProjectName) extends TaskId {
+      val value: String = s"cache-push:${project.value}"
+    }
   }
 
   /** A task in the DAG */
@@ -56,13 +62,41 @@ object TaskDag {
     def dependencies: Set[TaskId]
   }
 
-  /** Compile a project */
+  /** Compile a project.
+    *
+    * When `dependsOnCachePull = true`, the compile waits for its own `CachePullTask` to complete first so that — on a cache hit — the classes and Zinc analysis
+    * are already on disk and the compile handler can short-circuit to Success.
+    */
   case class CompileTask(
       project: CrossProjectName,
-      projectDependencies: Set[CrossProjectName]
+      projectDependencies: Set[CrossProjectName],
+      dependsOnCachePull: Boolean
   ) extends Task {
     val id: TaskId = TaskId.Compile(project)
-    val dependencies: Set[TaskId] = projectDependencies.map(p => TaskId.Compile(p))
+    val dependencies: Set[TaskId] =
+      projectDependencies.map(p => TaskId.Compile(p): TaskId) ++
+        (if (dependsOnCachePull) Set[TaskId](TaskId.CachePull(project)) else Set.empty[TaskId])
+  }
+
+  /** Fetch pre-compiled classes + Zinc analysis from the remote cache.
+    *
+    * Optional task added only when remote-cache is enabled. Runs with no dependencies (can start immediately). A successful hit extracts the archive into
+    * `targetDir` and records the project in the executor's shared hit-set so the compile handler knows to skip. Misses and errors are also reported as Success
+    * — the build falls back to compilation.
+    */
+  case class CachePullTask(project: CrossProjectName) extends Task {
+    val id: TaskId = TaskId.CachePull(project)
+    val dependencies: Set[TaskId] = Set.empty
+  }
+
+  /** Upload successful compile output (classes + Zinc analysis) to the remote cache.
+    *
+    * Optional task added only when remote-cache is enabled. Depends on `CompileTask` for the same project; no downstream tasks depend on it, so it runs in
+    * parallel with downstream compiles/tests. Always reports Success — upload errors are surfaced via sink events, never as build failures.
+    */
+  case class CachePushTask(project: CrossProjectName) extends Task {
+    val id: TaskId = TaskId.CachePush(project)
+    val dependencies: Set[TaskId] = Set(TaskId.Compile(project))
   }
 
   /** Link a non-JVM project (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
@@ -406,23 +440,30 @@ object TaskDag {
       projects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
       platforms: Map[CrossProjectName, LinkPlatform],
-      mode: BuildMode
+      mode: BuildMode,
+      withCache: Boolean
   ): Dag = mode match {
     case BuildMode.Compile =>
-      buildCompileDag(projects, allProjectDeps)
+      buildCompileDag(projects, allProjectDeps, withCache)
     case BuildMode.Link(releaseMode) =>
-      buildLinkDag(projects, allProjectDeps, platforms, releaseMode)
+      buildLinkDag(projects, allProjectDeps, platforms, releaseMode, withCache)
     case BuildMode.Test =>
-      buildTestDag(projects, allProjectDeps, platforms)
+      buildTestDag(projects, allProjectDeps, platforms, withCache)
     case BuildMode.Run(_, _) =>
       // Run mode is similar to link mode - compile and optionally link
-      buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false)
+      buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false, withCache)
   }
+
+  /** Add cache-pull (before compile) and cache-push (after compile) tasks for every project in the set when `withCache` is true. */
+  private def cacheTasks(allProjects: Set[CrossProjectName], withCache: Boolean): Seq[Task] =
+    if (!withCache) Seq.empty
+    else allProjects.toSeq.flatMap(p => Seq[Task](CachePullTask(p), CachePushTask(p)))
 
   /** Build DAG for compile-only (no linking, no tests). */
   def buildCompileDag(
       projects: Set[CrossProjectName],
-      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      withCache: Boolean
   ): Dag = {
     // Get transitive dependencies
     val allProjects = transitiveDependencies(projects, allProjectDeps)
@@ -430,10 +471,10 @@ object TaskDag {
     // Create compile tasks only
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      CompileTask(project, deps, dependsOnCachePull = withCache)
     }
 
-    Dag.fromTasks(compileTasks.toSeq)
+    Dag.fromTasks(compileTasks.toSeq ++ cacheTasks(allProjects, withCache))
   }
 
   /** Build initial DAG for test execution.
@@ -444,7 +485,8 @@ object TaskDag {
   def buildTestDag(
       testProjects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
-      platforms: Map[CrossProjectName, LinkPlatform]
+      platforms: Map[CrossProjectName, LinkPlatform],
+      withCache: Boolean
   ): Dag = {
     // Get transitive dependencies for all test projects
     val allProjects = transitiveDependencies(testProjects, allProjectDeps)
@@ -452,7 +494,7 @@ object TaskDag {
     // Create compile tasks for all projects (dependencies + test projects)
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      CompileTask(project, deps, dependsOnCachePull = withCache)
     }
 
     // Create link tasks for non-JVM test projects
@@ -469,22 +511,31 @@ object TaskDag {
       DiscoverTask(project, platforms.get(project))
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq)
+    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ cacheTasks(allProjects, withCache))
   }
 
-  /** Build initial DAG for test execution (JVM-only version for backward compatibility). */
+  /** Build initial DAG for test execution (JVM-only, no cache — for test harness). */
   def buildTestDag(
       testProjects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
   ): Dag =
-    buildTestDag(testProjects, allProjectDeps, Map.empty)
+    buildTestDag(testProjects, allProjectDeps, Map.empty, withCache = false)
+
+  /** Build initial DAG for test execution (no cache — for test harness). */
+  def buildTestDag(
+      testProjects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      platforms: Map[CrossProjectName, LinkPlatform]
+  ): Dag =
+    buildTestDag(testProjects, allProjectDeps, platforms, withCache = false)
 
   /** Build DAG for linking (compile + link without tests). */
   def buildLinkDag(
       projects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
       platforms: Map[CrossProjectName, LinkPlatform],
-      releaseMode: Boolean
+      releaseMode: Boolean,
+      withCache: Boolean
   ): Dag = {
     // Get transitive dependencies
     val allProjects = transitiveDependencies(projects, allProjectDeps)
@@ -492,7 +543,7 @@ object TaskDag {
     // Create compile tasks
     val compileTasks = allProjects.map { project =>
       val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      CompileTask(project, deps, dependsOnCachePull = withCache)
     }
 
     // Create link tasks for target projects
@@ -504,8 +555,17 @@ object TaskDag {
       }
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq)
+    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ cacheTasks(allProjects, withCache))
   }
+
+  /** Build DAG for linking (no cache — for test harness). */
+  def buildLinkDag(
+      projects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      platforms: Map[CrossProjectName, LinkPlatform],
+      releaseMode: Boolean
+  ): Dag =
+    buildLinkDag(projects, allProjectDeps, platforms, releaseMode, withCache = false)
 
   /** Get transitive dependencies for a set of projects */
   private def transitiveDependencies(
@@ -552,6 +612,10 @@ object TaskDag {
     ): IO[Dag]
   }
 
+  /** Default no-op cache handler — reports Success without doing anything. Used when the DAG has no CachePull/CachePush tasks. */
+  val noopCacheHandler: (Task, Deferred[IO, KillReason]) => IO[TaskResult] =
+    (_, _) => IO.pure(TaskResult.Success)
+
   /** Create a DAG executor with task handlers */
   def executor(
       compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
@@ -561,7 +625,9 @@ object TaskDag {
     compileHandler,
     (_, _) => IO.pure((TaskResult.Success, LinkResult.NotApplicable)),
     discoverHandler,
-    testHandler
+    testHandler,
+    (t, k) => noopCacheHandler(t, k),
+    (t, k) => noopCacheHandler(t, k)
   )
 
   /** Backward compatibility: Create a DAG executor from handlers that don't use kill signal */
@@ -575,12 +641,30 @@ object TaskDag {
     (task, _) => testHandler(task)
   )
 
-  /** Create a DAG executor with task handlers including link support */
+  /** Create a DAG executor with task handlers including link support (no cache). */
   def executor(
       compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       linkHandler: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
       testHandler: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult]
+  ): DagExecutor =
+    executor(
+      compileHandler,
+      linkHandler,
+      discoverHandler,
+      testHandler,
+      (t, k) => noopCacheHandler(t, k),
+      (t, k) => noopCacheHandler(t, k)
+    )
+
+  /** Create a DAG executor with full task handler set (compile, link, discover, test, cache pull, cache push). */
+  def executor(
+      compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      linkHandler: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
+      discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
+      testHandler: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      cachePullHandler: (CachePullTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      cachePushHandler: (CachePushTask, Deferred[IO, KillReason]) => IO[TaskResult]
   ): DagExecutor = new DagExecutor {
 
     override def execute(
@@ -707,6 +791,12 @@ object TaskDag {
                     IO.uncancelable { _ =>
                       withRecovery(s"Test ${tt.suiteName.value}", taskKill)(testHandler(tt, taskKill))
                     }
+
+                  case cpt: CachePullTask =>
+                    withRecovery(s"CachePull ${cpt.project.value}", taskKill)(cachePullHandler(cpt, taskKill))
+
+                  case cpt: CachePushTask =>
+                    withRecovery(s"CachePush ${cpt.project.value}", taskKill)(cachePushHandler(cpt, taskKill))
                 }
                 // Unregister this task's kill signal
                 _ <- taskKillSignals.update(_ - task.id)
