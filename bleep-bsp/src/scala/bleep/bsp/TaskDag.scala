@@ -3,7 +3,7 @@ package bleep.bsp
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.{CrossProjectName, KotlinJsModuleKind, SuiteName, TestName}
+import bleep.model.{CrossProjectName, KotlinJsModuleKind, ScriptDef, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -47,6 +47,18 @@ object TaskDag {
     case class Test(project: CrossProjectName, suiteName: SuiteName) extends TaskId {
       val value: String = s"test:${project.value}:${suiteName.value}"
     }
+
+    /** Identity for a sourcegen script in the DAG.
+      *
+      * Two `ScriptDef.Main` values collapse to the same task iff they share the same script project + main class. A single `SourcegenTask` runs the script once
+      * for all target projects that declared it, regardless of how many projects list it.
+      */
+    case class Sourcegen(scriptProject: CrossProjectName, mainClass: String) extends TaskId {
+      val value: String = s"sourcegen:${scriptProject.value}/$mainClass"
+    }
+    object Sourcegen {
+      def apply(script: ScriptDef.Main): Sourcegen = Sourcegen(script.project, script.main)
+    }
   }
 
   /** A task in the DAG */
@@ -56,13 +68,38 @@ object TaskDag {
     def dependencies: Set[TaskId]
   }
 
-  /** Compile a project */
+  /** Compile a project.
+    *
+    * `dependencies` is supplied directly (rather than derived) so the DAG builder can combine project-level compile deps with sourcegen deps (SourcegenTask
+    * edges) and any future pre-compile steps. `projectDependencies` remains separate because the compile handler needs the project-level form (to compute
+    * dependency analysis file paths for Zinc).
+    */
   case class CompileTask(
       project: CrossProjectName,
-      projectDependencies: Set[CrossProjectName]
+      projectDependencies: Set[CrossProjectName],
+      dependencies: Set[TaskId]
   ) extends Task {
     val id: TaskId = TaskId.Compile(project)
-    val dependencies: Set[TaskId] = projectDependencies.map(p => TaskId.Compile(p))
+  }
+
+  /** Run a sourcegen script for a set of target projects.
+    *
+    * One `SourcegenTask` per unique script (identified by `TaskId.Sourcegen(scriptProject, main)`), shared across all target projects that declared it.
+    *
+    * Dependencies:
+    *   - `CompileTask(scriptProject)` and compile tasks for its transitive deps — the script project must be built before it can be forked.
+    *
+    * Target projects' `CompileTask`s depend on this sourcegen task, so compilation of targets is blocked until sourcegen finishes (or short-circuits on
+    * up-to-date outputs).
+    */
+  case class SourcegenTask(
+      script: ScriptDef.Main,
+      forProjects: Set[CrossProjectName],
+      scriptProjectDeps: Set[CrossProjectName]
+  ) extends Task {
+    val id: TaskId = TaskId.Sourcegen(script)
+    val project: CrossProjectName = script.project
+    val dependencies: Set[TaskId] = scriptProjectDeps.map(p => TaskId.Compile(p): TaskId)
   }
 
   /** Link a non-JVM project (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
@@ -267,6 +304,23 @@ object TaskDag {
         durationMs: Long,
         timestamp: Long
     ) extends DagEvent
+
+    // Sourcegen events (mirror Link events: Started around handler, Finished with result)
+    case class SourcegenStarted(
+        scriptProject: CrossProjectName,
+        scriptMain: String,
+        forProjects: List[CrossProjectName],
+        timestamp: Long
+    ) extends DagEvent
+
+    case class SourcegenFinished(
+        scriptProject: CrossProjectName,
+        scriptMain: String,
+        success: Boolean,
+        durationMs: Long,
+        error: Option[String],
+        timestamp: Long
+    ) extends DagEvent
   }
 
   /** The DAG itself - holds tasks and tracks execution state */
@@ -389,6 +443,25 @@ object TaskDag {
       Dag(tasks.map(t => t.id -> t).toMap, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty)
   }
 
+  /** Plan for sourcegen DAG integration.
+    *
+    *   - `perProject` — for each target project that declared sourcegen in its config, the set of scripts that must run before it compiles.
+    *   - `scriptProjectDeps` — for each script, the script project + its transitive dependency projects. The DAG inserts `CompileTask`s for all of these, and
+    *     the `SourcegenTask` depends on their compiles.
+    *
+    * When `perProject` is empty, the DAG falls back to the original compile-only topology.
+    */
+  case class SourcegenPlan(
+      perProject: Map[CrossProjectName, Set[ScriptDef.Main]],
+      scriptProjectDeps: Map[ScriptDef.Main, Set[CrossProjectName]]
+  ) {
+    def isEmpty: Boolean = perProject.isEmpty
+    def allScripts: Set[ScriptDef.Main] = perProject.values.flatten.toSet
+  }
+  object SourcegenPlan {
+    val empty: SourcegenPlan = SourcegenPlan(Map.empty, Map.empty)
+  }
+
   /** Build DAG based on build mode.
     *
     * @param projects
@@ -399,6 +472,8 @@ object TaskDag {
     *   Map of project -> link platform (for non-JVM)
     * @param mode
     *   The build mode (Compile, Link, Test, Run)
+    * @param sourcegen
+    *   Which scripts each project needs, plus script-project dep info. Empty ⇒ no sourcegen tasks in the DAG.
     * @return
     *   A DAG with appropriate tasks for the mode
     */
@@ -406,35 +481,94 @@ object TaskDag {
       projects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
       platforms: Map[CrossProjectName, LinkPlatform],
-      mode: BuildMode
+      mode: BuildMode,
+      sourcegen: SourcegenPlan
   ): Dag = mode match {
     case BuildMode.Compile =>
-      buildCompileDag(projects, allProjectDeps)
+      buildCompileDag(projects, allProjectDeps, sourcegen)
     case BuildMode.Link(releaseMode) =>
-      buildLinkDag(projects, allProjectDeps, platforms, releaseMode)
+      buildLinkDag(projects, allProjectDeps, platforms, releaseMode, sourcegen)
     case BuildMode.Test =>
-      buildTestDag(projects, allProjectDeps, platforms)
+      buildTestDag(projects, allProjectDeps, platforms, sourcegen)
     case BuildMode.Run(_, _) =>
       // Run mode is similar to link mode - compile and optionally link
-      buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false)
+      buildLinkDag(projects, allProjectDeps, platforms, releaseMode = false, sourcegen)
   }
+
+  /** Backward-compat: buildDag without sourcegen (for harnesses / test code). */
+  def buildDag(
+      projects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      platforms: Map[CrossProjectName, LinkPlatform],
+      mode: BuildMode
+  ): Dag =
+    buildDag(projects, allProjectDeps, platforms, mode, SourcegenPlan.empty)
+
+  /** Compute the CompileTask deps for a project: upstream-project compiles plus sourcegen tasks from its plan entry. */
+  private def compileDeps(
+      project: CrossProjectName,
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      inScope: Set[CrossProjectName],
+      sourcegen: SourcegenPlan
+  ): (Set[CrossProjectName], Set[TaskId]) = {
+    val projectDeps = allProjectDeps.getOrElse(project, Set.empty).filter(inScope.contains)
+    val compileTaskDeps: Set[TaskId] = projectDeps.map(p => TaskId.Compile(p): TaskId)
+    val sourcegenDeps: Set[TaskId] = sourcegen.perProject.getOrElse(project, Set.empty).map(s => TaskId.Sourcegen(s): TaskId)
+    (projectDeps, compileTaskDeps ++ sourcegenDeps)
+  }
+
+  /** Build SourcegenTasks from the plan plus the set of project compiles already in scope. Returns the sourcegen tasks plus any extra script-project compiles
+    * that need to be included (if not already present).
+    */
+  private def sourcegenTasksAndScriptCompiles(
+      inScope: Set[CrossProjectName],
+      sourcegen: SourcegenPlan
+  ): (Seq[SourcegenTask], Set[CrossProjectName]) =
+    if (sourcegen.isEmpty) (Seq.empty, Set.empty)
+    else {
+      // Aggregate forProjects per script
+      val scriptToTargets: Map[ScriptDef.Main, Set[CrossProjectName]] =
+        sourcegen.perProject.toSeq
+          .flatMap { case (target, scripts) => scripts.map(s => s -> target) }
+          .groupMap(_._1)(_._2)
+          .view
+          .mapValues(_.toSet)
+          .toMap
+
+      val tasks = scriptToTargets.toSeq.map { case (script, targets) =>
+        val deps = sourcegen.scriptProjectDeps.getOrElse(script, Set(script.project))
+        SourcegenTask(script, targets, deps)
+      }
+      val extraScriptProjects = tasks.flatMap(_.scriptProjectDeps).toSet -- inScope
+      (tasks, extraScriptProjects)
+    }
 
   /** Build DAG for compile-only (no linking, no tests). */
   def buildCompileDag(
       projects: Set[CrossProjectName],
-      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      sourcegen: SourcegenPlan
   ): Dag = {
-    // Get transitive dependencies
-    val allProjects = transitiveDependencies(projects, allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, allProjectDeps)
+    val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, sourcegen)
+    // Script projects' transitive compile tasks — we already have the dep closure from the plan, but they may themselves depend on others we haven't walked.
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, allProjectDeps)
+    val allProjects = targetTransitive ++ scriptTransitive
 
-    // Create compile tasks only
     val compileTasks = allProjects.map { project =>
-      val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      val (projectDeps, deps) = compileDeps(project, allProjectDeps, allProjects, sourcegen)
+      CompileTask(project, projectDeps, deps)
     }
 
-    Dag.fromTasks(compileTasks.toSeq)
+    Dag.fromTasks(compileTasks.toSeq ++ sourcegenTasks)
   }
+
+  /** Backward-compat: compile DAG without sourcegen (for tests / harnesses). */
+  def buildCompileDag(
+      projects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
+  ): Dag =
+    buildCompileDag(projects, allProjectDeps, SourcegenPlan.empty)
 
   /** Build initial DAG for test execution.
     *
@@ -444,18 +578,19 @@ object TaskDag {
   def buildTestDag(
       testProjects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
-      platforms: Map[CrossProjectName, LinkPlatform]
+      platforms: Map[CrossProjectName, LinkPlatform],
+      sourcegen: SourcegenPlan
   ): Dag = {
-    // Get transitive dependencies for all test projects
-    val allProjects = transitiveDependencies(testProjects, allProjectDeps)
+    val targetTransitive = transitiveDependencies(testProjects, allProjectDeps)
+    val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, sourcegen)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, allProjectDeps)
+    val allProjects = targetTransitive ++ scriptTransitive
 
-    // Create compile tasks for all projects (dependencies + test projects)
     val compileTasks = allProjects.map { project =>
-      val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      val (projectDeps, deps) = compileDeps(project, allProjectDeps, allProjects, sourcegen)
+      CompileTask(project, projectDeps, deps)
     }
 
-    // Create link tasks for non-JVM test projects
     val linkTasks = testProjects.flatMap { project =>
       platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
@@ -464,38 +599,46 @@ object TaskDag {
       }
     }
 
-    // Create discover tasks for test projects (with platform info for dependency tracking)
     val discoverTasks = testProjects.map { project =>
       DiscoverTask(project, platforms.get(project))
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq)
+    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks)
   }
 
-  /** Build initial DAG for test execution (JVM-only version for backward compatibility). */
+  /** Backward-compat: test DAG without sourcegen (JVM-only, for harnesses). */
   def buildTestDag(
       testProjects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
   ): Dag =
-    buildTestDag(testProjects, allProjectDeps, Map.empty)
+    buildTestDag(testProjects, allProjectDeps, Map.empty, SourcegenPlan.empty)
+
+  /** Backward-compat: test DAG without sourcegen (for harnesses). */
+  def buildTestDag(
+      testProjects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      platforms: Map[CrossProjectName, LinkPlatform]
+  ): Dag =
+    buildTestDag(testProjects, allProjectDeps, platforms, SourcegenPlan.empty)
 
   /** Build DAG for linking (compile + link without tests). */
   def buildLinkDag(
       projects: Set[CrossProjectName],
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
       platforms: Map[CrossProjectName, LinkPlatform],
-      releaseMode: Boolean
+      releaseMode: Boolean,
+      sourcegen: SourcegenPlan
   ): Dag = {
-    // Get transitive dependencies
-    val allProjects = transitiveDependencies(projects, allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, allProjectDeps)
+    val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, sourcegen)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, allProjectDeps)
+    val allProjects = targetTransitive ++ scriptTransitive
 
-    // Create compile tasks
     val compileTasks = allProjects.map { project =>
-      val deps = allProjectDeps.getOrElse(project, Set.empty).filter(allProjects.contains)
-      CompileTask(project, deps)
+      val (projectDeps, deps) = compileDeps(project, allProjectDeps, allProjects, sourcegen)
+      CompileTask(project, projectDeps, deps)
     }
 
-    // Create link tasks for target projects
     val linkTasks = projects.flatMap { project =>
       platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
@@ -504,8 +647,17 @@ object TaskDag {
       }
     }
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq)
+    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ sourcegenTasks)
   }
+
+  /** Backward-compat: link DAG without sourcegen (for harnesses). */
+  def buildLinkDag(
+      projects: Set[CrossProjectName],
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
+      platforms: Map[CrossProjectName, LinkPlatform],
+      releaseMode: Boolean
+  ): Dag =
+    buildLinkDag(projects, allProjectDeps, platforms, releaseMode, SourcegenPlan.empty)
 
   /** Get transitive dependencies for a set of projects */
   private def transitiveDependencies(
@@ -552,7 +704,11 @@ object TaskDag {
     ): IO[Dag]
   }
 
-  /** Create a DAG executor with task handlers */
+  /** Default no-op sourcegen handler — reports Success without doing anything. Used when the DAG has no SourcegenTasks. */
+  val noopSourcegenHandler: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult] =
+    (_, _) => IO.pure(TaskResult.Success)
+
+  /** Create a DAG executor with task handlers (no sourcegen, no link). */
   def executor(
       compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
@@ -561,7 +717,8 @@ object TaskDag {
     compileHandler,
     (_, _) => IO.pure((TaskResult.Success, LinkResult.NotApplicable)),
     discoverHandler,
-    testHandler
+    testHandler,
+    noopSourcegenHandler
   )
 
   /** Backward compatibility: Create a DAG executor from handlers that don't use kill signal */
@@ -575,12 +732,22 @@ object TaskDag {
     (task, _) => testHandler(task)
   )
 
-  /** Create a DAG executor with task handlers including link support */
+  /** Create a DAG executor with task handlers including link support (no sourcegen). */
   def executor(
       compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       linkHandler: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
       testHandler: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult]
+  ): DagExecutor =
+    executor(compileHandler, linkHandler, discoverHandler, testHandler, noopSourcegenHandler)
+
+  /** Create a DAG executor with full task handler set (compile, link, discover, test, sourcegen). */
+  def executor(
+      compileHandler: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      linkHandler: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
+      discoverHandler: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
+      testHandler: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      sourcegenHandler: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult]
   ): DagExecutor = new DagExecutor {
 
     override def execute(
@@ -706,6 +873,27 @@ object TaskDag {
                     // Without this, fiber cancellation could abort mid-test and leave no status event.
                     IO.uncancelable { _ =>
                       withRecovery(s"Test ${tt.suiteName.value}", taskKill)(testHandler(tt, taskKill))
+                    }
+
+                  case sgt: SourcegenTask =>
+                    withRecovery(s"Sourcegen ${sgt.script.main}", taskKill) {
+                      for {
+                        sourcegenStartTs <- now
+                        forProjectsList = sgt.forProjects.toList.sortBy(_.value)
+                        _ <- emit(DagEvent.SourcegenStarted(sgt.script.project, sgt.script.main, forProjectsList, sourcegenStartTs))
+                        result <- sourcegenHandler(sgt, taskKill)
+                        sourcegenEndTs <- now
+                        durationMs = sourcegenEndTs - sourcegenStartTs
+                        (success, errorMsg) = result match {
+                          case TaskResult.Success            => (true, None)
+                          case TaskResult.Failure(error, _)  => (false, Some(error))
+                          case TaskResult.Error(error, _)    => (false, Some(error))
+                          case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
+                          case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
+                          case TaskResult.TimedOut           => (false, Some("timed out"))
+                        }
+                        _ <- emit(DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, durationMs, errorMsg, sourcegenEndTs))
+                      } yield result
                     }
                 }
                 // Unregister this task's kill signal
