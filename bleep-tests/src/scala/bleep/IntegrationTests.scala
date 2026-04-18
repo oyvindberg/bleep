@@ -78,14 +78,13 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run prefer jvmRuntimeOptions") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run prefer jvmRuntimeOptions",
       """projects:
       a:
         platform:
           name: jvm
-          jvmRuntimeOptions: -Dfoo=2
+          jvmRuntimeOptions: -Xmx512m -Xms64m -Dfoo=2
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
@@ -182,14 +181,13 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run fallback to jvmOptions") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run fallback to jvmOptions",
       """projects:
       a:
         platform:
           name: jvm
-          jvmOptions: -Dfoo=1
+          jvmOptions: -Xmx512m -Xms64m -Dfoo=1
           mainClass: test.Main
         scala:
           version: 3.4.2
@@ -212,8 +210,12 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   // instead of Scala 2.13. This test verifies that bleep can handle Scala 3.8 projects correctly,
   // including the new scala-library versioning (3.x instead of 2.13.x).
   // See: https://docs.scala-lang.org/sips/drop-stdlib-forwards-bin-compat.html
+  //
+  // Verifies via compile + classpath inspection rather than `commands.run`. The resolution
+  // (the actual thing being tested) is fully exercised by compile; forking a 3.8 runtime JVM
+  // just to prove `println` works adds substantial memory pressure (the new stdlib is ~9MB
+  // vs 2.13's ~5.6MB, plus extra TASTy/classloader overhead) and doesn't add test coverage.
   test("scala 3.8.1 with new stdlib") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "scala 3.8.1 with new stdlib",
       """projects:
@@ -235,26 +237,45 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |  }
         |}""".stripMargin
       )
-    ) { (_, commands, storingLogger) =>
-      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "result: 12"))
+    ) { (started, commands, _) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      // Compile must succeed — this exercises scalac 3.8 loading the new stdlib's TASTy.
+      commands.compile(List(projectName))
+
+      // The resolved classpath must include the 3.8.1 stdlib at the Scala-3-versioned
+      // coordinate (scala-library:3.8.1), not the old 2.13.x coordinate. This is the
+      // heart of the SIP — the scala3-library artifact is now a tiny shim and the real
+      // stdlib lives under the renamed, 3.x-versioned scala-library.
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val classpath = resolved.classpath.map(_.toString)
+      assert(
+        classpath.exists(p => p.contains("scala-library") && p.contains("3.8.1")),
+        s"expected scala-library-3.8.1 on classpath for scala 3.8.1 project; got:\n${classpath.mkString("\n")}"
+      )
+      // And the 3-series scala3-library shim should be present at the matching version.
+      assert(
+        classpath.exists(p => p.contains("scala3-library_3") && p.contains("3.8.1")),
+        s"expected scala3-library_3-3.8.1 on classpath; got:\n${classpath.mkString("\n")}"
+      )
     }
   }
 
   test("resource generator") {
-    // This test spawns child JVMs (bleep run) which, combined with the in-process BSP server,
-    // exceeds the 7GB memory limit on CI runners and gets OOM-killed (exit code 137).
-    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
+    // Forked JVMs (sourcegen script + `bleep run`) get bounded heaps via `jvmRuntimeOptions`
+    // so the total (test JVM + in-process BSP + forks) fits within the 7GB CI runner budget.
     val bleepYaml = """
 projects:
   a:
     extends: common
     platform:
       mainClass: test.Main
+      jvmRuntimeOptions: -Xmx512m -Xms64m
     sourcegen: scripts/testscripts.SourceGen
   scripts:
     extends: common
     dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
+    platform:
+      jvmRuntimeOptions: -Xmx512m -Xms64m
 templates:
   common:
     platform:
@@ -316,8 +337,9 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
     // The DAG should route the failure as: Compile(scripts) fails → Sourcegen(..) Skipped →
     // Compile(a) Skipped → build fails with a BleepException. Before the sourcegen-in-DAG fix,
     // this scenario would hang the BSP handler via unsafeRunSync.
-    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
-
+    //
+    // This test never spawns forked JVMs (compile fails before sourcegen runs), so it's
+    // lighter on memory than the resource-generator test above.
     val bleepYaml = """
 projects:
   a:
