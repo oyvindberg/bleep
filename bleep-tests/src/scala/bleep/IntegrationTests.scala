@@ -78,14 +78,13 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run prefer jvmRuntimeOptions") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run prefer jvmRuntimeOptions",
       """projects:
       a:
         platform:
           name: jvm
-          jvmRuntimeOptions: -Dfoo=2
+          jvmRuntimeOptions: -Xmx256m -Xms32m -Dfoo=2
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
@@ -182,14 +181,13 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run fallback to jvmOptions") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run fallback to jvmOptions",
       """projects:
       a:
         platform:
           name: jvm
-          jvmOptions: -Dfoo=1
+          jvmOptions: -Xmx256m -Xms32m -Dfoo=1
           mainClass: test.Main
         scala:
           version: 3.4.2
@@ -213,7 +211,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   // including the new scala-library versioning (3.x instead of 2.13.x).
   // See: https://docs.scala-lang.org/sips/drop-stdlib-forwards-bin-compat.html
   test("scala 3.8.1 with new stdlib") {
-    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "scala 3.8.1 with new stdlib",
       """projects:
@@ -221,6 +218,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         platform:
           name: jvm
           mainClass: test.Main
+          jvmRuntimeOptions: -Xmx256m -Xms32m
         scala:
           version: 3.8.1
 """,
@@ -242,19 +240,21 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("resource generator") {
-    // This test spawns child JVMs (bleep run) which, combined with the in-process BSP server,
-    // exceeds the 7GB memory limit on CI runners and gets OOM-killed (exit code 137).
-    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
+    // Forked JVMs (sourcegen script + `bleep run`) get bounded heaps via `jvmRuntimeOptions`
+    // so the total (test JVM + in-process BSP + forks) fits within the 7GB CI runner budget.
     val bleepYaml = """
 projects:
   a:
     extends: common
     platform:
       mainClass: test.Main
+      jvmRuntimeOptions: -Xmx256m -Xms32m
     sourcegen: scripts/testscripts.SourceGen
   scripts:
     extends: common
     dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
+    platform:
+      jvmRuntimeOptions: -Xmx512m -Xms64m
 templates:
   common:
     platform:
@@ -316,8 +316,9 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
     // The DAG should route the failure as: Compile(scripts) fails → Sourcegen(..) Skipped →
     // Compile(a) Skipped → build fails with a BleepException. Before the sourcegen-in-DAG fix,
     // this scenario would hang the BSP handler via unsafeRunSync.
-    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
-
+    //
+    // This test never spawns forked JVMs (compile fails before sourcegen runs), so it's
+    // lighter on memory than the resource-generator test above.
     val bleepYaml = """
 projects:
   a:
