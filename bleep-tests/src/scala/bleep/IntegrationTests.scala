@@ -310,6 +310,87 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
     }
   }
 
+  test("sourcegen script project that fails to compile: build fails cleanly, does not hang") {
+    // Same shape as "resource generator" above, but the scripts project pins Scala 3.3.3 while
+    // bleep-core it depends on is built for a newer Scala — the script project won't compile.
+    // The DAG should route the failure as: Compile(scripts) fails → Sourcegen(..) Skipped →
+    // Compile(a) Skipped → build fails with a BleepException. Before the sourcegen-in-DAG fix,
+    // this scenario would hang the BSP handler via unsafeRunSync.
+    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
+
+    val bleepYaml = """
+projects:
+  a:
+    extends: common
+    platform:
+      mainClass: test.Main
+    sourcegen: scripts/testscripts.SourceGen
+  scripts:
+    dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
+    platform:
+      name: jvm
+    scala:
+      version: 3.3.3
+templates:
+  common:
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3
+"""
+
+    // Target Main references a symbol that would be produced by sourcegen if it ran.
+    val Main = """
+package test
+
+object Main {
+  def main(args: Array[String]): Unit = println(testgenerated.GeneratedSource.result)
+}
+"""
+
+    // A real sourcegen script — it uses bleep-core symbols that won't compile on Scala 3.3.3.
+    val SourceGen = """
+package testscripts
+
+import bleep.*
+
+object SourceGen extends BleepCodegenScript("SourceGen") {
+  def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit =
+    started.logger.info("should never run — this script project must fail to compile first")
+}
+"""
+
+    runTest(
+      "sourcegen script compile fails",
+      bleepYaml,
+      Map(
+        RelPath.force("./a/src/scala/test/Main.scala") -> Main,
+        RelPath.force("./scripts/src/scala/testscripts/SourceGen.scala") -> SourceGen
+      )
+    ) { (_, commands, storingLogger) =>
+      val thrown = intercept[BleepException] {
+        commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None)))
+      }
+      // The failure must be compile-related, not a timeout or hang signature.
+      val msg = thrown.getMessage
+      assert(msg.contains("compile") || msg.contains("failed"), s"unexpected failure message: $msg")
+
+      val loggedLines = storingLogger.underlying.map(_.message.plainText)
+
+      // The scripts project's compile failure should have been reported through BSP events.
+      // We assert loose evidence: either an explicit scripts compile failure or a skipped downstream.
+      val scriptsCompileFailed = loggedLines.exists(l => l.contains("scripts") && (l.contains("failed") || l.contains("❌")))
+      val targetSkipped = loggedLines.exists(l => l.contains("a") && (l.contains("Skipped") || l.contains("skipped") || l.contains("⏭️")))
+      assert(scriptsCompileFailed || targetSkipped, s"expected evidence of scripts compile failure or target skip in logs; got: ${loggedLines.mkString("\n")}")
+
+      // And critically: the generated source should NOT have been produced — sourcegen never ran.
+      val noGeneratedSource = !loggedLines.exists(_.contains("testgenerated.GeneratedSource"))
+      assert(noGeneratedSource, "target compile should not have proceeded; sourcegen output should be absent")
+
+      succeed
+    }
+  }
+
   test("test --only works before compilation") {
     runTest(
       "test --only works before compilation",
