@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: bleep-build/bleep-setup-action@0.0.2
+      - uses: bleep-build/bleep-setup-action@v0.0.3
       - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
@@ -116,7 +116,7 @@ jobs:
           java-version: '21'
 
       # Standard bootstrap via setup action (platforms with existing native binaries)
-      - uses: bleep-build/bleep-setup-action@0.0.2
+      - uses: bleep-build/bleep-setup-action@v0.0.3
         if: ${{ !matrix.bootstrap_coursier }}
 
       # Bootstrap via Coursier for ARM64 Linux (no pre-built native binary yet).
@@ -238,7 +238,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
-      - uses: bleep-build/bleep-setup-action@0.0.2
+      - uses: bleep-build/bleep-setup-action@v0.0.3
       - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
