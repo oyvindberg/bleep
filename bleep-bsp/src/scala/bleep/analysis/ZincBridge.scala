@@ -829,6 +829,36 @@ object ZincBridge {
             )
           )
         )
+      case e @ (_: VirtualMachineError | _: ThreadDeath | _: InterruptedException) =>
+        // Don't trap fatal errors or cancellation — let them propagate.
+        throw e
+      case e: Throwable =>
+        // Anything else (NoClassDefFoundError, IOException, generic RuntimeException, ...) leaves the
+        // analysis store and outputDir in a half-written state. Clear the in-memory caches keyed on
+        // analysisFile so the next compile doesn't observe stale state, and surface a structured
+        // failure with the underlying exception named so the user sees something actionable instead
+        // of a raw Zinc stack trace via BSP.
+        analysisCache.remove(analysisFile)
+        noopManifestCache.remove(analysisFile)
+        val rendered = {
+          val sw = new java.io.StringWriter
+          e.printStackTrace(new java.io.PrintWriter(sw))
+          sw.toString
+        }
+        System.err.println(s"[ZincBridge] ${config.name}: unexpected ${e.getClass.getName} during compile, cleared caches: ${e.getMessage}")
+        ProjectCompileFailure(
+          List(
+            CompilerError(
+              path = None,
+              line = 0,
+              column = 0,
+              message = s"Unexpected ${e.getClass.getSimpleName} during compile of ${config.name}: ${e.getMessage}. " +
+                "Caches cleared; please retry. If this persists, run `bleep clean` for the project.",
+              rendered = Some(rendered),
+              severity = CompilerError.Severity.Error
+            )
+          )
+        )
     }
   }
 

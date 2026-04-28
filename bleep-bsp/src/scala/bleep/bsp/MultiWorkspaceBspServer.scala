@@ -2196,30 +2196,51 @@ class MultiWorkspaceBspServer(
 
     val outputDir = started.projectPaths(project).targetDir / "classes"
     val lockStart = System.currentTimeMillis()
-    ProjectLock
-      .acquire(
-        project,
-        outputDir,
-        lockTimeout,
-        onContention = () =>
+
+    // Acquire locks before compiling: Exclusive on own project, Shared on each transitive dep.
+    // The dep's classes dir is read by javac/Zinc during this compile (classpath, JavaAnalyze
+    // class loading), so we must block any concurrent writer on those deps for the duration.
+    // Sort by project name to enforce a global lock order and prevent deadlock between concurrent
+    // compiles whose project sets overlap.
+    val transitiveDeps = started.build.transitiveDependenciesFor(project).keySet
+    val ownSpec: (CrossProjectName, Path, ProjectLock.LockMode) =
+      (project, outputDir, ProjectLock.LockMode.Exclusive)
+    val depSpecs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
+      transitiveDeps.toList.map { d =>
+        val depDir = started.projectPaths(d).targetDir / "classes"
+        (d, depDir, ProjectLock.LockMode.Shared)
+      }
+    val orderedSpecs = (ownSpec :: depSpecs).sortBy(_._1.value)
+
+    val locksResource: cats.effect.Resource[IO, Unit] =
+      orderedSpecs.foldLeft(cats.effect.Resource.pure[IO, Unit](())) { case (acc, (proj, dir, mode)) =>
+        val onContention: () => Unit = if (proj == project) { () =>
           sendEvent(
             originId,
             s"compile:${project.value}",
             BleepBspProtocol.Event.LockContention(project, 0, System.currentTimeMillis())
           )
-      )
-      .evalTap { hadContention =>
-        IO {
-          if (hadContention) {
-            val waited = System.currentTimeMillis() - lockStart
-            sendEvent(
-              originId,
-              s"compile:${project.value}",
-              BleepBspProtocol.Event.LockAcquired(project, waited, System.currentTimeMillis())
-            )
+        } else { () => () }
+
+        val one = ProjectLock
+          .acquire(proj, dir, mode, lockTimeout, onContention)
+          .evalTap { hadContention =>
+            IO {
+              if (hadContention && proj == project) {
+                val waited = System.currentTimeMillis() - lockStart
+                sendEvent(
+                  originId,
+                  s"compile:${project.value}",
+                  BleepBspProtocol.Event.LockAcquired(project, waited, System.currentTimeMillis())
+                )
+              }
+            }
           }
-        }
+          .void
+        acc.flatMap(_ => one)
       }
+
+    locksResource
       .use { _ =>
         compiler.compile(config, diagnosticListener, cancellation, dependencyAnalyses, progressListener)
       }
