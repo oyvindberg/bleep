@@ -104,6 +104,11 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run prefer jvmRuntimeOptions") {
+    // jvmRuntimeOptions wins over jvmOptions whenever it's non-empty (see
+    // `jvmRunCommand.apply` in bleep-core). This is verified at the model layer rather than
+    // by spawning a child JVM — the spawn path is OOM-fragile on memory-constrained CI
+    // runners (the fork inherits bleep-bsp's 4 GB heap accounting), and the selection logic
+    // is one branch with no I/O.
     runTest(
       "run prefer jvmRuntimeOptions",
       """projects:
@@ -124,9 +129,20 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    println("foo was: " + sys.props("foo"))
         |}""".stripMargin
       )
-    ) { (_, commands, storingLogger) =>
-      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
+    ) { (started, _, _) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val jvm = resolved.platform match {
+        case Some(j: ResolvedProject.Platform.Jvm) => j
+        case other                                 => sys.error(s"expected JVM platform, got $other")
+      }
+      val cmdArgs = bleep.internal.jvmRunCommand
+        .apply(resolved, started.resolvedJvm, projectName, overrideMainClass = None, args = Nil)
+        .orThrow
+      assert(cmdArgs.contains("-Dfoo=2"), s"jvmRuntimeOptions -Dfoo=2 should win, got $cmdArgs")
+      assert(!cmdArgs.contains("-Dfoo=1"), s"jvmOptions -Dfoo=1 should NOT appear, got $cmdArgs")
+      assert(jvm.runtimeOptions.contains("-Dfoo=2") && jvm.runtimeOptions.contains("-Xmx512m"))
+      assert(jvm.options.contains("-Dfoo=1"))
     }
   }
   test("annotation processors: default off — Lombok in deps does not run") {
@@ -511,6 +527,9 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run fallback to jvmOptions") {
+    // When jvmRuntimeOptions is empty, jvmOptions is used for `bleep run`. Verified at the
+    // model + jvmRunCommand layer for the same reason as `run prefer jvmRuntimeOptions`
+    // above (spawning is OOM-fragile on CI; the selection logic is trivial).
     runTest(
       "run fallback to jvmOptions",
       """projects:
@@ -530,9 +549,19 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    println("foo was: " + sys.props("foo"))
         |}""".stripMargin
       )
-    ) { (_, commands, storingLogger) =>
-      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 1"))
+    ) { (started, _, _) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val jvm = resolved.platform match {
+        case Some(j: ResolvedProject.Platform.Jvm) => j
+        case other                                 => sys.error(s"expected JVM platform, got $other")
+      }
+      val cmdArgs = bleep.internal.jvmRunCommand
+        .apply(resolved, started.resolvedJvm, projectName, overrideMainClass = None, args = Nil)
+        .orThrow
+      assert(cmdArgs.contains("-Dfoo=1"), s"jvmOptions -Dfoo=1 should be used, got $cmdArgs")
+      assert(jvm.runtimeOptions.isEmpty, s"jvmRuntimeOptions should be empty, got ${jvm.runtimeOptions}")
+      assert(jvm.options.contains("-Dfoo=1") && jvm.options.contains("-Xmx512m"))
     }
   }
 
