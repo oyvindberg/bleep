@@ -168,10 +168,17 @@
           "description": "When true, scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. Default off (explicit opt-in)."
         },
         "annotationProcessors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Dep"
-          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Dependency"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              }
+            }
+          ],
           "description": "Processor-only deps. Resolved separately and added to javac's `-processorpath`; never on the runtime classpath. Composes with `scanForAnnotationProcessors`."
         },
         "annotationProcessorOptions": {
