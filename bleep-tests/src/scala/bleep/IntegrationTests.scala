@@ -135,11 +135,15 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
-  test("annotation processors: scanForAnnotationProcessors: true scans deps and runs Lombok end-to-end") {
-    // Lombok bypasses JPMS via sun.misc.Unsafe (it does NOT use --add-opens, which is what
-    // older docs claim is required). On JDK 25 + Lombok 1.18.46 + in-process javac via Zinc
-    // it generates @Data members successfully — printed by `commands.run` at the bottom of
-    // this test.
+  test("annotation processors: scanForAnnotationProcessors: true scans deps and Lombok generates @Data members") {
+    // Lombok bypasses JPMS via sun.misc.Unsafe (it does NOT need --add-opens, despite older
+    // docs). On JDK 25 + Lombok 1.18.46 + in-process javac via Zinc it generates @Data
+    // members successfully — verified here by reflecting on the compiled `Person.class`
+    // and checking that getName/setName/toString/equals/hashCode are present.
+    //
+    // Verifying via reflection rather than `commands.run` keeps this test deterministic on
+    // CI runners (the forked-JVM approach was flaking with SIGKILL/exit-137 on heavily-loaded
+    // runners). The Mapstruct and AutoValue tests below cover the run-the-generated-code path.
     runTest(
       "AP scan true",
       """projects:
@@ -148,7 +152,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    platform:
         |      name: jvm
-        |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2
         |    java:
@@ -167,33 +170,20 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
             |
             |    public Person() {}
             |    public Person(String name, int age) { this.name = name; this.age = age; }
-            |}""".stripMargin,
-        RelPath.force("./a/src/java/test/Main.java") ->
-          """package test;
-            |
-            |public class Main {
-            |    public static void main(String[] args) {
-            |        Person p = new Person("alice", 33);
-            |        System.out.println(p.toString());
-            |    }
             |}""".stripMargin
       )
     ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
 
-      // Bootstrap state: javaOptions does NOT contain AP flags here. Those are computed
-      // by the AP DAG handler at compile time. Only the gen-sources reservation is visible
-      // at bootstrap (since BuildPaths reserves it conservatively).
+      // Bootstrap state: javaOptions does NOT contain AP flags here. Those are computed by
+      // the AP DAG handler at compile time. Only the gen-sources reservation is visible at
+      // bootstrap (since BuildPaths reserves it conservatively).
       assert(resolved.sources.exists(_.toString.contains("generated-sources")))
 
-      // End-to-end: Lombok actually generated toString().
-      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
-      assert(
-        storingLogger.underlying.exists(_.message.plainText == "Person(name=alice, age=33)"),
-        "expected Lombok-generated @Data toString() to print"
-      )
-      // Auto-discovery log line is emitted by the AP DAG handler during the run.
+      commands.compile(List(projectName))
+
+      // Auto-discovery log line is emitted by the AP DAG handler during compile.
       assert(
         storingLogger.underlying.exists { ev =>
           val txt = ev.message.plainText
@@ -201,6 +191,26 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         },
         "expected auto-discovered annotation processor JAR log line"
       )
+
+      // Reflection check on the compiled Person.class — proves Lombok actually transformed
+      // the class. If Lombok didn't run, the .class file would only have the user-written
+      // members (the two constructors and the two private fields' default getters/setters
+      // which don't exist in the user source).
+      val classpath = resolved.classesDir :: resolved.classpath.toList
+      val cl = new java.net.URLClassLoader(classpath.map(_.toUri.toURL).toArray, getClass.getClassLoader)
+      try {
+        val person = cl.loadClass("test.Person")
+        val methodNames = person.getDeclaredMethods.map(_.getName).toSet
+        // Lombok @Data generates: getter+setter per field, plus equals, hashCode, toString,
+        // and a canEqual helper. We assert on a representative subset.
+        assert(methodNames.contains("getName"), s"@Data should generate getName; got $methodNames")
+        assert(methodNames.contains("setName"), s"@Data should generate setName; got $methodNames")
+        assert(methodNames.contains("getAge"), s"@Data should generate getAge; got $methodNames")
+        assert(methodNames.contains("setAge"), s"@Data should generate setAge; got $methodNames")
+        assert(methodNames.contains("toString"), s"@Data should generate toString; got $methodNames")
+        assert(methodNames.contains("equals"), s"@Data should generate equals; got $methodNames")
+        assert(methodNames.contains("hashCode"), s"@Data should generate hashCode; got $methodNames")
+      } finally cl.close()
     }
   }
 
