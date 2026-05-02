@@ -1120,6 +1120,19 @@ class MultiWorkspaceBspServer(
     * Walks the build model to discover every sourcegen script declared by any project in scope, and for each script collects its script-project plus that
     * script project's transitive compile deps. Returns `SourcegenPlan.empty` when no scripts are declared.
     */
+  /** Walk projects in scope and collect those whose `model.Java` configures annotation processing — either by setting `scanForAnnotationProcessors: true` or by
+    * listing entries in `annotationProcessors`. Projects without any AP configuration skip the DAG step entirely; their javac options receive `-proc:none` from
+    * `ResolveProjects` directly without ever scheduling a `ResolveAnnotationProcessorsTask`.
+    */
+  private def buildAnnotationProcessorPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.AnnotationProcessorPlan = {
+    val configured = projects.filter { projectName =>
+      started.build.explodedProjects.get(projectName).flatMap(_.java).exists { java =>
+        java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty
+      }
+    }
+    TaskDag.AnnotationProcessorPlan(configured)
+  }
+
   private def buildSourcegenPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.SourcegenPlan = {
     val perProject: Map[CrossProjectName, Set[bleep.model.ScriptDef.Main]] =
       projects.iterator.flatMap { projectName =>
@@ -1139,6 +1152,19 @@ class MultiWorkspaceBspServer(
         }.toMap
       TaskDag.SourcegenPlan(perProject, scriptProjectDeps)
     }
+  }
+
+  /** Annotation-processor handler factory. Currently a placeholder: AP resolution still runs in `ResolveProjects` at bootstrap, so the DAG task is purely a
+    * marker that gives BSP clients a `bleep:resolve-annotation-processors:<project>` event for visibility. Returning `(Success, 0)` is correct because the
+    * actual jar discovery already happened upstream and is reflected in `started.resolvedProject(...)`'s `javaOptions`. A follow-up commit will move the real
+    * resolution work into this handler so it runs lazily during compile, with proper failure isolation per project.
+    */
+  private def makeAnnotationProcessorHandler(
+      started: Started,
+      originId: Option[String]
+  ): (TaskDag.ResolveAnnotationProcessorsTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, Int)] = {
+    val _ = (started, originId) // currently unused; kept in signature for the follow-up
+    (_, _) => IO.pure((TaskDag.TaskResult.Success, 0))
   }
 
   /** Sourcegen handler factory. Runs a single script via `SourceGenRunner.runOne`, emits BSP progress/log events, and translates the result to a `TaskResult`.
@@ -1349,8 +1375,12 @@ class MultiWorkspaceBspServer(
       } else {
         BleepBspProtocol.BuildMode.Compile
       }
-      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode, sourcegenPlan)
-      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size})")
+      val apPlan = buildAnnotationProcessorPlan(started, projectsToCompile)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
+      debugLog(
+        s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size})"
+      )
 
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
@@ -1370,15 +1400,26 @@ class MultiWorkspaceBspServer(
           LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
         }
 
-      // No-op handlers for discover/test (won't be called for compile/link DAGs)
+      // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
       val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
-        (_, _) => IO.pure((TaskDag.TaskResult.Success, List.empty))
+        (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
       val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-        (_, _) => IO.pure(TaskDag.TaskResult.Success)
+        (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
+
+      val apHandler = makeAnnotationProcessorHandler(started, params.originId)
 
       // Create executor
-      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
+      val executor = TaskDag.executor(
+        TaskDag.Handlers(
+          compile = compileHandler,
+          link = linkHandler,
+          discover = discoverHandler,
+          test = testHandler,
+          sourcegen = sourcegenHandler,
+          annotationProcessor = apHandler
+        )
+      )
 
       // Create trace recorder (noop if not enabled)
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
@@ -1648,9 +1689,11 @@ class MultiWorkspaceBspServer(
       }.toMap
 
       // Build the unified DAG with platforms (includes sourcegen tasks if any)
-      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms, sourcegenPlan)
+      val apPlan = buildAnnotationProcessorPlan(started, testProjects)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val initialDag = TaskDag.buildTestDag(testProjects, buildCtx)
       debugLog(
-        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}"
+        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}"
       )
 
       // Parse test options from params
@@ -1779,8 +1822,19 @@ class MultiWorkspaceBspServer(
               LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
             }
 
-          // Create executor with link + sourcegen support
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
+          val apHandler = makeAnnotationProcessorHandler(started, params.originId)
+
+          // Create executor with link + sourcegen + annotation-processor support
+          val executor = TaskDag.executor(
+            TaskDag.Handlers(
+              compile = compileHandler,
+              link = linkHandler,
+              discover = discoverHandler,
+              test = testHandler,
+              sourcegen = sourcegenHandler,
+              annotationProcessor = apHandler
+            )
+          )
 
           // Run event consumer in background (auto-cancels when scope exits)
           // This ensures the fiber is cleaned up even if the request is cancelled
@@ -2700,11 +2754,12 @@ class MultiWorkspaceBspServer(
 
   /** Get trace category and name for a task. */
   private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-    case ct: TaskDag.CompileTask    => (TraceCategory.Compile, ct.project.value)
-    case lt: TaskDag.LinkTask       => (TraceCategory.Link, lt.project.value)
-    case dt: TaskDag.DiscoverTask   => (TraceCategory.Discover, dt.project.value)
-    case tt: TaskDag.TestSuiteTask  => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
-    case sgt: TaskDag.SourcegenTask => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
+    case ct: TaskDag.CompileTask                      => (TraceCategory.Compile, ct.project.value)
+    case lt: TaskDag.LinkTask                         => (TraceCategory.Link, lt.project.value)
+    case dt: TaskDag.DiscoverTask                     => (TraceCategory.Discover, dt.project.value)
+    case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
+    case apt: TaskDag.ResolveAnnotationProcessorsTask => (TraceCategory.ResolveAnnotationProcessors, apt.project.value)
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2788,6 +2843,31 @@ class MultiWorkspaceBspServer(
     case _ => IO.unit
   }
 
+  /** Currently log-only — there's no `BleepBspProtocol.Event` case for annotation-processor resolution yet. The trace recorder still captures these as separate
+    * spans in the chrome-trace output so flamegraphs distinguish AP resolution from compile.
+    */
+  private def processAnnotationProcessorEvent(
+      event: TaskDag.DagEvent,
+      originId: Option[String],
+      traceRecorder: TraceRecorder
+  ): IO[Unit] = {
+    val _ = originId
+    event match {
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsStarted(project, _) =>
+        IO(logger.withContext("project", project.value).debug("Annotation processor resolution starting")) >>
+          traceRecorder.recordStart(TraceCategory.ResolveAnnotationProcessors, project.value)
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, _) =>
+        val msg =
+          if (success)
+            s"Annotation processor resolution finished (${discoveredJarCount} jars, ${durationMs}ms)"
+          else
+            s"Annotation processor resolution failed: ${error.getOrElse("unknown")} (${durationMs}ms)"
+        IO(logger.withContext("project", project.value).info(msg)) >>
+          traceRecorder.recordEnd(TraceCategory.ResolveAnnotationProcessors, project.value)
+      case _ => IO.unit
+    }
+  }
+
   /** Wrap event processing with dead-client detection and kill signal propagation. */
   private def withDeadClientDetection(
       killSignal: Deferred[IO, Outcome.KillReason],
@@ -2839,6 +2919,8 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenStarted/Finished, not TaskStarted/Finished
+              case _: TaskDag.ResolveAnnotationProcessorsTask =>
+                None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -2887,6 +2969,8 @@ class MultiWorkspaceBspServer(
 
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenFinished, not TaskFinished
+              case _: TaskDag.ResolveAnnotationProcessorsTask =>
+                None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
             }
             val failureRefUpdate = (task, result) match {
               case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
@@ -2935,11 +3019,13 @@ class MultiWorkspaceBspServer(
               totalIgnoredRef.update(_ + ignored) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
-          case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
-          case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
-          case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
+          case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
+          case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
+          case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -2987,11 +3073,13 @@ class MultiWorkspaceBspServer(
             case _ => IO.unit
           }
 
-        case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
-        case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
-        case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
+        case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
+        case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
+        case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
 
         case _ => IO.unit
       }
