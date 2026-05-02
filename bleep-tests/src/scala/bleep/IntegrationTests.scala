@@ -135,17 +135,22 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
-  test("annotation processors: scanForAnnotationProcessors: true scans deps (Lombok wiring)") {
-    // Verifies the wiring: lombok jar lands on -processorpath, -s and gen-dir are configured,
-    // and we emit the auto-discovery info log. We don't run end-to-end here because Lombok
-    // requires --add-opens for javac internals on JDK 16+, which is a JVM launch concern
-    // outside this PR. The end-to-end test below uses AutoValue (pure JSR 269).
+  test("annotation processors: scanForAnnotationProcessors: true scans deps and runs Lombok end-to-end") {
+    // Lombok bypasses JPMS via sun.misc.Unsafe (it does NOT use --add-opens, which is what
+    // older docs claim is required). On JDK 25 + Lombok 1.18.46 + in-process javac via Zinc
+    // it generates @Data members successfully — printed by `commands.run` at the bottom of
+    // this test.
     runTest(
       "AP scan true",
       """projects:
         |  a:
         |    dependencies: org.projectlombok:lombok:1.18.46
         |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |      mainClass: test.Main
+        |    scala:
+        |      version: 3.4.2
         |    java:
         |      scanForAnnotationProcessors: true
         |""".stripMargin,
@@ -153,12 +158,27 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         RelPath.force("./a/src/java/test/Person.java") ->
           """package test;
             |
+            |import lombok.Data;
+            |
+            |@Data
             |public class Person {
             |    private String name;
             |    private int age;
+            |
+            |    public Person() {}
+            |    public Person(String name, int age) { this.name = name; this.age = age; }
+            |}""".stripMargin,
+        RelPath.force("./a/src/java/test/Main.java") ->
+          """package test;
+            |
+            |public class Main {
+            |    public static void main(String[] args) {
+            |        Person p = new Person("alice", 33);
+            |        System.out.println(p.toString());
+            |    }
             |}""".stripMargin
       )
-    ) { (started, _, storingLogger) =>
+    ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
       val javaOptions = resolved.language.javaOptions
@@ -178,6 +198,13 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
           txt.contains("auto-discovered annotation processor JAR") && txt.contains("lombok")
         },
         "expected auto-discovered annotation processor JAR log line"
+      )
+
+      // End-to-end: Lombok actually generated toString().
+      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      assert(
+        storingLogger.underlying.exists(_.message.plainText == "Person(name=alice, age=33)"),
+        "expected Lombok-generated @Data toString() to print"
       )
     }
   }
