@@ -782,24 +782,40 @@ object KotlinSourceCompiler extends Compiler {
         }
       }
 
-      // For remaining options, use parseCommandLineArguments
+      // For remaining options, call ParseCommandLineArgumentsKt.parseCommandLineArguments —
+      // a top-level Kotlin function with a stable signature across 1.9 and 2.x:
+      //   public static <A extends CommonToolArguments> void
+      //   parseCommandLineArguments(List<String>, A, boolean)
+      //
+      // Earlier versions of this code reached for the legacy CLITool.parseArguments and, on
+      // failure, fell back to K2JVMCompilerArguments.setInternalArguments(List<String>). The
+      // fallback was wrong: `internalArguments` holds typed `InternalArgument` values, not
+      // raw strings. On Kotlin 2.3.0, CLITool.class is gone (the lookup fails), the broad
+      // catch fires, the fallback corrupts internalArguments with strings, and Kotlin later
+      // crashes with `ClassCastException: String cannot be cast to ManualLanguageFeatureSetting`
+      // inside CommonCompilerArgumentsConfigurator.configureLanguageFeaturesFromInternalArgs.
+      // See `m9-kotlin-bug.md` and `Kotlin23JvmTarget21IT` for the regression.
       val remainingOpts = options.filter(opt => !opt.startsWith("-Xfriend-paths=") && !opt.startsWith("-Xplugin=") && opt != "-P" && !opt.startsWith("plugin:"))
       if (remainingOpts.nonEmpty) {
         try {
-          val cliToolClass = setup.loader.loadClass("org.jetbrains.kotlin.cli.common.CLITool")
-          val parseMethod = cliToolClass.getDeclaredMethod("parseArguments", classOf[Array[String]], setup.argumentsClass.getSuperclass.getSuperclass)
-          parseMethod.setAccessible(true)
-          parseMethod.invoke(null, remainingOpts.toArray, arguments)
+          val parseClass = setup.loader.loadClass("org.jetbrains.kotlin.cli.common.arguments.ParseCommandLineArgumentsKt")
+          val parseMethod = parseClass.getMethods.find { m =>
+            m.getName == "parseCommandLineArguments" &&
+            m.getParameterCount == 3 &&
+            m.getParameterTypes()(0) == classOf[java.util.List[?]] &&
+            m.getParameterTypes()(2) == java.lang.Boolean.TYPE
+          }
+          parseMethod match {
+            case Some(m) =>
+              m.invoke(null, remainingOpts.asJava, arguments, java.lang.Boolean.FALSE)
+            case None =>
+              debug(s"ParseCommandLineArgumentsKt.parseCommandLineArguments(List, Args, Boolean) not found; could not apply: ${remainingOpts.mkString(", ")}")
+          }
         } catch {
-          case _: Exception =>
-            // Fallback: try setting options as internalArguments
-            try {
-              val setInternal = setup.argumentsClass.getMethod("setInternalArguments", classOf[java.util.List[?]])
-              setInternal.invoke(arguments, remainingOpts.asJava)
-            } catch {
-              case _: Exception =>
-                debug(s"Could not apply compiler options: ${remainingOpts.mkString(", ")}")
-            }
+          case e: Exception =>
+            // Do NOT fall through to setInternalArguments — it expects List<InternalArgument>
+            // not List<String> and corrupts the args object. Surface the failure instead.
+            debug(s"Could not apply compiler options ${remainingOpts.mkString(", ")}: ${e.getClass.getName}: ${e.getMessage}")
         }
       }
     }
