@@ -85,7 +85,10 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     */
   private def runMainInProcess(resolved: ResolvedProject, mainClassName: String): String = {
     val urls = (resolved.classesDir :: resolved.classpath.toList).map(_.toUri.toURL).toArray
-    val cl = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+    // Parent = null (bootstrap classloader only) so the project gets its own scala-library
+    // and dependencies from `urls` rather than picking up whatever bleep-tests was built
+    // against. java.* still resolves through the bootstrap classloader.
+    val cl = new java.net.URLClassLoader(urls, null)
     val captured = new java.io.ByteArrayOutputStream()
     val origOut = System.out
     System.setOut(new java.io.PrintStream(captured, true, "UTF-8"))
@@ -588,14 +591,16 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("resource generator") {
-    // Forked JVMs (sourcegen script + `bleep run`) get bounded heaps via `jvmRuntimeOptions`
-    // so the total (test JVM + in-process BSP + forks) fits within the 7GB CI runner budget.
+    // The forked sourcegen-script JVM still runs (that's what's being tested — sourcegen
+    // wiring through the DAG). The downstream "did the generated code make it to the compile
+    // path" check uses `runMainInProcess` rather than another forked `bleep run`, since the
+    // forking aspect is already exercised by the separate `run prefer jvmRuntimeOptions` and
+    // `run fallback to jvmOptions` tests.
     val bleepYaml = """
 projects:
   a:
     extends: common
     platform:
-      mainClass: test.Main
       jvmRuntimeOptions: -Xmx512m -Xms64m
     sourcegen: scripts/testscripts.SourceGen
   scripts:
@@ -652,9 +657,11 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
         RelPath.force("./a/src/scala/test/Main.scala") -> Main,
         RelPath.force("./scripts/src/scala/testscripts/SourceGen.scala") -> SourceGen
       )
-    ) { (_, commands, storingLogger) =>
-      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "result: 100"))
+    ) { (started, commands, _) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      commands.compile(List(projectName))
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      assert(runMainInProcess(resolved, "test.Main") == "result: 100")
     }
   }
 
