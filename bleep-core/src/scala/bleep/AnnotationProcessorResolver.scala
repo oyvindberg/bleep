@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.model.IgnoreEvictionErrors
-import coursier.core.VersionConstraint
 import ryddig.Logger
 
 import java.io.File

@@ -68,7 +68,26 @@ projects:
           jsVersion: 1.13.2
 ```
 
-### 4. Scripts (Replacing sbt Tasks/Plugins)
+### 4. Java Annotation Processors
+
+Three composable fields under `java:`. Default off — nothing scans, nothing runs unless you opt in.
+
+```yaml
+projects:
+  myapp:
+    dependencies:
+      - org.projectlombok:lombok:1.18.46
+    java:
+      scanForAnnotationProcessors: true        # opt-in: scan deps for META-INF/services
+      annotationProcessors:                     # explicit processor-only deps (not on runtime classpath)
+        - org.mapstruct:mapstruct-processor:1.5.5.Final
+      annotationProcessorOptions:               # -A<k>=<v> flags
+        mapstruct.suppressGeneratorTimestamp: "true"
+```
+
+Resolution runs as a per-project DAG task at compile time, not bootstrap (`bleep-bsp/.../TaskDag.scala` `ResolveAnnotationProcessorsTask` and `MultiWorkspaceBspServer.makeAnnotationProcessorHandler`). Failures surface through `BuildSummary.apResolutionFailed` so `commands.compile` throws on misconfig. See `bleep-site-in/usage/annotation-processing.mdx` for the user-facing doc.
+
+### 5. Scripts (Replacing sbt Tasks/Plugins)
 
 Scripts are regular Scala programs that replace sbt's task system:
 
