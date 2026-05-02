@@ -282,6 +282,73 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
+  test("annotation processors: end-to-end with AutoValue (split-jar processor)") {
+    // AutoValue's processor jar is a textbook JSR 269 setup — `auto-value-1.10.4.jar` ships
+    // META-INF/services/javax.annotation.processing.Processor listing seven processors. javac's
+    // ServiceLoader picks them up off `-processorpath` exactly the same way it does Mapstruct.
+    // This test exists alongside the Mapstruct one because the split-jar pattern (annotations
+    // jar in `dependencies`, processor jar in `annotationProcessors`) is the most common shape
+    // in the wild and we want to lock both popular processors in.
+    runTest(
+      "AP autovalue e2e",
+      """projects:
+        |  a:
+        |    dependencies: com.google.auto.value:auto-value-annotations:1.10.4
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |      mainClass: test.Main
+        |    scala:
+        |      version: 3.4.2
+        |    java:
+        |      annotationProcessors:
+        |        - com.google.auto.value:auto-value:1.10.4
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/java/test/Item.java") ->
+          """package test;
+            |import com.google.auto.value.AutoValue;
+            |@AutoValue
+            |public abstract class Item {
+            |    public abstract String name();
+            |    public abstract int count();
+            |    public static Item create(String name, int count) {
+            |        return new AutoValue_Item(name, count);
+            |    }
+            |}""".stripMargin,
+        RelPath.force("./a/src/java/test/Main.java") ->
+          """package test;
+            |public class Main {
+            |    public static void main(String[] args) {
+            |        Item it = Item.create("alice", 33);
+            |        System.out.println("name=" + it.name() + " count=" + it.count());
+            |    }
+            |}""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+
+      val classpathPaths = resolved.classpath.map(_.toString)
+      assert(
+        !classpathPaths.exists(p => p.contains("auto-value-1.10.4.jar") || p.contains("auto-value/1.10.4")),
+        s"auto-value processor jar must NOT be on runtime classpath, got $classpathPaths"
+      )
+
+      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      assert(
+        storingLogger.underlying.exists(_.message.plainText == "name=alice count=33"),
+        "expected AutoValue-generated AutoValue_Item to construct correctly"
+      )
+
+      val genDir = resolved.sources
+        .find(_.toString.contains("generated-sources"))
+        .getOrElse(sys.error(s"expected a generated-sources dir in ${resolved.sources}"))
+      val autoValueGenerated = genDir.resolve("test").resolve("AutoValue_Item.java")
+      assert(Files.isRegularFile(autoValueGenerated), s"expected AutoValue_Item.java at $autoValueGenerated")
+    }
+  }
+
   test("annotation processors: annotationProcessorOptions compiles cleanly with -A flag") {
     // The DAG handler emits `-A<key>=<value>` flags for every entry in annotationProcessorOptions.
     // We can't directly observe the javac arg list from this test (it's per-invocation, inside

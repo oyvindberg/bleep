@@ -34,11 +34,12 @@ Lombok 1.18.46 works on JDK 16+ in-process — no `--add-opens` needed. (Older g
 
 The two collections compose. You can scan AND list explicit extras in the same project.
 
-## MapStruct (separate annotation jar + processor jar)
+## MapStruct, AutoValue, Immutables, Dagger (split-jar processors)
 
-MapStruct splits its API into a small `mapstruct` jar (annotations like `@Mapper`, runtime-needed) and a heavy `mapstruct-processor` jar (the processor — only needed at compile time). To keep the runtime classpath lean, list the annotations in `dependencies` and the processor in `annotationProcessors`:
+These ship their API as a small annotation jar (runtime-needed) and a separate processor jar (compile-time only). To keep the runtime classpath lean, put the annotations in `dependencies` and the processor in `annotationProcessors`. Each processor jar has a standard `META-INF/services/javax.annotation.processing.Processor` entry, so javac's ServiceLoader picks the classes — bleep doesn't have to name them.
 
 ```yaml
+# MapStruct
 projects:
   myapp:
     dependencies:
@@ -48,25 +49,20 @@ projects:
         - org.mapstruct:mapstruct-processor:1.5.5.Final
       annotationProcessorOptions:
         mapstruct.suppressGeneratorTimestamp: "true"
+
+# AutoValue
+projects:
+  myapp:
+    dependencies:
+      - com.google.auto.value:auto-value-annotations:1.10.4
+    java:
+      annotationProcessors:
+        - com.google.auto.value:auto-value:1.10.4
 ```
 
 `scanForAnnotationProcessors` is omitted — pure-explicit mode. Lombok-style jars in `dependencies` would not be auto-detected here.
 
-### A caveat about JSR 269 service registration
-
-Bleep relies on each processor jar having a `META-INF/services/javax.annotation.processing.Processor` entry. Most well-behaved processors do — MapStruct, Lombok, Immutables, Dagger.
-
-A small number of processors don't, and instead rely on Gradle-specific or Maven-plugin-specific registration files. The most prominent example is **AutoValue 1.10.x**, whose `auto-value-*.jar` ships only `META-INF/gradle/incremental.annotation.processors` and `META-INF/maven/plugin.xml` — javac's standard ServiceLoader finds nothing. To use AutoValue with bleep today, pin the class name in `java.options`:
-
-```yaml
-java:
-  annotationProcessors:
-    - com.google.auto.value:auto-value:1.10.4
-  options:
-    - -processor com.google.auto.value.processor.AutoValueProcessor
-```
-
-(`-processor` is one of the few flags bleep does not auto-wire — you can put it in `java.options` yourself.)
+This matches Maven's `<annotationProcessorPaths>` and Gradle's `annotationProcessor` configurations. The Maven idiom of `<scope>provided</scope>` for the processor jar is the equivalent of `annotationProcessors:` here — both keep the heavy processor JAR off the runtime classpath.
 
 ## Composed: scan + explicit
 
@@ -107,7 +103,7 @@ Dependency upgrades cannot silently introduce new processors here — only what'
 * **No-op opt-in fails loud.** `scanForAnnotationProcessors: true` with empty `annotationProcessors` and zero processor-bearing jars in `dependencies` makes the AP DAG task fail at compile time, propagating up as `commands.compile`/`commands.run` throwing a `BleepException` with `"Annotation processor resolution failed for N project(s)"`. The user typed `true` for a reason; we don't silently disable.
 * **Manual `-proc:none` is honored.** Putting `-proc:none` in `java.options` skips all auto-wiring. Use this when you want to disable processing for a project that has processor-bearing dependencies.
 * **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing — choose one or the other.
-* **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around jars missing `META-INF/services` (see the AutoValue note above).
+* **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around the rare jar that ships its processor classes without a `META-INF/services/javax.annotation.processing.Processor` registration.
 
 ## Where generated sources go
 
