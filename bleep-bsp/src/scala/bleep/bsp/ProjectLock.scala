@@ -8,106 +8,148 @@ import java.nio.channels.{FileChannel, FileLock, OverlappingFileLockException}
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
 
-/** File-based locks for project write operations (compile, link).
+/** Per-project read/write lock for compile and link operations.
   *
-  * Prevents concurrent compilation/linking of the same project, both within this JVM and across processes. Uses Java NIO FileLock which provides:
-  *   - Cross-process locking (multiple bleep instances)
-  *   - Automatic release on JVM crash
-  *   - Non-blocking tryLock with timeout support
+  * Cross-process: backed by Java NIO FileLock with shared/exclusive modes.
+  *   - Exclusive (writer): one holder at a time, no concurrent readers anywhere.
+  *   - Shared (reader): multiple holders allowed concurrently across processes; no concurrent writer.
   *
-  * Lock files are created in the PARENT of the output directory (e.g. `target/.bleep-lock`, not `target/classes/.bleep-lock`). This is critical on Windows
-  * where file locks are mandatory — placing the lock inside the classes directory causes Zinc to fail when scanning class files, since the locked file cannot
-  * be accessed by other code in the same process.
+  * Within-JVM: NIO file locks throw OverlappingFileLockException if the same JVM tries to lock the same file twice through different channels, even when both
+  * want shared. We work around this by holding ONE shared file lock per project per JVM, refcounting within-JVM holders. The first shared acquirer opens the
+  * channel and acquires the file lock; subsequent shared acquirers in this JVM bump a refcount; the last shared releaser closes the channel.
+  *
+  * Lock files live in the parent of the output directory (e.g. `target/.bleep-lock`, not `target/classes/.bleep-lock`). On Windows, mandatory file locks
+  * prevent ALL access to the locked file — placing the lock inside the classes directory would break Zinc's class file scanning.
   */
 object ProjectLock {
 
-  /** In-memory locks for efficiency within same JVM */
-  private val jvmLocks = ConcurrentHashMap[CrossProjectName, AnyRef]()
+  sealed trait LockMode
+  object LockMode {
+    case object Exclusive extends LockMode
+    case object Shared extends LockMode
+  }
 
-  /** Get or create a JVM-level lock object for a project */
-  private def getJvmLock(project: CrossProjectName): AnyRef =
-    jvmLocks.computeIfAbsent(project, _ => new AnyRef)
+  /** Per-project state. Mutated only under `getMonitor(project).synchronized`. */
+  private final class ProjectState {
+    // Within-JVM count of shared holders. When > 0, `sharedFileLock` must be defined.
+    var sharedHolderCount: Int = 0
+    var sharedFileLock: Option[LockInfo] = None
+    var exclusiveLock: Option[LockInfo] = None
+  }
 
-  /** Acquire an exclusive lock for a project's write operations.
+  private val states = new ConcurrentHashMap[CrossProjectName, ProjectState]()
+  private val monitors = new ConcurrentHashMap[CrossProjectName, AnyRef]()
+
+  private def getMonitor(project: CrossProjectName): AnyRef =
+    monitors.computeIfAbsent(project, _ => new AnyRef)
+
+  private def getState(project: CrossProjectName): ProjectState =
+    states.computeIfAbsent(project, _ => new ProjectState)
+
+  /** Acquire a lock for a project's read or write operations.
     *
     * @param project
     *   The project to lock
     * @param outputDir
-    *   The project's output directory (lock file will be created here)
+    *   The project's output directory (lock file lives in its parent)
+    * @param mode
+    *   Exclusive for writes (compile/link), Shared for reads (compile of dependents that read this project's classes)
     * @param timeout
     *   Maximum time to wait for lock acquisition
     * @param onContention
-    *   Called once on the first failed lock attempt (before retrying). Use to notify callers that a lock is contended.
+    *   Called once on the first failed lock attempt (before retrying)
     * @return
     *   Resource that holds the lock while in scope. The boolean indicates whether there was contention (true = had to wait).
     */
   def acquire(
       project: CrossProjectName,
       outputDir: Path,
+      mode: LockMode,
       timeout: scala.concurrent.duration.FiniteDuration,
       onContention: () => Unit
   ): Resource[IO, Boolean] =
-    Resource.make(acquireLock(project, outputDir, timeout, onContention))(_ => releaseLock(project, outputDir))
+    Resource.make(acquireLock(project, outputDir, mode, timeout, onContention))(_ => releaseLock(project, mode))
 
-  /** Try to acquire lock, with retry and timeout.
-    *
-    * @return
-    *   true if there was contention (had to wait), false if acquired immediately
-    */
   private def acquireLock(
       project: CrossProjectName,
       outputDir: Path,
+      mode: LockMode,
       timeout: scala.concurrent.duration.FiniteDuration,
       onContention: () => Unit
   ): IO[Boolean] = {
-    // Place lock file in parent directory (e.g. target/.bleep-lock, not target/classes/.bleep-lock).
-    // On Windows, mandatory file locks prevent ALL access to the locked file — including Zinc scanning
-    // the classes directory for incremental compilation.
     val lockFile = outputDir.getParent.resolve(".bleep-lock")
     val retryDelay = scala.concurrent.duration.Duration(50, scala.concurrent.duration.MILLISECONDS)
     val maxAttempts = (timeout.toMillis / retryDelay.toMillis).toInt.max(1)
 
     def attempt(remaining: Int, notified: Boolean): IO[Boolean] =
       IO.blocking {
-        // First acquire JVM-level lock (fast path for same-process)
-        val jvmLock = getJvmLock(project)
-        jvmLock.synchronized {
-          // Ensure output directory exists.
-          // Catch FileAlreadyExistsException: JDK's createDirectories has a known
-          // TOCTOU race when parallel threads create overlapping directory trees.
-          // The JDK's internal symlink check uses NOFOLLOW_LINKS, which can fail
-          // when the final component is a symlink-to-directory created by another thread.
-          // Our isDirectory check omits NOFOLLOW_LINKS so symlinks are fine.
+        val monitor = getMonitor(project)
+        val state = getState(project)
+        monitor.synchronized {
+          // JDK's createDirectories has a known TOCTOU race when parallel threads create overlapping
+          // trees — the internal symlink check uses NOFOLLOW_LINKS and can fail when the final
+          // component is a symlink-to-directory created by another thread.
           try Files.createDirectories(outputDir)
           catch {
-            case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) =>
-              () // Race: another thread created it. It's a directory, which is what we wanted.
+            case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) => ()
           }
 
-          // Try to acquire file lock with proper resource management
-          val raf = new RandomAccessFile(lockFile.toFile, "rw")
-          var success = false
-          try {
-            val channel = raf.getChannel
-            val fileLock = channel.tryLock()
-            if (fileLock != null) {
-              // Store lock info for later release
-              activeLocks.put(project, LockInfo(raf, channel, fileLock))
-              success = true
-              notified // Return whether we had to wait
-            } else {
-              throw new LockNotAcquiredException(project)
-            }
-          } catch {
-            case _: OverlappingFileLockException =>
-              throw new LockNotAcquiredException(project)
-          } finally
-            // Only close if we didn't successfully acquire the lock
-            // (on success, RAF ownership transfers to activeLocks)
-            if (!success) {
-              try raf.close()
-              catch { case _: Exception => () }
-            }
+          mode match {
+            case LockMode.Shared =>
+              if (state.exclusiveLock.isDefined) throw new LockNotAcquiredException(project)
+              state.sharedFileLock match {
+                case Some(_) =>
+                  // Already holding the within-JVM shared file lock. Bump refcount.
+                  state.sharedHolderCount += 1
+                case None =>
+                  // First shared holder in this JVM. Open channel + acquire shared file lock.
+                  val raf = new RandomAccessFile(lockFile.toFile, "rw")
+                  var owned = false
+                  try {
+                    val channel = raf.getChannel
+                    val fileLock = channel.tryLock(0L, java.lang.Long.MAX_VALUE, /* shared = */ true)
+                    if (fileLock != null) {
+                      state.sharedFileLock = Some(LockInfo(raf, channel, fileLock))
+                      state.sharedHolderCount = 1
+                      owned = true
+                    } else {
+                      throw new LockNotAcquiredException(project)
+                    }
+                  } catch {
+                    case _: OverlappingFileLockException =>
+                      throw new LockNotAcquiredException(project)
+                  } finally
+                    if (!owned) {
+                      try raf.close()
+                      catch { case _: Exception => () }
+                    }
+              }
+
+            case LockMode.Exclusive =>
+              if (state.exclusiveLock.isDefined || state.sharedFileLock.isDefined) {
+                throw new LockNotAcquiredException(project)
+              }
+              val raf = new RandomAccessFile(lockFile.toFile, "rw")
+              var owned = false
+              try {
+                val channel = raf.getChannel
+                val fileLock = channel.tryLock()
+                if (fileLock != null) {
+                  state.exclusiveLock = Some(LockInfo(raf, channel, fileLock))
+                  owned = true
+                } else {
+                  throw new LockNotAcquiredException(project)
+                }
+              } catch {
+                case _: OverlappingFileLockException =>
+                  throw new LockNotAcquiredException(project)
+              } finally
+                if (!owned) {
+                  try raf.close()
+                  catch { case _: Exception => () }
+                }
+          }
+          notified
         }
       }.handleErrorWith {
         case _: LockNotAcquiredException if remaining > 1 =>
@@ -116,9 +158,8 @@ object ProjectLock {
         case _: LockNotAcquiredException =>
           IO.raiseError(new LockTimeoutException(project, timeout))
         case e: java.io.IOException if remaining > 1 && isWindowsSharingViolation(e) =>
-          // On Windows, antivirus scanners and indexing services can briefly hold
-          // exclusive handles on newly-created files. Retry in the same way as for
-          // lock contention.
+          // On Windows, antivirus scanners and indexing services can briefly hold exclusive handles
+          // on newly-created files. Retry the same way as for lock contention.
           IO.sleep(retryDelay) >> attempt(remaining - 1, notified)
         case e: java.io.IOException if isWindowsSharingViolation(e) =>
           IO.raiseError(new LockTimeoutException(project, timeout))
@@ -129,19 +170,37 @@ object ProjectLock {
     attempt(maxAttempts, false)
   }
 
-  /** Release a project lock */
-  private def releaseLock(project: CrossProjectName, outputDir: Path): IO[Unit] =
+  private def releaseLock(project: CrossProjectName, mode: LockMode): IO[Unit] =
     IO.blocking {
-      Option(activeLocks.remove(project)).foreach { info =>
-        info.fileLock.release()
-        info.channel.close()
-        info.raf.close()
+      val monitor = getMonitor(project)
+      val state = states.get(project)
+      if (state != null) monitor.synchronized {
+        mode match {
+          case LockMode.Shared =>
+            state.sharedHolderCount -= 1
+            if (state.sharedHolderCount <= 0) {
+              state.sharedFileLock.foreach(closeQuietly)
+              state.sharedFileLock = None
+              state.sharedHolderCount = 0
+            }
+          case LockMode.Exclusive =>
+            state.exclusiveLock.foreach(closeQuietly)
+            state.exclusiveLock = None
+        }
       }
     }
 
-  /** Track active locks for cleanup */
+  private def closeQuietly(info: LockInfo): Unit = {
+    try info.fileLock.release()
+    catch { case _: Exception => () }
+    try info.channel.close()
+    catch { case _: Exception => () }
+    try info.raf.close()
+    catch { case _: Exception => () }
+  }
+
+  /** Tracks an open file lock plus the resources backing it. */
   private case class LockInfo(raf: RandomAccessFile, channel: FileChannel, fileLock: FileLock)
-  private val activeLocks = ConcurrentHashMap[CrossProjectName, LockInfo]()
 
   /** Check if an IOException is a Windows sharing violation (ERROR_SHARING_VIOLATION).
     *
@@ -162,15 +221,10 @@ object ProjectLock {
   def releaseAll(): IO[Unit] =
     IO.blocking {
       import scala.jdk.CollectionConverters.*
-      activeLocks.keys().asScala.toList.foreach { project =>
-        Option(activeLocks.remove(project)).foreach { info =>
-          try {
-            info.fileLock.release()
-            info.channel.close()
-            info.raf.close()
-          } catch {
-            case _: Exception => ()
-          }
+      states.keys().asScala.toList.foreach { project =>
+        Option(states.remove(project)).foreach { state =>
+          state.sharedFileLock.foreach(closeQuietly)
+          state.exclusiveLock.foreach(closeQuietly)
         }
       }
     }
