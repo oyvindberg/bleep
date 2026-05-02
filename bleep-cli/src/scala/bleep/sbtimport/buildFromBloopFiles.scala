@@ -484,7 +484,12 @@ object buildFromBloopFiles {
   }
 
   def translateJava(templateDirs: model.Replacements)(java: Config.Java): model.Java =
-    model.Java(options = parseOptionsDropSemanticDb(java.options, Some(templateDirs)))
+    model.Java(
+      options = parseOptionsDropSemanticDb(java.options, Some(templateDirs)),
+      scanForAnnotationProcessors = None,
+      annotationProcessors = model.JsonSet.empty,
+      annotationProcessorOptions = model.AnnotationProcessorOptions.empty
+    )
 
   def translatePlatform(platform: Config.Platform, templateDirs: model.Replacements, resolution: Option[Config.Resolution]): model.Platform =
     platform match {

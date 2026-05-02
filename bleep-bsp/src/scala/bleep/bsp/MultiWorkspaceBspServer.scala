@@ -1120,6 +1120,19 @@ class MultiWorkspaceBspServer(
     * Walks the build model to discover every sourcegen script declared by any project in scope, and for each script collects its script-project plus that
     * script project's transitive compile deps. Returns `SourcegenPlan.empty` when no scripts are declared.
     */
+  /** Walk projects in scope and collect those whose `model.Java` configures annotation processing — either by setting `scanForAnnotationProcessors: true` or by
+    * listing entries in `annotationProcessors`. Projects without any AP configuration skip the DAG step entirely; their javac options receive `-proc:none` from
+    * `ResolveProjects` directly without ever scheduling a `ResolveAnnotationProcessorsTask`.
+    */
+  private def buildAnnotationProcessorPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.AnnotationProcessorPlan = {
+    val configured = projects.filter { projectName =>
+      started.build.explodedProjects.get(projectName).flatMap(_.java).exists { java =>
+        java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty
+      }
+    }
+    TaskDag.AnnotationProcessorPlan(configured)
+  }
+
   private def buildSourcegenPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.SourcegenPlan = {
     val perProject: Map[CrossProjectName, Set[bleep.model.ScriptDef.Main]] =
       projects.iterator.flatMap { projectName =>
@@ -1139,6 +1152,58 @@ class MultiWorkspaceBspServer(
         }.toMap
       TaskDag.SourcegenPlan(perProject, scriptProjectDeps)
     }
+  }
+
+  /** Annotation-processor handler factory. Resolves processor JARs (Coursier `force` over each `annotationProcessors` Dep) and scans resolved-`dependencies`
+    * JARs for `META-INF/services/javax.annotation.processing.Processor` entries when `scanForAnnotationProcessors` is set. Stores the resulting
+    * `AnnotationProcessorResult` keyed by project in `apResults` for the compile handler to read.
+    */
+  private def makeAnnotationProcessorHandler(
+      started: Started,
+      originId: Option[String],
+      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]
+  ): (TaskDag.ResolveAnnotationProcessorsTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, Int)] = {
+    val _ = originId // events are emitted by the executor; this factory closes over `started` only
+    (task, _) =>
+      // Wrap with `attempt` so the resolver's `sys.error` for misconfig (no-op opt-in, conflicting flags) lands as
+      // a TaskResult.Failure instead of an unhandled exception. This matters because the executor's
+      // ResolveAnnotationProcessorsFinished event is only emitted when the handler returns a value — if the IO
+      // throws, the executor's `withRecovery` catches it but the surrounding for-comprehension that emits Finished
+      // never reaches that point, and the build summary's `apResolutionFailed` counter stays at zero.
+      IO.blocking {
+        val crossName = task.project
+        val explodedProject = started.build.explodedProjects(crossName)
+        val javaCfg = explodedProject.java.getOrElse {
+          sys.error(s"project ${crossName.value}: scheduled for AP resolution but has no java configuration")
+        }
+        if (AnnotationProcessorResolver.userOptsOut(javaCfg)) {
+          // Escape hatch — user opted out via -proc:none in java.options. Leave apResults empty for this project.
+          (TaskDag.TaskResult.Success, 0)
+        } else {
+          val resolvedProject = started.resolvedProject(crossName)
+          val depJars: List[Path] = resolvedProject.classpath.filter(_.toString.endsWith(".jar"))
+          val versionCombo = bleep.model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
+          val genSourcesDir = started.buildPaths.generatedSourcesDir(crossName, "annotations")
+          val result = AnnotationProcessorResolver.resolve(
+            crossName = crossName,
+            java = javaCfg,
+            resolvedDependencyJars = depJars,
+            versionCombo = versionCombo,
+            libraryVersionSchemes = explodedProject.libraryVersionSchemes.values,
+            resolver = started.resolver,
+            genSourcesDir = genSourcesDir,
+            logger = logger
+          )
+          apResults.put(crossName, result)
+          (TaskDag.TaskResult.Success, result.processorJars.size)
+        }
+      }.attempt
+        .map {
+          case Right(value) => value
+          case Left(error)  =>
+            val msg = Option(error.getMessage).getOrElse(error.getClass.getName)
+            (TaskDag.TaskResult.Failure(msg, Nil), 0)
+        }
   }
 
   /** Sourcegen handler factory. Runs a single script via `SourceGenRunner.runOne`, emits BSP progress/log events, and translates the result to a `TaskResult`.
@@ -1349,13 +1414,22 @@ class MultiWorkspaceBspServer(
       } else {
         BleepBspProtocol.BuildMode.Compile
       }
-      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode, sourcegenPlan)
-      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size})")
+      val apPlan = buildAnnotationProcessorPlan(started, projectsToCompile)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
+      debugLog(
+        s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size})"
+      )
 
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+      // Per-build map populated by the AP DAG handler and read by the compile handler.
+      // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories
+      // are called synchronously here, before the IO program starts.
+      val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+
+      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
       val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
       // Create link handler
@@ -1370,15 +1444,26 @@ class MultiWorkspaceBspServer(
           LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
         }
 
-      // No-op handlers for discover/test (won't be called for compile/link DAGs)
+      // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
       val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
-        (_, _) => IO.pure((TaskDag.TaskResult.Success, List.empty))
+        (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
       val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-        (_, _) => IO.pure(TaskDag.TaskResult.Success)
+        (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
+
+      val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
 
       // Create executor
-      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
+      val executor = TaskDag.executor(
+        TaskDag.Handlers(
+          compile = compileHandler,
+          link = linkHandler,
+          discover = discoverHandler,
+          test = testHandler,
+          sourcegen = sourcegenHandler,
+          annotationProcessor = apHandler
+        )
+      )
 
       // Create trace recorder (noop if not enabled)
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
@@ -1648,9 +1733,11 @@ class MultiWorkspaceBspServer(
       }.toMap
 
       // Build the unified DAG with platforms (includes sourcegen tasks if any)
-      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms, sourcegenPlan)
+      val apPlan = buildAnnotationProcessorPlan(started, testProjects)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val initialDag = TaskDag.buildTestDag(testProjects, buildCtx)
       debugLog(
-        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}"
+        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}"
       )
 
       // Parse test options from params
@@ -1705,7 +1792,10 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+          // Per-test-run map populated by the AP DAG handler and read by the compile handler.
+          val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+
+          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
@@ -1779,8 +1869,19 @@ class MultiWorkspaceBspServer(
               LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
             }
 
-          // Create executor with link + sourcegen support
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler, sourcegenHandler)
+          val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
+
+          // Create executor with link + sourcegen + annotation-processor support
+          val executor = TaskDag.executor(
+            TaskDag.Handlers(
+              compile = compileHandler,
+              link = linkHandler,
+              discover = discoverHandler,
+              test = testHandler,
+              sourcegen = sourcegenHandler,
+              annotationProcessor = apHandler
+            )
+          )
 
           // Run event consumer in background (auto-cancels when scope exits)
           // This ensures the fiber is cleaned up even if the request is cancelled
@@ -2004,7 +2105,8 @@ class MultiWorkspaceBspServer(
       started: Started,
       workspace: Path,
       originId: Option[String],
-      heapPressureThreshold: Double
+      heapPressureThreshold: Double,
+      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]
   ): (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2015,7 +2117,8 @@ class MultiWorkspaceBspServer(
         case None    =>
           // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
           // Noop projects skip all waiting and don't consume concurrency slots.
-          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+          val apFlags: List[String] = Option(apResults.get(compileTask.project)).fold(List.empty[String])(_.javacFlags)
+          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started, apFlags)
           val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
           val noopResult = config.language match {
             case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
@@ -2035,7 +2138,7 @@ class MultiWorkspaceBspServer(
                   waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
                     val compileStartTime = System.currentTimeMillis()
                     IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses)
+                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags)
                         .guaranteeCase {
                           case cats.effect.Outcome.Succeeded(resultIO) =>
                             resultIO.flatMap { result =>
@@ -2067,9 +2170,10 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       originId: Option[String],
       cancellation: CancellationToken,
-      dependencyAnalyses: Map[Path, Path]
+      dependencyAnalyses: Map[Path, Path],
+      additionalJavaOptions: List[String]
   ): IO[TaskDag.TaskResult] = {
-    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started)
+    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
     val compiler = ProjectCompiler.forLanguage(config.language)
 
     val diagnosticListener = new DiagnosticListener {
@@ -2721,11 +2825,12 @@ class MultiWorkspaceBspServer(
 
   /** Get trace category and name for a task. */
   private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-    case ct: TaskDag.CompileTask    => (TraceCategory.Compile, ct.project.value)
-    case lt: TaskDag.LinkTask       => (TraceCategory.Link, lt.project.value)
-    case dt: TaskDag.DiscoverTask   => (TraceCategory.Discover, dt.project.value)
-    case tt: TaskDag.TestSuiteTask  => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
-    case sgt: TaskDag.SourcegenTask => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
+    case ct: TaskDag.CompileTask                      => (TraceCategory.Compile, ct.project.value)
+    case lt: TaskDag.LinkTask                         => (TraceCategory.Link, lt.project.value)
+    case dt: TaskDag.DiscoverTask                     => (TraceCategory.Discover, dt.project.value)
+    case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
+    case apt: TaskDag.ResolveAnnotationProcessorsTask => (TraceCategory.ResolveAnnotationProcessors, apt.project.value)
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2809,6 +2914,33 @@ class MultiWorkspaceBspServer(
     case _ => IO.unit
   }
 
+  /** Logs the AP resolution lifecycle and sends the BSP protocol events so `ReactiveBsp` can fold them into `BuildEvent.ResolveAnnotationProcessorsFinished`,
+    * which the build-state reducer counts toward `apResolutionFailed`. The trace recorder also captures these as separate spans in the chrome-trace output so
+    * flamegraphs distinguish AP resolution from compile.
+    */
+  private def processAnnotationProcessorEvent(
+      event: TaskDag.DagEvent,
+      originId: Option[String],
+      traceRecorder: TraceRecorder
+  ): IO[Unit] =
+    event match {
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsStarted(project, timestamp) =>
+        val protocolEvent = BleepBspProtocol.Event.ResolveAnnotationProcessorsStarted(project, timestamp)
+        IO(logger.withContext("project", project.value).debug("Annotation processor resolution starting")) >>
+          traceRecorder.recordStart(TraceCategory.ResolveAnnotationProcessors, project.value) >>
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp) =>
+        val msg =
+          if (success) s"Annotation processor resolution finished (${discoveredJarCount} jars, ${durationMs}ms)"
+          else s"Annotation processor resolution failed: ${error.getOrElse("unknown")} (${durationMs}ms)"
+        val protocolEvent =
+          BleepBspProtocol.Event.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp)
+        IO(logger.withContext("project", project.value).info(msg)) >>
+          traceRecorder.recordEnd(TraceCategory.ResolveAnnotationProcessors, project.value) >>
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
+      case _ => IO.unit
+    }
+
   /** Wrap event processing with dead-client detection and kill signal propagation. */
   private def withDeadClientDetection(
       killSignal: Deferred[IO, Outcome.KillReason],
@@ -2860,6 +2992,8 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenStarted/Finished, not TaskStarted/Finished
+              case _: TaskDag.ResolveAnnotationProcessorsTask =>
+                None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -2908,6 +3042,8 @@ class MultiWorkspaceBspServer(
 
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenFinished, not TaskFinished
+              case _: TaskDag.ResolveAnnotationProcessorsTask =>
+                None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
             }
             val failureRefUpdate = (task, result) match {
               case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
@@ -2956,11 +3092,13 @@ class MultiWorkspaceBspServer(
               totalIgnoredRef.update(_ + ignored) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
-          case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
-          case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
-          case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
+          case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
+          case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
+          case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -3008,11 +3146,13 @@ class MultiWorkspaceBspServer(
             case _ => IO.unit
           }
 
-        case linkEvent: TaskDag.DagEvent.LinkStarted     => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkProgress    => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkFinished    => processLinkEvent(linkEvent, originId, traceRecorder)
-        case sgEvent: TaskDag.DagEvent.SourcegenStarted  => processSourcegenEvent(sgEvent, originId)
-        case sgEvent: TaskDag.DagEvent.SourcegenFinished => processSourcegenEvent(sgEvent, originId)
+        case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
+        case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
+        case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
 
         case _ => IO.unit
       }

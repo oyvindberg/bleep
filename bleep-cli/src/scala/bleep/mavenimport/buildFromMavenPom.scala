@@ -145,7 +145,15 @@ object buildFromMavenPom {
     val configuredJava: Option[model.Java] = {
       val javaArgs = extractJavaCompilerArgs(mavenProject)
       if (javaArgs.isEmpty) None
-      else Some(model.Java(options = model.Options.parse(javaArgs, None)))
+      else
+        Some(
+          model.Java(
+            options = model.Options.parse(javaArgs, None),
+            scanForAnnotationProcessors = None,
+            annotationProcessors = model.JsonSet.empty,
+            annotationProcessorOptions = model.AnnotationProcessorOptions.empty
+          )
+        )
     }
 
     val configuredKotlin: Option[model.Kotlin] = detectKotlinVersion(mavenProject).map { kv =>

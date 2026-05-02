@@ -833,6 +833,12 @@ class ReactiveBspClient(
       case PE.SourcegenFinished(scriptMain, success, durationMs, error, timestamp) =>
         Some(BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, timestamp))
 
+      case PE.ResolveAnnotationProcessorsStarted(_, _) =>
+        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
+
+      case PE.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
+        Some(BuildEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, timestamp))
+
       case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
         Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))
 

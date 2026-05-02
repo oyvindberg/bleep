@@ -6,45 +6,74 @@ import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
+import scala.collection.immutable.SortedMap
+
 class JavaTest extends AnyFunSuite with TripleEqualsSupport {
-  def roundtrip(java: Java): Assertion = {
-    val json = java.asJson
-    val java2 = json.as[Java].orThrowWithError("Failed to parse json")
-    assert(java === java2)
+  private def java(
+      options: Options = Options.empty,
+      scan: Option[Boolean] = None,
+      processors: JsonSet[Dep] = JsonSet.empty,
+      processorOptions: AnnotationProcessorOptions = AnnotationProcessorOptions.empty
+  ): Java =
+    Java(
+      options = options,
+      scanForAnnotationProcessors = scan,
+      annotationProcessors = processors,
+      annotationProcessorOptions = processorOptions
+    )
+
+  def roundtrip(j: Java): Assertion = {
+    val json = j.asJson
+    val j2 = json.as[Java].orThrowWithError("Failed to parse json")
+    assert(j === j2)
   }
 
-  test("Java model with annotation processing") {
-    // Test default case (no annotation processing)
-    roundtrip(Java(Options.empty))
+  private val lombok = Dep.Java("org.projectlombok", "lombok", "1.18.30")
+  private val autoValue = Dep.Java("com.google.auto.value", "auto-value", "1.10.4")
 
-    // Test with annotation processing disabled explicitly
-    roundtrip(Java(Options.empty, Some(AnnotationProcessing(false))))
-
-    // Test with annotation processing enabled
-    roundtrip(Java(Options.empty, Some(AnnotationProcessing(true))))
-
-    // Test with options and annotation processing
-    val opts = Options.parse(List("-Xlint:all", "-Werror"), maybeRelativize = None)
-    roundtrip(Java(opts, Some(AnnotationProcessing(true))))
+  test("Java model annotation processor round-trip") {
+    roundtrip(java())
+    roundtrip(java(scan = Some(true)))
+    roundtrip(java(scan = Some(false)))
+    roundtrip(java(processors = JsonSet(lombok)))
+    roundtrip(java(processors = JsonSet(lombok, autoValue)))
+    roundtrip(
+      java(
+        scan = Some(true),
+        processors = JsonSet(autoValue),
+        processorOptions = AnnotationProcessorOptions(SortedMap("autovalue.no_assigned" -> "true"))
+      )
+    )
   }
 
-  test("Java model setlike operations") {
-    val java1 = Java(Options.parse(List("-Xlint:all"), maybeRelativize = None), Some(AnnotationProcessing(true)))
-    val java2 = Java(Options.parse(List("-Werror"), maybeRelativize = None), Some(AnnotationProcessing(false)))
+  test("Java model setlike — annotationProcessors union/intersect/removeAll") {
+    val j1 = java(processors = JsonSet(lombok, autoValue))
+    val j2 = java(processors = JsonSet(autoValue))
 
-    // Test union
-    val union = java1.union(java2)
-    assert(union.options.render === List("-Werror", "-Xlint:all"))
-    assert(union.annotationProcessing === Some(AnnotationProcessing(false))) // java2's value wins
+    assert(j1.union(j2).annotationProcessors.values === Set(lombok, autoValue))
+    assert(j1.intersect(j2).annotationProcessors.values === Set(autoValue))
+    assert(j1.removeAll(j2).annotationProcessors.values === Set(lombok))
+    assert(j1.removeAll(j1).annotationProcessors.values === Set.empty[Dep])
+  }
 
-    // Test intersect
-    val intersect = java1.intersect(java2)
-    assert(intersect.options.isEmpty)
-    assert(intersect.annotationProcessing === Some(AnnotationProcessing(false))) // true && false = false
+  test("Java model setlike — annotationProcessorOptions union prefers child") {
+    val parent = java(processorOptions = AnnotationProcessorOptions(SortedMap("k1" -> "parent", "k2" -> "shared")))
+    val child = java(processorOptions = AnnotationProcessorOptions(SortedMap("k1" -> "child", "k3" -> "child-only")))
 
-    // Test removeAll
-    val removed = java1.removeAll(java1)
-    assert(removed.options.isEmpty)
-    assert(removed.annotationProcessing === None) // Same values result in None
+    val merged = child.union(parent)
+    assert(merged.annotationProcessorOptions.value === SortedMap("k1" -> "child", "k2" -> "shared", "k3" -> "child-only"))
+  }
+
+  test("Java model setlike — scanForAnnotationProcessors union/intersect/removeAll") {
+    val tEnabled = java(scan = Some(true))
+    val tDisabled = java(scan = Some(false))
+    val tUnset = java(scan = None)
+
+    assert(tEnabled.union(tDisabled).scanForAnnotationProcessors === Some(true)) // self wins via orElse
+    assert(tUnset.union(tEnabled).scanForAnnotationProcessors === Some(true))
+    assert(tEnabled.intersect(tEnabled).scanForAnnotationProcessors === Some(true))
+    assert(tEnabled.intersect(tDisabled).scanForAnnotationProcessors === None)
+    assert(tEnabled.removeAll(tEnabled).scanForAnnotationProcessors === None)
+    assert(tEnabled.removeAll(tDisabled).scanForAnnotationProcessors === Some(true))
   }
 }

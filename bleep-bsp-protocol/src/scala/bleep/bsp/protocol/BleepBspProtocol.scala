@@ -287,6 +287,22 @@ object BleepBspProtocol {
         timestamp: Long
     ) extends Event
 
+    // === Annotation-processor resolution events ===
+
+    case class ResolveAnnotationProcessorsStarted(
+        project: CrossProjectName,
+        timestamp: Long
+    ) extends Event
+
+    case class ResolveAnnotationProcessorsFinished(
+        project: CrossProjectName,
+        success: Boolean,
+        durationMs: Long,
+        error: Option[String],
+        discoveredJarCount: Int,
+        timestamp: Long
+    ) extends Event
+
     // === Discovery events ===
 
     case class DiscoveryStarted(
@@ -493,6 +509,8 @@ object BleepBspProtocol {
     implicit val linkFinishedCodec: Codec[LinkFinished] = deriveCodec
     implicit val sourcegenStartedCodec: Codec[SourcegenStarted] = deriveCodec
     implicit val sourcegenFinishedCodec: Codec[SourcegenFinished] = deriveCodec
+    implicit val resolveAnnotationProcessorsStartedCodec: Codec[ResolveAnnotationProcessorsStarted] = deriveCodec
+    implicit val resolveAnnotationProcessorsFinishedCodec: Codec[ResolveAnnotationProcessorsFinished] = deriveCodec
     implicit val discoveryStartedCodec: Codec[DiscoveryStarted] = deriveCodec
     implicit val suitesDiscoveredCodec: Codec[SuitesDiscovered] = deriveCodec
     implicit val suiteStartedCodec: Codec[SuiteStarted] = deriveCodec
@@ -518,20 +536,24 @@ object BleepBspProtocol {
     implicit val errorCodec: Codec[Error] = deriveCodec
 
     implicit val encoder: Encoder[Event] = Encoder.instance {
-      case e: CompileStarted      => Json.obj("type" -> "CompileStarted".asJson, "data" -> e.asJson)
-      case e: CompilationReason   => Json.obj("type" -> "CompilationReason".asJson, "data" -> e.asJson)
-      case e: CompileProgress     => Json.obj("type" -> "CompileProgress".asJson, "data" -> e.asJson)
-      case e: CompilePhaseChanged => Json.obj("type" -> "CompilePhaseChanged".asJson, "data" -> e.asJson)
-      case e: CompileFinished     => Json.obj("type" -> "CompileFinished".asJson, "data" -> e.asJson)
-      case e: CompileStalled      => Json.obj("type" -> "CompileStalled".asJson, "data" -> e.asJson)
-      case e: CompileResumed      => Json.obj("type" -> "CompileResumed".asJson, "data" -> e.asJson)
-      case e: LockContention      => Json.obj("type" -> "LockContention".asJson, "data" -> e.asJson)
-      case e: LockAcquired        => Json.obj("type" -> "LockAcquired".asJson, "data" -> e.asJson)
-      case e: LinkStarted         => Json.obj("type" -> "LinkStarted".asJson, "data" -> e.asJson)
-      case e: LinkProgress        => Json.obj("type" -> "LinkProgress".asJson, "data" -> e.asJson)
-      case e: LinkFinished        => Json.obj("type" -> "LinkFinished".asJson, "data" -> e.asJson)
-      case e: SourcegenStarted    => Json.obj("type" -> "SourcegenStarted".asJson, "data" -> e.asJson)
-      case e: SourcegenFinished   => Json.obj("type" -> "SourcegenFinished".asJson, "data" -> e.asJson)
+      case e: CompileStarted                     => Json.obj("type" -> "CompileStarted".asJson, "data" -> e.asJson)
+      case e: CompilationReason                  => Json.obj("type" -> "CompilationReason".asJson, "data" -> e.asJson)
+      case e: CompileProgress                    => Json.obj("type" -> "CompileProgress".asJson, "data" -> e.asJson)
+      case e: CompilePhaseChanged                => Json.obj("type" -> "CompilePhaseChanged".asJson, "data" -> e.asJson)
+      case e: CompileFinished                    => Json.obj("type" -> "CompileFinished".asJson, "data" -> e.asJson)
+      case e: CompileStalled                     => Json.obj("type" -> "CompileStalled".asJson, "data" -> e.asJson)
+      case e: CompileResumed                     => Json.obj("type" -> "CompileResumed".asJson, "data" -> e.asJson)
+      case e: LockContention                     => Json.obj("type" -> "LockContention".asJson, "data" -> e.asJson)
+      case e: LockAcquired                       => Json.obj("type" -> "LockAcquired".asJson, "data" -> e.asJson)
+      case e: LinkStarted                        => Json.obj("type" -> "LinkStarted".asJson, "data" -> e.asJson)
+      case e: LinkProgress                       => Json.obj("type" -> "LinkProgress".asJson, "data" -> e.asJson)
+      case e: LinkFinished                       => Json.obj("type" -> "LinkFinished".asJson, "data" -> e.asJson)
+      case e: SourcegenStarted                   => Json.obj("type" -> "SourcegenStarted".asJson, "data" -> e.asJson)
+      case e: SourcegenFinished                  => Json.obj("type" -> "SourcegenFinished".asJson, "data" -> e.asJson)
+      case e: ResolveAnnotationProcessorsStarted =>
+        Json.obj("type" -> "ResolveAnnotationProcessorsStarted".asJson, "data" -> e.asJson)
+      case e: ResolveAnnotationProcessorsFinished =>
+        Json.obj("type" -> "ResolveAnnotationProcessorsFinished".asJson, "data" -> e.asJson)
       case e: DiscoveryStarted    => Json.obj("type" -> "DiscoveryStarted".asJson, "data" -> e.asJson)
       case e: SuitesDiscovered    => Json.obj("type" -> "SuitesDiscovered".asJson, "data" -> e.asJson)
       case e: SuiteStarted        => Json.obj("type" -> "SuiteStarted".asJson, "data" -> e.asJson)
@@ -558,43 +580,45 @@ object BleepBspProtocol {
 
     implicit val decoder: Decoder[Event] = Decoder.instance { cursor =>
       cursor.downField("type").as[String].flatMap {
-        case "CompileStarted"      => cursor.downField("data").as[CompileStarted]
-        case "CompilationReason"   => cursor.downField("data").as[CompilationReason]
-        case "CompileProgress"     => cursor.downField("data").as[CompileProgress]
-        case "CompilePhaseChanged" => cursor.downField("data").as[CompilePhaseChanged]
-        case "CompileFinished"     => cursor.downField("data").as[CompileFinished]
-        case "CompileStalled"      => cursor.downField("data").as[CompileStalled]
-        case "CompileResumed"      => cursor.downField("data").as[CompileResumed]
-        case "LockContention"      => cursor.downField("data").as[LockContention]
-        case "LockAcquired"        => cursor.downField("data").as[LockAcquired]
-        case "LinkStarted"         => cursor.downField("data").as[LinkStarted]
-        case "LinkProgress"        => cursor.downField("data").as[LinkProgress]
-        case "LinkFinished"        => cursor.downField("data").as[LinkFinished]
-        case "SourcegenStarted"    => cursor.downField("data").as[SourcegenStarted]
-        case "SourcegenFinished"   => cursor.downField("data").as[SourcegenFinished]
-        case "DiscoveryStarted"    => cursor.downField("data").as[DiscoveryStarted]
-        case "SuitesDiscovered"    => cursor.downField("data").as[SuitesDiscovered]
-        case "SuiteStarted"        => cursor.downField("data").as[SuiteStarted]
-        case "TestStarted"         => cursor.downField("data").as[TestStarted]
-        case "TestFinished"        => cursor.downField("data").as[TestFinished]
-        case "SuiteFinished"       => cursor.downField("data").as[SuiteFinished]
-        case "SuiteTimedOut"       => cursor.downField("data").as[SuiteTimedOut]
-        case "SuiteError"          => cursor.downField("data").as[SuiteError]
-        case "SuiteCancelled"      => cursor.downField("data").as[SuiteCancelled]
-        case "RunStarted"          => cursor.downField("data").as[RunStarted]
-        case "RunOutput"           => cursor.downField("data").as[RunOutput]
-        case "RunFinished"         => cursor.downField("data").as[RunFinished]
-        case "Output"              => cursor.downField("data").as[Output]
-        case "LogMessage"          => cursor.downField("data").as[LogMessage]
-        case "BuildInitialized"    => cursor.downField("data").as[BuildInitialized]
-        case "ProjectStateChanged" => cursor.downField("data").as[ProjectStateChanged]
-        case "ProjectSkipped"      => cursor.downField("data").as[ProjectSkipped]
-        case "BuildFinished"       => cursor.downField("data").as[BuildFinished]
-        case "TestRunFinished"     => cursor.downField("data").as[TestRunFinished]
-        case "WorkspaceBusy"       => cursor.downField("data").as[WorkspaceBusy]
-        case "WorkspaceReady"      => cursor.downField("data").as[WorkspaceReady]
-        case "Error"               => cursor.downField("data").as[Error]
-        case other                 => Left(DecodingFailure(s"Unknown event type: $other", cursor.history))
+        case "CompileStarted"                      => cursor.downField("data").as[CompileStarted]
+        case "CompilationReason"                   => cursor.downField("data").as[CompilationReason]
+        case "CompileProgress"                     => cursor.downField("data").as[CompileProgress]
+        case "CompilePhaseChanged"                 => cursor.downField("data").as[CompilePhaseChanged]
+        case "CompileFinished"                     => cursor.downField("data").as[CompileFinished]
+        case "CompileStalled"                      => cursor.downField("data").as[CompileStalled]
+        case "CompileResumed"                      => cursor.downField("data").as[CompileResumed]
+        case "LockContention"                      => cursor.downField("data").as[LockContention]
+        case "LockAcquired"                        => cursor.downField("data").as[LockAcquired]
+        case "LinkStarted"                         => cursor.downField("data").as[LinkStarted]
+        case "LinkProgress"                        => cursor.downField("data").as[LinkProgress]
+        case "LinkFinished"                        => cursor.downField("data").as[LinkFinished]
+        case "SourcegenStarted"                    => cursor.downField("data").as[SourcegenStarted]
+        case "SourcegenFinished"                   => cursor.downField("data").as[SourcegenFinished]
+        case "ResolveAnnotationProcessorsStarted"  => cursor.downField("data").as[ResolveAnnotationProcessorsStarted]
+        case "ResolveAnnotationProcessorsFinished" => cursor.downField("data").as[ResolveAnnotationProcessorsFinished]
+        case "DiscoveryStarted"                    => cursor.downField("data").as[DiscoveryStarted]
+        case "SuitesDiscovered"                    => cursor.downField("data").as[SuitesDiscovered]
+        case "SuiteStarted"                        => cursor.downField("data").as[SuiteStarted]
+        case "TestStarted"                         => cursor.downField("data").as[TestStarted]
+        case "TestFinished"                        => cursor.downField("data").as[TestFinished]
+        case "SuiteFinished"                       => cursor.downField("data").as[SuiteFinished]
+        case "SuiteTimedOut"                       => cursor.downField("data").as[SuiteTimedOut]
+        case "SuiteError"                          => cursor.downField("data").as[SuiteError]
+        case "SuiteCancelled"                      => cursor.downField("data").as[SuiteCancelled]
+        case "RunStarted"                          => cursor.downField("data").as[RunStarted]
+        case "RunOutput"                           => cursor.downField("data").as[RunOutput]
+        case "RunFinished"                         => cursor.downField("data").as[RunFinished]
+        case "Output"                              => cursor.downField("data").as[Output]
+        case "LogMessage"                          => cursor.downField("data").as[LogMessage]
+        case "BuildInitialized"                    => cursor.downField("data").as[BuildInitialized]
+        case "ProjectStateChanged"                 => cursor.downField("data").as[ProjectStateChanged]
+        case "ProjectSkipped"                      => cursor.downField("data").as[ProjectSkipped]
+        case "BuildFinished"                       => cursor.downField("data").as[BuildFinished]
+        case "TestRunFinished"                     => cursor.downField("data").as[TestRunFinished]
+        case "WorkspaceBusy"                       => cursor.downField("data").as[WorkspaceBusy]
+        case "WorkspaceReady"                      => cursor.downField("data").as[WorkspaceReady]
+        case "Error"                               => cursor.downField("data").as[Error]
+        case other                                 => Left(DecodingFailure(s"Unknown event type: $other", cursor.history))
       }
     }
   }

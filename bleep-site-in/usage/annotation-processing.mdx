@@ -1,217 +1,112 @@
 ---
+sidebar_label: Java Annotation Processing
 title: Java Annotation Processing
 ---
 
-Bleep supports Java annotation processors, allowing you to use tools like Lombok, MapStruct, Dagger, and other compile-time code generators.
+Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, …) via three composable fields under `java:`. The default is **off** — nothing scans, nothing runs unless you opt in.
 
-## Overview
+Resolution and processor-jar discovery happen lazily during compile as a first-class DAG task (`bleep:resolve-annotation-processors:<project>`), not at bootstrap. This means failures are isolated per project and surface as a build failure with the project name in the message.
 
-Annotation processing in Bleep is:
-- **Disabled by default** - Must be explicitly enabled
-- **Simple to configure** - Just one boolean flag
-- **Automatic discovery** - Uses Java's ServiceLoader mechanism
-- **Clean separation** - Generated sources go to a dedicated directory
+## Quick start: Lombok
 
-## Basic Configuration
-
-To enable annotation processing, add the `annotationProcessing` configuration to your project's `java` section:
+Lombok ships annotations and a processor in a single jar. List it as a dependency, opt in to scanning, done:
 
 ```yaml
 projects:
-  my-app:
+  myapp:
     dependencies:
-      - org.projectlombok:lombok:1.18.30
+      - org.projectlombok:lombok:1.18.46
     java:
-      annotationProcessing:
-        enabled: true
+      scanForAnnotationProcessors: true
 ```
 
-That's it! Bleep will automatically discover and run annotation processors found in your dependencies.
+Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts it on javac's `-processorpath`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
 
-## Common Use Cases
+Lombok 1.18.46 works on JDK 16+ in-process — no `--add-opens` needed. (Older guides claim you need to launch the build JVM with `--add-opens jdk.compiler/com.sun.tools.javac.*=ALL-UNNAMED`. That was true years ago. Current Lombok bypasses JPMS via `sun.misc.Unsafe`. JEP 471 may eventually retire that path; if Lombok ever needs the opens flag we'll bake it into bleep-bsp's launch args.)
 
-### Lombok
+## Three knobs
 
-[Lombok](https://projectlombok.org/) reduces boilerplate code by generating getters, setters, constructors, and more:
+| Field | Default | Purpose |
+| --- | --- | --- |
+| `scanForAnnotationProcessors: Boolean` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. Matches found jars get added to `-processorpath`. |
+| `annotationProcessors: [Dep]` | `[]` | Explicit processor-only deps. Always added to `-processorpath`; never on the runtime/compile classpath of the project. |
+| `annotationProcessorOptions: {key: value}` | `{}` | `-A<key>=<value>` flags. Visible to every configured processor (JSR 269 has no per-processor `-A`). |
+
+The two collections compose. You can scan AND list explicit extras in the same project.
+
+## MapStruct, AutoValue, Immutables, Dagger (split-jar processors)
+
+These ship their API as a small annotation jar (runtime-needed) and a separate processor jar (compile-time only). To keep the runtime classpath lean, put the annotations in `dependencies` and the processor in `annotationProcessors`. Each processor jar has a standard `META-INF/services/javax.annotation.processing.Processor` entry, so javac's ServiceLoader picks the classes — bleep doesn't have to name them.
 
 ```yaml
+# MapStruct
 projects:
-  my-app:
+  myapp:
     dependencies:
-      - org.projectlombok:lombok:1.18.30
-    source-layout: java
+      - org.mapstruct:mapstruct:1.5.5.Final
     java:
-      annotationProcessing:
-        enabled: true
-```
+      annotationProcessors:
+        - org.mapstruct:mapstruct-processor:1.5.5.Final
+      annotationProcessorOptions:
+        mapstruct.suppressGeneratorTimestamp: "true"
 
-Example Java code:
-```java
-import lombok.Data;
-
-@Data
-public class Person {
-    private String name;
-    private int age;
-}
-```
-
-### MapStruct
-
-[MapStruct](https://mapstruct.org/) generates type-safe mappers between Java beans:
-
-```yaml
+# AutoValue
 projects:
-  my-app:
+  myapp:
     dependencies:
-      - org.mapstruct:mapstruct:1.6.0
-      - org.mapstruct:mapstruct-processor:1.6.0
+      - com.google.auto.value:auto-value-annotations:1.10.4
     java:
-      annotationProcessing:
-        enabled: true
+      annotationProcessors:
+        - com.google.auto.value:auto-value:1.10.4
 ```
 
-### Dagger
+`scanForAnnotationProcessors` is omitted — pure-explicit mode. Lombok-style jars in `dependencies` would not be auto-detected here.
 
-[Dagger](https://dagger.dev/) is a compile-time dependency injection framework:
+This matches Maven's `<annotationProcessorPaths>` and Gradle's `annotationProcessor` configurations. The Maven idiom of `<scope>provided</scope>` for the processor jar is the equivalent of `annotationProcessors:` here — both keep the heavy processor JAR off the runtime classpath.
+
+## Composed: scan + explicit
+
+For projects that mix Lombok-style auto-discovery with an explicit processor-only dep:
 
 ```yaml
 projects:
-  my-app:
+  myapp:
     dependencies:
-      - com.google.dagger:dagger:2.51
-      - com.google.dagger:dagger-compiler:2.51
+      - org.projectlombok:lombok:1.18.46
+      - org.mapstruct:mapstruct:1.5.5.Final
     java:
-      annotationProcessing:
-        enabled: true
+      scanForAnnotationProcessors: true
+      annotationProcessors:
+        - org.mapstruct:mapstruct-processor:1.5.5.Final
 ```
 
-### Multiple Processors
+Both processors run in a single javac invocation. Generated source files land under `.bleep/generated-sources/<crossName>/annotations/` and are added to the project's compile source path.
 
-You can use multiple annotation processors in the same project:
+## Power-user mode: pure-explicit, no scanning
+
+Build engineers who want full reproducibility (no surprises from scanning) omit the boolean and pin every processor by hand:
 
 ```yaml
 projects:
-  my-app:
+  myapp:
     dependencies:
-      - org.projectlombok:lombok:1.18.30
-      - org.mapstruct:mapstruct:1.6.0
-      - org.mapstruct:mapstruct-processor:1.6.0
-      - com.google.dagger:dagger:2.51
-      - com.google.dagger:dagger-compiler:2.51
+      - org.projectlombok:lombok:1.18.46   # for @Data references on compile classpath
     java:
-      annotationProcessing:
-        enabled: true
+      annotationProcessors:
+        - org.projectlombok:lombok:1.18.46 # also pinned as a processor
 ```
 
-## Generated Sources
+Dependency upgrades cannot silently introduce new processors here — only what's in the explicit list runs.
 
-When annotation processing is enabled, generated Java sources are placed in:
-```
-.bleep/generated-sources/{project-name}/annotations/
-```
+## Errors and escape hatches
 
-This directory is:
-- Automatically created when needed
-- Added to the project's source paths
-- Cleaned on `bleep clean`
-- Excluded from version control (via `.gitignore`)
+* **No-op opt-in fails loud.** `scanForAnnotationProcessors: true` with empty `annotationProcessors` and zero processor-bearing jars in `dependencies` makes the AP DAG task fail at compile time, propagating up as `commands.compile`/`commands.run` throwing a `BleepException` with `"Annotation processor resolution failed for N project(s)"`. The user typed `true` for a reason; we don't silently disable.
+* **Manual `-proc:none` is honored.** Putting `-proc:none` in `java.options` skips all auto-wiring. Use this when you want to disable processing for a project that has processor-bearing dependencies.
+* **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing — choose one or the other.
+* **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around the rare jar that ships its processor classes without a `META-INF/services/javax.annotation.processing.Processor` registration.
 
-## How It Works
+## Where generated sources go
 
-When `annotationProcessing.enabled = true`:
-- Bleep adds `-s .bleep/generated-sources/{project}/annotations/` to javac options
-- The Java compiler discovers processors via ServiceLoader
-- Generated sources are compiled along with your code
+`.bleep/generated-sources/<crossName>/annotations/` — a single directory per project per cross-id. All processors share this `-s` directory (per JSR 269). Output files separate naturally by Java package.
 
-When `annotationProcessing.enabled = false` (default):
-- Bleep adds `-proc:none` to javac options
-- Annotation processors are not run, even if present on classpath
-- No generated sources directory is created
-
-## Validation
-
-Bleep validates your configuration to prevent conflicts. You cannot manually specify `-proc:*` or `-s` javac options when using the `annotationProcessing` configuration:
-
-```yaml
-# This will fail with an error
-projects:
-  my-app:
-    java:
-      options: -proc:only -s target/generated  # ❌ Conflicts!
-      annotationProcessing:
-        enabled: true
-```
-
-## Troubleshooting
-
-### Processors Not Running
-
-If your annotation processors aren't running:
-1. Ensure `annotationProcessing.enabled: true` is set
-2. Check that processor dependencies are included
-3. Verify processors use standard ServiceLoader registration
-
-### IDE Integration
-
-Most IDEs will automatically recognize the generated sources directory. If not:
-- In IntelliJ IDEA: Mark `.bleep/generated-sources/{project}/annotations/` as "Generated Sources Root"
-- In VS Code with Metals: Sources should be recognized automatically
-
-### Compilation Errors
-
-If you see compilation errors related to generated code:
-1. Run `bleep clean` to remove stale generated files
-2. Ensure all required processor dependencies are included
-3. Check processor-specific documentation for configuration requirements
-
-## Migration from Other Build Tools
-
-### From Maven
-
-Maven typically runs annotation processors automatically. In Bleep, you must explicitly enable them:
-
-```xml
-<!-- Maven (runs automatically) -->
-<dependency>
-    <groupId>org.projectlombok</groupId>
-    <artifactId>lombok</artifactId>
-    <version>1.18.30</version>
-    <scope>provided</scope>
-</dependency>
-```
-
-```yaml
-# Bleep (must enable explicitly)
-projects:
-  my-app:
-    dependencies:
-      - org.projectlombok:lombok:1.18.30
-    java:
-      annotationProcessing:
-        enabled: true
-```
-
-### From Gradle
-
-Gradle uses `annotationProcessor` configuration. In Bleep, use regular dependencies:
-
-```gradle
-// Gradle
-dependencies {
-    implementation 'com.google.dagger:dagger:2.51'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.51'
-}
-```
-
-```yaml
-# Bleep
-projects:
-  my-app:
-    dependencies:
-      - com.google.dagger:dagger:2.51
-      - com.google.dagger:dagger-compiler:2.51
-    java:
-      annotationProcessing:
-        enabled: true
-```
+The directory is reserved at bootstrap whenever a project has any annotation-processor configuration, and added to the project's source set so downstream compile picks up the generated `.java` files.

@@ -265,11 +265,11 @@
       "options": [
         "-Xlint",
         "-Xlint:-serial",
-        "-proc:none",
         "-source",
         "1.8",
         "-target",
-        "1.8"
+        "1.8",
+        "-proc:none"
       ]
     },
     "test": {

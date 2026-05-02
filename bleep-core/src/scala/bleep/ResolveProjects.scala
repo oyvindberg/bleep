@@ -278,33 +278,30 @@ object ResolveProjects {
         allTransitiveResolved.values.flatMap(x => x.classesDir :: x.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars ++ unmanagedJars
       )
 
-    val annotationProcessingGenSourcesDir = explodedJava.flatMap(_.annotationProcessing) match {
-      case Some(model.AnnotationProcessing(true)) =>
-        Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
-      case _ =>
-        None
-    }
+    // Annotation-processor wiring is split between this function and the AP DAG task:
+    //   - For default-off projects (no scanForAnnotationProcessors and no annotationProcessors),
+    //     append `-proc:none` here. There's no DAG task and the compile handler doesn't add
+    //     anything — `-proc:none` flows straight through to javac.
+    //   - For AP-configured projects, leave `javaOptions` as the user's bare options. The
+    //     DAG's ResolveAnnotationProcessorsTask runs at compile time, resolves processor
+    //     jars + scans deps, and the compile handler appends `-processorpath`/`-s`/`-A...`
+    //     flags before invoking the compiler.
+    //   - The escape hatch (`-proc:none` already in java.options) means "skip everything";
+    //     for that case we don't add `-proc:none` again and we don't enable the DAG task.
+    val annotationProcessingGenSourcesDir: Option[Path] =
+      explodedJava match {
+        case Some(java) if java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty =>
+          Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
+        case _ => None
+      }
 
-    // Compute Java options (used both for pure Java and mixed Scala/Java projects)
     val resolvedJavaOptions: List[String] = {
       val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
-
-      explodedJava.flatMap(_.annotationProcessing).foreach { _ =>
-        val renderedOptions = baseOptions.values.mkString(" ")
-        if (renderedOptions.contains("-proc:") || renderedOptions.contains(" -s ")) {
-          sys.error(s"Cannot use manual -proc or -s options when java.annotationProcessing is configured for project ${crossName.value}")
-        }
-      }
-
-      val options = explodedJava.flatMap(_.annotationProcessing) match {
-        case Some(model.AnnotationProcessing(true)) =>
-          val genSourcesDir = pre.buildPaths.generatedSourcesDir(crossName, "annotations")
-          baseOptions.union(model.Options.parse(List("-s", genSourcesDir.toString), maybeRelativize = None))
-        case _ =>
-          baseOptions.union(model.Options.parse(List("-proc:none"), maybeRelativize = None))
-      }
-
-      templateDirs.fill.opts(options).render
+      val rendered = templateDirs.fill.opts(baseOptions).render
+      val userHasProcNone = baseOptions.values.exists(_.render.contains("-proc:none"))
+      val apConfigured = explodedJava.exists(j => j.scanForAnnotationProcessors.contains(true) || j.annotationProcessors.values.nonEmpty)
+      if (userHasProcNone || apConfigured) rendered
+      else rendered :+ "-proc:none"
     }
 
     // Determine the language: Scala (with Java options) or pure Java

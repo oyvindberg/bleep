@@ -1,11 +1,10 @@
 package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
-import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.{TaskId, _}
 import bleep.bsp.protocol.LinkPlatformName
 import bleep.model.{CrossProjectName, ProjectName}
-import cats.effect.{Deferred, IO}
+import cats.effect.IO
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
@@ -32,9 +31,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
   test("buildTestDag: JVM project has compile → discover dependency (no link)") {
     val project = projectName("myapp-jvm")
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> LinkPlatform.Jvm)
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> LinkPlatform.Jvm),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
     dag.tasks should have size 2 // CompileTask + DiscoverTask (no LinkTask)
@@ -42,7 +45,6 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     dag.tasks.values.collect { case dt: DiscoverTask => dt } should have size 1
     dag.tasks.values.collect { case lt: LinkTask => lt } shouldBe empty
 
-    // DiscoverTask should depend on CompileTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
     discoverTask.dependencies should contain(TaskId.Compile(project))
   }
@@ -53,21 +55,23 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", jsConfig)
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform)
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
     dag.tasks should have size 3 // CompileTask + LinkTask + DiscoverTask
     dag.tasks.values.collect { case lt: LinkTask => lt } should have size 1
 
-    // LinkTask should depend on CompileTask
     val linkTask = dag.tasks.values.collectFirst { case lt: LinkTask => lt }.get
     linkTask.dependencies should contain(TaskId.Compile(project))
     linkTask.platform shouldBe platform
     linkTask.isTest shouldBe true
 
-    // DiscoverTask should depend on LinkTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
     discoverTask.dependencies should contain(TaskId.Link(project))
   }
@@ -78,9 +82,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaNative("0.5.6", "3.3.3", nativeConfig)
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform)
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
     dag.tasks should have size 3
@@ -94,20 +102,19 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(app),
-      allProjectDeps = Map(
-        app -> Set(core),
-        core -> Set.empty
-      ),
-      platforms = Map(app -> platform)
+      Set(app),
+      BuildContext(
+        allProjectDeps = Map(app -> Set(core), core -> Set.empty),
+        platforms = Map(app -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
-    // Should have compile tasks for both projects
     val compileTasks = dag.tasks.values.collect { case ct: CompileTask => ct }
     compileTasks should have size 2
     compileTasks.map(_.project.value).toSet shouldBe Set("core", "app-js")
 
-    // Link task only for the test project
     val linkTasks = dag.tasks.values.collect { case lt: LinkTask => lt }
     linkTasks should have size 1
     linkTasks.head.project.value shouldBe "app-js"
@@ -119,12 +126,16 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val nativeProject = projectName("app-native")
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(jvmProject, jsProject, nativeProject),
-      allProjectDeps = Map.empty,
-      platforms = Map(
-        jvmProject -> LinkPlatform.Jvm,
-        jsProject -> LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug),
-        nativeProject -> LinkPlatform.ScalaNative("0.5.6", "3.3.3", ScalaNativeLinkConfig.Debug)
+      Set(jvmProject, jsProject, nativeProject),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(
+          jvmProject -> LinkPlatform.Jvm,
+          jsProject -> LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug),
+          nativeProject -> LinkPlatform.ScalaNative("0.5.6", "3.3.3", ScalaNativeLinkConfig.Debug)
+        ),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
       )
     )
 
@@ -142,9 +153,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform),
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      ),
       releaseMode = false
     )
 
@@ -161,9 +176,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Release)
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform),
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      ),
       releaseMode = true
     )
 
@@ -175,9 +194,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val project = projectName("myapp-jvm")
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> LinkPlatform.Jvm),
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> LinkPlatform.Jvm),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      ),
       releaseMode = false
     )
 
@@ -195,9 +218,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform),
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      ),
       releaseMode = false
     )
 
@@ -205,24 +232,23 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     var linkPlatformReceived: Option[LinkPlatform] = None
 
     val executor = TaskDag.executor(
-      compileHandler = (_, _) => IO.pure(TaskResult.Success),
-      linkHandler = (lt, _) => {
-        linkCalled = true
-        linkPlatformReceived = Some(lt.platform)
-        IO.pure(
-          (
-            TaskResult.Success,
-            LinkResult.JsSuccess(
-              java.nio.file.Path.of("out.js"),
-              None,
-              Seq.empty,
-              wasUpToDate = false
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (lt, _) => {
+          linkCalled = true
+          linkPlatformReceived = Some(lt.platform)
+          IO.pure(
+            (
+              TaskResult.Success,
+              LinkResult.JsSuccess(java.nio.file.Path.of("out.js"), None, Seq.empty, wasUpToDate = false)
             )
           )
-        )
-      },
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success)
+        },
+        discover = (_, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
+        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val result = (for {
@@ -241,28 +267,31 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform),
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      ),
       releaseMode = false
     )
 
     val executor = TaskDag.executor(
-      compileHandler = (_, _) => IO.pure(TaskResult.Success),
-      linkHandler = (_, _) =>
-        IO.pure(
-          (
-            TaskResult.Success,
-            LinkResult.JsSuccess(
-              java.nio.file.Path.of("out.js"),
-              None,
-              Seq.empty,
-              wasUpToDate = false
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (_, _) =>
+          IO.pure(
+            (
+              TaskResult.Success,
+              LinkResult.JsSuccess(java.nio.file.Path.of("out.js"), None, Seq.empty, wasUpToDate = false)
             )
-          )
-        ),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success)
+          ),
+        discover = (_, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
+        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val events = (for {
@@ -288,16 +317,24 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(project),
-      allProjectDeps = Map.empty,
-      platforms = Map(project -> platform)
+      Set(project),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map(project -> platform),
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
     val executor = TaskDag.executor(
-      compileHandler = (_, _) => IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success)
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
+        discover = (_, _) => IO.pure((TaskResult.Success, List.empty)),
+        test = (_, _) => sys.error("TestSuiteTask should not appear in this DAG"),
+        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val result = (for {

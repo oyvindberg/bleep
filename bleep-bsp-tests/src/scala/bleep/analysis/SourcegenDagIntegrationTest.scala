@@ -2,7 +2,7 @@ package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.TaskDag.{CompileTask, DagEvent, SourcegenPlan, SourcegenTask, TaskId, TaskResult}
+import bleep.bsp.TaskDag.{AnnotationProcessorPlan, BuildContext, CompileTask, DagEvent, Handlers, LinkResult, SourcegenPlan, SourcegenTask, TaskId, TaskResult}
 import bleep.model.{CrossProjectName, JsonSet, ProjectName, ScriptDef}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Queue
@@ -15,16 +15,9 @@ import scala.jdk.CollectionConverters.*
 
 /** Integration tests for sourcegen DAG integration.
   *
-  * Covers:
-  *   - DAG shape: SourcegenTask inserted per unique script, script-project compile + its transitive deps included, CompileTask dep edge to sourcegen
-  *   - Executor orchestration: script-project compile → sourcegen → target compile ordering
-  *   - Failure propagation: script-project compile fails → sourcegen Skipped → target compile Skipped (no more unsafeRunSync hang)
-  *   - Sourcegen failure: target compile is Skipped
-  *   - Cancellation: kill during sourcegen → task Killed, target compile Killed/Skipped
-  *   - Up-to-date fast-path: sourcegen reports Success quickly without a real fork (tested via fake handler)
-  *   - One script shared by many target projects: single SourcegenTask, fan-out via forProjects
-  *
-  * Tests avoid forking real JVMs — they exercise the DAG + executor seam using stub handlers.
+  * Covers DAG shape, executor orchestration, failure propagation, cancellation, fast paths, and event emission. Tests stub out every task type's handler
+  * explicitly — there is no `Handlers.noop` factory because it would let a test silently miss the case where the executor schedules a new kind of task it
+  * didn't expect.
   */
 class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
@@ -40,7 +33,10 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
   test("buildCompileDag without sourcegen: no SourcegenTasks") {
     val p = projectName("p")
-    val dag = TaskDag.buildCompileDag(Set(p), Map.empty, SourcegenPlan.empty)
+    val dag = TaskDag.buildCompileDag(
+      Set(p),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = SourcegenPlan.empty, apPlan = AnnotationProcessorPlan.empty)
+    )
     dag.tasks.values.collect { case t: SourcegenTask => t } shouldBe empty
     dag.tasks.values.collect { case t: CompileTask => t } should have size 1
   }
@@ -56,9 +52,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildCompileDag(
-      projects = Set(target),
-      allProjectDeps = Map.empty,
-      sourcegen = plan
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
@@ -67,11 +62,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     sgTasks.head.forProjects shouldBe Set(target)
 
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
-    // Both target and scripts project have CompileTasks
     compileTasks.keySet shouldBe Set(target, scriptsProject)
-    // Target compile depends on sourcegen
     compileTasks(target).dependencies should contain(TaskId.Sourcegen(s))
-    // Scripts compile has no deps
     compileTasks(scriptsProject).dependencies shouldBe empty
   }
 
@@ -87,9 +79,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildCompileDag(
-      projects = Set(target),
-      allProjectDeps = Map(scriptsProject -> Set(scriptsLib), scriptsLib -> Set.empty),
-      sourcegen = plan
+      Set(target),
+      BuildContext(
+        allProjectDeps = Map(scriptsProject -> Set(scriptsLib), scriptsLib -> Set.empty),
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty
+      )
     )
 
     val sgTask = dag.tasks.values.collectFirst { case t: SourcegenTask => t }.get
@@ -98,7 +94,6 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       TaskId.Compile(scriptsLib)
     )
 
-    // Script-project compile tasks are in the DAG with their inter-deps
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
     compileTasks.keySet should contain allOf (scriptsProject, scriptsLib, target)
     compileTasks(scriptsProject).dependencies should contain(TaskId.Compile(scriptsLib))
@@ -116,16 +111,14 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildCompileDag(
-      projects = Set(a, b),
-      allProjectDeps = Map.empty,
-      sourcegen = plan
+      Set(a, b),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
     sgTasks should have size 1
     sgTasks.head.forProjects shouldBe Set(a, b)
 
-    // Both target compiles depend on the same sourcegen task
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
     compileTasks(a).dependencies should contain(TaskId.Sourcegen(s))
     compileTasks(b).dependencies should contain(TaskId.Sourcegen(s))
@@ -143,9 +136,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildCompileDag(
-      projects = Set(withSg, withoutSg),
-      allProjectDeps = Map.empty,
-      sourcegen = plan
+      Set(withSg, withoutSg),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
@@ -154,7 +146,6 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
     compileTasks(withSg).dependencies should contain(TaskId.Sourcegen(s))
-    // The other project has NO sourcegen dep — its CompileTask looks exactly like a no-sourcegen DAG.
     compileTasks(withoutSg).dependencies shouldBe empty
   }
 
@@ -169,7 +160,10 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       scriptProjectDeps = Map(s1 -> Set(scriptsProject), s2 -> Set(scriptsProject))
     )
 
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val sgIds = dag.tasks.values.collect { case t: SourcegenTask => t.id }.toSet
     sgIds shouldBe Set(TaskId.Sourcegen(s1), TaskId.Sourcegen(s2))
@@ -189,10 +183,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildTestDag(
-      testProjects = Set(testProject),
-      allProjectDeps = Map.empty,
-      platforms = Map.empty,
-      sourcegen = plan
+      Set(testProject),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
     )
 
     dag.tasks.values.collect { case t: SourcegenTask => t } should have size 1
@@ -210,11 +202,9 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val dag = TaskDag.buildLinkDag(
-      projects = Set(linked),
-      allProjectDeps = Map.empty,
-      platforms = Map.empty,
-      releaseMode = false,
-      sourcegen = plan
+      Set(linked),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty),
+      releaseMode = false
     )
 
     dag.tasks.values.collect { case t: SourcegenTask => t } should have size 1
@@ -234,16 +224,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val order = new ConcurrentLinkedQueue[String]()
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success)
+      Handlers(
+        compile = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     (for {
@@ -266,20 +262,26 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val sourcegenCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) =>
-        if (t.project == scriptsProject) IO.pure(TaskResult.Failure("compile error", Nil))
-        else if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
-        else IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success)
+      Handlers(
+        compile = (t, _) =>
+          if (t.project == scriptsProject) IO.pure(TaskResult.Failure("compile error", Nil))
+          else if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
+          else IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val finalDag = (for {
@@ -304,18 +306,24 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) =>
-        if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
-        else IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil))
+      Handlers(
+        compile = (t, _) =>
+          if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
+          else IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val finalDag = (for {
@@ -339,19 +347,24 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) =>
-        if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
-        else IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      // Handler returns Success without forking — simulates up-to-date fast path
-      sourcegenHandler = (_, _) => IO.pure(TaskResult.Success)
+      Handlers(
+        compile = (t, _) =>
+          if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
+          else IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO.pure(TaskResult.Success), // up-to-date fast path
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val finalDag = (for {
@@ -377,14 +390,20 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val executor = TaskDag.executor(
-      compileHandler = (_, _) => IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, _) => IO.pure(TaskResult.Success)
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO.pure(TaskResult.Success),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val events = (for {
@@ -416,14 +435,20 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val executor = TaskDag.executor(
-      compileHandler = (_, _) => IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, _) => IO.pure(TaskResult.Failure("boom", Nil))
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO.pure(TaskResult.Failure("boom", Nil)),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val events = (for {
@@ -449,20 +474,24 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) =>
-        if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
-        else IO.pure(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, taskKill) =>
-        // Block until kill, then return Killed
-        taskKill.get.map(reason => TaskResult.Killed(reason))
+      Handlers(
+        compile = (t, _) =>
+          if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
+          else IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     val finalDag = (for {
@@ -474,7 +503,6 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     targetCompileCalled.get() shouldBe false
     finalDag.killed should contain(TaskId.Sourcegen(s))
-    // Target compile is Killed (not Skipped) because executor's kill path marks remaining tasks as Killed
     finalDag.killed should contain(TaskId.Compile(target))
   }
 
@@ -487,20 +515,26 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       perProject = Map(target -> Set(s)),
       scriptProjectDeps = Map(s -> Set(scriptsProject))
     )
-    val dag = TaskDag.buildCompileDag(Set(target), Map.empty, plan)
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+    )
 
     val timeline = new ConcurrentLinkedQueue[(String, Long)]()
     def record(tag: String): IO[Unit] = IO(timeline.add((tag, System.nanoTime())): Unit)
 
     val executor = TaskDag.executor(
-      compileHandler = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
-      linkHandler = (_, _) => IO.pure((TaskResult.Success, TaskDag.LinkResult.NotApplicable)),
-      discoverHandler = (_, _) => IO.pure((TaskResult.Success, List.empty)),
-      testHandler = (_, _) => IO.pure(TaskResult.Success),
-      sourcegenHandler = (_, _) =>
-        record("sourcegen:start") >>
-          IO.sleep(scala.concurrent.duration.DurationInt(100).millis) >>
-          record("sourcegen:end").as(TaskResult.Success)
+      Handlers(
+        compile = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) =>
+          record("sourcegen:start") >>
+            IO.sleep(scala.concurrent.duration.DurationInt(100).millis) >>
+            record("sourcegen:end").as(TaskResult.Success),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+      )
     )
 
     (for {
