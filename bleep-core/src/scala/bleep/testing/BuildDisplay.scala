@@ -35,6 +35,7 @@ trait BuildDisplay {
 
 case class BuildSummary(
     sourcegenFailed: Int,
+    apResolutionFailed: Int,
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -73,6 +74,8 @@ case class BuildSummary(
       Left(new bleep.BleepException.Text(s"Build failed: ${linkFailures.size} project(s) failed to link"))
     else if (sourcegenFailed > 0)
       Left(new bleep.BleepException.Text(s"Source generation failed for $sourcegenFailed project(s)"))
+    else if (apResolutionFailed > 0)
+      Left(new bleep.BleepException.Text(s"Annotation processor resolution failed for $apResolutionFailed project(s)"))
     else {
       val testProblems = testsFailed + testsTimedOut + testsCancelled
       if (testProblems > 0 || suitesCancelled > 0) {
@@ -395,6 +398,7 @@ object BuildSummary {
 
   val empty: BuildSummary = BuildSummary(
     sourcegenFailed = 0,
+    apResolutionFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
@@ -759,6 +763,15 @@ object BuildDisplay {
         } else {
           IO.delay(logger.withContext("script", scriptMain).error(s"❌ sourcegen failed (${durationMs}ms): ${error.getOrElse("unknown error")}"))
         }
+
+      case BuildEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, _) =>
+        if (success) IO.unit
+        else
+          IO.delay(
+            logger
+              .withContext("project", project.value)
+              .error(s"❌ annotation processor resolution failed (${durationMs}ms): ${error.getOrElse("unknown error")}")
+          )
 
       case _: BuildEvent.ConnectionLost =>
         logWarn("💀 connection lost — server may have been killed")

@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.*
-import bleep.analysis.{CompilerResolver, ProjectConfig, ProjectDag, ProjectLanguage}
+import bleep.analysis.{CompilerResolver, ProjectConfig, ProjectLanguage}
 import bleep.model
 import bleep.model.{CrossProjectName, Java, Kotlin}
 
@@ -12,56 +12,6 @@ import java.nio.file.Paths
   * This bridges bleep-core's `Started` to bleep-bsp's `ProjectDag` and `ProjectConfig` for compilation, using the bleep-native ResolvedProject type.
   */
 object BleepBuildConverter {
-
-  /** Convert a Started build to a ProjectDag for compilation.
-    *
-    * @param started
-    *   the loaded bleep build
-    * @param projectsToCompile
-    *   specific projects to include (None = all)
-    * @return
-    *   ProjectDag ready for compilation
-    */
-  def toProjectDag(
-      started: Started,
-      projectsToCompile: Option[Set[CrossProjectName]]
-  ): ProjectDag = {
-    val projects = projectsToCompile.getOrElse(started.build.explodedProjects.keySet)
-
-    val configs = projects.toSeq.flatMap { crossName =>
-      started.resolvedProjects.get(crossName).map { lazyResolved =>
-        val resolved = lazyResolved.forceGet
-        val config = toProjectConfig(crossName, resolved, started)
-        val deps = getDependencies(crossName, started)
-        (config, deps)
-      }
-    }
-
-    ProjectDag.fromProjects(configs)
-  }
-
-  /** Create a ProjectDag for a single project (no dependencies in DAG).
-    *
-    * Use this when the caller handles dependency ordering externally (e.g., TaskDag). The returned DAG contains only the specified project with no
-    * dependencies, but the project's classpath includes dependency outputs for compilation.
-    *
-    * @param started
-    *   the loaded bleep build
-    * @param project
-    *   the project to compile
-    * @return
-    *   ProjectDag with just the single project
-    */
-  def toSingleProjectDag(
-      started: Started,
-      project: CrossProjectName
-  ): ProjectDag = {
-    val lazyResolved = started.resolvedProjects(project)
-    val resolved = lazyResolved.forceGet
-    val config = toProjectConfig(project, resolved, started)
-    // No dependencies in DAG - caller handles ordering
-    ProjectDag.fromProjects(Seq((config, Set.empty[String])))
-  }
 
   /** Convert a ResolvedProject to ProjectConfig for compilation.
     *
@@ -77,7 +27,8 @@ object BleepBuildConverter {
   def toProjectConfig(
       crossName: CrossProjectName,
       resolved: ResolvedProject,
-      started: Started
+      started: Started,
+      additionalJavaOptions: List[String]
   ): ProjectConfig = {
     val sources = resolved.sources.map(p => Paths.get(p.toString)).toSet
     val classpath = resolved.classpath.map(p => Paths.get(p.toString)).toSeq
@@ -89,7 +40,7 @@ object BleepBuildConverter {
     val javaConfig = bleepProject.flatMap(_.java)
     val platform = bleepProject.flatMap(_.platform)
     val isTest = bleepProject.exists(_.isTestProject.getOrElse(false))
-    val language0 = detectLanguage(resolved, kotlinConfig, javaConfig, platform, isTest)
+    val language0 = detectLanguage(resolved, kotlinConfig, javaConfig, platform, isTest, additionalJavaOptions)
 
     // For Kotlin test projects, add -Xfriend-paths so tests can access `internal` members
     val language = language0 match {
@@ -142,7 +93,8 @@ object BleepBuildConverter {
       kotlinConfig: Option[Kotlin],
       javaConfig: Option[Java],
       platform: Option[model.Platform],
-      isTest: Boolean
+      isTest: Boolean,
+      additionalJavaOptions: List[String]
   ): ProjectLanguage =
     // Check for explicit Kotlin configuration first
     kotlinConfig.flatMap(_.version) match {
@@ -206,7 +158,7 @@ object BleepBuildConverter {
               scalaVersion = scalaLang.version,
               scalaOptions = scalaLang.options,
               javaRelease = javaRelease,
-              javaOptions = scalaLang.javaOptions
+              javaOptions = scalaLang.javaOptions ++ additionalJavaOptions
             )
 
           case javaLang: ResolvedProject.Language.Java =>
@@ -219,7 +171,7 @@ object BleepBuildConverter {
             }.flatten
             ProjectLanguage.JavaOnly(
               release = javaRelease,
-              javaOptions = javaLang.options,
+              javaOptions = javaLang.options ++ additionalJavaOptions,
               ecjVersion = javaConfig.flatMap(_.ecjVersion).map(_.version)
             )
 
@@ -232,13 +184,6 @@ object BleepBuildConverter {
               javaRelease = None
             )
         }
-    }
-
-  /** Get project dependencies as project names. */
-  private def getDependencies(crossName: CrossProjectName, started: Started): Set[String] =
-    started.build.resolvedDependsOn.get(crossName) match {
-      case Some(deps) => deps.iterator.map(_.value).toSet
-      case None       => Set.empty
     }
 
   /** Compute -Xfriend-paths for Kotlin test projects.

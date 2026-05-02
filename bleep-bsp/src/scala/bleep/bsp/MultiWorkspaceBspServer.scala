@@ -1154,17 +1154,56 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Annotation-processor handler factory. Currently a placeholder: AP resolution still runs in `ResolveProjects` at bootstrap, so the DAG task is purely a
-    * marker that gives BSP clients a `bleep:resolve-annotation-processors:<project>` event for visibility. Returning `(Success, 0)` is correct because the
-    * actual jar discovery already happened upstream and is reflected in `started.resolvedProject(...)`'s `javaOptions`. A follow-up commit will move the real
-    * resolution work into this handler so it runs lazily during compile, with proper failure isolation per project.
+  /** Annotation-processor handler factory. Resolves processor JARs (Coursier `force` over each `annotationProcessors` Dep) and scans resolved-`dependencies`
+    * JARs for `META-INF/services/javax.annotation.processing.Processor` entries when `scanForAnnotationProcessors` is set. Stores the resulting
+    * `AnnotationProcessorResult` keyed by project in `apResults` for the compile handler to read.
     */
   private def makeAnnotationProcessorHandler(
       started: Started,
-      originId: Option[String]
+      originId: Option[String],
+      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]
   ): (TaskDag.ResolveAnnotationProcessorsTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, Int)] = {
-    val _ = (started, originId) // currently unused; kept in signature for the follow-up
-    (_, _) => IO.pure((TaskDag.TaskResult.Success, 0))
+    val _ = originId // events are emitted by the executor; this factory closes over `started` only
+    (task, _) =>
+      // Wrap with `attempt` so the resolver's `sys.error` for misconfig (no-op opt-in, conflicting flags) lands as
+      // a TaskResult.Failure instead of an unhandled exception. This matters because the executor's
+      // ResolveAnnotationProcessorsFinished event is only emitted when the handler returns a value — if the IO
+      // throws, the executor's `withRecovery` catches it but the surrounding for-comprehension that emits Finished
+      // never reaches that point, and the build summary's `apResolutionFailed` counter stays at zero.
+      IO.blocking {
+        val crossName = task.project
+        val explodedProject = started.build.explodedProjects(crossName)
+        val javaCfg = explodedProject.java.getOrElse {
+          sys.error(s"project ${crossName.value}: scheduled for AP resolution but has no java configuration")
+        }
+        if (AnnotationProcessorResolver.userOptsOut(javaCfg)) {
+          // Escape hatch — user opted out via -proc:none in java.options. Leave apResults empty for this project.
+          (TaskDag.TaskResult.Success, 0)
+        } else {
+          val resolvedProject = started.resolvedProject(crossName)
+          val depJars: List[Path] = resolvedProject.classpath.filter(_.toString.endsWith(".jar"))
+          val versionCombo = bleep.model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
+          val genSourcesDir = started.buildPaths.generatedSourcesDir(crossName, "annotations")
+          val result = AnnotationProcessorResolver.resolve(
+            crossName = crossName,
+            java = javaCfg,
+            resolvedDependencyJars = depJars,
+            versionCombo = versionCombo,
+            libraryVersionSchemes = explodedProject.libraryVersionSchemes.values,
+            resolver = started.resolver,
+            genSourcesDir = genSourcesDir,
+            logger = logger
+          )
+          apResults.put(crossName, result)
+          (TaskDag.TaskResult.Success, result.processorJars.size)
+        }
+      }.attempt
+        .map {
+          case Right(value) => value
+          case Left(error)  =>
+            val msg = Option(error.getMessage).getOrElse(error.getClass.getName)
+            (TaskDag.TaskResult.Failure(msg, Nil), 0)
+        }
   }
 
   /** Sourcegen handler factory. Runs a single script via `SourceGenRunner.runOne`, emits BSP progress/log events, and translates the result to a `TaskResult`.
@@ -1385,7 +1424,12 @@ class MultiWorkspaceBspServer(
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+      // Per-build map populated by the AP DAG handler and read by the compile handler.
+      // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories
+      // are called synchronously here, before the IO program starts.
+      val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+
+      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
       val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
       // Create link handler
@@ -1407,7 +1451,7 @@ class MultiWorkspaceBspServer(
       val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
         (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
 
-      val apHandler = makeAnnotationProcessorHandler(started, params.originId)
+      val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
 
       // Create executor
       val executor = TaskDag.executor(
@@ -1748,7 +1792,10 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
+          // Per-test-run map populated by the AP DAG handler and read by the compile handler.
+          val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+
+          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
@@ -1822,7 +1869,7 @@ class MultiWorkspaceBspServer(
               LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
             }
 
-          val apHandler = makeAnnotationProcessorHandler(started, params.originId)
+          val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
 
           // Create executor with link + sourcegen + annotation-processor support
           val executor = TaskDag.executor(
@@ -2058,7 +2105,8 @@ class MultiWorkspaceBspServer(
       started: Started,
       workspace: Path,
       originId: Option[String],
-      heapPressureThreshold: Double
+      heapPressureThreshold: Double,
+      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]
   ): (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2069,7 +2117,8 @@ class MultiWorkspaceBspServer(
         case None    =>
           // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
           // Noop projects skip all waiting and don't consume concurrency slots.
-          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+          val apFlags: List[String] = Option(apResults.get(compileTask.project)).fold(List.empty[String])(_.javacFlags)
+          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started, apFlags)
           val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
           val noopResult = config.language match {
             case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
@@ -2089,7 +2138,7 @@ class MultiWorkspaceBspServer(
                   waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
                     val compileStartTime = System.currentTimeMillis()
                     IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses)
+                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags)
                         .guaranteeCase {
                           case cats.effect.Outcome.Succeeded(resultIO) =>
                             resultIO.flatMap { result =>
@@ -2121,9 +2170,10 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       originId: Option[String],
       cancellation: CancellationToken,
-      dependencyAnalyses: Map[Path, Path]
+      dependencyAnalyses: Map[Path, Path],
+      additionalJavaOptions: List[String]
   ): IO[TaskDag.TaskResult] = {
-    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started)
+    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
     val compiler = ProjectCompiler.forLanguage(config.language)
 
     val diagnosticListener = new DiagnosticListener {
@@ -2843,30 +2893,32 @@ class MultiWorkspaceBspServer(
     case _ => IO.unit
   }
 
-  /** Currently log-only — there's no `BleepBspProtocol.Event` case for annotation-processor resolution yet. The trace recorder still captures these as separate
-    * spans in the chrome-trace output so flamegraphs distinguish AP resolution from compile.
+  /** Logs the AP resolution lifecycle and sends the BSP protocol events so `ReactiveBsp` can fold them into `BuildEvent.ResolveAnnotationProcessorsFinished`,
+    * which the build-state reducer counts toward `apResolutionFailed`. The trace recorder also captures these as separate spans in the chrome-trace output so
+    * flamegraphs distinguish AP resolution from compile.
     */
   private def processAnnotationProcessorEvent(
       event: TaskDag.DagEvent,
       originId: Option[String],
       traceRecorder: TraceRecorder
-  ): IO[Unit] = {
-    val _ = originId
+  ): IO[Unit] =
     event match {
-      case TaskDag.DagEvent.ResolveAnnotationProcessorsStarted(project, _) =>
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsStarted(project, timestamp) =>
+        val protocolEvent = BleepBspProtocol.Event.ResolveAnnotationProcessorsStarted(project, timestamp)
         IO(logger.withContext("project", project.value).debug("Annotation processor resolution starting")) >>
-          traceRecorder.recordStart(TraceCategory.ResolveAnnotationProcessors, project.value)
-      case TaskDag.DagEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, _) =>
+          traceRecorder.recordStart(TraceCategory.ResolveAnnotationProcessors, project.value) >>
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
+      case TaskDag.DagEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp) =>
         val msg =
-          if (success)
-            s"Annotation processor resolution finished (${discoveredJarCount} jars, ${durationMs}ms)"
-          else
-            s"Annotation processor resolution failed: ${error.getOrElse("unknown")} (${durationMs}ms)"
+          if (success) s"Annotation processor resolution finished (${discoveredJarCount} jars, ${durationMs}ms)"
+          else s"Annotation processor resolution failed: ${error.getOrElse("unknown")} (${durationMs}ms)"
+        val protocolEvent =
+          BleepBspProtocol.Event.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp)
         IO(logger.withContext("project", project.value).info(msg)) >>
-          traceRecorder.recordEnd(TraceCategory.ResolveAnnotationProcessors, project.value)
+          traceRecorder.recordEnd(TraceCategory.ResolveAnnotationProcessors, project.value) >>
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
       case _ => IO.unit
     }
-  }
 
   /** Wrap event processing with dead-client detection and kill signal propagation. */
   private def withDeadClientDetection(

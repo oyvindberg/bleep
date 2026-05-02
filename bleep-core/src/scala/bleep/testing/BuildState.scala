@@ -12,6 +12,7 @@ case class BuildState(
     sourcegenRunning: Set[String], // Currently running sourcegen scripts
     sourcegenCompleted: Int,
     sourcegenFailed: Int,
+    apResolutionFailed: Int, // Number of projects whose annotation-processor resolution DAG task failed
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -61,6 +62,7 @@ case class BuildState(
     }
     BuildSummary(
       sourcegenFailed = sourcegenFailed,
+      apResolutionFailed = apResolutionFailed,
       compilesCompleted = compilesCompleted,
       compilesFailed = compilesFailed,
       compilesSkipped = compilesSkipped,
@@ -96,6 +98,7 @@ object BuildState {
     sourcegenRunning = Set.empty,
     sourcegenCompleted = 0,
     sourcegenFailed = 0,
+    apResolutionFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
@@ -147,6 +150,9 @@ object BuildStateReducer {
         sourcegenCompleted = state.sourcegenCompleted + 1,
         sourcegenFailed = if (success) state.sourcegenFailed else state.sourcegenFailed + 1
       )
+
+    case BuildEvent.ResolveAnnotationProcessorsFinished(_, success, _, _, _) =>
+      if (success) state else state.copy(apResolutionFailed = state.apResolutionFailed + 1)
 
     case BuildEvent.CompileStarted(project, timestamp) =>
       state.copy(

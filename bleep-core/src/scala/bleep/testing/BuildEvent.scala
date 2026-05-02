@@ -255,6 +255,15 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
+  /** Annotation-processor resolution finished for a project. `success=false` means the AP DAG handler errored (no-op opt-in or coursier resolution failure). */
+  case class ResolveAnnotationProcessorsFinished(
+      project: CrossProjectName,
+      success: Boolean,
+      durationMs: Long,
+      error: Option[String],
+      timestamp: Long
+  ) extends BuildEvent
+
   /** An error occurred during test execution */
   case class Error(
       message: String,
