@@ -77,6 +77,29 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       stdLogger.info(s"Ran in $testTempFolder")
   }
 
+  /** Run `mainClassName.main(Array.empty)` from `resolved`'s compiled classes + classpath in this JVM with stdout captured. The annotation-processor
+    * integration tests use this to verify the generated code actually runs and prints the expected output, without paying the cost of forking a child JVM (the
+    * parent bleep-bsp has a 4 GB heap and forking from it has caused exit-137 OOM-kills on memory-constrained CI runners). The forking-and-spawning of
+    * `commands.run` is exercised by the separate `run prefer jvmRuntimeOptions` / `run fallback to jvmOptions` tests, which don't depend on annotation
+    * processors.
+    */
+  private def runMainInProcess(resolved: ResolvedProject, mainClassName: String): String = {
+    val urls = (resolved.classesDir :: resolved.classpath.toList).map(_.toUri.toURL).toArray
+    val cl = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+    val captured = new java.io.ByteArrayOutputStream()
+    val origOut = System.out
+    System.setOut(new java.io.PrintStream(captured, true, "UTF-8"))
+    try {
+      val mainClass = cl.loadClass(mainClassName)
+      val mainMethod = mainClass.getMethod("main", classOf[Array[String]])
+      mainMethod.invoke(null, Array.empty[String])
+      captured.toString("UTF-8").trim
+    } finally {
+      System.setOut(origOut)
+      cl.close()
+    }
+  }
+
   test("run prefer jvmRuntimeOptions") {
     runTest(
       "run prefer jvmRuntimeOptions",
@@ -136,10 +159,10 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("annotation processors: scanForAnnotationProcessors: true scans deps and runs Lombok end-to-end") {
-    // Lombok bypasses JPMS via sun.misc.Unsafe (it does NOT use --add-opens, which is what
-    // older docs claim is required). On JDK 25 + Lombok 1.18.46 + in-process javac via Zinc
-    // it generates @Data members successfully — printed by `commands.run` at the bottom of
-    // this test.
+    // Lombok bypasses JPMS via sun.misc.Unsafe (it does NOT need --add-opens, despite older
+    // docs). On JDK 25 + Lombok 1.18.46 + in-process javac via Zinc it generates @Data members
+    // successfully — verified by invoking the generated `Main.main(args)` in-process via a
+    // URLClassLoader and asserting on captured stdout.
     runTest(
       "AP scan true",
       """projects:
@@ -148,7 +171,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    platform:
         |      name: jvm
-        |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2
         |    java:
@@ -182,18 +204,16 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
 
-      // Bootstrap state: javaOptions does NOT contain AP flags here. Those are computed
-      // by the AP DAG handler at compile time. Only the gen-sources reservation is visible
-      // at bootstrap (since BuildPaths reserves it conservatively).
+      // Bootstrap state: javaOptions does NOT contain AP flags here. Those are computed by
+      // the AP DAG handler at compile time. Only the gen-sources reservation is visible at
+      // bootstrap (since BuildPaths reserves it conservatively).
       assert(resolved.sources.exists(_.toString.contains("generated-sources")))
 
-      // End-to-end: Lombok actually generated toString().
-      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      commands.compile(List(projectName))
       assert(
-        storingLogger.underlying.exists(_.message.plainText == "Person(name=alice, age=33)"),
+        runMainInProcess(resolved, "test.Main") == "Person(name=alice, age=33)",
         "expected Lombok-generated @Data toString() to print"
       )
-      // Auto-discovery log line is emitted by the AP DAG handler during the run.
       assert(
         storingLogger.underlying.exists { ev =>
           val txt = ev.message.plainText
@@ -217,7 +237,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    platform:
         |      name: jvm
-        |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2
         |    java:
@@ -255,7 +274,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
             |    }
             |}""".stripMargin
       )
-    ) { (started, commands, storingLogger) =>
+    ) { (started, commands, _) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
 
@@ -268,9 +287,9 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         s"mapstruct-processor must NOT be on runtime classpath, got $classpathPaths"
       )
 
-      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      commands.compile(List(projectName))
       assert(
-        storingLogger.underlying.exists(_.message.plainText == "name=alice age=33"),
+        runMainInProcess(resolved, "test.Main") == "name=alice age=33",
         "expected Mapstruct-generated UserMapperImpl to map correctly"
       )
 
@@ -297,7 +316,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    platform:
         |      name: jvm
-        |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2
         |    java:
@@ -325,7 +343,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
             |    }
             |}""".stripMargin
       )
-    ) { (started, commands, storingLogger) =>
+    ) { (started, commands, _) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
 
@@ -335,9 +353,9 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         s"auto-value processor jar must NOT be on runtime classpath, got $classpathPaths"
       )
 
-      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      commands.compile(List(projectName))
       assert(
-        storingLogger.underlying.exists(_.message.plainText == "name=alice count=33"),
+        runMainInProcess(resolved, "test.Main") == "name=alice count=33",
         "expected AutoValue-generated AutoValue_Item to construct correctly"
       )
 
@@ -406,7 +424,6 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    platform:
         |      name: jvm
-        |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2
         |    java:
@@ -441,11 +458,12 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
             |    }
             |}""".stripMargin
       )
-    ) { (_, commands, storingLogger) =>
+    ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
-      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      commands.compile(List(projectName))
       assert(
-        storingLogger.underlying.exists(_.message.plainText == "explicit-only:alice"),
+        runMainInProcess(resolved, "test.Main") == "explicit-only:alice",
         "expected explicit AP list to run mapstruct end-to-end"
       )
       assert(

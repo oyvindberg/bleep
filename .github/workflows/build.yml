@@ -150,13 +150,6 @@ jobs:
       - name: Test binary after build (non-windows)
         env:
           CI: true
-          # On the ubuntu-22.04-arm runner, JDK's default `posix_spawn` mechanism (which uses
-          # `$JAVA_HOME/lib/jspawnhelper`) gets the helper SIGKILL'd by the runner's seccomp
-          # profile. The result is `Failed to exec spawn helper: ... signal: 9` from any
-          # `ProcessBuilder.start()`. JDK has a documented escape hatch: switch to `vfork`+`exec`
-          # directly via this property. JAVA_TOOL_OPTIONS propagates to every JVM (bleep-bsp
-          # and the test-spawned child JVMs) without needing per-invocation flags.
-          JAVA_TOOL_OPTIONS: -Djdk.lang.Process.launchMechanism=FORK
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm3
           ./${{ matrix.file_name }} selftest
