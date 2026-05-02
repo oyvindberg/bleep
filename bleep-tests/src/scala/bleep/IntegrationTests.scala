@@ -103,23 +103,20 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
     }
   }
-  test("annotation processing disabled by default") {
+  test("annotation processors: default off — Lombok in deps does not run") {
     runTest(
-      "annotation processing disabled by default",
+      "AP default off",
       """projects:
         |  a:
-        |    dependencies: org.projectlombok:lombok:1.18.30
+        |    dependencies: org.projectlombok:lombok:1.18.46
         |    source-layout: java
         |    java:
         |      options: -Xlint:all
         |""".stripMargin,
       Map(
-        RelPath.force("./a/src/main/java/test/Person.java") ->
+        RelPath.force("./a/src/java/test/Person.java") ->
           """package test;
             |
-            |import lombok.Data;
-            |
-            |@Data
             |public class Person {
             |    private String name;
             |    private int age;
@@ -128,31 +125,160 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
-
-      // Should have -proc:none in java options
       val javaOptions = resolved.language.javaOptions
-      assert(javaOptions.contains("-proc:none"))
+      assert(javaOptions.contains("-proc:none"), s"expected -proc:none in $javaOptions")
+      assert(!javaOptions.exists(_.contains("-processorpath")), s"unexpected -processorpath in $javaOptions")
+      assert(!javaOptions.exists(_.contains("-s")), s"unexpected -s in $javaOptions")
       assert(javaOptions.contains("-Xlint:all"))
-
-      // Generated sources directory should not be in sources
       assert(!resolved.sources.exists(_.toString.contains("generated-sources")))
+      assert(!storingLogger.underlying.exists(_.message.plainText.contains("auto-discovered annotation processor")))
     }
   }
 
-  test("annotation processing enabled") {
+  test("annotation processors: scanForAnnotationProcessors: true scans deps (Lombok wiring)") {
+    // Verifies the wiring: lombok jar lands on -processorpath, -s and gen-dir are configured,
+    // and we emit the auto-discovery info log. We don't run end-to-end here because Lombok
+    // requires --add-opens for javac internals on JDK 16+, which is a JVM launch concern
+    // outside this PR. The end-to-end test below uses AutoValue (pure JSR 269).
     runTest(
-      "annotation processing enabled",
+      "AP scan true",
       """projects:
         |  a:
-        |    dependencies: org.projectlombok:lombok:1.18.30
+        |    dependencies: org.projectlombok:lombok:1.18.46
         |    source-layout: java
         |    java:
-        |      options: -Xlint:all
-        |      annotationProcessing:
-        |        enabled: true
+        |      scanForAnnotationProcessors: true
         |""".stripMargin,
       Map(
-        RelPath.force("./a/src/main/java/test/Person.java") ->
+        RelPath.force("./a/src/java/test/Person.java") ->
+          """package test;
+            |
+            |public class Person {
+            |    private String name;
+            |    private int age;
+            |}""".stripMargin
+      )
+    ) { (started, _, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val javaOptions = resolved.language.javaOptions
+
+      assert(javaOptions.contains("-processorpath"), s"expected -processorpath in $javaOptions")
+      val procIdx = javaOptions.indexOf("-processorpath")
+      val procPath = javaOptions(procIdx + 1)
+      assert(procPath.contains("lombok"), s"expected lombok jar on -processorpath, got $procPath")
+
+      assert(javaOptions.contains("-s"), s"expected -s in $javaOptions")
+      assert(!javaOptions.contains("-proc:none"))
+      assert(resolved.sources.exists(_.toString.contains("generated-sources")))
+
+      assert(
+        storingLogger.underlying.exists { ev =>
+          val txt = ev.message.plainText
+          txt.contains("auto-discovered annotation processor JAR") && txt.contains("lombok")
+        },
+        "expected auto-discovered annotation processor JAR log line"
+      )
+    }
+  }
+
+  test("annotation processors: end-to-end with Mapstruct (pure JSR 269)") {
+    // Mapstruct ships its annotations and processor as separate jars and registers via the
+    // standard META-INF/services/javax.annotation.processing.Processor — exactly the pattern
+    // bleep's auto-discovery and explicit lookup are designed for. This is the headline
+    // "processors actually run" test.
+    runTest(
+      "AP mapstruct e2e",
+      """projects:
+        |  a:
+        |    dependencies: org.mapstruct:mapstruct:1.5.5.Final
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |      mainClass: test.Main
+        |    scala:
+        |      version: 3.4.2
+        |    java:
+        |      annotationProcessors:
+        |        - org.mapstruct:mapstruct-processor:1.5.5.Final
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/java/test/User.java") ->
+          """package test;
+            |public class User {
+            |    public String name;
+            |    public int age;
+            |    public User(String name, int age) { this.name = name; this.age = age; }
+            |}""".stripMargin,
+        RelPath.force("./a/src/java/test/UserDto.java") ->
+          """package test;
+            |public class UserDto {
+            |    public String name;
+            |    public int age;
+            |}""".stripMargin,
+        RelPath.force("./a/src/java/test/UserMapper.java") ->
+          """package test;
+            |import org.mapstruct.Mapper;
+            |@Mapper
+            |public interface UserMapper {
+            |    UserDto userToUserDto(User user);
+            |}""".stripMargin,
+        RelPath.force("./a/src/java/test/Main.java") ->
+          """package test;
+            |public class Main {
+            |    public static void main(String[] args) {
+            |        UserMapper mapper = new UserMapperImpl();
+            |        UserDto dto = mapper.userToUserDto(new User("alice", 33));
+            |        System.out.println("name=" + dto.name + " age=" + dto.age);
+            |    }
+            |}""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val javaOptions = resolved.language.javaOptions
+
+      val procIdx = javaOptions.indexOf("-processorpath")
+      assert(procIdx >= 0, s"expected -processorpath in $javaOptions")
+      val procPath = javaOptions(procIdx + 1)
+      assert(procPath.contains("mapstruct-processor"), s"expected mapstruct-processor jar on -processorpath, got $procPath")
+
+      val classpathPaths = resolved.classpath.map(_.toString)
+      assert(
+        !classpathPaths.exists(_.contains("mapstruct-processor")),
+        s"mapstruct-processor must NOT be on runtime classpath, got $classpathPaths"
+      )
+
+      commands.run(projectName, maybeOverriddenMain = Some("test.Main"))
+      assert(
+        storingLogger.underlying.exists(_.message.plainText == "name=alice age=33"),
+        "expected Mapstruct-generated UserMapperImpl to map correctly"
+      )
+
+      val genDir = resolved.sources
+        .find(_.toString.contains("generated-sources"))
+        .getOrElse(
+          sys.error(s"expected a generated-sources dir in ${resolved.sources}")
+        )
+      val mapstructGenerated = genDir.resolve("test").resolve("UserMapperImpl.java")
+      assert(Files.isRegularFile(mapstructGenerated), s"expected UserMapperImpl.java at $mapstructGenerated")
+    }
+  }
+
+  test("annotation processors: annotationProcessorOptions emits -A flags") {
+    runTest(
+      "AP options",
+      """projects:
+        |  a:
+        |    dependencies: org.projectlombok:lombok:1.18.46
+        |    source-layout: java
+        |    java:
+        |      scanForAnnotationProcessors: true
+        |      annotationProcessorOptions:
+        |        lombok.addLombokGeneratedAnnotation: "true"
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/java/test/Person.java") ->
           """package test;
             |
             |import lombok.Data;
@@ -163,21 +289,81 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
             |    private int age;
             |}""".stripMargin
       )
-    ) { (started, commands, storingLogger) =>
+    ) { (started, _, _) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
       val resolved = started.resolvedProjects(projectName).forceGet("test")
-
-      // Should have -s option with generated sources directory
       val javaOptions = resolved.language.javaOptions
-      assert(javaOptions.exists(_.contains("-s")))
-      assert(javaOptions.exists(_.contains("generated-sources")))
-      assert(javaOptions.exists(_.contains("annotations")))
-      assert(!javaOptions.contains("-proc:none"))
-      assert(javaOptions.contains("-Xlint:all"))
-
-      // Generated sources directory should be in sources
-      assert(resolved.sources.exists(_.toString.contains("generated-sources")))
+      assert(
+        javaOptions.exists(_ == "-Alombok.addLombokGeneratedAnnotation=true"),
+        s"expected -A flag in $javaOptions"
+      )
     }
+  }
+
+  test("annotation processors: explicit list, no scanning") {
+    // Auto-discovery is OFF (no scanForAnnotationProcessors). Lombok IS in dependencies but
+    // a different processor jar (auto-value) is the explicit one. Verifies that:
+    //   (a) -processorpath contains the explicit jar (auto-value)
+    //   (b) -processorpath does NOT contain the would-be-discovered jar (lombok)
+    //   (c) no auto-discovery log line was emitted
+    runTest(
+      "AP explicit only",
+      """projects:
+        |  a:
+        |    dependencies: org.projectlombok:lombok:1.18.46
+        |    source-layout: java
+        |    java:
+        |      annotationProcessors:
+        |        - com.google.auto.value:auto-value:1.10.4
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/java/test/Person.java") ->
+          "package test; public class Person {}"
+      )
+    ) { (started, _, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
+      val javaOptions = resolved.language.javaOptions
+
+      val procIdx = javaOptions.indexOf("-processorpath")
+      assert(procIdx >= 0, s"expected -processorpath in $javaOptions")
+      val procPath = javaOptions(procIdx + 1)
+      assert(procPath.contains("auto-value"), s"expected auto-value jar on -processorpath, got $procPath")
+      assert(!procPath.contains("lombok"), s"lombok should NOT be on -processorpath when scanning is off, got $procPath")
+
+      assert(javaOptions.contains("-s"), s"expected -s in $javaOptions")
+      assert(!javaOptions.contains("-proc:none"))
+      assert(!storingLogger.underlying.exists(_.message.plainText.contains("auto-discovered annotation processor")))
+    }
+  }
+
+  test("annotation processors: scanForAnnotationProcessors: true with no processors fails loud") {
+    val ex = intercept[Throwable] {
+      runTest(
+        "AP empty scan fails",
+        """projects:
+          |  a:
+          |    dependencies: org.slf4j:slf4j-api:2.0.9
+          |    source-layout: java
+          |    java:
+          |      scanForAnnotationProcessors: true
+          |""".stripMargin,
+        Map(
+          RelPath.force("./a/src/java/test/Person.java") ->
+            "package test; public class Person {}"
+        )
+      ) { (started, _, _) =>
+        val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+        // Force resolution so the failure surfaces here.
+        started.resolvedProjects(projectName).forceGet("test")
+        succeed
+      }
+    }
+    val msg = Option(ex.getMessage).getOrElse("") + Option(ex.getCause).map(_.getMessage).getOrElse("")
+    assert(
+      msg.contains("scanForAnnotationProcessors") && msg.contains("no annotation processor JARs"),
+      s"unexpected error message: $msg"
+    )
   }
 
   test("run fallback to jvmOptions") {

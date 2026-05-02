@@ -7,47 +7,59 @@ import io.circe.{Decoder, Encoder}
   *
   * @param options
   *   javac options
-  * @param annotationProcessing
-  *   annotation processing configuration
+  * @param scanForAnnotationProcessors
+  *   when set to true, bleep scans every resolved-`dependencies` jar for `META-INF/services/javax.annotation.processing.Processor` and adds matching jars to
+  *   javac's `-processorpath`. Default off — explicit opt-in.
+  * @param annotationProcessors
+  *   processor-only deps. Resolved separately and added to `-processorpath` only — never on the runtime classpath. Composes with `scanForAnnotationProcessors`
+  *   when both are set.
+  * @param annotationProcessorOptions
+  *   `-A<key>=<value>` flags passed globally to javac (any processor sees any `-A`).
   * @param ecjVersion
   *   optional ECJ (Eclipse Compiler for Java) version. If set, uses ECJ instead of javac.
   */
 case class Java(
     options: Options,
-    annotationProcessing: Option[AnnotationProcessing] = None,
+    scanForAnnotationProcessors: Option[Boolean],
+    annotationProcessors: JsonSet[Dep],
+    annotationProcessorOptions: AnnotationProcessorOptions,
     ecjVersion: Option[VersionEcj] = None
 ) extends SetLike[Java] {
   override def intersect(other: Java): Java =
     Java(
       options = options.intersect(other.options),
-      annotationProcessing = (annotationProcessing, other.annotationProcessing) match {
-        case (Some(a), Some(b)) => Some(AnnotationProcessing(a.enabled && b.enabled))
-        case _                  => None
-      },
+      scanForAnnotationProcessors = if (scanForAnnotationProcessors == other.scanForAnnotationProcessors) scanForAnnotationProcessors else None,
+      annotationProcessors = annotationProcessors.intersect(other.annotationProcessors),
+      annotationProcessorOptions = annotationProcessorOptions.intersect(other.annotationProcessorOptions),
       ecjVersion = if (ecjVersion == other.ecjVersion) ecjVersion else None
     )
 
   override def removeAll(other: Java): Java =
     Java(
       options = options.removeAll(other.options),
-      annotationProcessing = (annotationProcessing, other.annotationProcessing) match {
-        case (Some(a), Some(b)) if a == b => None
-        case _                            => annotationProcessing
-      },
+      scanForAnnotationProcessors = if (scanForAnnotationProcessors == other.scanForAnnotationProcessors) None else scanForAnnotationProcessors,
+      annotationProcessors = annotationProcessors.removeAll(other.annotationProcessors),
+      annotationProcessorOptions = annotationProcessorOptions.removeAll(other.annotationProcessorOptions),
       ecjVersion = if (ecjVersion == other.ecjVersion) None else ecjVersion
     )
 
   override def union(other: Java): Java =
     Java(
       options = options.union(other.options),
-      annotationProcessing = other.annotationProcessing.orElse(annotationProcessing),
+      scanForAnnotationProcessors = scanForAnnotationProcessors.orElse(other.scanForAnnotationProcessors),
+      annotationProcessors = annotationProcessors.union(other.annotationProcessors),
+      annotationProcessorOptions = annotationProcessorOptions.union(other.annotationProcessorOptions),
       ecjVersion = ecjVersion.orElse(other.ecjVersion)
     )
 
   def isEmpty: Boolean =
     this match {
-      case Java(options, annotationProcessing, ecjVersion) =>
-        options.isEmpty && annotationProcessing.isEmpty && ecjVersion.isEmpty
+      case Java(options, scanForAnnotationProcessors, annotationProcessors, annotationProcessorOptions, ecjVersion) =>
+        options.isEmpty &&
+        scanForAnnotationProcessors.isEmpty &&
+        annotationProcessors.isEmpty &&
+        annotationProcessorOptions.isEmpty &&
+        ecjVersion.isEmpty
     }
 }
 

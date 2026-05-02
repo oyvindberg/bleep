@@ -27,6 +27,32 @@ object ResolveProjects {
 
   case class Result(build: model.Build, projects: Projects, bspServerClasspathSource: bsp.BspServerClasspathSource)
 
+  /** When `jarPath` declares JSR 269 annotation processors via ServiceLoader registration (i.e. has a `META-INF/services/javax.annotation.processing.Processor`
+    * entry), returns the parsed list of fully-qualified class names. `None` means the jar has no service file. `Some(Nil)` means the file exists but is empty /
+    * comment-only.
+    */
+  def annotationProcessorClasses(jarPath: Path): Option[List[String]] =
+    if (!java.nio.file.Files.isRegularFile(jarPath)) None
+    else {
+      val zip = new java.util.zip.ZipFile(jarPath.toFile)
+      try {
+        val entry = zip.getEntry("META-INF/services/javax.annotation.processing.Processor")
+        if (entry == null) None
+        else {
+          val src = scala.io.Source.fromInputStream(zip.getInputStream(entry), "UTF-8")
+          try {
+            val classes = src
+              .getLines()
+              .map(line => line.indexOf('#') match { case -1 => line; case i => line.substring(0, i) })
+              .map(_.trim)
+              .filter(_.nonEmpty)
+              .toList
+            Some(classes)
+          } finally src.close()
+        }
+      } finally zip.close()
+    }
+
   object InMemory extends ResolveProjects {
     override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Result = {
       val projects: Projects = rewriteDependentData(build.explodedProjects).apply[ResolvedProject] { (crossName, project, eval) =>
@@ -278,33 +304,92 @@ object ResolveProjects {
         allTransitiveResolved.values.flatMap(x => x.classesDir :: x.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars ++ unmanagedJars
       )
 
-    val annotationProcessingGenSourcesDir = explodedJava.flatMap(_.annotationProcessing) match {
-      case Some(model.AnnotationProcessing(true)) =>
-        Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
-      case _ =>
-        None
+    // Resolve annotation processor wiring. Three input signals on `model.Java`:
+    //   - scanForAnnotationProcessors: opt-in to scan resolved-deps for processor jars
+    //   - annotationProcessors: explicit processor-only deps (separate from runtime classpath)
+    //   - annotationProcessorOptions: -A<k>=<v> flags
+    // Plus an escape hatch: if `-proc:none` already appears in `java.options`, leave it alone.
+    val (annotationProcessingGenSourcesDir: Option[Path], annotationProcessorFlags: List[String]) = {
+      val baseOpts = explodedJava.map(_.options).getOrElse(model.Options.empty)
+      val rendered = baseOpts.values.mkString(" ")
+      val userHasProcNone = baseOpts.values.exists(_.render.contains("-proc:none"))
+
+      val javaCfg = explodedJava
+      val wantsScan = javaCfg.flatMap(_.scanForAnnotationProcessors).contains(true)
+      val explicitDeps: Set[model.Dep] =
+        javaCfg.fold(Set.empty[model.Dep])(_.annotationProcessors.values.toSet)
+
+      if (userHasProcNone) (None, Nil)
+      else if (!wantsScan && explicitDeps.isEmpty) (None, List("-proc:none"))
+      else {
+        val explicitJars: List[Path] = explicitDeps.toList.flatMap { dep =>
+          val mapped = dep.mapScala(_.copy(forceJvm = true))
+          resolver
+            .force(
+              Set(mapped),
+              versionCombo,
+              explodedProject.libraryVersionSchemes.values,
+              s"${crossName.value}/annotationProcessor",
+              model.IgnoreEvictionErrors.No
+            )
+            .jars
+        }
+
+        val scannedJars: List[Path] =
+          if (!wantsScan) Nil
+          else
+            resolvedDependencies.jars.flatMap { jarPath =>
+              ResolveProjects.annotationProcessorClasses(jarPath).filter(_.nonEmpty) match {
+                case Some(classes) =>
+                  pre.logger.info(s"[${crossName.value}] auto-discovered annotation processor JAR: $jarPath — classes: ${classes.mkString(", ")}")
+                  Some(jarPath)
+                case None => None
+              }
+            }
+
+        if (wantsScan && explicitJars.isEmpty && scannedJars.isEmpty) {
+          sys.error(
+            s"project ${crossName.value}: scanForAnnotationProcessors: true was set but no annotation processor JARs were found in dependencies and annotationProcessors is empty"
+          )
+        }
+
+        val processorJars: List[Path] = (scannedJars ++ explicitJars).distinct
+
+        if (rendered.contains("-proc:") || rendered.contains(" -s "))
+          sys.error(
+            s"project ${crossName.value}: cannot use manual -proc:* or -s in java.options when annotation processing is configured (set scanForAnnotationProcessors / annotationProcessors instead)"
+          )
+        if (rendered.contains("-processorpath"))
+          sys.error(
+            s"project ${crossName.value}: cannot use manual -processorpath in java.options when annotation processing is configured"
+          )
+        if (baseOpts.values.exists(_.render.exists(_.startsWith("-A"))))
+          sys.error(
+            s"project ${crossName.value}: cannot use manual -A flags in java.options when annotation processing is configured (use annotationProcessorOptions)"
+          )
+
+        val genDir = pre.buildPaths.generatedSourcesDir(crossName, "annotations")
+        val aFlags: List[String] =
+          javaCfg
+            .map(_.annotationProcessorOptions.value)
+            .getOrElse(SortedMap.empty[String, String])
+            .iterator
+            .map { case (k, v) => s"-A$k=$v" }
+            .toList
+
+        val flags = List("-processorpath", processorJars.mkString(File.pathSeparator), "-s", genDir.toString) ++ aFlags
+        (Some(genDir), flags)
+      }
     }
 
-    // Compute Java options (used both for pure Java and mixed Scala/Java projects)
+    // Compute Java options (used both for pure Java and mixed Scala/Java projects).
+    // Render the user's options through templateDirs first, then APPEND the annotation
+    // processor flags raw. We can't roundtrip the AP flags through Options.parse because
+    // Options.parse whitespace-splits each token, and `-processorpath` / `-s` arguments
+    // are paths that legitimately contain spaces (e.g. macOS test temp dirs).
     val resolvedJavaOptions: List[String] = {
       val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
-
-      explodedJava.flatMap(_.annotationProcessing).foreach { _ =>
-        val renderedOptions = baseOptions.values.mkString(" ")
-        if (renderedOptions.contains("-proc:") || renderedOptions.contains(" -s ")) {
-          sys.error(s"Cannot use manual -proc or -s options when java.annotationProcessing is configured for project ${crossName.value}")
-        }
-      }
-
-      val options = explodedJava.flatMap(_.annotationProcessing) match {
-        case Some(model.AnnotationProcessing(true)) =>
-          val genSourcesDir = pre.buildPaths.generatedSourcesDir(crossName, "annotations")
-          baseOptions.union(model.Options.parse(List("-s", genSourcesDir.toString), maybeRelativize = None))
-        case _ =>
-          baseOptions.union(model.Options.parse(List("-proc:none"), maybeRelativize = None))
-      }
-
-      templateDirs.fill.opts(options).render
+      templateDirs.fill.opts(baseOptions).render ++ annotationProcessorFlags
     }
 
     // Determine the language: Scala (with Java options) or pure Java

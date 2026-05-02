@@ -38,16 +38,6 @@
         }
       ]
     },
-    "AnnotationProcessing": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable annotation processing for Java sources"
-        }
-      }
-    },
     "ProjectName": {
       "type": "string"
     },
@@ -173,8 +163,23 @@
         "options": {
           "$ref": "#/$defs/Options"
         },
-        "annotationProcessing": {
-          "$ref": "#/$defs/AnnotationProcessing"
+        "scanForAnnotationProcessors": {
+          "type": "boolean",
+          "description": "When true, scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. Default off (explicit opt-in)."
+        },
+        "annotationProcessors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dep"
+          },
+          "description": "Processor-only deps. Resolved separately and added to javac's `-processorpath`; never on the runtime classpath. Composes with `scanForAnnotationProcessors`."
+        },
+        "annotationProcessorOptions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "`-A<key>=<value>` flags passed to javac. Visible to all configured processors (per JSR 269)."
         },
         "ecjVersion": {
           "type": "string",

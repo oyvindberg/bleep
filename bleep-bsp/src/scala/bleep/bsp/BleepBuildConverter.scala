@@ -205,7 +205,8 @@ object BleepBuildConverter {
             ProjectLanguage.ScalaJava(
               scalaVersion = scalaLang.version,
               scalaOptions = scalaLang.options,
-              javaRelease = javaRelease
+              javaRelease = javaRelease,
+              javaOptions = scalaLang.javaOptions
             )
 
           case javaLang: ResolvedProject.Language.Java =>
