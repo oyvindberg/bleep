@@ -1,0 +1,59 @@
+# Tab completions
+
+Bleep ships shell completion installers for **bash** and **zsh**.
+Once installed, project names, cross-ids, command flags, and script
+names all complete on `<Tab>`.
+
+## Installation
+
+```bash
+bleep install-tab-completions-bash
+# or
+bleep install-tab-completions-zsh
+```
+
+Source your shell rc / start a new shell to pick up the change. The
+installer writes to a standard completion location for the chosen
+shell — sourcing `~/.profile`, `~/.bashrc`, or `~/.zshrc` (whichever
+your shell loads on startup) is enough to enable completions in
+existing terminals.
+
+## What completes
+
+- **Subcommand names.** Both built-in commands (`compile`, `test`,
+  `run`, `clean`, `publish`, `setup-ide`, &hellip;) and any
+  user-defined scripts declared under `scripts:` in `bleep.yaml`.
+- **Project names.** `bleep compile <Tab>` lists every project
+  defined in the build, including cross variants (`mylib@jvm213`,
+  `mylib@jvm3`, &hellip;).
+- **Cross-id selectors.** Group names like `jvm213`, `js3`, `native`
+  complete the same way — selecting them runs the command against
+  every project on that variant.
+- **Command flags.** `--no-color`, `--debug`, `-d`, &hellip; all
+  complete after their subcommand.
+
+Completion is delegated to the bleep binary itself, so the menu is
+always in sync with your current `bleep.yaml` — adding a new project
+or script makes it tab-complete on the next invocation, with no
+re-installation needed.
+
+## Inspect without installing
+
+If you want to see what the installer would write — for example, to
+ship completions through a corporate shell-config repo — use
+`--stdout`:
+
+```bash
+bleep install-tab-completions-bash --stdout > /etc/bash_completion.d/bleep
+bleep install-tab-completions-zsh  --stdout > ~/.zsh/completions/_bleep
+```
+
+The output is the completion script. The installer only prints to
+stdout; it doesn't touch any files when `--stdout` is set.
+
+## Other shells
+
+PRs welcome for fish, nushell, PowerShell, and others. The bash and
+zsh installers are good templates — both are small Scala wrappers
+that emit a completion script invoking `bleep` for the dynamic
+parts.

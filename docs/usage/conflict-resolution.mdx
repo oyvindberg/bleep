@@ -1,0 +1,210 @@
+---
+title: Conflict resolution
+---
+
+# Conflict resolution
+
+When two transitive dependencies disagree about which version of a
+shared library to pull in, Coursier picks the highest version (the
+default conflict resolver). For most libraries that's fine &mdash;
+minor bumps stay binary-compatible. Sometimes it isn't, and you
+need to intervene.
+
+There are three tools, in increasing order of how much you're
+asserting:
+
+1. **[Surgical fixes](#surgical-fixes-exclusions-and-transitive-false)**
+   on the offending dep &mdash; exclude a transitive, or refuse the
+   whole transitive tree. Local. Specific.
+2. **[Library version schemes](#library-version-schemes)** on the
+   project &mdash; tell bleep which versions to treat as compatible.
+   General. Inheritable.
+3. **[The kill switch](#the-kill-switch-ignoreevictionerrors)** on
+   the project &mdash; demote eviction errors to warnings, or
+   silence them. Blunt. Last resort.
+
+Plus one tool for finding out what's conflicting in the first
+place: **[`bleep build evicted`](#inspecting-conflicts-bleep-build-evicted)**.
+
+## Surgical fixes: exclusions and `transitive: false`
+
+When you don't have a compatibility argument to make &mdash; you
+just want a specific transitive dep out of the closure entirely, or
+you want to grab one artifact without its dependency tree &mdash;
+two fields on the dep's [long form](/docs/concepts/dependencies#the-long-form)
+do the surgical work.
+
+### `exclusions`
+
+Drop specific organisations or modules from this dep's transitive
+closure. Useful when one dep pulls in a library you've already
+declared at a different version yourself, or that conflicts with
+something you control.
+
+```yaml
+dependencies:
+  - module: org.scala-sbt::librarymanagement-core:1.7.1
+    exclusions:
+      org.scala-sbt: util-logging_2.13      # drop this transitive
+      org.slf4j: slf4j-api                  # also this one
+```
+
+The map shape is `organisation -> [moduleName]`. Listed deps
+disappear from this entry's transitive closure entirely; they're
+not just demoted in version, they're not pulled at all. (Other deps
+in your build can still bring them in independently &mdash; if
+that's also unwanted, exclude there too.)
+
+### `transitive: false`
+
+Pin only the named artifact and skip its transitive dependencies
+entirely. Useful for compiler plugins, tooling jars, or libraries
+you want at a specific version where everything they pull in would
+be the wrong version for your project.
+
+```yaml
+dependencies:
+  - module: org.scalamacros:::paradise:2.1.1
+    transitive: false      # just the plugin jar, not its deps
+```
+
+The default is `transitive: true`, which is what you want almost
+always. `transitive: false` is the heavy hammer &mdash; reach for
+it only when the dep's transitive tree is something you'd otherwise
+have to exclude wholesale.
+
+## Library version schemes
+
+When you can make a *compatibility argument* &mdash; "the two
+versions Coursier is choosing between are actually
+binary-compatible" &mdash; you say so once with a library version
+scheme, and bleep stops complaining about every eviction that
+involves that library.
+
+Schemes are declared per project and inherited by every transitive
+consumer. Bleep ships exactly the five scheme names sbt uses, with
+identical semantics, because the underlying check
+(`bleep.nosbt.librarymanagement.EvictionError`) is the sbt code,
+liberated.
+
+### The five schemes
+
+| Scheme | Compatibility rule |
+|---|---|
+| `early-semver` | Like SemVer, but `0.x.y` releases are also expected to maintain binary compatibility within `0.x`. The de facto Scala-ecosystem default. |
+| `semver-spec` | Spec-correct SemVer. `0.x.y` releases make **no** compatibility promises. Stricter than `early-semver` for pre-1.0 libraries. |
+| `pvp` | Haskell's Package Versioning Policy &mdash; second-segment compatibility. Good for libraries that follow `epoch.major.minor.patch`. |
+| `strict` | Versions are compatible only if they are equal. Errors on any mismatch. |
+| `always` | Always compatible &mdash; never warn, never error. The escape hatch for libraries you've audited and know are fine. |
+
+### Declaring a scheme
+
+`libraryVersionSchemes:` is a project-level field. Each entry
+repurposes a Dep coordinate's *version* slot to carry the scheme
+name:
+
+```yaml
+projects:
+  myapp:
+    libraryVersionSchemes:
+      - org.scala-lang.modules::scala-xml:always
+      - org.typelevel::cats-core:early-semver
+      - com.example:my-strict-lib:strict
+```
+
+A real example from `bleep.yaml`'s own build:
+
+```yaml
+template-parcollection-ok:
+  libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
+```
+
+Coursier still picks one version for the conflict; the eviction
+check just stops complaining.
+
+### Lookup chain
+
+When bleep finds an eviction (one version replacing another for the
+same module), it walks this chain &mdash; first match wins:
+
+1. **Per-(org, module) scheme** from `libraryVersionSchemes` &mdash;
+   `org.scala-lang.modules::scala-xml:always` matches exactly that
+   library.
+2. **Per-org scheme** &mdash; write `*` as the artifact id to apply
+   a scheme to every artifact from one organisation.
+3. **POM-declared scheme** &mdash; newer libraries publish their
+   version scheme in the `info.versionScheme` POM property. Bleep
+   reads that if you haven't overridden it locally.
+4. **Global default** &mdash; `early-semver` for Scala-suffixed
+   artifacts, `always` for plain Java artifacts. The Java default
+   is permissive on purpose: Maven Central is full of well-meaning
+   JARs whose versioning isn't formal but which won't actually break.
+
+Schemes inherit through templates the same way dependencies do.
+
+## The kill switch: `ignoreEvictionErrors`
+
+Even with the right scheme set, an eviction can still fire &mdash;
+usually because two libraries genuinely disagree about a shared dep
+across a breaking version boundary. When you've audited the conflict
+and know it's safe (or you're triaging a build under time pressure),
+flip the project-wide error level:
+
+```yaml
+projects:
+  myapp:
+    ignoreEvictionErrors: warn
+```
+
+| Value | Behaviour |
+|---|---|
+| `no` (default) | An incompatible eviction fails the build. |
+| `warn` | An incompatible eviction logs a warning and continues. |
+| `yes` | Silent &mdash; the build proceeds with no warning at all. |
+
+`ignoreEvictionErrors` is blunter than `libraryVersionSchemes`.
+Reach for it when you're importing an existing build and want to
+get to "compiles" first
+([`bleep import-maven`](/docs/reference/cli/import-maven/) and
+[`bleep import`](/docs/reference/cli/import/) both default new
+projects to `no` &mdash; but on real-world builds, `warn` is
+sometimes the right starting point), or when you're shipping a build
+that knowingly tolerates a conflict because the API surface in
+question isn't called.
+
+For everything else, prefer per-library schemes &mdash; the report
+tells you exactly which libraries you've cleared, and which ones
+are new noise.
+
+## Inspecting conflicts: `bleep build evicted`
+
+To see what's being evicted (without actually building), run:
+
+```bash
+bleep build evicted myapp
+bleep build evicted myapp --output raw    # plain text, scriptable
+bleep build evicted myapp --output json   # structured
+```
+
+Lists every conflict, the winner, the losers, and the callers
+(which transitive deps brought the conflict in). It's the input
+you want for deciding which tool above to reach for.
+
+[Reference &rarr;](/docs/reference/cli/build/evicted/)
+
+## Picking the right tool
+
+| When | Reach for |
+|---|---|
+| Specific transitive dep is wrong, the rest are fine | [`exclusions`](#exclusions) |
+| You want one artifact, none of its deps | [`transitive: false`](#transitive-false) |
+| Two versions of a library, you can argue they're compatible | [Library version scheme](#declaring-a-scheme) |
+| You've audited everything and just want quiet | [`ignoreEvictionErrors`](#the-kill-switch-ignoreevictionerrors) |
+
+## See also
+
+- [Dependencies](/docs/concepts/dependencies) &mdash; the rest of
+  the dependency model: shorthand syntax, the long form, Maven
+  configurations.
+- [Inspect the build](/docs/guides/inspect) &mdash; other read-only
+  commands for asking the build questions.

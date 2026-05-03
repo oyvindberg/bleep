@@ -1,0 +1,74 @@
+import CodeBlock from '@theme/CodeBlock';
+
+# Porting sbt plugins
+
+Many sbt plugins are genuinely useful and you don't want to lose them when you move to Bleep. The good news is that most of them can be ported straightforwardly, and the result is usually **simpler and easier to follow** than the original.
+
+This page is for the case where you need functionality that already exists as an sbt plugin and you want to use it from a Bleep [script](/docs/concepts/scripts) or [sourcegen script](/docs/concepts/sourcegen). If you're writing new functionality from scratch, just write a regular script — no plugin mechanism needed.
+
+## The translation
+
+sbt plugins hide most of their structure behind keys, scopes, and auto-imports. When ported to plain Scala, the structure becomes visible:
+
+| sbt                          | Bleep                                  |
+| ---------------------------- | -------------------------------------- |
+| `class FooPlugin extends AutoPlugin` | `class FooPlugin(...)` (regular class) |
+| `lazy val fooSetting = ...`  | Constructor parameter                   |
+| `lazy val fooTask = taskKey[...]` | `def foo(...): ...` (method)       |
+| `override def requires = ...` | Pass dependencies into the constructor |
+| `sbt.Logger`                  | `ryddig.Logger`                        |
+| `Keys.baseDirectory.value`    | Parameter or `started.buildPaths.buildDir` |
+
+No `AutoPlugin`, no `autoImport`, no `Keys`, no implicit task graph. Just a class you instantiate and methods you call.
+
+## Real ported plugins
+
+Bleep ships with several sbt plugins already ported. They live in the [`liberated/`](https://github.com/oyvindberg/bleep/tree/master/liberated) directory as git submodules — each tracks the upstream project so we can merge fixes over time.
+
+Currently ported:
+
+- **sbt-ci-release** — CI-driven Sonatype releases
+- **sbt-sonatype** — Maven Central publishing (including the new Central Portal)
+- **sbt-dynver** — Git-derived version strings
+- **sbt-pgp** — Artifact signing
+- **sbt-native-image** — GraalVM native image generation
+- **mdoc** — Documentation generation
+- **sbt-scalafix** — Code linting and rewriting
+- **sbt-jni** — JNI compilation
+
+## Example: DynVerPlugin
+
+Here is the ported sbt-dynver plugin in full. Look how easy it is to follow end-to-end:
+
+import DynVerPlugin from '!!raw-loader!@site/..//liberated/sbt-dynver/sbtdynver/src/main/scala/sbtdynver/DynVerPlugin.scala';
+
+<CodeBlock language="scala">
+{DynVerPlugin}
+</CodeBlock>
+
+## Porting workflow
+
+1. **Copy the source** into `liberated/your-plugin/` as a git submodule, with both `origin` (your fork) and `origin-original` (upstream) remotes.
+2. **Strip sbt imports** — remove `import sbt._`, `import Keys._`, `import sbt.plugins._`.
+3. **Unwrap `AutoPlugin`** — replace with a regular `class` taking constructor parameters.
+4. **Convert keys to parameters** — each `SettingKey` becomes a constructor parameter, each `TaskKey` becomes a `def`.
+5. **Replace `sbt.Logger` with `ryddig.Logger`** (bleep's structured logger).
+6. **Add it to `bleep.yaml`** as a project with `sources:` pointing at the liberated directory, then use it from a script.
+7. **Maintain** — when upstream releases fixes, merge them with `git merge origin-original/main` and resolve conflicts in favour of the bleep adaptations.
+
+The [`CLAUDE.md`](https://github.com/oyvindberg/bleep/blob/master/CLAUDE.md) at the root of the bleep repo has the full maintenance process documented.
+
+## Limitations
+
+### Scopes
+Bleep does not have scopes. `Compile` and `Test` don't exist as scopes — the test scope is a separate project. If a plugin leans heavily on scopes (e.g. `Test / fullClasspath`), you'll need to express that by passing the relevant project explicitly.
+
+### Global mutable state
+Some sbt plugins communicate via shared global mutable state (`sbt.Keys.state`, task attribute maps). In Bleep these values must be passed as explicit parameters. This is usually an improvement — the data flow becomes visible — but it can require more invasive porting for plugins that were designed around ambient state.
+
+### Multi-project semantics
+sbt plugins sometimes react to project structure via `thisProject.value`. Bleep scripts instead iterate over `started.build.explodedProjects` and handle each project explicitly.
+
+## Distribution
+
+After porting, the plugin is just a normal Scala library. You can cross-publish it to Maven Central and have other Bleep builds depend on it by coordinate, exactly like any other dependency. Bleep itself does this with its ported plugins — they're published under `build.bleep::bleep-plugin-*`.

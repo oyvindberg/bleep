@@ -1,0 +1,132 @@
+
+# Private Repositories
+
+Bleep supports resolving dependencies from private Maven repositories hosted on Google Artifact Registry, GitHub Packages, and GitLab Package Registry. Authentication is handled automatically via provider CLI tools.
+
+## Google Artifact Registry
+
+Add the repository to your `bleep.yaml` using the `artifactregistry://` scheme:
+
+```yaml
+resolvers:
+  - artifactregistry://europe-north1-maven.pkg.dev/my-project/my-repo
+```
+
+Bleep rewrites this to `https://` and acquires a token via `gcloud auth print-access-token`.
+
+### Prerequisites
+
+1. Install [Google Cloud SDK](https://cloud.google.com/sdk/install)
+2. Authenticate: `gcloud auth login`
+
+### Multiple GCP accounts
+
+If you use multiple GCP accounts (e.g. personal and work), configure which account to use for specific repositories:
+
+```bash
+bleep config auth setup
+```
+
+This launches an interactive picker that lists your authenticated gcloud accounts.
+
+Or configure manually in `~/.config/bleep/config.yaml`:
+
+```yaml
+authentications:
+  artifactregistry://europe-north1-maven.pkg.dev/my-project:
+    account: you@company.com
+```
+
+The URI prefix matches all repositories under it, so one entry covers both release and snapshot repos.
+
+If you have only one gcloud account, no configuration is needed.
+
+## GitHub Packages
+
+```yaml
+resolvers:
+  - github://owner/repo
+```
+
+This resolves to `https://maven.pkg.github.com/owner/repo`. Credentials come from `gh auth token`.
+
+### Prerequisites
+
+1. Install [GitHub CLI](https://cli.github.com/)
+2. Authenticate: `gh auth login`
+
+No bleep configuration needed.
+
+## GitLab Package Registry
+
+```yaml
+resolvers:
+  - gitlab://gitlab.com/api/v4/projects/12345/packages/maven
+```
+
+For self-hosted GitLab:
+
+```yaml
+resolvers:
+  - gitlab://gitlab.mycompany.com/api/v4/projects/12345/packages/maven
+```
+
+Credentials come from `glab auth token` and are sent as a `Private-Token` header.
+
+### Prerequisites
+
+1. Install [GitLab CLI](https://gitlab.com/gitlab-org/cli)
+2. Authenticate: `glab auth login`
+
+No bleep configuration needed.
+
+## Managing Authentication
+
+```bash
+# Interactive setup wizard
+bleep config auth setup
+
+# List configured authentications
+bleep config auth list
+
+# Remove a configuration
+bleep config auth remove artifactregistry://europe-north1-maven.pkg.dev/my-project
+```
+
+## Troubleshooting
+
+### "gcloud not found" / "gh not found" / "glab not found"
+
+The provider CLI tool is not installed or not on your PATH. Install it and re-run.
+
+### "credentials expired"
+
+Your authentication tokens have expired. Run `<tool> auth login` to re-authenticate:
+
+- Google: `gcloud auth login`
+- GitHub: `gh auth login`
+- GitLab: `glab auth login`
+
+### "Failed to get credentials for account X"
+
+The configured GCP account doesn't have valid credentials. Either re-authenticate with `gcloud auth login <account>` or update the config with [`bleep config auth setup`](/docs/reference/cli/config/auth/#bleep-config-auth-setup).
+
+### Token acquisition is slow
+
+The `gcloud` CLI takes ~2 seconds to produce a token (it's Python). This only happens when dependencies actually need resolving (cache miss). The token is cached in-memory for the duration of the bleep process. GitHub and GitLab CLIs are much faster (~70ms).
+
+## Publishing
+
+See the [Publishing](/docs/usage/publishing) page for publishing to private repos, Sonatype, and local repositories.
+
+## How It Works
+
+When bleep encounters a private repository scheme in `resolvers`:
+
+1. The URI scheme identifies the provider (`artifactregistry://`, `github://`, `gitlab://`)
+2. The scheme is rewritten to `https://` for the actual Maven HTTP requests
+3. A token is acquired by shelling out to the provider's CLI tool
+4. The token is attached as HTTP authentication to the Coursier repository
+5. Tokens are cached in-memory, so only one CLI invocation per provider per build
+
+Token acquisition is lazy -- it only happens when Coursier actually needs to resolve against the private repository, not at bleep startup.

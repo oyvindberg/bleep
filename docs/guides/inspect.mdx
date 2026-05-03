@@ -1,0 +1,161 @@
+---
+title: Inspect the build
+---
+
+# Inspect the build
+
+Asking the build a question shouldn't require running the build. The
+inspection commands let you ask things like *"which projects depend
+on this one?"*, *"what does my project's config look like after
+templates resolve?"*, *"which projects changed since `origin/main`?"*,
+*"is `cats-core` getting evicted by something else?"* &mdash; and get
+a typed answer.
+
+Two output shapes for every command:
+
+- `--output text` (default): for humans reading the terminal.
+- `--output json`: a structured payload designed for `jq`, GitHub
+  Actions matrix expressions, your scripts, your IDE plugin, your
+  agent &mdash; anything that can read JSON.
+
+That's the composition story. Bleep doesn't try to be the universal
+runner. It tries to be the universal source-of-truth, and to expose
+every answer in the format that lets your *other* tools do their
+job. CI matrix from project graph? Pipe `bleep build invalidated --output json`
+into a `jq` filter into `actions/setup-matrix`. Editor jump-to-config?
+Read `bleep extract-info project-graph --output json`. Custom dashboard
+of your monorepo? Same.
+
+## Read what's there
+
+### `bleep build show short`
+
+Prints a project's YAML exactly as you wrote it in `bleep.yaml`,
+without any template expansion. Useful when you want to verify that
+your edit landed where you think it did.
+
+```bash
+bleep build show short myapp
+```
+
+[Reference &rarr;](/docs/reference/cli/build/show/)
+
+### `bleep build show effective`
+
+Prints the project's YAML *after* templates and inheritance are
+merged in &mdash; what bleep actually sees and uses to compile,
+test, and publish. The "is my template change actually doing what I
+think?" answer.
+
+```bash
+bleep build show effective myapp
+bleep build show effective myapp --output json | jq '.kotlin'
+```
+
+[Reference &rarr;](/docs/reference/cli/build/show/)
+
+### `bleep build diff effective`
+
+Diff the effective project config between two git revisions. After
+you edit a template, this answers "did my change actually do what I
+think it did?" with a concrete YAML diff &mdash; not a guess at
+what should have happened.
+
+```bash
+bleep build diff effective                    # vs HEAD
+bleep build diff effective --revision v1.2.0  # vs an old release
+```
+
+[Reference &rarr;](/docs/reference/cli/build/diff/)
+
+## Reason about dependencies
+
+### `bleep build evicted`
+
+Reports the dependency conflicts in your build &mdash; cases where
+two transitive paths to the same library disagree on the version,
+and Coursier picked one. Names the callers so you can decide
+whether the eviction is safe (and pin a [library version
+scheme](/docs/usage/conflict-resolution#the-five-schemes) if it isn't).
+
+```bash
+bleep build evicted myapp
+bleep build evicted myapp --output json | jq '.[] | select(.severity=="error")'
+```
+
+The JSON shape is structured around (winner, losers, callers) so
+you can audit a whole monorepo's eviction surface without reading
+text reports.
+
+[Reference &rarr;](/docs/reference/cli/build/evicted/)
+
+## CI shape
+
+### `bleep build invalidated --base origin/main`
+
+Lists the projects whose source or config changed vs a base commit,
+plus every project that transitively depends on them. The
+CI-shaping primitive: feed the result into `xargs bleep compile`
+and you build only what changed (and what depends on what changed).
+Feed the JSON form into a GitHub Actions matrix and you fan out
+exactly the right test job set.
+
+```bash
+bleep build invalidated --base origin/main | xargs bleep compile
+bleep build invalidated --base origin/main | xargs bleep test
+bleep build invalidated --base origin/main --output json   # for matrix expansion
+```
+
+See [CI project invalidation](/docs/usage/ci-invalidation) for the
+full pattern with example workflows.
+
+[Reference &rarr;](/docs/reference/cli/build/invalidated/)
+
+## Build metadata for tools and IDEs
+
+### `bleep extract-info`
+
+Emits structured JSON about the build for IDE plugins, scripts, and
+external tooling. Several subcommands carve different views:
+
+```bash
+bleep extract-info all              # everything in one JSON object
+bleep extract-info project-graph    # projects + their dependencies
+bleep extract-info project-groups   # groups for bulk selection (cross-ids, folders)
+bleep extract-info scripts          # registered scripts with project + main class
+bleep extract-info sourcegen        # registered sourcegen entries
+```
+
+This is the data interface bleep's own MCP server consumes, and
+it's the same data interface third-party IDE plugins or
+custom scripts use. Compose freely.
+
+[Reference &rarr;](/docs/reference/cli/extract-info/)
+
+### `bleep projects` and `bleep projects-test`
+
+Plain enumeration of project names &mdash; respects subfolder
+scoping (cd into `integrations/` and only those projects appear)
+and the cross-id glob shorthand. Pipe-friendly with
+`--output raw`.
+
+```bash
+bleep projects --output raw | grep -v test
+```
+
+[Reference for `projects` &rarr;](/docs/reference/cli/projects/) ·
+[Reference for `projects-test` &rarr;](/docs/reference/cli/projects-test/)
+
+## See also
+
+- [Refactor your build](/docs/guides/refactor) &mdash; the same
+  model, but the commands that *change* `bleep.yaml` rather than
+  read it.
+- [`bleep build` reference](/docs/reference/cli/build/) and
+  [`bleep extract-info` reference](/docs/reference/cli/extract-info/)
+  &mdash; full flag set, auto-generated from the CLI.
+- [CI project invalidation](/docs/usage/ci-invalidation) &mdash;
+  the worked GitHub Actions / GitLab CI patterns built on
+  [`bleep build invalidated`](/docs/reference/cli/build/invalidated/).
+- [MCP server](/docs/usage/mcp-server) &mdash; AI agents reading
+  the same JSON via Model Context Protocol tool calls.

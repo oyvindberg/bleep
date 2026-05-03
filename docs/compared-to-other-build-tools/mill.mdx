@@ -1,0 +1,178 @@
+---
+title: vs Mill
+---
+
+# Comparison with Mill
+
+Mill is the closest tool in spirit to bleep: same dissatisfaction with
+sbt, same instinct that the build should be a structured object you
+can introspect rather than a soup of effects. The two diverge on what
+"structured object" means.
+
+## Build is data vs. build is targets
+
+In Mill, the build is a `build.sc` file — Scala code. Modules are
+classes, settings are methods, and targets are macros that produce a
+typed task graph evaluated lazily on demand.
+
+In bleep, the build is YAML. The structure is closed (every field is
+in the schema). Custom logic doesn't live in the build file at all —
+it lives in [scripts](/docs/concepts/scripts), which are regular Java,
+Kotlin, or Scala programs.
+
+Same Scala module:
+
+<table>
+<thead>
+<tr><th>build.sc (Mill)</th><th>bleep.yaml</th></tr>
+</thead>
+<tbody>
+<tr><td>
+
+```scala
+import mill._
+import mill.scalalib._
+import mill.scalalib.publish._
+
+object mylib extends ScalaModule with PublishModule {
+  def scalaVersion = "3.8.3"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::fansi:0.5.0"
+  )
+  def publishVersion = "0.1.0"
+  def pomSettings = PomSettings(
+    description = "A useful library",
+    organization = "com.example",
+    url = "https://github.com/me/mylib",
+    licenses = Seq(License.`Apache-2.0`),
+    versionControl = VersionControl.github("me", "mylib"),
+    developers = Seq(Developer("me", "Me", "https://me.com"))
+  )
+
+  object test extends ScalaTests with TestModule.Munit {
+    def ivyDeps = Agg(ivy"org.scalameta::munit:1.0.0")
+  }
+}
+```
+
+</td><td>
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  mylib:
+    scala:
+      version: 3.8.3
+    platform:
+      name: jvm
+    dependencies:
+      - com.lihaoyi::fansi:0.5.0
+    publish:
+      groupId: com.example
+      url: https://github.com/me/mylib
+      description: A useful library
+      developers:
+        - id: me
+          name: Me
+          url: https://me.com
+      licenses:
+        - name: Apache-2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+
+  mylib-test:
+    extends: template-jvm
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.scalameta::munit:1.0.0
+```
+
+</td></tr>
+</tbody>
+</table>
+
+Mill's `build.sc` is more expressive — you can write a method that
+computes a setting from another setting, override a target, mix in a
+trait that adds behavior. Bleep's YAML is more boring. That's the
+trade.
+
+For a build script that's stable enough to live in git for years, the
+boring side wins on diff legibility and tooling. For a build that's
+itself an evolving program — bleep is the wrong shape.
+
+## Faster everything (still)
+
+Mill is much faster than sbt. It's still not native:
+
+| | Mill | Bleep |
+|---|---|---|
+| Cold startup | 5-15s (JVM warmup, Mill server boot, build.sc compile) | ~0ms (native binary) |
+| Daemon | Yes (persistent Mill server) | No |
+| Build re-eval after editing build.sc | recompile build.sc | re-parse YAML |
+| Incremental compile | Zinc | Zinc (same engine) |
+
+Mill's daemon hides most of the warmup after the first invocation.
+Bleep's native binary hides all of it without a daemon.
+
+## Targets vs scripts
+
+Mill's killer feature is the typed task graph. `def myArtifact = T {
+... }` defines a target, Mill caches its result, and any change to
+its inputs invalidates the cache automatically. You build complex
+multi-step pipelines this way.
+
+Bleep doesn't model task graphs. Equivalent functionality is:
+
+- **Compile/test/run/publish/link** — built-in commands, not user
+  targets.
+- **Sourcegen** — auto-runs before consumers compile, with timestamp
+  invalidation. See [Source generation](/docs/concepts/sourcegen).
+- **Scripts** — manually invoked, no caching layer (you'd add it
+  yourself if needed).
+
+If your build genuinely benefits from a typed task graph with
+fine-grained caching of intermediate artifacts — Mill or Bazel are
+the right tool. If your build is "compile, test, package, publish"
+plus a handful of generators, the task graph is overhead.
+
+## What Mill does that bleep doesn't
+
+- **Typed task graph** with automatic caching of any user-defined
+  target.
+- **`build.sc` as code** — full Scala expressivity for non-trivial
+  build logic.
+- **Module hierarchies via Scala traits** — `extends ScalaModule
+  with PublishModule with ScalafmtModule` composes capabilities.
+  Bleep templates are flatter (key-value merge, not behavior
+  composition).
+- **`mill mill.bsp.BSP/install`** for IDE integration is good but
+  needs explicit setup; bleep's BSP is always on.
+
+## What bleep does that Mill doesn't
+
+- **Native binary, no daemon.** Mill's `mill -i` interactive mode
+  hides startup; the cold-start cost is real.
+- **YAML build** that any tool, LLM, or refactor can edit safely.
+- **Scripts as plain programs** rather than `def myTask = T { ... }`
+  Scala targets. Equivalent power for the common case, no DSL to
+  learn.
+- **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven** — Mill has its
+  own importer for some, but bleep's is broader.
+- **First-class Kotlin support** — Mill's Kotlin support is a
+  contrib module, less mature.
+
+## When Mill is still the right answer
+
+- You're already on Mill and the cold-start cost doesn't bother you.
+- Your build needs a typed task graph with intermediate caching
+  beyond what compile/test/sourcegen models.
+- You want full Scala expressivity in the build file itself, not
+  pulled out into a scripts project.
+
+## See also
+
+- [Comparison with sbt](/docs/compared-to-other-build-tools/sbt)
+- [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Comparison with Gradle](/docs/compared-to-other-build-tools/gradle)

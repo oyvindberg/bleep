@@ -1,0 +1,137 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Cross-building
+
+Cross-building means producing the same artifact for multiple targets —
+multiple Scala versions (e.g., 2.13 and 3.x), multiple platforms (JVM,
+Scala.js, Scala Native), or Kotlin Multiplatform (JVM + JS + Native).
+Bleep models all of these declaratively with a `cross:` block per
+project, so a single project description fans out into one compile unit
+per target.
+
+This guide walks through two minimal working examples:
+
+1. A Scala library cross-built against Scala 2.13 and Scala 3.
+2. A Kotlin app cross-built against the JVM and JS — same source file,
+   colored output on both.
+
+## Scala: cross-version on the JVM
+
+### The build
+
+<Snippet path="docs-snippets-from-tests/cross-building-scala/bleep.yaml" lang="yaml" />
+
+What's going on:
+
+- **`templates.template-cross`** declares the cross axis once. Both
+  `mylib` and `mylib-test` extend it, so both fan out into `jvm213`
+  and `jvm3` variants. A template avoids repeating the cross block
+  per project.
+- **`cross:`** has one entry per cross-id. The id (`jvm213`, `jvm3`)
+  is yours to pick — it ends up in directory paths and in the
+  command-line selector. Convention: `<platform><scalaMajor>` or just
+  `<scalaMajor>`.
+- Each cross entry overrides what's specific to that variant — here,
+  the Scala version. Anything outside the `cross:` block (like
+  `platform.name: jvm`) applies to all variants.
+
+### The library
+
+The shared source lives at `mylib/src/scala/Greeting.scala` and compiles
+under both Scala 2.13 and Scala 3:
+
+<Snippet path="docs-snippets-from-tests/cross-building-scala/Greeting.scala" lang="scala" />
+
+For code that needs to diverge between versions, bleep supports per-cross
+source roots — see [Cross-building (concepts)](/docs/concepts/cross-building)
+for the source-layout options (`cross-pure`, `cross-full`, etc.).
+
+### The tests
+
+<Snippet path="docs-snippets-from-tests/cross-building-scala/GreetingTest.scala" lang="scala" />
+
+`mylib-test` inherits the cross axis from `template-cross`, so MUnit
+runs the same test class once under each Scala version.
+
+### Building and testing
+
+Build everything (all variants of every project):
+
+```bash
+bleep compile
+```
+
+Pick a single variant with the `@<crossId>` suffix:
+
+```bash
+bleep compile mylib@jvm3
+bleep test mylib-test@jvm213
+```
+
+Drop the suffix to operate on every variant of a project:
+
+```bash
+bleep test mylib-test     # runs against jvm213 and jvm3
+```
+
+### Where output lands
+
+Each variant gets its own `target/` subdirectory and its own JAR:
+
+```
+.bleep/builds/normal/.bloop/mylib/jvm213/classes/   # Scala 2.13 .class files
+.bleep/builds/normal/.bloop/mylib/jvm3/classes/     # Scala 3 .class files
+```
+
+When you publish, each variant becomes a separate Maven artifact with
+the appropriate Scala suffix (`mylib_2.13`, `mylib_3`).
+
+## Kotlin: cross-platform JVM + JS
+
+Same `cross:` mechanic, applied to a Kotlin app: one source file gets
+compiled for the JVM by `kotlinc-jvm` and for JavaScript (Node) by
+`kotlinc-js`.
+
+### The build
+
+<Snippet path="docs-snippets-from-tests/cross-building-kotlin/bleep.yaml" lang="yaml" />
+
+Notes:
+
+- `kotlin.version` lives at the project level, outside the `cross:`
+  block, so both variants share the Kotlin compiler version. The cross
+  variants only set what differs: `platform.name`, `kotlin.jvmTarget`
+  (jvm only), and the `kotlin.js` block (js only).
+- `platform.name: js` paired with `kotlin.version` triggers Kotlin/JS
+  compilation; bleep doesn't require Scala.js metadata in that case.
+- `kotlin.js.target: nodejs` produces a Node-runnable JS file.
+
+### The shared source
+
+<Snippet path="docs-snippets-from-tests/cross-building-kotlin/Main.kt" lang="kotlin" />
+
+The same `Main.kt` compiles under both targets. ANSI escape codes for
+color render correctly in any terminal — including Node when run via
+`node app.js` — so the JVM and JS outputs both produce a green "Hello"
++ cyan "bleep".
+
+### Building
+
+```bash
+bleep compile app@jvm
+bleep compile app@js
+```
+
+Or both:
+
+```bash
+bleep compile app
+```
+
+## Going further
+
+- [Cross-building (concepts)](/docs/concepts/cross-building) — source
+  layouts and source-layout options for diverging code, JS / Native
+  cross-platform builds, and naming conventions.
+- [Publishing to Maven Central](/docs/tutorials/publish-to-maven) —
+  publish all cross variants from one command.

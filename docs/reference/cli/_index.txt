@@ -1,0 +1,57 @@
+- bleep build
+  - bleep build create-directories
+  - bleep build normalize
+  - bleep build templates-reapply
+  - bleep build project-rename
+  - bleep build project-merge-into
+  - bleep build projects-move
+  - bleep build templates-generate-new
+  - bleep build update-deps
+  - bleep build update-dep
+  - bleep build move-files-into-bleep-layout
+  - bleep build diff
+  - bleep build show
+  - bleep build evicted
+  - bleep build invalidated
+  - bleep build new
+- bleep clean
+- bleep compile
+- bleep config
+  - bleep config file
+  - bleep config log-timing-enable
+  - bleep config log-timing-disable
+  - bleep config compile-server
+  - bleep config test-runner
+  - bleep config auth
+  - bleep config remote-cache
+- bleep dist
+- bleep extract-info
+  - bleep extract-info all
+  - bleep extract-info project-graph
+  - bleep extract-info project-groups
+  - bleep extract-info scripts
+  - bleep extract-info sourcegen
+- bleep fmt
+- bleep import
+- bleep import-maven
+- bleep install-tab-completions-bash
+- bleep install-tab-completions-zsh
+- bleep link
+- bleep list-tests
+- bleep projects
+- bleep projects-test
+- bleep publish
+  - bleep publish local-ivy
+  - bleep publish sonatype
+  - bleep publish setup
+- bleep publish-local
+- bleep remote-cache
+  - bleep remote-cache pull
+  - bleep remote-cache push
+- bleep run
+- bleep server-metrics
+- bleep setup-dev-script
+- bleep setup-ide
+- bleep setup-mcp-server
+- bleep sourcegen
+- bleep test

@@ -1,0 +1,271 @@
+# CI/CD Setup
+
+Bleep's CI story has two parts:
+
+1. **A basic workflow** that runs [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/) on
+   every push. This page covers it.
+2. **Two features that make CI fast**: build only what changed
+   ([`bleep build invalidated`](/docs/usage/ci-invalidation)) and
+   reuse compiled classes across runs and machines
+   ([remote build cache](/docs/usage/remote-cache)). The
+   consolidated workflow at the end of this page combines both.
+
+If your CI is your bottleneck, skip to
+[Build only what changed](#build-only-what-changed) and
+[Reuse work across runs](#reuse-work-across-runs).
+
+## GitHub Actions
+
+### Basic CI
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - run: bleep --no-color --no-bsp-progress compile
+      - run: bleep --no-color --no-bsp-progress test
+```
+
+`bleep-setup-action` reads `$version` out of `bleep.yaml` and
+installs that exact bleep build. `--no-color` and `--no-bsp-progress`
+make CI logs scriptable and small &mdash; details under
+[CI flags](#ci-flags) below.
+
+### Cache the Coursier and JVM downloads
+
+The first CI run downloads every dependency, the JVM bleep manages,
+and the Scala/Kotlin compilers via Coursier. That's slow, but it's
+also identical between runs as long as your `bleep.yaml` doesn't
+change. Cache it:
+
+```yaml
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/coursier
+            ~/.bleep
+          key: ${{ runner.os }}-bleep-${{ hashFiles('**/bleep.yaml') }}
+```
+
+This is **not** the same thing as bleep's remote build cache (which
+caches *compiled classes*, not downloads). See
+[Reuse work across runs](#reuse-work-across-runs) below for that.
+
+## Build only what changed
+
+[`bleep build invalidated --base origin/main`](/docs/reference/cli/build/invalidated/)
+returns the projects whose source or config changed vs a base
+commit, plus every project transitively depending on them. Pipe
+that into [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/) and CI does the minimum
+amount of work.
+
+```yaml
+      - name: Compile only what changed
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
+
+      - name: Test only what changed
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep test
+```
+
+`fetch-depth: 0` on the checkout step is required so `git diff`
+against the base ref works.
+
+For the full pattern (no-op when nothing matches, GitLab CI
+example, JSON output for matrix expansion), see
+[CI project invalidation](/docs/usage/ci-invalidation).
+
+## Reuse work across runs
+
+The [remote build cache](/docs/usage/remote-cache) stores compiled
+classes (plus their Zinc analysis) in S3 / R2 / MinIO so a CI
+runner can pull what's been built elsewhere instead of recompiling.
+Pair it with `invalidated` and CI compiles only the projects that
+genuinely changed *and* whose digest isn't in the cache.
+
+```yaml
+      - name: Pull cache
+        run: bleep remote-cache pull
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+
+      # ... compile, test ...
+
+      - name: Push cache
+        if: success()
+        run: bleep remote-cache push
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+```
+
+Configuration (the bucket URI plus credentials) lives in
+`bleep.yaml` and `~/.config/bleep/config.yaml` &mdash; see
+[Remote build cache](/docs/usage/remote-cache) for setup, S3-compatible
+backends (MinIO / Cloudflare R2 / GCS), and bucket-lifecycle
+expiration commands.
+
+## Consolidated workflow: invalidation + remote cache
+
+The two features compose. Pull the cache first, compute the
+invalidated set, compile/test against it (cache hits skip work,
+genuine changes recompile), push the cache so the next run picks
+up the new artifacts.
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # required for `bleep build invalidated`
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/coursier
+            ~/.bleep
+          key: ${{ runner.os }}-bleep-${{ hashFiles('**/bleep.yaml') }}
+
+      - name: Pull remote cache
+        run: bleep remote-cache pull
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+
+      - name: Compile invalidated projects
+        run: |
+          BASE=origin/${{ github.event.pull_request.base.ref || 'main' }}
+          bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress compile
+
+      - name: Test invalidated projects
+        run: |
+          BASE=origin/${{ github.event.pull_request.base.ref || 'main' }}
+          bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress test
+
+      - name: Push remote cache
+        if: success()
+        run: bleep remote-cache push
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+```
+
+## Release workflow
+
+Tag-driven publish:
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # dynver reads tag history
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - name: Publish to Sonatype
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: bleep publish --assert-release sonatype
+```
+
+`--assert-release` fails the job if dynver would emit a snapshot
+version (uncommitted changes, commits past the tag, no tags at
+all). See [Publish to Maven Central](/docs/tutorials/publish-to-maven)
+for the full release-pipeline story.
+
+## CI flags
+
+```bash
+bleep --no-color --no-bsp-progress compile
+```
+
+| Flag | Effect |
+|---|---|
+| `--no-color` | Strip ANSI codes from log output. |
+| `--no-bsp-progress` | Drop the live BSP progress display so log files stay small. |
+
+Both are appropriate for any non-interactive run.
+
+## Matrix builds
+
+Test multiple Scala versions in parallel jobs:
+
+```yaml
+jobs:
+  test:
+    strategy:
+      matrix:
+        scala: [2.13, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bleep-build/bleep-setup-action@v1
+      - run: bleep test mylib@jvm${{ matrix.scala }}*
+```
+
+For invalidation-driven matrix expansion (build the matrix
+dynamically from what's actually changed), pipe
+[`bleep build invalidated --output json`](/docs/reference/cli/build/invalidated/)
+through `jq` into the matrix. See
+[CI project invalidation](/docs/usage/ci-invalidation) for that
+pattern.
+
+## Other CI systems
+
+Bleep works with any CI that can run shell commands. Install via
+the curl installer or Coursier:
+
+```bash
+curl -fsSL https://bleep.build/install | sh
+# or
+cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep
+```
+
+[Remote build cache](/docs/usage/remote-cache) and
+[CI project invalidation](/docs/usage/ci-invalidation) include
+GitLab CI examples alongside the GitHub Actions ones.
+
+## See also
+
+- [CI project invalidation](/docs/usage/ci-invalidation) &mdash;
+  build only what changed.
+- [Remote build cache](/docs/usage/remote-cache) &mdash; reuse
+  compiled classes across runs and machines.
+- [Publish to Maven Central](/docs/tutorials/publish-to-maven)
+  &mdash; the release-flow side.

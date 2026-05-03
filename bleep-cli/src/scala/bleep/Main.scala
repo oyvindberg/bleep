@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.{bleepLoggers, fatal, logException, BspClientDisplayProgress, FileUtils}
 import bleep.packaging.ManifestCreator
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, Validated}
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
 import com.monovore.decline.*
@@ -64,7 +64,9 @@ object Main {
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
     List(
-      Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
+      Opts.subcommand("build", "create, edit, inspect, and refactor bleep.yaml (here in a no-build context: only the `new` subcommand is reachable)")(
+        newCommand(logger, userPaths, buildPaths.cwd)
+      ),
       importCmd(buildLoader, userPaths, buildPaths, logger),
       importMavenCmd(buildPaths, logger),
       configCommand(logger, userPaths),
@@ -235,7 +237,7 @@ object Main {
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
         List[Opts[BleepBuildCommand]](
-          Opts.subcommand("build", "rewrite build")(
+          Opts.subcommand("build", "create, edit, inspect, and refactor bleep.yaml")(
             List(
               Opts.subcommand("create-directories", "create all source and resource folders for project(s)")(
                 projectNames.map(names => commands.BuildCreateDirectories(names))
@@ -243,20 +245,23 @@ object Main {
               Opts.subcommand("normalize", "normalize build (deduplicate, sort, etc)")(
                 Opts(commands.BuildNormalize)
               ),
-              Opts.subcommand("templates-reapply", "apply existing templates again")(
+              Opts.subcommand("templates-reapply", "re-merge templates into projects (run after editing a template definition to propagate changes)")(
                 Opts(commands.BuildReapplyTemplates)
               ),
-              Opts.subcommand("project-rename", "rename project")(
+              Opts.subcommand("project-rename", "rename a project; references in dependsOn and templates update automatically")(
                 (projectNameNoCross, Opts.argument[String]("new project name")).mapN { case (from, to) =>
                   new commands.BuildProjectRename(from, model.ProjectName(to))
                 }
               ),
-              Opts.subcommand("project-merge-into", "merge first project into second")(
+              Opts.subcommand(
+                "project-merge-into",
+                "merge the first project's sources, dependencies, and config into the second; the first project is deleted"
+              )(
                 (projectNameNoCross, projectNameNoCross).mapN { case (projectName, into) =>
                   new commands.BuildProjectMergeInto(projectName, into)
                 }
               ),
-              Opts.subcommand("projects-move", "move projects")(
+              Opts.subcommand("projects-move", "move one or more projects into a different parent folder on disk")(
                 (Opts.argument[String]("new parent folder"), projectNamesNoCross).mapN { case (parentFolder, projectNames) =>
                   new commands.BuildProjectMove(Path.of(parentFolder).toAbsolutePath, projectNames)
                 }
@@ -264,12 +269,12 @@ object Main {
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
                 Opts(commands.BuildReinferTemplates(Set.empty))
               ),
-              Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
+              Opts.subcommand("update-deps", "update every dependency in bleep.yaml to its newest available version")(
                 (updateAsScalaSteward, updateWithPrerelease).mapN { case (sw, prerelease) =>
                   commands.BuildUpdateDeps.apply(sw, prerelease, None)
                 }
               ),
-              Opts.subcommand("update-dep", "update a single dependency or dependencies of a single organization to newest version(s)")(
+              Opts.subcommand("update-dep", "update a single dependency (or every dependency from one organization) to the newest available version")(
                 (updateSingleOrgOrModule, updateAsScalaSteward, updateWithPrerelease).mapN { case (singleDep, sw, prerelease) =>
                   commands.BuildUpdateDeps.apply(sw, prerelease, Some(singleDep))
                 }
@@ -280,33 +285,33 @@ object Main {
               )(
                 Opts(commands.BuildMoveFilesIntoBleepLayout)
               ),
-              Opts.subcommand("diff", "diff effective project config compared to git HEAD or wanted revision")(
-                Opts.subcommand("effective", "show projects after applying templates")(
+              Opts.subcommand("diff", "diff the effective (template-resolved) project config between git revisions")(
+                Opts.subcommand("effective", "diff the effective (template-resolved) project config against git HEAD or another revision")(
                   (projectNames, commands.BuildDiff.opts, outputMode).mapN { case (names, opts, mode) =>
                     commands.BuildDiff(opts, names, mode)
                   }
                 )
               ),
-              Opts.subcommand("show", "show projects in their different versions.")(
+              Opts.subcommand("show", "show project configuration as YAML — either as written or with templates applied")(
                 List(
-                  Opts.subcommand("short", "the projects as you wrote it in YAML")(
+                  Opts.subcommand("short", "show the project's YAML exactly as written in bleep.yaml")(
                     (projectNamesNoCross, outputMode).mapN(commands.BuildShow.Short.apply)
                   ),
-                  Opts.subcommand("effective", "the final project configuration after all templates have been applied")(
+                  Opts.subcommand("effective", "show the project's final YAML after templates and inheritance are merged in")(
                     (projectNames, outputMode).mapN(commands.BuildShow.Effective.apply)
                   )
                 ).foldK
               ),
-              Opts.subcommand("evicted", "show eviction warnings for project")(
+              Opts.subcommand("evicted", "report dependency conflicts (evictions) so you can decide which library version schemes apply")(
                 (projectNames, outputMode).mapN((projectNames, mode) => commands.Evicted(projectNames, mode))
               ),
-              Opts.subcommand("invalidated", "compute which projects need rebuild/retest vs a base git commit")(
+              Opts.subcommand("invalidated", "list projects whose source or config changed vs a base commit (and their transitive dependents)")(
                 commands.BuildInvalidated.opts
               ),
               newCommand(started.pre.logger, started.pre.userPaths, started.buildPaths.cwd)
             ).foldK
           ),
-          Opts.subcommand("compile", "compile projects")(
+          Opts.subcommand("compile", "compile selected projects (or every project) — respects the dependency graph; supports watch mode")(
             (
               watch,
               projectNames,
@@ -324,7 +329,7 @@ object Main {
               commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
             }
           ),
-          Opts.subcommand("link", "link projects")(
+          Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native) — produces .js or a native executable")(
             (
               watch,
               projectNames,
@@ -357,7 +362,7 @@ object Main {
           Opts.subcommand("sourcegen", "run source generators for projects")(
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
-          Opts.subcommand("test", "test projects")(
+          Opts.subcommand("test", "run tests in selected test projects (or every isTestProject in the build)")(
             (
               watch,
               testProjectNames,
@@ -442,7 +447,7 @@ object Main {
               commands.SetupMcpServer(forceJvm)
             }
           ),
-          Opts.subcommand("clean", "clean")(
+          Opts.subcommand("clean", "delete compile output and generated sources for selected projects (or the whole build)")(
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
@@ -475,7 +480,7 @@ object Main {
               }
             }
           ),
-          Opts.subcommand("extract-info", "JSON output for IDE integration")(
+          Opts.subcommand("extract-info", "emit structured JSON about the build — used by IDE plugins and external tooling")(
             List(
               Opts.subcommand("all", "output all info in a single JSON object")(
                 Opts(commands.ExtractInfo.All)
@@ -635,7 +640,7 @@ object Main {
     config.copy(bspServerConfig = Some(f(config.bspServerConfigOrDefault)))
 
   def configCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
-    Opts.subcommand("config", "configure bleep here")(
+    Opts.subcommand("config", "manage user-level bleep configuration: auth, compile-server / test-runner JVM settings, remote-cache credentials, log timing")(
       List(
         Opts.subcommand[BleepCommand]("file", "show configuration file location")(
           outputMode.map { mode => () =>
@@ -669,10 +674,12 @@ object Main {
             )(Opts {
               commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
             }),
-            Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
-              commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
-            }),
-            Opts.subcommand("stop-all", "will stop all shared compile servers")(
+            Opts.subcommand("auto-shutdown-enable", "shut down the compile server between bleep invocations — slower (cold start each time), but frees memory")(
+              Opts {
+                commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
+              }
+            ),
+            Opts.subcommand("stop-all", "stop every shared compile server currently running")(
               Opts {
                 commands.CompileServerStopAll(logger, userPaths)
               }
@@ -741,7 +748,7 @@ object Main {
     )
 
   def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
-    Opts.subcommand("import", "import existing build from files in .bloop")(
+    Opts.subcommand("import", "import an existing sbt build by reading the Bloop JSON files in .bloop (run after `sbt bloopInstall`)")(
       sbtimport.ImportOptions.opts.map { opts =>
         val cacheLogger = new BleepCacheLogger(logger)
         val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
@@ -753,7 +760,10 @@ object Main {
     )
 
   def importMavenCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
-    Opts.subcommand("import-maven", "import existing Maven build from pom.xml")(
+    Opts.subcommand(
+      "import-maven",
+      "import an existing Maven build by reading pom.xml (uses `mvn help:effective-pom` to resolve parent POMs and dependencyManagement)"
+    )(
       mavenimport.MavenImportOptions.opts.map { opts =>
         commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
       }
@@ -780,19 +790,29 @@ object Main {
     ).foldK
 
   def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepCommand] =
-    Opts.subcommand("new", "create new build in current directory")(
+    Opts.subcommand("new", "scaffold a new bleep workspace in the current directory: bleep.yaml, a project, a sibling test project, hello-world source")(
       (
         Opts
-          .options("platform", "specify wanted platform(s)", metavar = metavars.platformName, short = "p")(
+          .option[String]("lang", "specify language: java, kotlin, or scala (default: scala)", short = "l")
+          .mapValidated { s =>
+            commands.BuildCreateNew.Language.byName.get(s) match {
+              case Some(lang) => Validated.valid(lang)
+              case None       =>
+                Validated.invalidNel(s"unknown lang '$s'; expected one of ${commands.BuildCreateNew.Language.byName.keys.toList.sorted.mkString(", ")}")
+            }
+          }
+          .withDefault(commands.BuildCreateNew.Language.Scala),
+        Opts
+          .options("platform", "specify wanted platform(s) (Scala only)", metavar = metavars.platformName, short = "p")(
             Argument.fromMap(metavars.platformName, model.PlatformId.All.map(p => (p.value, p)).toMap)
           )
           .withDefault(NonEmptyList.of(model.PlatformId.Jvm)),
         Opts
-          .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
+          .options("scala", "specify scala version(s) (Scala only)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
           .withDefault(NonEmptyList.of(model.VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
-      ).mapN { case (platforms, scalas, name) =>
-        commands.BuildCreateNew(logger, userPaths, cwd, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
+      ).mapN { case (language, platforms, scalas, name) =>
+        commands.BuildCreateNew(logger, userPaths, cwd, language, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
       }
     )
 

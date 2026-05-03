@@ -53,10 +53,15 @@ projects:
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleepscript:
+    dependencies:
+      - io.get-coursier:interface:1.0.28
     java:
       options: -proc:none --release 17
     platform:
       name: jvm
+    sourcegen:
+      main: bleep.scripts.GenerateResources
+      project: scripts-init
     publish:
       groupId: build.bleep
       url: https://github.com/oyvindberg/bleep/
@@ -70,6 +75,57 @@ projects:
         url: http://opensource.org/licenses/MIT
         distribution: repo
     sources: ./src/main/java
+  docs-snippets-java:
+    # Java code samples included in the documentation site. A normal
+    # `bleep compile` verifies every snippet still compiles. Files must use
+    # //start ... //stop markers to delimit the displayed region; the rest
+    # of the file (package, imports) is shown only when the user expands
+    # "show entire file" on the website.
+    dependencies:
+    - jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+    - org.junit.jupiter:junit-jupiter:5.10.1
+    - org.slf4j:slf4j-api:2.0.9
+    - org.slf4j:slf4j-simple:2.0.9
+    dependsOn:
+    - bleepscript
+    java:
+      options: -proc:none --release 21
+    platform:
+      name: jvm
+    publish:
+      enabled: false
+    scala:
+      version: 3.8.3
+  docs-snippets-kotlin:
+    # Kotlin code samples for the documentation site.
+    dependencies:
+    - io.github.microutils:kotlin-logging-jvm:3.0.5
+    - io.kotest:kotest-runner-junit5-jvm:5.8.0
+    - jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+    - org.junit.jupiter:junit-jupiter:5.10.1
+    - org.slf4j:slf4j-simple:2.0.9
+    java:
+      version: 21
+    kotlin:
+      jvmTarget: "21"
+      version: 2.3.0
+    platform:
+      name: jvm
+    publish:
+      enabled: false
+  docs-snippets-scala:
+    # Scala code samples for the documentation site.
+    dependencies:
+    - com.lihaoyi::fansi:0.5.0
+    - jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+    - org.scalameta::munit:1.0.0
+    dependsOn:
+    - bleep-core
+    extends:
+    - template-common
+    - template-scala-3
+    publish:
+      enabled: false
   bleep-model:
     dependencies:
     - io.circe::circe-generic:0.14.15
@@ -125,11 +181,6 @@ projects:
     - ../liberated/sbt-jni/core/src/main/scala
     - ../liberated/sbt-jni/plugin/src/main/java
     - ../liberated/sbt-jni/plugin/src/main/scala
-  bleep-plugin-mdoc:
-    dependencies: org.jsoup:jsoup:1.21.2
-    dependsOn: bleep-core
-    extends: template-cross-all
-    sources: ../liberated/mdoc/mdoc-sbt/src/main/scala
   bleep-plugin-native-image:
     dependencies:
     - com.lihaoyi::os-lib:0.11.6
@@ -244,7 +295,6 @@ projects:
       strict: false
   scripts:
     dependencies:
-    - build.bleep::bleep-plugin-mdoc:${BLEEP_VERSION}
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}
     - build.bleep::bleep-plugin-scalafix:${BLEEP_VERSION}
     extends:
@@ -272,7 +322,20 @@ projects:
     - template-scala-3
     publish:
       enabled: false
+  scripts-dev:
+    dependsOn: bleep-cli
+    extends:
+    - template-common
+    - template-scala-3
+    publish:
+      enabled: false
 scripts:
+  gen-cli-docs:
+    main: bleep.scripts.dev.GenCliDocs
+    project: scripts-dev
+  linkify-cli-mentions:
+    main: bleep.scripts.dev.LinkifyCliMentions
+    project: scripts-dev
   generate-docs:
     main: bleep.scripts.GenDocumentation
     project: scripts

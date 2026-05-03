@@ -53,8 +53,19 @@ object ResolveProjects {
         val newProjects = explodedBuild.explodedProjects.map { case (crossName, p) =>
           val (bleepDependencies, restDependencies) = p.dependencies.values.partition(isBleepDep)
 
-          def sameBinVersion(p1: model.Project, p2: model.Project): Boolean =
-            p1.scala.flatMap(_.version).map(_.binVersion) == p2.scala.flatMap(_.version).map(_.binVersion)
+          // A Java-only project (no scala block) is compatible with any consumer — that's the
+          // whole point of publishing a pure-Java library. Only enforce a binary-version match
+          // when both sides actually have a scala version. This lets Scala/Kotlin scripts depend
+          // on `build.bleep:bleepscript:${BLEEP_VERSION}` (Java) without falling off the local
+          // bleep-build resolution path.
+          def sameBinVersion(p1: model.Project, p2: model.Project): Boolean = {
+            val v1 = p1.scala.flatMap(_.version).map(_.binVersion)
+            val v2 = p2.scala.flatMap(_.version).map(_.binVersion)
+            (v1, v2) match {
+              case (None, _) | (_, None) => true
+              case (a, b)                => a == b
+            }
+          }
 
           val transitiveBleepProjectNames: SortedSet[model.CrossProjectName] =
             bleepDependencies.flatMap { bleepDep =>
@@ -159,11 +170,17 @@ object ResolveProjects {
     def require[T](ot: Option[T], name: String): T =
       ot.toRight(s"missing platform field `$name`").orThrowText
 
+    val isKotlin = versionCombo.isInstanceOf[model.VersionCombo.Kotlin]
+
     val resolvedPlatform: Option[ResolvedProject.Platform] =
       explodedPlatform.map {
         case model.Platform.Js(platform) =>
+          // Kotlin/JS goes through `kotlin.js` configuration, not Scala.js metadata.
+          // The Scala.js-specific fields (jsVersion, jsKind, etc.) are not required and
+          // not consumed for Kotlin/JS — KotlinJsCompiler reads from the kotlin.js block.
+          val version = if (isKotlin) "" else require(platform.jsVersion, "version").scalaJsVersion
           ResolvedProject.Platform.Js(
-            version = require(platform.jsVersion, "version").scalaJsVersion,
+            version = version,
             mode = "debug",
             kind = platform.jsKind.fold("NoModule")(_.toString),
             emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(true),
@@ -191,10 +208,13 @@ object ResolveProjects {
             runtimeOptions = templateDirs.fill.opts(platform.jvmRuntimeOptions).render
           )
         case model.Platform.Native(platform) =>
+          // Kotlin/Native goes through `kotlin.native` configuration, not Scala Native metadata.
+          val version = if (isKotlin) "" else require(platform.nativeVersion, "version").scalaNativeVersion
+          val gc = if (isKotlin) "" else require(platform.nativeGc, "nativeGc")
           ResolvedProject.Platform.Native(
-            version = require(platform.nativeVersion, "version").scalaNativeVersion,
+            version = version,
             mode = "debug",
-            gc = require(platform.nativeGc, "nativeGc"),
+            gc = gc,
             mainClass = platform.mainClass
           )
         case other => sys.error(s"unexpected: $other")

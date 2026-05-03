@@ -7,7 +7,6 @@ target
 /.bloop
 /project/.bloop
 sbt-build
-bleep-site/docs
 .vscode
 bleep-cli.sh
 test-project

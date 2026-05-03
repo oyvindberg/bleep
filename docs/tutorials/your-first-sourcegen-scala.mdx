@@ -1,0 +1,89 @@
+---
+title: Write Your First Sourcegen (Scala)
+---
+
+import Snippet from '@site/src/components/Snippet';
+
+# Write Your First Sourcegen (Scala)
+
+This page walks through the Scala flow for adding a *source
+generator* to your build &mdash; a small program that writes source
+files `compile` then sees. For *what* a sourcegen script is, why
+bleep makes it a first-class concept, and how it differs from a
+[bleep script](/docs/concepts/bleep-scripts), see
+[Source generation](/docs/concepts/sourcegen).
+
+> **Other languages:**
+> [Java →](/docs/tutorials/your-first-sourcegen) ·
+> [Kotlin →](/docs/tutorials/your-first-sourcegen-kotlin)
+
+## Prerequisites
+
+- A working bleep project (see [Your First Project](/docs/tutorials/your-first-scala-project))
+- Scala 3 and a matching JVM
+
+## Step 1: The build
+
+Add a `scripts` project to host the generator and point `myapp` at
+it via `sourcegen:`. The scripts project depends on `bleepscript`,
+the same dep you'd add for a regular [bleep script](/docs/concepts/bleep-scripts):
+
+<Snippet path="docs-snippets-from-tests/sourcegen-scala/bleep.yaml" lang="yaml" />
+
+Key points:
+
+- `sourcegen:` on `myapp` names the project that holds the generator
+  and the fully qualified main class. Bleep will run the generator
+  before `myapp` compiles, and rerun it whenever the script project
+  or its dependencies change.
+- `${BLEEP_VERSION}` keeps the script's `bleepscript` dep in lockstep
+  with whatever bleep is running you.
+- A project can list more than one sourcegen script &mdash; each gets
+  its own isolated output directory.
+
+## Step 2: Write the generator
+
+Extend `bleepscript.BleepCodegenScript` and override `run`. The
+framework hands you a `java.util.List[CodegenTarget]` &mdash; one
+entry per project (or cross-id) that consumes this generator. Write
+source files under `target.sources`:
+
+<Snippet path="docs-snippets-from-tests/sourcegen-scala/GenConstants.scala" lang="scala" />
+
+`BleepCodegenScript` provides `main` for you. The output goes to a
+*temp* directory the framework supplies; only on a successful return
+does bleep sync the temp tree to the real generated-sources
+directory. A failed run never leaves stale code behind.
+
+## Step 3: The consumer
+
+`myapp` imports `Constants` like any other Scala object &mdash; the
+generated package is on the consumer's source path automatically:
+
+<Snippet path="docs-snippets-from-tests/sourcegen-scala/Main.scala" lang="scala" />
+
+## Step 4: Run it
+
+```bash
+bleep run myapp
+```
+
+```
+answer: 42
+```
+
+[`bleep compile`](/docs/reference/cli/compile/) triggers the generator, then compiles `myapp` against
+the generated `Constants` object, then runs it. Subsequent
+invocations skip the generator (its inputs haven't changed) until you
+edit the script project.
+
+## Where to go from here
+
+- **[Source generation (concept)](/docs/concepts/sourcegen)** &mdash;
+  the `BleepCodegenScript` API, cross-build targets, the temp-directory
+  cleanup model, and how invalidation works.
+- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** &mdash;
+  the after-compile half: scripts that act on artifacts.
+- **[Run sourcegen explicitly](/docs/reference/cli/build)** &mdash;
+  `bleep sourcegen --watch myapp` re-runs generators when their
+  inputs change.

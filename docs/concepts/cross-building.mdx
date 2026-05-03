@@ -1,0 +1,360 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Cross-Building
+
+Cross-building allows you to compile the same source code for multiple Scala versions or platforms (JVM, JavaScript, Native).
+
+## Why Cross-Build?
+
+- **Library authors** need to support multiple Scala versions
+- **Cross-platform projects** target JVM, browsers (Scala.js), and native executables
+- **Migration** from one Scala version to another
+
+## Cross Configuration
+
+Define cross variants in your project:
+
+```yaml
+projects:
+  mylib:
+    cross:
+      jvm213:
+        scala:
+          version: 2.13.12
+      jvm3:
+        scala:
+          version: 3.8.3
+```
+
+This creates two projects: `mylib@jvm213` and `mylib@jvm3`.
+
+## Cross IDs
+
+Each variant has a **cross ID** that identifies it. Cross IDs appear after `@` in project names:
+
+- `mylib@jvm213`
+- `mylib@jvm3`
+- `mylib@js3`
+
+You can use cross IDs to target specific variants:
+
+```bash
+bleep compile mylib@jvm3
+```
+
+## Platform Cross-Building
+
+Cross-build for different platforms (JVM, JS, Native):
+
+```yaml
+projects:
+  mylib:
+    cross:
+      jvm:
+        platform:
+          name: jvm
+      js:
+        platform:
+          name: js
+          jsVersion: 1.14.0
+      native:
+        platform:
+          name: native
+          nativeVersion: 0.4.16
+    scala:
+      version: 3.8.3
+```
+
+## Combined Cross-Building
+
+Cross-build for multiple Scala versions AND platforms:
+
+```yaml
+projects:
+  mylib:
+    cross:
+      jvm213:
+        scala:
+          version: 2.13.12
+        platform:
+          name: jvm
+      jvm3:
+        scala:
+          version: 3.8.3
+        platform:
+          name: jvm
+      js3:
+        scala:
+          version: 3.8.3
+        platform:
+          name: js
+          jsVersion: 1.14.0
+```
+
+## Using Templates with Cross-Building
+
+Templates work well with cross-building to reduce duplication:
+
+```yaml
+templates:
+  scala-2.13:
+    scala:
+      version: 2.13.12
+  scala-3:
+    scala:
+      version: 3.8.3
+  platform-jvm:
+    platform:
+      name: jvm
+  platform-js:
+    platform:
+      name: js
+      jsVersion: 1.14.0
+
+projects:
+  mylib:
+    cross:
+      jvm213:
+        extends:
+          - scala-2.13
+          - platform-jvm
+      jvm3:
+        extends:
+          - scala-3
+          - platform-jvm
+      js3:
+        extends:
+          - scala-3
+          - platform-js
+```
+
+## Per-cross customization
+
+Anything settable at the project level can be overridden inside a `cross:` entry — dependencies, scalac/javac options, source layouts, platform settings. The cross block wins for that variant; everything outside it is shared.
+
+A small example covering three common axes:
+
+<Snippet path="docs-snippets-from-tests/per-cross-customization/bleep.yaml" lang="yaml" />
+
+Reading it variant by variant:
+
+- **`source-layout: cross-pure`** — adds a per-platform source root next to the shared one. Files under `mylib/src/scala/` are shared by both variants; files under `mylib/src/scala.jvm/` are only seen by the jvm variants. Other layouts: `cross-full` (separate `shared/` + `<platform>/` roots, the sbt-cross style), `sbt-matrix` (Scala-version-suffixed roots), `normal` (no per-cross sources).
+- **Per-variant `dependencies`** — `jvm213` pulls `cats-core`, `jvm3` doesn't. The 2.13-only macro library would go here too.
+- **Per-variant `scala.options`** — each variant gets only its declared flags. `-Ymacro-annotations` is a 2.13 thing; `-Yretain-trees` is a 3 thing. Putting them at the project level instead would warn-or-fail on the wrong variant.
+
+The shared source file:
+
+<Snippet path="docs-snippets-from-tests/per-cross-customization/Greeting.scala" lang="scala" />
+
+The jvm-only one (visible to both `jvm213` and `jvm3` because both are JVM platforms):
+
+<Snippet path="docs-snippets-from-tests/per-cross-customization/JvmOnly.scala" lang="scala" />
+
+A common gotcha: `extends:` at the cross level extends *templates*, not the parent project. If you want shared settings, put them at the project level (above the `cross:` block), not in a template you `extends:` from each variant — bleep's template inference normalises the latter back to the former anyway.
+
+## Cross Dependencies
+
+When projects depend on cross-built projects, bleep matches cross IDs automatically:
+
+```yaml
+projects:
+  core:
+    cross:
+      jvm3:
+        scala:
+          version: 3.8.3
+      js3:
+        scala:
+          version: 3.8.3
+        platform:
+          name: js
+          jsVersion: 1.14.0
+
+  app:
+    dependsOn: core
+    cross:
+      jvm3:
+        scala:
+          version: 3.8.3
+      js3:
+        scala:
+          version: 3.8.3
+        platform:
+          name: js
+          jsVersion: 1.14.0
+```
+
+`app@jvm3` depends on `core@jvm3`, and `app@js3` depends on `core@js3`.
+
+## Platform-Specific Sources
+
+You can have platform-specific source directories:
+
+```
+mylib/
+├── src/
+│   └── scala/           # Shared sources
+├── jvm/
+│   └── src/
+│       └── scala/       # JVM-only sources
+├── js/
+│   └── src/
+│       └── scala/       # JS-only sources
+└── native/
+    └── src/
+        └── scala/       # Native-only sources
+```
+
+Configure in bleep.yaml:
+
+```yaml
+projects:
+  mylib:
+    sources:
+      - src/scala
+    cross:
+      jvm:
+        sources:
+          - jvm/src/scala
+      js:
+        sources:
+          - js/src/scala
+      native:
+        sources:
+          - native/src/scala
+```
+
+## Scala 2.13 / Scala 3 Compatibility
+
+For libraries supporting both Scala 2.13 and 3, you can use `for3Use213`:
+
+```yaml
+dependencies:
+  - module: com.example::legacy-lib:1.0.0
+    for3Use213: true
+```
+
+This uses the Scala 2.13 artifact when compiling with Scala 3 (for libraries not yet published for Scala 3).
+
+## Kotlin Multiplatform (KMP)
+
+Kotlin Multiplatform follows the same `cross:` block mechanic as
+Scala. A single project description fans out into per-target compile
+units; shared sources live at the project root, platform-specific
+sources go into per-cross source roots.
+
+```yaml
+projects:
+  app:
+    kotlin:
+      version: 2.3.0
+    cross:
+      jvm:
+        platform:
+          name: jvm
+        kotlin:
+          jvmTarget: "21"
+      js:
+        platform:
+          name: js
+          jsVersion: 1.14.0
+        kotlin:
+          js:
+            target: nodejs
+```
+
+For a runnable end-to-end example with a shared `Main.kt` compiled
+for both JVM and JS, see [Cross-building (guide)](/docs/guides/cross-building#kotlin-cross-platform-jvm--js).
+
+### Platform-specific sources (`expect`/`actual`)
+
+Use `source-layout: cross-pure` and per-platform source roots:
+
+```
+app/
+├── src/kotlin/      # shared (expect declarations)
+├── src/kotlin.jvm/  # JVM-only (actual implementations)
+└── src/kotlin.js/   # JS-only (actual implementations)
+```
+
+A worked KMP `expect`/`actual` example with platform-specific
+dependencies (e.g., OkHttp on JVM, fetch on JS) is on the roadmap;
+the `cross-pure` source-layout option already supports the workspace
+shape.
+
+### What's not yet supported
+
+- **Kotlin/Native** is partially supported; the ecosystem expectation
+  is Gradle-shaped and bleep's coverage is JVM + JS only today.
+- **`kotlin-multiplatform` Gradle plugin features** that don't map to
+  bleep's declarative model (custom target presets, hierarchical
+  source sets beyond `expect`/`actual`) are out of scope.
+
+## Scala cross-building gaps
+
+The Scala cross-build story covers JVM × \{2.13, 3\} × \{JVM, JS, Native\}
+and the Maven coordinate suffixes that consumers expect. A few sbt
+patterns don't have a direct equivalent:
+
+- **Arbitrary cross axes** (sbt `projectMatrix` style — cross by Scala
+  version × platform × *plus a third dimension* like a config flavour
+  or a backend variant) aren't modelled. Use templates + multiple
+  named projects if you need a third axis.
+- **Per-axis-value scalac options that depend on minor versions**
+  beyond the binary version — `cross:` overrides happen by `crossId`,
+  not by minor-version patterns. The pragmatic workaround is naming
+  the cross-id distinctly per minor (`jvm213_11`, `jvm213_15`).
+- **Cross-built sbt plugins** (consumed as `Dep.SbtPlugin`) aren't
+  supported as a publish target — bleep can depend on them via the
+  long-form dep with `isSbtPlugin: true`, but it doesn't itself
+  publish sbt plugins.
+
+## Compiling Cross Projects
+
+Compile all variants:
+
+```bash
+bleep compile mylib
+```
+
+Compile a specific variant:
+
+```bash
+bleep compile mylib@jvm3
+```
+
+Compile all JVM variants:
+
+```bash
+bleep compile mylib@jvm*
+```
+
+## Testing Cross Projects
+
+Run tests for all variants:
+
+```bash
+bleep test mylib-test
+```
+
+Run tests for a specific variant:
+
+```bash
+bleep test mylib-test@js3
+```
+
+## Publishing Cross-Built Libraries
+
+When publishing, each cross variant produces separate artifacts:
+
+- `mylib_2.13` - Scala 2.13 JVM
+- `mylib_3` - Scala 3 JVM
+- `mylib_sjs1_3` - Scala 3 Scala.js
+
+See [Publish to Maven Central](/docs/tutorials/publish-to-maven) for publishing details.
+
+## Related Pages
+
+- [Templates & Inheritance](/docs/concepts/templates-inheritance) - Reduce cross-build duplication
+- [Projects](/docs/concepts/projects) - What a project is, including how test/script/sourcegen projects are the same kind of thing
+- [Cross-building (guide)](/docs/guides/cross-building) - Minimal working example

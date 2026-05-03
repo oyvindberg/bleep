@@ -1,0 +1,212 @@
+---
+title: vs Gradle
+---
+
+# Comparison with Gradle
+
+Gradle is what you reach for when Maven isn't expressive enough. The price
+is a build that's a program, not data — written in a DSL whose semantics
+you have to learn before you can change a dependency.
+
+Bleep takes the opposite stance: **build is data**. Your build is a single
+YAML file that any tool, IDE, LLM, or human can read and modify. When you
+need real code, you write a [script](/docs/concepts/scripts) — a normal Java
+or Scala program — not DSL extensions interpreted by a build engine.
+
+## Build is data, not a program
+
+The same Kotlin project, in `build.gradle.kts` and `bleep.yaml`:
+
+<table>
+<thead>
+<tr><th>build.gradle.kts</th><th>bleep.yaml</th></tr>
+</thead>
+<tbody>
+<tr><td>
+
+```kotlin
+plugins {
+    kotlin("jvm") version "2.1.0"
+    application
+}
+
+group = "com.example"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("io.ktor:ktor-server-core:2.3.7")
+    testImplementation(kotlin("test"))
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+}
+
+application {
+    mainClass.set("com.example.MainKt")
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+```
+
+</td><td>
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  myapp:
+    kotlin:
+      version: 2.1.0
+      jvmTarget: "21"
+    java:
+      version: 21
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+      - io.ktor:ktor-server-core:2.3.7
+    platform:
+      mainClass: com.example.MainKt
+
+  myapp-test:
+    extends: myapp
+    isTestProject: true
+    dependencies:
+      - io.kotest:kotest-runner-junit5:5.8.0
+```
+
+</td></tr>
+</tbody>
+</table>
+
+The Gradle file is a Kotlin program: `plugins {}`, `repositories {}`,
+`dependencies {}`, `application {}`, `kotlin {}`, `tasks.test {}` are
+DSL functions. To understand what's running you have to know how Gradle
+plugins extend the project model, what `implementation` vs `api` vs
+`compileOnly` means, why test goes through `useJUnitPlatform()`, and
+when configuration runs versus execution.
+
+The bleep file describes the project. There are projects, they have
+properties, they depend on things. Done.
+
+## Faster everything
+
+Gradle's daemon, configuration cache, and build cache exist because Gradle
+is slow. Bleep's startup model means none of that machinery is needed.
+
+| | Gradle | Bleep |
+|---|---|---|
+| Cold startup | ~5-10s of JVM + daemon spin-up | ~0ms (native binary) |
+| Configuration phase | Re-evaluated unless cached; cache invalidates often | YAML is parsed once, reused |
+| Daemon memory | 512MB-2GB resident, easy to OOM | No daemon |
+| Incremental compile | Available; depends on plugin authors | Zinc, file-level, always on |
+| IDE import | Minutes for large multi-module projects | ~1 second via BSP |
+
+When you don't have to design around the daemon, you don't need a daemon.
+
+## No DSL to learn
+
+Gradle's surface area:
+
+- The configuration DSL (Groovy or Kotlin)
+- Plugin development API (different again)
+- `buildSrc` for shared build logic
+- Convention plugins for cross-project sharing
+- Composite builds for multi-repo
+- The "configuration cache" rules about what's allowed in configuration vs
+  execution
+- The ordering rules for `plugins {}`, `pluginManagement {}`, `settings.gradle.kts`
+- Configurations: `implementation`, `api`, `compileOnly`, `runtimeOnly`,
+  `testImplementation`, `annotationProcessor`, `kapt`, ...
+
+Bleep's surface area:
+
+- A YAML schema you can read in 10 minutes
+- Scripts: regular Java/Scala programs
+
+That's it.
+
+## Multi-project: where the gap widens
+
+A Gradle multi-project needs a `settings.gradle.kts` with `include(...)`,
+a root `build.gradle.kts` (often with `subprojects {}` or `allprojects {}`
+configurations or convention plugins), and per-module `build.gradle.kts`
+files that may need to repeat conventions or include shared logic from
+`buildSrc`.
+
+In bleep, all projects live in one `bleep.yaml`. Shared configuration goes
+in templates:
+
+```yaml
+templates:
+  template-kotlin-21:
+    kotlin:
+      version: 2.1.0
+      jvmTarget: "21"
+    java:
+      version: 21
+
+projects:
+  api:
+    extends: template-kotlin-21
+    dependencies:
+      - jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+
+  service:
+    extends: template-kotlin-21
+    dependsOn: api
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+
+  app:
+    extends: template-kotlin-21
+    dependsOn: service
+    platform:
+      mainClass: com.example.App
+```
+
+No `subprojects {}`. No convention plugin. No `buildSrc`. Just a template
+that says "use these defaults" and projects that extend it.
+
+## When you actually need code
+
+Gradle's answer for "I need to do something the DSL doesn't model" is
+either a third-party plugin or writing your own. The plugin API is its own
+thing — you implement `Plugin<Project>`, register tasks, manage their
+lifecycle, deal with configuration-vs-execution timing.
+
+Bleep's answer is a [script](/docs/concepts/scripts): a regular Java,
+Kotlin, or Scala program. You can run it from the command line. You can debug it with
+breakpoints in your IDE. It has full access to the build model. It's
+versioned alongside the rest of your code.
+
+## Honest trade-offs
+
+- **Android.** Gradle is the only practical choice for Android builds.
+  Bleep doesn't target Android.
+- **Kotlin/Multiplatform.** Gradle's KMP support is mature; bleep supports
+  Kotlin/JS and Kotlin/Native but the ecosystem expectations are
+  Gradle-shaped.
+- **Plugin ecosystem.** Gradle's plugin portal has many more plugins than
+  bleep does. Many of them exist to paper over Gradle's surface area
+  (e.g., a plugin to make multi-module configuration less verbose).
+- **Enterprise integrations.** Develocity (formerly Gradle Enterprise),
+  build scans, predictive test selection — those are Gradle-specific
+  products. Bleep doesn't have an equivalent.
+- **Familiarity.** If you and your team know Gradle and ship without
+  thinking, the cost of switching is real. The payoff is the build
+  becoming something you stop thinking about.
+
+## See also
+
+- [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Your first project](/docs/tutorials/your-first-project)
+- [Scripts](/docs/concepts/scripts)

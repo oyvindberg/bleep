@@ -1,0 +1,212 @@
+---
+title: vs Maven
+---
+
+# Comparison with Maven
+
+Maven is the build tool that brought sanity to the JVM ecosystem. It's
+ubiquitous, well-understood, and works. The case for switching to bleep is
+mostly about three things: **less ceremony**, **faster everything**, and
+**a build you can read**.
+
+## Less ceremony
+
+The same single-module Java project, in `pom.xml` and in `bleep.yaml`:
+
+<table>
+<thead>
+<tr><th>pom.xml</th><th>bleep.yaml</th></tr>
+</thead>
+<tbody>
+<tr><td>
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>myapp</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.example.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+</td><td>
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  myapp:
+    java:
+      version: 21
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+    platform:
+      mainClass: com.example.Main
+
+  myapp-test:
+    extends: myapp
+    isTestProject: true
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1
+```
+
+</td></tr>
+</tbody>
+</table>
+
+55 lines of XML versus 14 lines of YAML for the same project. The bleep
+version says exactly what you asked for and nothing else. No `modelVersion`,
+no `<groupId><artifactId><version>` triplets, no plugin XML to express
+"please put a Main-Class in the manifest", no `<scope>test</scope>` because
+test code lives in its own project.
+
+## Faster everything
+
+| | Maven | Bleep |
+|---|---|---|
+| Cold startup (no daemon) | ~3-5s of JVM warmup before any work | ~0ms (native binary) |
+| Reading build config | Parse XML, walk parent POMs, resolve properties | Parse YAML once |
+| Dependency resolution | Aether, single-threaded by default | Coursier, parallel + cached |
+| Incremental compile | Per-module, recompiles whole module | Zinc, file-level invalidation |
+| IDE import | minutes for large projects | ~1 second via BSP |
+
+## A build you can read
+
+A `bleep.yaml` file is **data**. Anything you can do with it can be expressed
+as text edits, a script, an LLM prompt, or `git diff`. There is no XML
+namespace, no Maven property substitution, no parent POM hierarchy to walk.
+
+Maven gets you partway there — `pom.xml` is data too — but the data model is
+verbose, the inheritance rules are non-obvious, and any non-trivial build
+ends up with custom plugins or `maven-shade-plugin` configurations whose
+schemas you have to learn one at a time.
+
+## Multi-module: where the gap widens
+
+Maven multi-module projects need a parent POM, child modules referencing
+that parent, and explicit `<modules>` lists. The verbose triplet repeats in
+every dependency on a sibling module.
+
+In bleep:
+
+```yaml
+projects:
+  api:
+    java:
+      version: 21
+    dependencies:
+      - jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+
+  service:
+    java:
+      version: 21
+    dependsOn: api
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+
+  app:
+    java:
+      version: 21
+    dependsOn: service
+    platform:
+      mainClass: com.example.App
+```
+
+That's the whole multi-module build. `dependsOn` is the only thing you need
+to know.
+
+## Plugins and lifecycle
+
+Maven's lifecycle (`compile`, `test-compile`, `package`, `install`, ...) is
+a fixed pipeline that plugins hook into. Want to do something off the
+golden path? Write a Mojo (a Java class extending Maven's plugin API),
+package it as a plugin artifact, configure it in `<build><plugins>`.
+
+Bleep doesn't have a lifecycle. There are commands (`compile`, `test`,
+`run`, `publish`, ...) and there are
+[scripts](/docs/concepts/scripts) — regular Java, Kotlin, or Scala programs that you
+run from the command line. A script can do anything: read the build model,
+generate sources, sign artifacts, run code generation tools, push to a
+registry. You debug it with breakpoints in your IDE.
+
+## Migrating from Maven
+
+[`bleep import-maven`](/docs/reference/cli/import-maven/) reads your `pom.xml` (or a multi-module Maven
+project) and generates a `bleep.yaml`. See
+[Importing a Maven build](/docs/demos/importing-maven-build) for the
+walkthrough — what gets preserved, what gets stripped, and what to do
+about Maven plugins that don't carry over.
+
+## Honest trade-offs
+
+- **No BOM / `dependencyManagement` yet.** Spring Boot Parent / Quarkus
+  Platform users feel this most: every dependency declares its own
+  version explicitly. See
+  [Project status](/docs/appendix/status) for the gap.
+  [`bleep import-maven`](/docs/reference/cli/import-maven/) inlines the
+  BOM-resolved versions at import time, so an existing Spring Boot
+  service comes across with explicit versions; new services need a
+  template that lists them.
+- **Plugin ecosystem.** Maven Central has thousands of plugins. Bleep
+  plugins are Scala/Java libraries published to Maven Central; there are
+  fewer of them, mostly because the script model means you reach for them
+  less often. But for things like Sonatype publishing, GraalVM native
+  image, scalafmt, scalafix, sbt-jni, mdoc — bleep ships ports of the
+  popular ones.
+- **Enterprise tooling.** If your organization is built around Nexus,
+  Artifactory, Sonar, JFrog, or a release pipeline that assumes
+  `mvn deploy`, you'll need to adapt. Bleep can publish to any Maven
+  repository, but tooling that scrapes `pom.xml` won't work directly on a
+  bleep build.
+- **IDE support.** IntelliJ has bespoke Maven import. For bleep, IntelliJ
+  uses BSP — fast and accurate, but a different code path.
+- **Familiarity.** If your whole team knows Maven inside out and ships
+  builds without thinking about it, switching has a learning-curve cost.
+  The payoff is in build speed, build readability, and what you can
+  automate against the build model.
+
+## See also
+
+- [Comparison with Gradle](/docs/compared-to-other-build-tools/gradle)
+- [Your first project](/docs/tutorials/your-first-project)
+- [Importing from Maven](/docs/demos/importing-maven-build)

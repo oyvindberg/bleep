@@ -1,141 +1,118 @@
 /**
- * Bleep Brand Styles
- * Purple color palette with Inter and JetBrains Mono fonts
+ * Bleep — manifesto / editorial-technical brand styles.
+ *
+ * Cool slate ink, paper bone, a single strike of signal red.
+ * Fraunces for display, IBM Plex Sans for body, JetBrains Mono for code.
+ * Light + dark; dark is the home key.
  */
 
-/* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* Light Mode - Purple palette optimized for white backgrounds */
+/* ---------------- Light (paper) ---------------- */
 :root {
-  /* Primary purple colors */
-  --ifm-color-primary: #7C3AED;          /* Purple-600 - main brand color */
-  --ifm-color-primary-dark: #6D28D9;     /* Purple-700 */
-  --ifm-color-primary-darker: #5B21B6;   /* Purple-800 */
-  --ifm-color-primary-darkest: #4C1D95;  /* Purple-900 */
-  --ifm-color-primary-light: #8B5CF6;    /* Purple-500 */
-  --ifm-color-primary-lighter: #A78BFA;  /* Purple-400 */
-  --ifm-color-primary-lightest: #C4B5FD; /* Purple-300 */
+  --ifm-color-primary: #b62a18;          /* deeper red holds contrast on paper */
+  --ifm-color-primary-dark: #a3251534;
+  --ifm-color-primary-darker: #8e2113;
+  --ifm-color-primary-darkest: #6f1a0e;
+  --ifm-color-primary-light: #cc3120;
+  --ifm-color-primary-lighter: #e63a2a;
+  --ifm-color-primary-lightest: #f0584a;
 
-  /* Background accents */
-  --ifm-background-surface-color: #FAF5FF; /* Purple-50 tint */
+  --ifm-background-color: #f1ede2;
+  --ifm-background-surface-color: #f7f4ec;
 
-  /* Typography */
-  --ifm-font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-font-family-base: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --ifm-font-family-monospace: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --ifm-code-font-size: 95%;
+  --ifm-heading-font-family: 'Fraunces', 'Iowan Old Style', Charter, Georgia, serif;
+  --ifm-code-font-size: 92%;
 
-  /* Semantic colors */
-  --ifm-color-success: #22C55E;
-  --ifm-color-warning: #F59E0B;
-  --ifm-color-danger: #EF4444;
-  --ifm-color-info: #3B82F6;
+  --ifm-color-success: #4a6b37;
+  --ifm-color-warning: #c2410c;
+  --ifm-color-danger:  #b62a18;
+  --ifm-color-info:    #2a4a6b;
 
-  /* Code highlighting */
-  --docusaurus-highlighted-code-line-bg: rgba(124, 58, 237, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(230, 58, 42, 0.1);
 }
 
-/* Dark Mode - Lighter purple palette for dark backgrounds */
-[data-theme="dark"] {
-  --ifm-color-primary: #A78BFA;          /* Purple-400 - main brand color */
-  --ifm-color-primary-dark: #8B5CF6;     /* Purple-500 */
-  --ifm-color-primary-darker: #7C3AED;   /* Purple-600 */
-  --ifm-color-primary-darkest: #6D28D9;  /* Purple-700 */
-  --ifm-color-primary-light: #C4B5FD;    /* Purple-300 */
-  --ifm-color-primary-lighter: #DDD6FE;  /* Purple-200 */
-  --ifm-color-primary-lightest: #EDE9FE; /* Purple-100 */
+/* ---------------- Dark (ink) ---------------- */
+[data-theme='dark'] {
+  --ifm-color-primary: #f0584a;
+  --ifm-color-primary-dark: #e63a2a;
+  --ifm-color-primary-darker: #cc3120;
+  --ifm-color-primary-darkest: #b62a18;
+  --ifm-color-primary-light: #ff7d72;
+  --ifm-color-primary-lighter: #ff9d94;
+  --ifm-color-primary-lightest: #ffc4be;
 
-  /* Code highlighting */
-  --docusaurus-highlighted-code-line-bg: rgba(167, 139, 250, 0.2);
+  --ifm-background-color: #08090b;
+  --ifm-background-surface-color: #0d0f13;
+
+  --docusaurus-highlighted-code-line-bg: rgba(240, 88, 74, 0.18);
 }
 
-/* Headings - use Inter with slightly heavier weight */
+/* Headings — Fraunces with optical sizing dialed up */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--ifm-font-family-base);
-  font-weight: 600;
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 500;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
 
-/* Code blocks */
-code, pre {
+code, pre, kbd {
   font-family: var(--ifm-font-family-monospace);
+  font-feature-settings: 'ss01', 'ss02', 'cv11', 'zero';
 }
 
-/* Navbar styling */
+/* Navbar — quiet, hairline border, no shadow circus */
 .navbar {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  border-bottom: 1px solid rgba(10, 9, 8, 0.08);
+  background: rgba(241, 237, 226, 0.85);
+  backdrop-filter: saturate(140%) blur(8px);
+  -webkit-backdrop-filter: saturate(140%) blur(8px);
 }
-
+[data-theme='dark'] .navbar {
+  background: rgba(8, 9, 11, 0.78);
+  border-bottom-color: rgba(230, 234, 239, 0.07);
+}
 .navbar__title {
-  font-weight: 700;
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+.navbar__link {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* Footer styling */
+/* Footer — flat ink, no gradient */
 .footer--dark {
-  background-color: #1e1b4b; /* Indigo-950 for deep purple footer */
+  background-color: #08090b;
+  border-top: 1px solid rgba(230, 234, 239, 0.07);
+}
+.footer__title {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 500;
+  letter-spacing: -0.005em;
 }
 
-/* Button enhancements */
-.button--primary {
-  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
-  border: none;
+/* Selection — paper ink under a red stripe */
+::selection {
+  background: var(--ifm-color-primary);
+  color: #f1ede2;
 }
 
-.button--primary:hover {
-  background: linear-gradient(135deg, var(--ifm-color-primary-dark) 0%, var(--ifm-color-primary-darker) 100%);
-}
+html { scroll-behavior: smooth; }
 
-/* Hero section enhancement */
-.hero--primary {
-  background: linear-gradient(135deg, var(--ifm-color-primary-darkest) 0%, var(--ifm-color-primary-dark) 100%);
+/* Make sure code blocks in docs feel of-a-piece */
+.theme-code-block {
+  border-radius: 12px;
+  border: 1px solid rgba(10, 9, 8, 0.08);
 }
-
-/* Hero text - ensure all text is white and visible */
-.hero--primary .hero__title,
-.hero--primary .hero__subtitle,
-.hero--primary p {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .hero--primary {
-  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 100%);
-}
-
-[data-theme="dark"] .hero--primary .hero__title,
-[data-theme="dark"] .hero--primary .hero__subtitle,
-[data-theme="dark"] .hero--primary p {
-  color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Hero buttons - ensure visibility on purple background */
-.hero--primary .button--secondary {
-  background-color: #ffffff !important;
-  color: var(--ifm-color-primary-darkest) !important;
-  border: 2px solid #ffffff !important;
-}
-
-.hero--primary .button--secondary:hover {
-  background-color: #f3f4f6 !important;
-  color: var(--ifm-color-primary-darkest) !important;
-}
-
-.hero--primary .button--outline.button--secondary {
-  background-color: transparent !important;
-  color: #ffffff !important;
-  border: 2px solid #ffffff !important;
-}
-
-.hero--primary .button--outline.button--secondary:hover {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-}
-
-/* Link styling */
-a {
-  transition: color 0.2s ease;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+[data-theme='dark'] .theme-code-block {
+  border-color: rgba(230, 234, 239, 0.08);
 }

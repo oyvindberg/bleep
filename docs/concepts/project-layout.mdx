@@ -1,0 +1,131 @@
+---
+title: Project layout
+---
+
+# Project layout
+
+A project's `folder` says **where** it lives on disk. `source-layout` says
+**how** sources and resources are organised *inside* that folder. Together
+with the `sources:` and `resources:` arrays, they tell bleep where to find
+every file it needs to compile your project &mdash; without a single
+absolute path in `bleep.yaml`.
+
+This page covers the everyday case &mdash; one project, one source folder,
+one resources folder. For Scala cross-builds and sbt-imported layouts, see
+[Source layout in cross-builds and sbt imports](/docs/appendix/source-layout-cross-builds).
+
+## The project folder
+
+Every project has a `folder` &mdash; the directory the rest of its paths
+are anchored to. It is **relative to the build root** (where `bleep.yaml`
+lives), and it defaults to `./${PROJECT_NAME}`.
+
+```yaml
+projects:
+  myapp:                       # folder defaults to ./myapp/
+  greeter:
+    folder: ./modules/greeter  # explicit folder override
+```
+
+So a project named `myapp` lives in `./myapp/` unless told otherwise.
+
+## Source layout: how files inside the folder are organised
+
+`source-layout` is the rule bleep uses to derive default `sources` and
+`resources` paths *inside* the project folder. For everyday projects there
+are four values:
+
+| `source-layout` | When you'd use it                                   |
+| --------------- | --------------------------------------------------- |
+| `kotlin`        | Default for Kotlin projects.                        |
+| `normal`        | Default for Scala projects.                         |
+| `java`          | Default for plain Java projects.                    |
+| `none`          | No defaults at all. Use only `sources:` / `resources:`. |
+
+Bleep auto-fills `source-layout` based on what your project compiles. The
+priority is **Kotlin &rarr; Scala &rarr; Java**, so:
+
+- A project with a `kotlin:` block gets `kotlin` layout.
+- A project with a `scala:` block gets `normal` layout.
+- A project with neither (Java only) gets `java` layout.
+
+You can override by setting the field explicitly.
+
+## What each layout produces
+
+| Layout    | sources                                                   | resources                  |
+| --------- | --------------------------------------------------------- | -------------------------- |
+| `kotlin`  | `<folder>/src/kotlin`, `<folder>/src/java`                 | `<folder>/src/resources`   |
+| `normal`  | `<folder>/src/scala`, `<folder>/src/java`, *plus version-specific paths* | `<folder>/src/resources`   |
+| `java`    | `<folder>/src/java`                                        | `<folder>/src/resources`   |
+| `none`    | (none)                                                    | (none)                     |
+
+The "version-specific" extras under `normal` only matter for cross-builds
+&mdash; see the [appendix](/docs/appendix/source-layout-cross-builds).
+
+Notice that none of these have a `main/` or `test/` segment in them. In
+bleep, **tests are their own project** with `isTestProject: true`, so the
+test code lives in a separate folder (`myapp-test/src/kotlin/`), not under
+`myapp/src/test/kotlin/`. There is no scope distinction inside a project.
+
+## Adding extra paths
+
+`sources:` and `resources:` are *additive* &mdash; bleep takes the union
+of the layout's paths and whatever you list:
+
+```yaml
+projects:
+  myapp:
+    sources:
+      - ../shared/src/kotlin   # relative to ./myapp/
+      - extra-sources
+```
+
+Plain relative paths work for almost everything. For the rare case you
+need `${BUILD_DIR}`, `${PROJECT_DIR}`, or a Scala version variable woven
+into a path, see [Path replacements](/docs/appendix/path-replacements).
+Don't reach for those if a relative path will do.
+
+If you want to *replace* the defaults rather than add to them, set
+`source-layout: none` and list every path you actually want.
+
+## Worked example
+
+Here's the smallest end-to-end Kotlin build on the docs site, lifted
+directly from one of bleep's integration tests:
+
+import Snippet from "@site/src/components/Snippet";
+
+<Snippet
+  path="docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml"
+  lang="yaml"
+/>
+
+Two Kotlin projects, no `folder` overrides, no `sources` overrides. With
+`source-layout: kotlin` auto-applied, the actual files live at:
+
+```
+./myapp/src/kotlin/com/example/Main.kt
+./myapp-test/src/kotlin/com/example/MainTest.kt
+```
+
+The same shape for Scala (`source-layout: normal`):
+
+```
+./myapp/src/scala/com/example/Main.scala
+./myapp-test/src/scala/com/example/MainTest.scala
+```
+
+That's the whole interaction model: `folder` picks the directory,
+`source-layout` picks the subdirectory pattern, `sources` and `resources`
+add to it.
+
+## Where to go next
+
+- [Source layout in cross-builds and sbt imports](/docs/appendix/source-layout-cross-builds)
+  &mdash; the `cross-pure`, `cross-full`, `sbt-matrix` layouts, the
+  versioned `scala-3` / `scala-2.13` folders, and the role of `sbt-scope`.
+- [Path replacements](/docs/appendix/path-replacements) &mdash; placeholder
+  vocabulary for paths that need to know the build root or the current
+  Scala version.
+- [Bleep build model](/docs/model) &mdash; everything else in `bleep.yaml`.

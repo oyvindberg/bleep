@@ -1,0 +1,22 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  myapp:
+    extends: template-common
+    platform:
+      mainClass: com.example.helloMain
+  myapp-test:
+    dependencies: org.scalameta::munit:1.0.0
+    dependsOn: myapp
+    extends: template-common
+    isTestProject: true
+templates:
+  template-common:
+    platform:
+      name: jvm
+    scala:
+      options: -encoding utf8 -feature -unchecked
+      strict: true
+      version: 3.8.3

@@ -1,0 +1,188 @@
+import CodeBlock from '@theme/CodeBlock';
+import Snippet from "@site/src/components/Snippet";
+
+# Bleep build model
+
+A bleep build is one file: `bleep.yaml`, at the root of your repo. It
+describes everything bleep needs to compile, test, run, and publish your
+code &mdash; as plain data.
+
+## Vocabulary
+
+Bleep uses two words for two things:
+
+- **Project** &mdash; one compilation unit. Sources, dependencies, a target
+  platform. What other tools call a *module* or a *subproject*.
+- **Build** &mdash; the collection of projects in `bleep.yaml`, plus the
+  templates and settings that connect them.
+
+One build file. Many projects. That's the model.
+
+## A real `bleep.yaml`
+
+Here is a working bleep build &mdash; lifted directly from one of bleep's
+own integration tests, so this is a configuration the build server compiles
+and runs on every commit:
+
+<Snippet
+  path="docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml"
+  lang="yaml"
+/>
+
+Two projects, one template, twenty-four lines. The rest of this page is a
+guided tour of what each piece means.
+
+## What lives at the top level
+
+Most fields are optional. The shape:
+
+| key         | meaning                                                                   |
+| ----------- | ------------------------------------------------------------------------- |
+| `$schema`   | URL to the JSON Schema. Editors use it for autocomplete and validation.   |
+| `$version`  | The bleep version this build was written against.                         |
+| `jvm`       | The JVM bleep should use to run scripts and resolve coursier.             |
+| `resolvers` | Additional Maven repositories, on top of Maven Central.                   |
+| `projects`  | The map of project-name &rarr; project config. The point of the file.    |
+| `templates` | Reusable fragments that projects extend (see [Templates](#templates)).    |
+| `scripts`   | Named entry points into your scripts project. See [Scripts](/docs/concepts/scripts). |
+
+## Anatomy of a project
+
+Every key under `projects:` is a project name; its value is the project's
+configuration. From the build above, `myapp-test` looks like:
+
+```yaml
+myapp-test:
+  dependencies:
+    - io.kotest:kotest-runner-junit5-jvm:5.8.0
+    - org.junit.jupiter:junit-jupiter:5.10.1
+  dependsOn: myapp
+  extends: template-common
+  isTestProject: true
+```
+
+Every field does what it says.
+
+- `dependencies` is the list of Maven coordinates this project pulls in.
+- `dependsOn` declares the build graph: `myapp-test` won't compile until
+  `myapp` has compiled. Reference projects by name; bleep handles the rest.
+- `extends` pulls fields in from a template (see [Templates](#templates)).
+- `isTestProject` flips test discovery on. No separate scope, no second
+  build file.
+
+The full per-project schema (sources, resources, folder, scala options,
+kotlin/java versions, cross axes, &hellip;) is enforced by the JSON
+Schema referenced in every `bleep.yaml`'s `$schema` line — your editor
+gets autocomplete and validation from it.
+
+### Dependencies are Maven coordinates
+
+Bleep uses [coursier](https://github.com/coursier/coursier) to resolve
+dependencies. Coordinates are written like Maven groups them, with the
+number of colons picking the Scala-suffix rule:
+
+```yaml
+dependencies:
+  - io.kotest:kotest-runner-junit5-jvm:5.8.0  # Java/Kotlin: groupId:artifactId:version
+  - com.lihaoyi::fansi:0.5.0                  # Scala: applies the binary version suffix
+  - org.scalameta:::munit:1.0.0               # Scala on JS/Native: applies the full suffix
+```
+
+For more on dependency syntax see [Dependencies](/docs/concepts/dependencies).
+
+### Where paths land on disk
+
+Two anchors matter:
+
+- **`folder`** is relative to the **build root** (where `bleep.yaml` lives).
+  It defaults to `./${PROJECT_NAME}`. So a project named `myapp` lives in
+  `./myapp/` unless told otherwise.
+- **`sources`** and **`resources`** are relative to the project's `folder`.
+
+Bleep also auto-derives default `sources` / `resources` paths from a
+*source layout* &mdash; `kotlin`, `normal`, `java`, and a handful of
+cross-build variants. The layout is picked from your project's
+language settings (Kotlin → `kotlin`, Scala → `normal`, Java-only →
+`java`), and you can override it explicitly. See
+[Project layout](/docs/concepts/project-layout) for the full pattern.
+
+If you need to add a path the layout doesn't cover, plain relative paths
+walk out of the project folder and read naturally:
+
+```yaml
+projects:
+  myapp:
+    folder: ./modules/myapp     # relative to build root
+    sources:
+      - ../shared/src/kotlin    # relative to ./modules/myapp
+```
+
+For more exotic cases (versioned source folders, paths under `$HOME`,
+referencing bleep's own compile output), bleep also expands a small set of
+placeholders &mdash; `${BUILD_DIR}`, `${PROJECT_DIR}`, `${SCALA_VERSION}`,
+and friends. See [Path replacements](/docs/appendix/path-replacements).
+
+The build is portable by design: nothing is anchored to a machine, only to
+the build root or the project root.
+
+## Templates
+
+When several projects share configuration, lift the shared fields into a
+`templates:` block. The build at the top of this page does it &mdash;
+`template-common` holds the Kotlin version and JVM target, and both
+projects extend it.
+
+A bare-minimum example:
+
+```yaml
+projects:
+  a:
+    extends: template-common
+  b:
+    extends: template-common
+    dependsOn: a
+
+templates:
+  template-common:
+    kotlin:
+      version: 2.3.0
+      jvmTarget: "25"
+```
+
+Templates are not magic. They're merged into the project at parse time:
+lists union, scalars override, nested objects merge recursively. See
+[Templates & Inheritance](/docs/concepts/templates-inheritance) for the
+full behaviour.
+
+## Cross-building
+
+A project can target multiple Kotlin/Scala versions, multiple platforms
+(JVM / JS / Native), or both at once. Here is the cross-building Kotlin
+example bleep tests on every commit:
+
+<Snippet
+  path="docs-snippets-from-tests/cross-building-kotlin/bleep.yaml"
+  lang="yaml"
+/>
+
+See [Cross-building](/docs/concepts/cross-building) for the full story.
+
+## Normalized by default
+
+Bleep keeps `bleep.yaml` in a canonical form: keys sorted, lists
+deduplicated, empty values dropped, single-element lists collapsed to
+scalars. Run [`bleep build normalize`](/docs/reference/cli/build/normalize/) and you'll get the canonical form of
+your current build.
+
+That's why YAML diffs in code review actually describe what changed
+&mdash; there's no hidden state, no ordering quirks, no whitespace games.
+
+## Where to go next
+
+- [Same project, four build tools](/docs/compared-to-other-build-tools/side-by-side)
+  &mdash; the same Kotlin app expressed in `bleep.yaml`, `pom.xml`,
+  `build.sbt`, and `build.gradle.kts`.
+- [Templates & Inheritance](/docs/concepts/templates-inheritance)
+  &mdash; merge semantics and deeper template patterns.
+- [Cross-building](/docs/concepts/cross-building)
+  &mdash; cross axes for languages and platforms.

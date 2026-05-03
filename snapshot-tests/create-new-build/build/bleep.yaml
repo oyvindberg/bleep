@@ -4,59 +4,20 @@ jvm:
   name: graalvm-community:25.0.1
 projects:
   myapp:
-    dependencies: com.lihaoyi::fansi:0.5.0
-    extends: template-cross-all
+    extends: template-common
     platform:
-      mainClass: com.foo.App
-  tests:
-    dependencies: org.scalatest::scalatest:3.2.19
+      mainClass: com.example.helloMain
+  myapp-test:
+    dependencies: org.scalameta::munit:1.0.0
     dependsOn: myapp
-    extends: template-cross-all
+    extends: template-common
     isTestProject: true
 templates:
   template-common:
+    platform:
+      name: jvm
     scala:
       options: -encoding utf8 -feature -unchecked
       strict: true
-    source-layout: cross-full
-  template-cross-all:
-    cross:
-      js213:
-        extends: template-scala-2.13-js
-      js3:
-        extends: template-scala-3-js
-      jvm213:
-        extends: template-scala-2.13-jvm
-      jvm3:
-        extends: template-scala-3-jvm
-    extends: template-common
-  template-js:
-    platform:
-      jsNodeVersion: 24.13.0
-      jsVersion: 1.19.0
-      name: js
-  template-jvm:
-    platform:
-      name: jvm
-  template-scala-2:
-    scala:
-      version: 2.13.16
-  template-scala-2.13-js:
-    extends:
-    - template-js
-    - template-scala-2
-  template-scala-2.13-jvm:
-    extends:
-    - template-jvm
-    - template-scala-2
-  template-scala-3:
-    scala:
       version: 3.8.3
-  template-scala-3-js:
-    extends:
-    - template-js
-    - template-scala-3
-  template-scala-3-jvm:
-    extends:
-    - template-jvm
-    - template-scala-3
+    source-layout: cross-full

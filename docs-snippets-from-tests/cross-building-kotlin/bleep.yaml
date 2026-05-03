@@ -1,0 +1,22 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  app:
+    kotlin:
+      version: 2.3.0
+    cross:
+      jvm:
+        kotlin:
+          jvmTarget: "25"
+        platform:
+          mainClass: com.example.MainKt
+          name: jvm
+      js:
+        kotlin:
+          js:
+            outputMode: js
+            target: nodejs
+        platform:
+          name: js

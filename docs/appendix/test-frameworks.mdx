@@ -1,0 +1,77 @@
+# Supported test frameworks
+
+Bleep auto-detects the test framework for each test project from its
+dependencies. Add the dependency to your `mylib-test` project and
+[`bleep test`](/docs/reference/cli/test/) will use the right framework.
+
+## Auto-detected frameworks
+
+| Framework | Maven coordinate (any of) | Notes |
+|---|---|---|
+| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | Bleep injects `net.aichler:jupiter-interface:0.11.1` automatically — you do not declare it. |
+| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | Bleep injects `com.github.sbt:junit-interface:0.13.3` automatically. |
+| **ScalaTest** | `org.scalatest::scalatest` | Implements sbt test-interface natively. |
+| **specs2** | `org.specs2::specs2-core` | Native test-interface. |
+| **MUnit** | `org.scalameta::munit` | Native test-interface. |
+| **utest** | `com.lihaoyi::utest` | Native test-interface. |
+| **ZIO Test** | `dev.zio::zio-test` | Native test-interface. |
+| **weaver-cats** | `com.disneystreaming::weaver-cats` | Native test-interface. |
+
+Detection is by *artifact name*, not by group. If your dependency
+coordinates match the artifact column above, bleep treats the project
+as using that framework.
+
+## Multiple frameworks in one project
+
+A single test project can use multiple frameworks — declare each as a
+dependency and [`bleep test`](/docs/reference/cli/test/) runs all of them:
+
+```yaml
+projects:
+  mylib-test:
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1     # JUnit 5
+      - org.scalameta::munit:1.0.0                 # MUnit
+```
+
+## Frameworks not on this list
+
+If you depend on a framework that implements [sbt
+test-interface](https://github.com/sbt/test-interface) and isn't
+auto-detected, you can declare it explicitly:
+
+```yaml
+projects:
+  mylib-test:
+    isTestProject: true
+    testFrameworks:
+      - org.example.test.MyFramework
+```
+
+The fully qualified class name is the value of the framework's
+`Framework` SPI implementation. Check the framework's documentation
+for its `Framework` class name.
+
+## How [`bleep test`](/docs/reference/cli/test/) runs them
+
+For each test project, bleep:
+
+1. Compiles the project (and its dependencies) like any other project.
+2. Spawns a JVM (or Node, for Scala.js / Kotlin/JS test projects)
+   with the test classpath, including the auto-injected adapter for
+   JUnit 4 / JUnit 5 if relevant.
+3. Discovers test classes via the framework's test-interface
+   implementation.
+4. Runs the discovered tests, streaming results back via BSP.
+
+The discovery + run flow is the same as sbt's, since bleep uses sbt
+test-interface as the framework boundary.
+
+## See also
+
+- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) —
+  how to organize unit vs integration tests as sibling projects.
+- [Your First Project](/docs/tutorials/your-first-project) — JUnit 5
+  walk-through.

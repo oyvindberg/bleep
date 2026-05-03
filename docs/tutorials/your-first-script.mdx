@@ -1,0 +1,77 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Write Your First Script (Java)
+
+This page walks through the Java flow for adding a script to your
+build. For *what* a script is, why bleep models scripts as a core
+concept, and when to choose a script over a [source generation
+script](/docs/concepts/sourcegen), see
+[Scripts and source generation](/docs/concepts/scripts).
+
+> **Other languages:**
+> [Kotlin →](/docs/tutorials/your-first-script-kotlin) ·
+> [Scala →](/docs/tutorials/your-first-script-scala)
+
+## Prerequisites
+
+- A working bleep project (see [Your First Project](/docs/tutorials/your-first-project))
+- Java 17+
+
+## Step 1: Add a scripts project
+
+Add a `scripts` project to your `bleep.yaml`. The scripts project
+depends on `bleepscript` and is registered under the top-level
+`scripts:` section.
+
+<Snippet path="docs-snippets-from-tests/first-script-java/bleep.yaml" lang="yaml" />
+
+Key points:
+
+- `${BLEEP_VERSION}` is interpolated by bleep to your installed
+  version, so you don't have to keep the script project's dependency
+  in sync by hand.
+- The top-level `scripts:` section maps a CLI name (`hello`) to a
+  fully qualified class name (`scripts.HelloScript`) plus the project
+  that contains it.
+- `sources: ./src/main/java` keeps the conventional Maven-style
+  layout for Java code.
+
+## Step 2: Write the script
+
+Extend `bleepscript.BleepScript` and implement `run`:
+
+<Snippet path="docs-snippets-from-tests/first-script-java/HelloScript.java" lang="java" />
+
+`BleepScript` provides the `main` method via reflection, so you don't
+need any explicit `public static void main` boilerplate. Just extend,
+pass a name to the super constructor, and override `run`.
+
+## Step 3: Run it
+
+```bash
+bleep hello
+```
+
+```
+This build has 2 projects
+Hello, world!
+```
+
+```bash
+bleep hello Alice
+```
+
+```
+This build has 2 projects
+Hello, Alice!
+```
+
+## Where to go from here
+
+- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** — the
+  full `BleepScript` API, working with the build model, the script
+  protocol, and IDE debugging.
+- **[Source generation scripts](/docs/concepts/sourcegen)** — for
+  scripts whose output is consumed by `compile`.
+- **[Publish to Maven Central](/docs/tutorials/publish-to-maven)** —
+  scripts that ship artifacts.

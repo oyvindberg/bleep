@@ -1,0 +1,38 @@
+# Install Bleep
+
+## Quick install
+
+```bash
+curl -fsSL https://bleep.build/install | sh
+```
+
+This installer downloads the bleep native binary and puts it on your
+PATH. macOS and Linux. Same script the home-page Install button runs.
+
+## Via Coursier
+
+If you already have [Coursier](https://get-coursier.io/docs/cli-installation)
+installed (common in Scala shops), you can install bleep through its
+channel:
+
+```bash
+cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep
+```
+
+## GitHub action
+
+There is an action available to install Bleep. It picks up the wanted Bleep version from `bleep.yaml`, so make sure to run it after checkout:
+```yaml
+  - uses: actions/checkout@v4
+    with:
+      submodules: recursive
+  - uses: bleep-build/bleep-setup-action@v1
+```
+
+## Nix
+
+Bleep is published on nixpkgs, currently available on the unstable channel.
+
+## Manual installation
+
+You can download it manually from [GitHub releases](https://github.com/oyvindberg/bleep/releases) (expand "assets")

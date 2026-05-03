@@ -1,0 +1,38 @@
+---
+title: Project status
+---
+
+# Project status
+
+Bleep self-hosts: bleep itself is built with bleep, including a
+multi-project Scala 3 codebase, several ported sbt plugins, and the
+GraalVM native-image release pipeline. Several teams use it in
+production for backend services, libraries published to Maven Central,
+and large generated-source codebases (parser projects with hundreds of
+thousands of lines of generated Java).
+
+The version is `1.0.0-M*` — milestone, not GA. The build model is
+stable in practice; named features are tested by integration tests.
+
+## What's not yet covered
+
+- **No BOM / `dependencyManagement`** — every dependency declares its
+  version explicitly. Spring Boot users feel this most.
+- **No KSP / KAPT** for Kotlin annotation processing — Java's
+  `javac -processor` flow works.
+- **No Gradle import** — Maven and sbt are imported via [`bleep import`](/docs/reference/cli/import/)
+  / [`bleep import-maven`](/docs/reference/cli/import-maven/).
+- **Single-host caching only** — remote cache works via
+  [`bleep remote-cache pull`](/docs/reference/cli/remote-cache/pull/) / `push`; not transparent on every
+  invocation.
+- **Plugin ecosystem is small** compared to Maven/Gradle/sbt — the
+  ports that exist (sbt-ci-release, sbt-sonatype, sbt-pgp, sbt-dynver,
+  sbt-native-image, sbt-scalafix, sbt-jni, mdoc) cover release
+  workflows; one-off plugins are user-implemented as scripts.
+
+## Recommendation
+
+Use bleep on greenfield projects without reservation. For migrating
+an existing build, run [`bleep import`](/docs/demos/importing-sbt-build)
+or [`bleep import-maven`](/docs/demos/importing-maven-build) first —
+if the imported result compiles and tests, you're in a usable state.

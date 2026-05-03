@@ -1,0 +1,24 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mylib:
+    extends: template-cross
+  mylib-test:
+    dependencies:
+      - org.scalameta::munit:1.0.0
+    dependsOn: mylib
+    extends: template-cross
+    isTestProject: true
+templates:
+  template-cross:
+    cross:
+      jvm213:
+        scala:
+          version: 2.13.16
+      jvm3:
+        scala:
+          version: 3.8.3
+    platform:
+      name: jvm

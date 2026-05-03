@@ -1,0 +1,129 @@
+
+# Sonatype / Maven Central
+
+Publishing to Maven Central via Sonatype. Includes GPG signing, staging, and release automation.
+
+## Setup
+
+### Prerequisites
+
+1. A Sonatype account at [central.sonatype.com](https://central.sonatype.com/)
+2. Publishing rights for your groupId (e.g. `io.github.yourname`)
+3. GPG for signing artifacts
+4. CI environment variables for credentials
+
+### Interactive setup
+
+```bash
+bleep publish setup
+```
+
+Select "Sonatype / Maven Central". The wizard will:
+1. Generate a GPG key pair
+2. Upload the public key to a keyserver
+3. Tell you exactly which CI environment variables to set
+
+### bleep.yaml
+
+Maven Central requires POM metadata. Set it in a template:
+
+```yaml
+templates:
+  template-oss:
+    publish:
+      groupId: com.mycompany
+      url: https://github.com/mycompany/mylib
+      description: My awesome library
+      organization: My Company
+      developers:
+        - id: dev1
+          name: Developer One
+          url: https://github.com/dev1
+      licenses:
+        - name: MIT
+          url: http://opensource.org/licenses/MIT
+          distribution: repo
+
+projects:
+  mylib:
+    extends: template-oss
+```
+
+`groupId`, `url`, `developers`, and `licenses` are required by Sonatype.
+
+### Sonatype-specific fields
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `sonatypeProfileName` | Same as `groupId` | Sonatype staging profile name |
+| `sonatypeCredentialHost` | `central.sonatype.com` | Sonatype API endpoint |
+
+You almost never need to set these.
+
+### Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `SONATYPE_USERNAME` | Sonatype user token username |
+| `SONATYPE_PASSWORD` | Sonatype user token password |
+| `PGP_SECRET` | Base64-encoded GPG private key |
+| `PGP_PASSPHRASE` | GPG key passphrase |
+
+Get Sonatype tokens: central.sonatype.com > username > View Account > Generate User Token. These are **user tokens**, not your account username/password.
+
+## Publishing
+
+```bash
+bleep publish sonatype
+```
+
+This will:
+1. Derive version from git tags (DynVer)
+2. Compile all publishable projects
+3. Package artifacts (JAR, POM, sources, javadoc)
+4. Sign with GPG
+5. Add checksums (MD5, SHA1)
+6. Upload to Sonatype staging
+7. Close and release the staging repository
+
+### Explicit version
+
+```bash
+bleep publish sonatype --version 1.0.0
+```
+
+### Snapshots vs releases
+
+- Clean git tag (e.g. `v1.0.0`) → release
+- Anything else → snapshot (gets `-SNAPSHOT` suffix)
+
+### Release assertion
+
+```bash
+bleep publish sonatype --assert-release
+```
+
+Fails if the version would be a snapshot. Useful in CI.
+
+## CI/CD
+
+Set the environment variables and run [`bleep publish sonatype`](/docs/reference/cli/publish/sonatype/). CI-agnostic — works with any CI.
+
+Example trigger: push a git tag to start a release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+SCM metadata in the POM is auto-detected from your git remote. No configuration needed.
+
+## Troubleshooting
+
+### 401 Unauthorized
+
+Verify `SONATYPE_USERNAME` and `SONATYPE_PASSWORD` are **user tokens** (not your account password). Regenerate at central.sonatype.com > View Account > Generate User Token.
+
+### GPG / PGP errors
+
+Run [`bleep publish setup`](/docs/reference/cli/publish/setup/) to regenerate keys. Ensure `PGP_SECRET` is base64-encoded as a single line.

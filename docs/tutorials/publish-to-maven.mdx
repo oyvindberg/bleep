@@ -1,0 +1,217 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Publish to Maven Central
+
+Bleep ships a built-in [`bleep publish`](/docs/reference/cli/publish/) command. There is no script to
+write, no plugin to import — your `bleep.yaml` declares what to publish
+and [`bleep publish sonatype`](/docs/reference/cli/publish/sonatype/) does it. PGP signing, Sonatype Central
+upload, and dynver-based versioning from git tags are all wired in.
+
+## Prerequisites
+
+- A working bleep project (see [Your First Project](/docs/tutorials/your-first-project)).
+- A [Sonatype Central Portal](https://central.sonatype.com/) account
+  with a verified namespace (group ID).
+- A PGP key pair. If you don't have one, the setup wizard below will
+  generate one for you.
+
+## Step 1: Run the setup wizard
+
+```bash
+bleep publish setup
+```
+
+This is an interactive TUI that walks you through:
+
+- **Sonatype / Maven Central** — generates a PGP key, exports the
+  passphrase to `~/.config/bleep/config.yaml`, optionally publishes the
+  public key to a key server.
+- **GitHub Packages**, **GitLab Package Registry**, and
+  **Google Artifact Registry** — same, with provider-specific auth
+  flows.
+
+Skip this step if you already have credentials configured.
+
+## Step 2: Add publish metadata to `bleep.yaml`
+
+Each project that should be published gets a `publish:` block. Maven
+Central requires `groupId`, `url`, `description`, at least one developer,
+and at least one license:
+
+<Snippet path="docs-snippets-from-tests/publish-to-maven/bleep.yaml" lang="yaml" />
+
+Field reference:
+
+| field | required | notes |
+|---|---|---|
+| `enabled` | no | defaults to `true` when `publish` is present. Set to `false` on a project that inherits a `publish` block from a template but shouldn't itself be published (e.g. a `scripts` module). |
+| `groupId` | yes | Maven group, e.g. `io.github.myusername`. Must match your verified Sonatype namespace. |
+| `url` | for Central | Project homepage. |
+| `description` | for Central | One-line summary. |
+| `developers` | for Central | List of `{ id, name, url }`. |
+| `licenses` | for Central | List of `{ name, url, distribution? }`. |
+| `organization` | optional | Organization name (rendered as `<organization>` in the POM). |
+| `sonatypeProfileName` | optional | Defaults to `groupId`. Override if your Sonatype profile name differs from your group. |
+| `sonatypeCredentialHost` | optional | Defaults to `central.sonatype.com`. Set to `oss.sonatype.org` if you're still on legacy OSSRH. |
+
+**The artifact name is the project name.** A project called `mylib`
+publishes as `<groupId>:mylib:<version>`. There is no `name` field —
+rename the project in `bleep.yaml` if you want a different artifact id.
+
+**Versions come from git tags via [dynver](https://github.com/dwijnand/sbt-dynver).**
+A clean tag like `v1.2.3` produces version `1.2.3`. Any commit after
+the tag, or a dirty working tree, produces a `-SNAPSHOT` suffix. There
+is no `version:` field on the project for publishing.
+
+## Step 3: Set credentials in your environment
+
+```bash
+export SONATYPE_USERNAME=your-token-username
+export SONATYPE_PASSWORD=your-token-password
+export PGP_SECRET=base64-encoded-private-key
+export PGP_PASSPHRASE=your-key-passphrase
+```
+
+For Sonatype Central, the username/password are **user tokens**
+generated at https://central.sonatype.com/account, not your account
+login.
+
+To produce `PGP_SECRET`:
+
+```bash
+gpg --armor --export-secret-keys YOUR_KEY_ID | base64 | tr -d '\n'
+```
+
+([`bleep publish setup`](/docs/reference/cli/publish/setup/) does this for you.)
+
+## Step 4: Test the package locally
+
+Before pushing to Central, publish to your local ivy cache:
+
+```bash
+bleep publish local-ivy
+```
+
+Inspect `~/.ivy2/local/<groupId>/<projectName>/` — you should see the
+JAR, sources JAR, javadoc JAR, and POM. Pull the artifact into another
+project to verify it resolves cleanly.
+
+## Step 5: Publish to Maven Central
+
+```bash
+bleep publish sonatype
+```
+
+What happens:
+
+1. Bleep compiles every project that has `publish:` configured.
+2. `dynver` infers the version from git tags. With `--assert-release`,
+   bleep refuses to proceed unless you're on a clean tag.
+3. Each project is packaged into JAR + sources JAR + javadoc JAR + POM,
+   PGP-signed with `PGP_SECRET`.
+4. The bundle is uploaded to Sonatype Central, which closes and
+   releases the staging repository on success.
+
+Useful flags:
+
+- `--version 1.2.3` — override the dynver-inferred version.
+- `--assert-release` — fail rather than publish a snapshot. Use this
+  in CI release jobs.
+- `mylib` — publish only the named project (and its publishable
+  transitive deps).
+
+## Cross-published artifacts
+
+A project with a `cross:` block publishes one Maven artifact per cross
+variant. Scala cross variants get the standard Scala suffix
+(`mylib_2.13`, `mylib_3`), Scala.js variants pick up `_sjs1_3`, and so
+on — the convention matches what sbt produces, so consumers can depend
+on `mylib_3` from any tool. See
+[Cross-building](/docs/guides/cross-building) for the workspace shape.
+
+## GitHub Actions release workflow
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # dynver needs full history
+
+      - uses: bleep-build/bleep-setup-action@0.0.3
+
+      - name: Publish to Maven Central
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: bleep publish --assert-release sonatype
+```
+
+`fetch-depth: 0` is required so dynver can read the tag history.
+
+## Publishing to other repositories
+
+Sonatype is the default for [`bleep publish sonatype`](/docs/reference/cli/publish/sonatype/), but [`bleep publish`](/docs/reference/cli/publish/)
+also generates a subcommand for every named resolver in your
+`bleep.yaml`. Declare the resolver:
+
+```yaml
+resolvers:
+  - name: company-nexus
+    uri: https://nexus.company.com/repository/maven-releases/
+```
+
+Then:
+
+```bash
+bleep publish company-nexus
+```
+
+[`bleep publish setup`](/docs/reference/cli/publish/setup/) configures auth for GitHub Packages, GitLab
+Package Registry, and Google Artifact Registry interactively.
+
+## Troubleshooting
+
+### "No publishable projects found"
+
+No project in your build has a `publish:` block. Add one to at least
+one project.
+
+### "version would be a snapshot"
+
+You ran `bleep publish sonatype --assert-release` on a commit that's
+not at a clean tag. Either tag the commit (`git tag v1.2.3`), drop
+`--assert-release` to publish a `-SNAPSHOT`, or pass `--version 1.2.3`
+explicitly.
+
+### "Invalid signature" on Sonatype side
+
+Your `PGP_SECRET` is wrong or your key isn't published to a key server.
+Re-run [`bleep publish setup`](/docs/reference/cli/publish/setup/) — the wizard publishes your key to the
+default keyserver as part of setup.
+
+### "Repository not found" / staging close fails
+
+Check that your Sonatype namespace (group ID) is verified and matches
+the `groupId` in `publish:`. Sonatype's UI at
+https://central.sonatype.com/publishing shows recent attempts and their
+errors.
+
+## Next steps
+
+- [Cross-building](/docs/guides/cross-building) — publish multiple
+  Scala variants from one command.
+- [Private repositories](/docs/usage/private-repos) — publish to your
+  organization's internal Maven repo.
+- [CI/CD setup](/docs/guides/ci-cd-setup) — full release pipeline.

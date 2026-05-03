@@ -1,0 +1,160 @@
+---
+title: MCP server
+---
+
+# MCP server
+
+Bleep ships a Model Context Protocol server. Point Claude Code (or
+any MCP-aware client) at it and an agent can compile, test, run, and
+inspect your build through 18 structured tool calls &mdash; without
+parsing CLI output, without keeping a long-running interactive shell
+open, without reading pages of context for a one-line answer.
+
+The design is built for the world where multiple agents run against
+the same build at the same time:
+
+- **Compact by default.** Every tool returns a small JSON summary
+  (error counts, failure suites, the diff against the previous run).
+  Full output is one extra call away &mdash; `bleep.status` for the
+  cached last run, or `verbose=true` on the original tool.
+- **Errors stream.** Per-project compile errors land as MCP
+  notifications the instant that project finishes, not at the end of
+  the whole build. The latency floor for a real failure is
+  milliseconds.
+- **In-process.** The MCP server runs against bleep&rsquo;s BSP server
+  inside the same JVM. Every call is sub-second after warmup, sub-100ms
+  once warm. Four parallel agents do not stall on a tool that doesn&rsquo;t
+  exist outside one of them.
+
+## Setup
+
+Run from your build root:
+
+```bash
+bleep setup-mcp-server
+```
+
+That writes `.mcp.json` &mdash; the config file that Claude Code,
+Cursor, and any other MCP client reads to discover servers. Restart
+the client (or trigger a re-scan) and the bleep tools appear.
+
+The flag `--force-jvm` runs the MCP server through the JVM rather
+than the native binary &mdash; useful when iterating on bleep itself.
+
+## The tool surface
+
+| Tool                      | Effect      | What it does                                                                                |
+| ------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
+| `bleep.compile`           | read-only   | Compile selected projects. Returns error counts and a diff vs the previous run.             |
+| `bleep.test`              | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a diff.                         |
+| `bleep.test.suites`       | read-only   | List test suite class names without running them. Requires projects to be compiled.         |
+| `bleep.sourcegen`         | additive    | Run sourcegen scripts for selected projects.                                                |
+| `bleep.fmt`               | additive    | Format Scala and Java sources via scalafmt and google-java-format.                          |
+| `bleep.clean`             | destructive | Delete compile output for selected projects.                                                |
+| `bleep.watch`             | additive    | Start a background watch job. Returns a `jobId`; results stream as notifications.            |
+| `bleep.sync`              | read-only   | Pull the latest results from active watch jobs (or do a fresh compile if none are running). |
+| `bleep.watch.stop`        | destructive | Stop a watch job, or all of them if no `jobId` is given.                                    |
+| `bleep.build.effective`   | read-only   | The project config after templates apply &mdash; what bleep sees.                           |
+| `bleep.build.resolved`    | read-only   | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.               |
+| `bleep.projects`          | read-only   | List projects with their dependencies and test-project flag.                                |
+| `bleep.programs`          | read-only   | List projects with a `mainClass` (runnable programs).                                       |
+| `bleep.scripts`           | read-only   | List the named scripts under `scripts:` in `bleep.yaml`.                                    |
+| `bleep.run`               | additive    | Compile and run a project or script. Returns stdout/stderr and exit code.                   |
+| `bleep.status`            | read-only   | The cached results from the last build/test, with full diagnostics. Paginated.              |
+| `bleep.restart`           | destructive | Exit the MCP server process. The client will relaunch it.                                   |
+
+`Effect` mirrors the MCP spec's tool semantics &mdash; clients use it
+to decide whether a tool can run unattended.
+
+## Output shape
+
+Every tool returns a JSON document. By default that document is a
+*summary*, not a transcript:
+
+```json
+{
+  "compiled": 12,
+  "errors": 0,
+  "warnings": 3,
+  "diff": {
+    "newErrors": [],
+    "newWarnings": [{"project": "myapp", "file": "Main.scala", "line": 42, "message": "..."}]
+  }
+}
+```
+
+The diff is computed against the previous run that touched the same
+projects (a two-slot ring buffer is kept in memory). An agent that
+runs `bleep.compile` twice in a row sees an empty diff on the second
+call &mdash; the response is small and obviously a no-op.
+
+Two ways to get full output when you actually need it:
+
+- `bleep.status` returns the *full* diagnostics from the last run,
+  with `project`, `limit`, `offset` parameters for pagination. This
+  is the right call when an agent has already seen the summary and
+  decided to drill in.
+- `verbose=true` on `bleep.compile` / `bleep.test` returns the full
+  output inline. Use sparingly &mdash; it's much larger.
+
+## Watch and sync
+
+Long-running compile/test loops use a different shape. `bleep.watch`
+starts a background fiber and returns a `jobId`. Results stream to
+the client as MCP notifications. To pull the latest snapshot
+synchronously, the agent calls `bleep.sync`, which reads from every
+active watch job and returns the same compact summary shape.
+
+```
+agent: bleep.watch { mode: "test", projects: ["myapp"] }
+       → { jobId: "w1" }
+... time passes; notifications stream as projects compile and tests run ...
+agent: bleep.sync
+       → { watchResults: [{ jobId: "w1", mode: "test", result: {...} }] }
+agent: bleep.watch.stop { jobId: "w1" }
+```
+
+Without an active watch job, `bleep.sync` falls back to a fresh
+compile of every project &mdash; useful as a "where am I?" probe.
+
+## Why these design choices
+
+A few words on the *why*, since each choice paid for itself within
+the first session of using bleep with multiple parallel agents.
+
+### Compactness over completeness
+
+A full compile transcript can be tens of thousands of tokens. An
+agent making decisions doesn't need the transcript &mdash; it needs to
+know *did anything go wrong, and what changed since last time*.
+Returning a summary first, with `bleep.status` available for drill-in,
+turns a 30 000-token tool response into a 200-token one and a
+follow-up.
+
+### Diff against the previous run
+
+Coding agents call build tools dozens of times per session, and most
+of those calls are no-ops. Highlighting *what changed* between calls
+lets the agent reason about progress without re-reading every error.
+
+### Errors stream, results summarise
+
+When something is wrong, latency matters &mdash; the agent should know
+about a compile error the instant the project finishes, not 30
+seconds later when the rest of the build wraps. So per-project
+errors stream as notifications during the call, while the *summary*
+that wraps up the call is the diff and the counts.
+
+### In-process BSP
+
+The MCP server runs against bleep's existing BSP server inside the
+same JVM. Tool calls don't fork processes, don't reload bleep, don't
+incur the daemon-handshake tax that every other build tool has. This
+is the only reason "four agents in parallel" doesn't degrade.
+
+## See also
+
+- [Bleep build subcommands](/docs/reference/cli/build) &mdash; the same
+  capabilities exposed on the command line.
+- [Project globs](/docs/concepts/project-globs) &mdash; the `projects`
+  argument shape every tool accepts.
