@@ -3,6 +3,8 @@ title: Same project, four build tools
 ---
 
 import Snippet from "@site/src/components/Snippet";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 # Same project, four build tools
 
@@ -18,22 +20,53 @@ mind.
 
 ## bleep.yaml &mdash; plain data
 
-This is a real workspace from bleep's own integration tests
-(`docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml`).
-The bleep build server compiles and runs it on every commit:
+Same shape across all three languages. The only thing that changes between
+tabs is the per-language fields (`scala:`, `kotlin:`, dep coordinates) and
+the test framework. Each snippet is a real workspace from bleep's own
+integration tests; the bleep build server compiles and runs each one on
+every commit.
+
+<Tabs groupId="language" defaultValue="kotlin" values={[
+  { label: "Kotlin", value: "kotlin" },
+  { label: "Java", value: "java" },
+  { label: "Scala", value: "scala" }
+]}>
+<TabItem value="kotlin">
 
 <Snippet
   path="docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml"
   lang="yaml"
 />
 
-For the per-feature breakdown, see the dedicated pages:
+</TabItem>
+<TabItem value="java">
+
+<Snippet
+  path="docs-snippets-from-tests/your-first-project/bleep.yaml"
+  lang="yaml"
+/>
+
+</TabItem>
+<TabItem value="scala">
+
+<Snippet
+  path="docs-snippets-from-tests/your-first-scala-project/bleep.yaml"
+  lang="yaml"
+/>
+
+</TabItem>
+</Tabs>
+
+For the per-feature breakdown of each comparison, see the dedicated pages:
 [vs Maven](/docs/compared-to-other-build-tools/maven),
 [vs Gradle](/docs/compared-to-other-build-tools/gradle),
 [vs sbt](/docs/compared-to-other-build-tools/sbt),
 [vs Mill](/docs/compared-to-other-build-tools/mill).
 
 ## pom.xml &mdash; XML
+
+The Kotlin variant. Java and Scala flavors of `pom.xml` differ only in the
+plugin section and dep coordinates &mdash; same XML.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -86,6 +119,9 @@ It is 2026. We are still typing closing tags by hand. There is no need.
 
 ## build.sbt + project/ &mdash; a DSL across three files
 
+The Scala variant. sbt is rarely used outside Scala &mdash; the Java/Kotlin
+flavors exist but nobody actually picks sbt for them.
+
 `build.sbt`:
 
 ```scala
@@ -121,6 +157,9 @@ graph. `sbt-native-packager` is enabled by name; what it does to your build
 is somewhere on a wiki.
 
 ## build.gradle.kts &mdash; a Kotlin program
+
+The Kotlin variant. Gradle's Java DSL is similar shape; the Scala flavor
+exists but isn't widely used.
 
 ```kotlin
 plugins {

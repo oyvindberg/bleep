@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.commands.PublishLocal
+import bleep.commands.{Publish, PublishLocal}
 import cats.data.NonEmptyList
 
 class Commands(started: Started) {
@@ -55,4 +55,7 @@ class Commands(started: Started) {
 
   def publishLocal(options: PublishLocal.Options, watch: Boolean = false): Unit =
     force(commands.PublishLocal(watch, options, noTuiBuildOpts))
+
+  def publish(options: Publish.Options, watch: Boolean = false): Unit =
+    force(commands.Publish(watch, options, noTuiBuildOpts))
 }

@@ -31,6 +31,12 @@ class CredentialProvider(logger: Logger, authentications: Option[Authentications
       case PrivateRepoScheme.GitLab           => resolveGitLab(originalUri)
     }
 
+  /** Static credentials for a plain `http://` / `https://` URI, looked up by exact URI match in the user's `authentications:` config. None when no entry
+    * matches.
+    */
+  def staticAuth(uri: URI): Option[Authentication] =
+    authentications.flatMap(_.configs.get(uri).collect { case AuthEntry.Static(a) => a })
+
   private def resolveArtifactRegistry(repoUri: URI): Authentication = {
     val account = findPrivateRepoConfig(repoUri).flatMap(_.account)
     val cacheKey = s"artifactregistry:${account.getOrElse("")}"

@@ -1,0 +1,146 @@
+---
+title: Artifactory & generic Maven repos
+---
+
+import Snippet from "@site/src/components/Snippet";
+
+# Artifactory & generic Maven repos
+
+JFrog Artifactory, Sonatype Nexus, and any other plain HTTP(S) Maven repository hosted by your company use the same shape: a Maven-format URL plus HTTP Basic Auth credentials. Bleep talks to them as ordinary `https://` resolvers — no provider-specific scheme, no CLI tool to install.
+
+The configuration below is the same shape exercised by bleep's [`PublishToHttpMavenRepoIT`](https://github.com/oyvindberg/bleep/blob/master/bleep-tests/src/scala/bleep/PublishToHttpMavenRepoIT.scala), which spins up an in-process HTTP Maven server, publishes through the full stack with Basic Auth, and asserts the artifacts land at the expected layout paths. The yaml below is the snippet that test produces:
+
+<Snippet
+  path="docs-snippets-from-tests/artifactory/bleep.yaml"
+  lang="yaml"
+/>
+
+## Setup
+
+### 1. Declare the resolver in `bleep.yaml`
+
+A named resolver can be both the source of dependencies and the publish target:
+
+```yaml
+resolvers:
+  - name: company-releases
+    type: maven
+    uri: https://artifactory.company.com/artifactory/libs-release
+  - name: company-snapshots
+    type: maven
+    uri: https://artifactory.company.com/artifactory/libs-snapshot
+```
+
+Each named resolver automatically becomes a `bleep publish <name>` subcommand — with tab completion and help.
+
+### 2. Add credentials to your bleep config
+
+Auth lives in your **user config**, not in `bleep.yaml` (so credentials don't leak into source control). Path:
+
+| OS | Path |
+|----|------|
+| macOS | `~/Library/Application Support/build.bleep/config.yaml` |
+| Linux | `~/.config/bleep/config.yaml` (`$XDG_CONFIG_HOME/bleep/config.yaml` if set) |
+| Windows | `%APPDATA%\build.bleep\config\config.yaml` |
+
+Bleep does **exact URI matching** for static credentials — releases and snapshots are different URIs, so each gets its own entry even when the user/password are identical:
+
+```yaml
+authentications:
+  https://artifactory.company.com/artifactory/libs-release:
+    user: alice@company.com
+    password: cmVmdGtuOj... # Artifactory identity token
+  https://artifactory.company.com/artifactory/libs-snapshot:
+    user: alice@company.com
+    password: cmVmdGtuOj...
+```
+
+Use an Artifactory **identity token** rather than an SSO password — generate one in the Artifactory UI under *Edit Profile → Authentication Settings → Generate Identity Token*. Tokens are revocable and scoped.
+
+The file is plain text; protect it (`chmod 600`) and don't check it in.
+
+## Resolving dependencies
+
+Once the resolver is declared and credentials are in place, internal artifacts are referenced like any other dep:
+
+```yaml
+projects:
+  myapp:
+    dependencies:
+      - com.mycompany:internal-lib:1.4.2
+      - com.mycompany::scala-utils:0.9.0
+```
+
+The same resolver entry covers both fetching and publishing. Maven Central is still queried for everything Artifactory doesn't host (unless you remove it via [a custom resolver list](#mirror-mode-artifactory-as-maven-central-proxy)).
+
+## Publishing
+
+```bash
+bleep publish company-releases              # all publishable projects
+bleep publish company-releases mylib        # specific project
+```
+
+### Releases vs snapshots
+
+Most Artifactory setups keep release and snapshot repos separate. Bleep doesn't infer which to target — pick the right resolver name based on what you're publishing:
+
+```bash
+# clean tag → release repo
+git tag v1.0.0
+bleep publish --assert-release company-releases
+
+# in-progress / dirty tree → snapshot repo
+bleep publish company-snapshots
+```
+
+`--assert-release` makes the publish fail rather than push a snapshot to the release repo. Useful in CI to prevent accidental releases from a dirty tree.
+
+## CI
+
+```yaml
+# .github/workflows/release.yml — Linux runner
+- name: Configure Artifactory credentials
+  env:
+    ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+    ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+  run: |
+    mkdir -p ~/.config/bleep
+    cat > ~/.config/bleep/config.yaml <<EOF
+    authentications:
+      https://artifactory.company.com/artifactory/libs-release:
+        user: $ARTIFACTORY_USER
+        password: $ARTIFACTORY_TOKEN
+    EOF
+
+- name: Publish
+  run: bleep publish --assert-release company-releases
+```
+
+Same idea on GitLab CI / Jenkins / Buildkite — write the config file from secrets, then run the publish command. macOS and Windows runners use the OS-specific paths from the table above.
+
+## Troubleshooting
+
+### `401 Unauthorized` when fetching or publishing
+
+Check that the `authentications:` URI **exactly** matches the resolver URI in `bleep.yaml`. Bleep does exact matching for static credentials — `https://artifactory.company.com/artifactory/` won't satisfy a resolver pointing at `https://artifactory.company.com/artifactory/libs-release`. Add an entry per resolver URI.
+
+Verify the token in Artifactory itself with curl:
+
+```bash
+curl -u alice@company.com:<token> https://artifactory.company.com/artifactory/libs-release/com/mycompany/internal-lib/1.4.2/internal-lib-1.4.2.pom
+```
+
+### `403 Forbidden` on publish
+
+The token has fetch permissions but lacks `Deploy`. In Artifactory: *Admin → Security → Permissions → Edit* the role tied to your token and enable Deploy on the target repo.
+
+### Mirror mode (Artifactory as Maven Central proxy)
+
+If your firewall blocks Maven Central and your company fronts it through Artifactory, add the proxy repo as a resolver. You'll need a separate `authentications:` entry for the proxy URI — same user/password, different key.
+
+```yaml
+resolvers:
+  - name: maven-virtual
+    type: maven
+    uri: https://artifactory.company.com/artifactory/maven-virtual
+```
