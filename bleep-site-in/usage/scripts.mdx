@@ -4,40 +4,57 @@ title: Scripts
 
 # Scripts
 
-A Bleep script is a Scala `object` with a `main` method, declared in your build file and runnable as a bleep subcommand. Scripts replace what sbt does with tasks, settings, and plugins — but instead of a DSL, you write normal code.
+A Bleep script is a Java class declared in your build file and runnable as a bleep subcommand. Scripts replace what sbt does with tasks, settings, and plugins — but instead of a DSL, you write normal Java code. Set a breakpoint, inspect variables, use any library.
 
 ## A minimal script
 
 ### 1. Create a project to hold scripts
 
-Scripts need to live somewhere. Add a project for them and give it whatever dependencies your scripts need:
+Scripts need to live somewhere. Add a Java project for them:
 
 ```yaml
 projects:
   scripts:
-    dependencies:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    dependsOn:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
       - build.bleep::bleep-core:${BLEEP_VERSION}
-    scala:
-      version: 3.3.3
+    sources: ./src/main/java
 ```
 
-The `bleep-core` dependency is where `BleepScript`, `Started`, and `Commands` come from. It's **optional** — see [The script protocol](#the-script-protocol) below — but using it is by far the most ergonomic way to write a script.
+Two dependencies:
+
+- **`bleepscript`** provides `BleepScript`, `Started`, `Commands`, and the rest of the script API.
+- **`bleep-core`** is needed at **runtime** — it contains the implementation that `bleepscript` dispatches to, discovered at startup via `ServiceLoader`.
 
 ### 2. Write the script
 
-```scala
-// scripts/src/scala/myscripts/Hello.scala
-package myscripts
+```java
+// scripts/src/main/java/myscripts/Hello.java
+package myscripts;
 
-import bleep.*
+import bleepscript.BleepScript;
+import bleepscript.Commands;
+import bleepscript.Started;
+import java.util.List;
 
-object Hello extends BleepScript("Hello") {
-  def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    started.logger.info(s"Hello from ${started.build.explodedProjects.size} projects!")
-    args.foreach(arg => started.logger.info(s"  arg: $arg"))
+public final class Hello extends BleepScript {
+  public Hello() {
+    super("hello");
+  }
+
+  @Override
+  public void run(Started started, Commands commands, List<String> args) {
+    started.logger().info("Hello from " + started.build().explodedProjects().size() + " projects!");
+    args.forEach(arg -> started.logger().info("  arg: " + arg));
   }
 }
 ```
+
+No `main` method required — `BleepScript` provides one that discovers and instantiates your class. All you write is a no-arg constructor (passing a name to `super`) and `run`.
 
 ### 3. Register it in the build
 
@@ -62,145 +79,129 @@ Script names tab-complete.
 
 Every script extends `BleepScript`:
 
-```scala
-abstract class BleepScript(val scriptName: String) {
-  def run(started: Started, commands: Commands, args: List[String]): Unit
+```java
+public abstract class BleepScript {
+  protected BleepScript(String name);
+  public abstract void run(Started started, Commands commands, List<String> args);
 }
 ```
 
 Your script gets three things:
 
-- **`started: Started`** — the fully loaded build. The important fields:
-  - `started.build.explodedProjects` — all projects, cross-variants expanded
-  - `started.buildPaths` — paths in the build (root, `.bleep/`, etc.)
-  - `started.logger` — Bleep's structured logger
-  - `started.resolvedJvm` — the JVM Bleep is using
-  - `started.pre` — for fetching JDKs, Node, Coursier-resolved artifacts
+- **`started`** — the fully loaded build. The important methods:
+  - `started.build()` — every project, resolvers, scripts, `$version`
+  - `started.buildPaths()` / `started.userPaths()` / `started.projectPaths(cross)`
+  - `started.logger()` — Bleep's structured logger
+  - `started.resolvedJvm()` — the JVM Bleep is using
+  - `started.exploded(cross)` and `started.resolved(cross)` — per-project views
+- **`commands`** — invoke other bleep commands:
 
-- **`commands: Commands`** — invoke other bleep commands:
-  ```scala
-  commands.compile(List(projectName))
-  commands.test(List(projectName))
+  ```java
+  commands.compile(List.of(projectName));
+  commands.test(List.of(projectName));
+  commands.publishLocal(
+      PublishOptions.builder()
+          .groupId("com.example")
+          .version("1.0.0")
+          .toLocalIvy()
+          .projects(projectName)
+          .build());
   ```
 
-- **`args: List[String]`** — whatever the user passed on the command line after the script name.
+- **`args`** — whatever the user passed on the command line after the script name.
 
-That's the entire API. The rest is just Scala — use any library, call any method, debug with breakpoints.
+### Working with the build model
+
+Everything is plain Java records and sealed interfaces.
+
+```java
+Map<CrossProjectName, Project> all = started.build().explodedProjects();
+Project project = started.exploded(CrossProjectName.of("my-lib"));
+for (Dep dep : project.dependencies()) {
+  String kind = switch (dep) {
+    case Dep.Java j -> "java";
+    case Dep.Scala s -> s.fullCrossVersion() ? "scala-full" : "scala";
+  };
+  started.logger().info(kind + ": " + dep.repr());
+}
+```
+
+Sealed interfaces you'll encounter:
+
+- `Dep` — `Dep.Java` or `Dep.Scala`
+- `Repository` — `Repository.Maven`, `Repository.MavenFolder`, `Repository.Ivy`
+- `PlatformConfig` — `PlatformConfig.Jvm`, `PlatformConfig.Js`, `PlatformConfig.Native`
+
+Construct dependencies with `Deps`:
+
+```java
+Dep lib = Deps.parse("org.typelevel::cats-core:2.10.0");
+Dep.Java junit = Deps.javaDep("org.junit.jupiter", "junit-jupiter", "5.10.0");
+```
+
+Construct paths with `Paths`:
+
+```java
+Path src = Paths.resolve(started.buildPaths().buildDir(), "custom-src");
+```
 
 ## Running from your IDE
 
-Because a script is an ordinary `object` with a `main` method, you can right-click → Run in IntelliJ or VS Code. No special runner, no sbt-shell. This is especially useful when a script is misbehaving: set a breakpoint and step through it.
+Because a script is an ordinary Java class with an inherited `main`, you can right-click → Run in IntelliJ or VS Code. No special runner, no sbt-shell. This is especially useful when a script is misbehaving: set a breakpoint and step through it.
 
-When you run from the IDE, Bleep still bootstraps the build model correctly — the `main` method parses the bleep CLI options (`-d <dir>`, logging flags) before calling your `run`.
+When you run from the IDE, Bleep still bootstraps the build model correctly — the inherited `main` parses the bleep CLI options (`-d <dir>`, logging flags) before calling your `run`.
 
-## A real example: running Scalafix
+## Source generation
 
-Here is one of Bleep's own scripts — wiring up `scalafix` to run over all Scala 3 projects:
+If the output of your script is consumed by `compile`, extend `BleepCodegenScript` instead of `BleepScript`:
 
-```scala
-package bleep
-package scripts
+```java
+public final class GenConstants extends BleepCodegenScript {
+  public GenConstants() { super("gen-constants"); }
 
-import bleep.plugin.scalafix.ScalafixPlugin
-import bleep.rewrites.semanticDb
-
-object Scalafix extends BleepScript("Scalafix") {
-  override val rewrites = List(new semanticDb("4.15.2"))
-
-  def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val projects = started.globs.projectNameMap.get("jvm3").toList.flatten
-
-    commands.compile(projects)
-
-    new ScalafixPlugin(
-      started,
-      scalafixIvyDeps = Nil
-    ).fix(projects = projects, args = args)
+  @Override
+  public void run(Started started, Commands commands, List<CodegenTarget> targets, List<String> args) {
+    for (CodegenTarget target : targets) {
+      Path file = target.sources().resolve("my/pkg/Constants.java");
+      Files.createDirectories(file.getParent());
+      Files.writeString(file, "package my.pkg; public final class Constants { public static final int N = 42; }");
+    }
   }
 }
 ```
 
-A few things to notice:
-
-- It uses a **ported sbt plugin** (`ScalafixPlugin`) — see [Porting sbt plugins](/docs/porting-sbt-plugins).
-- It overrides `rewrites` to enable `semanticDb` compilation before scalafix runs. A `BuildRewrite` modifies the build model in memory before the script runs, without touching `bleep.yaml`.
-- It selects projects by platform (`jvm3`) using `started.globs`.
-- It composes: compile, then lint. If one thing fails, the script throws and bleep reports the error.
-
-## Composing plugins
-
-Scripts shine when you have several things to do in sequence. Here's a snippet from Bleep's own `publish` script:
-
-```scala
-val dynVer = new DynVerPlugin(
-  baseDirectory = started.buildPaths.buildDir.toFile,
-  dynverSonatypeSnapshots = true
-)
-val pgp = new PgpPlugin(
-  logger = started.logger,
-  maybeCredentials = None,
-  interactionService = InteractionService.DoesNotMaskYourPasswordExclamationOneOne
-)
-val sonatype = new Sonatype(
-  logger = started.logger,
-  sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
-  sonatypeProfileName = "build.bleep",
-  bundleName = "bleep",
-  version = dynVer.version,
-  sonatypeCredentialHost = Sonatype.sonatype01
-)
-val ciRelease = new CiReleasePlugin(started.logger, sonatype, dynVer, pgp)
-
-ciRelease.ciRelease(...)
-```
-
-Four plugins, wired together with `new`. No implicits, no auto-import, no `enablePlugins`. You pass instances explicitly, so you can see exactly what goes where.
+Declared in `bleep.yaml` under a project's `sourcegen:` (not top-level `scripts:`), this runs automatically before compilation with invalidation based on input hashes. The framework handles writing to a temp directory, syncing to the real generated-sources directory, and writing a stamp file so bleep can tell whether the output is stale.
 
 ## The script protocol
 
-Under the hood, a bleep script is *any* JVM program with a `main(args: Array[String])` method. When bleep runs a script, it:
+Under the hood, a bleep script is *any* JVM program with a `public static void main(String[])`. When bleep runs a script, it:
 
-1. Resolves the script's project classpath (like `bleep run`).
+1. Resolves the script project's classpath (like `bleep run`).
 2. Forks a JVM with that classpath.
-3. Invokes the configured main class, **prepending framework flags** to whatever args the user passed on the command line.
+3. Invokes the configured main class, **prepending framework flags** to whatever args the user passed.
 
 The prepended flags include:
 
-| Flag                  | Meaning                                      |
-| --------------------- | -------------------------------------------- |
-| `-d <buildDir>`       | Absolute path to the build directory         |
-| `--no-color`          | Disable ANSI colours in logging              |
-| `--debug`             | Enable debug logging                         |
-| `--dev`               | Development mode                             |
-| `--no-bsp-progress`   | Suppress BSP progress events                 |
-| `--log-as-json`       | Structured JSON logging                      |
+| Flag                  | Meaning                              |
+| --------------------- | ------------------------------------ |
+| `-d <buildDir>`       | Absolute path to the build directory |
+| `--no-color`          | Disable ANSI colours in logging      |
+| `--debug`             | Enable debug logging                 |
+| `--dev`               | Development mode                     |
+| `--no-bsp-progress`   | Suppress BSP progress events         |
+| `--log-as-json`       | Structured JSON logging              |
 
-For sourcegen scripts, bleep additionally prepends `-p <project>` for each target project.
+`BleepScript`'s inherited `main` consumes these flags for you. If you need raw access, write your own:
 
-This means `bleep-core` is technically optional. A minimal "script" is just:
-
-```scala
-object Raw {
-  def main(args: Array[String]): Unit = {
-    println("called with: " + args.mkString(" "))
-  }
+```java
+public static void main(String[] args) {
+  // args[0..1] will be "-d <buildDir>", followed by any framework flags, followed by user args
 }
 ```
 
-It will work — bleep will invoke it, and it will see `-d /path/to/build` as the first two args, followed by whatever the user typed.
-
-What you give up by not using `BleepScript`:
-
-- **No build model.** You'd have to parse `bleep.yaml` yourself (or shell out to `bleep build show`).
-- **Manual flag handling.** You have to strip `-d`, `--no-color`, etc. from `args` before processing user input.
-- **No structured logger.** `println` works fine, but you lose the nice structured output and levels.
-- **For sourcegen:** you'd have to implement the temp → real sync and stamp-file dance yourself (see [Source generation](/docs/usage/sourcegen) for what that involves).
-
-So: use `BleepScript` / `BleepCodegenScript` unless you have a specific reason not to. The underlying contract is deliberately simple — a `main` method with a small, stable argument prefix — which means scripts written in any JVM language (Kotlin, Java, Scala 2, Scala 3) all work the same way.
-
 ## When to use scripts vs. sourcegen
 
-- **Scripts** run when you invoke them (`bleep <script>`). They're for user-triggered or CI-triggered workflows: publishing, docs, custom linters, release automation.
-- **[Sourcegen](/docs/usage/sourcegen)** runs automatically before compilation, on-demand, with invalidation. It's for producing code that another project needs in order to compile.
+- **Scripts** (`BleepScript`) run when you invoke them (`bleep <script>`). They're for user-triggered or CI-triggered workflows: publishing, docs, custom linters, release automation.
+- **Sourcegen** (`BleepCodegenScript`) runs automatically before compilation, on-demand, with invalidation. It's for producing code that another project needs in order to compile.
 
 If the output of your script is consumed by `compile`, use sourcegen. Otherwise use a regular script.
