@@ -38,7 +38,7 @@ object ReactiveTestRunner {
       testArgs = Nil,
       maxParallelJvms = Runtime.getRuntime.availableProcessors(),
       quietMode = false,
-      idleTimeout = 2.minutes
+      idleTimeout = model.BspServerConfig.DefaultTestIdleTimeoutMinutes.minutes
     )
   }
 

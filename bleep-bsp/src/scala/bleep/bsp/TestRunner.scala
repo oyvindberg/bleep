@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
-import bleep.model.{CrossProjectName, SuiteName, TestName}
+import bleep.model.{BspServerConfig, CrossProjectName, SuiteName, TestName}
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
 import cats.effect.std.Queue
@@ -31,7 +31,7 @@ object TestRunner {
     val default: Options = Options(
       jvmOptions = Nil,
       testArgs = Nil,
-      idleTimeout = 2.minutes,
+      idleTimeout = BspServerConfig.DefaultTestIdleTimeoutMinutes.minutes,
       environment = Map.empty,
       workingDirectory = None
     )

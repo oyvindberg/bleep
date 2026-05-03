@@ -59,7 +59,7 @@ case class BspServerConfig(
 }
 
 object BspServerConfig {
-  val DefaultTestIdleTimeoutMinutes: Int = 2
+  val DefaultTestIdleTimeoutMinutes: Int = 5
   val DefaultHeapPressureThreshold: Double = 0.80
 
   val default: BspServerConfig = BspServerConfig(
