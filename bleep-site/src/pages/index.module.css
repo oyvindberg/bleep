@@ -1003,6 +1003,39 @@
 .pullQuote::after { margin: 1.5rem auto 0; }
 
 /* ============================================================
+   Test runner — video frame
+   ============================================================ */
+.testRunnerVideo {
+  max-width: var(--max-narrow);
+  margin: 0 auto 2.5rem;
+  border: 1px solid var(--hairline-strong);
+  background: var(--ink-950);
+  overflow: hidden;
+  box-shadow: 0 28px 56px -28px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+.testRunnerVideo::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--red-500), transparent);
+  opacity: 0.65;
+  z-index: 1;
+  pointer-events: none;
+}
+.testRunnerVideo video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--ink-950);
+}
+[data-theme='light'] .testRunnerVideo {
+  border-color: rgba(10, 9, 8, 0.12);
+  background: var(--paper);
+}
+
+/* ============================================================
    MCP — three-column case for agent-aware tooling
    ============================================================ */
 .mcpGrid {

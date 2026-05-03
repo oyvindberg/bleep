@@ -3,6 +3,7 @@ package commands
 
 import bleep.internal.{writeYamlLogged, FileUtils}
 import bleep.model.{AuthEntry, Authentications, PrivateRepoScheme, Repository, ResolverName}
+import coursier.core.Authentication
 import ryddig.Logger
 
 import java.net.URI
@@ -13,20 +14,99 @@ case class PublishSetup(logger: Logger, userPaths: UserPaths, maybeStarted: Opti
   override def run(): Either[BleepException, Unit] = {
     val providerIdx = TuiPicker.pick(
       "Select publishing target to configure:",
-      List("Google Artifact Registry", "GitHub Packages", "GitLab Package Registry", "Sonatype / Maven Central")
+      List(
+        "Artifactory / Nexus / generic Maven repo",
+        "Google Artifact Registry",
+        "GitHub Packages",
+        "GitLab Package Registry",
+        "Sonatype / Maven Central"
+      )
     )
 
     providerIdx match {
       case None =>
         logger.info("Setup cancelled")
         Right(())
-      case Some(0) => setupArtifactRegistry()
-      case Some(1) => setupGitHub()
-      case Some(2) => setupGitLab()
-      case Some(3) => setupSonatype()
+      case Some(0) => setupGenericMaven()
+      case Some(1) => setupArtifactRegistry()
+      case Some(2) => setupGitHub()
+      case Some(3) => setupGitLab()
+      case Some(4) => setupSonatype()
       case _       => Right(())
     }
   }
+
+  // --- Generic Maven (Artifactory / Nexus / etc.) ---
+
+  private def setupGenericMaven(): Either[BleepException, Unit] = {
+    logger.info("=== Generic Maven repository setup ===")
+    logger.info("")
+    logger.info("Configures a plain http(s):// Maven repo with HTTP Basic Auth.")
+    logger.info("Use this for Artifactory, Nexus, or any company-internal Maven repo")
+    logger.info("that isn't one of the named providers above.")
+    logger.info("")
+
+    val resolverName = promptNonEmpty("Resolver name (used as `bleep publish <name>`)", default = Some("company-releases"))
+    val uriStr = promptNonEmpty("Repository URI (e.g. https://artifactory.company.com/artifactory/libs-release)", default = None)
+    val uri =
+      try URI.create(uriStr)
+      catch {
+        case _: IllegalArgumentException =>
+          throw new BleepException.Text(s"Not a valid URI: $uriStr")
+      }
+    if (uri.getScheme != "http" && uri.getScheme != "https")
+      throw new BleepException.Text(s"URI scheme must be http or https, got: ${uri.getScheme}")
+
+    val user = promptNonEmpty("Username (typically an Artifactory identity-token user / email)", default = None)
+    val password = promptPassword("Password / token")
+
+    saveAuthEntry(uri, AuthEntry.Static(Authentication(user, password)))
+    logger.info(s"Saved credentials for $uri")
+
+    maybeStarted match {
+      case Some(_) =>
+        addResolverToBuild(resolverName, Repository.Maven(Some(ResolverName(resolverName)), uri))
+        logger.info(s"Publish with: bleep publish $resolverName")
+      case None =>
+        logger.info("")
+        logger.info("Add this resolver to your bleep.yaml:")
+        logger.info("  resolvers:")
+        logger.info(s"    - name: $resolverName")
+        logger.info(s"      type: maven")
+        logger.info(s"      uri: $uri")
+        logger.info("")
+        logger.info(s"Then publish with: bleep publish $resolverName")
+    }
+    Right(())
+  }
+
+  /** Read a non-empty trimmed line from stdin, optionally with a default. Throws BleepException on cancel/EOF. */
+  private def promptNonEmpty(prompt: String, default: Option[String]): String = {
+    val rendered = default match {
+      case Some(d) => s"$prompt [$d]: "
+      case None    => s"$prompt: "
+    }
+    System.err.print(rendered)
+    Option(scala.io.StdIn.readLine()).map(_.trim).filter(_.nonEmpty).orElse(default) match {
+      case Some(s) => s
+      case None    => throw new BleepException.Text("Cancelled (empty input)")
+    }
+  }
+
+  /** Read a password without echoing if a console is attached; fall back to readLine otherwise. */
+  private def promptPassword(prompt: String): String =
+    Option(System.console()) match {
+      case Some(console) =>
+        val chars = console.readPassword(s"$prompt: ")
+        if (chars == null || chars.isEmpty) throw new BleepException.Text("Cancelled (empty password)")
+        new String(chars)
+      case None =>
+        System.err.print(s"$prompt (input will be visible — no console attached): ")
+        Option(scala.io.StdIn.readLine())
+          .map(_.trim)
+          .filter(_.nonEmpty)
+          .getOrElse(throw new BleepException.Text("Cancelled (empty password)"))
+    }
 
   private val pathEnv: List[(String, String)] =
     sys.env.get("PATH").toList.map(p => ("PATH", p)) ++

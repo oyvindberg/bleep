@@ -238,11 +238,6 @@ const sidebars = {
           items: [
             {
               type: "doc",
-              label: "Artifactory / generic Maven",
-              id: "usage/private-repos/artifactory",
-            },
-            {
-              type: "doc",
               label: "GitHub Packages",
               id: "usage/private-repos/github-packages",
             },
@@ -345,11 +340,6 @@ const sidebars = {
           type: "doc",
           label: "Source layout: cross-builds & sbt",
           id: "appendix/source-layout-cross-builds",
-        },
-        {
-          type: "doc",
-          label: "Stable Builds",
-          id: "appendix/stable-builds",
         },
         {
           type: "doc",

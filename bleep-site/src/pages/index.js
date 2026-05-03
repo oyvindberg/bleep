@@ -513,12 +513,15 @@ const tenets = [
     ),
   },
   {
-    title: <><em>Transparent</em>, top to bottom.</>,
+    title: <><em>Repeatable</em>, on purpose.</>,
     body: (
       <>
-        No autoplugins. No setting injection. No "did the parent project enable this?"
-        What you read in <code>bleep.yaml</code> is what runs. If you want to know
-        what's happening, look at the file.
+        <code>bleep.yaml</code> pins what turns YAML into bytecode &mdash;
+        bleep itself, the JVM, and (for Scala.js) Node &mdash; and downloads
+        the right versions on first run. Two checkouts of the same commit
+        produce the same build, no matter what&rsquo;s installed on the host.
+        No <code>.tool-versions</code>, no <code>nvmrc</code>, no
+        &ldquo;works on my machine.&rdquo;
       </>
     ),
   },
@@ -691,6 +694,85 @@ function BuildExtensionsSection() {
               How scripts and source generation work &nbsp;&rarr;
             </Link>
           </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Test runner — parallel, live TUI, actionable summary
+   ------------------------------------------------------------------ */
+function TestRunnerSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Tests"
+          title={
+            <>
+              A test runner that <em>shows its work</em>.
+            </>
+          }
+        >
+          You don&rsquo;t watch a build tool think about tests for two
+          minutes and get a fifty-thousand-line transcript dumped at the
+          end. You watch suites compile, watch them run, see failures the
+          second they happen, and walk away with a precise summary you
+          can act on.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.testRunnerVideo}>
+            <video
+              src="https://github.com/user-attachments/assets/5fc771a3-78b1-45bc-84f0-dd9d9822ca69"
+              controls
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-label="bleep test runner showing parallel execution and live progress"
+            />
+          </div>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Massively <em>parallel</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Test suites run in forked JVMs across every available
+                CPU. Each test project gets its own classpath, its own
+                JVM, its own lifecycle. The bottleneck is your hardware,
+                not the build tool.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                <em>Live</em> TUI
+              </h3>
+              <p className={styles.mcpCardBody}>
+                The terminal shows which suites are compiling, which are
+                running, which finished, which failed. Failures land the
+                instant they happen, not at the end of the run. Pass{" "}
+                <code>--no-tui</code> for plain CI logs.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Precise <em>summary</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                When the run ends, you get exact suite and test names,
+                pass/fail counts per project, and the diff against the
+                previous run &mdash; not a wall of stdout you have to
+                grep through. JUnit XML is one flag away (
+                <code>--junit-report</code>).
+              </p>
+            </article>
+          </div>
         </Reveal>
       </div>
     </section>
@@ -936,6 +1018,7 @@ export default function Home() {
           <BuildExtensionsSection />
           <SpecimenSection />
           <RoundtripSection />
+          <TestRunnerSection />
           <McpSection />
           <PullQuoteSection />
           <NumbersSection />

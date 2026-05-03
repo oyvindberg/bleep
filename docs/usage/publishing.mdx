@@ -184,12 +184,12 @@ For Sonatype, snapshot versions (any version not cleanly on a tag) get `-SNAPSHO
 
 ## Project Selection
 
-- `bleep publish local mylib mylib2` — publish specific projects
-- `bleep publish local` — publish all projects with `publish` config
+- [`bleep publish local mylib mylib2`](/docs/reference/cli/publish/) — publish specific projects
+- [`bleep publish local`](/docs/reference/cli/publish/) — publish all projects with `publish` config
 
 ## CI/CD Integration
 
-Bleep is CI-agnostic. Set the required environment variables in your CI system and run `bleep publish <target>`. Example for GitHub Actions:
+Bleep is CI-agnostic. Set the required environment variables in your CI system and run [`bleep publish <target>`](/docs/reference/cli/publish/). Example for GitHub Actions:
 
 ```yaml
 on:

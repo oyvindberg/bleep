@@ -35,13 +35,16 @@ Each named resolver automatically becomes a `bleep publish <name>` subcommand �
 
 ### 2. Add credentials to your bleep config
 
-Auth lives in your **user config**, not in `bleep.yaml` (so credentials don't leak into source control). Path:
+Use the wizard, [`bleep publish setup`](/docs/reference/cli/publish/setup/):
 
-| OS | Path |
-|----|------|
-| macOS | `~/Library/Application Support/build.bleep/config.yaml` |
-| Linux | `~/.config/bleep/config.yaml` (`$XDG_CONFIG_HOME/bleep/config.yaml` if set) |
-| Windows | `%APPDATA%\build.bleep\config\config.yaml` |
+```bash
+bleep publish setup
+# choose "Artifactory / Nexus / generic Maven repo"
+```
+
+It prompts for the resolver name, URI, username and password (read silently from the terminal), then writes both the credentials and (if you're inside a build) the resolver to `bleep.yaml`. Run it once per URI — releases and snapshots are different URIs, so each gets its own entry.
+
+Or hand-edit the **user config file** (so credentials don't leak into `bleep.yaml`). Find its location with [`bleep config file`](/docs/reference/cli/config/file/) — paths are OS-specific.
 
 Bleep does **exact URI matching** for static credentials — releases and snapshots are different URIs, so each gets its own entry even when the user/password are identical:
 
@@ -116,7 +119,7 @@ bleep publish company-snapshots
   run: bleep publish --assert-release company-releases
 ```
 
-Same idea on GitLab CI / Jenkins / Buildkite — write the config file from secrets, then run the publish command. macOS and Windows runners use the OS-specific paths from the table above.
+Same idea on GitLab CI / Jenkins / Buildkite — write the config file from secrets, then run the publish command. On macOS and Windows runners the path differs; resolve it with [`bleep config file`](/docs/reference/cli/config/file/) at the top of the job.
 
 ## Troubleshooting
 

@@ -159,8 +159,7 @@ object LinkifyCliMentions extends BleepScript("LinkifyCliMentions") {
     (rewritten, count)
   }
 
-  /** Find every (start, end) range covered by a triple-backtick fenced code
-    * block. Both inclusive of the fence markers themselves so the check
+  /** Find every (start, end) range covered by a triple-backtick fenced code block. Both inclusive of the fence markers themselves so the check
     * `m.start >= s && m.end <= e` works.
     */
   private def findFencedCodeBlocks(body: String): List[(Int, Int)] = {
