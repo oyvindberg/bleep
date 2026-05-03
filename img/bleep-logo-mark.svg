@@ -1,16 +1,16 @@
 <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-  <!-- Bleep logo mark: B with speed lines (matches hero style) -->
+  <!-- Bleep logo mark: B with speed lines (manifesto red) -->
   <defs>
     <linearGradient id="bleep-mark-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#C4B5FD"/>
-      <stop offset="100%" style="stop-color:#A78BFA"/>
+      <stop offset="0%" style="stop-color:#f0584a"/>
+      <stop offset="100%" style="stop-color:#cc3120"/>
     </linearGradient>
   </defs>
 
   <!-- Speed lines (left side) -->
-  <line x1="2" y1="14" x2="8" y2="14" stroke="#A78BFA" stroke-width="2" stroke-linecap="round"/>
-  <line x1="0" y1="20" x2="7" y2="20" stroke="#A78BFA" stroke-width="2" stroke-linecap="round"/>
-  <line x1="2" y1="26" x2="8" y2="26" stroke="#A78BFA" stroke-width="2" stroke-linecap="round"/>
+  <line x1="2" y1="14" x2="8" y2="14" stroke="#e63a2a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="0" y1="20" x2="7" y2="20" stroke="#e63a2a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="2" y1="26" x2="8" y2="26" stroke="#e63a2a" stroke-width="2" stroke-linecap="round"/>
 
   <!-- Stylized B -->
   <path d="M12 4 L12 36 L26 36 C33 36 38 31 38 25 C38 21 36 18 32 17 C35 15.5 37 13 37 10 C37 5 33 4 28 4 L12 4 Z M18 9 L26 9 C29 9 31 10 31 13 C31 16 29 17 26 17 L18 17 L18 9 Z M18 22 L27 22 C30 22 32 23.5 32 26.5 C32 29.5 30 31 27 31 L18 31 L18 22 Z"
