@@ -4,20 +4,15 @@
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.helloMain\n  myapp-test:\n    dependencies: org.scalameta::munit:1.0.0\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm\n    scala:\n      options: -encoding utf8 -feature -unchecked\n      strict: true\n      version: 3.8.3",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.helloMain\n  myapp-test:\n    dependencies: org.scalameta::munit:1.0.0\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm\n    scala:\n      options: -encoding utf8 -feature -unchecked\n      strict: true\n      version: 3.8.3"
   },
-  "docs-snippets-from-tests/your-first-project/bleep.yaml": {
-    "name": "docs-snippets-from-tests/your-first-project/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.Main\n  myapp-test:\n    dependencies: org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.Main\n  myapp-test:\n    dependencies: org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm"
-  },
   "docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml": {
     "name": "docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml",
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.MainKt\n  myapp-test:\n    dependencies:\n    - io.kotest:kotest-runner-junit5-jvm:5.8.0\n    - org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    kotlin:\n      jvmTarget: '25'\n      version: 2.3.0\n    platform:\n      name: jvm",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.MainKt\n  myapp-test:\n    dependencies:\n    - io.kotest:kotest-runner-junit5-jvm:5.8.0\n    - org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    kotlin:\n      jvmTarget: '25'\n      version: 2.3.0\n    platform:\n      name: jvm"
   },
-  "docs-snippets-from-tests/sourcegen-java/bleep.yaml": {
-    "name": "docs-snippets-from-tests/sourcegen-java/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    java:\n      version: \"25\"\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      version: \"25\"\n    platform:\n      name: jvm",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    java:\n      version: \"25\"\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      version: \"25\"\n    platform:\n      name: jvm"
+  "docs-snippets-from-tests/your-first-project/bleep.yaml": {
+    "name": "docs-snippets-from-tests/your-first-project/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.Main\n  myapp-test:\n    dependencies: org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    extends: template-common\n    platform:\n      mainClass: com.example.Main\n  myapp-test:\n    dependencies: org.junit.jupiter:junit-jupiter:5.10.1\n    dependsOn: myapp\n    extends: template-common\n    isTestProject: true\ntemplates:\n  template-common:\n    platform:\n      name: jvm"
   },
   "docs-snippets-from-tests/test-projects/bleep.yaml": {
     "name": "docs-snippets-from-tests/test-projects/bleep.yaml",
@@ -29,16 +24,6 @@
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    kotlin:\n      jvmTarget: \"25\"\n      version: 2.3.0\n    platform:\n      name: jvm\n      mainClass: com.example.MainKt\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    kotlin:\n      jvmTarget: \"25\"\n      version: 2.3.0\n    platform:\n      name: jvm",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    kotlin:\n      jvmTarget: \"25\"\n      version: 2.3.0\n    platform:\n      name: jvm\n      mainClass: com.example.MainKt\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    kotlin:\n      jvmTarget: \"25\"\n      version: 2.3.0\n    platform:\n      name: jvm"
   },
-  "docs-snippets-from-tests/sourcegen-scala/bleep.yaml": {
-    "name": "docs-snippets-from-tests/sourcegen-scala/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    scala:\n      version: 3.8.3\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    scala:\n      version: 3.8.3\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3"
-  },
-  "docs-snippets-from-tests/publish-to-maven/bleep.yaml": {
-    "name": "docs-snippets-from-tests/publish-to-maven/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: io.github.myusername\n      url: https://github.com/myusername/mylib\n      description: A useful library that does useful things.\n      developers:\n        - id: myusername\n          name: My Name\n          url: https://github.com/myusername\n      licenses:\n        - name: Apache-2.0\n          url: https://www.apache.org/licenses/LICENSE-2.0.txt\n      sonatypeCredentialHost: central.sonatype.com",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: io.github.myusername\n      url: https://github.com/myusername/mylib\n      description: A useful library that does useful things.\n      developers:\n        - id: myusername\n          name: My Name\n          url: https://github.com/myusername\n      licenses:\n        - name: Apache-2.0\n          url: https://www.apache.org/licenses/LICENSE-2.0.txt\n      sonatypeCredentialHost: central.sonatype.com"
-  },
   "docs-snippets-from-tests/per-cross-customization/bleep.yaml": {
     "name": "docs-snippets-from-tests/per-cross-customization/bleep.yaml",
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    source-layout: cross-pure\n    cross:\n      jvm213:\n        scala:\n          version: 2.13.16\n          options: -Ymacro-annotations\n        dependencies:\n          - org.typelevel::cats-core:2.10.0\n      jvm3:\n        scala:\n          version: 3.8.3\n          options: -Yretain-trees\n    platform:\n      name: jvm",
@@ -48,16 +33,6 @@
     "name": "docs-snippets-from-tests/first-script-scala/bleep.yaml",
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: myapp.Main\n    scala:\n      version: 3.8.3\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3\nscripts:\n  hello:\n    main: scripts.HelloScript\n    project: scripts",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: myapp.Main\n    scala:\n      version: 3.8.3\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3\nscripts:\n  hello:\n    main: scripts.HelloScript\n    project: scripts"
-  },
-  "docs-snippets-from-tests/cross-building-kotlin/bleep.yaml": {
-    "name": "docs-snippets-from-tests/cross-building-kotlin/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  app:\n    kotlin:\n      version: 2.3.0\n    cross:\n      jvm:\n        kotlin:\n          jvmTarget: \"25\"\n        platform:\n          mainClass: com.example.MainKt\n          name: jvm\n      js:\n        kotlin:\n          js:\n            outputMode: js\n            target: nodejs\n        platform:\n          name: js",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  app:\n    kotlin:\n      version: 2.3.0\n    cross:\n      jvm:\n        kotlin:\n          jvmTarget: \"25\"\n        platform:\n          mainClass: com.example.MainKt\n          name: jvm\n      js:\n        kotlin:\n          js:\n            outputMode: js\n            target: nodejs\n        platform:\n          name: js"
-  },
-  "docs-snippets-from-tests/cross-building-scala/bleep.yaml": {
-    "name": "docs-snippets-from-tests/cross-building-scala/bleep.yaml",
-    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    extends: template-cross\n  mylib-test:\n    dependencies:\n      - org.scalameta::munit:1.0.0\n    dependsOn: mylib\n    extends: template-cross\n    isTestProject: true\ntemplates:\n  template-cross:\n    cross:\n      jvm213:\n        scala:\n          version: 2.13.16\n      jvm3:\n        scala:\n          version: 3.8.3\n    platform:\n      name: jvm",
-    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    extends: template-cross\n  mylib-test:\n    dependencies:\n      - org.scalameta::munit:1.0.0\n    dependsOn: mylib\n    extends: template-cross\n    isTestProject: true\ntemplates:\n  template-cross:\n    cross:\n      jvm213:\n        scala:\n          version: 2.13.16\n      jvm3:\n        scala:\n          version: 3.8.3\n    platform:\n      name: jvm"
   },
   "docs-snippets-from-tests/first-script-kotlin/bleep.yaml": {
     "name": "docs-snippets-from-tests/first-script-kotlin/bleep.yaml",
@@ -69,20 +44,35 @@
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      options: -proc:none --release 17\n    platform:\n      name: jvm\n    sources: ./src/main/java\nscripts:\n  hello:\n    main: scripts.HelloScript\n    project: scripts",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      options: -proc:none --release 17\n    platform:\n      name: jvm\n    sources: ./src/main/java\nscripts:\n  hello:\n    main: scripts.HelloScript\n    project: scripts"
   },
+  "docs-snippets-from-tests/cross-building-scala/bleep.yaml": {
+    "name": "docs-snippets-from-tests/cross-building-scala/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    extends: template-cross\n  mylib-test:\n    dependencies:\n      - org.scalameta::munit:1.0.0\n    dependsOn: mylib\n    extends: template-cross\n    isTestProject: true\ntemplates:\n  template-cross:\n    cross:\n      jvm213:\n        scala:\n          version: 2.13.16\n      jvm3:\n        scala:\n          version: 3.8.3\n    platform:\n      name: jvm",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    extends: template-cross\n  mylib-test:\n    dependencies:\n      - org.scalameta::munit:1.0.0\n    dependsOn: mylib\n    extends: template-cross\n    isTestProject: true\ntemplates:\n  template-cross:\n    cross:\n      jvm213:\n        scala:\n          version: 2.13.16\n      jvm3:\n        scala:\n          version: 3.8.3\n    platform:\n      name: jvm"
+  },
+  "docs-snippets-from-tests/cross-building-kotlin/bleep.yaml": {
+    "name": "docs-snippets-from-tests/cross-building-kotlin/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  app:\n    kotlin:\n      version: 2.3.0\n    cross:\n      jvm:\n        kotlin:\n          jvmTarget: \"25\"\n        platform:\n          mainClass: com.example.MainKt\n          name: jvm\n      js:\n        kotlin:\n          js:\n            outputMode: js\n            target: nodejs\n        platform:\n          name: js",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  app:\n    kotlin:\n      version: 2.3.0\n    cross:\n      jvm:\n        kotlin:\n          jvmTarget: \"25\"\n        platform:\n          mainClass: com.example.MainKt\n          name: jvm\n      js:\n        kotlin:\n          js:\n            outputMode: js\n            target: nodejs\n        platform:\n          name: js"
+  },
   "docs-snippets-from-tests/artifactory/bleep.yaml": {
     "name": "docs-snippets-from-tests/artifactory/bleep.yaml",
     "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nresolvers:\n  - name: company-releases\n    type: maven\n    uri: https://artifactory.company.com/artifactory/libs-release\n  - name: company-snapshots\n    type: maven\n    uri: https://artifactory.company.com/artifactory/libs-snapshot\n\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: com.mycompany",
     "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nresolvers:\n  - name: company-releases\n    type: maven\n    uri: https://artifactory.company.com/artifactory/libs-release\n  - name: company-snapshots\n    type: maven\n    uri: https://artifactory.company.com/artifactory/libs-snapshot\n\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: com.mycompany"
   },
-  "docs-snippets-from-tests/your-first-project/MainTest.java": {
-    "name": "docs-snippets-from-tests/your-first-project/MainTest.java",
-    "snippet": "package com.example;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nimport org.junit.jupiter.api.Test;\n\nclass MainTest {\n  @Test\n  void greetsByName() {\n    assertEquals(\"Hello, World!\", Main.greet(\"World\"));\n  }\n}",
-    "fullContent": "package com.example;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nimport org.junit.jupiter.api.Test;\n\nclass MainTest {\n  @Test\n  void greetsByName() {\n    assertEquals(\"Hello, World!\", Main.greet(\"World\"));\n  }\n}"
+  "docs-snippets-from-tests/publish-to-maven/bleep.yaml": {
+    "name": "docs-snippets-from-tests/publish-to-maven/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: io.github.myusername\n      url: https://github.com/myusername/mylib\n      description: A useful library that does useful things.\n      developers:\n        - id: myusername\n          name: My Name\n          url: https://github.com/myusername\n      licenses:\n        - name: Apache-2.0\n          url: https://www.apache.org/licenses/LICENSE-2.0.txt\n      sonatypeCredentialHost: central.sonatype.com",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  mylib:\n    platform:\n      name: jvm\n    publish:\n      groupId: io.github.myusername\n      url: https://github.com/myusername/mylib\n      description: A useful library that does useful things.\n      developers:\n        - id: myusername\n          name: My Name\n          url: https://github.com/myusername\n      licenses:\n        - name: Apache-2.0\n          url: https://www.apache.org/licenses/LICENSE-2.0.txt\n      sonatypeCredentialHost: central.sonatype.com"
   },
-  "docs-snippets-from-tests/your-first-project/Main.java": {
-    "name": "docs-snippets-from-tests/your-first-project/Main.java",
-    "snippet": "package com.example;\n\npublic class Main {\n  public static String greet(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n\n  public static void main(String[] args) {\n    System.out.println(greet(\"World\"));\n  }\n}",
-    "fullContent": "package com.example;\n\npublic class Main {\n  public static String greet(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n\n  public static void main(String[] args) {\n    System.out.println(greet(\"World\"));\n  }\n}"
+  "docs-snippets-from-tests/sourcegen-scala/bleep.yaml": {
+    "name": "docs-snippets-from-tests/sourcegen-scala/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    scala:\n      version: 3.8.3\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    scala:\n      version: 3.8.3\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    platform:\n      name: jvm\n    scala:\n      version: 3.8.3"
+  },
+  "docs-snippets-from-tests/sourcegen-java/bleep.yaml": {
+    "name": "docs-snippets-from-tests/sourcegen-java/bleep.yaml",
+    "snippet": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    java:\n      version: \"25\"\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      version: \"25\"\n    platform:\n      name: jvm",
+    "fullContent": "$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json\n$version: 1.0.0-M9\njvm:\n  name: graalvm-community:25.0.1\nprojects:\n  myapp:\n    java:\n      version: \"25\"\n    platform:\n      name: jvm\n      mainClass: com.example.Main\n    sourcegen:\n      project: scripts\n      main: scripts.GenConstants\n  scripts:\n    dependencies:\n      - build.bleep:bleepscript:${BLEEP_VERSION}\n    java:\n      version: \"25\"\n    platform:\n      name: jvm"
   },
   "docs-snippets-from-tests/test-projects/GreeterTest.java": {
     "name": "docs-snippets-from-tests/test-projects/GreeterTest.java",
@@ -114,6 +104,16 @@
     "snippet": "package com.example;\n\npublic final class Greeter {\n  private Greeter() {}\n\n  public static String hello(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n}",
     "fullContent": "package com.example;\n\npublic final class Greeter {\n  private Greeter() {}\n\n  public static String hello(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n}"
   },
+  "docs-snippets-from-tests/your-first-project/MainTest.java": {
+    "name": "docs-snippets-from-tests/your-first-project/MainTest.java",
+    "snippet": "package com.example;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nimport org.junit.jupiter.api.Test;\n\nclass MainTest {\n  @Test\n  void greetsByName() {\n    assertEquals(\"Hello, World!\", Main.greet(\"World\"));\n  }\n}",
+    "fullContent": "package com.example;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nimport org.junit.jupiter.api.Test;\n\nclass MainTest {\n  @Test\n  void greetsByName() {\n    assertEquals(\"Hello, World!\", Main.greet(\"World\"));\n  }\n}"
+  },
+  "docs-snippets-from-tests/your-first-project/Main.java": {
+    "name": "docs-snippets-from-tests/your-first-project/Main.java",
+    "snippet": "package com.example;\n\npublic class Main {\n  public static String greet(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n\n  public static void main(String[] args) {\n    System.out.println(greet(\"World\"));\n  }\n}",
+    "fullContent": "package com.example;\n\npublic class Main {\n  public static String greet(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n\n  public static void main(String[] args) {\n    System.out.println(greet(\"World\"));\n  }\n}"
+  },
   "docs-snippets-from-tests/first-script-java/Main.java": {
     "name": "docs-snippets-from-tests/first-script-java/Main.java",
     "snippet": "package com.example;\n\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello from bleep!\");\n  }\n}",
@@ -128,16 +128,6 @@
     "name": "docs-snippets-from-tests/artifactory/Greeter.java",
     "snippet": "package com.test;\n\npublic final class Greeter {\n  private Greeter() {}\n\n  public static String hello(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n}",
     "fullContent": "package com.test;\n\npublic final class Greeter {\n  private Greeter() {}\n\n  public static String hello(String name) {\n    return \"Hello, \" + name + \"!\";\n  }\n}"
-  },
-  "docs-snippets-from-tests/your-first-kotlin-project/MainTest.kt": {
-    "name": "docs-snippets-from-tests/your-first-kotlin-project/MainTest.kt",
-    "snippet": "package com.example\n\nimport io.kotest.core.spec.style.FunSpec\nimport io.kotest.matchers.shouldBe\n\nclass MainTest : FunSpec({\n  test(\"greets by name\") {\n    Main.greet(\"World\") shouldBe \"Hello, World!\"\n  }\n})",
-    "fullContent": "package com.example\n\nimport io.kotest.core.spec.style.FunSpec\nimport io.kotest.matchers.shouldBe\n\nclass MainTest : FunSpec({\n  test(\"greets by name\") {\n    Main.greet(\"World\") shouldBe \"Hello, World!\"\n  }\n})"
-  },
-  "docs-snippets-from-tests/your-first-kotlin-project/Main.kt": {
-    "name": "docs-snippets-from-tests/your-first-kotlin-project/Main.kt",
-    "snippet": "package com.example\n\nobject Main {\n  fun greet(name: String): String = \"Hello, $name!\"\n}\n\nfun main() {\n  println(Main.greet(\"World\"))\n}",
-    "fullContent": "package com.example\n\nobject Main {\n  fun greet(name: String): String = \"Hello, $name!\"\n}\n\nfun main() {\n  println(Main.greet(\"World\"))\n}"
   },
   "docs-snippets-from-tests/sourcegen-kotlin/Main.kt": {
     "name": "docs-snippets-from-tests/sourcegen-kotlin/Main.kt",
@@ -163,6 +153,16 @@
     "name": "docs-snippets-from-tests/cross-building-kotlin/Main.kt",
     "snippet": "package com.example\n\nfun main() {\n  val green = \"\\u001B[32m\"\n  val cyan = \"\\u001B[36m\"\n  val reset = \"\\u001B[0m\"\n  println(\"${green}Hello${reset} from ${cyan}bleep${reset}!\")\n}",
     "fullContent": "package com.example\n\nfun main() {\n  val green = \"\\u001B[32m\"\n  val cyan = \"\\u001B[36m\"\n  val reset = \"\\u001B[0m\"\n  println(\"${green}Hello${reset} from ${cyan}bleep${reset}!\")\n}"
+  },
+  "docs-snippets-from-tests/your-first-kotlin-project/MainTest.kt": {
+    "name": "docs-snippets-from-tests/your-first-kotlin-project/MainTest.kt",
+    "snippet": "package com.example\n\nimport io.kotest.core.spec.style.FunSpec\nimport io.kotest.matchers.shouldBe\n\nclass MainTest : FunSpec({\n  test(\"greets by name\") {\n    Main.greet(\"World\") shouldBe \"Hello, World!\"\n  }\n})",
+    "fullContent": "package com.example\n\nimport io.kotest.core.spec.style.FunSpec\nimport io.kotest.matchers.shouldBe\n\nclass MainTest : FunSpec({\n  test(\"greets by name\") {\n    Main.greet(\"World\") shouldBe \"Hello, World!\"\n  }\n})"
+  },
+  "docs-snippets-from-tests/your-first-kotlin-project/Main.kt": {
+    "name": "docs-snippets-from-tests/your-first-kotlin-project/Main.kt",
+    "snippet": "package com.example\n\nobject Main {\n  fun greet(name: String): String = \"Hello, $name!\"\n}\n\nfun main() {\n  println(Main.greet(\"World\"))\n}",
+    "fullContent": "package com.example\n\nobject Main {\n  fun greet(name: String): String = \"Hello, $name!\"\n}\n\nfun main() {\n  println(Main.greet(\"World\"))\n}"
   },
   "docs-snippets-from-tests/your-first-scala-project/MainTest.scala": {
     "name": "docs-snippets-from-tests/your-first-scala-project/MainTest.scala",
@@ -194,16 +194,6 @@
     "snippet": "package mylib\n\nobject Greeting {\n  def hello(name: String): String = s\"Hello, $name!\"\n}",
     "fullContent": "package mylib\n\nobject Greeting {\n  def hello(name: String): String = s\"Hello, $name!\"\n}"
   },
-  "docs-snippets-from-tests/first-script-scala/Main.scala": {
-    "name": "docs-snippets-from-tests/first-script-scala/Main.scala",
-    "snippet": "package myapp\n\n@main def helloMain(): Unit =\n  println(\"Hello from bleep!\")",
-    "fullContent": "package myapp\n\n@main def helloMain(): Unit =\n  println(\"Hello from bleep!\")"
-  },
-  "docs-snippets-from-tests/first-script-scala/HelloScript.scala": {
-    "name": "docs-snippets-from-tests/first-script-scala/HelloScript.scala",
-    "snippet": "package scripts\n\nimport bleepscript.{BleepScript, Commands, Started}\n\nimport scala.jdk.CollectionConverters.*\n\nclass HelloScript extends BleepScript(\"hello\") {\n  override def run(started: Started, commands: Commands, args: java.util.List[String]): Unit = {\n    val projectCount = started.build.explodedProjects.size\n    started.logger.info(s\"This build has $projectCount projects\")\n    args.asScala.toList match {\n      case Nil => started.logger.info(\"Hello, world!\")\n      case xs  => started.logger.info(s\"Hello, ${xs.mkString(\" \")}!\")\n    }\n  }\n}",
-    "fullContent": "package scripts\n\nimport bleepscript.{BleepScript, Commands, Started}\n\nimport scala.jdk.CollectionConverters.*\n\nclass HelloScript extends BleepScript(\"hello\") {\n  override def run(started: Started, commands: Commands, args: java.util.List[String]): Unit = {\n    val projectCount = started.build.explodedProjects.size\n    started.logger.info(s\"This build has $projectCount projects\")\n    args.asScala.toList match {\n      case Nil => started.logger.info(\"Hello, world!\")\n      case xs  => started.logger.info(s\"Hello, ${xs.mkString(\" \")}!\")\n    }\n  }\n}"
-  },
   "docs-snippets-from-tests/cross-building-scala/GreetingTest.scala": {
     "name": "docs-snippets-from-tests/cross-building-scala/GreetingTest.scala",
     "snippet": "package mylib\n\nclass GreetingTest extends munit.FunSuite {\n  test(\"hello\") {\n    assertEquals(Greeting.hello(\"world\"), \"Hello, world!\")\n  }\n}",
@@ -213,5 +203,15 @@
     "name": "docs-snippets-from-tests/cross-building-scala/Greeting.scala",
     "snippet": "package mylib\n\nobject Greeting {\n  def hello(name: String): String = s\"Hello, $name!\"\n}",
     "fullContent": "package mylib\n\nobject Greeting {\n  def hello(name: String): String = s\"Hello, $name!\"\n}"
+  },
+  "docs-snippets-from-tests/first-script-scala/Main.scala": {
+    "name": "docs-snippets-from-tests/first-script-scala/Main.scala",
+    "snippet": "package myapp\n\n@main def helloMain(): Unit =\n  println(\"Hello from bleep!\")",
+    "fullContent": "package myapp\n\n@main def helloMain(): Unit =\n  println(\"Hello from bleep!\")"
+  },
+  "docs-snippets-from-tests/first-script-scala/HelloScript.scala": {
+    "name": "docs-snippets-from-tests/first-script-scala/HelloScript.scala",
+    "snippet": "package scripts\n\nimport bleepscript.{BleepScript, Commands, Started}\n\nimport scala.jdk.CollectionConverters.*\n\nclass HelloScript extends BleepScript(\"hello\") {\n  override def run(started: Started, commands: Commands, args: java.util.List[String]): Unit = {\n    val projectCount = started.build.explodedProjects.size\n    started.logger.info(s\"This build has $projectCount projects\")\n    args.asScala.toList match {\n      case Nil => started.logger.info(\"Hello, world!\")\n      case xs  => started.logger.info(s\"Hello, ${xs.mkString(\" \")}!\")\n    }\n  }\n}",
+    "fullContent": "package scripts\n\nimport bleepscript.{BleepScript, Commands, Started}\n\nimport scala.jdk.CollectionConverters.*\n\nclass HelloScript extends BleepScript(\"hello\") {\n  override def run(started: Started, commands: Commands, args: java.util.List[String]): Unit = {\n    val projectCount = started.build.explodedProjects.size\n    started.logger.info(s\"This build has $projectCount projects\")\n    args.asScala.toList match {\n      case Nil => started.logger.info(\"Hello, world!\")\n      case xs  => started.logger.info(s\"Hello, ${xs.mkString(\" \")}!\")\n    }\n  }\n}"
   }
 }
