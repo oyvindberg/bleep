@@ -99,7 +99,14 @@ class Workspace(
 
   private var rawYaml: Option[String] = None
   private val taggedSnippets: mutable.LinkedHashMap[String, String] = mutable.LinkedHashMap.empty
+  private val staticAuth: mutable.LinkedHashMap[java.net.URI, model.AuthEntry] = mutable.LinkedHashMap.empty
   private var startedOpt: Option[(Started, Commands, TypedLogger[Array[Stored]])] = None
+
+  /** Wire static HTTP basic auth for a resolver URI. The credentials end up in the [[model.BleepConfig]] passed to bootstrap, exactly the same path real users
+    * configure via `~/.config/bleep/config.yaml`.
+    */
+  def setStaticAuth(uri: java.net.URI, user: String, password: String): Unit =
+    staticAuth.update(uri, model.AuthEntry.Static(coursier.core.Authentication(user, password)))
 
   /** Write a source file under [[root]]. */
   def file(relPath: String, content: String): Unit =
@@ -134,12 +141,15 @@ class Workspace(
         val stdLogger = parentLogger.withContext("testName", testName)
         val existingBuild = BuildLoader.find(root).existing.orThrow
         val buildPaths = BuildPaths(cwd = root, existingBuild, model.BuildVariant.Normal)
+        val effectiveConfig =
+          if (staticAuth.isEmpty) testConfig
+          else testConfig.copy(authentications = Some(model.Authentications(staticAuth.toMap)))
         val started = bootstrap
           .from(
             Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
             ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
             Nil,
-            testConfig,
+            effectiveConfig,
             CoursierResolver.Factory.default
           )
           .orThrow
@@ -181,6 +191,13 @@ class Workspace(
     val content = Files.readString(source)
     taggedSnippets.update(snippet, content)
   }
+
+  /** Mirror `userYaml` (with the published `$schema` / `$version` / `jvm` prelude) to `<snippetsRoot>/<snippet>` without affecting the workspace bleep.yaml.
+    * Use this when the in-test bleep.yaml needs different values than what the docs should show — e.g. a localhost test port versus a documented Artifactory
+    * URL.
+    */
+  def attachSnippetYaml(snippet: String, userYaml: String): Unit =
+    taggedSnippets.update(snippet, snippetWithPrelude(userYaml))
 
   /** Mirror every tagged snippet to `<snippetsRoot>/<snippet>`. Called by integrationTest after the body. */
   def commitSnippets(): Unit =

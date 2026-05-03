@@ -238,6 +238,11 @@ const sidebars = {
           items: [
             {
               type: "doc",
+              label: "Artifactory / generic Maven",
+              id: "usage/private-repos/artifactory",
+            },
+            {
+              type: "doc",
               label: "GitHub Packages",
               id: "usage/private-repos/github-packages",
             },

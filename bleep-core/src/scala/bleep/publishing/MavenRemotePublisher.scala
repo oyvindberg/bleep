@@ -101,7 +101,12 @@ object MavenRemotePublisher {
 
   case class ResolvedTarget(httpsUri: URI, authentication: Authentication, uploadChecksums: Boolean)
 
-  /** Resolve the HTTPS base URI, authentication, and capabilities for a private repo scheme. */
+  /** Resolve the HTTPS base URI, authentication, and capabilities for the target repository.
+    *
+    *   - Private-repo schemes (`artifactregistry://`, `github://`, `gitlab://`) shell out to the relevant CLI for a token.
+    *   - Plain `http://` / `https://` (Artifactory, Sonatype Nexus, any vanilla Maven repo) use static credentials looked up by exact URI match in the
+    *     `authentications:` section of the user's bleep config. If no entry matches, the request is sent with no `Authorization` header and the server decides.
+    */
   def resolveTarget(
       repoUri: URI,
       credentialProvider: CredentialProvider
@@ -111,10 +116,13 @@ object MavenRemotePublisher {
         val httpsUri = scheme.toHttpsUri(repoUri)
         val auth = credentialProvider.resolve(scheme, repoUri)
         ResolvedTarget(httpsUri, auth, scheme.uploadChecksums)
+      case None if repoUri.getScheme == "http" || repoUri.getScheme == "https" =>
+        val auth = credentialProvider.staticAuth(repoUri).getOrElse(Authentication(""))
+        ResolvedTarget(repoUri, auth, uploadChecksums = true)
       case None =>
         throw new BleepException.Text(
-          s"Cannot publish to $repoUri: not a recognized private repository scheme. " +
-            s"Supported: ${PrivateRepoScheme.all.map(_.scheme + "://").mkString(", ")}"
+          s"Cannot publish to $repoUri: unrecognized scheme. " +
+            s"Supported: http://, https://, ${PrivateRepoScheme.all.map(_.scheme + "://").mkString(", ")}"
         )
     }
 }
