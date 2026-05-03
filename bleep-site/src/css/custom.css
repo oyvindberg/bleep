@@ -63,17 +63,30 @@ code, pre, kbd {
   font-feature-settings: 'ss01', 'ss02', 'cv11', 'zero';
 }
 
-/* Navbar — quiet, hairline border, no shadow circus */
+/* Navbar — quiet, hairline border, no shadow circus.
+   The blurred translucent background lives on a ::before so the
+   navbar element itself doesn't establish a containing block — that
+   would trap the mobile sidebar drawer (position: fixed) inside the
+   navbar's height and leave only the brand row visible. */
 .navbar {
   box-shadow: none;
   border-bottom: 1px solid rgba(10, 9, 8, 0.08);
+  background: transparent;
+}
+.navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: rgba(241, 237, 226, 0.85);
   backdrop-filter: saturate(140%) blur(8px);
   -webkit-backdrop-filter: saturate(140%) blur(8px);
 }
 [data-theme='dark'] .navbar {
-  background: rgba(8, 9, 11, 0.78);
   border-bottom-color: rgba(230, 234, 239, 0.07);
+}
+[data-theme='dark'] .navbar::before {
+  background: rgba(8, 9, 11, 0.78);
 }
 .navbar__title {
   font-family: var(--ifm-heading-font-family);
