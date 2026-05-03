@@ -120,7 +120,12 @@ object JvmPool {
     }
   }
 
-  /** Internal managed JVM wrapper */
+  /** Internal managed JVM wrapper.
+    *
+    * A daemon thread continuously drains the child's stderr into [[stderrBuffer]] so the OS pipe never blocks the child. Without this, a chatty JVM (e.g. JDK
+    * 25 emitting `sun.misc.Unsafe` deprecation warnings on a heavy classpath) fills the 64KB pipe buffer, the child blocks on its next stderr write, and the
+    * parent's [[stdout]]-driven protocol loop hangs forever — no test events, no progress, idle timeout fires with zero diagnostic output.
+    */
   private class ManagedJvm(
       val process: Process,
       val stdin: PrintWriter,
@@ -130,6 +135,27 @@ object JvmPool {
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
+
+    /** Buffered stderr lines collected by the drain thread. Bounded so a runaway warning storm can't OOM the parent. Oldest lines are dropped past the cap. */
+    private val stderrBuffer = new java.util.concurrent.ConcurrentLinkedDeque[String]()
+    private val stderrBufferCap = 2048
+
+    private val stderrDrainThread: Thread = {
+      val t = new Thread(s"jvm-stderr-drain-${process.pid}") {
+        override def run(): Unit =
+          try {
+            var line = stderr.readLine()
+            while (line != null) {
+              stderrBuffer.addLast(line)
+              while (stderrBuffer.size > stderrBufferCap) stderrBuffer.pollFirst()
+              line = stderr.readLine()
+            }
+          } catch { case NonFatal(_) => () }
+      }
+      t.setDaemon(true)
+      t.start()
+      t
+    }
 
     def isAlive: Boolean =
       alive && process.isAlive
@@ -164,17 +190,14 @@ object JvmPool {
       catch { case NonFatal(_) => }
     }
 
-    /** Read any available stderr output */
+    /** Snapshot stderr lines accumulated since last call. Drains the buffer. */
     def readStderr(): String = {
       val sb = new StringBuilder
-      try
-        while (stderr.ready()) {
-          val line = stderr.readLine()
-          if (line != null) {
-            sb.append(line).append("\n")
-          }
-        }
-      catch { case NonFatal(_) => }
+      var line = stderrBuffer.pollFirst()
+      while (line != null) {
+        sb.append(line).append("\n")
+        line = stderrBuffer.pollFirst()
+      }
       sb.toString()
     }
   }
