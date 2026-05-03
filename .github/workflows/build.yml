@@ -40,6 +40,14 @@ jobs:
       - name: Scalafmt Check
         run: ./bleep-cli.sh --dev fmt --check
 
+      # Cap test parallelism on the 4-core CI runner so inner-bleep IT
+      # suites (YourFirstProjectIT etc.) don't pile up forked JVMs and
+      # their compile-server states.
+      - name: Bleep config — tighter parallelism
+        run: |
+          mkdir -p "$HOME/.config/bleep"
+          printf 'bspServerConfig:\n  parallelism: 2\n' > "$HOME/.config/bleep/config.yaml"
+
       - name: Run tests
         env:
           CI: true
