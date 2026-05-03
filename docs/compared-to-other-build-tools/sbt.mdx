@@ -1,0 +1,186 @@
+---
+title: vs sbt
+---
+
+# Comparison with sbt
+
+sbt was a real achievement. It made arbitrary Scala code in builds
+expressible, brought incremental compilation to the JVM, and shaped
+how a generation of Scala teams ship libraries. The case for switching
+to bleep is that the cost of "your build is a Scala program" — slow
+startup, expensive plugin ecosystem, debugging via println — is no
+longer worth it now that there's an alternative.
+
+## Build is data, not a program
+
+The same single-module Scala project, in `build.sbt` and in
+`bleep.yaml`:
+
+<table>
+<thead>
+<tr><th>build.sbt + project/plugins.sbt</th><th>bleep.yaml</th></tr>
+</thead>
+<tbody>
+<tr><td>
+
+```scala
+// build.sbt
+ThisBuild / scalaVersion := "3.8.3"
+ThisBuild / organization := "com.example"
+ThisBuild / version      := "0.1.0-SNAPSHOT"
+
+lazy val mylib = (project in file("mylib"))
+  .settings(
+    name := "mylib",
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "fansi" % "0.5.0",
+      "org.scalameta" %% "munit" % "1.0.0" % Test
+    ),
+    Compile / mainClass := Some("mylib.Main")
+  )
+```
+
+```scala
+// project/build.properties
+sbt.version=1.10.0
+
+// project/plugins.sbt
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.12")
+```
+
+</td><td>
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  mylib:
+    scala:
+      version: 3.8.3
+    platform:
+      mainClass: mylib.Main
+    dependencies:
+      - com.lihaoyi::fansi:0.5.0
+
+  mylib-test:
+    extends: template-jvm
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.scalameta::munit:1.0.0
+```
+
+</td></tr>
+</tbody>
+</table>
+
+The sbt version is Scala code. To know what runs, you have to know
+what `ThisBuild` does, what `:=` versus `+=` versus `++=` mean, when
+the `Test` configuration applies, what implicit conversions
+`libraryDependencies` triggers. The `project/plugins.sbt` lives in a
+sibling Scala project that compiles before your real build can be
+read.
+
+The bleep version is data. You can `cat` it, `grep` it, `git diff` it,
+have a script edit it, paste it into an LLM and get a useful answer.
+There is no `project/` sibling to maintain.
+
+## Faster everything
+
+| | sbt | Bleep |
+|---|---|---|
+| Cold startup | 30-90s (JVM warmup, Scala compiler load, plugins resolved & compiled, build evaluated) | ~0ms (native binary) |
+| Incremental compile | Zinc | Zinc (same incremental engine) |
+| IDE import | minutes for large projects | ~1 second via BSP |
+| Build re-evaluation after editing build.sbt | seconds (recompile project/) | instant (re-parse YAML) |
+| Memory footprint | sbt server + JVM, often 1-2GB | native binary process, no daemon |
+
+The Zinc compile core is identical — both tools wrap the same
+incremental compiler. What's different is everything that wraps it:
+the launcher, the build evaluator, the plugin model, the IDE
+integration.
+
+## Plugins and tasks
+
+sbt plugins live in `project/plugins.sbt`, get compiled before your
+build evaluates, and extend the build via `AutoPlugin`, `Setting`,
+and `Task`. They're macros and DSL on top of macros.
+
+Bleep doesn't have plugins. It has [scripts](/docs/concepts/scripts):
+plain Java, Kotlin, or Scala programs that depend on `bleepscript` and run
+from the command line.
+
+| | sbt plugin | Bleep script |
+|---|---|---|
+| Lives in | `project/MyPlugin.scala` + `addSbtPlugin(...)` | regular project under `scripts:` in `bleep.yaml` |
+| Distribution | publish to a Maven repo, every consumer adds `addSbtPlugin` | publish to a Maven repo, every consumer adds a `dependencies:` line |
+| Debugging | sbt shell + println, classloader-isolated | breakpoint in IntelliJ, step through |
+| Testing | sbt's `scripted` framework | regular unit tests |
+| API surface | sbt Keys, configurations, scopes, AutoPlugin | bleepscript: `Started`, `Commands`, `args` |
+
+sbt's task graph and scoping are real power — you can ask
+"`Compile / scalacOptions` for `myproject`" and sbt will give you the
+right answer with all overrides applied. Bleep doesn't model that.
+For most build scripts you don't need it; for the rare cases where
+you do, you walk the build model directly in your script.
+
+## What sbt does that bleep doesn't
+
+- **Scoped task customization.** `Compile / scalacOptions += "-Wunused"`,
+  `Test / fork := true`, `inConfig(IntegrationTest)(Defaults.testSettings)`.
+  Bleep crosses can override `scala.options` per cross variant; finer
+  per-config scoping isn't modelled. Most teams don't need it.
+- **`scripted` plugin testing framework.** Bleep scripts are tested
+  with regular JUnit/MUnit/ScalaTest.
+- **Mature plugin ecosystem.** Hundreds of sbt plugins exist; bleep
+  has ~10 ports of the most-used ones (sbt-ci-release, sbt-sonatype,
+  sbt-pgp, sbt-dynver, sbt-native-image, sbt-scalafix, sbt-jni,
+  mdoc). For one-off plugin features, you re-implement in a script.
+- **`reload` flow.** sbt's interactive shell with `reload`, `compile`,
+  `test`, `console` is a working environment for some teams. Bleep's
+  command-line model is one-shot.
+
+## What bleep does that sbt doesn't
+
+- **Native binary startup.** ~0ms vs 30-90s.
+- **BSP-driven IDE import in ~1 second.** No project/ sibling to
+  re-evaluate.
+- **YAML build that's safe to edit machine-side** — LLMs, scripts,
+  IDE refactors all work without compiling project code.
+- **Scripts as plain Java/Scala**, debuggable in your IDE, not
+  macro-evaluated DSL.
+- **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven.** Convert an existing
+  build to bleep in one command.
+- **First-class cross-building** for Java, Kotlin, and Scala. sbt's
+  cross-building is Scala-only.
+- **CI project invalidation** built in (`bleep build invalidated --base
+  HEAD~1`).
+
+## Migrating from sbt
+
+[`bleep import`](/docs/reference/cli/import/) reads your sbt build (via `sbt bloopInstall`) and
+generates a `bleep.yaml`. See [Import from sbt](/docs/demos/importing-sbt-build).
+
+Once imported, the parts that won't carry over are sbt-specific build
+logic — custom tasks, scope-axis overrides, plugins not yet ported.
+[Porting sbt plugins](/docs/porting-sbt-plugins) covers the
+translation patterns and shows real worked examples (DynVerPlugin,
+PgpPlugin, the Sonatype client).
+
+## When sbt is still the right answer
+
+- You depend on a niche sbt plugin that hasn't been ported and isn't
+  worth porting.
+- You rely heavily on the sbt shell as a development environment
+  (`reload`, `console`, custom interactive tasks).
+- Your team is shipping features faster than the cost of sbt's
+  startup is hurting you. If 60s startup × 5 invocations a day isn't
+  the bottleneck, leave it alone.
+
+## See also
+
+- [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Comparison with Gradle](/docs/compared-to-other-build-tools/gradle)
+- [Import from sbt](/docs/demos/importing-sbt-build)
+- [Porting sbt plugins](/docs/porting-sbt-plugins)

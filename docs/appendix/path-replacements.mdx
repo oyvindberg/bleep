@@ -1,0 +1,144 @@
+---
+title: Path replacements
+---
+
+# Path replacements
+
+Bleep substitutes a small set of named placeholders in `bleep.yaml`
+whenever a field can hold a path. They look like `${BUILD_DIR}`,
+`${PROJECT_DIR}`, `${SCALA_VERSION}` &mdash; you may have run into them in
+a build that originated as an `sbt` or Maven import.
+
+This page exists because the mechanism is real, you'll see it after
+imports, and it shows up in places like compiler options. But the headline
+is short:
+
+:::warning Don't design your build around this.
+
+For everything you write by hand, prefer plain relative paths. Placeholders
+are an import-time portability mechanism. The handful of cases where
+they're genuinely useful are listed at the bottom of this page.
+:::
+
+## Why the mechanism exists
+
+[`bleep import`](/docs/reference/cli/import/) (from sbt) and [`bleep import-maven`](/docs/reference/cli/import-maven/) work by reading what
+those tools produce, then converting it into bleep's model. Both formats
+embed absolute paths everywhere &mdash; bloop's JSON contains
+`/Users/somebody/projects/myrepo/foo/src/main/scala`, full stop. If bleep
+wrote those values straight into `bleep.yaml`, the build would only work on
+that machine.
+
+So during import, bleep walks every path-like value and runs the *reverse*
+substitution: anything that matches the build root becomes `${BUILD_DIR}`,
+anything that matches the project's folder becomes `${PROJECT_DIR}`, the
+Scala version embedded in folder names becomes `${SCALA_VERSION}`, and so
+on. The result is a `bleep.yaml` that works on any machine that has the
+build.
+
+Once the file is written, bleep does the *forward* substitution every time
+it reads the build &mdash; so the rest of the codebase always sees real
+paths, not placeholders.
+
+## The full list
+
+| Placeholder                  | Expands to                                                              |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `${BUILD_DIR}`               | The folder containing `bleep.yaml`.                                     |
+| `${PROJECT_DIR}`             | The project's folder (default `${BUILD_DIR}/<project-name>`).           |
+| `${TARGET_DIR}`              | The bleep compile-output folder for this project.                       |
+| `${HOME_DIR}`                | The user's home directory (`$HOME`).                                    |
+| `${TEMP_DIR}`                | The system temp directory.                                              |
+| `${COURSIER_CACHE_DIR}`      | The coursier dependency cache.                                          |
+| `${COURSIER_ARC_CACHE_DIR}`  | The coursier archive cache.                                             |
+| `${BLEEP_VERSION}`           | The bleep version this build is using.                                  |
+| `${SCALA_VERSION}`           | Full Scala version, e.g. `3.8.3`.                                       |
+| `${SCALA_BIN_VERSION}`       | Scala binary version, e.g. `3` or `2.13`.                               |
+| `${SCALA_EPOCH}`             | The Scala epoch, e.g. `3` or `2`.                                       |
+| `${PLATFORM}`                | `jvm`, `js`, or `native`.                                               |
+| `${PLATFORM_VERSION}`        | Scala.js or Scala Native version, when applicable.                      |
+| `${SCOPE}`                   | sbt scope from imports (`main`, `test`, &hellip;). Legacy.              |
+
+## Where they apply
+
+Replacements run on string values across the build model wherever a path,
+URI, dependency version, or compiler option is parsed. In practice that
+covers `sources`, `resources`, `folder`, compiler options
+(`scala.options`, `java.compilerOptions`), dependency coordinates,
+`resolvers` URIs, and the path wiring inside scripts and sourcegen.
+
+## The recommendation, again, in writing
+
+If you're authoring or editing a `bleep.yaml` by hand, **prefer plain
+relative paths**. They read better and they don't require the next person
+on the team to know what `${BUILD_DIR}` resolves to.
+
+Don't write:
+
+```yaml
+projects:
+  myapp:
+    resources: ${BUILD_DIR}/shared/resources
+```
+
+Write:
+
+```yaml
+projects:
+  myapp:
+    resources: ../shared/resources
+```
+
+`sources` and `resources` are resolved relative to the project's `folder`
+(see [Bleep build model](/docs/model)), so `..` walks up to the build root
+and `../shared/resources` reads naturally.
+
+The placeholders aren't *wrong* &mdash; bleep happily round-trips either
+form &mdash; but plain paths read better in code review, work the same
+under [`bleep build normalize`](/docs/reference/cli/build/normalize/), and don't depend on anyone remembering the
+placeholder vocabulary.
+
+## When the placeholders earn their keep
+
+Three real cases.
+
+### Versioned source layouts in cross-builds
+
+`src/main/scala-2.13/` versus `src/main/scala-3/` only makes sense when
+the Scala version is the variable:
+
+```yaml
+projects:
+  mylib:
+    sources: src/main/scala-${SCALA_BIN_VERSION}
+```
+
+Bleep recognises the expanded form on read and rewrites the literal back
+to the placeholder on write &mdash; so this works the same across every
+cross axis.
+
+### Reaching into the user's home
+
+When a project depends on something you keep outside the repo:
+
+```yaml
+resolvers:
+  - file://${HOME_DIR}/.m2/repository
+```
+
+A relative path can't express that &mdash; the build root has no
+relationship to `$HOME`.
+
+### Targeting bleep's own output
+
+Tooling that consumes the compiled classes (a packaging script, a
+performance harness) can refer to `${TARGET_DIR}` rather than hard-coding
+bleep's internal layout, which is not stable API.
+
+## Don't reach for it for
+
+- Cross-project source/resource sharing &mdash; use `../shared/&hellip;`.
+- The current project's own folder &mdash; use a plain relative path.
+- Anything that would still resolve correctly without the placeholder.
+
+The build is plain text. Plain text reads better.

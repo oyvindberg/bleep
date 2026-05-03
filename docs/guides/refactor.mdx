@@ -1,0 +1,191 @@
+---
+title: Refactor your build
+---
+
+# Refactor your build
+
+Renaming a project, bumping every dependency, lifting shared
+configuration into a template, moving a project under a different
+folder &mdash; these are routine refactors in any non-trivial
+codebase. In most build tools they're hand-edits across N files,
+because the build is a program and a program can't safely rewrite
+itself. In bleep they're commands.
+
+Each one reads `bleep.yaml`, computes a new `bleep.yaml`, writes it
+back. Run it, look at `git diff`, code-review, push.
+
+## Bumping dependencies
+
+### `bleep build update-deps`
+
+Bumps every dependency in the build to its newest available version.
+Coursier resolves the catalogue; bleep walks it and emits a new
+`bleep.yaml` with the new version pinned everywhere it appeared.
+Optional `--steward` flag follows
+[Scala Steward](https://github.com/scala-steward-org/scala-steward/blob/main/docs/faq.md#how-does-scala-steward-decide-what-version-it-is-updating-to)'s
+slightly-more-conservative bump strategy. `--prerelease` opens the
+pool to non-stable releases.
+
+```bash
+bleep build update-deps
+git diff bleep.yaml          # review
+git commit -am "bump dependencies"
+```
+
+[Reference &rarr;](/docs/reference/cli/build/update-deps/)
+
+### `bleep build update-dep org.foo::bar`
+
+Same shape, but for one dependency (or every dependency from one
+organisation). Useful when you've decided to bump `cats-core` today
+and leave the rest alone.
+
+```bash
+bleep build update-dep org.typelevel::cats-core
+bleep build update-dep org.typelevel              # every typelevel dep
+```
+
+[Reference &rarr;](/docs/reference/cli/build/update-dep/)
+
+## Project topology
+
+### `bleep build project-rename old new`
+
+Renames a project across the whole build. Every other project that
+declared `dependsOn: old` is updated to `dependsOn: new`. Templates
+that mentioned `old` by name are updated. The folder on disk gets
+renamed too. The diff is the rename plus its propagation; nothing
+gets missed.
+
+```bash
+bleep build project-rename my-old-name my-new-name
+```
+
+The kind of refactor that's terrifying in Maven (because a missed
+reference is a runtime classpath surprise) is mechanical here.
+
+[Reference &rarr;](/docs/reference/cli/build/project-rename/)
+
+### `bleep build project-merge-into a b`
+
+Merges project `a` into project `b`. Sources move, dependencies
+union, configuration merges. Project `a` disappears from
+`bleep.yaml` and from disk. Use when you've been carrying two
+modules that should always have been one.
+
+```bash
+bleep build project-merge-into legacy-utils utils
+```
+
+[Reference &rarr;](/docs/reference/cli/build/project-merge-into/)
+
+### `bleep build projects-move libs/ a b c`
+
+Relocates one or more projects under a different parent folder on
+disk and updates the `folder:` field on each. The names don't
+change; only where they live.
+
+```bash
+bleep build projects-move libs/ formatter parser printer
+```
+
+[Reference &rarr;](/docs/reference/cli/build/projects-move/)
+
+## Templates
+
+### `bleep build templates-reapply`
+
+Re-merges templates into projects. Run this after editing a
+template definition (e.g. bumped Scala version in
+`template-common`) to propagate the change into every project that
+extends that template &mdash; without you having to track them down.
+
+```bash
+# edit template-common's scala.version
+bleep build templates-reapply
+git diff bleep.yaml
+```
+
+The diff shows you exactly which projects picked up the change.
+
+[Reference &rarr;](/docs/reference/cli/build/templates-reapply/)
+
+### `bleep build templates-generate-new`
+
+Throws away the existing templates and infers fresh ones from the
+projects' shared shape. Useful right after
+[`bleep import-maven`](/docs/reference/cli/import-maven/) on a
+50-module monorepo where every module had its own copy of the same
+compiler options &mdash; bleep finds the common shape, lifts it
+into a template, makes every project `extend` it.
+
+```bash
+bleep build templates-generate-new
+```
+
+[Reference &rarr;](/docs/reference/cli/build/templates-generate-new/)
+
+## Layout and housekeeping
+
+### `bleep build move-files-into-bleep-layout`
+
+Migrates a freshly-imported sbt-shaped layout (`src/main/scala`,
+`src/test/scala`) to the bleep-native shape (`src/scala`, with the
+test project as a sibling). Drops the `sbt-scope` and `folder`
+fields once the move is done.
+
+```bash
+bleep import                                # produces sbt-shaped layout
+bleep build move-files-into-bleep-layout    # convert
+```
+
+[Reference &rarr;](/docs/reference/cli/build/move-files-into-bleep-layout/)
+
+### `bleep build create-directories`
+
+Creates every source / resource directory the projects expect on
+disk. Useful right after scaffolding a new project, or after a
+refactor that introduced a new project that doesn't have its
+folders yet.
+
+```bash
+bleep build create-directories
+```
+
+[Reference &rarr;](/docs/reference/cli/build/create-directories/)
+
+### `bleep build normalize`
+
+Sort keys, deduplicate lists, drop empty values, collapse
+single-element lists to scalars. Idempotent. Run any time the file
+has drifted from canonical form &mdash; or wire it into a pre-commit
+hook so it never does.
+
+```bash
+bleep build normalize
+```
+
+[Reference &rarr;](/docs/reference/cli/build/normalize/)
+
+## Why this works
+
+A `bleep.yaml` survives a tool round-trip cleanly because:
+
+- The schema is closed and exhaustive &mdash; every field has a
+  name in the Scala model, no escape hatches.
+- The encoder is **idempotent**: `encode(decode(yaml)) == normalize(yaml)`.
+  Every refactor command emits canonical-form YAML.
+- Every refactor operates on the same in-memory model the build
+  itself uses. There is no second representation to drift against.
+
+The diffs are small, readable, and code-reviewable. The compactness
+is for humans; the transparency is for tools.
+
+## See also
+
+- [Inspect the build](/docs/guides/inspect) &mdash; the read-only
+  side of the same model: ask questions, get JSON, pipe anywhere.
+- [`bleep build` reference](/docs/reference/cli/build/) &mdash;
+  every subcommand with its full flag set, auto-generated.
+- [Templates & Inheritance](/docs/concepts/templates-inheritance)
+  &mdash; what `templates-reapply` actually re-applies.

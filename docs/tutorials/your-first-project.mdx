@@ -1,0 +1,164 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Your First Bleep Project
+
+This tutorial walks you through scaffolding a small Java project with
+bleep, running it, running its tests, and importing the project into
+IntelliJ IDEA.
+
+> **Other languages:**
+> [Kotlin →](/docs/tutorials/your-first-kotlin-project) ·
+> [Scala →](/docs/tutorials/your-first-scala-project)
+
+## Prerequisites
+
+- [Bleep installed](/docs/installing)
+- A terminal
+- IntelliJ IDEA (or any BSP-aware IDE)
+
+## Step 1: Create the project
+
+```bash
+mkdir my-first-bleep-project
+cd my-first-bleep-project
+bleep new myapp --lang java
+```
+
+[`bleep new`](/docs/reference/cli/build/new/) writes a complete, ready-to-run workspace: a `bleep.yaml`, a
+`myapp` project with a hello-world `Main`, and a `myapp-test` project
+wired up with JUnit 5.
+
+## Step 2: What got generated
+
+The build file:
+
+<Snippet path="docs-snippets-from-tests/your-first-project/bleep.yaml" lang="yaml" />
+
+What each part does:
+
+- `$schema` — gives your editor autocomplete and validation
+- `$version` — the bleep version this build was authored against
+- `jvm.name` — bleep downloads and manages this JVM for you
+- `projects.myapp` — the main project; `mainClass` is what [`bleep run`](/docs/reference/cli/run/) invokes
+- `projects.myapp-test` — the test project, marked `isTestProject: true`
+  (separate output directory, test-only dependencies) and depending on
+  `myapp` so test code can reach `myapp` classes
+- `templates.template-common` — bleep auto-infers a template for the
+  shared `platform.name: jvm` settings; both projects extend it
+
+The main source, `myapp/src/java/com/example/Main.java`:
+
+<Snippet path="docs-snippets-from-tests/your-first-project/Main.java" lang="java" />
+
+The test, `myapp-test/src/java/com/example/MainTest.java`:
+
+<Snippet path="docs-snippets-from-tests/your-first-project/MainTest.java" lang="java" />
+
+## Step 3: Run it
+
+```bash
+bleep run myapp
+```
+
+The first run downloads the JVM and warms the build server; subsequent
+runs are near-instant.
+
+```
+Hello, World!
+```
+
+## Step 4: Run the tests
+
+```bash
+bleep test myapp-test
+```
+
+bleep compiles `myapp-test`, then runs its JUnit 5 suite.
+
+## Step 5: Add a dependency
+
+Java dependencies use a single colon `:` between groupId, artifactId,
+and version. To add SLF4J, edit `bleep.yaml`:
+
+```yaml
+projects:
+  myapp:
+    extends: template-common
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+      - org.slf4j:slf4j-simple:2.0.9
+    platform:
+      mainClass: com.example.Main
+```
+
+> Heads up: Scala libraries use `::` (double colon) — that's a Scala-only
+> shorthand for adding the Scala version suffix to the artifact ID. For
+> Java libraries, always use a single `:`.
+
+Then rerun [`bleep run myapp`](/docs/reference/cli/run/) — bleep resolves the new dependency on the
+fly.
+
+## Step 6: Open it in your IDE
+
+```bash
+bleep setup-ide
+```
+
+`setup-ide` writes a BSP configuration any BSP-aware editor can consume.
+
+### IntelliJ IDEA
+
+**Open** → select the project directory. IntelliJ detects the BSP
+configuration and imports in about a second. Don't use *Import
+Project*, and don't import as a Maven or Gradle project — bleep speaks
+BSP directly. This is the smoothest path for Java projects.
+
+Both **Community** and **Ultimate** editions work; BSP support is built
+in to both. If your IntelliJ install ships with a corporate Maven
+plugin set as the default, you may need to disable it for this project
+so it doesn't try to take over the import.
+
+### VS Code with Metals
+
+Install the
+[Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals)
+and open the project folder. Metals detects the BSP server
+automatically. Metals is Scala-focused but its BSP integration handles
+Java sources too; for Java-only projects IntelliJ is usually the more
+polished choice.
+
+## Project structure
+
+```
+my-first-bleep-project/
+├── bleep.yaml
+├── myapp/
+│   └── src/
+│       └── java/
+│           └── com/
+│               └── example/
+│                   └── Main.java
+└── myapp-test/
+    └── src/
+        └── java/
+            └── com/
+                └── example/
+                    └── MainTest.java
+```
+
+Each project in `bleep.yaml` maps to a directory with `src/java/` (or
+`src/kotlin/`, or `src/scala/`) underneath.
+
+> **Coming from Maven?** Bleep uses `src/java/` rather than
+> `src/main/java/` because there is no `src/test/java/` to contrast
+> with — tests live in their own sibling project (`myapp-test`)
+> rather than under a `test/` subtree. Same files, shorter paths.
+
+## Next steps
+
+- [Write your first script](/docs/tutorials/your-first-script) — custom
+  build logic
+- [Dependency management](/docs/concepts/dependencies)
+- [Build model overview](/docs/model)
+- [Coming from Maven?](/docs/compared-to-other-build-tools/maven)
+- [Coming from Gradle?](/docs/compared-to-other-build-tools/gradle)

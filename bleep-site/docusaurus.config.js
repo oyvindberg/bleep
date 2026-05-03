@@ -10,8 +10,12 @@ const config = {
   url: "https://bleep.build",
   baseUrl: "/",
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
   favicon: "img/bleep-logo-mark.svg",
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+    },
+  },
 
   // GitHub pages deployment config.
   organizationName: "oyvindberg",
@@ -23,12 +27,24 @@ const config = {
     locales: ["en"],
   },
 
+  plugins: [
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        redirects: [
+          { from: "/docs", to: "/docs/installing/" },
+        ],
+      },
+    ],
+  ],
+
   presets: [
     [
       "classic",
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          path: "../docs",
           sidebarPath: "./sidebars.js",
         },
         theme: {
@@ -74,29 +90,12 @@ const config = {
             title: "Learn",
             items: [
               {
-                label: "Why Bleep?",
-                to: "/docs/why-bleep",
-              },
-              {
                 label: "Installation",
                 to: "/docs/installing",
               },
               {
                 label: "Tutorials",
                 to: "/docs/tutorials/your-first-project",
-              },
-            ],
-          },
-          {
-            title: "Reference",
-            items: [
-              {
-                label: "CLI Commands",
-                to: "/docs/reference/cli/overview",
-              },
-              {
-                label: "bleep.yaml Schema",
-                to: "/docs/reference/schema/overview",
               },
             ],
           },

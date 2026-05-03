@@ -11,52 +11,48 @@ const sidebars = {
       items: [
         {
           type: "doc",
-          label: "Why Bleep?",
-          id: "why-bleep",
-        },
-        {
-          type: "doc",
           label: "Installation",
           id: "installing",
         },
         {
           type: "doc",
-          label: "Your First Project",
+          label: "Project status",
+          id: "appendix/status",
+        },
+        {
+          type: "doc",
+          label: "Your First Project (Java)",
           id: "tutorials/your-first-project",
         },
         {
           type: "doc",
-          label: "IDE Setup",
-          id: "demos/ide-import",
-        },
-      ],
-    },
-
-    // TUTORIALS
-    {
-      type: "category",
-      label: "Tutorials",
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          label: "Create a Cross-Platform Project",
-          id: "demos/creating-new-cross-build",
+          label: "Your First Project (Kotlin)",
+          id: "tutorials/your-first-kotlin-project",
         },
         {
           type: "doc",
-          label: "Import from sbt",
-          id: "demos/importing-sbt-build",
+          label: "Your First Project (Scala)",
+          id: "tutorials/your-first-scala-project",
         },
         {
           type: "doc",
-          label: "Write Your First Script",
-          id: "tutorials/your-first-script",
+          label: "Basic usage",
+          id: "tutorials/basic-usage",
         },
         {
           type: "doc",
-          label: "Publish to Maven Central",
-          id: "tutorials/publish-to-maven",
+          label: "IDE setup",
+          id: "ide-setup",
+        },
+        {
+          type: "doc",
+          label: "MCP server (for AI agents)",
+          id: "usage/mcp-server",
+        },
+        {
+          type: "doc",
+          label: "Tab completions",
+          id: "tab-completions",
         },
       ],
     },
@@ -74,8 +70,23 @@ const sidebars = {
         },
         {
           type: "doc",
-          label: "Projects & Dependencies",
-          id: "concepts/projects-dependencies",
+          label: "Projects",
+          id: "concepts/projects",
+        },
+        {
+          type: "doc",
+          label: "Dependencies",
+          id: "concepts/dependencies",
+        },
+        {
+          type: "doc",
+          label: "Project Layout",
+          id: "concepts/project-layout",
+        },
+        {
+          type: "doc",
+          label: "Project Globs",
+          id: "concepts/project-globs",
         },
         {
           type: "doc",
@@ -88,14 +99,80 @@ const sidebars = {
           id: "concepts/cross-building",
         },
         {
+          type: "category",
+          label: "Scripts",
+          collapsed: false,
+          items: [
+            {
+              type: "doc",
+              label: "Scripts and source generation",
+              id: "concepts/scripts",
+            },
+            {
+              type: "doc",
+              label: "Bleep scripts",
+              id: "concepts/bleep-scripts",
+            },
+            {
+              type: "doc",
+              label: "Source generation scripts",
+              id: "concepts/sourcegen",
+            },
+          ],
+        },
+      ],
+    },
+
+    // TUTORIALS
+    {
+      type: "category",
+      label: "Tutorials",
+      collapsed: true,
+      items: [
+        {
           type: "doc",
-          label: "Scripts vs Plugins",
-          id: "my-build-does-more",
+          label: "Import from Maven",
+          id: "demos/importing-maven-build",
         },
         {
           type: "doc",
-          label: "Build Rewrites",
-          id: "usage/build-rewrites",
+          label: "Import from sbt",
+          id: "demos/importing-sbt-build",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Script (Java)",
+          id: "tutorials/your-first-script",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Script (Kotlin)",
+          id: "tutorials/your-first-script-kotlin",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Script (Scala)",
+          id: "tutorials/your-first-script-scala",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Sourcegen (Java)",
+          id: "tutorials/your-first-sourcegen",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Sourcegen (Kotlin)",
+          id: "tutorials/your-first-sourcegen-kotlin",
+        },
+        {
+          type: "doc",
+          label: "Write Your First Sourcegen (Scala)",
+          id: "tutorials/your-first-sourcegen-scala",
+        },
+        {
+          type: "doc",
+          label: "Publish to Maven Central",
+          id: "tutorials/publish-to-maven",
         },
       ],
     },
@@ -108,8 +185,13 @@ const sidebars = {
       items: [
         {
           type: "doc",
-          label: "Dependency Management",
-          id: "usage/dependencies",
+          label: "Annotation Processing",
+          id: "usage/annotation-processing",
+        },
+        {
+          type: "doc",
+          label: "CI Project Invalidation",
+          id: "usage/ci-invalidation",
         },
         {
           type: "doc",
@@ -123,33 +205,28 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Compile servers",
+          id: "guides/compile-servers",
+        },
+        {
+          type: "doc",
+          label: "Conflict resolution",
+          id: "usage/conflict-resolution",
+        },
+        {
+          type: "doc",
+          label: "Cross-building",
+          id: "guides/cross-building",
+        },
+        {
+          type: "doc",
+          label: "Inspect the build",
+          id: "guides/inspect",
+        },
+        {
+          type: "doc",
           label: "Porting sbt Plugins",
           id: "porting-sbt-plugins",
-        },
-        {
-          type: "doc",
-          label: "Annotation Processing",
-          id: "usage/annotation-processing",
-        },
-        {
-          type: "doc",
-          label: "Unmanaged Jars",
-          id: "usage/unmanaged-jars",
-        },
-        {
-          type: "doc",
-          label: "Source Generation",
-          id: "usage/sourcegen",
-        },
-        {
-          type: "doc",
-          label: "CI Project Invalidation",
-          id: "usage/ci-invalidation",
-        },
-        {
-          type: "doc",
-          label: "Remote Build Cache",
-          id: "usage/remote-cache",
         },
         {
           type: "category",
@@ -159,11 +236,6 @@ const sidebars = {
             id: "usage/private-repos/index",
           },
           items: [
-            {
-              type: "doc",
-              label: "Google Artifact Registry",
-              id: "usage/private-repos/artifact-registry",
-            },
             {
               type: "doc",
               label: "GitHub Packages",
@@ -176,10 +248,74 @@ const sidebars = {
             },
             {
               type: "doc",
+              label: "Google Artifact Registry",
+              id: "usage/private-repos/artifact-registry",
+            },
+            {
+              type: "doc",
               label: "Sonatype / Maven Central",
               id: "usage/private-repos/sonatype",
             },
           ],
+        },
+        {
+          type: "doc",
+          label: "Refactor your build",
+          id: "guides/refactor",
+        },
+        {
+          type: "doc",
+          label: "Remote Build Cache",
+          id: "usage/remote-cache",
+        },
+        {
+          type: "doc",
+          label: "Resource Filtering",
+          id: "guides/resource-filtering",
+        },
+        {
+          type: "doc",
+          label: "Unmanaged Jars",
+          id: "usage/unmanaged-jars",
+        },
+      ],
+    },
+
+    // COMPARED TO
+    {
+      type: "category",
+      label: "Compared To",
+      collapsed: true,
+      items: [
+        {
+          type: "doc",
+          label: "Same project, four tools",
+          id: "compared-to-other-build-tools/side-by-side",
+        },
+        {
+          type: "doc",
+          label: "Maven",
+          id: "compared-to-other-build-tools/maven",
+        },
+        {
+          type: "doc",
+          label: "Gradle",
+          id: "compared-to-other-build-tools/gradle",
+        },
+        {
+          type: "doc",
+          label: "sbt",
+          id: "compared-to-other-build-tools/sbt",
+        },
+        {
+          type: "doc",
+          label: "Mill",
+          id: "compared-to-other-build-tools/mill",
+        },
+        {
+          type: "doc",
+          label: "scala-cli",
+          id: "compared-to-other-build-tools/scala-cli",
         },
       ],
     },
@@ -192,82 +328,42 @@ const sidebars = {
       items: [
         {
           type: "doc",
-          label: "FAQ",
-          id: "appendix/faq",
-        },
-        {
-          type: "doc",
-          label: "Troubleshooting",
-          id: "appendix/troubleshooting",
-        },
-        {
-          type: "doc",
           label: "Glossary",
           id: "appendix/glossary",
+        },
+        {
+          type: "doc",
+          label: "Path Replacements",
+          id: "appendix/path-replacements",
+        },
+        {
+          type: "doc",
+          label: "Source layout: cross-builds & sbt",
+          id: "appendix/source-layout-cross-builds",
+        },
+        {
+          type: "doc",
+          label: "Stable Builds",
+          id: "appendix/stable-builds",
+        },
+        {
+          type: "doc",
+          label: "Test Frameworks",
+          id: "appendix/test-frameworks",
         },
       ],
     },
 
-    // DEMOS
-    {
-      type: "category",
-      label: "Demos",
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          label: "Create Scala Native Build",
-          id: "demos/creating-new-native",
-        },
-        {
-          type: "doc",
-          label: "CLI Experience",
-          id: "demos/cli-experience",
-        },
-      ],
-    },
   ],
 
   reference: [
     {
       type: "category",
-      label: "CLI Commands",
+      label: "CLI commands",
       collapsed: false,
-      items: [
-        { type: "doc", label: "Overview", id: "reference/cli/overview" },
-        { type: "doc", label: "compile", id: "reference/cli/compile" },
-        { type: "doc", label: "test", id: "reference/cli/test" },
-        { type: "doc", label: "run", id: "reference/cli/run" },
-        { type: "doc", label: "build", id: "reference/cli/build" },
-        { type: "doc", label: "fmt", id: "reference/cli/fmt" },
-        { type: "doc", label: "setup-ide", id: "reference/cli/setup-ide" },
-        { type: "doc", label: "import", id: "reference/cli/import" },
-        { type: "doc", label: "publish-local", id: "reference/cli/publish-local" },
-      ],
-    },
-    {
-      type: "category",
-      label: "bleep.yaml Schema",
-      collapsed: false,
-      items: [
-        { type: "doc", label: "Overview", id: "reference/schema/overview" },
-        { type: "doc", label: "Projects", id: "reference/schema/projects" },
-        { type: "doc", label: "Templates", id: "reference/schema/templates" },
-        { type: "doc", label: "Scripts", id: "reference/schema/scripts" },
-        { type: "doc", label: "Dependencies", id: "reference/schema/dependencies" },
-        { type: "doc", label: "Platform Configuration", id: "reference/schema/platform" },
-      ],
-    },
-    {
-      type: "category",
-      label: "Build Environment",
-      collapsed: false,
-      items: [
-        { type: "doc", label: "Stable Builds", id: "usage/stable-builds" },
-        { type: "doc", label: "Compile Servers", id: "usage/compile-servers" },
-        { type: "doc", label: "Project Selection", id: "usage/selecting-projects" },
-        { type: "doc", label: "Tab Completions", id: "usage/tab-completions" },
-      ],
+      // Auto-picks every .mdx in docs/reference/cli/. Pages are generated by
+      // `bleep gen-cli-docs` from the decline opts tree in bleep-cli/Main.scala.
+      items: [{ type: "autogenerated", dirName: "reference/cli" }],
     },
   ],
 };

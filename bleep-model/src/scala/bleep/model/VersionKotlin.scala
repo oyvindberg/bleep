@@ -63,4 +63,5 @@ object VersionKotlin {
 
   val Kotlin2 = VersionKotlin("2.0.0")
   val Kotlin21 = VersionKotlin("2.1.0")
+  val Kotlin23 = VersionKotlin("2.3.0")
 }

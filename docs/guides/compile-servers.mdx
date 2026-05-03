@@ -1,0 +1,137 @@
+---
+title: Compile servers
+---
+
+# Compile servers
+
+Bleep ships its own BSP server (`bleep-bsp`) that drives the Zinc
+incremental compiler directly. Most of the time you don't think
+about it &mdash; it starts when you run `bleep compile`, stays
+warm between invocations, and goes away when you log out. Two
+knobs you may need to turn: **mode** (when does it shut down?) and
+**memory** (how much heap?).
+
+## Modes
+
+### Shared (default)
+
+The compile server stays running between bleep invocations. The
+first compile pays JVM warmup + Zinc analysis load (~seconds).
+Every subsequent compile reuses the same JVM, so it's near-instant.
+This is what you want for interactive development.
+
+If you previously switched modes and want to go back:
+
+```bash
+bleep config compile-server auto-shutdown-disable
+```
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
+### One-shot per invocation
+
+The compile server shuts down after each command. Slower (every
+compile pays JVM warmup), but releases memory between commands.
+Useful on memory-constrained machines, or when you only run bleep
+occasionally and don't want a JVM resident in the background.
+
+```bash
+bleep config compile-server auto-shutdown-enable
+```
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
+### Per-JVM servers
+
+Projects can pin the JVM they're compiled with (`jvm.name:` at
+build root). The compile server runs the Scala compiler on the JVM
+it was started with, so if your build mixes projects on different
+JVMs, **bleep starts one shared compile server per JVM**.
+
+## Stopping running servers
+
+```bash
+bleep config compile-server stop-all
+```
+
+Stops every shared compile server bleep has started for the
+current user. Run this when you're done for the day, or when you
+need to reclaim memory before doing something else heavy.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
+## Memory
+
+The compile server holds Zinc analysis, compiler state, and live
+class metadata in memory. The defaults work for most repos; large
+or generated-code-heavy builds may need more.
+
+### Compile-server heap
+
+```bash
+bleep config compile-server max-memory 4g
+bleep config compile-server max-memory 2048m
+bleep config compile-server max-memory-clear   # back to JVM default
+```
+
+Sets the `-Xmx` for the compile server JVM(s) bleep starts. Reach
+for this when you're hitting `OutOfMemoryError` during compile, or
+when you have plenty of RAM and want to give the compiler room to
+breathe.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
+### Heap-pressure throttle
+
+```bash
+bleep config compile-server heap-pressure-threshold 0.85
+bleep config compile-server heap-pressure-threshold-clear   # back to default 0.80
+```
+
+When the compile server's heap usage crosses this fraction, new
+compile requests **wait** for memory to free up before starting.
+Useful when you're running multiple parallel compiles (e.g.
+several editors open against the same shared server) and don't
+want one runaway to OOM the whole server.
+
+The default of 0.80 is conservative. If you've already raised
+`max-memory` and the throttle is still kicking in too eagerly,
+nudge this up to 0.90 or so.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
+### Test-runner heap
+
+The test runner is a separate forked JVM &mdash; it doesn't share
+heap with the compile server. Tune it independently:
+
+```bash
+bleep config test-runner max-memory 2g
+bleep config test-runner max-memory-clear
+```
+
+Reach for this when test suites OOM (Testcontainers spinning up
+big stacks, generated-fixture tests with large classpaths).
+
+[Reference &rarr;](/docs/reference/cli/config/test-runner/)
+
+## Where this lives on disk
+
+All of these commands write to `~/.config/bleep/config.yaml`. The
+file is yours to read and edit by hand if you'd rather:
+
+```yaml
+bspServer:
+  compileServerMaxMemory: 4g
+  heapPressureThreshold: 0.85
+  testRunnerMaxMemory: 2g
+  mode: shared        # or: newEachInvocation
+```
+
+## See also
+
+- [`bleep config`](/docs/reference/cli/config/) &mdash; the full
+  set of user-config subcommands (auth, remote-cache, log timing,
+  &hellip;) auto-generated from the CLI.
+- [Stable Builds](/docs/appendix/stable-builds) &mdash; how bleep
+  pins the version of itself that builds your project.

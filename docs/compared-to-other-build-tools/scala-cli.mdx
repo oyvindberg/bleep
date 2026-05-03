@@ -1,0 +1,107 @@
+---
+title: vs scala-cli
+---
+
+# Comparison with scala-cli
+
+scala-cli and bleep share a lot of plumbing — Coursier for dependency
+resolution, Bloop for incremental compilation, native binary for
+instant startup. They differ on what they're optimizing for.
+
+**scala-cli** is the right tool for a single file or a small
+project: a script, a one-off experiment, a teaching example, a quick
+benchmark. It uses comment-directives in the source file itself
+(`//> using dep "..."`) so a `.scala` file is a complete buildable
+unit.
+
+**Bleep** is the right tool when you have multiple projects with
+dependencies between them, or a project that's going to live in git
+for a while and grow. The build is in `bleep.yaml` so it survives
+beyond what fits in a comment header.
+
+## Same tech, different shape
+
+A complete scala-cli "build":
+
+```scala
+//> using scala 3.8.3
+//> using dep com.lihaoyi::fansi:0.5.0
+
+@main def hello(): Unit =
+  println(fansi.Color.Green("Hello!"))
+```
+
+```bash
+scala-cli run hello.scala
+```
+
+The same thing in bleep:
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  myapp:
+    scala:
+      version: 3.8.3
+    dependencies:
+      - com.lihaoyi::fansi:0.5.0
+    platform:
+      mainClass: hello
+```
+
+```bash
+bleep run myapp
+```
+
+For one file, scala-cli is leaner. The directives are in-line with
+the code; you're never editing two files. As soon as you have two
+projects, or you want shared templates, or you want a proper test
+project, scala-cli starts wanting a separate build descriptor — and
+that's bleep's territory.
+
+## When to pick which
+
+**Pick scala-cli when:**
+- A single `.scala` file (or a directory of them) is the whole project.
+- You want directives in the source so the file is self-contained
+  for sharing as a gist or in a tutorial.
+- You're publishing a CLI tool that's deliberately a single-file
+  artifact.
+- You want `scala-cli run` / `scala-cli test` / `scala-cli package`
+  with zero configuration outside the source.
+
+**Pick bleep when:**
+- You have multiple projects with dependencies between them.
+- You want test projects, sourcegen, cross-building, multiple JVM
+  versions per project.
+- You want one tool across Java, Kotlin, and Scala — scala-cli is
+  Scala-only.
+- You want CI project invalidation, remote build cache, or BSP-driven
+  IDE imports.
+- The build is going to live longer than the README that describes it.
+
+## Migrating between them
+
+There's no automated [`bleep import`](/docs/reference/cli/import/) from scala-cli — the source
+directives map cleanly to YAML fields, but the conversion is small
+enough to do by hand. The directives map roughly:
+
+| scala-cli directive | bleep.yaml field |
+|---|---|
+| `//> using scala "3.8.3"` | `scala.version: 3.8.3` |
+| `//> using dep "com.lihaoyi::fansi:0.5.0"` | `dependencies: [com.lihaoyi::fansi:0.5.0]` |
+| `//> using javaVersion "21"` | `java.version: 21` |
+| `//> using mainClass "hello"` | `platform.mainClass: hello` |
+| `//> using resourceDir "resources"` | `resources: [resources]` |
+
+Going the other way (bleep to scala-cli) only makes sense if your
+build collapsed into a single project — and at that point, the
+question is whether you need a build tool at all.
+
+## See also
+
+- [Comparison with sbt](/docs/compared-to-other-build-tools/sbt)
+- [Comparison with Mill](/docs/compared-to-other-build-tools/mill)
+- [Your first project (Scala)](/docs/tutorials/your-first-scala-project)

@@ -1,0 +1,23 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  myapp:
+    kotlin:
+      jvmTarget: "25"
+      version: 2.3.0
+    platform:
+      name: jvm
+      mainClass: com.example.MainKt
+    sourcegen:
+      project: scripts
+      main: scripts.GenConstants
+  scripts:
+    dependencies:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
+    kotlin:
+      jvmTarget: "25"
+      version: 2.3.0
+    platform:
+      name: jvm

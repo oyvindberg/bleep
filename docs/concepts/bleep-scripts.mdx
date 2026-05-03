@@ -1,0 +1,155 @@
+---
+title: Bleep scripts
+---
+
+# Bleep scripts
+
+A bleep script is a Java class declared in your build file and
+runnable as a bleep subcommand. It's the **after-compile** half of
+[scripts and source generation](/docs/concepts/scripts) &mdash;
+publishing, packaging, custom CI logic, anything you'd reach for
+when the build itself is done and you want to do something with the
+output. (For code consumed by `compile`, see
+[Source generation scripts](/docs/concepts/sourcegen) instead.)
+
+You write normal Java, Kotlin, or Scala. You set breakpoints. You
+step through in your IDE. There is no DSL.
+
+## Write your first one
+
+The shape is identical across languages &mdash; extend
+`bleepscript.BleepScript`, register the script in `bleep.yaml`, run
+it &mdash; but the scaffolding (`class` vs `object` in Scala, the
+JVM `MainKt` naming for Kotlin, the right Java release flag) differs
+just enough to be worth its own walkthrough. Pick the language
+you&rsquo;ll write the script in:
+
+- [Write your first script (Java)](/docs/tutorials/your-first-script)
+- [Write your first script (Kotlin)](/docs/tutorials/your-first-script-kotlin)
+- [Write your first script (Scala)](/docs/tutorials/your-first-script-scala)
+
+The rest of this page is reference material once you&rsquo;ve written
+that first one.
+
+## The `BleepScript` API
+
+Every script extends `BleepScript`:
+
+```java
+public abstract class BleepScript {
+  protected BleepScript(String name);
+  public abstract void run(Started started, Commands commands, List<String> args);
+}
+```
+
+Your script gets three things:
+
+- **`started`** &mdash; the fully loaded build. The important methods:
+  - `started.build()` &mdash; every project, resolvers, scripts, `$version`
+  - `started.buildPaths()` / `started.userPaths()` / `started.projectPaths(cross)`
+  - `started.logger()` &mdash; Bleep's structured logger
+  - `started.resolvedJvm()` &mdash; the JVM Bleep is using
+  - `started.exploded(cross)` and `started.resolved(cross)` &mdash; per-project views
+- **`commands`** &mdash; invoke other bleep commands:
+
+  ```java
+  commands.compile(List.of(projectName));
+  commands.test(List.of(projectName));
+  commands.publishLocal(
+      PublishOptions.builder()
+          .groupId("com.example")
+          .version("1.0.0")
+          .toLocalIvy()
+          .projects(projectName)
+          .build());
+  ```
+
+- **`args`** &mdash; whatever the user passed on the command line after the script name.
+
+### Working with the build model
+
+Everything is plain Java records and sealed interfaces.
+
+```java
+Map<CrossProjectName, Project> all = started.build().explodedProjects();
+Project project = started.exploded(CrossProjectName.of("my-lib"));
+for (Dep dep : project.dependencies()) {
+  String kind = switch (dep) {
+    case Dep.Java j -> "java";
+    case Dep.Scala s -> s.fullCrossVersion() ? "scala-full" : "scala";
+  };
+  started.logger().info(kind + ": " + dep.repr());
+}
+```
+
+Sealed interfaces you'll encounter:
+
+- `Dep` &mdash; `Dep.Java` or `Dep.Scala`
+- `Repository` &mdash; `Repository.Maven`, `Repository.MavenFolder`, `Repository.Ivy`
+- `PlatformConfig` &mdash; `PlatformConfig.Jvm`, `PlatformConfig.Js`, `PlatformConfig.Native`
+
+Construct dependencies with `Deps`:
+
+```java
+Dep lib = Deps.parse("org.typelevel::cats-core:2.10.0");
+Dep.Java junit = Deps.javaDep("org.junit.jupiter", "junit-jupiter", "5.10.0");
+```
+
+Construct paths with `Paths`:
+
+```java
+Path src = Paths.resolve(started.buildPaths().buildDir(), "custom-src");
+```
+
+## Running from your IDE
+
+Because a script is an ordinary Java class with an inherited `main`,
+you can right-click → Run in IntelliJ or VS Code. No special runner,
+no sbt-shell. This is especially useful when a script is misbehaving:
+set a breakpoint and step through it.
+
+When you run from the IDE, Bleep still bootstraps the build model
+correctly &mdash; the inherited `main` parses the bleep CLI options
+(`-d <dir>`, logging flags) before calling your `run`.
+
+## The script protocol
+
+Under the hood, a bleep script is *any* JVM program with a
+`public static void main(String[])`. When bleep runs a script, it:
+
+1. Resolves the script project's classpath (like [`bleep run`](/docs/reference/cli/run/)).
+2. Forks a JVM with that classpath.
+3. Invokes the configured main class, **prepending framework flags**
+   to whatever args the user passed.
+
+The prepended flags include:
+
+| Flag                  | Meaning                              |
+| --------------------- | ------------------------------------ |
+| `-d <buildDir>`       | Absolute path to the build directory |
+| `--no-color`          | Disable ANSI colours in logging      |
+| `--debug`             | Enable debug logging                 |
+| `--dev`               | Development mode                     |
+| `--no-bsp-progress`   | Suppress BSP progress events         |
+| `--log-as-json`       | Structured JSON logging              |
+
+`BleepScript`'s inherited `main` consumes these flags for you. If you
+need raw access, write your own:
+
+```java
+public static void main(String[] args) {
+  // args[0..1] will be "-d <buildDir>", followed by any framework flags, followed by user args
+}
+```
+
+## See also
+
+- [Scripts and source generation](/docs/concepts/scripts) &mdash; the
+  overview, and when to choose a script vs a sourcegen script.
+- [Source generation scripts](/docs/concepts/sourcegen) &mdash; for
+  code that compile depends on.
+- [Write your first script
+  (Java)](/docs/tutorials/your-first-script) &mdash; the
+  language-specific scaffolding tutorial. Sibling pages for
+  [Kotlin](/docs/tutorials/your-first-script-kotlin) and
+  [Scala](/docs/tutorials/your-first-script-scala).

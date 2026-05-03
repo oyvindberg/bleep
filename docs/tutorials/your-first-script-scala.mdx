@@ -1,0 +1,85 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Write Your First Script (Scala)
+
+This page walks through the Scala flow for adding a script to your
+build. For *what* a script is and why bleep models scripts as a core
+concept, see [Scripts and source
+generation](/docs/concepts/scripts).
+
+The bleep API for scripts is `bleepscript.*` — a pure-Java library
+that Scala consumes through standard Java interop. (Bleep's internal
+`bleep.*` Scala API is not part of the user surface.)
+
+> **Other languages:**
+> [Java →](/docs/tutorials/your-first-script) ·
+> [Kotlin →](/docs/tutorials/your-first-script-kotlin)
+
+## Prerequisites
+
+- A working bleep project (see [Your First Project (Scala)](/docs/tutorials/your-first-scala-project))
+- Scala 3
+
+## Step 1: Add a scripts project
+
+The scripts project depends on `bleepscript` (Java) — note the
+**single** `:` since `bleepscript` is a Java artifact, not a
+Scala-cross-versioned one — and is registered under the top-level
+`scripts:` section.
+
+<Snippet path="docs-snippets-from-tests/first-script-scala/bleep.yaml" lang="yaml" />
+
+Key points:
+
+- `${BLEEP_VERSION}` is interpolated by bleep to your installed version.
+- The scripts project sets `scala.version: 3.8.3` to match the
+  surrounding bleep build's Scala version. Bumping bleep usually
+  means bumping this in lockstep.
+- The Scala class compiles to `scripts.HelloScript` (no `$` suffix
+  because it's a class, not a Scala `object`).
+
+## Step 2: Write the script
+
+Extend `bleepscript.BleepScript` and implement `run`:
+
+<Snippet path="docs-snippets-from-tests/first-script-scala/HelloScript.scala" lang="scala" />
+
+Notes:
+
+- We use `class HelloScript` rather than `object HelloScript` so the
+  class inherits `BleepScript`'s static `main` method via standard
+  JVM inheritance — Scala objects don't expose inherited statics on
+  the forwarder class.
+- The constructor takes the script name: `extends BleepScript("hello")`.
+- `args` is `java.util.List[String]` from the Java API. Convert with
+  `args.asScala.toList` (or use directly via Java collection ops).
+
+## Step 3: Run it
+
+```bash
+bleep hello
+```
+
+```
+This build has 2 projects
+Hello, world!
+```
+
+```bash
+bleep hello Alice
+```
+
+```
+This build has 2 projects
+Hello, Alice!
+```
+
+## Where to go from here
+
+- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** — the
+  full `BleepScript` API. From Scala you can drop `()` on no-arg
+  Java getters; everything else reads as plain interop.
+- **[Source generation scripts](/docs/concepts/sourcegen)** — for
+  scripts whose output is consumed by `compile`.
+- **[Java script tutorial](/docs/tutorials/your-first-script)** —
+  same API, different language.

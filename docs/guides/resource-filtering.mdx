@@ -1,0 +1,106 @@
+---
+title: Resource filtering
+---
+
+# Resource filtering
+
+Maven-style resource filtering — substituting `${VAR}` placeholders inside
+resource files at build time — isn't a built-in feature in bleep. It's
+a focused [sourcegen script](/docs/concepts/sourcegen): a few lines of
+real logic, plus enough Java boilerplate for one class.
+
+This is intentional: filtering rules vary wildly between projects (Spring
+property syntax, Mustache templates, plain `${X}` substitution, conditional
+includes, multi-environment overrides). A built-in implementation would force
+one of those models on you. A script lets you write exactly what you need,
+debug it in your IDE, and version it alongside the rest of your build.
+
+## Example: substitute build-time values into `application.properties`
+
+Hand-written `src/main/resources/application.properties.template`:
+
+```properties
+app.name=${APP_NAME}
+app.version=${APP_VERSION}
+build.timestamp=${BUILD_TIMESTAMP}
+```
+
+Wire the script into `bleep.yaml`:
+
+```yaml
+projects:
+  my-service:
+    sourcegen: scripts/myco.FilterResources
+
+  scripts:
+    dependencies:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    sources: ./src/main/java
+```
+
+The script:
+
+```java
+package myco;
+
+import bleepscript.BleepCodegenScript;
+import bleepscript.CodegenTarget;
+import bleepscript.Commands;
+import bleepscript.Started;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+public final class FilterResources extends BleepCodegenScript {
+  public FilterResources() {
+    super("FilterResources");
+  }
+
+  @Override
+  public void run(Started started, Commands commands, List<CodegenTarget> targets, List<String> args) {
+    Map<String, String> substitutions = Map.of(
+        "APP_NAME", System.getenv().getOrDefault("APP_NAME", "my-service"),
+        "APP_VERSION", started.build().dynVer().version(),
+        "BUILD_TIMESTAMP", Instant.now().toString());
+
+    for (CodegenTarget target : targets) {
+      Path template = started.buildPaths().buildDir()
+          .resolve("my-service/src/main/resources/application.properties.template");
+      try {
+        String rendered = Files.readString(template);
+        for (Map.Entry<String, String> sub : substitutions.entrySet()) {
+          rendered = rendered.replace("${" + sub.getKey() + "}", sub.getValue());
+        }
+        Path out = target.resources().resolve("application.properties");
+        Files.createDirectories(out.getParent());
+        Files.writeString(out, rendered);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+}
+```
+
+That's it. The generated `application.properties` lands in the project's
+resource path automatically and ships in the JAR / on the classpath at
+runtime.
+
+## Why this is the right shape
+
+- **Your filtering, your rules.** Need conditional sections? Mustache?
+  Multi-environment YAML merge? Just write it.
+- **Debuggable.** Set a breakpoint in IntelliJ and step through.
+- **Incremental.** Bleep tracks the script's inputs and re-runs it only when
+  they change.
+- **Atomic.** A failed script never leaves stale generated resources behind.
+
+See [Source generation](/docs/concepts/sourcegen) for the full script API.

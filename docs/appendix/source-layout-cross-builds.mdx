@@ -1,0 +1,165 @@
+---
+title: Source layout in cross-builds and sbt imports
+---
+
+# Source layout in cross-builds and sbt imports
+
+The everyday source layouts (`kotlin`, `normal`, `java`) are documented in
+[Project layout](/docs/concepts/project-layout). This page covers the parts
+of the model that only matter once you're cross-building Scala, or once
+you're maintaining a build that came over from sbt.
+
+If you're not doing either, you can stop here.
+
+## Versioned source folders in `normal`
+
+The Scala default, `normal`, derives more paths than the table on the
+concepts page admits. The full set, when the project's `scala.version` is
+set:
+
+| path                                | when it appears                              |
+| ----------------------------------- | -------------------------------------------- |
+| `<folder>/src/scala`                | always                                       |
+| `<folder>/src/java`                 | always                                       |
+| `<folder>/src/scala-<bin-version>`  | e.g. `src/scala-2.13` or `src/scala-3`       |
+| `<folder>/src/scala-<epoch>`        | e.g. `src/scala-2` or `src/scala-3`          |
+
+The version-specific folders only resolve if `scala.version` is set on
+the project (which is to say, on each cross axis when cross-building).
+If the binary version and the epoch produce the same string &mdash; like
+Scala 3, where `binVersion` and `epoch` are both `3` &mdash; the path
+appears once.
+
+This is how a single source tree can keep version-specific shims under
+`src/scala-3/` while the bulk of the code stays under `src/scala/`. The
+Scala-2.13 cross axis picks up `src/scala-2.13/`; the Scala-3 cross axis
+picks up `src/scala-3/`.
+
+## Cross-build layouts
+
+When a project has a `cross:` block, every cross-id (e.g. `jvm213`,
+`jvm3`, `js3`) becomes its own *expanded* project, with the source layout
+re-evaluated using *that cross's* Scala version and platform. So a
+`normal`-layout project with cross-ids `jvm213` and `jvm3` ends up looking
+in:
+
+```
+<folder>/src/scala
+<folder>/src/java
+<folder>/src/scala-2.13   (only on the jvm213 cross)
+<folder>/src/scala-3      (only on the jvm3 cross)
+<folder>/src/resources
+```
+
+For Scala.js / Scala Native cross-builds you have two more layouts to
+choose from, depending on how you like to organise platform-specific code.
+
+### `cross-pure`
+
+The full set of `normal` paths, plus the same paths suffixed with
+`.<platform>`:
+
+```
+<folder>/src/scala        + <folder>/src/scala.jvm
+<folder>/src/java         + <folder>/src/java.jvm
+<folder>/src/scala-3      + <folder>/src/scala-3.jvm
+…and so on for <folder>/src/resources(.jvm)
+```
+
+For the `js` cross axis, replace `.jvm` with `.js`. The "pure" half lives
+side-by-side with platform-specific overrides under the same `src/` tree.
+
+### `cross-full`
+
+The full set of `normal` paths, prefixed with both `shared/` and
+`<platform>/`:
+
+```
+<folder>/shared/src/scala  + <folder>/jvm/src/scala
+<folder>/shared/src/java   + <folder>/jvm/src/java
+<folder>/shared/src/scala-3 + <folder>/jvm/src/scala-3
+…
+```
+
+Closer to how some Scala.js / Scala Native projects are laid out, with a
+clean separation between shared and platform-specific source trees.
+
+### `sbt-matrix`
+
+The full set of `normal` paths, plus folders whose names mash the platform
+and the Scala version together &mdash; the layout sbt uses for the
+`projectMatrix` style cross builds:
+
+```
+<folder>/src/scala
+<folder>/src/scalajvm
+<folder>/src/scalajvm-2.13
+<folder>/src/scalajvm-3
+```
+
+Generally only seen on builds imported from sbt. New bleep builds should
+prefer `cross-pure` or `cross-full`.
+
+## `sbt-scope`: the legacy field
+
+In sbt, sources for the main code go under `src/main/`, tests under
+`src/test/`, integration tests under `src/it/`, and so on. That `<scope>`
+segment is what `sbt-scope` controls.
+
+In bleep, **scope distinctions are encoded by separate projects**: the
+test code is its own project, with `isTestProject: true`. There is no
+`src/test/` directory inside the same project &mdash; the tests live in
+`myapp-test/src/kotlin/`, not in `myapp/src/test/kotlin/`. So in a
+bleep-native build the `<scope>` segment is empty, and the layout
+produces short folder names (`src/scala`, not `src/main/scala`).
+
+When you run [`bleep import`](/docs/reference/cli/import/) on an sbt build, however, bleep preserves the
+original `src/main/...` / `src/test/...` shape. Each imported project
+gets an `sbt-scope` of `main`, `test`, or `it`, and the layout fills the
+segment in:
+
+```yaml
+projects:
+  myapp-main:
+    sbt-scope: main           # → src/main/scala, src/main/java, ...
+  myapp-test:
+    sbt-scope: test           # → src/test/scala, src/test/java, ...
+    isTestProject: true
+```
+
+This is preserved purely so imports work without moving any files. The
+[`bleep build move-files-into-bleep-layout`](/docs/reference/cli/build/move-files-into-bleep-layout/) command exists to migrate an
+imported build into the bleep-native form &mdash; it relocates source
+files from `src/main/scala` to `src/scala` (and so on) and clears the
+`sbt-scope` field on every project.
+
+## Wiring placeholders into custom paths
+
+Sometimes you want a custom `sources:` entry that participates in the
+cross-build's version axis &mdash; for example, sharing a single
+`shared/scala-3/` directory between several cross-builds. The
+[path placeholders](/docs/appendix/path-replacements) make that possible:
+
+```yaml
+projects:
+  mylib:
+    sources:
+      - ../shared/src/scala-${SCALA_EPOCH}
+```
+
+`${SCALA_EPOCH}` expands to `2` or `3` depending on the cross axis; the
+result joins each cross's source set on top of whatever the layout
+produces. `${SCALA_BIN_VERSION}`, `${PLATFORM}`, and the rest of the
+vocabulary are documented in [Path replacements](/docs/appendix/path-replacements).
+
+The recommendation from that page still holds: prefer plain relative
+paths when a relative path is enough. Reach for placeholders only when
+the value you need genuinely depends on the cross axis.
+
+## Where to go next
+
+- [Project layout](/docs/concepts/project-layout) &mdash; the everyday case.
+- [Cross-building](/docs/concepts/cross-building) &mdash; cross axes
+  themselves, beyond just the source layout.
+- [Path replacements](/docs/appendix/path-replacements) &mdash; the full
+  placeholder vocabulary.

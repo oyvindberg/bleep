@@ -1,0 +1,184 @@
+---
+title: Source generation
+---
+
+import Snippet from '@site/src/components/Snippet';
+
+# Source generation
+
+Bleep has first-class support for generated sources and resources. A *sourcegen script* is a normal program (Java, Kotlin, or Scala) that writes files; bleep tracks inputs, runs the script before compilation when needed, and cleans up after itself if the script fails.
+
+Unlike sbt source generators (which run inside the build definition), bleep sourcegen scripts are:
+
+- **Real programs** you can run and debug from your IDE
+- **Typed** against a first-class API (`bleepscript.BleepCodegenScript`)
+- **Isolated** in their own JVM, with their own classpath — no classloader conflicts with the build server
+- **Incremental**, with automatic invalidation based on file timestamps
+- **Atomic** — a failed script never leaves stale generated code behind
+
+## Declaring a sourcegen script
+
+A sourcegen script lives in its own project and is referenced from the projects that consume its output. The script project depends on `bleepscript` — that one dependency brings the script API and the runtime implementation needed to dispatch from your script class.
+
+The `sourcegen:` field on the consumer accepts either the shorthand `projectName/fully.qualified.Main` or the full object form:
+
+```yaml
+projects:
+  myapp:
+    sourcegen:
+      project: scripts
+      main: mypkg.MyGen
+```
+
+A project can list multiple sourcegen scripts. Each script writes into its own isolated output directory, so they can never step on each other's files.
+
+## Write your first one
+
+The shape is identical across languages &mdash; extend
+`bleepscript.BleepCodegenScript`, write files under
+`target.sources()`, list it under `sourcegen:` on the consuming
+project &mdash; but the scaffolding differs per language. Pick the
+language you&rsquo;ll write the generator in:
+
+- [Write your first sourcegen (Java)](/docs/tutorials/your-first-sourcegen)
+- [Write your first sourcegen (Kotlin)](/docs/tutorials/your-first-sourcegen-kotlin)
+- [Write your first sourcegen (Scala)](/docs/tutorials/your-first-sourcegen-scala)
+
+The rest of this page is reference material once you&rsquo;ve written
+that first one.
+
+## API reference
+
+Every sourcegen script extends `bleepscript.BleepCodegenScript` and implements `run`:
+
+```java
+public abstract class BleepCodegenScript {
+  protected BleepCodegenScript(String name);
+  public abstract void run(Started started, Commands commands, List<CodegenTarget> targets, List<String> args);
+}
+```
+
+`CodegenTarget` is a record:
+
+```java
+public record CodegenTarget(CrossProjectName project, Path sources, Path resources) { }
+```
+
+Each entry in `targets` corresponds to one project that declared this script under `sourcegen:`. Write generated source files (`.java`, `.kt`, `.scala`) under `target.sources()`, and any other files (config, assets, protobuf descriptors, etc.) under `target.resources()`. Bleep includes them in the consuming project's source and resource paths automatically.
+
+If a script doesn't need to produce resources, it simply doesn't write to `target.resources()` — the directory stays empty.
+
+### Cross builds
+
+When a consumer is cross-built, you get one `CodegenTarget` per cross ID:
+
+```java
+for (CodegenTarget target : targets) {
+  String id = target.project().crossId().orElse("");
+  if (id.startsWith("jvm3")) {
+    // generate Scala 3 code
+  } else if (id.startsWith("jvm213")) {
+    // generate Scala 2.13 code
+  } else {
+    // platform default
+  }
+}
+```
+
+### Accessing the build model
+
+`started.build().explodedProjects()` gives the full, resolved build model. `started.buildPaths()` exposes paths. `commands` can run other bleep commands (`commands.compile`, `commands.test`) if your script needs them.
+
+## Execution model
+
+### Where output goes
+
+Each script gets its own isolated output directory under `.bleep/`:
+
+```
+.bleep/generated-sources/<project>/<script-main-class>/
+.bleep/generated-resources/<project>/<script-main-class>/
+```
+
+For example, `myscripts.GenConstants` generating for `myapp` writes to:
+
+```
+.bleep/generated-sources/myapp/myscripts.GenConstants/
+.bleep/generated-resources/myapp/myscripts.GenConstants/
+```
+
+These directories are automatically added to the consuming project's source/resource paths.
+
+### Invalidation
+
+Before compilation, bleep decides whether each sourcegen script needs to run by comparing timestamps:
+
+- **Inputs** = all sources and resources of the script's project plus *all of its transitive dependencies*
+- **Outputs** = the `.bleep/generated-sources/...` and `.bleep/generated-resources/...` directories for the consuming project
+
+If any input is newer than the most-recent output, the script re-runs. If the output directory doesn't exist, it runs. Otherwise, it's skipped.
+
+A `.sourcegen-stamp` file is written to the output directory on every successful run, so that the output timestamp advances even when the script produced identical content.
+
+This means: **if you change anything the script transitively depends on, it re-runs**. You don't need to declare inputs; bleep computes them from the build graph.
+
+### Concurrency
+
+Multiple concurrent operations (e.g. parallel `compile` and `test`) that target projects sharing a sourcegen script are coordinated by a per-script semaphore. The second waiter re-checks timestamps after the first completes and skips if the outputs are already fresh.
+
+### Isolation: forked JVM
+
+Each script runs in its own forked JVM with a classpath built from the script project and its resolved dependencies. This is deliberate:
+
+- No classloader conflicts between the script and bleep's BSP server
+- Scripts can freely depend on any library — nothing is shared with the build server
+
+## Failure handling
+
+Sourcegen is designed to fail cleanly. Stale generated code from a previous successful run would cause confusing compilation errors on the next build, so bleep aggressively cleans up.
+
+### The temp-directory dance
+
+When a script runs, the `sources` and `resources` paths it sees point to **temp directories** under `.bleep/generated-sources-tmp/` and `.bleep/generated-resources-tmp/`, not the real output. The script writes freely to these temp dirs.
+
+Only if `run` returns normally, the framework synchronises temp → real with a soft-sync:
+
+- **New files** are written
+- **Changed files** overwrite the existing
+- **Unchanged files** are left alone — their mtime is preserved, which matters for incremental compilation
+- **Orphan files** in the real directory that aren't in the temp dir are deleted
+- A fresh `.sourcegen-stamp` is written at the end
+
+The temp directories are deleted in a `finally` block regardless of success.
+
+### Cleanup on failure
+
+If the script exits non-zero, crashes (signal), or is killed, bleep:
+
+1. Recursively deletes the real `generated-sources/<project>/<script>/` and `generated-resources/<project>/<script>/` directories
+2. Deletes any `.sourcegen-stamp` file (so the next build will re-run the script rather than trust stale state)
+3. Reports the error back through the BSP pipeline
+
+The rationale: a half-generated directory is worse than no directory at all — it can produce baffling compile errors. Empty state is recoverable; stale state isn't.
+
+## Running sourcegen explicitly
+
+Sourcegen normally runs implicitly as part of [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/), but you can invoke it directly:
+
+```bash
+# Run sourcegen for specific projects
+bleep sourcegen myapp
+
+# Watch mode — re-run when inputs change
+bleep sourcegen --watch myapp
+```
+
+## When to use it
+
+Sourcegen is the right tool when you have:
+
+- A code or resource file that's derived from something else in the repo (a schema, a protobuf descriptor, a version string, a data file)
+- A dependency on the output of a third-party generator (scalapb, guardrail, openapi generators)
+- A task that historically lived in an sbt `Compile / sourceGenerators` hook
+
+For one-off code generation that doesn't need build integration, use a plain `scripts:` entry (see [Scripts](/docs/concepts/scripts)) and run it manually.

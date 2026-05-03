@@ -1,0 +1,154 @@
+---
+title: Same project, four build tools
+---
+
+import Snippet from "@site/src/components/Snippet";
+
+# Same project, four build tools
+
+A single application. One application's worth of dependencies. One main class.
+Here it is, expressed in `bleep.yaml`, `pom.xml`, `build.sbt`, and
+`build.gradle.kts`.
+
+Line counts aren't the point &mdash; you'll see sbt's three files come in
+shorter than bleep's one. The point is the kind of artifact each one is:
+plain data versus XML versus a DSL with hidden state versus a Kotlin
+program that mutates a build graph. Read each one with that question in
+mind.
+
+## bleep.yaml &mdash; plain data
+
+This is a real workspace from bleep's own integration tests
+(`docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml`).
+The bleep build server compiles and runs it on every commit:
+
+<Snippet
+  path="docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml"
+  lang="yaml"
+/>
+
+For the per-feature breakdown, see the dedicated pages:
+[vs Maven](/docs/compared-to-other-build-tools/maven),
+[vs Gradle](/docs/compared-to-other-build-tools/gradle),
+[vs sbt](/docs/compared-to-other-build-tools/sbt),
+[vs Mill](/docs/compared-to-other-build-tools/mill).
+
+## pom.xml &mdash; XML
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>myapp</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.version>2.3.0</kotlin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-runner-junit5-jvm</artifactId>
+            <version>5.8.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+It is 2026. We are still typing closing tags by hand. There is no need.
+
+## build.sbt + project/ &mdash; a DSL across three files
+
+`build.sbt`:
+
+```scala
+ThisBuild / scalaVersion := "3.8.3"
+ThisBuild / organization := "com.example"
+
+lazy val myapp = (project in file("."))
+  .enablePlugins(JavaAppPackaging)
+  .settings(
+    name := "myapp",
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "fansi" % "0.5.0"
+    ),
+    Compile / mainClass := Some("com.example.Main")
+  )
+```
+
+`project/build.properties`:
+
+```properties
+sbt.version=1.10.0
+```
+
+`project/plugins.sbt`:
+
+```scala
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.0")
+```
+
+Three files, four scopes (`Compile`, `Test`, `Runtime`, `IntegrationTest`),
+and a DSL whose every keyword is a global side effect on a hidden settings
+graph. `sbt-native-packager` is enabled by name; what it does to your build
+is somewhere on a wiki.
+
+## build.gradle.kts &mdash; a Kotlin program
+
+```kotlin
+plugins {
+    application
+    kotlin("jvm") version "2.3.0"
+}
+
+group = "com.example"
+version = "0.1.0-SNAPSHOT"
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.0")
+}
+
+application {
+    mainClass.set("com.example.MainKt")
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
+}
+```
+
+A real Kotlin program that side-effects the build graph. Plus
+`settings.gradle.kts`, `gradle.properties`, and the wrapper. Renaming the
+project means writing a Kotlin task &mdash; there is no `gradle
+rename-project`.

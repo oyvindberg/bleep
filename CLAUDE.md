@@ -1,15 +1,15 @@
 # Bleep Build Tool - Developer Guide
 
-This document provides comprehensive background for working with bleep, a modern Scala build tool that emphasizes speed, simplicity, and excellent developer experience.
+This document provides comprehensive background for working with bleep, a modern JVM build tool for Java, Kotlin, and Scala that emphasizes speed, simplicity, and excellent developer experience.
 
 ## Overview
 
-Bleep is a native-image compiled build tool for Scala that replaces sbt with:
+Bleep is a native-image compiled JVM build tool that replaces Maven, Gradle, and sbt with:
 - **Instant startup** (~0ms) through GraalVM native image compilation
-- **Declarative YAML configuration** instead of Scala DSL
+- **Declarative YAML configuration** instead of XML, Groovy/Kotlin DSL, or Scala DSL
 - **Excellent IDE integration** through BSP (1-second imports)
-- **Simple script system** replacing sbt's complex task/plugin model
-- **Fast compilation** via its own BSP server with Zinc incremental compiler
+- **Simple script system** — write build logic in Java or Scala
+- **Fast compilation** via its own BSP server with Zinc, javac, and kotlinc
 
 ## Core Concepts
 
@@ -411,7 +411,7 @@ This maintenance process ensures our liberated projects stay current while prese
 
 ## Resources
 
-- Documentation: `bleep-site-in/` directory
+- Documentation: top-level `docs/` directory
 - Model definitions: `bleep-model/src/scala/bleep/model/`
 - Example scripts: `scripts/src/scala/bleep/scripts/`
 - Liberated projects: `liberated/*/` for real-world examples

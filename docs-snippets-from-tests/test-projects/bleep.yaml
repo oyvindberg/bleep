@@ -1,0 +1,24 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mylib:
+    extends: template-jvm
+  mylib-test:
+    extends: template-jvm
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1
+  mylib-it:
+    extends: template-jvm
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1
+      - org.testcontainers:testcontainers:1.20.4
+templates:
+  template-jvm:
+    platform:
+      name: jvm

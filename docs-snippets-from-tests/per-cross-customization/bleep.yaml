@@ -1,0 +1,20 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mylib:
+    source-layout: cross-pure
+    cross:
+      jvm213:
+        scala:
+          version: 2.13.16
+          options: -Ymacro-annotations
+        dependencies:
+          - org.typelevel::cats-core:2.10.0
+      jvm3:
+        scala:
+          version: 3.8.3
+          options: -Yretain-trees
+    platform:
+      name: jvm

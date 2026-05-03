@@ -1,0 +1,111 @@
+---
+title: Basic usage
+---
+
+# Basic usage
+
+Once you have a build &mdash; from
+[Your first project](/docs/tutorials/your-first-project), or imported
+from [Maven](/docs/demos/importing-maven-build) or
+[sbt](/docs/demos/importing-sbt-build) &mdash; bleep is a small set of
+verbs. This page is the cheat-sheet.
+
+Every command that takes project names accepts
+[project globs](/docs/concepts/project-globs): names like `myapp`,
+`myapp@jvm213`, `jvm3`, `kotlin`, or path prefixes like `services/api`.
+With no arguments most commands default to *everything*.
+
+## Compile
+
+```bash
+bleep compile                  # everything
+bleep compile myapp            # one project
+bleep compile myapp@jvm3       # one cross variant
+bleep compile jvm3             # everything on the jvm3 cross
+bleep compile services/api     # everything under that path prefix
+bleep compile --watch          # rebuild on file change (alias: -w)
+bleep compile --diff-watch     # watch mode with terse per-project diffs
+```
+
+## Test
+
+```bash
+bleep test                     # every test project (isTestProject: true)
+bleep test myapp-test          # one
+bleep test --watch             # auto-rerun on file changes
+bleep list-tests               # list test names without running them
+```
+
+[`bleep test --diff-watch`](/docs/reference/cli/test/) works the same as `compile --diff-watch`,
+showing only the suites whose pass/fail status flipped between cycles.
+
+## Run
+
+```bash
+bleep run myapp                # invokes platform.mainClass
+bleep run myapp -- arg1 arg2   # arguments after `--` go to the program
+bleep run myscript             # named scripts live alongside projects
+```
+
+## Find what's there
+
+```bash
+bleep projects                 # list every project in the build
+bleep projects jvm3            # what does this glob expand to?
+bleep projects services/api    # what's under this path prefix?
+bleep projects-test            # list every test project
+bleep build show short         # bleep.yaml as written, normalised
+bleep build show effective     # full project config after templates apply
+```
+
+When you `cd` into a subfolder of your build, [`bleep projects`](/docs/reference/cli/projects/) (and
+every other command) automatically scopes to projects whose `folder`
+sits under your CWD. See
+[Selecting projects via subfolders](/docs/concepts/project-globs).
+
+## Format your code
+
+```bash
+bleep fmt                      # scalafmt / ktfmt / google-java-format,
+                               # depending on what the project compiles
+```
+
+## Clean
+
+```bash
+bleep clean                    # remove compile output
+```
+
+## IDE setup
+
+Bleep speaks BSP, so any BSP-aware editor talks to it directly:
+
+```bash
+bleep setup-ide                # generate ./bsp/bleep.json
+```
+
+Then open the build root in IntelliJ / VS Code (with Metals) /
+your editor of choice; it imports in about a second.
+
+## Reshaping the build
+
+Because `bleep.yaml` is data, the build tool can edit it for you. The
+[`bleep build`](/docs/reference/cli/build/) subcommand has a small library of mutating operations
+&mdash; `update-deps`, `project-rename`, `project-merge-into`,
+`templates-reapply`, `normalize`, and friends.
+
+```bash
+bleep build update-deps        # bump every dependency to latest
+bleep build project-rename a b # rename a project; references update
+bleep build diff effective     # diff against any git revision
+```
+
+## Where to go next
+
+- [Project globs](/docs/concepts/project-globs) &mdash; the full
+  vocabulary for naming projects and groups, plus how `cd`
+  interacts with command scope.
+- [Scripts](/docs/concepts/scripts) &mdash; custom build logic as regular
+  Java, Kotlin, or Scala programs you can debug.
+- [Tab completions](/docs/tab-completions) &mdash; install shell
+  completion so globs surface as you type.

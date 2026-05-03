@@ -1,0 +1,77 @@
+---
+title: Scripts and source generation
+---
+
+# Scripts and source generation
+
+Bleep models exactly two ways to extend the build, both as
+first-class concepts in `bleep.yaml`:
+
+- **[Bleep scripts](/docs/concepts/bleep-scripts)** &mdash; regular
+  Java / Kotlin / Scala programs you invoke as bleep subcommands.
+- **[Source generation scripts](/docs/concepts/sourcegen)** &mdash;
+  programs that emit code or resources for another project, run
+  automatically before compilation, with hashing and atomic failure.
+
+That's the entire extension surface. There is no plugin lifecycle,
+no `preCompile` hook, no `Compile / packageBin / mappings += …` to
+learn. The build follows the build graph; everything else is just
+code you write.
+
+## Why these are core concepts
+
+Across years of building on the JVM, almost every "useful build
+extension" people end up writing in Maven / Gradle / sbt / Mill
+collapses into one of two shapes:
+
+1. **Generate code from something the build can see** &mdash; a
+   schema, a protobuf descriptor, a build version string, an OpenAPI
+   spec. Inspect, generate, keep compiling. **Sourcegen** is this
+   slot.
+2. **Run a program after the build has produced its artifacts**
+   &mdash; publish them, sign them, ship them, lint them, package
+   them, post a release note. **Scripts** are this slot.
+
+Bleep models exactly those two as first-class &mdash; *and refuses
+everything else*. Almost every other "build mechanism" you've met on
+the JVM &mdash; phase injection, autoplugins, scope axes, custom
+configurations, `Plugin<Project>` registration ceremonies &mdash; is
+ceremony around one of those two shapes, dressed up in a DSL. By
+naming them directly, bleep skips the dressing.
+
+The win isn't only ergonomic. It's that **a script is a regular
+program**: it has a `main`, you debug it with breakpoints, you
+unit-test it, you depend on any library on the JVM, and the bleep
+runtime gives you a typed handle on the resolved build model. There
+is no privileged layer of magic dust between you and the JVM.
+
+## When to use which
+
+| You want to&hellip;                                            | Use                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------ |
+| Publish artifacts, sign a release, post to Slack on green CI   | [Bleep script](/docs/concepts/bleep-scripts)                 |
+| Run a custom linter, check licenses, audit deps                | [Bleep script](/docs/concepts/bleep-scripts)                 |
+| Generate `.java` / `.kt` / `.scala` from a schema or spec      | [Source generation script](/docs/concepts/sourcegen)         |
+| Stamp a build version into a generated `Constants` file        | [Source generation script](/docs/concepts/sourcegen)         |
+| Anything where the output of your code is *consumed by compile*| [Source generation script](/docs/concepts/sourcegen)         |
+| Anything where you invoke it manually or from CI               | [Bleep script](/docs/concepts/bleep-scripts)                 |
+
+The dividing line is whether `compile` needs the output. If it does,
+you want sourcegen &mdash; bleep runs your generator on demand,
+hashes the inputs, and reruns when they change. Otherwise it's a
+plain script.
+
+## Where to go from here
+
+- **[Bleep scripts](/docs/concepts/bleep-scripts)** &mdash; the
+  `BleepScript` API, classpath isolation, IDE debugging, and the
+  framework flags bleep prepends when forking your script.
+- **[Source generation scripts](/docs/concepts/sourcegen)** &mdash;
+  the `BleepCodegenScript` API, the `sourcegen:` field, the
+  invalidation model, and the temp-directory-then-sync dance that
+  guarantees no half-generated state survives a failure.
+- **[Write your first script](/docs/tutorials/your-first-script)**
+  &mdash; the language-specific scaffolding tutorials
+  ([Java](/docs/tutorials/your-first-script) ·
+  [Kotlin](/docs/tutorials/your-first-script-kotlin) ·
+  [Scala](/docs/tutorials/your-first-script-scala)).

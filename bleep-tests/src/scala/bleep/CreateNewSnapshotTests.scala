@@ -19,14 +19,15 @@ class CreateNewSnapshotTests extends SnapshotTest {
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
       val generatedProjectFiles: Map[Path, String] =
         BuildCreateNew(
-          logger,
-          userPaths,
+          logger = logger,
+          userPaths = userPaths,
           cwd = buildPaths.buildDir,
+          language = BuildCreateNew.Language.Scala,
           platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
           scalas = NonEmptyList.of(model.VersionScala.Scala3, model.VersionScala.Scala213),
           name = "myapp",
           bleepVersion = model.BleepVersion.dev,
-          testResolver
+          coursierResolver = testResolver
         ).genAllFiles(buildPaths)
 
       writeAndCompare(buildPaths.buildDir, generatedProjectFiles, logger).discard()

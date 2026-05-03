@@ -1,0 +1,78 @@
+import Snippet from '@site/src/components/Snippet';
+
+# Write Your First Script (Kotlin)
+
+This page walks through the Kotlin flow for adding a script to your
+build. For *what* a script is and why bleep models scripts as a core
+concept, see [Scripts and source
+generation](/docs/concepts/scripts).
+
+> **Other languages:**
+> [Java →](/docs/tutorials/your-first-script) ·
+> [Scala →](/docs/tutorials/your-first-script-scala)
+
+## Prerequisites
+
+- A working bleep project (see [Your First Project (Kotlin)](/docs/tutorials/your-first-kotlin-project))
+- Kotlin 2.x
+
+## Step 1: Add a scripts project
+
+The scripts project depends on `bleepscript` (Java) and is registered
+under the top-level `scripts:` section. Both `kotlin:` and `java:`
+blocks are present — Kotlin always emits JVM bytecode against a Java
+target.
+
+<Snippet path="docs-snippets-from-tests/first-script-kotlin/bleep.yaml" lang="yaml" />
+
+Key points:
+
+- `${BLEEP_VERSION}` is interpolated by bleep to your installed version.
+- `scripts.HelloScript` resolves to the JVM class generated for the
+  Kotlin `class HelloScript` below — no `Kt` suffix because it's a
+  class, not top-level functions.
+
+## Step 2: Write the script
+
+Extend `bleepscript.BleepScript` and implement `run`:
+
+<Snippet path="docs-snippets-from-tests/first-script-kotlin/HelloScript.kt" lang="kotlin" />
+
+Notes:
+
+- The Kotlin primary constructor passes the script name to the Java
+  super constructor: `class HelloScript : BleepScript("hello")`.
+- `BleepScript` supplies `main` by reflection — you don't write your
+  own.
+- `args` is `List<String>` (Kotlin's interface, but compatible with the
+  Java `List<String>` signature on the base class).
+
+## Step 3: Run it
+
+```bash
+bleep hello
+```
+
+```
+This build has 2 projects
+Hello, world!
+```
+
+```bash
+bleep hello Alice
+```
+
+```
+This build has 2 projects
+Hello, Alice!
+```
+
+## Where to go from here
+
+- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** — the
+  full `BleepScript` API and how to call it from Kotlin via standard
+  Java interop.
+- **[Source generation scripts](/docs/concepts/sourcegen)** — for
+  scripts whose output is consumed by `compile`.
+- **[Java script tutorial](/docs/tutorials/your-first-script)** —
+  same API, different language.

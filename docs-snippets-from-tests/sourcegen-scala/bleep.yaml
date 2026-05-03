@@ -1,0 +1,21 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  myapp:
+    platform:
+      name: jvm
+      mainClass: com.example.Main
+    scala:
+      version: 3.8.3
+    sourcegen:
+      project: scripts
+      main: scripts.GenConstants
+  scripts:
+    dependencies:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3

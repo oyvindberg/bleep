@@ -1,0 +1,98 @@
+# IDE setup
+
+Bleep speaks **BSP** (the Build Server Protocol). Any BSP-aware
+editor — IntelliJ IDEA, VS Code with Metals, Vim/Neovim with
+nvim-metals, Emacs with lsp-metals — talks to bleep over the
+protocol that already exists in the JVM ecosystem. There's no bleep
+IDE plugin to install.
+
+## One-time setup
+
+```bash
+bleep setup-ide
+```
+
+This writes `.bsp/bleep.json` in your build directory. That's the
+discovery file every BSP client looks for; once it's there, your
+editor knows how to launch bleep's build server.
+
+You only need to re-run `setup-ide` if you change the project list
+your IDE imports (see [Scoping which projects the IDE
+sees](#scoping-which-projects-the-ide-sees) below) — adding a new
+project to `bleep.yaml` doesn't require it.
+
+## IntelliJ IDEA
+
+1. Run [`bleep setup-ide`](/docs/reference/cli/setup-ide/).
+2. **File → Open** (not *Import Project*). Navigate to the build
+   directory and accept.
+3. IntelliJ detects the BSP file and starts the bleep build server.
+
+Don't import as a Maven, Gradle, or sbt project — even if the repo
+has any of those files left around (e.g., from a previous build
+tool). Bleep imports through BSP, and that path is the one IntelliJ
+runs incremental compile against.
+
+For Java-only projects, IntelliJ's bundled support is the most
+polished option. For Scala, install the Scala plugin. For Kotlin,
+the bundled Kotlin plugin handles `.kt` files automatically once BSP
+has imported the project.
+
+## VS Code with Metals
+
+1. Run [`bleep setup-ide`](/docs/reference/cli/setup-ide/).
+2. Install the
+   [Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals).
+3. Open the build folder in VS Code. Metals detects `.bsp/bleep.json`
+   automatically and connects.
+
+Metals is Scala-focused but its BSP integration handles Java sources
+too. For Kotlin support in VS Code, pair Metals with the
+[Kotlin extension](https://marketplace.visualstudio.com/items?itemName=fwcd.kotlin)
+— Metals provides the build, the Kotlin extension provides syntax
+and completion.
+
+## Vim, Neovim, Emacs
+
+Any BSP client works. The most common combinations:
+
+- **Neovim:** [nvim-metals](https://github.com/scalameta/nvim-metals)
+  via the metals binary.
+- **Emacs:** [lsp-metals](https://github.com/emacs-lsp/lsp-metals)
+  via lsp-mode.
+
+Both detect `.bsp/bleep.json` the same way the GUI editors do.
+
+## Scoping which projects the IDE sees
+
+In a large build you may not want every project active in your IDE
+at once — Metals/IntelliJ will allocate memory and run incremental
+compile per project. `setup-ide` accepts the same project selector
+syntax as [`bleep compile`](/docs/reference/cli/compile/):
+
+```bash
+bleep setup-ide myapp myapp-test          # just these two
+bleep setup-ide jvm213                     # every project on Scala 2.13
+bleep setup-ide myapp jvm3                 # named projects + a cross-id group
+```
+
+The selector is matched once at `setup-ide` time and baked into the
+generated `.bsp/bleep.json`. To change the scope, re-run `setup-ide`
+with new arguments and tell your IDE to re-import.
+
+## Useful flags
+
+| Flag | When to reach for it |
+|------|----------------------|
+| `--force-jvm` | Force the BSP server to run through the JVM rather than the native binary. Useful for attaching a debugger to bleep itself, or on a platform where the native image is unavailable. |
+
+## Troubleshooting
+
+If the import doesn't seem to work, check that `.bsp/bleep.json`
+exists in the build root and contains valid JSON. If it does and the
+IDE still doesn't see it, restart the editor — most BSP clients only
+scan the file at startup.
+
+If imports succeed but compilation errors in the IDE don't match
+what [`bleep compile`](/docs/reference/cli/compile/) says, re-run [`bleep setup-ide`](/docs/reference/cli/setup-ide/) and re-import.
+That usually resolves the divergence.

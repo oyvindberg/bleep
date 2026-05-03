@@ -1,0 +1,20 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mylib:
+    platform:
+      name: jvm
+    publish:
+      groupId: io.github.myusername
+      url: https://github.com/myusername/mylib
+      description: A useful library that does useful things.
+      developers:
+        - id: myusername
+          name: My Name
+          url: https://github.com/myusername
+      licenses:
+        - name: Apache-2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+      sonatypeCredentialHost: central.sonatype.com

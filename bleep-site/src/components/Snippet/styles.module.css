@@ -1,0 +1,41 @@
+.snippetContainer {
+  margin: 1rem 0;
+}
+
+.tabsWrapper {
+  position: relative;
+}
+
+.tabsWrapper :global(.tabs-container) {
+  margin-top: 0 !important;
+}
+
+.checkbox {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 1rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+}
+
+.checkbox input {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.checkbox span {
+  line-height: 1;
+}
+
+[data-theme="dark"] .checkbox {
+  color: var(--ifm-color-content-secondary);
+}

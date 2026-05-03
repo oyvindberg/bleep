@@ -1,0 +1,240 @@
+---
+title: Projects
+---
+
+# Projects
+
+**A project is a project is a project.** Tests are projects. Scripts
+are projects. Source generators are projects. There is no second
+kind of thing.
+
+That sounds trivial until you've spent years using build tools where
+*tests* are a sub-shape of a project (Maven's `src/test`, sbt's
+`Test` configuration), *scripts/plugins* are an entirely different
+mechanism (Maven Mojos in their own jar, Gradle `Plugin<Project>`
+classes, sbt autoplugins compiled in `project/`), and *generators*
+are a third thing (Maven plugin phases, Gradle tasks, sbt
+`sourceGenerators`). In bleep all four are the same primitive — a
+declared project with sources, dependencies, and a platform — wired
+in through different YAML fields.
+
+This is the central simplification of bleep, and it's why the rest
+of the model fits in your head.
+
+## What a project is
+
+```yaml
+projects:
+  myapp:
+    extends: template-common
+    dependencies:
+      - org.slf4j:slf4j-api:2.0.9
+    platform:
+      mainClass: com.example.Main
+```
+
+A project has:
+
+- A **name** (the YAML key — `myapp` here).
+- A **folder on disk**: `./myapp` by default; override with `folder:`.
+- **Sources**: `myapp/src/scala/`, `myapp/src/java/`, or
+  `myapp/src/kotlin/` by default. Override with `sources:` if you
+  need extra paths.
+- **Dependencies**: external Maven coordinates (`dependencies:`)
+  and project-internal (`dependsOn:`).
+- **Compiler / language settings**: `scala:`, `java:`, `kotlin:`
+  blocks for the language(s) the project uses.
+- **Platform**: `jvm`, `js`, or `native`. Optional `mainClass`.
+
+Every other YAML field on a project is either inherited via
+`extends:` from a template, or absent.
+
+## Tests are projects
+
+A test project is a regular project with one extra field:
+
+```yaml
+projects:
+  mylib:
+    java:
+      version: 21
+    platform:
+      name: jvm
+
+  mylib-test:
+    isTestProject: true
+    dependsOn: mylib
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1
+```
+
+Two projects, not one. `mylib-test` has its own `src/java/`, its
+own classpath, its own compile output, its own dependencies. It
+declares `dependsOn: mylib` like any other project, and flips
+`isTestProject: true` so [`bleep test`](/docs/reference/cli/test/)
+knows to discover and run it.
+
+What you get for free, just because tests are real projects:
+
+- **Test-only dependencies are isolated.** JUnit, Mockito,
+  Testcontainers — none of them leak into the production runtime
+  classpath. There's no `<scope>test</scope>` to remember.
+- **Tests can have a different platform or compiler config.** A
+  test project can target a different JVM release, different
+  compiler flags, even a different Scala version (within reason).
+- **Test projects are first-class.** A staging service that wraps
+  your library in a Testcontainers harness can `dependsOn: mylib-test`
+  and reuse those fixtures, the same way it would reuse any
+  other project.
+
+The cost is two folders in your repo instead of one. Worth it.
+
+### Multiple test layers: unit + integration
+
+The same mechanism scales. Two layers of testing — fast unit tests
+on every PR, slower integration tests on a tag or schedule — is two
+sibling test projects:
+
+import Snippet from '@site/src/components/Snippet';
+
+<Snippet path="docs-snippets-from-tests/test-projects/bleep.yaml" lang="yaml" />
+
+Layout on disk:
+
+```
+mylib/         src/java/com/example/Greeter.java
+mylib-test/    src/java/com/example/GreeterTest.java
+mylib-it/      src/java/com/example/GreeterIT.java
+```
+
+Run them independently:
+
+```bash
+bleep test mylib-test     # unit tests only
+bleep test mylib-it       # integration tests only
+bleep test                # every isTestProject in the build
+```
+
+In CI you'd typically run [`bleep test mylib-test`](/docs/reference/cli/test/)
+on every PR and `bleep test mylib-it` on a separate scheduled
+job &mdash; gated on an env var if your integration code only runs
+under specific conditions:
+
+```bash
+RUN_INTEGRATION=true bleep test mylib-it
+```
+
+### Sharing fixtures across test projects
+
+`dependsOn:` works between test projects too. Your integration test
+project can depend on your unit test project to reuse fixtures and
+helpers:
+
+```yaml
+projects:
+  mylib-it:
+    extends: template-jvm
+    isTestProject: true
+    dependsOn:
+      - mylib
+      - mylib-test       # <-- pulls in unit test fixtures
+    dependencies:
+      - org.junit.jupiter:junit-jupiter:5.10.1
+      - org.testcontainers:testcontainers:1.20.4
+```
+
+### Naming
+
+The convention is `<project>-test` for unit tests and
+`<project>-it` for integration tests. Bleep treats these as
+ordinary project names &mdash; the suffix isn't magic. Pick what
+your team agrees on; just keep `isTestProject: true` on every test
+project so [`bleep test`](/docs/reference/cli/test/) discovers
+them.
+
+## Scripts are projects
+
+A `scripts` project is a regular Java / Kotlin / Scala project that
+depends on `bleepscript`:
+
+```yaml
+projects:
+  scripts:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    dependencies:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
+    sources: ./src/main/java
+
+scripts:
+  hello:
+    project: scripts
+    main: scripts.HelloScript
+```
+
+The top-level `scripts:` map registers a callable name (`hello`) to
+a `(project, main-class)` pair. `bleep hello` invokes the registered
+class via the bleepscript runtime.
+
+The script project itself isn't a special construct — it's a
+project that happens to compile a class extending `BleepScript`.
+You can run other commands against it (`bleep compile scripts`,
+`bleep test scripts-test`), depend on it from another project, or
+add multiple scripts to the same project.
+
+See [Scripts and source generation](/docs/concepts/scripts) and
+[Bleep scripts](/docs/concepts/bleep-scripts) for the full story.
+
+## Source generators are projects
+
+A sourcegen "script" is also just a regular project. It depends on
+`bleepscript`, contains a class extending `BleepCodegenScript`, and
+the consumer project references it via the `sourcegen:` field:
+
+```yaml
+projects:
+  scripts:
+    # ... same shape as above ...
+
+  myapp:
+    extends: template-common
+    sourcegen:
+      project: scripts
+      main: scripts.GenConstants
+```
+
+Bleep runs `scripts.GenConstants` before compiling `myapp`, hashes
+the inputs to decide when to re-run, and feeds the output into
+`myapp`'s source paths. See [Source generation
+scripts](/docs/concepts/sourcegen).
+
+## What this gets you
+
+Because there's only one kind of project, there's only one set of
+tools to learn. [`bleep compile`](/docs/reference/cli/compile/),
+[`bleep test`](/docs/reference/cli/test/),
+[`bleep run`](/docs/reference/cli/run/) all work the same way on
+any project — main, test, script, or generator. The build graph
+(`dependsOn`) is the same graph for all of them. The
+[refactor commands](/docs/guides/refactor) that rename, merge, or
+move a project work uniformly.
+
+You don't have to remember separate mental models for "test code"
+vs "production code" vs "build logic". It's all just projects, and
+projects are simple.
+
+## See also
+
+- [Templates & Inheritance](/docs/concepts/templates-inheritance) &mdash;
+  shared configuration via `extends:`.
+- [Cross-Building](/docs/concepts/cross-building) &mdash; one project
+  fanned out into multiple variants (Scala 2.13 / 3, JVM / JS /
+  Native).
+- [Dependencies](/docs/concepts/dependencies) &mdash; how projects
+  depend on Maven artifacts.
+- [Scripts and source generation](/docs/concepts/scripts) &mdash; the
+  two ways projects extend the build.
+- [Supported test frameworks](/docs/appendix/test-frameworks) &mdash;
+  what bleep auto-detects when `isTestProject: true`.
