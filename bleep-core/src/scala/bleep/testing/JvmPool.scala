@@ -418,10 +418,12 @@ object JvmPool {
 
       private def readResponses: Stream[IO, TestProtocol.TestResponse] =
         Stream.repeatEval {
-          // Use interruptible so timeout/cancellation can interrupt the blocked readLine thread.
-          // Periodically drain stderr to prevent buffer deadlock: if the child process fills
-          // its stderr buffer while we're blocked on stdout, both processes deadlock.
-          val readOne = IO.interruptible {
+          // Daemon stderr-drain thread on ManagedJvm pulls stderr off the OS pipe
+          // continuously into a bounded buffer, so we don't need to interleave drains
+          // here. Just block on stdout. (The previous IO.race with a drainLoop also
+          // discarded the drained lines via `.void`, so failure-time drainStderr
+          // always returned empty — silent diagnostic loss.)
+          IO.interruptible {
             val line = jvm.stdout.readLine()
             if (line == null) {
               jvm.markDead()
@@ -439,15 +441,6 @@ object JvmPool {
                   )
               }
             }
-          }
-          // Race readOne against a periodic stderr drain to prevent buffer deadlock.
-          // Every 100ms while waiting for stdout, drain stderr.
-          def drainLoop: IO[Unit] =
-            IO.sleep(100.millis) >> IO.blocking(jvm.readStderr()).void >> drainLoop
-
-          IO.race(readOne, drainLoop).map {
-            case Left(result) => result
-            case Right(_)     => None // drainLoop never completes, but required for types
           }
         }.unNoneTerminate
 
