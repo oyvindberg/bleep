@@ -118,29 +118,47 @@ Bleep's native binary hides all of it without a daemon.
 
 ## Targets vs scripts
 
-Mill's killer feature is the typed task graph. `def myArtifact = T {
-... }` defines a target, Mill caches its result, and any change to
-its inputs invalidates the cache automatically. You build complex
-multi-step pipelines this way.
+Mill's typed task graph is genuinely elegant. `def myArtifact = T {
+... }` defines a target, Mill caches its result, and any input
+change invalidates the cache automatically. Compose enough of these
+and you've got a multi-step pipeline with cross-step caching,
+expressed in idiomatic Scala.
 
-Bleep doesn't model task graphs. Equivalent functionality is:
+The question bleep keeps coming back to is: *does that have to live
+in the build?* A task graph is a piece of incremental-compute
+machinery. The build tool consumes one (for compile, test, sourcegen,
+link). It doesn't have to *be* one &mdash; and most builds never
+define a custom target.
 
-- **Compile/test/run/publish/link** — built-in commands, not user
-  targets.
-- **Sourcegen** — auto-runs before consumers compile, with timestamp
-  invalidation. See [Source generation](/docs/concepts/sourcegen).
-- **Scripts** — manually invoked, no caching layer (you'd add it
-  yourself if needed).
+Bleep's answer is to push that machinery one layer out, into a
+[script](/docs/concepts/bleep-scripts). A script is a regular Java,
+Kotlin, or Scala program; it reads the resolved build model and can
+pull in any incremental-build library on the JVM. Mill's `T` works
+as a library &mdash; depend on it from the script and you've
+reproduced the typed task graph for your pipeline, decoupled from
+the build tool itself. (And nothing stops you from triggering a
+bleep compile from inside that pipeline if the graph needs it.)
 
-If your build genuinely benefits from a typed task graph with
-fine-grained caching of intermediate artifacts — Mill or Bazel are
-the right tool. If your build is "compile, test, package, publish"
-plus a handful of generators, the task graph is overhead.
+In practice, most builds don't reach for any of that:
+
+- **Compile / test / run / publish / link** &mdash; built-in commands
+  with their own caches. You don't define them.
+- **Sourcegen** &mdash; generators that auto-run before the projects
+  that consume them, with timestamp-based invalidation. See
+  [Source generation](/docs/concepts/sourcegen).
+- **Custom pipelines** &mdash; write a script. Use Mill's `T`, use
+  a plain `Map[Hash, Path]`, use whatever incremental engine fits
+  the task.
+
+The task graph is a great pattern. We just don't think the build
+tool is the right place to keep it.
 
 ## What Mill does that bleep doesn't
 
-- **Typed task graph** with automatic caching of any user-defined
-  target.
+- **Typed task graph in the build file** &mdash; user-defined `T`
+  targets with automatic caching, expressed alongside the rest of
+  the build. (In bleep that machinery moves into a script &mdash;
+  see [Targets vs scripts](#targets-vs-scripts).)
 - **`build.sc` as code** — full Scala expressivity for non-trivial
   build logic.
 - **Module hierarchies via Scala traits** — `extends ScalaModule
@@ -166,8 +184,9 @@ plus a handful of generators, the task graph is overhead.
 ## When Mill is still the right answer
 
 - You're already on Mill and the cold-start cost doesn't bother you.
-- Your build needs a typed task graph with intermediate caching
-  beyond what compile/test/sourcegen models.
+- Your build *is* a task graph &mdash; the pipeline of intermediate
+  artifacts is the central thing, and you want the build tool itself
+  to own it rather than a script alongside it.
 - You want full Scala expressivity in the build file itself, not
   pulled out into a scripts project.
 

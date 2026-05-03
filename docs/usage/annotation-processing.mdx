@@ -26,8 +26,6 @@ projects:
 
 Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts it on javac's `-processorpath`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
 
-Lombok 1.18.46 works on JDK 16+ in-process — no `--add-opens` needed. (Older guides claim you need to launch the build JVM with `--add-opens jdk.compiler/com.sun.tools.javac.*=ALL-UNNAMED`. That was true years ago. Current Lombok bypasses JPMS via `sun.misc.Unsafe`. JEP 471 may eventually retire that path; if Lombok ever needs the opens flag we'll bake it into bleep-bsp's launch args.)
-
 ## Three knobs
 
 | Field | Default | Purpose |
