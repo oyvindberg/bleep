@@ -1,0 +1,95 @@
+#!/bin/sh
+# bleep installer
+#   curl -fsSL https://bleep.build/install | sh
+#
+# Env vars:
+#   BLEEP_VERSION      pin a specific version (e.g. 1.0.0-M9). Default: latest GH release.
+#   BLEEP_INSTALL_DIR  install dir. Default: ~/.local/bin
+#
+# Platform mapping mirrors coursier-channel.json:
+#   Linux  x86_64        -> bleep-x86_64-pc-linux.tar.gz
+#   Linux  aarch64/arm64 -> bleep-arm64-pc-linux.tar.gz
+#   macOS  x86_64        -> bleep-x86_64-apple-darwin.tar.gz
+#   macOS  arm64/aarch64 -> bleep-arm64-apple-darwin.tar.gz
+#
+# Windows isn't supported by this shell installer — grab
+# bleep-x86_64-pc-win32.zip from the GitHub releases page directly.
+
+set -eu
+
+REPO="oyvindberg/bleep"
+INSTALL_DIR="${BLEEP_INSTALL_DIR:-$HOME/.local/bin}"
+
+err() { printf 'bleep installer: error: %s\n' "$*" >&2; exit 1; }
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || err "missing required command: $1"
+}
+
+need curl
+need tar
+need uname
+need mkdir
+need install
+
+os="$(uname -s)"
+arch="$(uname -m)"
+
+case "$os" in
+  Linux)
+    case "$arch" in
+      x86_64)        asset="bleep-x86_64-pc-linux.tar.gz" ;;
+      aarch64|arm64) asset="bleep-arm64-pc-linux.tar.gz" ;;
+      *) err "unsupported Linux architecture: $arch" ;;
+    esac
+    ;;
+  Darwin)
+    case "$arch" in
+      x86_64)        asset="bleep-x86_64-apple-darwin.tar.gz" ;;
+      arm64|aarch64) asset="bleep-arm64-apple-darwin.tar.gz" ;;
+      *) err "unsupported macOS architecture: $arch" ;;
+    esac
+    ;;
+  *)
+    err "unsupported OS: $os. Windows: download bleep-x86_64-pc-win32.zip from https://github.com/$REPO/releases"
+    ;;
+esac
+
+if [ -z "${BLEEP_VERSION:-}" ]; then
+  printf 'Resolving latest bleep release...\n'
+  tag="$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+    "https://github.com/$REPO/releases/latest" | sed 's|.*/tag/||')"
+  [ -n "$tag" ] || err "could not resolve latest release tag"
+  version="${tag#v}"
+else
+  version="${BLEEP_VERSION#v}"
+  tag="v$version"
+fi
+
+url="https://github.com/$REPO/releases/download/$tag/$asset"
+
+printf 'Downloading bleep %s for %s/%s\n' "$version" "$os" "$arch"
+printf '  %s\n' "$url"
+
+tmpdir="$(mktemp -d 2>/dev/null || mktemp -d -t bleep)"
+trap 'rm -rf "$tmpdir"' EXIT INT HUP TERM
+
+curl -fSL "$url" -o "$tmpdir/bleep.tar.gz" || err "download failed"
+tar -xzf "$tmpdir/bleep.tar.gz" -C "$tmpdir" || err "extract failed"
+[ -f "$tmpdir/bleep" ] || err "expected 'bleep' binary at archive root, not found"
+
+mkdir -p "$INSTALL_DIR"
+install -m 0755 "$tmpdir/bleep" "$INSTALL_DIR/bleep"
+
+printf '\nInstalled bleep %s to %s/bleep\n' "$version" "$INSTALL_DIR"
+
+case ":$PATH:" in
+  *":$INSTALL_DIR:"*) ;;
+  *)
+    printf '\n%s is not on your PATH.\n' "$INSTALL_DIR"
+    printf 'Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):\n\n'
+    printf '  export PATH="%s:$PATH"\n\n' "$INSTALL_DIR"
+    ;;
+esac
+
+printf '\nRun: bleep --help\n'
