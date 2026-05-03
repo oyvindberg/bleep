@@ -28,6 +28,7 @@ const config = {
   },
 
   plugins: [
+    "./scripts/snippet-extractor-plugin.js",
     [
       "@docusaurus/plugin-client-redirects",
       {
