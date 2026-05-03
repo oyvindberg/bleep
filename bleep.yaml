@@ -181,6 +181,11 @@ projects:
     - ../liberated/sbt-jni/core/src/main/scala
     - ../liberated/sbt-jni/plugin/src/main/java
     - ../liberated/sbt-jni/plugin/src/main/scala
+  bleep-plugin-mdoc:
+    dependencies: org.jsoup:jsoup:1.21.2
+    dependsOn: bleep-core
+    extends: template-cross-all
+    sources: ../liberated/mdoc/mdoc-sbt/src/main/scala
   bleep-plugin-native-image:
     dependencies:
     - com.lihaoyi::os-lib:0.11.6
