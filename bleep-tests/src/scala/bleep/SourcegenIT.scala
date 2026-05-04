@@ -9,13 +9,13 @@ class SourcegenIT extends IntegrationTestHarness {
                  |    extends: common
                  |    platform:
                  |      mainClass: test.Main
-                 |      jvmRuntimeOptions: -Xmx512m -Xms64m
+                 |      jvmRuntimeOptions: -Xmx256m -Xms32m
                  |    sourcegen: scripts/testscripts.SourceGen
                  |  scripts:
                  |    extends: common
                  |    dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
                  |    platform:
-                 |      jvmRuntimeOptions: -Xmx512m -Xms64m
+                 |      jvmRuntimeOptions: -Xmx256m -Xms32m
                  |templates:
                  |  common:
                  |    platform:
