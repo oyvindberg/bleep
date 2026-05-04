@@ -163,7 +163,16 @@ jobs:
           # IT suites' test-runner JVMs + forked Mains don't tip the runner into OS OOM-kill.
           mkdir -p "$HOME/.config/bleep"
           printf 'bspServerConfig:\n  parallelism: 1\n  testRunnerMaxMemory: 1g\n' > "$HOME/.config/bleep/config.yaml"
-          ./${{ matrix.file_name }} --dev test --no-color jvm3
+          # ubuntu-22.04-arm consistently OS-OOM-kills the forked Main subprocesses in the
+          # commands.run-based ITs (JvmRunIT, SourcegenIT, YourFirst*IT) even at parallelism 1
+          # with all heap caps. Same caps + parallelism work fine on x86 (ubuntu-22.04). The
+          # ITs are exercised on x86 and in the `build` job so coverage is preserved; skip
+          # them on ARM. See PR #583 for the tuning attempts.
+          EXCLUDES=""
+          if [ "${{ matrix.os }}" = "ubuntu-22.04-arm" ]; then
+            EXCLUDES="--exclude bleep.JvmRunIT --exclude bleep.SourcegenIT --exclude bleep.YourFirstProjectIT --exclude bleep.YourFirstScalaProjectIT --exclude bleep.YourFirstKotlinProjectIT"
+          fi
+          ./${{ matrix.file_name }} --dev test --no-color jvm3 $EXCLUDES
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows' && matrix.run_tests
 
