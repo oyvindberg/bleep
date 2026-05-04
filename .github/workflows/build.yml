@@ -51,7 +51,11 @@ jobs:
       - name: Run tests
         env:
           CI: true
-        run: ./bleep-cli.sh --dev test
+        # Retry once on failure: at parallelism 1 with all heap caps in place a single
+        # commands.run-based IT (most often SourcegenIT or JvmRunIT) still occasionally trips
+        # the kernel OOM-killer on the forked Main subprocess (~1/700 tests). Cheaper to retry
+        # than to drop further into either parallelism-related territory or give up coverage.
+        run: ./bleep-cli.sh --dev test || ./bleep-cli.sh --dev test
 
   yaml-ls-check:
     runs-on: ubuntu-latest
@@ -172,7 +176,8 @@ jobs:
           if [ "${{ matrix.os }}" = "ubuntu-22.04-arm" ]; then
             EXCLUDES="--exclude bleep.JvmRunIT --exclude bleep.SourcegenIT --exclude bleep.YourFirstProjectIT --exclude bleep.YourFirstScalaProjectIT --exclude bleep.YourFirstKotlinProjectIT"
           fi
-          ./${{ matrix.file_name }} --dev test --no-color jvm3 $EXCLUDES
+          # Retry once on the residual OOM flake — see `Run tests` step in `build` job.
+          ./${{ matrix.file_name }} --dev test --no-color jvm3 $EXCLUDES || ./${{ matrix.file_name }} --dev test --no-color jvm3 $EXCLUDES
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows' && matrix.run_tests
 
