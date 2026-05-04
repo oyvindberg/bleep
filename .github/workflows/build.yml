@@ -46,7 +46,7 @@ jobs:
       - name: Bleep config — bound parallelism + outer heap
         run: |
           mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 2\n  testRunnerMaxMemory: 1g\n  compileServerMaxMemory: 2g\n' > "$HOME/.config/bleep/config.yaml"
+          printf 'bspServerConfig:\n  parallelism: 1\n  testRunnerMaxMemory: 1g\n' > "$HOME/.config/bleep/config.yaml"
 
       - name: Run tests
         env:
@@ -162,7 +162,7 @@ jobs:
           # Match the `build` job — bound bleep parallelism + outer test-runner heap so the
           # IT suites' test-runner JVMs + forked Mains don't tip the runner into OS OOM-kill.
           mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 2\n  testRunnerMaxMemory: 1g\n  compileServerMaxMemory: 2g\n' > "$HOME/.config/bleep/config.yaml"
+          printf 'bspServerConfig:\n  parallelism: 1\n  testRunnerMaxMemory: 1g\n' > "$HOME/.config/bleep/config.yaml"
           ./${{ matrix.file_name }} --dev test --no-color jvm3
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows' && matrix.run_tests
