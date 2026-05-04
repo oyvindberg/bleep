@@ -48,7 +48,15 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    bspServerConfig = None,
+    // Cap forked test-runner JVMs at 512m and bound parallelism — each IT spawns its own test
+    // runner (and that test runner forks its own Main subprocess), so unbounded heaps × parallelism
+    // × CI runner count quickly tops the GHA 16 GB budget. The matching cap on forked Mains lives
+    // in [[Workspace.start]] via [[JvmRunner.CappedFork]].
+    bspServerConfig = Some(
+      model.BspServerConfig.default.copy(
+        testRunnerMaxMemory = Some("512m")
+      )
+    ),
     remoteCacheCredentials = None
   )
 
