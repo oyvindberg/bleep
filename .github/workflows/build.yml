@@ -40,14 +40,13 @@ jobs:
       - name: Scalafmt Check
         run: ./bleep-cli.sh --dev fmt --check
 
-      # parallelism: 2 — even with the JvmRunner.CappedFork heap cap and the testRunnerMaxMemory
-      # cap in IntegrationTestHarness, 4-way parallel inner-bleep ITs still OOM-flake on the
-      # 16 GB ubuntu-latest runner (each IT branch carries an outer test-runner JVM + a forked
-      # Main subprocess + an in-process BSP server).
-      - name: Bleep config — bound parallelism
+      # The outer test-runner JVM (running bleep-tests scalatest) gets 4 GB by default —
+      # multiplied by parallelism + the inner per-IT caps already in place, that's the budget
+      # that tips the runner into OS OOM-kill. Cap to 1 GB; ScalaTest doesn't need more.
+      - name: Bleep config — bound parallelism + outer heap
         run: |
           mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 2\n' > "$HOME/.config/bleep/config.yaml"
+          printf 'bspServerConfig:\n  parallelism: 2\n  testRunnerMaxMemory: 1g\n' > "$HOME/.config/bleep/config.yaml"
 
       - name: Run tests
         env:
@@ -160,10 +159,10 @@ jobs:
         env:
           CI: true
         run: |
-          # Match the `build` job — bound bleep parallelism so the IT suites'
-          # test-runner JVMs + forked Mains don't tip the runner into OS OOM-kill.
+          # Match the `build` job — bound bleep parallelism + outer test-runner heap so the
+          # IT suites' test-runner JVMs + forked Mains don't tip the runner into OS OOM-kill.
           mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 2\n' > "$HOME/.config/bleep/config.yaml"
+          printf 'bspServerConfig:\n  parallelism: 2\n  testRunnerMaxMemory: 1g\n' > "$HOME/.config/bleep/config.yaml"
           ./${{ matrix.file_name }} --dev test --no-color jvm3
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows' && matrix.run_tests
