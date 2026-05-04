@@ -40,10 +40,14 @@ jobs:
       - name: Scalafmt Check
         run: ./bleep-cli.sh --dev fmt --check
 
-      - name: Bleep config — match runner cores
+      # parallelism: 2 — even with the JvmRunner.CappedFork heap cap and the testRunnerMaxMemory
+      # cap in IntegrationTestHarness, 4-way parallel inner-bleep ITs still OOM-flake on the
+      # 16 GB ubuntu-latest runner (each IT branch carries an outer test-runner JVM + a forked
+      # Main subprocess + an in-process BSP server).
+      - name: Bleep config — bound parallelism
         run: |
           mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 4\n' > "$HOME/.config/bleep/config.yaml"
+          printf 'bspServerConfig:\n  parallelism: 2\n' > "$HOME/.config/bleep/config.yaml"
 
       - name: Run tests
         env:
