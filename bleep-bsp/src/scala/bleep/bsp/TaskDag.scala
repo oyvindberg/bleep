@@ -221,7 +221,7 @@ object TaskDag {
     case class Error(error: String, processExit: ProcessExit) extends TaskResult
     case class Skipped(failedDependency: Task) extends TaskResult
     case class Killed(reason: KillReason) extends TaskResult
-    case object TimedOut extends TaskResult
+    case class TimedOut(threadDump: Option[String]) extends TaskResult
 
     /** Backward compatibility alias - prefer Killed with explicit reason */
     val Cancelled: TaskResult = Killed(KillReason.UserRequest)
@@ -860,7 +860,7 @@ object TaskDag {
                           case TaskResult.Error(error, _)    => (false, Some(error))
                           case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
                           case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
-                          case TaskResult.TimedOut           => (false, Some("timed out"))
+                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
                         }
                         _ <- emit(DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, durationMs, errorMsg, sourcegenEndTs))
                       } yield result
@@ -880,7 +880,7 @@ object TaskDag {
                           case TaskResult.Error(error, _)    => (false, Some(error))
                           case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
                           case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
-                          case TaskResult.TimedOut           => (false, Some("timed out"))
+                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
                         }
                         _ <- emit(
                           DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, durationMs, errorMsg, discoveredJarCount, apEndTs)
@@ -901,7 +901,7 @@ object TaskDag {
             case TaskResult.Error(_, _)   => dagRef.update(_.error(task.id))
             case TaskResult.Skipped(_)    => dagRef.update(_.skip(task.id))
             case TaskResult.Killed(_)     => dagRef.update(_.kill(task.id))
-            case TaskResult.TimedOut      => dagRef.update(_.timeout(task.id))
+            case TaskResult.TimedOut(_)   => dagRef.update(_.timeout(task.id))
           }
         } yield ()
       }
