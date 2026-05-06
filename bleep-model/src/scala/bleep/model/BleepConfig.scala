@@ -37,6 +37,8 @@ case class BspServerConfig(
     testIdleTimeoutMinutes: Option[Int],
     /** Max heap for forked test runner JVMs, e.g. "512m", "2g". None = JVM default */
     testRunnerMaxMemory: Option[String],
+    /** Max heap for forked sourcegen JVMs, e.g. "500m", "2g". None = JVM default */
+    sourcegenMaxMemory: Option[String],
     /** Max heap for the compile server JVM, e.g. "4g". None = JVM default */
     compileServerMaxMemory: Option[String],
     /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory. When other compilations are running and heap exceeds this threshold, the
@@ -67,6 +69,7 @@ object BspServerConfig {
     parallelismRatio = None,
     testIdleTimeoutMinutes = None,
     testRunnerMaxMemory = None,
+    sourcegenMaxMemory = None,
     compileServerMaxMemory = None,
     heapPressureThreshold = None
   )

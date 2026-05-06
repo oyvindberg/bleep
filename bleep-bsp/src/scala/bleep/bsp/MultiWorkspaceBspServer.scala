@@ -846,7 +846,8 @@ class MultiWorkspaceBspServer(
             config = bleepConfig,
             resolver = resolver,
             bleepExecutable = baseStarted.bleepExecutable,
-            bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver)
+            bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver),
+            jvmRunner = baseStarted.jvmRunner
           )((_, _, _) => Right(started)) // Reload returns the same build
           loadedBuilds.put(buildRoot, started)
           // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
@@ -1815,59 +1816,64 @@ class MultiWorkspaceBspServer(
                 }
               }
 
-          val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) => {
-            val classpath = getTestClasspath(started, testTask.project)
-            val project = started.build.explodedProjects(testTask.project)
-            val projectPlatform = project.platform.flatMap(_.name)
-            val isKotlin = project.kotlin.flatMap(_.version).isDefined
+          val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) =>
+            // getTestClasspath ends up in CoursierResolver.Direct.go which calls Fetch.eitherResult → Await.result(future, Duration.Inf).
+            // Without IO.blocking that runs synchronously on the IOFiber's compute thread, holding it for the entire resolve while
+            // every other fiber on the runtime — including the BSP pipe reader on the other end of an in-process server — has to
+            // queue behind it. Routing it through the blocker pool lets cats-effect grow a helper thread instead of starving compute.
+            IO.blocking(getTestClasspath(started, testTask.project)).flatMap { classpath =>
+              val project = started.build.explodedProjects(testTask.project)
+              val projectPlatform = project.platform.flatMap(_.name)
+              val isKotlin = project.kotlin.flatMap(_.version).isDefined
 
-            (projectPlatform, isKotlin) match {
-              case (Some(model.PlatformId.Js), true) =>
-                runKotlinJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-              case (Some(model.PlatformId.Js), false) =>
-                runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-              case (Some(model.PlatformId.Native), true) =>
-                runKotlinNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-              case (Some(model.PlatformId.Native), false) =>
-                runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-              case _ =>
-                // JVM (default) - use JvmPool
-                val testEnv = computeTestEnvironment(started, testTask.project)
-                val projectDir =
-                  started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
-                // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
-                val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
-                  case Some(p: ResolvedProject.Platform.Jvm) => p.options
-                  case _                                     => Nil
-                }
-                TestRunner.runSuite(
-                  project = testTask.project,
-                  suiteName = testTask.suiteName.value,
-                  framework = testTask.framework,
-                  classpath = classpath,
-                  pool = jvmPool,
-                  eventQueue = eventQueue,
-                  options = TestRunner.Options(
-                    jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ projectJvmOptions ++ testOptions.jvmOptions,
-                    testArgs = testOptions.testArgs,
-                    idleTimeout = idleTimeout,
-                    environment = testEnv,
-                    workingDirectory = projectDir
-                  ),
-                  killSignal = taskKillSignal
-                )
+              (projectPlatform, isKotlin) match {
+                case (Some(model.PlatformId.Js), true) =>
+                  runKotlinJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                case (Some(model.PlatformId.Js), false) =>
+                  runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                case (Some(model.PlatformId.Native), true) =>
+                  runKotlinNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                case (Some(model.PlatformId.Native), false) =>
+                  runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                case _ =>
+                  // JVM (default) - use JvmPool
+                  val testEnv = computeTestEnvironment(started, testTask.project)
+                  val projectDir =
+                    started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+                  // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
+                  val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
+                    case Some(p: ResolvedProject.Platform.Jvm) => p.options
+                    case _                                     => Nil
+                  }
+                  TestRunner.runSuite(
+                    project = testTask.project,
+                    suiteName = testTask.suiteName.value,
+                    framework = testTask.framework,
+                    classpath = classpath,
+                    pool = jvmPool,
+                    eventQueue = eventQueue,
+                    options = TestRunner.Options(
+                      jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ projectJvmOptions ++ testOptions.jvmOptions,
+                      testArgs = testOptions.testArgs,
+                      idleTimeout = idleTimeout,
+                      environment = testEnv,
+                      workingDirectory = projectDir
+                    ),
+                    killSignal = taskKillSignal
+                  )
+              }
             }
-          }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
           val linkHandler: (TaskDag.LinkTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-            (linkTask, killSignal) => {
-              val projectPaths = started.projectPaths(linkTask.project)
-              val classpath = getTestClasspath(started, linkTask.project)
-              val logger = createLinkLogger()
-              val outputDir = projectPaths.targetDir
-              LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-            }
+            (linkTask, killSignal) =>
+              // Same reasoning as testHandler — getTestClasspath synchronously Awaits a coursier resolve.
+              IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
+                val projectPaths = started.projectPaths(linkTask.project)
+                val logger = createLinkLogger()
+                val outputDir = projectPaths.targetDir
+                LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
+              }
 
           val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
 
@@ -2450,40 +2456,32 @@ class MultiWorkspaceBspServer(
 
   /** Fetch bleep-test-runner and its dependencies.
     *
-    * Uses `${BLEEP_VERSION}` so the TemplatedVersions resolver handles version rewriting: for dev builds this resolves the test-runner class dir from
-    * BleepDevDeps, for release builds it resolves the published JAR from Coursier.
+    * Two parts:
     *
-    * For dev builds, BleepDevDeps only returns class dirs (no transitive external deps like test-interface). We always resolve the external deps separately so
-    * the forked test JVM has everything it needs.
+    *   1. `bleep-test-runner` itself, versioned `${BLEEP_VERSION}`. Goes through `TemplatedVersions` so dev builds short-circuit to BleepDevDeps class dirs.
+    *      Workspace-specific (the buildDir is in the version), so always resolved fresh — but the BleepDevDeps path is in-process and fast.
+    *   2. Four hardcoded external test-framework deps (test-interface, jupiter-interface, junit-platform-launcher, junit-vintage-engine). These are stable
+    *      across every workspace and every bleep version, so we cache them in a process-wide atomic — see
+    *      `MultiWorkspaceBspServer.cachedExternalTestRunnerJars`. Without this, every inner-bleep `commands.test` re-runs Coursier for the same four deps;
+    *      under CI's contention that's enough to trip the suite-idle timeout in #580.
     */
-  @volatile private var cachedTestRunnerJars: List[Path] = _
-
   private def fetchTestRunnerViaCoursier(started: Started): List[Path] = {
-    val cached = cachedTestRunnerJars
-    if (cached != null) return cached
+    val externalJars = MultiWorkspaceBspServer.fetchExternalTestRunnerDeps(started)
+    val testRunnerJars = fetchBleepTestRunnerOnly(started)
+    if (testRunnerJars.isEmpty)
+      throw new RuntimeException("bleep-test-runner resolution returned no jars")
+    testRunnerJars ++ externalJars
+  }
 
+  private def fetchBleepTestRunnerOnly(started: Started): List[Path] = {
     val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", model.Replacements.known.BleepVersion)
-    val externalDeps = Set[model.Dep](
-      model.Dep.Java("org.scala-sbt", "test-interface", "1.0"),
-      model.Dep.Java("net.aichler", "jupiter-interface", "0.11.1"),
-      model.Dep.Java("org.junit.platform", "junit-platform-launcher", "1.9.1"),
-      model.Dep.Java("org.junit.vintage", "junit-vintage-engine", "5.9.1")
-    )
-    val allDeps = externalDeps + testRunnerDep
-
     val result = started.resolver.force(
-      allDeps,
+      Set(testRunnerDep),
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
       libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
       context = "resolving bleep-test-runner",
       model.IgnoreEvictionErrors.No
     )
-
-    if (result.jars.isEmpty) {
-      throw new RuntimeException("bleep-test-runner resolution returned no jars")
-    }
-
-    cachedTestRunnerJars = result.jars
     result.jars
   }
 
@@ -2859,7 +2857,7 @@ class MultiWorkspaceBspServer(
         )
       case TaskDag.TaskResult.Skipped(failedDep) =>
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Skipped, durationMs, Nil, skippedBecause = Some(failedDep.project), timestamp)
-      case TaskDag.TaskResult.Killed(_) | TaskDag.TaskResult.Cancelled | TaskDag.TaskResult.TimedOut =>
+      case TaskDag.TaskResult.Killed(_) | TaskDag.TaskResult.Cancelled | _: TaskDag.TaskResult.TimedOut =>
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
     }
 
@@ -3036,8 +3034,8 @@ class MultiWorkspaceBspServer(
                     Some(BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some("killed"), timestamp))
                   case TaskDag.TaskResult.Cancelled =>
                     Some(BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some("cancelled"), timestamp))
-                  case TaskDag.TaskResult.TimedOut =>
-                    Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project, tt.suiteName, durationMs, None, timestamp))
+                  case TaskDag.TaskResult.TimedOut(threadDump) =>
+                    Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project, tt.suiteName, durationMs, threadDump, timestamp))
                 }
 
               case _: TaskDag.SourcegenTask =>
@@ -3644,4 +3642,38 @@ object MultiWorkspaceBspServer {
 
   /** Enable debug logging to stderr (for development only) */
   val DebugLogging: Boolean = sys.env.get("BLEEP_BSP_DEBUG").contains("true")
+
+  /** Hardcoded external test-framework dependencies that bleep-test-runner needs at runtime — same versions for every workspace and every bleep version. */
+  private val externalTestRunnerDeps: SortedSet[model.Dep] = SortedSet[model.Dep](
+    model.Dep.Java("org.scala-sbt", "test-interface", "1.0"),
+    model.Dep.Java("net.aichler", "jupiter-interface", "0.11.1"),
+    model.Dep.Java("org.junit.platform", "junit-platform-launcher", "1.9.1"),
+    model.Dep.Java("org.junit.vintage", "junit-vintage-engine", "5.9.1")
+  )
+
+  /** Process-wide memoization of the [[externalTestRunnerDeps]] resolution.
+    *
+    * The four deps don't change across workspaces or bleep versions, so resolving them once per JVM avoids re-running Coursier on every inner-bleep
+    * `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]] (a fresh [[MultiWorkspaceBspServer]] per `commands.test` call)
+    * re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's enough to trip the 120 s suite-idle timeout in #580.
+    *
+    * `AtomicReference` so we can populate it lock-free on first call and read it without synchronization on every subsequent call. The compute may run twice if
+    * two callers race; harmless — the resolved jars are identical, and Coursier's own disk cache handles concurrent downloads.
+    */
+  private val cachedExternalTestRunnerJars: java.util.concurrent.atomic.AtomicReference[List[Path]] =
+    new java.util.concurrent.atomic.AtomicReference[List[Path]](null)
+
+  private def fetchExternalTestRunnerDeps(started: Started): List[Path] = {
+    val cached = cachedExternalTestRunnerJars.get()
+    if (cached != null) return cached
+    val result = started.resolver.force(
+      externalTestRunnerDeps,
+      model.VersionCombo.Jvm(model.VersionScala.Scala3),
+      libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
+      context = "resolving bleep-test-runner external deps",
+      model.IgnoreEvictionErrors.No
+    )
+    cachedExternalTestRunnerJars.compareAndSet(null, result.jars)
+    cachedExternalTestRunnerJars.get()
+  }
 }

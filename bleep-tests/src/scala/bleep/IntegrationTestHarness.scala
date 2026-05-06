@@ -48,7 +48,14 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    bspServerConfig = None,
+    // Cap forked test-runner JVMs at 512m. Each IT spawns its own test runner JVM; the runner
+    // itself doesn't fork the user's Main (that path is now [[JvmRunner.InProcess]] via
+    // [[Workspace.start]]) but the runner's heap × IT-parallelism still has to fit the GHA budget.
+    bspServerConfig = Some(
+      model.BspServerConfig.default.copy(
+        testRunnerMaxMemory = Some("512m")
+      )
+    ),
     remoteCacheCredentials = None
   )
 
@@ -137,14 +144,14 @@ class Workspace(
     startedOpt match {
       case Some(s) => s
       case None    =>
-        val storingLogger = Loggers.storing()
+        val storingLogger = ThreadSafeStoringLogger()
         val stdLogger = parentLogger.withContext("testName", testName)
         val existingBuild = BuildLoader.find(root).existing.orThrow
         val buildPaths = BuildPaths(cwd = root, existingBuild, model.BuildVariant.Normal)
         val effectiveConfig =
           if (staticAuth.isEmpty) testConfig
           else testConfig.copy(authentications = Some(model.Authentications(staticAuth.toMap)))
-        val started = bootstrap
+        val rawStarted = bootstrap
           .from(
             Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
             ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
@@ -153,6 +160,11 @@ class Workspace(
             CoursierResolver.Factory.default
           )
           .orThrow
+        // Run user mains in-process instead of forking a JVM. Eliminates the per-IT JVM-fork
+        // memory commitment (was ~250 MB × parallelism, OOM-kill territory on GHA) and the forked-
+        // child OOM-victim lottery. `-D<key>=<value>` from a project's jvmOptions is honored;
+        // other jvm flags are no-ops in process. See [[JvmRunner.InProcess]] for the limitations.
+        val started = rawStarted.withJvmRunner(JvmRunner.InProcess)
         val commands = new Commands(started)
         val triple = (started, commands, storingLogger)
         startedOpt = Some(triple)
@@ -167,6 +179,11 @@ class Workspace(
 
   /** Run `bleep new` against [[root]] to scaffold a fresh build for the given language. Writes bleep.yaml + Main + MainTest. Idempotent w.r.t. [[start]] — call
     * [[start]] afterwards to bootstrap.
+    *
+    * The scaffolded `bleep.yaml` gets `$version: dev` rather than the running bleep's current version, so the inner workspace's `bleep-test-runner` dep
+    * resolves to `dev:<workspaceDir>` and short-circuits through `BleepDevDeps.resolveFromJvmClasspath` to the same `bleep-test-runner/classes` directory
+    * already on this JVM's classpath. Without this, ITs would try to resolve `bleep-test-runner:1.0.0-MX` from Maven Central — which only works if that exact
+    * release was published, and fails outright on CI runners where the running bleep version may be `0.0.0+...-SNAPSHOT` (no git tags).
     */
   def bleepNew(language: BuildCreateNew.Language, name: String): Unit = {
     val cmd = BuildCreateNew(
@@ -177,7 +194,7 @@ class Workspace(
       platforms = cats.data.NonEmptyList.of(model.PlatformId.Jvm),
       scalas = cats.data.NonEmptyList.of(model.VersionScala.Scala3),
       name = name,
-      bleepVersion = model.BleepVersion.current,
+      bleepVersion = model.BleepVersion.dev,
       coursierResolver = CoursierResolver.Factory.default
     )
     cmd.run().orThrow
@@ -185,11 +202,20 @@ class Workspace(
 
   /** Read a file written by [[bleepNew]] (or any other workspace setup) and tag it as a snippet. The content is mirrored to `<snippetsRoot>/<snippet>` when the
     * test body completes.
+    *
+    * For bleep.yaml content the in-test `$version: dev` is rewritten to the latest release tag so docs are copy-pasteable. Same trick as [[snippetWithPrelude]]
+    * uses for the manually-authored prelude path.
     */
   def attachSnippet(relPath: String, snippet: String): Unit = {
     val source = root.resolve(relPath)
-    val content = Files.readString(source)
+    val raw = Files.readString(source)
+    val content = if (relPath.endsWith("bleep.yaml")) normalizeDevVersionForDocs(raw) else raw
     taggedSnippets.update(snippet, content)
+  }
+
+  private def normalizeDevVersionForDocs(yaml: String): String = {
+    val release = model.BleepVersion.current.value.takeWhile(_ != '+')
+    yaml.replaceFirst("(?m)^\\$version: dev$", s"\\$$version: $release")
   }
 
   /** Mirror `userYaml` (with the published `$schema` / `$version` / `jvm` prelude) to `<snippetsRoot>/<snippet>` without affecting the workspace bleep.yaml.

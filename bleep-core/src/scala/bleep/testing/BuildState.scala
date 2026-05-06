@@ -301,6 +301,8 @@ object BuildStateReducer {
 
     case BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDumpInfo, _) =>
       val key = SuiteKey(project, suite)
+      // jstack dump arrives via `threadDumpInfo.singleThreadStack` (see ReactiveBsp's SuiteTimedOut translation);
+      // expose it as `failure.throwable` so BuildDisplay's summary Timeouts section renders it under "Stack trace:".
       val timeoutFailure = TestFailure(
         project = project,
         suite = suite,
@@ -316,6 +318,7 @@ object BuildStateReducer {
         testsTimedOut = state.testsTimedOut + 1,
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
+        pendingOutput = state.pendingOutput - key,
         failures = timeoutFailure :: state.failures
       )
 

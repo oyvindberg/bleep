@@ -10,6 +10,7 @@ import java.nio.file.Path
 import java.security.MessageDigest
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
+import scala.util.Properties
 import scala.util.control.NonFatal
 
 /** A pool of reusable JVM processes for running tests.
@@ -62,6 +63,14 @@ trait TestJvm {
 
   /** Get a thread dump from the JVM */
   def getThreadDump: IO[Option[TestProtocol.TestResponse.ThreadDump]]
+
+  /** Get a thread dump of the child JVM as a list of lines. Spawns `jstack <pid>` from the same JDK as `jvmCommand`; jstack writes its output to its own
+    * stdout, so the dump stream is clean and decoupled from the test JVM's stdio (which is otherwise busy with the JSON-RPC protocol). Returns Nil if jstack
+    * isn't available, the child has already died, or the call times out. Best-effort — never throws.
+    *
+    * Useful right before a forced kill on suite-idle timeout: surfaces *what* the test was stuck on instead of the user just seeing "timed out, no output".
+    */
+  def dumpThreads: IO[List[String]]
 
   /** Read any available stderr lines (non-blocking) */
   def drainStderr: IO[List[String]]
@@ -131,7 +140,8 @@ object JvmPool {
       val stdin: PrintWriter,
       val stdout: BufferedReader,
       val stderr: BufferedReader,
-      val key: JvmKey
+      val key: JvmKey,
+      val jvmCommand: Path
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
@@ -167,6 +177,44 @@ object JvmPool {
 
     def markDead(): Unit =
       alive = false
+
+    /** Get a thread dump of the child JVM. Spawns `<jvmCommand-dir>/jstack <pid>` and captures its stdout — independent of the child's own stdio, so the dump
+      * doesn't collide with the child's JSON-RPC protocol stream. Returns Nil if jstack isn't on disk, the child has died, or the call times out within 10s.
+      * Best-effort everywhere — never throws.
+      */
+    def dumpThreads(): List[String] = {
+      if (!process.isAlive) return Nil
+      val jstackBin = {
+        val name = if (Properties.isWin) "jstack.exe" else "jstack"
+        jvmCommand.getParent.resolve(name)
+      }
+      if (!java.nio.file.Files.isExecutable(jstackBin)) return Nil
+      try {
+        val pid = process.pid()
+        val pb = new ProcessBuilder(jstackBin.toString, pid.toString)
+        pb.redirectErrorStream(true)
+        val p = pb.start()
+        // jstack prints to stdout; capture it line-by-line.
+        val reader = new BufferedReader(new InputStreamReader(p.getInputStream))
+        val buffer = scala.collection.mutable.ListBuffer.empty[String]
+        val drainer = new Thread(s"jstack-drain-${process.pid}") {
+          override def run(): Unit =
+            try {
+              var line = reader.readLine()
+              while (line != null) {
+                buffer.synchronized(buffer += line)
+                line = reader.readLine()
+              }
+            } catch { case NonFatal(_) => () }
+        }
+        drainer.setDaemon(true)
+        drainer.start()
+        val finished = p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS)
+        if (!finished) p.destroyForcibly()
+        drainer.join(1000)
+        buffer.synchronized(buffer.toList)
+      } catch { case NonFatal(_) => Nil }
+    }
 
     def kill(): Unit = {
       alive = false
@@ -311,7 +359,7 @@ object JvmPool {
           val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
           val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
 
-          new ManagedJvm(process, stdin, stdout, stderr, key)
+          new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand)
         }
         .flatTap(jvm => allJvms.update(_ + jvm))
         .flatTap(jvm =>
@@ -470,6 +518,9 @@ object JvmPool {
           if (output.isEmpty) Nil
           else output.split('\n').toList
         }
+
+      override def dumpThreads: IO[List[String]] =
+        IO.blocking(jvm.dumpThreads())
 
       override def isAlive: IO[Boolean] =
         IO(jvm.isAlive)

@@ -379,10 +379,10 @@ object SourceGenRunner {
         IO.pure(Some(error))
 
       case Right(cp) =>
-        // Build the forked JVM command: java -cp <classpath> <script.main> -d <buildDir> -p <project1> -p <project2> ...
         val projectArgs = scriptToRun.forProjects.toList.flatMap(p => List("-p", p.value))
         val dirArgs = List("-d", started.buildPaths.buildDir.toString)
-        val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, Nil, cp, script.main, dirArgs ++ projectArgs)
+        val jvmOptions = started.config.bspServerConfigOrDefault.sourcegenMaxMemory.map(m => s"-Xmx$m").toList
+        val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, jvmOptions, cp, script.main, dirArgs ++ projectArgs)
 
         val pb = new ProcessBuilder(cmd*)
         pb.directory(started.buildPaths.buildDir.toFile)

@@ -253,6 +253,18 @@ object TestRunner {
             drainStderrToEvents.attempt >> jvm.kill.attempt >> suiteFiber.cancel.attempt.void
           }
 
+          // On idle timeout the test runner JVM is alive but stuck. Run jstack against it so
+          // we capture every thread's stack frames, then ship the dump back through the
+          // protocol (TaskResult.TimedOut → SuiteTimedOut.threadDump). Without this the user
+          // just sees "Suite idle timeout after 120s" with no idea what the JVM was doing.
+          // jstack writes to its own stdout, decoupled from the test JVM's stdio, so the
+          // protocol stream doesn't get polluted.
+          def captureThreadDump: IO[Option[String]] =
+            jvm.dumpThreads.attempt.map {
+              case Right(lines) if lines.nonEmpty => Some(lines.mkString("\n"))
+              case _                              => None
+            }
+
           // NOTE: For timeout/kill/error cases, we do NOT emit SuiteFinished here.
           // The executor emits TaskFinished with TimedOut/Killed/Error, which consumeEvents
           // converts to SuiteTimedOut event. Emitting SuiteFinished here would cause
@@ -262,8 +274,8 @@ object TestRunner {
             case Outcome.Succeeded(fa) =>
               fa.flatMap {
                 case Left(_) =>
-                  // Idle timeout - kill JVM and report timed out (does NOT propagate to downstream tasks)
-                  cleanup >> IO.pure(TaskDag.TaskResult.TimedOut)
+                  // Idle timeout - dump threads, kill JVM, ship the dump out via TimedOut
+                  captureThreadDump.flatMap(dump => IO.uncancelable(_ => cleanup) >> IO.pure(TaskDag.TaskResult.TimedOut(dump)))
                 case Right(reason) =>
                   // Kill signal - kill JVM and report killed with reason
                   cleanup >> IO.pure(TaskDag.TaskResult.Killed(reason))

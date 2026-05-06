@@ -11,7 +11,7 @@ object FetchGoogleJavaFormat {
   val DefaultVersion = "1.33.0"
 
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
-    val fileCache = FileCache[Task]().withLogger(cacheLogger)
+    val fileCache = BleepFileCache().withLogger(cacheLogger)
     val artifact = Artifact.apply(
       s"https://github.com/google/google-java-format/releases/download/v$version/google-java-format-$version-all-deps.jar"
     )
