@@ -20,7 +20,7 @@ object FetchScalafmt {
     }
 
     val url = s"https://github.com/scalameta/scalafmt/releases/download/v$version/${asset.filename}"
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = FileCache[Task]().withLogger(cacheLogger)
 
     if (asset.isArchive) fetchArchive(fileCache, ec, url)
     else fetchStandalone(fileCache, ec, url)

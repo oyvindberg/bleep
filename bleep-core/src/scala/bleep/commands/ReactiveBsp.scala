@@ -801,8 +801,6 @@ class ReactiveBspClient(
         Some(BuildEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp))
 
       case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
-        // protocol's `threadDump: Option[String]` carries the full HotSpot dump text from jstack;
-        // park it in singleThreadStack so BuildState can hang it off failure.throwable for the summary's Timeouts section.
         Some(BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump.map(d => bleep.testing.ThreadDumpInfo(0, Some(d), None)), timestamp))
 
       case PE.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>

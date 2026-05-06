@@ -51,7 +51,7 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
 
 object FetchJvm {
   def doFetch(cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext, arch: String): Path = {
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))
       .withIndex(jvm.index.getOrElse(JvmChannel.gitHubIndexUrl))

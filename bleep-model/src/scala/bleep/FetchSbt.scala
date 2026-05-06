@@ -11,7 +11,7 @@ import scala.concurrent.{Await, ExecutionContext}
 class FetchSbt(logger: CacheLogger, ec: ExecutionContext) {
   def apply(version: String): Path = {
     val url = s"https://github.com/sbt/sbt/releases/download/v$version/sbt-$version.zip"
-    val fileCache = BleepFileCache().withLogger(logger)
+    val fileCache = FileCache[Task]().withLogger(logger)
     val cache = ArchiveCache[Task]().withCache(fileCache)
     val os = JvmChannel.defaultOs()
 

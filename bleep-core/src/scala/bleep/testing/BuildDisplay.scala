@@ -301,10 +301,6 @@ object BuildSummary {
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
               StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
-            if (failure.output.nonEmpty) {
-              lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-            }
             lines += ""
           }
         }
@@ -714,12 +710,19 @@ object BuildDisplay {
           renderCompileProgress()
         }
 
-      case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, _, _) =>
-        // The dump is rendered once at the end under "Timeouts" in the summary (BuildState
-        // hangs the jstack output off failure.throwable). Skip inline here to avoid printing
-        // the same multi-hundred-line dump twice during the run.
+      case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, threadDumpInfo, _) =>
         val timeoutSec = timeoutMs / 1000
-        IO.delay(logger.withContext("suite", suite.value).error(s"⏰ timed out after ${timeoutSec}s"))
+        for {
+          _ <- IO.delay(logger.withContext("suite", suite.value).error(s"⏰ timed out after ${timeoutSec}s"))
+          _ <- threadDumpInfo.flatMap(_.singleThreadStack) match {
+            case Some(stack) => log(s"  Stack trace:\n$stack")
+            case None        => IO.unit
+          }
+          _ <- threadDumpInfo.flatMap(_.dumpFile) match {
+            case Some(path) => log(s"  Full thread dump: $path")
+            case None       => IO.unit
+          }
+        } yield ()
 
       case BuildEvent.SuiteError(_, suite, error, processExit, _, _) =>
         val desc = processExit match {
