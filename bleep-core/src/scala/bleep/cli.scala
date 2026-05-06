@@ -113,8 +113,7 @@ object cli {
         WrittenLines(output.result())
       case n =>
         ctxLogger.debug("Failed command details")
-        val cmdStr = patchedCmd.mkString(" ")
-        throw new BleepException.Text(s"Failed external command '$action' with exit code $n in $cwd: $cmdStr")
+        throw new BleepException.Text(s"Failed external command '$action' with exit code $n. See log file for exact command")
     }
   }
 }

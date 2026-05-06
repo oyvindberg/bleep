@@ -7,7 +7,7 @@ class JvmRunIT extends IntegrationTestHarness {
         |  a:
         |    platform:
         |      name: jvm
-        |      jvmRuntimeOptions: -Xmx256m -Xms32m -Dfoo=2
+        |      jvmRuntimeOptions: -Xmx512m -Xms64m -Dfoo=2
         |      jvmOptions: -Dfoo=1
         |      mainClass: test.Main
         |    scala:
@@ -33,7 +33,7 @@ class JvmRunIT extends IntegrationTestHarness {
         |  a:
         |    platform:
         |      name: jvm
-        |      jvmOptions: -Xmx256m -Xms32m -Dfoo=1
+        |      jvmOptions: -Xmx512m -Xms64m -Dfoo=1
         |      mainClass: test.Main
         |    scala:
         |      version: 3.4.2

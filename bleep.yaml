@@ -309,7 +309,7 @@ projects:
       enabled: false
   scripts-java:
     java:
-      options: -proc:none --release 21
+      options: -proc:none --release 17
     platform:
       name: jvm
     scala:

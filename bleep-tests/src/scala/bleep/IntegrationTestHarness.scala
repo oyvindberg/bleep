@@ -48,15 +48,7 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    // Cap forked test-runner JVMs at 512m and bound parallelism — each IT spawns its own test
-    // runner (and that test runner forks its own Main subprocess), so unbounded heaps × parallelism
-    // × CI runner count quickly tops the GHA 16 GB budget. The matching cap on forked Mains lives
-    // in [[Workspace.start]] via [[JvmRunner.CappedFork]].
-    bspServerConfig = Some(
-      model.BspServerConfig.default.copy(
-        testRunnerMaxMemory = Some("512m")
-      )
-    ),
+    bspServerConfig = None,
     remoteCacheCredentials = None
   )
 
@@ -152,7 +144,7 @@ class Workspace(
         val effectiveConfig =
           if (staticAuth.isEmpty) testConfig
           else testConfig.copy(authentications = Some(model.Authentications(staticAuth.toMap)))
-        val rawStarted = bootstrap
+        val started = bootstrap
           .from(
             Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
             ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
@@ -161,11 +153,6 @@ class Workspace(
             CoursierResolver.Factory.default
           )
           .orThrow
-        // Swap in a capped-heap forked runner so when an IT calls `commands.run`, the forked Main
-        // gets `-Xmx256m` instead of the JVM ergonomics default (~4 GB on a 16 GB CI runner).
-        // ITs that explicitly set jvmOptions (e.g. JvmRunIT) keep their own values — the cap only
-        // fires when the user hasn't constrained heap themselves.
-        val started = rawStarted.withJvmRunner(JvmRunner.CappedFork("256m"))
         val commands = new Commands(started)
         val triple = (started, commands, storingLogger)
         startedOpt = Some(triple)

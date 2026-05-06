@@ -15,8 +15,7 @@ case class Started(
     config: model.BleepConfig,
     resolver: CoursierResolver,
     bleepExecutable: Lazy[BleepExecutable],
-    bspServerClasspathSource: bsp.BspServerClasspathSource,
-    jvmRunner: JvmRunner
+    bspServerClasspathSource: bsp.BspServerClasspathSource
 )(reloadUsing: (Prebootstrapped, model.BleepConfig, List[BuildRewrite]) => Either[BleepException, Started]) {
   def buildPaths: BuildPaths = pre.buildPaths
   def userPaths: UserPaths = pre.userPaths
@@ -27,16 +26,8 @@ case class Started(
   /** Create a new Started with a different logger. Used to swap the StoringLogger for the real logger after decline parsing. */
   def withLogger(newLogger: Logger): Started = {
     val newPre = Prebootstrapped(newLogger, pre.userPaths, pre.buildPaths, pre.existingBuild, pre.ec)
-    new Started(newPre, rewrites, build, resolvedProjects, activeProjectsFromPath, config, resolver, bleepExecutable, bspServerClasspathSource, jvmRunner)(
-      reloadUsing
-    )
+    new Started(newPre, rewrites, build, resolvedProjects, activeProjectsFromPath, config, resolver, bleepExecutable, bspServerClasspathSource)(reloadUsing)
   }
-
-  /** Create a new Started with a different JvmRunner. Used by integration tests to swap the default forked runner for a heap-capped variant. */
-  def withJvmRunner(newRunner: JvmRunner): Started =
-    new Started(pre, rewrites, build, resolvedProjects, activeProjectsFromPath, config, resolver, bleepExecutable, bspServerClasspathSource, newRunner)(
-      reloadUsing
-    )
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.project(crossName, build.explodedProjects(crossName))

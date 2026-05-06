@@ -846,8 +846,7 @@ class MultiWorkspaceBspServer(
             config = bleepConfig,
             resolver = resolver,
             bleepExecutable = baseStarted.bleepExecutable,
-            bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver),
-            jvmRunner = baseStarted.jvmRunner
+            bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver)
           )((_, _, _) => Right(started)) // Reload returns the same build
           loadedBuilds.put(buildRoot, started)
           // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
