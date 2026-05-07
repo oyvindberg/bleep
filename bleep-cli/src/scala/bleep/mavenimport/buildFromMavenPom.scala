@@ -88,7 +88,8 @@ object buildFromMavenPom {
       explodedProjects = allProjects.toMap,
       resolvers = buildResolvers,
       jvm = jvm,
-      scripts = Map.empty
+      scripts = Map.empty,
+      remoteCache = None
     )
   }
 

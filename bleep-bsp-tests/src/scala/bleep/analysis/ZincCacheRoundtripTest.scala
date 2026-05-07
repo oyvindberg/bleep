@@ -41,7 +41,7 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
       Files.write(dir.resolve("a.txt"), "hello".getBytes)
       Files.write(dir.resolve("sub/b.bin"), Array[Byte](0, 1, 2, -1, -128, 127))
 
-      val archive = bleep.TarGz.pack(dir)
+      val archive = bleep.TarGz.pack(dir, _ => true)
       info(s"Archive: ${archive.length} bytes")
 
       val restored = workspace.resolve("restored")
@@ -104,7 +104,7 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
 
           // Step 4: Pack the target dir
           val targetDir = workspace.resolve("target")
-          val archive = bleep.TarGz.pack(targetDir)
+          val archive = bleep.TarGz.pack(targetDir, _ => true)
           info(s"Packed target dir: ${archive.length} bytes")
 
           // Step 5: Delete the target dir (simulate bleep clean)

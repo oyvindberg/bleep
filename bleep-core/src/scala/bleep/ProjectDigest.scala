@@ -100,8 +100,9 @@ object ProjectDigest {
           // Clean directory — use git blob hashes (fast, no file I/O)
           val gitHashes = gitLsTree(buildDir, dir)
           if (gitHashes.nonEmpty) {
-            // git ls-tree returns paths relative to repo root. Make them relative to dir.
-            val dirRelToRepo = buildDir.relativize(dir).toString
+            // git ls-tree returns paths relative to repo root with '/' separators on every OS.
+            // Normalize the dir prefix so the strip works on Windows.
+            val dirRelToRepo = buildDir.relativize(dir).toString.replace('\\', '/')
             val dirPrefix = if (dirRelToRepo.isEmpty) "" else dirRelToRepo + "/"
             gitHashes.foreach { case (repoRelPath, hash) =>
               val relPath = if (repoRelPath.startsWith(dirPrefix)) repoRelPath.substring(dirPrefix.length) else repoRelPath
@@ -185,7 +186,8 @@ object ProjectDigest {
       .getOrElse(Nil)
 
     files.foreach { file =>
-      val relPath = dir.relativize(file).toString
+      // Normalize to '/' so the digest matches git ls-tree's representation across OSes.
+      val relPath = dir.relativize(file).toString.replace('\\', '/')
       val content = Files.readAllBytes(file)
       val blobHash = gitBlobHash(content)
       md.update(relPath.getBytes("UTF-8"))

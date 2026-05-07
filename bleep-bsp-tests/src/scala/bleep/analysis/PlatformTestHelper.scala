@@ -93,7 +93,7 @@ trait PlatformTestHelper {
     val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
       scalaVersion = scalaVersion,
       scalaOptions = scalaOptions,
-      javaRelease = None
+      javaOptions = Nil
     )
 
     val config = ProjectConfig(
@@ -159,7 +159,7 @@ trait PlatformTestHelper {
     val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
       scalaVersion = scalaVersion,
       scalaOptions = scalaOptions,
-      javaRelease = None
+      javaOptions = Nil
     )
 
     val fullClasspath = (scalaLibJars ++ snLibJars ++ extraDeps).distinct

@@ -932,7 +932,7 @@ class BspServer(
   /** Convert old LanguageConfig to new ProjectLanguage */
   private def convertToProjectLanguage(config: LanguageConfig): ProjectLanguage = config match {
     case sc: ScalaConfig =>
-      ProjectLanguage.ScalaJava(sc.version, sc.options, None) // ScalaConfig doesn't have Java release
+      ProjectLanguage.ScalaJava(sc.version, sc.options, Nil)
     case kc: KotlinConfig =>
       ProjectLanguage.Kotlin(kc.version, kc.jvmTarget, kc.options, None)
     case jc: JavaConfig =>

@@ -79,8 +79,7 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
       val ret = f(started)
       FileUtils.deleteDirectory(testTempFolder)
       ret
-    } finally
-      stdLogger.info(s"Ran in $testTempFolder")
+    } finally stdLogger.info(s"Ran in $testTempFolder")
   }
 
   /** Helper to get resolved version of a module from resolution */

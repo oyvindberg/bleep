@@ -212,7 +212,7 @@ object buildFromBloopFiles {
           .toList
       )
 
-    model.Build.Exploded(bleepVersion.latestRelease, projects, buildResolvers, jvm = None, scripts = Map.empty)
+    model.Build.Exploded(bleepVersion.latestRelease, projects, buildResolvers, jvm = None, scripts = Map.empty, remoteCache = None)
   }
 
   object Configs {
