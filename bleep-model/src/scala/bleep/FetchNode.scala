@@ -17,7 +17,7 @@ class FetchNode(logger: CacheLogger, ec: ExecutionContext) {
       case OsArch.LinuxArm64    => s"https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-linux-arm64.tar.gz"
       case other                => throw new BleepException.Text(s"todo: implement FetchNode for $other")
     }
-    val fileCache = FileCache[Task]().withLogger(logger)
+    val fileCache = BleepFileCache().withLogger(logger)
     val cache = ArchiveCache[Task]().withCache(fileCache)
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {

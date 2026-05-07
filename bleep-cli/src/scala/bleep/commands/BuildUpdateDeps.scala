@@ -31,7 +31,7 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
     val credentialProvider = new CredentialProvider(started.logger, started.config.authentications)
     val repos =
       CoursierResolver.coursierRepos(build.resolvers.values, started.config.authentications, credentialProvider, started.logger).filter(_.repr.contains("http"))
-    val fileCache = FileCache[Task]().withLogger(started.pre.cacheLogger)
+    val fileCache = BleepFileCache().withLogger(started.pre.cacheLogger)
 
     val foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] = {
       implicit val ec: ExecutionContext = started.executionContext

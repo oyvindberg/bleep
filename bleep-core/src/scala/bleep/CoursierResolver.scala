@@ -210,7 +210,7 @@ object CoursierResolver {
 
   class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params, credentialProvider: CredentialProvider) extends CoursierResolver {
 
-    val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
+    val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
     lazy val repos = coursierRepos(params.repos, params.authentications, credentialProvider, logger)
 
     override def withParams(newParams: Params): CoursierResolver =

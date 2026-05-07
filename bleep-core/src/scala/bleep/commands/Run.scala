@@ -84,18 +84,24 @@ case class Run(
     }
 
   private def jvmRun(started: Started, main: String): Either[BleepException, Unit] = {
-    val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
-    val inMode = if (raw) cli.In.Attach else cli.In.No
-    cli(
-      "run",
-      started.pre.buildPaths.cwd,
-      jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, Some(main), args).orThrow,
+    val resolvedProject = started.resolvedProject(project)
+    val jvmPlatform = resolvedProject.platform match {
+      case Some(p: ResolvedProject.Platform.Jvm) => p
+      case _                                     => return Left(new BleepException.Text(project, "This codepath can only run JVM projects"))
+    }
+    val jvmOptions = if (jvmPlatform.runtimeOptions.nonEmpty) jvmPlatform.runtimeOptions else jvmPlatform.options
+    val classpath = bleep.fixedClasspath(resolvedProject)
+    started.jvmRunner.run(
+      cwd = started.pre.buildPaths.cwd,
+      resolvedJvm = started.resolvedJvm.forceGet,
+      classpath = classpath,
+      jvmOptions = jvmRunCommand.scala3CompatOptions ++ jvmOptions,
+      mainClass = main,
+      args = args,
+      env = sys.env.toList,
       logger = started.logger,
-      out = outMode,
-      in = inMode,
-      env = sys.env.toList
-    ).discard()
-    Right(())
+      raw = raw
+    )
   }
 
   private def runJs(started: Started, isKotlin: Boolean): Either[BleepException, Unit] = {

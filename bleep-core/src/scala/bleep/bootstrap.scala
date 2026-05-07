@@ -88,9 +88,18 @@ object bootstrap {
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
 
-          Started(pre, rewrites, finalBuild, resolveResult.projects, activeProjects, config, resolver, bleepExecutable, resolveResult.bspServerClasspathSource)(
-            reloadUsing = go
-          )
+          Started(
+            pre,
+            rewrites,
+            finalBuild,
+            resolveResult.projects,
+            activeProjects,
+            config,
+            resolver,
+            bleepExecutable,
+            resolveResult.bspServerClasspathSource,
+            JvmRunner.Forked
+          )(reloadUsing = go)
         }
       catch {
         case x: BleepException => Left(x)
