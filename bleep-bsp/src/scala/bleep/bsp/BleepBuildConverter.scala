@@ -148,16 +148,9 @@ object BleepBuildConverter {
         // Scala/Java project - check resolved config using the Language ADT
         resolved.language match {
           case scalaLang: ResolvedProject.Language.Scala =>
-            val javaRelease = scalaLang.javaOptions.collectFirst {
-              case opt if opt.startsWith("--release") =>
-                opt.stripPrefix("--release").trim.toIntOption
-              case opt if opt == "-release" =>
-                None
-            }.flatten
             ProjectLanguage.ScalaJava(
               scalaVersion = scalaLang.version,
               scalaOptions = scalaLang.options,
-              javaRelease = javaRelease,
               javaOptions = scalaLang.javaOptions ++ additionalJavaOptions
             )
 

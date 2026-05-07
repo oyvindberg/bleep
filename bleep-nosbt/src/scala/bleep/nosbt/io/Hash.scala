@@ -70,8 +70,7 @@ object Hash {
       while (dis.read(buffer) >= 0) {}
       dis.close()
       digest.digest
-    } finally
-      stream.close()
+    } finally stream.close()
   }
 
   private def toHex(b: Byte): Char = {

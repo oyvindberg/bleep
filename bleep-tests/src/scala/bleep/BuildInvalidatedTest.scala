@@ -22,7 +22,8 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
       explodedProjects = projects.map { case (name, p) => cpn(name) -> p }.toMap,
       resolvers = model.JsonList.empty,
       jvm = None,
-      scripts = Map.empty
+      scripts = Map.empty,
+      remoteCache = None
     )
 
   // ============================================================================

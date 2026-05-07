@@ -23,7 +23,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       explodedProjects = projects.map { case (name, p) => cpn(name) -> p }.toMap,
       resolvers = model.JsonList.empty,
       jvm = None,
-      scripts = Map.empty
+      scripts = Map.empty,
+      remoteCache = None
     )
 
   private def createTempWorkspace(): Path = {
@@ -188,9 +189,13 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       scala.sys.process.Process(List("git", "config", "user.name", "test"), workspace.toFile).!!
 
       val srcDir = workspace.resolve("a/src/scala")
-      Files.createDirectories(srcDir)
+      val nestedDir = srcDir.resolve("com/example")
+      Files.createDirectories(nestedDir)
       Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 42 }")
       Files.writeString(srcDir.resolve("Bar.scala"), "object Bar")
+      // Nested file ensures both code paths produce relPath strings containing a separator,
+      // which would expose any OS-native ('\') vs git ('/') mismatch on Windows.
+      Files.writeString(nestedDir.resolve("Baz.scala"), "package com.example; object Baz")
 
       val p = model.Project.empty.copy(
         sources = model.JsonSet(SortedSet(RelPath.force("src/scala")))
@@ -211,6 +216,33 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       info(s"before commit (filesystem): $digestBefore")
       info(s"after commit (git ls-tree): $digestAfter")
       digestBefore shouldBe digestAfter
+    } finally deleteRecursively(workspace)
+  }
+
+  test("golden: nested source paths produce stable cross-OS digest") {
+    // Regression for the Windows path-separator bug: ProjectDigest used to feed OS-native
+    // separators into the SHA-256 (`\` on Windows, `/` elsewhere). With nested source
+    // files the buggy version produced different digests across OSes; the fixed version
+    // produces the value asserted below regardless of platform.
+    //
+    // If this golden value changes, every existing remote-cache entry becomes invalid.
+    val workspace = Files.createTempDirectory("bleep-digest-nested-")
+    try {
+      val srcDir = workspace.resolve("a/src/scala")
+      val nestedDir = srcDir.resolve("com/example")
+      Files.createDirectories(nestedDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 42 }")
+      Files.writeString(nestedDir.resolve("Baz.scala"), "package com.example\nobject Baz")
+
+      val p = model.Project.empty.copy(
+        sources = model.JsonSet(SortedSet(RelPath.force("src/scala")))
+      )
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      info(s"nested-paths digest: $digest")
+      digest shouldBe "07b5f8295cb4dee3988c29c46e674d380fd70c29c71e23949c49941a424357ae"
     } finally deleteRecursively(workspace)
   }
 

@@ -50,7 +50,9 @@ projects:
     - bleep-bsp-protocol
     - bleep-test-runner
     - bleepscript
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleepscript:
     dependencies:
@@ -137,7 +139,9 @@ projects:
     - for3Use213: true
       module: io.get-coursier::coursier:2.1.24
     - org.snakeyaml:snakeyaml-engine:2.9
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sourcegen:
       main: bleep.scripts.GenerateResources
       project: scripts-init
@@ -146,7 +150,9 @@ projects:
     - for3Use213: true
       module: com.eed3si9n::sjson-new-scalajson:0.13.1
     - org.scala-lang.modules::scala-xml:2.4.0
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     scala:
       strict: false
     sources:
@@ -159,24 +165,31 @@ projects:
     - bleep-plugin-pgp
     - bleep-plugin-sonatype
     extends:
-    - template-cross-all
+    - template-common
+    - template-scala-3
     - template-parcollection-ok
     sources: ../liberated/sbt-ci-release/plugin/src/main/scala
   bleep-plugin-dynver:
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources:
     - ../liberated/sbt-dynver/dynver/src/main/scala
     - ../liberated/sbt-dynver/sbtdynver/src/main/scala
   bleep-plugin-git-versioning:
     dependencies: se.sawano.java:alphanumeric-comparator:2.0.0
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources: ../liberated/sbt-git-versioning/src/main/scala
   bleep-plugin-jni:
     dependencies: org.ow2.asm:asm:9.9
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources:
     - ../liberated/sbt-jni/core/src/main/scala
     - ../liberated/sbt-jni/plugin/src/main/java
@@ -184,14 +197,18 @@ projects:
   bleep-plugin-mdoc:
     dependencies: org.jsoup:jsoup:1.21.2
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources: ../liberated/mdoc/mdoc-sbt/src/main/scala
   bleep-plugin-native-image:
     dependencies:
     - com.lihaoyi::os-lib:0.11.6
     - org.ow2.asm:asm:9.9
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     resources: ../liberated/sbt-native-image/plugin/src/main/resources
     sources: ../liberated/sbt-native-image/plugin/src/main/scala
   bleep-plugin-pgp:
@@ -200,14 +217,18 @@ projects:
     - org.bouncycastle:bcpg-jdk15on:1.70
     - org.scala-lang.modules::scala-parser-combinators:2.4.0
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources:
     - ../liberated/sbt-pgp/gpg-library/src/main/scala
     - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
   bleep-plugin-scalafix:
     dependencies: ch.epfl.scala:scalafix-interfaces:0.14.4
     dependsOn: bleep-core
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
     sources: ../liberated/mill-scalafix/mill-scalafix/src
   bleep-plugin-sonatype:
     dependencies:
@@ -219,7 +240,8 @@ projects:
     - org.wvlet.airframe::airframe-http:24.12.2
     dependsOn: bleep-core
     extends:
-    - template-cross-all
+    - template-common
+    - template-scala-3
     - template-parcollection-ok
     sources: ../liberated/sbt-sonatype/src/main/scala
   bleep-test-runner:
@@ -273,7 +295,9 @@ projects:
     - io.circe::circe-generic:0.14.15
     - io.circe::circe-parser:0.14.15
     dependsOn: bleep-model
-    extends: template-cross-all
+    extends:
+    - template-common
+    - template-scala-3
   bleep-bsp-tests:
     dependencies:
     - org.scalatest::scalatest:3.2.19
@@ -387,10 +411,6 @@ templates:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
       strict: true
-  template-cross-all:
-    extends:
-      - template-common
-      - template-scala-3
   template-parcollection-ok:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-scala-3:

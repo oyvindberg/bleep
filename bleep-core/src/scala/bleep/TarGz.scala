@@ -15,13 +15,15 @@ object TarGz {
     *
     * @param root
     *   the directory to archive
+    * @param include
+    *   predicate over each regular file's absolute path; only paths returning true are packed
     * @return
     *   gzipped tar bytes
     */
-  def pack(root: Path): Array[Byte] = {
+  def pack(root: Path, include: Path => Boolean): Array[Byte] = {
     val files = scala.util
       .Using(Files.walk(root)) { stream =>
-        stream.toScala(List).filter(Files.isRegularFile(_)).sorted
+        stream.toScala(List).filter(p => Files.isRegularFile(p) && include(p)).sorted
       }
       .getOrElse(Nil)
 

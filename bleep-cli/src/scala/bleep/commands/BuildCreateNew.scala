@@ -332,7 +332,8 @@ object BuildCreateNew {
       ),
       resolvers = model.JsonList.empty,
       jvm = Some(model.Jvm.graalvm),
-      scripts = Map.empty
+      scripts = Map.empty,
+      remoteCache = None
     )
 
     templatesInfer(new BleepTemplateLogger(logger), explodedBuild, ignoreWhenInferringTemplates = _ => false)

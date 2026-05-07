@@ -11,79 +11,10 @@ import scala.jdk.CollectionConverters.*
   *   - Zinc handles Scala/Java incremental compilation internally
   *   - Kotlin compiler handles Kotlin incremental compilation internally
   *   - Cross-language dependencies happen only at project boundaries (via classpath)
+  *
+  * The data types `ProjectLanguage`, `ProjectConfig`, `ProjectCompileResult`, `ProjectCompileSuccess`, `ProjectCompileFailure`, and `CompilerError` live in
+  * `bleep-core` so they can be used outside the bsp server (e.g. by the remote-cache pull command for noop manifest regeneration).
   */
-
-/** Language mode for a project */
-enum ProjectLanguage {
-
-  /** Scala and Java compiled together by Zinc */
-  case ScalaJava(scalaVersion: String, scalaOptions: List[String], javaRelease: Option[Int], javaOptions: List[String] = Nil)
-
-  /** Kotlin/JVM compiled by K2JVMCompiler */
-  case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String], javaRelease: Option[Int])
-
-  /** Kotlin/JS compiled by K2JSCompiler
-    *
-    * @param kotlinVersion
-    *   Kotlin compiler version
-    * @param kotlinOptions
-    *   additional compiler options
-    * @param isTest
-    *   whether this is a test project (affects library resolution)
-    */
-  case KotlinJs(kotlinVersion: String, kotlinOptions: List[String], isTest: Boolean)
-
-  /** Kotlin/Native compiled by K2Native
-    *
-    * @param kotlinVersion
-    *   Kotlin compiler version
-    * @param kotlinOptions
-    *   additional compiler options
-    * @param isTest
-    *   whether this is a test project (affects library resolution)
-    */
-  case KotlinNative(kotlinVersion: String, kotlinOptions: List[String], isTest: Boolean)
-
-  /** Java-only compiled by javac or ECJ.
-    * @param release
-    *   Java release version (--release flag)
-    * @param javaOptions
-    *   additional javac options
-    * @param ecjVersion
-    *   if set, use ECJ (Eclipse Compiler for Java) instead of javac
-    */
-  case JavaOnly(release: Option[Int], javaOptions: List[String], ecjVersion: Option[String])
-}
-
-/** Configuration for compiling a project */
-case class ProjectConfig(
-    name: String,
-    sources: Set[Path],
-    classpath: Seq[Path],
-    outputDir: Path,
-    language: ProjectLanguage,
-    analysisDir: Option[Path],
-    buildDir: Path
-)
-
-/** Result of compiling a project */
-sealed trait ProjectCompileResult {
-  def isSuccess: Boolean
-}
-
-case class ProjectCompileSuccess(
-    outputDir: Path,
-    classFiles: Set[Path],
-    analysisFile: Option[Path]
-) extends ProjectCompileResult {
-  def isSuccess: Boolean = true
-}
-
-case class ProjectCompileFailure(
-    errors: List[CompilerError]
-) extends ProjectCompileResult {
-  def isSuccess: Boolean = false
-}
 
 /** Trait for compiling a single project.
   *
@@ -454,11 +385,12 @@ object JavacProjectCompiler extends ProjectCompiler {
   ): IO[ProjectCompileResult] =
     config.language match {
       case javaLang: ProjectLanguage.JavaOnly =>
-        // Convert to ScalaJava with empty Scala options - Zinc will only compile .java files
+        // Convert to ScalaJava with empty Scala options - Zinc will only compile .java files.
+        // `--release` from JavaOnly.javaOptions carries through; the typed JavaOnly.release is
+        // unrelated (it's used by the Kotlin/javac path elsewhere).
         val scalaJavaLang: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
           scalaVersion = zincScalaVersion,
           scalaOptions = List.empty,
-          javaRelease = javaLang.release,
           javaOptions = javaLang.javaOptions
         )
         val javaConfig = config.copy(language = scalaJavaLang)

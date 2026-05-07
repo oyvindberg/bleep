@@ -108,36 +108,6 @@ case object CompilationCancelled extends CompilationResult {
   def isSuccess: Boolean = false
 }
 
-/** A compiler error with location information */
-case class CompilerError(
-    path: Option[Path],
-    line: Int,
-    column: Int,
-    message: String,
-    rendered: Option[String],
-    severity: CompilerError.Severity
-) {
-  def formatted: String = {
-    val loc = path match {
-      case Some(p) =>
-        val locPart = (line, column) match {
-          case (0, 0) => ""
-          case (l, 0) => s":$l"
-          case (l, c) => s":$l:$c"
-        }
-        s"${p.getFileName}$locPart"
-      case None => "<unknown>"
-    }
-    s"$loc: $message"
-  }
-}
-
-object CompilerError {
-  enum Severity {
-    case Error, Warning, Info
-  }
-}
-
 /** Why compilation is triggered */
 sealed trait CompilationReason {
 
@@ -348,7 +318,6 @@ object Compiler {
     ProjectLanguage.ScalaJava(
       scalaVersion = c.version,
       scalaOptions = c.options,
-      javaRelease = None,
       javaOptions = Nil
     )
 

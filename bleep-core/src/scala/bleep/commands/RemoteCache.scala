@@ -1,10 +1,13 @@
 package bleep
 package commands
 
+import bleep.analysis.{NoopManifestStore, ProjectCompileSuccess, ProjectLanguage}
+
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Executors, Future as JFuture}
 import scala.collection.immutable.SortedMap
+import scala.jdk.StreamConverters.*
 
 /** Remote build cache: pull pre-compiled classes from S3, push after building.
   *
@@ -13,18 +16,23 @@ import scala.collection.immutable.SortedMap
   *
   * Resources affect the digest but are NOT included in the archive (they're already on disk and don't need compilation).
   *
-  * Zinc analysis IS included so incremental compilation works correctly after pulling.
+  * Zinc analysis IS included so incremental compilation works correctly after pulling. The noop manifest is per-machine state and is excluded from the archive
+  * — Pull regenerates it locally so the next compile is a true noop hit.
   */
 object RemoteCache {
 
   private val Parallelism = 16
 
+  /** Per-machine noop manifest is regenerated locally after pull, never shipped. */
+  private val NoopManifestFileName = "noop-manifest.bin"
+
+  /** Predicate used to filter files when packing an archive for upload. Exposed so tests can verify the same exclusion behavior as production. */
+  private[bleep] def packFilter(p: Path): Boolean =
+    p.getFileName.toString != NoopManifestFileName
+
   case class Pull(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
-      val cacheConfig = started.build match {
-        case fb: model.Build.FileBacked => fb.file.`remote-cache`
-        case _                          => None
-      }
+      val cacheConfig = started.build.remoteCache
       cacheConfig match {
         case None =>
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml. Add:\n  remote-cache:\n    uri: s3://bucket/prefix\n    region: us-east-1"))
@@ -58,6 +66,7 @@ object RemoteCache {
                   } else if (client.headObject(key)) {
                     val archive = client.getObject(key)
                     TarGz.unpack(archive, projectPaths.targetDir)
+                    regenerateManifest(started, crossName, projectPaths)
                     pulled.incrementAndGet()
                     started.logger.info(s"${crossName.value}: pulled from cache (${archive.length / 1024}KB)")
                   } else {
@@ -89,10 +98,7 @@ object RemoteCache {
     }
 
     override def run(started: Started): Either[BleepException, Unit] = {
-      val cacheConfig = started.build match {
-        case fb: model.Build.FileBacked => fb.file.`remote-cache`
-        case _                          => None
-      }
+      val cacheConfig = started.build.remoteCache
       cacheConfig match {
         case None =>
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml"))
@@ -136,7 +142,7 @@ object RemoteCache {
                           s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile."
                         )
                       case Nil =>
-                        val archive = TarGz.pack(projectPaths.targetDir)
+                        val archive = TarGz.pack(projectPaths.targetDir, packFilter)
                         semaphore.acquire()
                         try {
                           client.putObject(key, archive)
@@ -186,4 +192,62 @@ object RemoteCache {
           "No remote cache credentials found. Set remoteCacheCredentials in ~/.config/bleep/config.yaml or BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID/BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY env vars."
         )
       )
+
+  /** After unpacking a project archive, write a fresh noop manifest stat'd against the local filesystem. The next compile then short-circuits via the pre-Zinc
+    * fast-path instead of going through a Zinc no-op compile. No-op on Windows (ctime unavailable) and on non-Scala projects.
+    */
+  private def regenerateManifest(
+      started: Started,
+      crossName: model.CrossProjectName,
+      projectPaths: ProjectPaths
+  ): Unit = {
+    if (!NoopManifestStore.ctimeAvailable) return
+
+    val resolved = started.resolvedProject(crossName)
+    val maybeLanguage = ProjectLanguage.fromResolvedScalaJava(resolved)
+    if (maybeLanguage.isEmpty) return
+
+    val analysisFile = projectPaths.targetDir.resolve(".zinc").resolve("analysis.zip")
+    if (!Files.exists(analysisFile)) return
+
+    val sourceDirs = projectPaths.sourcesDirs.all.toSet
+    val sourceFiles = sourceDirs.toList.sorted.flatMap { dir =>
+      if (Files.isDirectory(dir))
+        scala.util
+          .Using(Files.walk(dir)) { stream =>
+            stream.toScala(List).filter(p => Files.isRegularFile(p) && (p.toString.endsWith(".scala") || p.toString.endsWith(".java")))
+          }
+          .getOrElse(Nil)
+      else Nil
+    }.toArray
+
+    val classFiles =
+      if (Files.isDirectory(projectPaths.classes))
+        scala.util
+          .Using(Files.walk(projectPaths.classes)) { stream =>
+            stream.toScala(List).filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class")).toSet
+          }
+          .getOrElse(Set.empty[Path])
+      else Set.empty[Path]
+
+    val deps = started.build.resolvedDependsOn.getOrElse(crossName, Set.empty)
+    val dependencyAnalyses = deps.iterator.flatMap { dep =>
+      val depPaths = started.projectPaths(dep)
+      val depAnalysis = depPaths.targetDir.resolve(".zinc").resolve("analysis.zip")
+      Some(depPaths.classes -> depAnalysis)
+    }.toMap
+
+    val result = ProjectCompileSuccess(projectPaths.classes, classFiles, Some(analysisFile))
+
+    NoopManifestStore.regenerateFromLocal(
+      analysisFile = analysisFile,
+      sourceDirs = sourceDirs,
+      sourceFiles = sourceFiles,
+      dependencyAnalyses = dependencyAnalyses,
+      language = maybeLanguage.get,
+      ecjVersion = None,
+      result = result
+    )
+    started.logger.debug(s"${crossName.value}: regenerated noop manifest")
+  }
 }

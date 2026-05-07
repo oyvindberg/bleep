@@ -182,7 +182,6 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
       val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
         scalaVersion = "3.3.3",
         scalaOptions = Nil,
-        javaRelease = None,
         javaOptions = Nil
       )
 
@@ -240,7 +239,6 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
       val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
         scalaVersion = "3.3.3",
         scalaOptions = Nil,
-        javaRelease = None,
         javaOptions = Nil
       )
 

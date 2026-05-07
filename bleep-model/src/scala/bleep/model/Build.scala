@@ -16,9 +16,15 @@ sealed trait Build {
   def scripts: Map[ScriptName, JsonList[ScriptDef]]
   def jvm: Option[Jvm]
 
+  /** Remote-cache config from `bleep.yaml`. Survives the FileBacked → Exploded transformation that some `ResolveProjects` implementations perform — without
+    * this, anything that pattern-matches on `Build.FileBacked` (and only `FileBacked`) would silently lose the field after a rewrite.
+    */
+  def remoteCache: Option[RemoteCacheConfig]
+
   def dropBuildFile: Build.Exploded = this match {
     case build: Build.Exploded   => build
-    case build: Build.FileBacked => Build.Exploded(build.file.$version, explodedProjects, build.resolvers, build.file.jvm, build.scripts)
+    case build: Build.FileBacked =>
+      Build.Exploded(build.file.$version, explodedProjects, build.resolvers, build.file.jvm, build.scripts, build.file.`remote-cache`)
   }
 
   def requireFileBacked(ctx: String): Build.FileBacked =
@@ -122,7 +128,8 @@ object Build {
       explodedProjects: Map[CrossProjectName, Project],
       resolvers: JsonList[Repository],
       jvm: Option[Jvm],
-      scripts: Map[ScriptName, JsonList[ScriptDef]]
+      scripts: Map[ScriptName, JsonList[ScriptDef]],
+      remoteCache: Option[RemoteCacheConfig]
   ) extends Build {
     def dropTemplates: Exploded = {
       def stripExtends(p: Project): Project =
@@ -163,6 +170,7 @@ object Build {
     def resolvers: JsonList[Repository] = file.resolvers
     def scripts: Map[ScriptName, JsonList[ScriptDef]] = file.scripts.value
     def jvm: Option[Jvm] = file.jvm
+    def remoteCache: Option[RemoteCacheConfig] = file.`remote-cache`
 
     def mapBuildFile(f: BuildFile => BuildFile): Build.FileBacked =
       Build.FileBacked(f(file))
