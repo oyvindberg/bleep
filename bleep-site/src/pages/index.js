@@ -5,7 +5,7 @@ import Snippet from "@site/src/components/Snippet";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
-   Reveal — scroll-triggered fade + rise
+   Reveal, scroll-triggered fade + rise
    ------------------------------------------------------------------ */
 function Reveal({ children, delay, as: Tag, className, ...rest }) {
   const Component = Tag || "div";
@@ -66,7 +66,7 @@ function SectionHeader({ eyebrow, title, children }) {
 }
 
 /* ------------------------------------------------------------------
-   Hero — cursor-tracked glow, drift aurora, staggered entrance
+   Hero, cursor-tracked glow, drift aurora, staggered entrance
    ------------------------------------------------------------------ */
 function Hero() {
   const ref = useRef(null);
@@ -111,7 +111,7 @@ function Hero() {
           One YAML file. Native performance. IDE imports over{" "}
           <code>BSP</code> (Build Server Protocol; what IntelliJ and Metals already
           speak), agent tool calls via <code>MCP</code> (Model Context Protocol;
-          what Claude Code already speaks) &mdash; both open standards, both
+          what Claude Code already speaks), both open standards, both
           first-class.
         </p>
 
@@ -167,7 +167,7 @@ function Hero() {
 }
 
 /* ------------------------------------------------------------------
-   Refusals — the things we will not have
+   Refusals, the things we will not have
    ------------------------------------------------------------------ */
 const refusals = [
   {
@@ -177,7 +177,7 @@ const refusals = [
         Your build should be readable by somebody who has never opened
         the project. Turing-complete build files import
         complexity in exchange for flexibility most teams will never use
-        &mdash; and the complexity stays whether the flexibility gets
+        : and the complexity stays whether the flexibility gets
         used or not.
       </>
     ),
@@ -197,9 +197,9 @@ const refusals = [
     title: <>No <em>plugin acrobatics</em>.</>,
     body: (
       <>
-        No <code>preCompile</code> mutators, no autoplugins,
+        No <code>preCompile</code> mutators. No autoplugins,
         no <code>requires</code> graphs, no <code>Plugin&lt;Project&gt;</code>{" "}
-        registration, no plugins fighting at runtime over which Guava
+        registration. No plugins fighting at runtime over which Guava
         is the real one. If you want custom build logic, write a
         regular Java, Kotlin, or Scala program. It compiles. It
         debugs. It has a <code>main</code>.
@@ -222,7 +222,7 @@ const refusals = [
     body: (
       <>
         Change one file in a 200-class Maven module and Maven recompiles all 200.
-        Bleep uses Zinc with file-level incremental tracking — one file changed,
+        Bleep uses Zinc with file-level incremental tracking, one file changed,
         one (or two) recompiled. Your CI minute count is not a place to economise on
         engineering effort.
       </>
@@ -271,7 +271,7 @@ function RefusalsSection() {
 }
 
 /* ------------------------------------------------------------------
-   Specimen — real bleep.yaml, loaded from the integration-test snippets
+   Specimen, real bleep.yaml, loaded from the integration-test snippets
    we ship to the docs site. Source of truth lives in:
    docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml
    ------------------------------------------------------------------ */
@@ -320,7 +320,7 @@ function SpecimenSection() {
         >
           A real <code>bleep.yaml</code>. Not pseudocode. Not a marketing render.
           Anyone on your team can read this and tell you exactly what the build does
-          — without launching anything.
+          : without launching anything.
         </SectionHeader>
 
         <div className={styles.specimenSplit}>
@@ -371,7 +371,7 @@ function SpecimenSection() {
               <div className={styles.specimenNote}>
                 <strong>{lang.bumpLabel}</strong>
                 {lang.bumpFromTo} and every project that extends it follows. Code
-                review tells you exactly what changed &mdash; in plain text, with
+                review tells you exactly what changed, in plain text, with
                 no graph viewer.
               </div>
             </Reveal>
@@ -380,7 +380,7 @@ function SpecimenSection() {
                 <strong>This is a real test fixture.</strong>
                 The YAML on the left is loaded from
                 <code>{fixturePath}</code>
-                &mdash; a workspace bleep&rsquo;s own integration tests build,
+                : a workspace bleep&rsquo;s own integration tests build,
                 compile, and run end-to-end on every commit. Not a brochure.
               </div>
             </Reveal>
@@ -392,7 +392,7 @@ function SpecimenSection() {
 }
 
 /* ------------------------------------------------------------------
-   Round-trip — the build tool can rewrite the build, because it's data.
+   Round-trip, the build tool can rewrite the build, because it's data.
    ------------------------------------------------------------------ */
 function RoundtripSection() {
   return (
@@ -454,7 +454,7 @@ function RoundtripSection() {
             and{" "}
             <Link to="/docs/reference/cli/build/diff/"><code>bleep build diff effective</code></Link>{" "}
             always give you the fully
-            expanded view &mdash; exactly what bleep sees, exactly what you can
+            expanded view, exactly what bleep sees, exactly what you can
             grep through or feed to CI. <em>The compactness is for humans.
             The transparency is for tools.</em>
           </aside>
@@ -466,7 +466,7 @@ function RoundtripSection() {
 }
 
 /* ------------------------------------------------------------------
-   Tenets — what we stand for (closes with "bleeping performance")
+   Tenets, what we stand for (closes with "bleeping performance")
    ------------------------------------------------------------------ */
 const tenets = [
   {
@@ -495,7 +495,7 @@ const tenets = [
     title: <>Open <em>standards</em>.</>,
     body: (
       <>
-        Bleep speaks <code>BSP</code> — the Build Server Protocol. Any editor
+        Bleep speaks <code>BSP</code>, the Build Server Protocol. Any editor
         that speaks BSP talks to bleep on day one: IntelliJ, Metals, VS Code
         via Metals. We didn&rsquo;t invent a private wire format. We didn&rsquo;t
         ship our own IDE plugin. The ecosystem already agreed on the protocol.
@@ -516,8 +516,8 @@ const tenets = [
     title: <><em>Repeatable</em>, on purpose.</>,
     body: (
       <>
-        <code>bleep.yaml</code> pins what turns YAML into bytecode &mdash;
-        bleep itself, the JVM, and (for Scala.js) Node &mdash; and downloads
+        <code>bleep.yaml</code> pins what turns YAML into bytecode , 
+        bleep itself, the JVM, and (for Scala.js) Node, and downloads
         the right versions on first run. Two checkouts of the same commit
         produce the same build, no matter what&rsquo;s installed on the host.
         No <code>.tool-versions</code>, no <code>nvmrc</code>, no
@@ -544,7 +544,7 @@ const tenets = [
     ),
   },
   {
-    title: <>Performance — bleeping <em>performance</em>.</>,
+    title: <>Performance, bleeping <em>performance</em>.</>,
     body: (
       <>
         Instant CLI. One-second imports. Fast incremental compiles via Zinc, javac, and
@@ -595,7 +595,7 @@ function TenetsSection() {
 }
 
 /* ------------------------------------------------------------------
-   Build extensions — the codegen + scripts argument.
+   Build extensions, the codegen + scripts argument.
    Reassures readers that everything plugins do can still be done.
    ------------------------------------------------------------------ */
 function BuildExtensionsSection() {
@@ -611,7 +611,7 @@ function BuildExtensionsSection() {
           }
         >
           Anyone arriving from sbt or Gradle gets the same uneasy thought
-          looking at the YAML &mdash; <em>where does my codegen go? the
+          looking at the YAML, <em>where does my codegen go? the
           publish step? the thing that signs my JARs?</em> Bleep has two
           places for that work, and both are real programs.
         </SectionHeader>
@@ -640,7 +640,7 @@ function BuildExtensionsSection() {
                 A schema, a protobuf descriptor, a build version, an OpenAPI
                 spec. You inspect the build, you generate the source, the
                 build keeps compiling. <strong>Sourcegen</strong> is a
-                first-class field in <code>bleep.yaml</code> &mdash; bleep
+                first-class field in <code>bleep.yaml</code>, bleep
                 runs your generator, hashes inputs, recompiles when needed,
                 and never leaves stale generated code behind on failure.
               </p>
@@ -701,7 +701,7 @@ function BuildExtensionsSection() {
 }
 
 /* ------------------------------------------------------------------
-   Test runner — parallel, live TUI, actionable summary
+   Test runner, parallel, live TUI, actionable summary
    ------------------------------------------------------------------ */
 function TestRunnerSection() {
   return (
@@ -767,7 +767,7 @@ function TestRunnerSection() {
               <p className={styles.mcpCardBody}>
                 When the run ends, you get exact suite and test names,
                 pass/fail counts per project, and the diff against the
-                previous run &mdash; not a wall of stdout you have to
+                previous run, not a wall of stdout you have to
                 grep through. JUnit XML is one flag away (
                 <code>--junit-report</code>).
               </p>
@@ -780,7 +780,7 @@ function TestRunnerSection() {
 }
 
 /* ------------------------------------------------------------------
-   MCP server — tooling for the future, agent-aware
+   MCP server, tooling for the future, agent-aware
    ------------------------------------------------------------------ */
 function McpSection() {
   return (
@@ -795,7 +795,7 @@ function McpSection() {
           }
         >
           Claude Code, Cursor, and the next generation of dev tools talk
-          to bleep through MCP &mdash; the Model Context Protocol. One
+          to bleep through MCP, the Model Context Protocol. One
           command (<Link to="/docs/reference/cli/setup-mcp-server/"><code>bleep setup-mcp-server</code></Link>) and an agent can
           compile, test, run, and inspect your build through 18
           structured tool calls. The design assumptions are blunt: more
@@ -812,7 +812,7 @@ function McpSection() {
               <p className={styles.mcpCardBody}>
                 Four parallel agents on the same build mean four parallel
                 tool calls. If the build tool is slow, every one of them
-                stalls &mdash; aggregate latency multiplies. Bleep&rsquo;s
+                stalls, aggregate latency multiplies. Bleep&rsquo;s
                 MCP server runs in-process against the BSP daemon. Every
                 call is sub-second after warmup, sub-100ms once warm.
               </p>
@@ -825,7 +825,7 @@ function McpSection() {
                 <Link to="/docs/reference/cli/setup-mcp-server/"><code>bleep setup-mcp-server</code></Link> writes
                 <code>.mcp.json</code> in your build root. Any MCP client
                 picks it up automatically. No adapter to configure, no
-                protocol to translate &mdash; bleep speaks MCP natively.
+                protocol to translate, bleep speaks MCP natively.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -834,7 +834,7 @@ function McpSection() {
               </h3>
               <p className={styles.mcpCardBody}>
                 Every tool returns a compact JSON summary by default
-                &mdash; error counts, failure suites, the diff against
+                : error counts, failure suites, the diff against
                 the previous run. Full diagnostics are one extra call
                 away. Per-project errors stream as MCP notifications the
                 instant a project finishes, not at the end. Latency
@@ -860,7 +860,7 @@ function McpSection() {
 }
 
 /* ------------------------------------------------------------------
-   Pull quote — the manifesto punch
+   Pull quote, the manifesto punch
    ------------------------------------------------------------------ */
 function PullQuoteSection() {
   return (
@@ -1008,7 +1008,7 @@ export default function Home() {
   return (
     <Layout
       title="A build tool that gives a damn"
-      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build, no scopes, no XML, no plugin acrobatics."
+      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No scopes, no XML, no plugin acrobatics."
     >
       <div className={styles.page}>
         <Hero />

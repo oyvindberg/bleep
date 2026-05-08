@@ -1,8 +1,8 @@
 # IDE setup
 
 Bleep speaks **BSP** (the Build Server Protocol). Any BSP-aware
-editor — IntelliJ IDEA, VS Code with Metals, Vim/Neovim with
-nvim-metals, Emacs with lsp-metals — talks to bleep over the
+editor. IntelliJ IDEA, VS Code with Metals, Vim/Neovim with
+nvim-metals, Emacs with lsp-metals, talks to bleep over the
 protocol that already exists in the JVM ecosystem. There's no bleep
 IDE plugin to install.
 
@@ -18,7 +18,7 @@ editor knows how to launch bleep's build server.
 
 You only need to re-run `setup-ide` if you change the project list
 your IDE imports (see [Scoping which projects the IDE
-sees](#scoping-which-projects-the-ide-sees) below) — adding a new
+sees](#scoping-which-projects-the-ide-sees) below), adding a new
 project to `bleep.yaml` doesn't require it.
 
 ## IntelliJ IDEA
@@ -28,7 +28,7 @@ project to `bleep.yaml` doesn't require it.
    directory and accept.
 3. IntelliJ detects the BSP file and starts the bleep build server.
 
-Don't import as a Maven, Gradle, or sbt project — even if the repo
+Don't import as a Maven, Gradle, or sbt project, even if the repo
 has any of those files left around (e.g., from a previous build
 tool). Bleep imports through BSP, and that path is the one IntelliJ
 runs incremental compile against.
@@ -49,7 +49,7 @@ has imported the project.
 Metals is Scala-focused but its BSP integration handles Java sources
 too. For Kotlin support in VS Code, pair Metals with the
 [Kotlin extension](https://marketplace.visualstudio.com/items?itemName=fwcd.kotlin)
-— Metals provides the build, the Kotlin extension provides syntax
+,  Metals provides the build, the Kotlin extension provides syntax
 and completion.
 
 ## Vim, Neovim, Emacs
@@ -66,7 +66,7 @@ Both detect `.bsp/bleep.json` the same way the GUI editors do.
 ## Scoping which projects the IDE sees
 
 In a large build you may not want every project active in your IDE
-at once — Metals/IntelliJ will allocate memory and run incremental
+at once. Metals/IntelliJ will allocate memory and run incremental
 compile per project. `setup-ide` accepts the same project selector
 syntax as [`bleep compile`](/docs/reference/cli/compile/):
 
@@ -90,7 +90,7 @@ with new arguments and tell your IDE to re-import.
 
 If the import doesn't seem to work, check that `.bsp/bleep.json`
 exists in the build root and contains valid JSON. If it does and the
-IDE still doesn't see it, restart the editor — most BSP clients only
+IDE still doesn't see it, restart the editor, most BSP clients only
 scan the file at startup.
 
 If imports succeed but compilation errors in the IDE don't match

@@ -6,7 +6,7 @@ import Snippet from "@site/src/components/Snippet";
 
 # Artifactory & generic Maven repos
 
-JFrog Artifactory, Sonatype Nexus, and any other plain HTTP(S) Maven repository hosted by your company use the same shape: a Maven-format URL plus HTTP Basic Auth credentials. Bleep talks to them as ordinary `https://` resolvers — no provider-specific scheme, no CLI tool to install.
+JFrog Artifactory, Sonatype Nexus, and any other plain HTTP(S) Maven repository hosted by your company use the same shape: a Maven-format URL plus HTTP Basic Auth credentials. Bleep talks to them as ordinary `https://` resolvers, no provider-specific scheme, no CLI tool to install.
 
 The configuration below is the same shape exercised by bleep's [`PublishToHttpMavenRepoIT`](https://github.com/oyvindberg/bleep/blob/master/bleep-tests/src/scala/bleep/PublishToHttpMavenRepoIT.scala), which spins up an in-process HTTP Maven server, publishes through the full stack with Basic Auth, and asserts the artifacts land at the expected layout paths. The yaml below is the snippet that test produces:
 
@@ -31,7 +31,7 @@ resolvers:
     uri: https://artifactory.company.com/artifactory/libs-snapshot
 ```
 
-Each named resolver automatically becomes a `bleep publish <name>` subcommand — with tab completion and help.
+Each named resolver automatically becomes a `bleep publish <name>` subcommand, with tab completion and help.
 
 ### 2. Add credentials to your bleep config
 
@@ -42,11 +42,11 @@ bleep publish setup
 # choose "Artifactory / Nexus / generic Maven repo"
 ```
 
-It prompts for the resolver name, URI, username and password (read silently from the terminal), then writes both the credentials and (if you're inside a build) the resolver to `bleep.yaml`. Run it once per URI — releases and snapshots are different URIs, so each gets its own entry.
+It prompts for the resolver name, URI, username and password (read silently from the terminal), then writes both the credentials and (if you're inside a build) the resolver to `bleep.yaml`. Run it once per URI, releases and snapshots are different URIs, so each gets its own entry.
 
-Or hand-edit the **user config file** (so credentials don't leak into `bleep.yaml`). Find its location with [`bleep config file`](/docs/reference/cli/config/file/) — paths are OS-specific.
+Or hand-edit the **user config file** (so credentials don't leak into `bleep.yaml`). Find its location with [`bleep config file`](/docs/reference/cli/config/file/), paths are OS-specific.
 
-Bleep does **exact URI matching** for static credentials — releases and snapshots are different URIs, so each gets its own entry even when the user/password are identical:
+Bleep does **exact URI matching** for static credentials, releases and snapshots are different URIs, so each gets its own entry even when the user/password are identical:
 
 ```yaml
 authentications:
@@ -58,7 +58,7 @@ authentications:
     password: cmVmdGtuOj...
 ```
 
-Use an Artifactory **identity token** rather than an SSO password — generate one in the Artifactory UI under *Edit Profile → Authentication Settings → Generate Identity Token*. Tokens are revocable and scoped.
+Use an Artifactory **identity token** rather than an SSO password, generate one in the Artifactory UI under *Edit Profile → Authentication Settings → Generate Identity Token*. Tokens are revocable and scoped.
 
 The file is plain text; protect it (`chmod 600`) and don't check it in.
 
@@ -85,7 +85,7 @@ bleep publish company-releases mylib        # specific project
 
 ### Releases vs snapshots
 
-Most Artifactory setups keep release and snapshot repos separate. Bleep doesn't infer which to target — pick the right resolver name based on what you're publishing:
+Most Artifactory setups keep release and snapshot repos separate. Bleep doesn't infer which to target, pick the right resolver name based on what you're publishing:
 
 ```bash
 # clean tag → release repo
@@ -101,7 +101,7 @@ bleep publish company-snapshots
 ## CI
 
 ```yaml
-# .github/workflows/release.yml — Linux runner
+# .github/workflows/release.yml (Linux runner)
 - name: Configure Artifactory credentials
   env:
     ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
@@ -119,13 +119,13 @@ bleep publish company-snapshots
   run: bleep publish --assert-release company-releases
 ```
 
-Same idea on GitLab CI / Jenkins / Buildkite — write the config file from secrets, then run the publish command. On macOS and Windows runners the path differs; resolve it with [`bleep config file`](/docs/reference/cli/config/file/) at the top of the job.
+Same idea on GitLab CI / Jenkins / Buildkite, write the config file from secrets, then run the publish command. On macOS and Windows runners the path differs; resolve it with [`bleep config file`](/docs/reference/cli/config/file/) at the top of the job.
 
 ## Troubleshooting
 
 ### `401 Unauthorized` when fetching or publishing
 
-Check that the `authentications:` URI **exactly** matches the resolver URI in `bleep.yaml`. Bleep does exact matching for static credentials — `https://artifactory.company.com/artifactory/` won't satisfy a resolver pointing at `https://artifactory.company.com/artifactory/libs-release`. Add an entry per resolver URI.
+Check that the `authentications:` URI **exactly** matches the resolver URI in `bleep.yaml`. Bleep does exact matching for static credentials, `https://artifactory.company.com/artifactory/` won't satisfy a resolver pointing at `https://artifactory.company.com/artifactory/libs-release`. Add an entry per resolver URI.
 
 Verify the token in Artifactory itself with curl:
 
@@ -139,7 +139,7 @@ The token has fetch permissions but lacks `Deploy`. In Artifactory: *Admin → S
 
 ### Mirror mode (Artifactory as Maven Central proxy)
 
-If your firewall blocks Maven Central and your company fronts it through Artifactory, add the proxy repo as a resolver. You'll need a separate `authentications:` entry for the proxy URI — same user/password, different key.
+If your firewall blocks Maven Central and your company fronts it through Artifactory, add the proxy repo as a resolver. You'll need a separate `authentications:` entry for the proxy URI, same user/password, different key.
 
 ```yaml
 resolvers:

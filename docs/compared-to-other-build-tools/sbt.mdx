@@ -7,8 +7,8 @@ title: vs sbt
 sbt was a real achievement. It made arbitrary Scala code in builds
 expressible, brought incremental compilation to the JVM, and shaped
 how a generation of Scala teams ship libraries. The case for switching
-to bleep is that the cost of "your build is a Scala program" — slow
-startup, expensive plugin ecosystem, debugging via println — is no
+to bleep is that the cost of "your build is a Scala program", slow
+startup, expensive plugin ecosystem, debugging via println, is no
 longer worth it now that there's an alternative.
 
 ## Build is data, not a program
@@ -75,7 +75,7 @@ projects:
 </tbody>
 </table>
 
-The sbt version is Scala code. To know what runs, you have to know
+The sbt version is Scala code. To know what runs. You have to know
 what `ThisBuild` does, what `:=` versus `+=` versus `++=` mean, when
 the `Test` configuration applies, what implicit conversions
 `libraryDependencies` triggers. The `project/plugins.sbt` lives in a
@@ -96,7 +96,7 @@ There is no `project/` sibling to maintain.
 | Build re-evaluation after editing build.sbt | seconds (recompile project/) | instant (re-parse YAML) |
 | Memory footprint | sbt server + JVM, often 1-2GB | native binary process, no daemon |
 
-The Zinc compile core is identical — both tools wrap the same
+The Zinc compile core is identical, both tools wrap the same
 incremental compiler. What's different is everything that wraps it:
 the launcher, the build evaluator, the plugin model, the IDE
 integration.
@@ -119,7 +119,7 @@ from the command line.
 | Testing | sbt's `scripted` framework | regular unit tests |
 | API surface | sbt Keys, configurations, scopes, AutoPlugin | bleepscript: `Started`, `Commands`, `args` |
 
-sbt's task graph and scoping are real power — you can ask
+sbt's task graph and scoping are real power. You can ask
 "`Compile / scalacOptions` for `myproject`" and sbt will give you the
 right answer with all overrides applied. Bleep doesn't model that.
 For most build scripts you don't need it; for the rare cases where
@@ -146,13 +146,13 @@ you do, you walk the build model directly in your script.
 - **Native binary startup.** ~0ms vs 30-90s.
 - **BSP-driven IDE import in ~1 second.** No project/ sibling to
   re-evaluate.
-- **YAML build that's safe to edit machine-side** — LLMs, scripts,
+- **YAML build that's safe to edit machine-side**: LLMs, scripts,
   IDE refactors all work without compiling project code.
 - **Scripts as plain Java/Scala**, debuggable in your IDE, not
   macro-evaluated DSL.
 - **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven.** Convert an existing
   build to bleep in one command.
-- **First-class cross-building** for Java, Kotlin, and Scala. sbt's
+- **First-class cross-building** for Java, Kotlin, and Scala. Sbt's
   cross-building is Scala-only.
 - **CI project invalidation** built in (`bleep build invalidated --base
   HEAD~1`).
@@ -163,7 +163,7 @@ you do, you walk the build model directly in your script.
 generates a `bleep.yaml`. See [Import from sbt](/docs/demos/importing-sbt-build).
 
 Once imported, the parts that won't carry over are sbt-specific build
-logic — custom tasks, scope-axis overrides, plugins not yet ported.
+logic, custom tasks, scope-axis overrides, plugins not yet ported.
 [Porting sbt plugins](/docs/porting-sbt-plugins) covers the
 translation patterns and shows real worked examples (DynVerPlugin,
 PgpPlugin, the Sonatype client).

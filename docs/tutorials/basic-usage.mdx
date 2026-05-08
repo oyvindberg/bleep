@@ -4,10 +4,10 @@ title: Basic usage
 
 # Basic usage
 
-Once you have a build &mdash; from
+Once you have a build, from
 [Your first project](/docs/tutorials/your-first-project), or imported
 from [Maven](/docs/demos/importing-maven-build) or
-[sbt](/docs/demos/importing-sbt-build) &mdash; bleep is a small set of
+[sbt](/docs/demos/importing-sbt-build), bleep is a small set of
 verbs. This page is the cheat-sheet.
 
 Every command that takes project names accepts
@@ -91,7 +91,7 @@ your editor of choice; it imports in about a second.
 
 Because `bleep.yaml` is data, the build tool can edit it for you. The
 [`bleep build`](/docs/reference/cli/build/) subcommand has a small library of mutating operations
-&mdash; `update-deps`, `project-rename`, `project-merge-into`,
+,  `update-deps`, `project-rename`, `project-merge-into`,
 `templates-reapply`, `normalize`, and friends.
 
 ```bash
@@ -102,10 +102,10 @@ bleep build diff effective     # diff against any git revision
 
 ## Where to go next
 
-- [Project globs](/docs/concepts/project-globs) &mdash; the full
+- [Project globs](/docs/concepts/project-globs): the full
   vocabulary for naming projects and groups, plus how `cd`
   interacts with command scope.
-- [Scripts](/docs/concepts/scripts) &mdash; custom build logic as regular
+- [Scripts](/docs/concepts/scripts): custom build logic as regular
   Java, Kotlin, or Scala programs you can debug.
-- [Tab completions](/docs/tab-completions) &mdash; install shell
+- [Tab completions](/docs/tab-completions): install shell
   completion so globs surface as you type.

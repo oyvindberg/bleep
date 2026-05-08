@@ -2,10 +2,10 @@
 title: Java annotation processing
 ---
 
-Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, …) via three composable fields under `java:`. The default is **off** — nothing scans, nothing runs unless you opt in.
+Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, …) via three composable fields under `java:`. The default is **off**, nothing scans, nothing runs unless you opt in.
 
 > **Kotlin annotation processing (KSP / KAPT)** is not yet
-> supported — see the [Kotlin section](#kotlin-ksp--kapt) at the
+> supported, see the [Kotlin section](#kotlin-ksp--kapt) at the
 > bottom of this page for the current status and the workarounds
 > that exist today.
 
@@ -38,7 +38,7 @@ The two collections compose. You can scan AND list explicit extras in the same p
 
 ## MapStruct, AutoValue, Immutables, Dagger (split-jar processors)
 
-These ship their API as a small annotation jar (runtime-needed) and a separate processor jar (compile-time only). To keep the runtime classpath lean, put the annotations in `dependencies` and the processor in `annotationProcessors`. Each processor jar has a standard `META-INF/services/javax.annotation.processing.Processor` entry, so javac's ServiceLoader picks the classes — bleep doesn't have to name them.
+These ship their API as a small annotation jar (runtime-needed) and a separate processor jar (compile-time only). To keep the runtime classpath lean, put the annotations in `dependencies` and the processor in `annotationProcessors`. Each processor jar has a standard `META-INF/services/javax.annotation.processing.Processor` entry, so javac's ServiceLoader picks the classes. Bleep doesn't have to name them.
 
 ```yaml
 # MapStruct
@@ -62,9 +62,9 @@ projects:
         - com.google.auto.value:auto-value:1.10.4
 ```
 
-`scanForAnnotationProcessors` is omitted — pure-explicit mode. Lombok-style jars in `dependencies` would not be auto-detected here.
+`scanForAnnotationProcessors` is omitted, pure-explicit mode. Lombok-style jars in `dependencies` would not be auto-detected here.
 
-This matches Maven's `<annotationProcessorPaths>` and Gradle's `annotationProcessor` configurations. The Maven idiom of `<scope>provided</scope>` for the processor jar is the equivalent of `annotationProcessors:` here — both keep the heavy processor JAR off the runtime classpath.
+This matches Maven's `<annotationProcessorPaths>` and Gradle's `annotationProcessor` configurations. The Maven idiom of `<scope>provided</scope>` for the processor jar is the equivalent of `annotationProcessors:` here, both keep the heavy processor JAR off the runtime classpath.
 
 ## Composed: scan + explicit
 
@@ -98,18 +98,18 @@ projects:
         - org.projectlombok:lombok:1.18.46 # also pinned as a processor
 ```
 
-Dependency upgrades cannot silently introduce new processors here — only what's in the explicit list runs.
+Dependency upgrades cannot silently introduce new processors here, only what's in the explicit list runs.
 
 ## Errors and escape hatches
 
 * **No-op opt-in fails loud.** `scanForAnnotationProcessors: true` with empty `annotationProcessors` and zero processor-bearing jars in `dependencies` makes the AP DAG task fail at compile time, propagating up as `commands.compile`/`commands.run` throwing a `BleepException` with `"Annotation processor resolution failed for N project(s)"`. The user typed `true` for a reason; we don't silently disable.
 * **Manual `-proc:none` is honored.** Putting `-proc:none` in `java.options` skips all auto-wiring. Use this when you want to disable processing for a project that has processor-bearing dependencies.
-* **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing — choose one or the other.
+* **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing, choose one or the other.
 * **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around the rare jar that ships its processor classes without a `META-INF/services/javax.annotation.processing.Processor` registration.
 
 ## Where generated sources go
 
-`.bleep/generated-sources/<crossName>/annotations/` — a single directory per project per cross-id. All processors share this `-s` directory (per JSR 269). Output files separate naturally by Java package.
+`.bleep/generated-sources/<crossName>/annotations/`, a single directory per project per cross-id. All processors share this `-s` directory (per JSR 269). Output files separate naturally by Java package.
 
 The directory is reserved at bootstrap whenever a project has any annotation-processor configuration, and added to the project's source set so downstream compile picks up the generated `.java` files. [`bleep clean`](/docs/reference/cli/clean/) wipes it.
 
@@ -117,7 +117,7 @@ The directory is reserved at bootstrap whenever a project has any annotation-pro
 
 **Status: not yet supported.** Bleep can't currently load Kotlin
 Symbol Processing (KSP) or KAPT processors. This blocks libraries
-that ship as KSP processors at compile time — Spring Modulith, Koin's
+that ship as KSP processors at compile time. Spring Modulith, Koin's
 KSP-based DI verification, Room, kotlinx.serialization's
 processor-based variant, Dagger Hilt, and similar.
 
@@ -132,7 +132,7 @@ project's source paths the same way the Java side does.
 
 ### What works today
 
-- **Pure-Kotlin code** that doesn't need a processor — fine.
+- **Pure-Kotlin code** that doesn't need a processor, fine.
 - **Kotlin compiler plugins** that don't generate code: `spring`,
   `jpa`, `allopen`, `noarg`, `serialization` ship first-class. See
   the [Kotlin tutorial's "Compiler plugins"

@@ -6,7 +6,7 @@ title: Project globs
 
 Most bleep commands take project names as arguments. Behind the obvious
 case (one name &rarr; one project) bleep ships a small vocabulary of
-*project globs* &mdash; named groups that expand to a set of projects.
+*project globs*, named groups that expand to a set of projects.
 There are no wildcards: a glob is one of a fixed list of shapes, each
 deterministic, all surfaced via tab completion.
 
@@ -26,7 +26,7 @@ Multiple globs on the same command line are unioned.
 ### A note on slashed project names
 
 Project names are normally flat (`mylib`, `mylib-test`). If you name them
-with slashes &mdash; `services/api/foo`, `services/web/admin` &mdash;
+with slashes (`services/api/foo`, `services/web/admin`),
 bleep automatically registers every `/`-delimited prefix of that name
 (`services`, `services/api`, `services/web`) as a glob that matches the
 projects beneath it. Flat names get no prefix globs; the mechanism only
@@ -37,7 +37,7 @@ kicks in once you've put a `/` in a name.
 Bleep has a second knob for narrowing the project set: **the directory
 you run from**. When your CWD sits inside the build root, bleep
 automatically restricts every command to projects whose `folder` is
-under that CWD &mdash; and globs resolve *within* that restricted set.
+under that CWD, and globs resolve *within* that restricted set.
 
 CWD and globs **intersect**, they don't replace each other. A glob never
 reaches outside the CWD's project subset, and the CWD never matches
@@ -74,7 +74,7 @@ services/api/foo
 services/api/bar
 services/web/admin
 
-# CWD doesn't pin the glob — it just shrinks the universe.
+# CWD doesn't pin the glob. It shrinks the universe.
 # Asking for a glob outside your CWD returns nothing:
 $ bleep projects mylib
 (empty)
@@ -90,7 +90,7 @@ every other command that takes project arguments.
 
 ## Discovering globs
 
-There's no command that prints the glob list directly &mdash; tab
+There's no command that prints the glob list directly, tab
 completion is the discovery surface. With shell completions installed
 (see [Tab completions](/docs/tab-completions)), pressing `<Tab>`
 after [`bleep compile`](/docs/reference/cli/compile/), [`bleep test`](/docs/reference/cli/test/), or [`bleep projects`](/docs/reference/cli/projects/) shows every
@@ -99,7 +99,7 @@ list shrinks; move back to the root and it grows.
 
 ## Where to go next
 
-- [Cross-building](/docs/concepts/cross-building) &mdash; what cross-ids
+- [Cross-building](/docs/concepts/cross-building): what cross-ids
   mean and where they come from.
-- [Tab completions](/docs/tab-completions) &mdash; wiring shell
+- [Tab completions](/docs/tab-completions): wiring shell
   completion so globs surface as you type.

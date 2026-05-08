@@ -11,12 +11,12 @@ can introspect rather than a soup of effects. The two diverge on what
 
 ## Build is data vs. build is targets
 
-In Mill, the build is a `build.sc` file — Scala code. Modules are
+In Mill, the build is a `build.sc` file. Scala code. Modules are
 classes, settings are methods, and targets are macros that produce a
 typed task graph evaluated lazily on demand.
 
 In bleep, the build is YAML. The structure is closed (every field is
-in the schema). Custom logic doesn't live in the build file at all —
+in the schema). Custom logic doesn't live in the build file at all , 
 it lives in [scripts](/docs/concepts/scripts), which are regular Java,
 Kotlin, or Scala programs.
 
@@ -93,14 +93,14 @@ projects:
 </tbody>
 </table>
 
-Mill's `build.sc` is more expressive — you can write a method that
+Mill's `build.sc` is more expressive. You can write a method that
 computes a setting from another setting, override a target, mix in a
 trait that adds behavior. Bleep's YAML is more boring. That's the
 trade.
 
 For a build script that's stable enough to live in git for years, the
 boring side wins on diff legibility and tooling. For a build that's
-itself an evolving program — bleep is the wrong shape.
+itself an evolving program. Bleep is the wrong shape.
 
 ## Faster everything (still)
 
@@ -127,26 +127,26 @@ expressed in idiomatic Scala.
 The question bleep keeps coming back to is: *does that have to live
 in the build?* A task graph is a piece of incremental-compute
 machinery. The build tool consumes one (for compile, test, sourcegen,
-link). It doesn't have to *be* one &mdash; and most builds never
+link). It doesn't have to *be* one, and most builds never
 define a custom target.
 
 Bleep's answer is to push that machinery one layer out, into a
 [script](/docs/concepts/bleep-scripts). A script is a regular Java,
 Kotlin, or Scala program; it reads the resolved build model and can
 pull in any incremental-build library on the JVM. Mill's `T` works
-as a library &mdash; depend on it from the script and you've
+as a library, depend on it from the script and you've
 reproduced the typed task graph for your pipeline, decoupled from
 the build tool itself. (And nothing stops you from triggering a
 bleep compile from inside that pipeline if the graph needs it.)
 
 In practice, most builds don't reach for any of that:
 
-- **Compile / test / run / publish / link** &mdash; built-in commands
+- **Compile / test / run / publish / link**: built-in commands
   with their own caches. You don't define them.
-- **Sourcegen** &mdash; generators that auto-run before the projects
+- **Sourcegen**: generators that auto-run before the projects
   that consume them, with timestamp-based invalidation. See
   [Source generation](/docs/concepts/sourcegen).
-- **Custom pipelines** &mdash; write a script. Use Mill's `T`, use
+- **Custom pipelines**: write a script. Use Mill's `T`, use
   a plain `Map[Hash, Path]`, use whatever incremental engine fits
   the task.
 
@@ -155,13 +155,13 @@ tool is the right place to keep it.
 
 ## What Mill does that bleep doesn't
 
-- **Typed task graph in the build file** &mdash; user-defined `T`
+- **Typed task graph in the build file**: user-defined `T`
   targets with automatic caching, expressed alongside the rest of
-  the build. (In bleep that machinery moves into a script &mdash;
+  the build. (In bleep that machinery moves into a script , 
   see [Targets vs scripts](#targets-vs-scripts).)
-- **`build.sc` as code** — full Scala expressivity for non-trivial
+- **`build.sc` as code**: full Scala expressivity for non-trivial
   build logic.
-- **Module hierarchies via Scala traits** — `extends ScalaModule
+- **Module hierarchies via Scala traits**: `extends ScalaModule
   with PublishModule with ScalafmtModule` composes capabilities.
   Bleep templates are flatter (key-value merge, not behavior
   composition).
@@ -176,15 +176,15 @@ tool is the right place to keep it.
 - **Scripts as plain programs** rather than `def myTask = T { ... }`
   Scala targets. Equivalent power for the common case, no DSL to
   learn.
-- **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven** — Mill has its
+- **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven**: Mill has its
   own importer for some, but bleep's is broader.
-- **First-class Kotlin support** — Mill's Kotlin support is a
+- **First-class Kotlin support**: Mill's Kotlin support is a
   contrib module, less mature.
 
 ## When Mill is still the right answer
 
 - You're already on Mill and the cold-start cost doesn't bother you.
-- Your build *is* a task graph &mdash; the pipeline of intermediate
+- Your build *is* a task graph, the pipeline of intermediate
   artifacts is the central thing, and you want the build tool itself
   to own it rather than a script alongside it.
 - You want full Scala expressivity in the build file itself, not

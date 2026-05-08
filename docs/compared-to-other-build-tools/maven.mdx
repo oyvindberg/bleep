@@ -116,7 +116,7 @@ A `bleep.yaml` file is **data**. Anything you can do with it can be expressed
 as text edits, a script, an LLM prompt, or `git diff`. There is no XML
 namespace, no Maven property substitution, no parent POM hierarchy to walk.
 
-Maven gets you partway there — `pom.xml` is data too — but the data model is
+Maven gets you partway there, `pom.xml` is data too, but the data model is
 verbose, the inheritance rules are non-obvious, and any non-trivial build
 ends up with custom plugins or `maven-shade-plugin` configurations whose
 schemas you have to learn one at a time.
@@ -164,7 +164,7 @@ package it as a plugin artifact, configure it in `<build><plugins>`.
 
 Bleep doesn't have a lifecycle. There are commands (`compile`, `test`,
 `run`, `publish`, ...) and there are
-[scripts](/docs/concepts/scripts) — regular Java, Kotlin, or Scala programs that you
+[scripts](/docs/concepts/scripts), regular Java, Kotlin, or Scala programs that you
 run from the command line. A script can do anything: read the build model,
 generate sources, sign artifacts, run code generation tools, push to a
 registry. You debug it with breakpoints in your IDE.
@@ -174,7 +174,7 @@ registry. You debug it with breakpoints in your IDE.
 [`bleep import-maven`](/docs/reference/cli/import-maven/) reads your `pom.xml` (or a multi-module Maven
 project) and generates a `bleep.yaml`. See
 [Importing a Maven build](/docs/demos/importing-maven-build) for the
-walkthrough — what gets preserved, what gets stripped, and what to do
+walkthrough, what gets preserved, what gets stripped, and what to do
 about Maven plugins that don't carry over.
 
 ## Honest trade-offs
@@ -191,7 +191,7 @@ about Maven plugins that don't carry over.
   plugins are Scala/Java libraries published to Maven Central; there are
   fewer of them, mostly because the script model means you reach for them
   less often. But for things like Sonatype publishing, GraalVM native
-  image, scalafmt, scalafix, sbt-jni, mdoc — bleep ships ports of the
+  image, scalafmt, scalafix, sbt-jni, mdoc, bleep ships ports of the
   popular ones.
 - **Enterprise tooling.** If your organization is built around Nexus,
   Artifactory, Sonar, JFrog, or a release pipeline that assumes
@@ -199,7 +199,7 @@ about Maven plugins that don't carry over.
   repository, but tooling that scrapes `pom.xml` won't work directly on a
   bleep build.
 - **IDE support.** IntelliJ has bespoke Maven import. For bleep, IntelliJ
-  uses BSP — fast and accurate, but a different code path.
+  uses BSP, fast and accurate, but a different code path.
 - **Familiarity.** If your whole team knows Maven inside out and ships
   builds without thinking about it, switching has a learning-curve cost.
   The payoff is in build speed, build readability, and what you can

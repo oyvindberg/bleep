@@ -7,7 +7,7 @@ import Snippet from '@site/src/components/Snippet';
 # Write Your First Sourcegen (Java)
 
 This page walks through the Java flow for adding a *source generator*
-to your build &mdash; a small program that writes source files
+to your build, a small program that writes source files
 `compile` then sees. For *what* a sourcegen script is, why bleep
 makes it a first-class concept, and how it differs from a
 [bleep script](/docs/concepts/bleep-scripts), see
@@ -38,13 +38,13 @@ Key points:
   or its dependencies change.
 - `${BLEEP_VERSION}` keeps the script's `bleepscript` dep in lockstep
   with whatever bleep is running you.
-- A project can list more than one sourcegen script &mdash; each gets
+- A project can list more than one sourcegen script. Each gets
   its own isolated output directory.
 
 ## Step 2: Write the generator
 
 Extend `bleepscript.BleepCodegenScript` and override `run`. The
-framework hands you a list of `CodegenTarget`s &mdash; one per
+framework hands you a list of `CodegenTarget`s, one per
 project (or cross-id) that consumes this generator. Write source
 files under `target.sources()`:
 
@@ -57,7 +57,7 @@ directory. A failed run never leaves stale code behind.
 
 ## Step 3: The consumer
 
-`myapp` imports `Constants` like any other class &mdash; the
+`myapp` imports `Constants` like any other class, the
 generated package is on the consumer's source path automatically:
 
 <Snippet path="docs-snippets-from-tests/sourcegen-java/Main.java" lang="java" />
@@ -79,11 +79,11 @@ script project.
 
 ## Where to go from here
 
-- **[Source generation (concept)](/docs/concepts/sourcegen)** &mdash;
+- **[Source generation (concept)](/docs/concepts/sourcegen)** , 
   the `BleepCodegenScript` API, cross-build targets, the temp-directory
   cleanup model, and how invalidation works.
-- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** &mdash;
+- **[Bleep scripts (concept)](/docs/concepts/bleep-scripts)** , 
   the after-compile half: scripts that act on artifacts.
-- **[Run sourcegen explicitly](/docs/reference/cli/build)** &mdash;
+- **[Run sourcegen explicitly](/docs/reference/cli/build)** , 
   [`bleep sourcegen --watch myapp`](/docs/reference/cli/sourcegen/) re-runs generators when their
   inputs change.

@@ -5,22 +5,22 @@ import Snippet from "@site/src/components/Snippet";
 
 A bleep build is one file: `bleep.yaml`, at the root of your repo. It
 describes everything bleep needs to compile, test, run, and publish your
-code &mdash; as plain data.
+code, as plain data.
 
 ## Vocabulary
 
 Bleep uses two words for two things:
 
-- **Project** &mdash; one compilation unit. Sources, dependencies, a target
+- **Project**: one compilation unit. Sources, dependencies, a target
   platform. What other tools call a *module* or a *subproject*.
-- **Build** &mdash; the collection of projects in `bleep.yaml`, plus the
+- **Build**: the collection of projects in `bleep.yaml`, plus the
   templates and settings that connect them.
 
 One build file. Many projects. That's the model.
 
 ## A real `bleep.yaml`
 
-Here is a working bleep build &mdash; lifted directly from one of bleep's
+Here is a working bleep build, lifted directly from one of bleep's
 own integration tests, so this is a configuration the build server compiles
 and runs on every commit:
 
@@ -72,7 +72,7 @@ Every field does what it says.
 
 The full per-project schema (sources, resources, folder, scala options,
 kotlin/java versions, cross axes, &hellip;) is enforced by the JSON
-Schema referenced in every `bleep.yaml`'s `$schema` line — your editor
+Schema referenced in every `bleep.yaml`'s `$schema` line, your editor
 gets autocomplete and validation from it.
 
 ### Dependencies are Maven coordinates
@@ -100,7 +100,7 @@ Two anchors matter:
 - **`sources`** and **`resources`** are relative to the project's `folder`.
 
 Bleep also auto-derives default `sources` / `resources` paths from a
-*source layout* &mdash; `kotlin`, `normal`, `java`, and a handful of
+*source layout*, `kotlin`, `normal`, `java`, and a handful of
 cross-build variants. The layout is picked from your project's
 language settings (Kotlin → `kotlin`, Scala → `normal`, Java-only →
 `java`), and you can override it explicitly. See
@@ -119,7 +119,7 @@ projects:
 
 For more exotic cases (versioned source folders, paths under `$HOME`,
 referencing bleep's own compile output), bleep also expands a small set of
-placeholders &mdash; `${BUILD_DIR}`, `${PROJECT_DIR}`, `${SCALA_VERSION}`,
+placeholders, `${BUILD_DIR}`, `${PROJECT_DIR}`, `${SCALA_VERSION}`,
 and friends. See [Path replacements](/docs/appendix/path-replacements).
 
 The build is portable by design: nothing is anchored to a machine, only to
@@ -128,7 +128,7 @@ the build root or the project root.
 ## Templates
 
 When several projects share configuration, lift the shared fields into a
-`templates:` block. The build at the top of this page does it &mdash;
+`templates:` block. The build at the top of this page does it , 
 `template-common` holds the Kotlin version and JVM target, and both
 projects extend it.
 
@@ -175,14 +175,14 @@ scalars. Run [`bleep build normalize`](/docs/reference/cli/build/normalize/) and
 your current build.
 
 That's why YAML diffs in code review actually describe what changed
-&mdash; there's no hidden state, no ordering quirks, no whitespace games.
+,  there's no hidden state, no ordering quirks, no whitespace games.
 
 ## Where to go next
 
 - [Same project, four build tools](/docs/compared-to-other-build-tools/side-by-side)
-  &mdash; the same Kotlin app expressed in `bleep.yaml`, `pom.xml`,
+  : the same Kotlin app expressed in `bleep.yaml`, `pom.xml`,
   `build.sbt`, and `build.gradle.kts`.
 - [Templates & Inheritance](/docs/concepts/templates-inheritance)
-  &mdash; merge semantics and deeper template patterns.
+  : merge semantics and deeper template patterns.
 - [Cross-building](/docs/concepts/cross-building)
-  &mdash; cross axes for languages and platforms.
+  : cross axes for languages and platforms.

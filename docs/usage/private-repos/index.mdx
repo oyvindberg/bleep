@@ -18,7 +18,7 @@ projects:
       groupId: com.mycompany
 ```
 
-Use a template to share config across projects. Test projects are automatically excluded — any project with `isTestProject: true` is never published, even if it inherits `publish` from a template.
+Use a template to share config across projects. Test projects are automatically excluded, any project with `isTestProject: true` is never published, even if it inherits `publish` from a template.
 
 ```yaml
 templates:
@@ -90,7 +90,7 @@ bleep publish <target> [--version X] [--assert-release] [projects...]
 | `setup` | Interactive setup wizard |
 | *resolver-name* | Publish to a named resolver from `bleep.yaml` |
 
-Named resolvers appear as subcommands automatically — with tab completion and help text.
+Named resolvers appear as subcommands automatically, with tab completion and help text.
 
 ### Flags
 
@@ -103,11 +103,11 @@ Named resolvers appear as subcommands automatically — with tab completion and 
 
 | Provider | Resolver scheme | CLI tool | Auth config needed |
 |----------|----------------|----------|-------------------|
-| [Artifactory / generic Maven](artifactory) | plain `https://` | — | User + token in `~/.config/bleep/config.yaml` |
+| [Artifactory / generic Maven](artifactory) | plain `https://` |, | User + token in `~/.config/bleep/config.yaml` |
 | [Google Artifact Registry](artifact-registry) | `artifactregistry://` | `gcloud` | Account (if multiple) |
 | [GitHub Packages](github-packages) | `github://` | `gh` | None |
 | [GitLab Package Registry](gitlab-packages) | `gitlab://` | `glab` | None |
-| [Sonatype / Maven Central](sonatype) | built-in | — | Env vars + GPG |
+| [Sonatype / Maven Central](sonatype) | built-in |, | Env vars + GPG |
 
 Each provider page covers both resolving and publishing in detail.
 
@@ -132,8 +132,8 @@ Projects without `publish` are never published. Projects with `isTestProject: tr
 
 Version is determined by (in priority order):
 
-1. `--version X` flag — explicit override
-2. Git tags via DynVer — automatic from `git describe`
+1. `--version X` flag, explicit override
+2. Git tags via DynVer, automatic from `git describe`
 
 DynVer examples:
 - On tag `v1.0.0` (clean) → `1.0.0`
@@ -148,7 +148,7 @@ Use `--assert-release` to fail if the git state would produce a snapshot version
 bleep publish sonatype --assert-release
 ```
 
-This checks DynVer structurally — fails if there are commits after the tag, the working tree is dirty, or no tags exist. Useful in CI to prevent accidental snapshot publishes.
+This checks DynVer structurally, fails if there are commits after the tag, the working tree is dirty, or no tags exist. Useful in CI to prevent accidental snapshot publishes.
 
 ## Interactive setup
 

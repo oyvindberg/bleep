@@ -6,7 +6,7 @@ title: Path replacements
 
 Bleep substitutes a small set of named placeholders in `bleep.yaml`
 whenever a field can hold a path. They look like `${BUILD_DIR}`,
-`${PROJECT_DIR}`, `${SCALA_VERSION}` &mdash; you may have run into them in
+`${PROJECT_DIR}`, `${SCALA_VERSION}`, you may have run into them in
 a build that originated as an `sbt` or Maven import.
 
 This page exists because the mechanism is real, you'll see it after
@@ -24,7 +24,7 @@ they're genuinely useful are listed at the bottom of this page.
 
 [`bleep import`](/docs/reference/cli/import/) (from sbt) and [`bleep import-maven`](/docs/reference/cli/import-maven/) work by reading what
 those tools produce, then converting it into bleep's model. Both formats
-embed absolute paths everywhere &mdash; bloop's JSON contains
+embed absolute paths everywhere, bloop's JSON contains
 `/Users/somebody/projects/myrepo/foo/src/main/scala`, full stop. If bleep
 wrote those values straight into `bleep.yaml`, the build would only work on
 that machine.
@@ -36,8 +36,8 @@ Scala version embedded in folder names becomes `${SCALA_VERSION}`, and so
 on. The result is a `bleep.yaml` that works on any machine that has the
 build.
 
-Once the file is written, bleep does the *forward* substitution every time
-it reads the build &mdash; so the rest of the codebase always sees real
+Once the file is written. Bleep does the *forward* substitution every time
+it reads the build, so the rest of the codebase always sees real
 paths, not placeholders.
 
 ## The full list
@@ -93,8 +93,8 @@ projects:
 (see [Bleep build model](/docs/model)), so `..` walks up to the build root
 and `../shared/resources` reads naturally.
 
-The placeholders aren't *wrong* &mdash; bleep happily round-trips either
-form &mdash; but plain paths read better in code review, work the same
+The placeholders aren't *wrong*, bleep happily round-trips either
+form, but plain paths read better in code review, work the same
 under [`bleep build normalize`](/docs/reference/cli/build/normalize/), and don't depend on anyone remembering the
 placeholder vocabulary.
 
@@ -114,7 +114,7 @@ projects:
 ```
 
 Bleep recognises the expanded form on read and rewrites the literal back
-to the placeholder on write &mdash; so this works the same across every
+to the placeholder on write, so this works the same across every
 cross axis.
 
 ### Reaching into the user's home
@@ -126,7 +126,7 @@ resolvers:
   - file://${HOME_DIR}/.m2/repository
 ```
 
-A relative path can't express that &mdash; the build root has no
+A relative path can't express that, the build root has no
 relationship to `$HOME`.
 
 ### Targeting bleep's own output
@@ -137,8 +137,8 @@ bleep's internal layout, which is not stable API.
 
 ## Don't reach for it for
 
-- Cross-project source/resource sharing &mdash; use `../shared/&hellip;`.
-- The current project's own folder &mdash; use a plain relative path.
+- Cross-project source/resource sharing, use `../shared/&hellip;`.
+- The current project's own folder, use a plain relative path.
 - Anything that would still resolve correctly without the placeholder.
 
 The build is plain text. Plain text reads better.

@@ -12,13 +12,13 @@ A single application. One application's worth of dependencies. One main class.
 Here it is, expressed in `bleep.yaml`, `pom.xml`, `build.sbt`, and
 `build.gradle.kts`.
 
-Line counts aren't the point &mdash; you'll see sbt's three files come in
+Line counts aren't the point, you'll see sbt's three files come in
 shorter than bleep's one. The point is the kind of artifact each one is:
 plain data versus XML versus a DSL with hidden state versus a Kotlin
 program that mutates a build graph. Read each one with that question in
 mind.
 
-## bleep.yaml &mdash; plain data
+## bleep.yaml, plain data
 
 Same shape across all three languages. The only thing that changes between
 tabs is the per-language fields (`scala:`, `kotlin:`, dep coordinates) and
@@ -63,10 +63,10 @@ For the per-feature breakdown of each comparison, see the dedicated pages:
 [vs sbt](/docs/compared-to-other-build-tools/sbt),
 [vs Mill](/docs/compared-to-other-build-tools/mill).
 
-## pom.xml &mdash; XML
+## pom.xml. XML
 
 The Kotlin variant. Java and Scala flavors of `pom.xml` differ only in the
-plugin section and dep coordinates &mdash; same XML.
+plugin section and dep coordinates, same XML.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -117,9 +117,9 @@ plugin section and dep coordinates &mdash; same XML.
 
 It is 2026. We are still typing closing tags by hand. There is no need.
 
-## build.sbt + project/ &mdash; a DSL across three files
+## build.sbt + project/, a DSL across three files
 
-The Scala variant. sbt is rarely used outside Scala &mdash; the Java/Kotlin
+The Scala variant. Sbt is rarely used outside Scala, the Java/Kotlin
 flavors exist but nobody actually picks sbt for them.
 
 `build.sbt`:
@@ -156,7 +156,7 @@ and a DSL whose every keyword is a global side effect on a hidden settings
 graph. `sbt-native-packager` is enabled by name; what it does to your build
 is somewhere on a wiki.
 
-## build.gradle.kts &mdash; a Kotlin program
+## build.gradle.kts, a Kotlin program
 
 The Kotlin variant. Gradle's Java DSL is similar shape; the Scala flavor
 exists but isn't widely used.
@@ -189,5 +189,5 @@ tasks.withType<JavaCompile> {
 
 A real Kotlin program that side-effects the build graph. Plus
 `settings.gradle.kts`, `gradle.properties`, and the wrapper. Renaming the
-project means writing a Kotlin task &mdash; there is no `gradle
+project means writing a Kotlin task, there is no `gradle
 rename-project`.

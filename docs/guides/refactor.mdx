@@ -6,7 +6,7 @@ title: Refactor your build
 
 Renaming a project, bumping every dependency, lifting shared
 configuration into a template, moving a project under a different
-folder &mdash; these are routine refactors in any non-trivial
+folder. These are routine refactors in any non-trivial
 codebase. In most build tools they're hand-edits across N files,
 because the build is a program and a program can't safely rewrite
 itself. In bleep they're commands.
@@ -98,7 +98,7 @@ bleep build projects-move libs/ formatter parser printer
 Re-merges templates into projects. Run this after editing a
 template definition (e.g. bumped Scala version in
 `template-common`) to propagate the change into every project that
-extends that template &mdash; without you having to track them down.
+extends that template, without you having to track them down.
 
 ```bash
 # edit template-common's scala.version
@@ -116,7 +116,7 @@ Throws away the existing templates and infers fresh ones from the
 projects' shared shape. Useful right after
 [`bleep import-maven`](/docs/reference/cli/import-maven/) on a
 50-module monorepo where every module had its own copy of the same
-compiler options &mdash; bleep finds the common shape, lifts it
+compiler options, bleep finds the common shape, lifts it
 into a template, makes every project `extend` it.
 
 ```bash
@@ -158,7 +158,7 @@ bleep build create-directories
 
 Sort keys, deduplicate lists, drop empty values, collapse
 single-element lists to scalars. Idempotent. Run any time the file
-has drifted from canonical form &mdash; or wire it into a pre-commit
+has drifted from canonical form, or wire it into a pre-commit
 hook so it never does.
 
 ```bash
@@ -171,7 +171,7 @@ bleep build normalize
 
 A `bleep.yaml` survives a tool round-trip cleanly because:
 
-- The schema is closed and exhaustive &mdash; every field has a
+- The schema is closed and exhaustive, every field has a
   name in the Scala model, no escape hatches.
 - The encoder is **idempotent**: `encode(decode(yaml)) == normalize(yaml)`.
   Every refactor command emits canonical-form YAML.
@@ -183,9 +183,9 @@ is for humans; the transparency is for tools.
 
 ## See also
 
-- [Inspect the build](/docs/guides/inspect) &mdash; the read-only
+- [Inspect the build](/docs/guides/inspect): the read-only
   side of the same model: ask questions, get JSON, pipe anywhere.
-- [`bleep build` reference](/docs/reference/cli/build/) &mdash;
+- [`bleep build` reference](/docs/reference/cli/build/) , 
   every subcommand with its full flag set, auto-generated.
 - [Templates & Inheritance](/docs/concepts/templates-inheritance)
-  &mdash; what `templates-reapply` actually re-applies.
+  : what `templates-reapply` actually re-applies.

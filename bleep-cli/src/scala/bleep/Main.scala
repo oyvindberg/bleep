@@ -292,7 +292,7 @@ object Main {
                   }
                 )
               ),
-              Opts.subcommand("show", "show project configuration as YAML — either as written or with templates applied")(
+              Opts.subcommand("show", "show project configuration as YAML, either as written or with templates applied")(
                 List(
                   Opts.subcommand("short", "show the project's YAML exactly as written in bleep.yaml")(
                     (projectNamesNoCross, outputMode).mapN(commands.BuildShow.Short.apply)
@@ -311,7 +311,7 @@ object Main {
               newCommand(started.pre.logger, started.pre.userPaths, started.buildPaths.cwd)
             ).foldK
           ),
-          Opts.subcommand("compile", "compile selected projects (or every project) — respects the dependency graph; supports watch mode")(
+          Opts.subcommand("compile", "compile selected projects (or every project), respects the dependency graph; supports watch mode")(
             (
               watch,
               projectNames,
@@ -329,7 +329,7 @@ object Main {
               commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
             }
           ),
-          Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native) — produces .js or a native executable")(
+          Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
             (
               watch,
               projectNames,
@@ -480,7 +480,7 @@ object Main {
               }
             }
           ),
-          Opts.subcommand("extract-info", "emit structured JSON about the build — used by IDE plugins and external tooling")(
+          Opts.subcommand("extract-info", "emit structured JSON about the build, used by IDE plugins and external tooling")(
             List(
               Opts.subcommand("all", "output all info in a single JSON object")(
                 Opts(commands.ExtractInfo.All)
@@ -674,7 +674,7 @@ object Main {
             )(Opts {
               commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
             }),
-            Opts.subcommand("auto-shutdown-enable", "shut down the compile server between bleep invocations — slower (cold start each time), but frees memory")(
+            Opts.subcommand("auto-shutdown-enable", "shut down the compile server between bleep invocations, slower (cold start each time), but frees memory")(
               Opts {
                 commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
               }
@@ -984,7 +984,7 @@ object Main {
               val pre = Prebootstrapped(storingLogger, userPaths, buildPaths, existing, ec)
               bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                 case Left(th) =>
-                  // Bootstrap failed — create fallback logger for error output
+                  // Bootstrap failed, create fallback logger for error output
                   bleepLoggers.stdoutAndFileLogging(config, preOpts.toLoggingOpts, buildPaths).use { logger =>
                     replayStoredMessages(storingLogger, logger)
                     fatal("Error while loading build", logger, th)
@@ -1113,7 +1113,7 @@ object Main {
         }
     }
 
-  /** Check if restArgs request machine-readable output (json or raw) — logs should go to stderr. */
+  /** Check if restArgs request machine-readable output (json or raw), logs should go to stderr. */
   private def hasMachineOutput(restArgs: List[String]): Boolean =
     restArgs.exists {
       case "--json" | "--output=json" | "-ojson" | "--output=raw" | "-oraw" => true

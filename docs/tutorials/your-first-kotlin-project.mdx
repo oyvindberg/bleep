@@ -47,7 +47,7 @@ The main source, `myapp/src/kotlin/com/example/Main.kt`:
 <Snippet path="docs-snippets-from-tests/your-first-kotlin-project/Main.kt" lang="kotlin" />
 
 > Note: Kotlin's compiler generates a JVM class named `MainKt` for a
-> top-level `main` function in `Main.kt` — that's the `mainClass` set in
+> top-level `main` function in `Main.kt`, that's the `mainClass` set in
 > `bleep.yaml`.
 
 The test, `myapp-test/src/kotlin/com/example/MainTest.kt`:
@@ -154,13 +154,13 @@ my-first-bleep-project/
 
 > **Coming from Gradle?** Bleep uses `src/kotlin/` rather than
 > `src/main/kotlin/` because there is no `src/test/kotlin/` to
-> contrast with — tests live in their own sibling project
+> contrast with, tests live in their own sibling project
 > (`myapp-test`) rather than under a `test/` subtree. Same files,
 > shorter paths.
 
 ## Next steps
 
-- [Write your first script](/docs/tutorials/your-first-script) — custom
+- [Write your first script](/docs/tutorials/your-first-script): custom
   build logic
 - [Dependency management](/docs/concepts/dependencies)
 - [Coming from Gradle?](/docs/compared-to-other-build-tools/gradle)

@@ -9,7 +9,7 @@ The everyday source layouts (`kotlin`, `normal`, `java`) are documented in
 of the model that only matter once you're cross-building Scala, or once
 you're maintaining a build that came over from sbt.
 
-If you're not doing either, you can stop here.
+If you're not doing either. You can stop here.
 
 ## Versioned source folders in `normal`
 
@@ -26,8 +26,8 @@ set:
 
 The version-specific folders only resolve if `scala.version` is set on
 the project (which is to say, on each cross axis when cross-building).
-If the binary version and the epoch produce the same string &mdash; like
-Scala 3, where `binVersion` and `epoch` are both `3` &mdash; the path
+If the binary version and the epoch produce the same string, like
+Scala 3, where `binVersion` and `epoch` are both `3`, the path
 appears once.
 
 This is how a single source tree can keep version-specific shims under
@@ -37,7 +37,7 @@ picks up `src/scala-3/`.
 
 ## Cross-build layouts
 
-When a project has a `cross:` block, every cross-id (e.g. `jvm213`,
+When a project has a `cross:` block. Every cross-id (e.g. `jvm213`,
 `jvm3`, `js3`) becomes its own *expanded* project, with the source layout
 re-evaluated using *that cross's* Scala version and platform. So a
 `normal`-layout project with cross-ids `jvm213` and `jvm3` ends up looking
@@ -87,7 +87,7 @@ clean separation between shared and platform-specific source trees.
 ### `sbt-matrix`
 
 The full set of `normal` paths, plus folders whose names mash the platform
-and the Scala version together &mdash; the layout sbt uses for the
+and the Scala version together, the layout sbt uses for the
 `projectMatrix` style cross builds:
 
 ```
@@ -108,7 +108,7 @@ segment is what `sbt-scope` controls.
 
 In bleep, **scope distinctions are encoded by separate projects**: the
 test code is its own project, with `isTestProject: true`. There is no
-`src/test/` directory inside the same project &mdash; the tests live in
+`src/test/` directory inside the same project, the tests live in
 `myapp-test/src/kotlin/`, not in `myapp/src/test/kotlin/`. So in a
 bleep-native build the `<scope>` segment is empty, and the layout
 produces short folder names (`src/scala`, not `src/main/scala`).
@@ -129,14 +129,14 @@ projects:
 
 This is preserved purely so imports work without moving any files. The
 [`bleep build move-files-into-bleep-layout`](/docs/reference/cli/build/move-files-into-bleep-layout/) command exists to migrate an
-imported build into the bleep-native form &mdash; it relocates source
+imported build into the bleep-native form, it relocates source
 files from `src/main/scala` to `src/scala` (and so on) and clears the
 `sbt-scope` field on every project.
 
 ## Wiring placeholders into custom paths
 
 Sometimes you want a custom `sources:` entry that participates in the
-cross-build's version axis &mdash; for example, sharing a single
+cross-build's version axis, for example, sharing a single
 `shared/scala-3/` directory between several cross-builds. The
 [path placeholders](/docs/appendix/path-replacements) make that possible:
 
@@ -158,8 +158,8 @@ the value you need genuinely depends on the cross axis.
 
 ## Where to go next
 
-- [Project layout](/docs/concepts/project-layout) &mdash; the everyday case.
-- [Cross-building](/docs/concepts/cross-building) &mdash; cross axes
+- [Project layout](/docs/concepts/project-layout): the everyday case.
+- [Cross-building](/docs/concepts/cross-building): cross axes
   themselves, beyond just the source layout.
-- [Path replacements](/docs/appendix/path-replacements) &mdash; the full
+- [Path replacements](/docs/appendix/path-replacements): the full
   placeholder vocabulary.

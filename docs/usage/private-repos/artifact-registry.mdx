@@ -50,7 +50,7 @@ projects:
       - com.mycompany:internal-lib:1.0.0
 ```
 
-Bleep rewrites `artifactregistry://` to `https://` and acquires a token via `gcloud auth print-access-token`. Tokens are fetched lazily — only when dependencies actually need resolving.
+Bleep rewrites `artifactregistry://` to `https://` and acquires a token via `gcloud auth print-access-token`. Tokens are fetched lazily, only when dependencies actually need resolving.
 
 ## Publishing
 
@@ -60,7 +60,7 @@ bleep publish company-releases mylib      # specific project
 bleep publish company-releases --version 1.0.0   # explicit version
 ```
 
-The resolver name becomes a subcommand — with tab completion.
+The resolver name becomes a subcommand, with tab completion.
 
 Bleep generates the Maven layout (JAR, POM, sources, javadoc) with MD5/SHA1 checksums and uploads via HTTP PUT with the same gcloud credentials used for resolving.
 
@@ -76,4 +76,4 @@ Run `gcloud auth login` to re-authenticate.
 
 ### Token fetch is slow (~2s)
 
-The `gcloud` CLI is Python-based. This only happens when dependencies actually need resolving or when publishing — not at bleep startup. The token is cached in-memory for the duration of the process.
+The `gcloud` CLI is Python-based. This only happens when dependencies actually need resolving or when publishing, not at bleep startup. The token is cached in-memory for the duration of the process.

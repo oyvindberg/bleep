@@ -2,7 +2,7 @@ import Snippet from '@site/src/components/Snippet';
 
 # Cross-building
 
-Cross-building means producing the same artifact for multiple targets —
+Cross-building means producing the same artifact for multiple targets , 
 multiple Scala versions (e.g., 2.13 and 3.x), multiple platforms (JVM,
 Scala.js, Scala Native), or Kotlin Multiplatform (JVM + JS + Native).
 Bleep models all of these declaratively with a `cross:` block per
@@ -12,7 +12,7 @@ per target.
 This guide walks through two minimal working examples:
 
 1. A Scala library cross-built against Scala 2.13 and Scala 3.
-2. A Kotlin app cross-built against the JVM and JS — same source file,
+2. A Kotlin app cross-built against the JVM and JS, same source file,
    colored output on both.
 
 ## Scala: cross-version on the JVM
@@ -28,10 +28,10 @@ What's going on:
   and `jvm3` variants. A template avoids repeating the cross block
   per project.
 - **`cross:`** has one entry per cross-id. The id (`jvm213`, `jvm3`)
-  is yours to pick — it ends up in directory paths and in the
+  is yours to pick, it ends up in directory paths and in the
   command-line selector. Convention: `<platform><scalaMajor>` or just
   `<scalaMajor>`.
-- Each cross entry overrides what's specific to that variant — here,
+- Each cross entry overrides what's specific to that variant, here,
   the Scala version. Anything outside the `cross:` block (like
   `platform.name: jvm`) applies to all variants.
 
@@ -42,8 +42,8 @@ under both Scala 2.13 and Scala 3:
 
 <Snippet path="docs-snippets-from-tests/cross-building-scala/Greeting.scala" lang="scala" />
 
-For code that needs to diverge between versions, bleep supports per-cross
-source roots — see [Cross-building (concepts)](/docs/concepts/cross-building)
+For code that needs to diverge between versions. Bleep supports per-cross
+source roots, see [Cross-building (concepts)](/docs/concepts/cross-building)
 for the source-layout options (`cross-pure`, `cross-full`, etc.).
 
 ### The tests
@@ -111,8 +111,8 @@ Notes:
 <Snippet path="docs-snippets-from-tests/cross-building-kotlin/Main.kt" lang="kotlin" />
 
 The same `Main.kt` compiles under both targets. ANSI escape codes for
-color render correctly in any terminal — including Node when run via
-`node app.js` — so the JVM and JS outputs both produce a green "Hello"
+color render correctly in any terminal, including Node when run via
+`node app.js`, so the JVM and JS outputs both produce a green "Hello"
 + cyan "bleep".
 
 ### Building
@@ -130,8 +130,8 @@ bleep compile app
 
 ## Going further
 
-- [Cross-building (concepts)](/docs/concepts/cross-building) — source
+- [Cross-building (concepts)](/docs/concepts/cross-building): source
   layouts and source-layout options for diverging code, JS / Native
   cross-platform builds, and naming conventions.
-- [Publishing to Maven Central](/docs/tutorials/publish-to-maven) —
+- [Publishing to Maven Central](/docs/tutorials/publish-to-maven) , 
   publish all cross variants from one command.

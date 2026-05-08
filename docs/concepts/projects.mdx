@@ -14,8 +14,8 @@ That sounds trivial until you've spent years using build tools where
 mechanism (Maven Mojos in their own jar, Gradle `Plugin<Project>`
 classes, sbt autoplugins compiled in `project/`), and *generators*
 are a third thing (Maven plugin phases, Gradle tasks, sbt
-`sourceGenerators`). In bleep all four are the same primitive — a
-declared project with sources, dependencies, and a platform — wired
+`sourceGenerators`). In bleep all four are the same primitive, a
+declared project with sources, dependencies, and a platform, wired
 in through different YAML fields.
 
 This is the central simplification of bleep, and it's why the rest
@@ -35,7 +35,7 @@ projects:
 
 A project has:
 
-- A **name** (the YAML key — `myapp` here).
+- A **name** (the YAML key, `myapp` here).
 - A **folder on disk**: `./myapp` by default; override with `folder:`.
 - **Sources**: `myapp/src/scala/`, `myapp/src/java/`, or
   `myapp/src/kotlin/` by default. Override with `sources:` if you
@@ -77,7 +77,7 @@ knows to discover and run it.
 What you get for free, just because tests are real projects:
 
 - **Test-only dependencies are isolated.** JUnit, Mockito,
-  Testcontainers — none of them leak into the production runtime
+  Testcontainers, none of them leak into the production runtime
   classpath. There's no `<scope>test</scope>` to remember.
 - **Tests can have a different platform or compiler config.** A
   test project can target a different JVM release, different
@@ -91,8 +91,8 @@ The cost is two folders in your repo instead of one. Worth it.
 
 ### Multiple test layers: unit + integration
 
-The same mechanism scales. Two layers of testing — fast unit tests
-on every PR, slower integration tests on a tag or schedule — is two
+The same mechanism scales. Two layers of testing, fast unit tests
+on every PR, slower integration tests on a tag or schedule, is two
 sibling test projects:
 
 import Snippet from '@site/src/components/Snippet';
@@ -117,7 +117,7 @@ bleep test                # every isTestProject in the build
 
 In CI you'd typically run [`bleep test mylib-test`](/docs/reference/cli/test/)
 on every PR and `bleep test mylib-it` on a separate scheduled
-job &mdash; gated on an env var if your integration code only runs
+job, gated on an env var if your integration code only runs
 under specific conditions:
 
 ```bash
@@ -147,7 +147,7 @@ projects:
 
 The convention is `<project>-test` for unit tests and
 `<project>-it` for integration tests. Bleep treats these as
-ordinary project names &mdash; the suffix isn't magic. Pick what
+ordinary project names; the suffix isn't magic. Pick what
 your team agrees on; just keep `isTestProject: true` on every test
 project so [`bleep test`](/docs/reference/cli/test/) discovers
 them.
@@ -178,7 +178,7 @@ The top-level `scripts:` map registers a callable name (`hello`) to
 a `(project, main-class)` pair. `bleep hello` invokes the registered
 class via the bleepscript runtime.
 
-The script project itself isn't a special construct — it's a
+The script project itself isn't a special construct, it's a
 project that happens to compile a class extending `BleepScript`.
 You can run other commands against it (`bleep compile scripts`,
 `bleep test scripts-test`), depend on it from another project, or
@@ -216,7 +216,7 @@ Because there's only one kind of project, there's only one set of
 tools to learn. [`bleep compile`](/docs/reference/cli/compile/),
 [`bleep test`](/docs/reference/cli/test/),
 [`bleep run`](/docs/reference/cli/run/) all work the same way on
-any project — main, test, script, or generator. The build graph
+any project, main, test, script, or generator. The build graph
 (`dependsOn`) is the same graph for all of them. The
 [refactor commands](/docs/guides/refactor) that rename, merge, or
 move a project work uniformly.
@@ -227,14 +227,14 @@ projects are simple.
 
 ## See also
 
-- [Templates & Inheritance](/docs/concepts/templates-inheritance) &mdash;
+- [Templates & Inheritance](/docs/concepts/templates-inheritance) , 
   shared configuration via `extends:`.
-- [Cross-Building](/docs/concepts/cross-building) &mdash; one project
+- [Cross-Building](/docs/concepts/cross-building): one project
   fanned out into multiple variants (Scala 2.13 / 3, JVM / JS /
   Native).
-- [Dependencies](/docs/concepts/dependencies) &mdash; how projects
+- [Dependencies](/docs/concepts/dependencies): how projects
   depend on Maven artifacts.
-- [Scripts and source generation](/docs/concepts/scripts) &mdash; the
+- [Scripts and source generation](/docs/concepts/scripts): the
   two ways projects extend the build.
-- [Supported test frameworks](/docs/appendix/test-frameworks) &mdash;
+- [Supported test frameworks](/docs/appendix/test-frameworks) , 
   what bleep auto-detects when `isTestProject: true`.

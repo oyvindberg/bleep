@@ -5,13 +5,13 @@ title: vs Gradle
 # Comparison with Gradle
 
 Gradle is what you reach for when Maven isn't expressive enough. The price
-is a build that's a program, not data — written in a DSL whose semantics
+is a build that's a program, not data, written in a DSL whose semantics
 you have to learn before you can change a dependency.
 
 Bleep takes the opposite stance: **build is data**. Your build is a single
 YAML file that any tool, IDE, LLM, or human can read and modify. When you
-need real code, you write a [script](/docs/concepts/scripts) — a normal Java
-or Scala program — not DSL extensions interpreted by a build engine.
+need real code, you write a [script](/docs/concepts/scripts), a normal Java
+or Scala program, not DSL extensions interpreted by a build engine.
 
 ## Build is data, not a program
 
@@ -94,7 +94,7 @@ plugins extend the project model, what `implementation` vs `api` vs
 `compileOnly` means, why test goes through `useJUnitPlatform()`, and
 when configuration runs versus execution.
 
-The bleep file describes the project. There are projects, they have
+The bleep file describes the project. There are projects. They have
 properties, they depend on things. Done.
 
 ## Faster everything
@@ -110,7 +110,7 @@ is slow. Bleep's startup model means none of that machinery is needed.
 | Incremental compile | Available; depends on plugin authors | Zinc, file-level, always on |
 | IDE import | Minutes for large multi-module projects | ~1 second via BSP |
 
-When you don't have to design around the daemon, you don't need a daemon.
+When you don't have to design around the daemon. You don't need a daemon.
 
 ## No DSL to learn
 
@@ -142,7 +142,7 @@ configurations or convention plugins), and per-module `build.gradle.kts`
 files that may need to repeat conventions or include shared logic from
 `buildSrc`.
 
-In bleep, all projects live in one `bleep.yaml`. Shared configuration goes
+In bleep. All projects live in one `bleep.yaml`. Shared configuration goes
 in templates:
 
 ```yaml
@@ -180,7 +180,7 @@ that says "use these defaults" and projects that extend it.
 
 Gradle's answer for "I need to do something the DSL doesn't model" is
 either a third-party plugin or writing your own. The plugin API is its own
-thing — you implement `Plugin<Project>`, register tasks, manage their
+thing, you implement `Plugin<Project>`, register tasks, manage their
 lifecycle, deal with configuration-vs-execution timing.
 
 Bleep's answer is a [script](/docs/concepts/scripts): a regular Java,
@@ -199,7 +199,7 @@ versioned alongside the rest of your code.
   bleep does. Many of them exist to paper over Gradle's surface area
   (e.g., a plugin to make multi-module configuration less verbose).
 - **Enterprise integrations.** Develocity (formerly Gradle Enterprise),
-  build scans, predictive test selection — those are Gradle-specific
+  build scans, predictive test selection. Those are Gradle-specific
   products. Bleep doesn't have an equivalent.
 - **Familiarity.** If you and your team know Gradle and ship without
   thinking, the cost of switching is real. The payoff is the build

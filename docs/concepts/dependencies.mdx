@@ -8,16 +8,16 @@ A project's dependencies are Maven coordinates listed under
 `dependencies:`. By default each dep is on the project's
 compile-and-runtime classpath. The four standard Maven configurations
 (`provided`, `optional`, `runtime`, `test`) are available when you
-need them, as a per-dep `configuration:` field &mdash; see
+need them, as a per-dep `configuration:` field, see
 [Maven configurations](#maven-configurations) below.
 
 What bleep doesn't have is the **parallel-namespace axis** that
 Gradle (`implementation { }` / `api { }` / `compileOnly { }` /
 `runtimeOnly { }`) and sbt (`Compile / scalacOptions`,
 `Test / fork`, custom configurations like `IntegrationTest`) graft on
-top. Dependencies live in one list. Different *contexts* &mdash; a
+top. Dependencies live in one list. Different *contexts*, a
 test code path with its own dependency tree, an integration suite
-that needs Testcontainers but only on a tag &mdash; are different
+that needs Testcontainers but only on a tag, are different
 projects.
 
 ## The colon shorthands
@@ -26,7 +26,7 @@ projects.
 |---|---|---|
 | `groupId:artifactId:version` | Java or Kotlin libraries | `slf4j-api-2.0.9.jar` |
 | `groupId::artifactId:version` | Scala libraries (binary-version suffix) | `fansi_3-0.5.0.jar` (or `_2.13`, etc.) |
-| `groupId:::artifactId:version` | Scala libraries (full-version suffix &mdash; compiler plugins, scala-reflect macros) | `paradise_3.8.3-2.1.1.jar` |
+| `groupId:::artifactId:version` | Scala libraries (full-version suffix, compiler plugins, scala-reflect macros) | `paradise_3.8.3-2.1.1.jar` |
 
 ```yaml
 projects:
@@ -39,7 +39,7 @@ projects:
 
 For platform-specific resolution (Scala.js / Scala Native), bleep
 picks the right artifact suffix from the project's `platform.name`
-&mdash; you don't write `_sjs1` or `_native0.5` yourself.
+,  you don't write `_sjs1` or `_native0.5` yourself.
 
 ## Inter-project: `dependsOn`
 
@@ -81,24 +81,24 @@ dependencies:
 | `transitive` | both | Default `true`. Set `false` to pin only the named artifact and ignore its dependencies. |
 | `attributes` | both | Extra Maven module attributes (rarely needed). |
 | `publication` | both | Override the resolved artifact's `name` / `type` / `ext` / `classifier`. |
-| `isSbtPlugin` | Java | Adds `sbtVersion=1.0` and `scalaVersion=2.12` attributes &mdash; needed when consuming an sbt plugin as a normal dependency. |
+| `isSbtPlugin` | Java | Adds `sbtVersion=1.0` and `scalaVersion=2.12` attributes, needed when consuming an sbt plugin as a normal dependency. |
 | `forceJvm` | Scala | Pin the JVM artifact even on a JS or Native project. |
 | `for3Use213` | Scala | When the project is on Scala 3, resolve the Scala 2.13 build. The standard escape hatch for libraries not yet published for 3. |
 | `for213Use3` | Scala | The opposite. Rarely useful; binary compatibility usually doesn't carry that direction. |
 
 ## Maven configurations
 
-Most builds don't set `configuration:` &mdash; the default is the
+Most builds don't set `configuration:`; the default is the
 compile-and-runtime classpath. The cases that matter:
 
-- `provided` &mdash; on the **compile** classpath but not the
+- `provided`, on the **compile** classpath but not the
   **runtime** classpath. Servlet APIs, etc.
-- `optional` &mdash; same effect as `provided` for downstream
+- `optional`, same effect as `provided` for downstream
   consumers; on this project's compile classpath but filtered out
   of inherited transitive resolution.
-- `runtime` &mdash; the opposite of `provided`: present at runtime,
+- `runtime`, the opposite of `provided`: present at runtime,
   not at compile time.
-- `test` &mdash; only resolves when the project is a test project.
+- `test`, only resolves when the project is a test project.
 
 Worth calling out: when project A `dependsOn:` project B, deps that
 B declared with `configuration: provided` (or `optional`) are
@@ -120,13 +120,13 @@ the leaf" without re-declaring the dep at every level.
   [`bleep build update-dep`](/docs/reference/cli/build/update-dep/))
   is in the [Refactor your build](/docs/guides/refactor#bumping-dependencies)
   guide.
-- **BOM / `dependencyManagement`** is a known gap &mdash; every
+- **BOM / `dependencyManagement`** is a known gap, every
   dependency declares its version explicitly. Spring Boot users feel
   this most. See [Project status](/docs/appendix/status).
 - **Custom configurations** beyond the standard four, **ivy
   resolvers** other than Maven-style, **custom artifact patterns**:
-  by design, these aren't modelled. The intricate ivyisms were
-  dropped on purpose &mdash; what's left has a closed, hashable
+  by design. These aren't modelled. The intricate ivyisms were
+  dropped on purpose, what's left has a closed, hashable
   shape, which makes the build model cheap to cache (locally and
   in the [remote build cache](/docs/usage/remote-cache)) and
   cheap to round-trip through the
@@ -134,11 +134,11 @@ the leaf" without re-declaring the dep at every level.
 
 ## See also
 
-- [Conflict resolution](/docs/usage/conflict-resolution) &mdash; the
+- [Conflict resolution](/docs/usage/conflict-resolution): the
   library-version-scheme machinery and the eviction-warning model.
-- [Refactor your build](/docs/guides/refactor) &mdash; commands that
+- [Refactor your build](/docs/guides/refactor): commands that
   edit dependencies in `bleep.yaml` for you.
-- [Inspect the build](/docs/guides/inspect) &mdash; commands that
+- [Inspect the build](/docs/guides/inspect): commands that
   read the build's dependency graph.
-- [Project status](/docs/appendix/status) &mdash; the BOM gap and
+- [Project status](/docs/appendix/status): the BOM gap and
   other known limitations.

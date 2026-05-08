@@ -6,7 +6,7 @@ title: Compile servers
 
 Bleep ships its own BSP server (`bleep-bsp`) that drives the Zinc
 incremental compiler directly. Most of the time you don't think
-about it &mdash; it starts when you run `bleep compile`, stays
+about it, it starts when you run `bleep compile`, stays
 warm between invocations, and goes away when you log out. Two
 knobs you may need to turn: **mode** (when does it shut down?) and
 **memory** (how much heap?).
@@ -102,7 +102,7 @@ nudge this up to 0.90 or so.
 
 ### Test-runner heap
 
-The test runner is a separate forked JVM &mdash; it doesn't share
+The test runner is a separate forked JVM. It doesn't share
 heap with the compile server. Tune it independently:
 
 ```bash
@@ -130,6 +130,6 @@ bspServer:
 
 ## See also
 
-- [`bleep config`](/docs/reference/cli/config/) &mdash; the full
+- [`bleep config`](/docs/reference/cli/config/): the full
   set of user-config subcommands (auth, remote-cache, log timing,
   &hellip;) auto-generated from the CLI.

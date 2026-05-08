@@ -45,7 +45,7 @@ The main source, `myapp/src/scala/com/example/Main.scala`:
 
 <Snippet path="docs-snippets-from-tests/your-first-scala-project/Main.scala" lang="scala" />
 
-The `@main` annotation marks `helloMain` as the entry point — that's
+The `@main` annotation marks `helloMain` as the entry point, that's
 the symbol `mainClass: com.example.helloMain` points at in
 `bleep.yaml`.
 
@@ -71,7 +71,7 @@ bleep test myapp-test
 
 ## Step 5: Add a dependency
 
-Scala libraries use `::` (double colon) — that's a Scala-only shorthand
+Scala libraries use `::` (double colon), that's a Scala-only shorthand
 for adding the Scala version suffix to the artifact ID. (For Java
 libraries, use a single `:`.) Edit `bleep.yaml`:
 
@@ -95,7 +95,7 @@ bleep setup-ide
 
 **Open** → select the project directory. The Scala plugin handles
 `.scala` files once BSP has imported the project. Don't import as a
-Maven/sbt project — bleep speaks BSP directly.
+Maven/sbt project, bleep speaks BSP directly.
 
 ### VS Code with Metals
 
@@ -136,12 +136,12 @@ my-first-bleep-project/
 
 > **Coming from sbt?** Bleep uses `src/scala/` rather than
 > `src/main/scala/` because there is no `src/test/scala/` to contrast
-> with — tests live in their own sibling project (`myapp-test`)
+> with, tests live in their own sibling project (`myapp-test`)
 > rather than under a `test/` subtree. Same files, shorter paths.
 
 ## Next steps
 
-- [Write your first script](/docs/tutorials/your-first-script) — custom
+- [Write your first script](/docs/tutorials/your-first-script): custom
   build logic
 - [Dependency management](/docs/concepts/dependencies)
 - [Cross-building](/docs/concepts/cross-building)

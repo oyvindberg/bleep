@@ -8,7 +8,7 @@ Asking the build a question shouldn't require running the build. The
 inspection commands let you ask things like *"which projects depend
 on this one?"*, *"what does my project's config look like after
 templates resolve?"*, *"which projects changed since `origin/main`?"*,
-*"is `cats-core` getting evicted by something else?"* &mdash; and get
+*"is `cats-core` getting evicted by something else?"*, and get
 a typed answer.
 
 Two output shapes for every command:
@@ -16,7 +16,7 @@ Two output shapes for every command:
 - `--output text` (default): for humans reading the terminal.
 - `--output json`: a structured payload designed for `jq`, GitHub
   Actions matrix expressions, your scripts, your IDE plugin, your
-  agent &mdash; anything that can read JSON.
+  agent, anything that can read JSON.
 
 That's the composition story. Bleep doesn't try to be the universal
 runner. It tries to be the universal source-of-truth, and to expose
@@ -43,7 +43,7 @@ bleep build show short myapp
 ### `bleep build show effective`
 
 Prints the project's YAML *after* templates and inheritance are
-merged in &mdash; what bleep actually sees and uses to compile,
+merged in, what bleep actually sees and uses to compile,
 test, and publish. The "is my template change actually doing what I
 think?" answer.
 
@@ -58,7 +58,7 @@ bleep build show effective myapp --output json | jq '.kotlin'
 
 Diff the effective project config between two git revisions. After
 you edit a template, this answers "did my change actually do what I
-think it did?" with a concrete YAML diff &mdash; not a guess at
+think it did?" with a concrete YAML diff, not a guess at
 what should have happened.
 
 ```bash
@@ -72,7 +72,7 @@ bleep build diff effective --revision v1.2.0  # vs an old release
 
 ### `bleep build evicted`
 
-Reports the dependency conflicts in your build &mdash; cases where
+Reports the dependency conflicts in your build, cases where
 two transitive paths to the same library disagree on the version,
 and Coursier picked one. Names the callers so you can decide
 whether the eviction is safe (and pin a [library version
@@ -134,7 +134,7 @@ custom scripts use. Compose freely.
 
 ### `bleep projects` and `bleep projects-test`
 
-Plain enumeration of project names &mdash; respects subfolder
+Plain enumeration of project names, respects subfolder
 scoping (cd into `integrations/` and only those projects appear)
 and the cross-id glob shorthand. Pipe-friendly with
 `--output raw`.
@@ -148,14 +148,14 @@ bleep projects --output raw | grep -v test
 
 ## See also
 
-- [Refactor your build](/docs/guides/refactor) &mdash; the same
+- [Refactor your build](/docs/guides/refactor): the same
   model, but the commands that *change* `bleep.yaml` rather than
   read it.
 - [`bleep build` reference](/docs/reference/cli/build/) and
   [`bleep extract-info` reference](/docs/reference/cli/extract-info/)
-  &mdash; full flag set, auto-generated from the CLI.
-- [CI project invalidation](/docs/usage/ci-invalidation) &mdash;
+  : full flag set, auto-generated from the CLI.
+- [CI project invalidation](/docs/usage/ci-invalidation) , 
   the worked GitHub Actions / GitLab CI patterns built on
   [`bleep build invalidated`](/docs/reference/cli/build/invalidated/).
-- [MCP server](/docs/usage/mcp-server) &mdash; AI agents reading
+- [MCP server](/docs/usage/mcp-server): AI agents reading
   the same JSON via Model Context Protocol tool calls.

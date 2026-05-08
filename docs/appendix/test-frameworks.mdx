@@ -8,7 +8,7 @@ dependencies. Add the dependency to your `mylib-test` project and
 
 | Framework | Maven coordinate (any of) | Notes |
 |---|---|---|
-| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | Bleep injects `net.aichler:jupiter-interface:0.11.1` automatically — you do not declare it. |
+| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | Bleep injects `net.aichler:jupiter-interface:0.11.1` automatically. You do not declare it. |
 | **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | Bleep injects `com.github.sbt:junit-interface:0.13.3` automatically. |
 | **ScalaTest** | `org.scalatest::scalatest` | Implements sbt test-interface natively. |
 | **specs2** | `org.specs2::specs2-core` | Native test-interface. |
@@ -18,12 +18,12 @@ dependencies. Add the dependency to your `mylib-test` project and
 | **weaver-cats** | `com.disneystreaming::weaver-cats` | Native test-interface. |
 
 Detection is by *artifact name*, not by group. If your dependency
-coordinates match the artifact column above, bleep treats the project
+coordinates match the artifact column above. Bleep treats the project
 as using that framework.
 
 ## Multiple frameworks in one project
 
-A single test project can use multiple frameworks — declare each as a
+A single test project can use multiple frameworks, declare each as a
 dependency and [`bleep test`](/docs/reference/cli/test/) runs all of them:
 
 ```yaml
@@ -40,7 +40,7 @@ projects:
 
 If you depend on a framework that implements [sbt
 test-interface](https://github.com/sbt/test-interface) and isn't
-auto-detected, you can declare it explicitly:
+auto-detected. You can declare it explicitly:
 
 ```yaml
 projects:
@@ -71,7 +71,7 @@ test-interface as the framework boundary.
 
 ## See also
 
-- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) —
+- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) , 
   how to organize unit vs integration tests as sibling projects.
-- [Your First Project](/docs/tutorials/your-first-project) — JUnit 5
+- [Your First Project](/docs/tutorials/your-first-project): JUnit 5
   walk-through.

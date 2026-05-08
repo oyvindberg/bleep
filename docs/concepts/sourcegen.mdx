@@ -12,13 +12,13 @@ Unlike sbt source generators (which run inside the build definition), bleep sour
 
 - **Real programs** you can run and debug from your IDE
 - **Typed** against a first-class API (`bleepscript.BleepCodegenScript`)
-- **Isolated** in their own JVM, with their own classpath — no classloader conflicts with the build server
+- **Isolated** in their own JVM, with their own classpath, no classloader conflicts with the build server
 - **Incremental**, with automatic invalidation based on file timestamps
-- **Atomic** — a failed script never leaves stale generated code behind
+- **Atomic**: a failed script never leaves stale generated code behind
 
 ## Declaring a sourcegen script
 
-A sourcegen script lives in its own project and is referenced from the projects that consume its output. The script project depends on `bleepscript` — that one dependency brings the script API and the runtime implementation needed to dispatch from your script class.
+A sourcegen script lives in its own project and is referenced from the projects that consume its output. The script project depends on `bleepscript`. That one dependency brings the script API and the runtime implementation needed to dispatch from your script class.
 
 The `sourcegen:` field on the consumer accepts either the shorthand `projectName/fully.qualified.Main` or the full object form:
 
@@ -34,10 +34,10 @@ A project can list multiple sourcegen scripts. Each script writes into its own i
 
 ## Write your first one
 
-The shape is identical across languages &mdash; extend
+The shape is identical across languages: extend
 `bleepscript.BleepCodegenScript`, write files under
 `target.sources()`, list it under `sourcegen:` on the consuming
-project &mdash; but the scaffolding differs per language. Pick the
+project. Only the scaffolding differs per language. Pick the
 language you&rsquo;ll write the generator in:
 
 - [Write your first sourcegen (Java)](/docs/tutorials/your-first-sourcegen)
@@ -66,7 +66,7 @@ public record CodegenTarget(CrossProjectName project, Path sources, Path resourc
 
 Each entry in `targets` corresponds to one project that declared this script under `sourcegen:`. Write generated source files (`.java`, `.kt`, `.scala`) under `target.sources()`, and any other files (config, assets, protobuf descriptors, etc.) under `target.resources()`. Bleep includes them in the consuming project's source and resource paths automatically.
 
-If a script doesn't need to produce resources, it simply doesn't write to `target.resources()` — the directory stays empty.
+If a script doesn't need to produce resources, it doesn't write to `target.resources()`; the directory stays empty.
 
 ### Cross builds
 
@@ -131,7 +131,7 @@ Multiple concurrent operations (e.g. parallel `compile` and `test`) that target 
 Each script runs in its own forked JVM with a classpath built from the script project and its resolved dependencies. This is deliberate:
 
 - No classloader conflicts between the script and bleep's BSP server
-- Scripts can freely depend on any library — nothing is shared with the build server
+- Scripts can freely depend on any library, nothing is shared with the build server
 
 ## Failure handling
 
@@ -145,7 +145,7 @@ Only if `run` returns normally, the framework synchronises temp → real with a 
 
 - **New files** are written
 - **Changed files** overwrite the existing
-- **Unchanged files** are left alone — their mtime is preserved, which matters for incremental compilation
+- **Unchanged files** are left alone, their mtime is preserved, which matters for incremental compilation
 - **Orphan files** in the real directory that aren't in the temp dir are deleted
 - A fresh `.sourcegen-stamp` is written at the end
 
@@ -159,7 +159,7 @@ If the script exits non-zero, crashes (signal), or is killed, bleep:
 2. Deletes any `.sourcegen-stamp` file (so the next build will re-run the script rather than trust stale state)
 3. Reports the error back through the BSP pipeline
 
-The rationale: a half-generated directory is worse than no directory at all — it can produce baffling compile errors. Empty state is recoverable; stale state isn't.
+The rationale: a half-generated directory is worse than no directory at all. It can produce baffling compile errors. Empty state is recoverable; stale state isn't.
 
 ## Running sourcegen explicitly
 
@@ -169,7 +169,7 @@ Sourcegen normally runs implicitly as part of [`bleep compile`](/docs/reference/
 # Run sourcegen for specific projects
 bleep sourcegen myapp
 
-# Watch mode — re-run when inputs change
+# Watch mode: re-run when inputs change
 bleep sourcegen --watch myapp
 ```
 

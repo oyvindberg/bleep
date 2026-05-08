@@ -41,7 +41,7 @@ jobs:
 
 `bleep-setup-action` reads `$version` out of `bleep.yaml` and
 installs that exact bleep build. `--no-color` and `--no-bsp-progress`
-make CI logs scriptable and small &mdash; details under
+make CI logs scriptable and small, details under
 [CI flags](#ci-flags) below.
 
 ### Cache the Coursier and JVM downloads
@@ -113,7 +113,7 @@ genuinely changed *and* whose digest isn't in the cache.
 ```
 
 Configuration (the bucket URI plus credentials) lives in
-`bleep.yaml` and `~/.config/bleep/config.yaml` &mdash; see
+`bleep.yaml` and `~/.config/bleep/config.yaml`, see
 [Remote build cache](/docs/usage/remote-cache) for setup, S3-compatible
 backends (MinIO / Cloudflare R2 / GCS), and bucket-lifecycle
 expiration commands.
@@ -206,7 +206,7 @@ jobs:
 ```
 
 `--assert-release` fails the job if dynver would emit a snapshot
-version (uncommitted changes, commits past the tag, no tags at
+version (uncommitted changes, commits past the tag. No tags at
 all). See [Publish to Maven Central](/docs/tutorials/publish-to-maven)
 for the full release-pipeline story.
 
@@ -263,9 +263,9 @@ GitLab CI examples alongside the GitHub Actions ones.
 
 ## See also
 
-- [CI project invalidation](/docs/usage/ci-invalidation) &mdash;
+- [CI project invalidation](/docs/usage/ci-invalidation) , 
   build only what changed.
-- [Remote build cache](/docs/usage/remote-cache) &mdash; reuse
+- [Remote build cache](/docs/usage/remote-cache): reuse
   compiled classes across runs and machines.
 - [Publish to Maven Central](/docs/tutorials/publish-to-maven)
-  &mdash; the release-flow side.
+  : the release-flow side.

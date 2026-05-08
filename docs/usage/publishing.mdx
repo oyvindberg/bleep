@@ -172,8 +172,8 @@ Get Sonatype tokens at: central.sonatype.com > username > View Account > Generat
 
 Version is determined by (in priority order):
 
-1. `--version X` flag — explicit override
-2. Git tags via DynVer — automatic, derived from `git describe`
+1. `--version X` flag, explicit override
+2. Git tags via DynVer, automatic, derived from `git describe`
 
 DynVer examples:
 - On tag `v1.0.0` (clean) → `1.0.0`
@@ -184,8 +184,8 @@ For Sonatype, snapshot versions (any version not cleanly on a tag) get `-SNAPSHO
 
 ## Project Selection
 
-- [`bleep publish local mylib mylib2`](/docs/reference/cli/publish/) — publish specific projects
-- [`bleep publish local`](/docs/reference/cli/publish/) — publish all projects with `publish` config
+- [`bleep publish local mylib mylib2`](/docs/reference/cli/publish/): publish specific projects
+- [`bleep publish local`](/docs/reference/cli/publish/): publish all projects with `publish` config
 
 ## CI/CD Integration
 

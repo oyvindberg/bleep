@@ -23,7 +23,7 @@ trait BuildRewrite {
 }
 ```
 
-Basically it takes a fully parsed and expanded build, and lets you take the complete set of projects and rewrite them to whatever you want.
+It takes a fully parsed and expanded build, and lets you take the complete set of projects and rewrite them to whatever you want.
 
 For instance this build rewrite adds a scala compiler flag to all projects:
 ```scala
@@ -48,7 +48,7 @@ object GenDocumentation extends BleepScript("GenDocumentation") {
 }
 ```
 
-Bleep considers a build which is booted with rewrites completely separate from the normal build, you can see it in the `.bleep` directory.
+Bleep considers a build which is booted with rewrites completely separate from the normal build. You can see it in the `.bleep` directory.
 
 ```
 .bleep/builds/normal # the build you're working with from the command line
@@ -57,7 +57,7 @@ Bleep considers a build which is booted with rewrites completely separate from t
 ```
 
 So this is the foundation you can use to for instance add jmh flags and run benchmarking scripts. You can add Scala.js `mapSourceURI` with a reference to a given git SHA you have found. Or pretty much anything else.
-You can of course also publish and/or package your app based on one of these builds.
+You can also publish and/or package your app based on one of these builds.
 
 
 ## Persisting rewritten builds

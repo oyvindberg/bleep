@@ -12,7 +12,7 @@ Bleep can compute exactly which projects are affected by a set of changes, so yo
 bleep build invalidated --base <commitish>
 ```
 
-The `--base` parameter is a git commitish — typically the base branch of a PR:
+The `--base` parameter is a git commitish, typically the base branch of a PR:
 
 ```bash
 # Compare against the main branch
@@ -40,9 +40,9 @@ bleep build invalidated --base origin/main --json
 
 A project is invalidated if **any** of the following changed between the base commit and HEAD:
 
-1. **Build configuration** — dependencies, Scala/Java/Kotlin version, compiler options, platform settings, templates, or any other field in `bleep.yaml` that affects the project
-2. **Source files** — any file under the project's source or resource directories was added, modified, or deleted (detected via `git diff`)
-3. **Transitive dependents** — if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes sourcegen script dependencies.
+1. **Build configuration**: dependencies, Scala/Java/Kotlin version, compiler options, platform settings, templates, or any other field in `bleep.yaml` that affects the project
+2. **Source files**: any file under the project's source or resource directories was added, modified, or deleted (detected via `git diff`)
+3. **Transitive dependents**: if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes sourcegen script dependencies.
 
 New projects (present in HEAD but not in the base) are always invalidated.
 

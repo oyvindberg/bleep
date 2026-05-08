@@ -130,7 +130,7 @@ projects:
 
 ## Per-cross customization
 
-Anything settable at the project level can be overridden inside a `cross:` entry — dependencies, scalac/javac options, source layouts, platform settings. The cross block wins for that variant; everything outside it is shared.
+Anything settable at the project level can be overridden inside a `cross:` entry, dependencies, scalac/javac options, source layouts, platform settings. The cross block wins for that variant; everything outside it is shared.
 
 A small example covering three common axes:
 
@@ -138,9 +138,9 @@ A small example covering three common axes:
 
 Reading it variant by variant:
 
-- **`source-layout: cross-pure`** — adds a per-platform source root next to the shared one. Files under `mylib/src/scala/` are shared by both variants; files under `mylib/src/scala.jvm/` are only seen by the jvm variants. Other layouts: `cross-full` (separate `shared/` + `<platform>/` roots, the sbt-cross style), `sbt-matrix` (Scala-version-suffixed roots), `normal` (no per-cross sources).
-- **Per-variant `dependencies`** — `jvm213` pulls `cats-core`, `jvm3` doesn't. The 2.13-only macro library would go here too.
-- **Per-variant `scala.options`** — each variant gets only its declared flags. `-Ymacro-annotations` is a 2.13 thing; `-Yretain-trees` is a 3 thing. Putting them at the project level instead would warn-or-fail on the wrong variant.
+- **`source-layout: cross-pure`**: adds a per-platform source root next to the shared one. Files under `mylib/src/scala/` are shared by both variants; files under `mylib/src/scala.jvm/` are only seen by the jvm variants. Other layouts: `cross-full` (separate `shared/` + `<platform>/` roots, the sbt-cross style), `sbt-matrix` (Scala-version-suffixed roots), `normal` (no per-cross sources).
+- **Per-variant `dependencies`**: `jvm213` pulls `cats-core`, `jvm3` doesn't. The 2.13-only macro library would go here too.
+- **Per-variant `scala.options`**: each variant gets only its declared flags. `-Ymacro-annotations` is a 2.13 thing; `-Yretain-trees` is a 3 thing. Putting them at the project level instead would warn-or-fail on the wrong variant.
 
 The shared source file:
 
@@ -150,7 +150,7 @@ The jvm-only one (visible to both `jvm213` and `jvm3` because both are JVM platf
 
 <Snippet path="docs-snippets-from-tests/per-cross-customization/JvmOnly.scala" lang="scala" />
 
-A common gotcha: `extends:` at the cross level extends *templates*, not the parent project. If you want shared settings, put them at the project level (above the `cross:` block), not in a template you `extends:` from each variant — bleep's template inference normalises the latter back to the former anyway.
+A common gotcha: `extends:` at the cross level extends *templates*, not the parent project. If you want shared settings, put them at the project level (above the `cross:` block), not in a template you `extends:` from each variant, bleep's template inference normalises the latter back to the former anyway.
 
 ## Cross Dependencies
 
@@ -226,7 +226,7 @@ projects:
 
 ## Scala 2.13 / Scala 3 Compatibility
 
-For libraries supporting both Scala 2.13 and 3, you can use `for3Use213`:
+For libraries supporting both Scala 2.13 and 3. You can use `for3Use213`:
 
 ```yaml
 dependencies:
@@ -296,20 +296,20 @@ The Scala cross-build story covers JVM × \{2.13, 3\} × \{JVM, JS, Native\}
 and the Maven coordinate suffixes that consumers expect. A few sbt
 patterns don't have a direct equivalent:
 
-- **Arbitrary cross axes** (sbt `projectMatrix` style — cross by Scala
+- **Arbitrary cross axes** (sbt `projectMatrix` style, cross by Scala
   version × platform × *plus a third dimension* like a config flavour
   or a backend variant) aren't modelled. Use templates + multiple
   named projects if you need a third axis.
 - **Per-axis-value scalac options that depend on minor versions**
-  beyond the binary version — `cross:` overrides happen by `crossId`,
+  beyond the binary version, `cross:` overrides happen by `crossId`,
   not by minor-version patterns. The pragmatic workaround is naming
   the cross-id distinctly per minor (`jvm213_11`, `jvm213_15`).
 - **Cross-built sbt plugins** (consumed as `Dep.SbtPlugin`) aren't
-  supported as a publish target — bleep can depend on them via the
+  supported as a publish target, bleep can depend on them via the
   long-form dep with `isSbtPlugin: true`, but it doesn't itself
   publish sbt plugins.
 
-## Compiling Cross Projects
+## Compiling cross projects
 
 Compile all variants:
 
@@ -329,7 +329,7 @@ Compile all JVM variants:
 bleep compile mylib@jvm*
 ```
 
-## Testing Cross Projects
+## Testing cross projects
 
 Run tests for all variants:
 
@@ -345,7 +345,7 @@ bleep test mylib-test@js3
 
 ## Publishing Cross-Built Libraries
 
-When publishing, each cross variant produces separate artifacts:
+When publishing. Each cross variant produces separate artifacts:
 
 - `mylib_2.13` - Scala 2.13 JVM
 - `mylib_3` - Scala 3 JVM

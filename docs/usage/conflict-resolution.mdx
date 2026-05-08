@@ -6,7 +6,7 @@ title: Conflict resolution
 
 When two transitive dependencies disagree about which version of a
 shared library to pull in, Coursier picks the highest version (the
-default conflict resolver). For most libraries that's fine &mdash;
+default conflict resolver). For most libraries that's fine , 
 minor bumps stay binary-compatible. Sometimes it isn't, and you
 need to intervene.
 
@@ -14,13 +14,13 @@ There are three tools, in increasing order of how much you're
 asserting:
 
 1. **[Surgical fixes](#surgical-fixes-exclusions-and-transitive-false)**
-   on the offending dep &mdash; exclude a transitive, or refuse the
+   on the offending dep, exclude a transitive, or refuse the
    whole transitive tree. Local. Specific.
 2. **[Library version schemes](#library-version-schemes)** on the
-   project &mdash; tell bleep which versions to treat as compatible.
+   project, tell bleep which versions to treat as compatible.
    General. Inheritable.
 3. **[The kill switch](#the-kill-switch-ignoreevictionerrors)** on
-   the project &mdash; demote eviction errors to warnings, or
+   the project, demote eviction errors to warnings, or
    silence them. Blunt. Last resort.
 
 Plus one tool for finding out what's conflicting in the first
@@ -28,9 +28,9 @@ place: **[`bleep build evicted`](#inspecting-conflicts-bleep-build-evicted)**.
 
 ## Surgical fixes: exclusions and `transitive: false`
 
-When you don't have a compatibility argument to make &mdash; you
+When you don't have a compatibility argument to make, you
 just want a specific transitive dep out of the closure entirely, or
-you want to grab one artifact without its dependency tree &mdash;
+you want to grab one artifact without its dependency tree , 
 two fields on the dep's [long form](/docs/concepts/dependencies#the-long-form)
 do the surgical work.
 
@@ -52,7 +52,7 @@ dependencies:
 The map shape is `organisation -> [moduleName]`. Listed deps
 disappear from this entry's transitive closure entirely; they're
 not just demoted in version, they're not pulled at all. (Other deps
-in your build can still bring them in independently &mdash; if
+in your build can still bring them in independently, if
 that's also unwanted, exclude there too.)
 
 ### `transitive: false`
@@ -69,15 +69,15 @@ dependencies:
 ```
 
 The default is `transitive: true`, which is what you want almost
-always. `transitive: false` is the heavy hammer &mdash; reach for
+always. `transitive: false` is the heavy hammer, reach for
 it only when the dep's transitive tree is something you'd otherwise
 have to exclude wholesale.
 
 ## Library version schemes
 
-When you can make a *compatibility argument* &mdash; "the two
+When you can make a *compatibility argument*, "the two
 versions Coursier is choosing between are actually
-binary-compatible" &mdash; you say so once with a library version
+binary-compatible", you say so once with a library version
 scheme, and bleep stops complaining about every eviction that
 involves that library.
 
@@ -93,9 +93,9 @@ liberated.
 |---|---|
 | `early-semver` | Like SemVer, but `0.x.y` releases are also expected to maintain binary compatibility within `0.x`. The de facto Scala-ecosystem default. |
 | `semver-spec` | Spec-correct SemVer. `0.x.y` releases make **no** compatibility promises. Stricter than `early-semver` for pre-1.0 libraries. |
-| `pvp` | Haskell's Package Versioning Policy &mdash; second-segment compatibility. Good for libraries that follow `epoch.major.minor.patch`. |
+| `pvp` | Haskell's Package Versioning Policy, second-segment compatibility. Good for libraries that follow `epoch.major.minor.patch`. |
 | `strict` | Versions are compatible only if they are equal. Errors on any mismatch. |
-| `always` | Always compatible &mdash; never warn, never error. The escape hatch for libraries you've audited and know are fine. |
+| `always` | Always compatible, never warn, never error. The escape hatch for libraries you've audited and know are fine. |
 
 ### Declaring a scheme
 
@@ -125,17 +125,17 @@ check just stops complaining.
 ### Lookup chain
 
 When bleep finds an eviction (one version replacing another for the
-same module), it walks this chain &mdash; first match wins:
+same module), it walks this chain, first match wins:
 
-1. **Per-(org, module) scheme** from `libraryVersionSchemes` &mdash;
+1. **Per-(org, module) scheme** from `libraryVersionSchemes` , 
    `org.scala-lang.modules::scala-xml:always` matches exactly that
    library.
-2. **Per-org scheme** &mdash; write `*` as the artifact id to apply
+2. **Per-org scheme**: write `*` as the artifact id to apply
    a scheme to every artifact from one organisation.
-3. **POM-declared scheme** &mdash; newer libraries publish their
+3. **POM-declared scheme**: newer libraries publish their
    version scheme in the `info.versionScheme` POM property. Bleep
    reads that if you haven't overridden it locally.
-4. **Global default** &mdash; `early-semver` for Scala-suffixed
+4. **Global default**: `early-semver` for Scala-suffixed
    artifacts, `always` for plain Java artifacts. The Java default
    is permissive on purpose: Maven Central is full of well-meaning
    JARs whose versioning isn't formal but which won't actually break.
@@ -144,7 +144,7 @@ Schemes inherit through templates the same way dependencies do.
 
 ## The kill switch: `ignoreEvictionErrors`
 
-Even with the right scheme set, an eviction can still fire &mdash;
+Even with the right scheme set, an eviction can still fire , 
 usually because two libraries genuinely disagree about a shared dep
 across a breaking version boundary. When you've audited the conflict
 and know it's safe (or you're triaging a build under time pressure),
@@ -160,19 +160,19 @@ projects:
 |---|---|
 | `no` (default) | An incompatible eviction fails the build. |
 | `warn` | An incompatible eviction logs a warning and continues. |
-| `yes` | Silent &mdash; the build proceeds with no warning at all. |
+| `yes` | Silent, the build proceeds with no warning at all. |
 
 `ignoreEvictionErrors` is blunter than `libraryVersionSchemes`.
 Reach for it when you're importing an existing build and want to
 get to "compiles" first
 ([`bleep import-maven`](/docs/reference/cli/import-maven/) and
 [`bleep import`](/docs/reference/cli/import/) both default new
-projects to `no` &mdash; but on real-world builds, `warn` is
+projects to `no`, but on real-world builds, `warn` is
 sometimes the right starting point), or when you're shipping a build
 that knowingly tolerates a conflict because the API surface in
 question isn't called.
 
-For everything else, prefer per-library schemes &mdash; the report
+For everything else, prefer per-library schemes, the report
 tells you exactly which libraries you've cleared, and which ones
 are new noise.
 
@@ -198,13 +198,13 @@ you want for deciding which tool above to reach for.
 |---|---|
 | Specific transitive dep is wrong, the rest are fine | [`exclusions`](#exclusions) |
 | You want one artifact, none of its deps | [`transitive: false`](#transitive-false) |
-| Two versions of a library, you can argue they're compatible | [Library version scheme](#declaring-a-scheme) |
+| Two versions of a library. You can argue they're compatible | [Library version scheme](#declaring-a-scheme) |
 | You've audited everything and just want quiet | [`ignoreEvictionErrors`](#the-kill-switch-ignoreevictionerrors) |
 
 ## See also
 
-- [Dependencies](/docs/concepts/dependencies) &mdash; the rest of
+- [Dependencies](/docs/concepts/dependencies): the rest of
   the dependency model: shorthand syntax, the long form, Maven
   configurations.
-- [Inspect the build](/docs/guides/inspect) &mdash; other read-only
+- [Inspect the build](/docs/guides/inspect): other read-only
   commands for asking the build questions.

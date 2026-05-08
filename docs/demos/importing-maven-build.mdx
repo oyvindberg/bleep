@@ -30,20 +30,20 @@ Bleep:
 
 ## Useful flags
 
-- `--skip-mvn` — re-use a previously-cached `effective-pom.xml` from
+- `--skip-mvn`, re-use a previously-cached `effective-pom.xml` from
   `.bleep/import/maven/` instead of re-invoking `mvn`. Useful when
   iterating on import flags.
-- `--mvn-path /usr/local/bin/mvn` — point at a non-default `mvn`
+- `--mvn-path /usr/local/bin/mvn`, point at a non-default `mvn`
   binary.
-- `--exclude-project NAME` — skip a specific module and everything
+- `--exclude-project NAME`, skip a specific module and everything
   downstream of it. Repeat for multiple.
-- `--ignore-when-templating NAME` — keep the project but don't let it
+- `--ignore-when-templating NAME`, keep the project but don't let it
   influence template inference. Useful for outlier modules
   (documentation, examples) whose unique config would otherwise create
   a one-off template.
-- `--platform jvm|js|native` — restrict the import to projects on the
+- `--platform jvm|js|native`, restrict the import to projects on the
   given platform.
-- `--scala 213|3` — restrict to projects on the given Scala version.
+- `--scala 213|3`, restrict to projects on the given Scala version.
 
 ## What gets preserved
 
@@ -59,18 +59,18 @@ Bleep:
 
 ## What gets stripped
 
-- **Parent POMs / `packaging: pom` modules** — these have no source,
+- **Parent POMs / `packaging: pom` modules**: these have no source,
   so they don't survive as bleep projects. Their effects on child
   modules are already merged in via `mvn help:effective-pom`.
-- **Build plugins beyond compile/test/jar** — bleep doesn't run Maven
+- **Build plugins beyond compile/test/jar**: bleep doesn't run Maven
   plugins. Things like `maven-shade-plugin`, `frontend-maven-plugin`,
   `maven-failsafe-plugin`, etc. become your problem to re-implement
   as scripts. See [Porting sbt plugins](/docs/porting-sbt-plugins)
   for the general pattern; the same logic applies to Maven plugins.
-- **Active-by-default profiles** — `mvn help:effective-pom` activates
+- **Active-by-default profiles**: `mvn help:effective-pom` activates
   default profiles, but bleep doesn't preserve profile structure.
   You'll get the union of what was active at import time.
-- **`<scope>provided</scope>`** — bleep models `provided` (configuration
+- **`<scope>provided</scope>`**: bleep models `provided` (configuration
   field) but the import is conservative; review imported dependencies
   for scopes that need adjustment.
 
@@ -84,14 +84,14 @@ bleep test
 Both should work without further changes for the common case. If you
 hit gaps:
 
-- **Annotation processors** — Lombok, MapStruct, Dagger. Add
+- **Annotation processors**: Lombok, MapStruct, Dagger. Add
   `java.annotationProcessing.enabled: true` per project. See
   [Annotation Processing](/docs/usage/annotation-processing).
-- **Custom packaging** — fat JAR, shade, executable JAR. Convert the
+- **Custom packaging**: fat JAR, shade, executable JAR. Convert the
   Maven plugin invocation into a [bleep script](/docs/tutorials/your-first-script).
-- **Generated sources** (e.g. JAXB, OpenAPI codegen via plugin) — same
+- **Generated sources** (e.g. JAXB, OpenAPI codegen via plugin), same
   story; convert to a [sourcegen script](/docs/concepts/sourcegen).
-- **Publishing** — Maven's `mvn deploy` setup doesn't carry over
+- **Publishing**: Maven's `mvn deploy` setup doesn't carry over
   directly. See [Publish to Maven Central](/docs/tutorials/publish-to-maven)
   for bleep's [`bleep publish sonatype`](/docs/reference/cli/publish/sonatype/) flow, or use
   [`bleep publish <named-resolver>`](/docs/reference/cli/publish/) for an internal Nexus/Artifactory.
@@ -104,5 +104,5 @@ hit gaps:
 - **BOMs are inlined** at import time; bleep has no `dependencyManagement`
   equivalent yet, so dependencies imported through `spring-boot-dependencies`
   or similar will end up with explicit versions in `bleep.yaml`.
-- **Profiles** — only the `mvn help:effective-pom` default activation
+- **Profiles**: only the `mvn help:effective-pom` default activation
   is captured.

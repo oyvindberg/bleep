@@ -36,14 +36,14 @@ The build file:
 
 What each part does:
 
-- `$schema` — gives your editor autocomplete and validation
-- `$version` — the bleep version this build was authored against
-- `jvm.name` — bleep downloads and manages this JVM for you
-- `projects.myapp` — the main project; `mainClass` is what [`bleep run`](/docs/reference/cli/run/) invokes
-- `projects.myapp-test` — the test project, marked `isTestProject: true`
+- `$schema`, gives your editor autocomplete and validation
+- `$version`, the bleep version this build was authored against
+- `jvm.name`, bleep downloads and manages this JVM for you
+- `projects.myapp`, the main project; `mainClass` is what [`bleep run`](/docs/reference/cli/run/) invokes
+- `projects.myapp-test`, the test project, marked `isTestProject: true`
   (separate output directory, test-only dependencies) and depending on
   `myapp` so test code can reach `myapp` classes
-- `templates.template-common` — bleep auto-infers a template for the
+- `templates.template-common`, bleep auto-infers a template for the
   shared `platform.name: jvm` settings; both projects extend it
 
 The main source, `myapp/src/java/com/example/Main.java`:
@@ -91,11 +91,11 @@ projects:
       mainClass: com.example.Main
 ```
 
-> Heads up: Scala libraries use `::` (double colon) — that's a Scala-only
+> Heads up: Scala libraries use `::` (double colon), that's a Scala-only
 > shorthand for adding the Scala version suffix to the artifact ID. For
 > Java libraries, always use a single `:`.
 
-Then rerun [`bleep run myapp`](/docs/reference/cli/run/) — bleep resolves the new dependency on the
+Then rerun [`bleep run myapp`](/docs/reference/cli/run/), bleep resolves the new dependency on the
 fly.
 
 ## Step 6: Open it in your IDE
@@ -110,7 +110,7 @@ bleep setup-ide
 
 **Open** → select the project directory. IntelliJ detects the BSP
 configuration and imports in about a second. Don't use *Import
-Project*, and don't import as a Maven or Gradle project — bleep speaks
+Project*, and don't import as a Maven or Gradle project, bleep speaks
 BSP directly. This is the smoothest path for Java projects.
 
 Both **Community** and **Ultimate** editions work; BSP support is built
@@ -151,12 +151,12 @@ Each project in `bleep.yaml` maps to a directory with `src/java/` (or
 
 > **Coming from Maven?** Bleep uses `src/java/` rather than
 > `src/main/java/` because there is no `src/test/java/` to contrast
-> with — tests live in their own sibling project (`myapp-test`)
+> with, tests live in their own sibling project (`myapp-test`)
 > rather than under a `test/` subtree. Same files, shorter paths.
 
 ## Next steps
 
-- [Write your first script](/docs/tutorials/your-first-script) — custom
+- [Write your first script](/docs/tutorials/your-first-script): custom
   build logic
 - [Dependency management](/docs/concepts/dependencies)
 - [Build model overview](/docs/model)

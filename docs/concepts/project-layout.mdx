@@ -7,16 +7,16 @@ title: Project layout
 A project's `folder` says **where** it lives on disk. `source-layout` says
 **how** sources and resources are organised *inside* that folder. Together
 with the `sources:` and `resources:` arrays, they tell bleep where to find
-every file it needs to compile your project &mdash; without a single
+every file it needs to compile your project, without a single
 absolute path in `bleep.yaml`.
 
-This page covers the everyday case &mdash; one project, one source folder,
+This page covers the everyday case, one project, one source folder,
 one resources folder. For Scala cross-builds and sbt-imported layouts, see
 [Source layout in cross-builds and sbt imports](/docs/appendix/source-layout-cross-builds).
 
 ## The project folder
 
-Every project has a `folder` &mdash; the directory the rest of its paths
+Every project has a `folder`, the directory the rest of its paths
 are anchored to. It is **relative to the build root** (where `bleep.yaml`
 lives), and it defaults to `./${PROJECT_NAME}`.
 
@@ -61,7 +61,7 @@ You can override by setting the field explicitly.
 | `none`    | (none)                                                    | (none)                     |
 
 The "version-specific" extras under `normal` only matter for cross-builds
-&mdash; see the [appendix](/docs/appendix/source-layout-cross-builds).
+,  see the [appendix](/docs/appendix/source-layout-cross-builds).
 
 Notice that none of these have a `main/` or `test/` segment in them. In
 bleep, **tests are their own project** with `isTestProject: true`, so the
@@ -70,7 +70,7 @@ test code lives in a separate folder (`myapp-test/src/kotlin/`), not under
 
 ## Adding extra paths
 
-`sources:` and `resources:` are *additive* &mdash; bleep takes the union
+`sources:` and `resources:` are *additive*, bleep takes the union
 of the layout's paths and whatever you list:
 
 ```yaml
@@ -123,9 +123,9 @@ add to it.
 ## Where to go next
 
 - [Source layout in cross-builds and sbt imports](/docs/appendix/source-layout-cross-builds)
-  &mdash; the `cross-pure`, `cross-full`, `sbt-matrix` layouts, the
+  : the `cross-pure`, `cross-full`, `sbt-matrix` layouts, the
   versioned `scala-3` / `scala-2.13` folders, and the role of `sbt-scope`.
-- [Path replacements](/docs/appendix/path-replacements) &mdash; placeholder
+- [Path replacements](/docs/appendix/path-replacements): placeholder
   vocabulary for paths that need to know the build root or the current
   Scala version.
-- [Bleep build model](/docs/model) &mdash; everything else in `bleep.yaml`.
+- [Bleep build model](/docs/model): everything else in `bleep.yaml`.
