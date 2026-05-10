@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs Maven | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/maven/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs Maven | Bleep"><meta data-rh="true" name="description" content="Maven is the build tool that brought sanity to the JVM ecosystem. It&#x27;s"><meta data-rh="true" property="og:description" content="Maven is the build tool that brought sanity to the JVM ecosystem. It&#x27;s"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/maven/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Maven","item":"https://bleep.build/docs/compared-to-other-build-tools/maven"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -30,7 +30,7 @@ test code lives in its own project.</p>
 <p>A <code>bleep.yaml</code> file is <strong>data</strong>. Anything you can do with it can be expressed
 as text edits, a script, an LLM prompt, or <code>git diff</code>. There is no XML
 namespace, no Maven property substitution, no parent POM hierarchy to walk.</p>
-<p>Maven gets you partway there — <code>pom.xml</code> is data too — but the data model is
+<p>Maven gets you partway there, <code>pom.xml</code> is data too, but the data model is
 verbose, the inheritance rules are non-obvious, and any non-trivial build
 ends up with custom plugins or <code>maven-shade-plugin</code> configurations whose
 schemas you have to learn one at a time.</p>
@@ -49,7 +49,7 @@ golden path? Write a Mojo (a Java class extending Maven&#x27;s plugin API),
 package it as a plugin artifact, configure it in <code>&lt;build&gt;&lt;plugins&gt;</code>.</p>
 <p>Bleep doesn&#x27;t have a lifecycle. There are commands (<code>compile</code>, <code>test</code>,
 <code>run</code>, <code>publish</code>, ...) and there are
-<a class="" href="/docs/concepts/scripts/">scripts</a> — regular Java, Kotlin, or Scala programs that you
+<a class="" href="/docs/concepts/scripts/">scripts</a>, regular Java, Kotlin, or Scala programs that you
 run from the command line. A script can do anything: read the build model,
 generate sources, sign artifacts, run code generation tools, push to a
 registry. You debug it with breakpoints in your IDE.</p>
@@ -57,7 +57,7 @@ registry. You debug it with breakpoints in your IDE.</p>
 <p><a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> reads your <code>pom.xml</code> (or a multi-module Maven
 project) and generates a <code>bleep.yaml</code>. See
 <a class="" href="/docs/demos/importing-maven-build/">Importing a Maven build</a> for the
-walkthrough — what gets preserved, what gets stripped, and what to do
+walkthrough, what gets preserved, what gets stripped, and what to do
 about Maven plugins that don&#x27;t carry over.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="honest-trade-offs">Honest trade-offs<a href="#honest-trade-offs" class="hash-link" aria-label="Direct link to Honest trade-offs" title="Direct link to Honest trade-offs" translate="no">​</a></h2>
 <ul>
@@ -73,7 +73,7 @@ template that lists them.</li>
 plugins are Scala/Java libraries published to Maven Central; there are
 fewer of them, mostly because the script model means you reach for them
 less often. But for things like Sonatype publishing, GraalVM native
-image, scalafmt, scalafix, sbt-jni, mdoc — bleep ships ports of the
+image, scalafmt, scalafix, sbt-jni, mdoc, bleep ships ports of the
 popular ones.</li>
 <li class=""><strong>Enterprise tooling.</strong> If your organization is built around Nexus,
 Artifactory, Sonar, JFrog, or a release pipeline that assumes
@@ -81,7 +81,7 @@ Artifactory, Sonar, JFrog, or a release pipeline that assumes
 repository, but tooling that scrapes <code>pom.xml</code> won&#x27;t work directly on a
 bleep build.</li>
 <li class=""><strong>IDE support.</strong> IntelliJ has bespoke Maven import. For bleep, IntelliJ
-uses BSP — fast and accurate, but a different code path.</li>
+uses BSP, fast and accurate, but a different code path.</li>
 <li class=""><strong>Familiarity.</strong> If your whole team knows Maven inside out and ships
 builds without thinking about it, switching has a learning-curve cost.
 The payoff is in build speed, build readability, and what you can

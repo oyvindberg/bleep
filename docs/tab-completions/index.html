@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Tab completions | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/tab-completions/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Tab completions | Bleep"><meta data-rh="true" name="description" content="Bleep ships shell completion installers for bash and zsh."><meta data-rh="true" property="og:description" content="Bleep ships shell completion installers for bash and zsh."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/tab-completions/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/tab-completions/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/tab-completions/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tab completions","item":"https://bleep.build/docs/tab-completions"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@ names all complete on <code>&lt;Tab&gt;</code>.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep install-tab-completions-bash</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># or</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep install-tab-completions-zsh</span><br></div></code></pre></div></div>
 <p>Source your shell rc / start a new shell to pick up the change. The
 installer writes to a standard completion location for the chosen
-shell — sourcing <code>~/.profile</code>, <code>~/.bashrc</code>, or <code>~/.zshrc</code> (whichever
+shell, sourcing <code>~/.profile</code>, <code>~/.bashrc</code>, or <code>~/.zshrc</code> (whichever
 your shell loads on startup) is enough to enable completions in
 existing terminals.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-completes">What completes<a href="#what-completes" class="hash-link" aria-label="Direct link to What completes" title="Direct link to What completes" translate="no">​</a></h2>
@@ -31,25 +31,25 @@ user-defined scripts declared under <code>scripts:</code> in <code>bleep.yaml</c
 defined in the build, including cross variants (<code>mylib@jvm213</code>,
 <code>mylib@jvm3</code>, …).</li>
 <li class=""><strong>Cross-id selectors.</strong> Group names like <code>jvm213</code>, <code>js3</code>, <code>native</code>
-complete the same way — selecting them runs the command against
+complete the same way, selecting them runs the command against
 every project on that variant.</li>
 <li class=""><strong>Command flags.</strong> <code>--no-color</code>, <code>--debug</code>, <code>-d</code>, … all
 complete after their subcommand.</li>
 </ul>
 <p>Completion is delegated to the bleep binary itself, so the menu is
-always in sync with your current <code>bleep.yaml</code> — adding a new project
+always in sync with your current <code>bleep.yaml</code>, adding a new project
 or script makes it tab-complete on the next invocation, with no
 re-installation needed.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="inspect-without-installing">Inspect without installing<a href="#inspect-without-installing" class="hash-link" aria-label="Direct link to Inspect without installing" title="Direct link to Inspect without installing" translate="no">​</a></h2>
-<p>If you want to see what the installer would write — for example, to
-ship completions through a corporate shell-config repo — use
+<p>If you want to see what the installer would write, for example, to
+ship completions through a corporate shell-config repo, use
 <code>--stdout</code>:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep install-tab-completions-bash </span><span class="token parameter variable" style="color:#36acaa">--stdout</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> /etc/bash_completion.d/bleep</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep install-tab-completions-zsh  </span><span class="token parameter variable" style="color:#36acaa">--stdout</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> ~/.zsh/completions/_bleep</span><br></div></code></pre></div></div>
 <p>The output is the completion script. The installer only prints to
 stdout; it doesn&#x27;t touch any files when <code>--stdout</code> is set.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-shells">Other shells<a href="#other-shells" class="hash-link" aria-label="Direct link to Other shells" title="Direct link to Other shells" translate="no">​</a></h2>
 <p>PRs welcome for fish, nushell, PowerShell, and others. The bash and
-zsh installers are good templates — both are small Scala wrappers
+zsh installers are good templates, both are small Scala wrappers
 that emit a completion script invoking <code>bleep</code> for the dynamic
 parts.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/usage/mcp-server/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">MCP server (for AI agents)</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/model/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Build Model Overview</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#installation" class="table-of-contents__link toc-highlight">Installation</a></li><li><a href="#what-completes" class="table-of-contents__link toc-highlight">What completes</a></li><li><a href="#inspect-without-installing" class="table-of-contents__link toc-highlight">Inspect without installing</a></li><li><a href="#other-shells" class="table-of-contents__link toc-highlight">Other shells</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>

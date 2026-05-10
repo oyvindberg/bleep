@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep self-hosts: bleep itself is built with bleep, including a"><meta data-rh="true" property="og:description" content="Bleep self-hosts: bleep itself is built with bleep, including a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -18,20 +18,20 @@ GraalVM native-image release pipeline. Several teams use it in
 production for backend services, libraries published to Maven Central,
 and large generated-source codebases (parser projects with hundreds of
 thousands of lines of generated Java).</p>
-<p>The version is <code>1.0.0-M*</code> — milestone, not GA. The build model is
+<p>The version is <code>1.0.0-M*</code>, milestone, not GA. The build model is
 stable in practice; named features are tested by integration tests.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="whats-not-yet-covered">What&#x27;s not yet covered<a href="#whats-not-yet-covered" class="hash-link" aria-label="Direct link to What&#x27;s not yet covered" title="Direct link to What&#x27;s not yet covered" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>No BOM / <code>dependencyManagement</code></strong> — every dependency declares its
+<li class=""><strong>No BOM / <code>dependencyManagement</code></strong>: every dependency declares its
 version explicitly. Spring Boot users feel this most.</li>
-<li class=""><strong>No KSP / KAPT</strong> for Kotlin annotation processing — Java&#x27;s
+<li class=""><strong>No KSP / KAPT</strong> for Kotlin annotation processing. Java&#x27;s
 <code>javac -processor</code> flow works.</li>
-<li class=""><strong>No Gradle import</strong> — Maven and sbt are imported via <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a>
+<li class=""><strong>No Gradle import</strong>: Maven and sbt are imported via <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a>
 / <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>.</li>
-<li class=""><strong>Single-host caching only</strong> — remote cache works via
+<li class=""><strong>Single-host caching only</strong>: remote cache works via
 <a class="" href="/docs/reference/cli/remote-cache/pull/"><code>bleep remote-cache pull</code></a> / <code>push</code>; not transparent on every
 invocation.</li>
-<li class=""><strong>Plugin ecosystem is small</strong> compared to Maven/Gradle/sbt — the
+<li class=""><strong>Plugin ecosystem is small</strong> compared to Maven/Gradle/sbt, the
 ports that exist (sbt-ci-release, sbt-sonatype, sbt-pgp, sbt-dynver,
 sbt-native-image, sbt-scalafix, sbt-jni, mdoc) cover release
 workflows; one-off plugins are user-implemented as scripts.</li>
@@ -39,7 +39,7 @@ workflows; one-off plugins are user-implemented as scripts.</li>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="recommendation">Recommendation<a href="#recommendation" class="hash-link" aria-label="Direct link to Recommendation" title="Direct link to Recommendation" translate="no">​</a></h2>
 <p>Use bleep on greenfield projects without reservation. For migrating
 an existing build, run <a class="" href="/docs/demos/importing-sbt-build/"><code>bleep import</code></a>
-or <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import-maven</code></a> first —
+or <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import-maven</code></a> first ,
 if the imported result compiles and tests, you&#x27;re in a usable state.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/installing/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Installation</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/tutorials/your-first-project/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Your First Project (Java)</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#whats-not-yet-covered" class="table-of-contents__link toc-highlight">What&#39;s not yet covered</a></li><li><a href="#recommendation" class="table-of-contents__link toc-highlight">Recommendation</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>

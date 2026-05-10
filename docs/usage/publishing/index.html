@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Publishing | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/usage/publishing/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Publishing | Bleep"><meta data-rh="true" name="description" content="Bleep has built-in publishing to local repositories, private Maven registries, and Sonatype / Maven Central."><meta data-rh="true" property="og:description" content="Bleep has built-in publishing to local repositories, private Maven registries, and Sonatype / Maven Central."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/usage/publishing/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/publishing/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/publishing/" hreflang="x-default"><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -68,8 +68,8 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="version-management">Version Management<a href="#version-management" class="hash-link" aria-label="Direct link to Version Management" title="Direct link to Version Management" translate="no">​</a></h2>
 <p>Version is determined by (in priority order):</p>
 <ol>
-<li class=""><code>--version X</code> flag — explicit override</li>
-<li class="">Git tags via DynVer — automatic, derived from <code>git describe</code></li>
+<li class=""><code>--version X</code> flag, explicit override</li>
+<li class="">Git tags via DynVer, automatic, derived from <code>git describe</code></li>
 </ol>
 <p>DynVer examples:</p>
 <ul>
@@ -80,8 +80,8 @@
 <p>For Sonatype, snapshot versions (any version not cleanly on a tag) get <code>-SNAPSHOT</code> appended.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="project-selection">Project Selection<a href="#project-selection" class="hash-link" aria-label="Direct link to Project Selection" title="Direct link to Project Selection" translate="no">​</a></h2>
 <ul>
-<li class=""><a class="" href="/docs/reference/cli/publish/"><code>bleep publish local mylib mylib2</code></a> — publish specific projects</li>
-<li class=""><a class="" href="/docs/reference/cli/publish/"><code>bleep publish local</code></a> — publish all projects with <code>publish</code> config</li>
+<li class=""><a class="" href="/docs/reference/cli/publish/"><code>bleep publish local mylib mylib2</code></a>: publish specific projects</li>
+<li class=""><a class="" href="/docs/reference/cli/publish/"><code>bleep publish local</code></a>: publish all projects with <code>publish</code> config</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="cicd-integration">CI/CD Integration<a href="#cicd-integration" class="hash-link" aria-label="Direct link to CI/CD Integration" title="Direct link to CI/CD Integration" translate="no">​</a></h2>
 <p>Bleep is CI-agnostic. Set the required environment variables in your CI system and run <a class="" href="/docs/reference/cli/publish/"><code>bleep publish &lt;target&gt;</code></a>. Example for GitHub Actions:</p>

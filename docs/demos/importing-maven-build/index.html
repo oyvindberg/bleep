@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Import Maven build | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/demos/importing-maven-build/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Import Maven build | Bleep"><meta data-rh="true" name="description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><meta data-rh="true" property="og:description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/demos/importing-maven-build/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Import from Maven","item":"https://bleep.build/docs/demos/importing-maven-build"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -36,37 +36,37 @@ and pins the JVM via <code>jvm.name: temurin:NN</code>.</li>
 </ol>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="useful-flags">Useful flags<a href="#useful-flags" class="hash-link" aria-label="Direct link to Useful flags" title="Direct link to Useful flags" translate="no">​</a></h2>
 <ul>
-<li class=""><code>--skip-mvn</code> — re-use a previously-cached <code>effective-pom.xml</code> from
+<li class=""><code>--skip-mvn</code>, re-use a previously-cached <code>effective-pom.xml</code> from
 <code>.bleep/import/maven/</code> instead of re-invoking <code>mvn</code>. Useful when
 iterating on import flags.</li>
-<li class=""><code>--mvn-path /usr/local/bin/mvn</code> — point at a non-default <code>mvn</code>
+<li class=""><code>--mvn-path /usr/local/bin/mvn</code>, point at a non-default <code>mvn</code>
 binary.</li>
-<li class=""><code>--exclude-project NAME</code> — skip a specific module and everything
+<li class=""><code>--exclude-project NAME</code>, skip a specific module and everything
 downstream of it. Repeat for multiple.</li>
-<li class=""><code>--ignore-when-templating NAME</code> — keep the project but don&#x27;t let it
+<li class=""><code>--ignore-when-templating NAME</code>, keep the project but don&#x27;t let it
 influence template inference. Useful for outlier modules
 (documentation, examples) whose unique config would otherwise create
 a one-off template.</li>
-<li class=""><code>--platform jvm|js|native</code> — restrict the import to projects on the
+<li class=""><code>--platform jvm|js|native</code>, restrict the import to projects on the
 given platform.</li>
-<li class=""><code>--scala 213|3</code> — restrict to projects on the given Scala version.</li>
+<li class=""><code>--scala 213|3</code>, restrict to projects on the given Scala version.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-gets-preserved">What gets preserved<a href="#what-gets-preserved" class="hash-link" aria-label="Direct link to What gets preserved" title="Direct link to What gets preserved" translate="no">​</a></h2>
 <table><thead><tr><th>from <code>pom.xml</code></th><th>to <code>bleep.yaml</code></th></tr></thead><tbody><tr><td>Multi-module reactor (<code>&lt;modules&gt;</code>)</td><td>sibling projects in <code>projects:</code></td></tr><tr><td><code>&lt;dependencies&gt;</code></td><td><code>dependencies:</code></td></tr><tr><td>Inter-module dependencies (group<!-- -->:artifact<!-- --> match within reactor)</td><td><code>dependsOn:</code></td></tr><tr><td>Test-framework dependencies (junit5/scalatest/munit/...)</td><td><code>testFrameworks:</code> + auto-injected sbt-test-interface adapter</td></tr><tr><td><code>&lt;repositories&gt;</code> (non-Maven Central)</td><td><code>resolvers:</code></td></tr><tr><td><code>maven-compiler-plugin &lt;release&gt;</code></td><td><code>jvm.name: temurin:NN</code></td></tr><tr><td><code>&lt;dependencyManagement&gt;</code> resolved versions</td><td>inlined into <code>dependencies:</code> (since bleep has no BOM model yet)</td></tr></tbody></table>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-gets-stripped">What gets stripped<a href="#what-gets-stripped" class="hash-link" aria-label="Direct link to What gets stripped" title="Direct link to What gets stripped" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>Parent POMs / <code>packaging: pom</code> modules</strong> — these have no source,
+<li class=""><strong>Parent POMs / <code>packaging: pom</code> modules</strong>: these have no source,
 so they don&#x27;t survive as bleep projects. Their effects on child
 modules are already merged in via <code>mvn help:effective-pom</code>.</li>
-<li class=""><strong>Build plugins beyond compile/test/jar</strong> — bleep doesn&#x27;t run Maven
+<li class=""><strong>Build plugins beyond compile/test/jar</strong>: bleep doesn&#x27;t run Maven
 plugins. Things like <code>maven-shade-plugin</code>, <code>frontend-maven-plugin</code>,
 <code>maven-failsafe-plugin</code>, etc. become your problem to re-implement
 as scripts. See <a class="" href="/docs/porting-sbt-plugins/">Porting sbt plugins</a>
 for the general pattern; the same logic applies to Maven plugins.</li>
-<li class=""><strong>Active-by-default profiles</strong> — <code>mvn help:effective-pom</code> activates
+<li class=""><strong>Active-by-default profiles</strong>: <code>mvn help:effective-pom</code> activates
 default profiles, but bleep doesn&#x27;t preserve profile structure.
 You&#x27;ll get the union of what was active at import time.</li>
-<li class=""><strong><code>&lt;scope&gt;provided&lt;/scope&gt;</code></strong> — bleep models <code>provided</code> (configuration
+<li class=""><strong><code>&lt;scope&gt;provided&lt;/scope&gt;</code></strong>: bleep models <code>provided</code> (configuration
 field) but the import is conservative; review imported dependencies
 for scopes that need adjustment.</li>
 </ul>
@@ -75,14 +75,14 @@ for scopes that need adjustment.</li>
 <p>Both should work without further changes for the common case. If you
 hit gaps:</p>
 <ul>
-<li class=""><strong>Annotation processors</strong> — Lombok, MapStruct, Dagger. Add
+<li class=""><strong>Annotation processors</strong>: Lombok, MapStruct, Dagger. Add
 <code>java.annotationProcessing.enabled: true</code> per project. See
 <a class="" href="/docs/usage/annotation-processing/">Annotation Processing</a>.</li>
-<li class=""><strong>Custom packaging</strong> — fat JAR, shade, executable JAR. Convert the
+<li class=""><strong>Custom packaging</strong>: fat JAR, shade, executable JAR. Convert the
 Maven plugin invocation into a <a class="" href="/docs/tutorials/your-first-script/">bleep script</a>.</li>
-<li class=""><strong>Generated sources</strong> (e.g. JAXB, OpenAPI codegen via plugin) — same
+<li class=""><strong>Generated sources</strong> (e.g. JAXB, OpenAPI codegen via plugin), same
 story; convert to a <a class="" href="/docs/concepts/sourcegen/">sourcegen script</a>.</li>
-<li class=""><strong>Publishing</strong> — Maven&#x27;s <code>mvn deploy</code> setup doesn&#x27;t carry over
+<li class=""><strong>Publishing</strong>: Maven&#x27;s <code>mvn deploy</code> setup doesn&#x27;t carry over
 directly. See <a class="" href="/docs/tutorials/publish-to-maven/">Publish to Maven Central</a>
 for bleep&#x27;s <a class="" href="/docs/reference/cli/publish/sonatype/"><code>bleep publish sonatype</code></a> flow, or use
 <a class="" href="/docs/reference/cli/publish/"><code>bleep publish &lt;named-resolver&gt;</code></a> for an internal Nexus/Artifactory.</li>
@@ -95,7 +95,7 @@ Gradle half is manual.</li>
 <li class=""><strong>BOMs are inlined</strong> at import time; bleep has no <code>dependencyManagement</code>
 equivalent yet, so dependencies imported through <code>spring-boot-dependencies</code>
 or similar will end up with explicit versions in <code>bleep.yaml</code>.</li>
-<li class=""><strong>Profiles</strong> — only the <code>mvn help:effective-pom</code> default activation
+<li class=""><strong>Profiles</strong>: only the <code>mvn help:effective-pom</code> default activation
 is captured.</li>
 </ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/concepts/sourcegen/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Source generation scripts</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/demos/importing-sbt-build/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Import from sbt</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#run-the-import" class="table-of-contents__link toc-highlight">Run the import</a></li><li><a href="#useful-flags" class="table-of-contents__link toc-highlight">Useful flags</a></li><li><a href="#what-gets-preserved" class="table-of-contents__link toc-highlight">What gets preserved</a></li><li><a href="#what-gets-stripped" class="table-of-contents__link toc-highlight">What gets stripped</a></li><li><a href="#after-importing" class="table-of-contents__link toc-highlight">After importing</a></li><li><a href="#limits-today" class="table-of-contents__link toc-highlight">Limits today</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>

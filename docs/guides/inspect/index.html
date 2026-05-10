@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Inspect the build | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/guides/inspect/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Inspect the build | Bleep"><meta data-rh="true" name="description" content="Asking the build a question shouldn&#x27;t require running the build. The"><meta data-rh="true" property="og:description" content="Asking the build a question shouldn&#x27;t require running the build. The"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/guides/inspect/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/guides/inspect/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/guides/inspect/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inspect the build","item":"https://bleep.build/docs/guides/inspect"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -16,14 +16,14 @@
 inspection commands let you ask things like <em>&quot;which projects depend
 on this one?&quot;</em>, <em>&quot;what does my project&#x27;s config look like after
 templates resolve?&quot;</em>, <em>&quot;which projects changed since <code>origin/main</code>?&quot;</em>,
-<em>&quot;is <code>cats-core</code> getting evicted by something else?&quot;</em> — and get
+<em>&quot;is <code>cats-core</code> getting evicted by something else?&quot;</em>, and get
 a typed answer.</p>
 <p>Two output shapes for every command:</p>
 <ul>
 <li class=""><code>--output text</code> (default): for humans reading the terminal.</li>
 <li class=""><code>--output json</code>: a structured payload designed for <code>jq</code>, GitHub
 Actions matrix expressions, your scripts, your IDE plugin, your
-agent — anything that can read JSON.</li>
+agent, anything that can read JSON.</li>
 </ul>
 <p>That&#x27;s the composition story. Bleep doesn&#x27;t try to be the universal
 runner. It tries to be the universal source-of-truth, and to expose
@@ -41,7 +41,7 @@ your edit landed where you think it did.</p>
 <p><a class="" href="/docs/reference/cli/build/show/">Reference →</a></p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="bleep-build-show-effective"><code>bleep build show effective</code><a href="#bleep-build-show-effective" class="hash-link" aria-label="Direct link to bleep-build-show-effective" title="Direct link to bleep-build-show-effective" translate="no">​</a></h3>
 <p>Prints the project&#x27;s YAML <em>after</em> templates and inheritance are
-merged in — what bleep actually sees and uses to compile,
+merged in, what bleep actually sees and uses to compile,
 test, and publish. The &quot;is my template change actually doing what I
 think?&quot; answer.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep build show effective myapp</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep build show effective myapp </span><span class="token parameter variable" style="color:#36acaa">--output</span><span class="token plain"> json </span><span class="token operator" style="color:#393A34">|</span><span class="token plain"> jq </span><span class="token string" style="color:#e3116c">&#x27;.kotlin&#x27;</span><br></div></code></pre></div></div>
@@ -49,13 +49,13 @@ think?&quot; answer.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="bleep-build-diff-effective"><code>bleep build diff effective</code><a href="#bleep-build-diff-effective" class="hash-link" aria-label="Direct link to bleep-build-diff-effective" title="Direct link to bleep-build-diff-effective" translate="no">​</a></h3>
 <p>Diff the effective project config between two git revisions. After
 you edit a template, this answers &quot;did my change actually do what I
-think it did?&quot; with a concrete YAML diff — not a guess at
+think it did?&quot; with a concrete YAML diff, not a guess at
 what should have happened.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep build </span><span class="token function" style="color:#d73a49">diff</span><span class="token plain"> effective                    </span><span class="token comment" style="color:#999988;font-style:italic"># vs HEAD</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep build </span><span class="token function" style="color:#d73a49">diff</span><span class="token plain"> effective </span><span class="token parameter variable" style="color:#36acaa">--revision</span><span class="token plain"> v1.2.0  </span><span class="token comment" style="color:#999988;font-style:italic"># vs an old release</span><br></div></code></pre></div></div>
 <p><a class="" href="/docs/reference/cli/build/diff/">Reference →</a></p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="reason-about-dependencies">Reason about dependencies<a href="#reason-about-dependencies" class="hash-link" aria-label="Direct link to Reason about dependencies" title="Direct link to Reason about dependencies" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="bleep-build-evicted"><code>bleep build evicted</code><a href="#bleep-build-evicted" class="hash-link" aria-label="Direct link to bleep-build-evicted" title="Direct link to bleep-build-evicted" translate="no">​</a></h3>
-<p>Reports the dependency conflicts in your build — cases where
+<p>Reports the dependency conflicts in your build, cases where
 two transitive paths to the same library disagree on the version,
 and Coursier picked one. Names the callers so you can decide
 whether the eviction is safe (and pin a <a class="" href="/docs/usage/conflict-resolution/#the-five-schemes">library version
@@ -87,7 +87,7 @@ it&#x27;s the same data interface third-party IDE plugins or
 custom scripts use. Compose freely.</p>
 <p><a class="" href="/docs/reference/cli/extract-info/">Reference →</a></p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="bleep-projects-and-bleep-projects-test"><code>bleep projects</code> and <code>bleep projects-test</code><a href="#bleep-projects-and-bleep-projects-test" class="hash-link" aria-label="Direct link to bleep-projects-and-bleep-projects-test" title="Direct link to bleep-projects-and-bleep-projects-test" translate="no">​</a></h3>
-<p>Plain enumeration of project names — respects subfolder
+<p>Plain enumeration of project names, respects subfolder
 scoping (cd into <code>integrations/</code> and only those projects appear)
 and the cross-id glob shorthand. Pipe-friendly with
 <code>--output raw</code>.</p>
@@ -96,16 +96,16 @@ and the cross-id glob shorthand. Pipe-friendly with
 <a class="" href="/docs/reference/cli/projects-test/">Reference for <code>projects-test</code> →</a></p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="see-also">See also<a href="#see-also" class="hash-link" aria-label="Direct link to See also" title="Direct link to See also" translate="no">​</a></h2>
 <ul>
-<li class=""><a class="" href="/docs/guides/refactor/">Refactor your build</a> — the same
+<li class=""><a class="" href="/docs/guides/refactor/">Refactor your build</a>: the same
 model, but the commands that <em>change</em> <code>bleep.yaml</code> rather than
 read it.</li>
 <li class=""><a class="" href="/docs/reference/cli/build/"><code>bleep build</code> reference</a> and
 <a class="" href="/docs/reference/cli/extract-info/"><code>bleep extract-info</code> reference</a>
-— full flag set, auto-generated from the CLI.</li>
-<li class=""><a class="" href="/docs/usage/ci-invalidation/">CI project invalidation</a> —
+: full flag set, auto-generated from the CLI.</li>
+<li class=""><a class="" href="/docs/usage/ci-invalidation/">CI project invalidation</a> ,
 the worked GitHub Actions / GitLab CI patterns built on
 <a class="" href="/docs/reference/cli/build/invalidated/"><code>bleep build invalidated</code></a>.</li>
-<li class=""><a class="" href="/docs/usage/mcp-server/">MCP server</a> — AI agents reading
+<li class=""><a class="" href="/docs/usage/mcp-server/">MCP server</a>: AI agents reading
 the same JSON via Model Context Protocol tool calls.</li>
 </ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/guides/cross-building/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Cross-building</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/porting-sbt-plugins/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Porting sbt Plugins</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#read-whats-there" class="table-of-contents__link toc-highlight">Read what&#39;s there</a><ul><li><a href="#bleep-build-show-short" class="table-of-contents__link toc-highlight"><code>bleep build show short</code></a></li><li><a href="#bleep-build-show-effective" class="table-of-contents__link toc-highlight"><code>bleep build show effective</code></a></li><li><a href="#bleep-build-diff-effective" class="table-of-contents__link toc-highlight"><code>bleep build diff effective</code></a></li></ul></li><li><a href="#reason-about-dependencies" class="table-of-contents__link toc-highlight">Reason about dependencies</a><ul><li><a href="#bleep-build-evicted" class="table-of-contents__link toc-highlight"><code>bleep build evicted</code></a></li></ul></li><li><a href="#ci-shape" class="table-of-contents__link toc-highlight">CI shape</a><ul><li><a href="#bleep-build-invalidated---base-originmain" class="table-of-contents__link toc-highlight"><code>bleep build invalidated --base origin/main</code></a></li></ul></li><li><a href="#build-metadata-for-tools-and-ides" class="table-of-contents__link toc-highlight">Build metadata for tools and IDEs</a><ul><li><a href="#bleep-extract-info" class="table-of-contents__link toc-highlight"><code>bleep extract-info</code></a></li><li><a href="#bleep-projects-and-bleep-projects-test" class="table-of-contents__link toc-highlight"><code>bleep projects</code> and <code>bleep projects-test</code></a></li></ul></li><li><a href="#see-also" class="table-of-contents__link toc-highlight">See also</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>

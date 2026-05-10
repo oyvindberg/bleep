@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Scripts and source generation | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/concepts/scripts/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Scripts and source generation | Bleep"><meta data-rh="true" name="description" content="Bleep models exactly two ways to extend the build, both as"><meta data-rh="true" property="og:description" content="Bleep models exactly two ways to extend the build, both as"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/concepts/scripts/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/scripts/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/scripts/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Scripts and source generation","item":"https://bleep.build/docs/concepts/scripts"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.323f687c.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -15,9 +15,9 @@
 <p>Bleep models exactly two ways to extend the build, both as
 first-class concepts in <code>bleep.yaml</code>:</p>
 <ul>
-<li class=""><strong><a class="" href="/docs/concepts/bleep-scripts/">Bleep scripts</a></strong> — regular
+<li class=""><strong><a class="" href="/docs/concepts/bleep-scripts/">Bleep scripts</a></strong>: regular
 Java / Kotlin / Scala programs you invoke as bleep subcommands.</li>
-<li class=""><strong><a class="" href="/docs/concepts/sourcegen/">Source generation scripts</a></strong> —
+<li class=""><strong><a class="" href="/docs/concepts/sourcegen/">Source generation scripts</a></strong> ,
 programs that emit code or resources for another project, run
 automatically before compilation, with hashing and atomic failure.</li>
 </ul>
@@ -30,18 +30,18 @@ code you write.</p>
 extension&quot; people end up writing in Maven / Gradle / sbt / Mill
 collapses into one of two shapes:</p>
 <ol>
-<li class=""><strong>Generate code from something the build can see</strong> — a
+<li class=""><strong>Generate code from something the build can see</strong>: a
 schema, a protobuf descriptor, a build version string, an OpenAPI
 spec. Inspect, generate, keep compiling. <strong>Sourcegen</strong> is this
 slot.</li>
 <li class=""><strong>Run a program after the build has produced its artifacts</strong>
-— publish them, sign them, ship them, lint them, package
+: publish them, sign them, ship them, lint them, package
 them, post a release note. <strong>Scripts</strong> are this slot.</li>
 </ol>
-<p>Bleep models exactly those two as first-class — <em>and refuses
+<p>Bleep models exactly those two as first-class, <em>and refuses
 everything else</em>. Almost every other &quot;build mechanism&quot; you&#x27;ve met on
-the JVM — phase injection, autoplugins, scope axes, custom
-configurations, <code>Plugin&lt;Project&gt;</code> registration ceremonies — is
+the JVM, phase injection, autoplugins, scope axes, custom
+configurations, <code>Plugin&lt;Project&gt;</code> registration ceremonies, is
 ceremony around one of those two shapes, dressed up in a DSL. By
 naming them directly, bleep skips the dressing.</p>
 <p>The win isn&#x27;t only ergonomic. It&#x27;s that <strong>a script is a regular
@@ -52,20 +52,20 @@ is no privileged layer of magic dust between you and the JVM.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="when-to-use-which">When to use which<a href="#when-to-use-which" class="hash-link" aria-label="Direct link to When to use which" title="Direct link to When to use which" translate="no">​</a></h2>
 <table><thead><tr><th>You want to…</th><th>Use</th></tr></thead><tbody><tr><td>Publish artifacts, sign a release, post to Slack on green CI</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr><tr><td>Run a custom linter, check licenses, audit deps</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr><tr><td>Generate <code>.java</code> / <code>.kt</code> / <code>.scala</code> from a schema or spec</td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Stamp a build version into a generated <code>Constants</code> file</td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Anything where the output of your code is <em>consumed by compile</em></td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Anything where you invoke it manually or from CI</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr></tbody></table>
 <p>The dividing line is whether <code>compile</code> needs the output. If it does,
-you want sourcegen — bleep runs your generator on demand,
+you want sourcegen, bleep runs your generator on demand,
 hashes the inputs, and reruns when they change. Otherwise it&#x27;s a
 plain script.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="where-to-go-from-here">Where to go from here<a href="#where-to-go-from-here" class="hash-link" aria-label="Direct link to Where to go from here" title="Direct link to Where to go from here" translate="no">​</a></h2>
 <ul>
-<li class=""><strong><a class="" href="/docs/concepts/bleep-scripts/">Bleep scripts</a></strong> — the
+<li class=""><strong><a class="" href="/docs/concepts/bleep-scripts/">Bleep scripts</a></strong>: the
 <code>BleepScript</code> API, classpath isolation, IDE debugging, and the
 framework flags bleep prepends when forking your script.</li>
-<li class=""><strong><a class="" href="/docs/concepts/sourcegen/">Source generation scripts</a></strong> —
+<li class=""><strong><a class="" href="/docs/concepts/sourcegen/">Source generation scripts</a></strong> ,
 the <code>BleepCodegenScript</code> API, the <code>sourcegen:</code> field, the
 invalidation model, and the temp-directory-then-sync dance that
 guarantees no half-generated state survives a failure.</li>
 <li class=""><strong><a class="" href="/docs/tutorials/your-first-script/">Write your first script</a></strong>
-— the language-specific scaffolding tutorials
+: the language-specific scaffolding tutorials
 (<a class="" href="/docs/tutorials/your-first-script/">Java</a> ·
 <a class="" href="/docs/tutorials/your-first-script-kotlin/">Kotlin</a> ·
 <a class="" href="/docs/tutorials/your-first-script-scala/">Scala</a>).</li>
