@@ -104,13 +104,26 @@ is slow. Bleep's startup model means none of that machinery is needed.
 
 | | Gradle | Bleep |
 |---|---|---|
-| Cold startup | ~5-10s of JVM + daemon spin-up | ~0ms (native binary) |
-| Configuration phase | Re-evaluated unless cached; cache invalidates often | YAML is parsed once, reused |
-| Daemon memory | 512MB-2GB resident, easy to OOM | No daemon |
-| Incremental compile | Available; depends on plugin authors | Zinc, file-level, always on |
-| IDE import | Minutes for large multi-module projects | ~1 second via BSP |
+| CLI process | JVM, paid on every command | Native (Graal), ~0ms on every command |
+| Daemon | Required for everything; per-build-root | Required only for compile/test/run/link; shared across every workspace on the machine |
+| Daemon cold start | Several seconds; longer for plugin-heavy or Android builds | Several seconds (JVM warmup, Zinc load) |
+| Daemon hit cost (warm) | One JVM-to-JVM jump from CLI to daemon | One native-to-JVM socket jump from CLI to BSP server |
+| Daemon memory | Default 512MB heap; commonly raised to 2-4GB for Android or Kotlin builds | Configurable; defaults work for most repos |
+| Configuration phase | Re-evaluated unless the configuration cache is enabled and hits (much improved in Gradle 8/9) | YAML is parsed once, reused |
+| Incremental compile | Built-in for Java and Kotlin language plugins; task-level incrementality depends on plugin authors | Zinc, file-level, always on |
+| IDE import | Tens of seconds to several minutes depending on project size | ~1 second via BSP |
 
-When you don't have to design around the daemon. You don't need a daemon.
+The native CLI matters because most things you ask a build tool to
+do don't need the compiler. Listing projects, showing the resolved
+config, finding what changed since `HEAD~1`, dispatching a refactor
+across the build, all run in the native binary in milliseconds and
+never touch the daemon. For compile, test, run, and link, bleep does
+have a JVM daemon (`bleep-bsp`); see
+[Compile servers](/docs/guides/compile-servers/). The differences
+that matter against Gradle: it's shared across workspaces (one
+`bleep-bsp` serves every bleep build on your machine), and the
+configuration phase is a YAML parse, not a Kotlin/Groovy program
+that has to be re-evaluated on every change.
 
 ## No DSL to learn
 

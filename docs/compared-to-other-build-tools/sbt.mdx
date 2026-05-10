@@ -90,11 +90,11 @@ There is no `project/` sibling to maintain.
 
 | | sbt | Bleep |
 |---|---|---|
-| Cold startup | 30-90s (JVM warmup, Scala compiler load, plugins resolved & compiled, build evaluated) | ~0ms (native binary) |
+| Cold startup | ~10-60s (JVM warmup, Scala compiler load, plugins resolved & compiled, build evaluated); minutes for large or plugin-heavy builds | ~0ms (native binary) |
 | Incremental compile | Zinc | Zinc (same incremental engine) |
-| IDE import | minutes for large projects | ~1 second via BSP |
+| IDE import | Tens of seconds to several minutes depending on project size | ~1 second via BSP |
 | Build re-evaluation after editing build.sbt | seconds (recompile project/) | instant (re-parse YAML) |
-| Memory footprint | sbt server + JVM, often 1-2GB | native binary process, no daemon |
+| Memory footprint | sbt server + JVM, often 1-2GB | native CLI is ~tens of MB; `bleep-bsp` daemon (used for compile/test/run) holds Zinc analysis in a separate JVM, configurable heap, shared across every bleep workspace on the machine |
 
 The Zinc compile core is identical, both tools wrap the same
 incremental compiler. What's different is everything that wraps it:
@@ -143,7 +143,7 @@ you do, you walk the build model directly in your script.
 
 ## What bleep does that sbt doesn't
 
-- **Native binary startup.** ~0ms vs 30-90s.
+- **Native binary startup.** ~0ms vs ~10-60s, longer for large or plugin-heavy builds.
 - **BSP-driven IDE import in ~1 second.** No project/ sibling to
   re-evaluate.
 - **YAML build that's safe to edit machine-side**: LLMs, scripts,
@@ -152,8 +152,10 @@ you do, you walk the build model directly in your script.
   macro-evaluated DSL.
 - **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven.** Convert an existing
   build to bleep in one command.
-- **First-class cross-building** for Java, Kotlin, and Scala. Sbt's
-  cross-building is Scala-only.
+- **First-class cross-building axes** for Java release, Kotlin version,
+  and Scala version (plus platform). sbt's cross-building axes are Scala
+  version and platform; Java-version and Kotlin-version axes need plugins
+  or `projectMatrix`.
 - **CI project invalidation** built in (`bleep build invalidated --base
   HEAD~1`).
 

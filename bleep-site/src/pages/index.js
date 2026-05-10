@@ -902,7 +902,8 @@ function NumbersSection() {
                 <span className={styles.numberValueUnit}>ms</span>
               </span>
               <span className={styles.numberCaption}>
-                Native CLI. No JVM warmup, no daemon to wake, no Gradle daemon to forget about.
+                Native CLI. Inspection commands are instant; compile/test go through{" "}
+                <code>bleep-bsp</code>, a JVM daemon shared across every bleep workspace on the machine.
               </span>
             </div>
             <div className={styles.numberCell}>

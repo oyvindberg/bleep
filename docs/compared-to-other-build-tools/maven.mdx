@@ -104,11 +104,11 @@ test code lives in its own project.
 
 | | Maven | Bleep |
 |---|---|---|
-| Cold startup (no daemon) | ~3-5s of JVM warmup before any work | ~0ms (native binary) |
+| Cold startup | ~3-5s of JVM warmup on every command; longer once any plugin pulls in classes | ~0ms (native CLI). Compile/test/run dispatch to `bleep-bsp`, a JVM daemon shared across workspaces; first compile pays daemon spin-up (several seconds), reused thereafter |
 | Reading build config | Parse XML, walk parent POMs, resolve properties | Parse YAML once |
-| Dependency resolution | Aether, single-threaded by default | Coursier, parallel + cached |
-| Incremental compile | Per-module, recompiles whole module | Zinc, file-level invalidation |
-| IDE import | minutes for large projects | ~1 second via BSP |
+| Module-graph parallelism | Sequential by default; `mvn -T` opts in | Always parallel |
+| Incremental compile | Per-module by default (the bundled `maven-compiler-plugin` recompiles the whole module on any change); file-level options exist via `takari-lifecycle-plugin` or `maven-compiler-plugin` 3.13+ | Zinc, file-level invalidation |
+| IDE import | Tens of seconds to several minutes depending on project size | ~1 second via BSP |
 
 ## A build you can read
 
@@ -168,6 +168,16 @@ Bleep doesn't have a lifecycle. There are commands (`compile`, `test`,
 run from the command line. A script can do anything: read the build model,
 generate sources, sign artifacts, run code generation tools, push to a
 registry. You debug it with breakpoints in your IDE.
+
+## What about Maven 4?
+
+Maven 4 (rc-4 as of mid-2025) trims a chunk of POM verbosity through the
+new model 4.1.0: parent-less child POMs, no `<modelVersion>` repetition
+in inheritors, simplified `<modules>`. The XML is still XML, the lifecycle
+is still the lifecycle, and the plugin API is unchanged, so the
+ceremony / readability / startup arguments above still hold against
+Maven 4. But on the "POM verbosity" axis specifically, the gap to bleep
+narrows.
 
 ## Migrating from Maven
 

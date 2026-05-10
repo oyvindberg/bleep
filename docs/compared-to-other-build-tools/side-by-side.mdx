@@ -151,10 +151,11 @@ sbt.version=1.10.0
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.0")
 ```
 
-Three files, four scopes (`Compile`, `Test`, `Runtime`, `IntegrationTest`),
-and a DSL whose every keyword is a global side effect on a hidden settings
-graph. `sbt-native-packager` is enabled by name; what it does to your build
-is somewhere on a wiki.
+Three files, three default configurations (`Compile`, `Test`, `Runtime`)
+plus user-defined ones, and a DSL whose every keyword is a global side
+effect on a hidden settings graph. `sbt-native-packager` is enabled
+by name; what it does to your build is documented separately on the
+plugin's own site.
 
 ## build.gradle.kts, a Kotlin program
 
@@ -188,6 +189,6 @@ tasks.withType<JavaCompile> {
 ```
 
 A real Kotlin program that side-effects the build graph. Plus
-`settings.gradle.kts`, `gradle.properties`, and the wrapper. Renaming the
-project means writing a Kotlin task, there is no `gradle
-rename-project`.
+`settings.gradle.kts`, `gradle.properties`, and the wrapper. Renaming
+the project means editing `rootProject.name` in `settings.gradle.kts`
+plus a directory rename; there's no `gradle rename-project`.
