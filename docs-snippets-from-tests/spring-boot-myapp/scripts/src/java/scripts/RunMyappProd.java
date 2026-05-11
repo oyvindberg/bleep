@@ -17,6 +17,7 @@ public class RunMyappProd extends BleepScript {
     new SpringBootRun()
         .withJvmArgs("-Xmx2g", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=200")
         .withProfiles("prod")
+        .withEnvironment("APP_PORT", "9091")
         .runOn(started, commands, "myapp");
   }
 }

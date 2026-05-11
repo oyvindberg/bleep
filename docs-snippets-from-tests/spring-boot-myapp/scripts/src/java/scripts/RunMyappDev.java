@@ -18,6 +18,7 @@ public class RunMyappDev extends BleepScript {
         .withJvmArgs("-Xmx512m")
         .withProfiles("dev")
         .withAddResources(true)
+        .withEnvironment("APP_PORT", "9090")
         .runOn(started, commands, "myapp");
   }
 }

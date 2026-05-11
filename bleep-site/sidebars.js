@@ -174,6 +174,11 @@ const sidebars = {
           label: "Publish to Maven Central",
           id: "tutorials/publish-to-maven",
         },
+        {
+          type: "doc",
+          label: "Spring Boot",
+          id: "tutorials/spring-boot",
+        },
       ],
     },
 
@@ -301,6 +306,11 @@ const sidebars = {
           type: "doc",
           label: "Maven plugin coverage",
           id: "compared-to-other-build-tools/maven-plugin-coverage",
+        },
+        {
+          type: "doc",
+          label: "Spring Boot proves the model",
+          id: "spring-boot-proves-the-model",
         },
         {
           type: "doc",
