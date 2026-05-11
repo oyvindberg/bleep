@@ -1,12 +1,8 @@
 package bleep.plugin.springboot;
 
-import bleepscript.BleepScript;
-import bleepscript.Commands;
-import bleepscript.CrossProjectName;
-import bleepscript.PlatformConfig;
-import bleepscript.Project;
-import bleepscript.ResolvedProject;
-import bleepscript.Started;
+import bleepscript.*;
+import org.springframework.boot.loader.tools.*;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -17,23 +13,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import org.springframework.boot.loader.tools.Layers;
-import org.springframework.boot.loader.tools.Layout;
-import org.springframework.boot.loader.tools.Layouts;
-import org.springframework.boot.loader.tools.Libraries;
-import org.springframework.boot.loader.tools.Library;
-import org.springframework.boot.loader.tools.LibraryScope;
-import org.springframework.boot.loader.tools.Repackager;
 
 /**
  * Produces a Spring Boot executable fat JAR for a project. Equivalent to {@code mvn

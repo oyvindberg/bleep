@@ -1,19 +1,10 @@
 package bleep.plugin.springboot;
 
-import bleepscript.BleepScript;
-import bleepscript.Commands;
-import bleepscript.CrossProjectName;
-import bleepscript.PlatformConfig;
-import bleepscript.Project;
-import bleepscript.ResolvedProject;
-import bleepscript.Started;
+import bleepscript.*;
+
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
