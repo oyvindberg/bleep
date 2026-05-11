@@ -103,16 +103,17 @@ function Hero() {
         </div>
 
         <h1 className={styles.heroTitle}>
-          Your build is <em>data</em>.<br />
-          Not a program.
+          Compile. Test. Sourcegen.<br />
+          That&rsquo;s the <em>build</em>. Everything else is code.
         </h1>
 
         <p className={styles.heroTagline}>
-          One YAML file. Native performance. IDE imports over{" "}
-          <code>BSP</code> (Build Server Protocol; what IntelliJ and Metals already
-          speak), agent tool calls via <code>MCP</code> (Model Context Protocol;
-          what Claude Code already speaks), both open standards, both
-          first-class.
+          Two decades of Maven, Gradle, and sbt is a long time to watch
+          build tools grow incredibly complex. We built one that won&rsquo;t.
+          Bleep does precisely what a build is for: compile, test, sourcegen,
+          then package, link, publish what comes out. It refuses the rest.
+          Your container build is code you write. So is your doc generation,
+          your sidecar boot, your CI orchestration. All of it.
         </p>
 
         <div className={styles.heroButtons}>
@@ -128,40 +129,6 @@ function Hero() {
         </div>
       </div>
 
-      <div className={styles.heroFacts}>
-        <div className={styles.heroFact}>
-          <span className={styles.heroFactLabel}>Cold start</span>
-          <span className={styles.heroFactValue}>
-            <em>10</em>
-            <span className={styles.heroFactSub}> ms</span>
-          </span>
-          <span className={styles.heroFactSub}>GraalVM native image</span>
-        </div>
-        <div className={styles.heroFact}>
-          <span className={styles.heroFactLabel}>IDE import</span>
-          <span className={styles.heroFactValue}>
-            <em>1</em>
-            <span className={styles.heroFactSub}> sec</span>
-          </span>
-          <span className={styles.heroFactSub}>IntelliJ · Metals · BSP</span>
-        </div>
-        <div className={styles.heroFact}>
-          <span className={styles.heroFactLabel}>Build format</span>
-          <span className={styles.heroFactValue}>
-            <em>1</em>
-            <span className={styles.heroFactSub}> file</span>
-          </span>
-          <span className={styles.heroFactSub}>readable, diffable YAML</span>
-        </div>
-        <div className={styles.heroFact}>
-          <span className={styles.heroFactLabel}>Code in your build</span>
-          <span className={styles.heroFactValue}>
-            <em>0</em>
-            <span className={styles.heroFactSub}> lines</span>
-          </span>
-          <span className={styles.heroFactSub}>scripts live elsewhere</span>
-        </div>
-      </div>
     </header>
   );
 }
@@ -171,14 +138,24 @@ function Hero() {
    ------------------------------------------------------------------ */
 const refusals = [
   {
-    title: <>No <em>build-as-program</em>.</>,
+    title: <>No <em>code</em> in the build file.</>,
     body: (
       <>
-        Your build should be readable by somebody who has never opened
-        the project. Turing-complete build files import
-        complexity in exchange for flexibility most teams will never use
-        : and the complexity stays whether the flexibility gets
-        used or not.
+        A build file describes a project. It doesn&rsquo;t run one.{" "}
+        <code>bleep.yaml</code> is data: readable top to bottom by
+        anyone on the team. Logic lives in your code, in your repo,
+        where you can <code>git blame</code> it.
+      </>
+    ),
+  },
+  {
+    title: <>No <em>build plugins</em>.</>,
+    body: (
+      <>
+        No autoplugins, no <code>requires</code> graphs,
+        no <code>Plugin&lt;Project&gt;</code> registration. Bleep
+        doesn&rsquo;t have one. Code goes in your repo, where you can
+        read it.
       </>
     ),
   },
@@ -186,45 +163,23 @@ const refusals = [
     title: <>No <em>scopes</em>.</>,
     body: (
       <>
-        Dependencies are a flat list. <code>compile</code>,
-        <code>provided</code>, <code>runtime</code>, <code>Test/test/it/Compile</code>
-        graft a second axis on top. Different context? Different
-        project. Flat is enough.
+        Dependencies are a flat list. <code>compile</code>,{" "}
+        <code>provided</code>, <code>runtime</code>,{" "}
+        <code>Test/test/it/Compile</code> graft a second axis on top
+        of the project graph. Different context? Different project.
+        A project is a project.
       </>
     ),
   },
   {
-    title: <>No <em>plugin acrobatics</em>.</>,
+    title: <>No <em>task graph</em>.</>,
     body: (
       <>
-        No <code>preCompile</code> mutators. No autoplugins,
-        no <code>requires</code> graphs, no <code>Plugin&lt;Project&gt;</code>{" "}
-        registration. No plugins fighting at runtime over which Guava
-        is the real one. If you want custom build logic, write a
-        regular Java, Kotlin, or Scala program. It compiles. It
-        debugs. It has a <code>main</code>.
-      </>
-    ),
-  },
-  {
-    title: <>No <em>30-second imports</em>.</>,
-    body: (
-      <>
-        We will not negotiate with a Gradle or sbt import that needs a coffee
-        break to figure out which Scala version your project uses, or which
-        Kotlin compiler plugins it wants. Bleep imports through BSP in about
-        one second.
-      </>
-    ),
-  },
-  {
-    title: <>No <em>whole-module rebuilds</em>.</>,
-    body: (
-      <>
-        Change one file in a 200-class Maven module and Maven recompiles all 200.
-        Bleep uses Zinc with file-level incremental tracking, one file changed,
-        one (or two) recompiled. Your CI minute count is not a place to economise on
-        engineering effort.
+        There&rsquo;s no user-definable task DAG. The build does
+        compile, test, sourcegen. Everything else is a script: a{" "}
+        <code>main</code> class you call when you want to. Composable
+        like programs, debuggable like programs, no special layer
+        between you and the JVM.
       </>
     ),
   },
@@ -235,16 +190,16 @@ function RefusalsSection() {
     <section className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="The refusal"
+          eyebrow="The simplification"
           title={
             <>
-              Things we will <em>not</em> tolerate.
+              Four things we <em>cut</em>.
             </>
           }
         >
-          Build tools have spent twenty years getting more clever and more opaque.
-          Bleep is the build tool that says <strong>no</strong> for you, on principle,
-          before someone proposes a Maven enforcer plugin in your standup.
+          A project is a project is a project. Code is code is code.
+          Everything explicit, everything simple. Here&rsquo;s how we
+          got there.
         </SectionHeader>
 
         <div className={styles.dossierGrid}>
@@ -254,7 +209,7 @@ function RefusalsSection() {
                 <div className={styles.dossierHead}>
                   <span className={styles.dossierKicker}>
                     <span className={styles.dossierDot} />
-                    <span>Refusal</span>
+                    <span>Simplification</span>
                   </span>
                   <span className={styles.dossierNum}>{String(i + 1).padStart(2, "0")}</span>
                 </div>
@@ -311,106 +266,200 @@ function SpecimenSection() {
     <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="The specimen"
+          eyebrow="Build-as-data"
           title={
             <>
-              What declarative <em>actually</em> looks like.
+              The build is <em>data</em>, not a program.
             </>
           }
         >
-          A real <code>bleep.yaml</code>. Not pseudocode. Not a marketing render.
-          Anyone on your team can read this and tell you exactly what the build does
-          : without launching anything.
+          A real <code>bleep.yaml</code>. Not pseudocode. Not a
+          marketing render. Plain YAML you can read, grep, diff, and
+          rewrite. The same model bleep itself uses.
         </SectionHeader>
 
-        <div className={styles.specimenSplit}>
-          <Reveal>
-            <div className={styles.specimenFrame}>
-              <div className={styles.specimenHead}>
-                <div className={styles.specimenTabs} role="tablist" aria-label="Choose specimen language">
-                  {specimenLangs.map((l) => (
-                    <button
-                      key={l.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={l.id === active}
-                      className={`${styles.specimenTab} ${l.id === active ? styles.specimenTabActive : ""}`}
-                      onClick={() => setActive(l.id)}
-                    >
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
-                <span className={styles.specimenHeadAside}>{lang.fixture}</span>
+        <Reveal>
+          <div className={styles.specimenFrame}>
+            <div className={styles.specimenHead}>
+              <div className={styles.specimenTabs} role="tablist" aria-label="Choose specimen language">
+                {specimenLangs.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={l.id === active}
+                    className={`${styles.specimenTab} ${l.id === active ? styles.specimenTabActive : ""}`}
+                    onClick={() => setActive(l.id)}
+                  >
+                    {l.label}
+                  </button>
+                ))}
               </div>
-              <div className={styles.specimenSnippet}>
-                <Snippet path={fixturePath} lang="yaml" />
-              </div>
+              <span className={styles.specimenHeadAside}>{lang.fixture}</span>
             </div>
-          </Reveal>
-
-          <div className={styles.specimenNotes}>
-            <Reveal delay={80}>
-              <div className={styles.specimenNote}>
-                <strong>Two projects. One template. Plain text.</strong>
-                An app (<code>myapp</code>) and its tests (<code>myapp-test</code>),
-                both extending <code>template-common</code>. Tens of lines, no
-                plugins, no {lang.competitor}.
-              </div>
-            </Reveal>
-            <Reveal delay={140}>
-              <div className={styles.specimenNote}>
-                <strong>Tests are projects.</strong>
-                <code>myapp-test</code> is just another project. It depends on
-                <code>myapp</code>, picks up the template defaults, and flips
-                <code>isTestProject: true</code>. No <code>Test/test/itTest/Compile</code>
-                scope dance. No second build file.
-              </div>
-            </Reveal>
-            <Reveal delay={200}>
-              <div className={styles.specimenNote}>
-                <strong>{lang.bumpLabel}</strong>
-                {lang.bumpFromTo} and every project that extends it follows. Code
-                review tells you exactly what changed, in plain text, with
-                no graph viewer.
-              </div>
-            </Reveal>
-            <Reveal delay={260}>
-              <div className={styles.specimenNote}>
-                <strong>This is a real test fixture.</strong>
-                The YAML on the left is loaded from
-                <code>{fixturePath}</code>
-                : a workspace bleep&rsquo;s own integration tests build,
-                compile, and run end-to-end on every commit. Not a brochure.
-              </div>
-            </Reveal>
+            <div className={styles.specimenSnippet}>
+              <Snippet path={fixturePath} lang="yaml" />
+            </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
 /* ------------------------------------------------------------------
-   Round-trip, the build tool can rewrite the build, because it's data.
+   Performance, inner loop. Branch switch, incremental compile, read-only.
+   ------------------------------------------------------------------ */
+function PerformanceSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="The payoff"
+          title={
+            <>
+              Built for the <em>inner loop</em>.
+            </>
+          }
+        >
+          Cut the code, the build plugins, the scopes, the task graph.
+          The inner loop stops being something you wait for.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Load <em>everything</em> in milliseconds
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Native CLI binary. Reads <code>bleep.yaml</code>,
+                resolves dependencies through Coursier&rsquo;s local
+                cache, builds the full project model. Done. No JVM
+                startup, no configuration phase, no &ldquo;loading
+                projects&hellip;&rdquo; progress bar. The compile
+                daemon (<code>bleep-bsp</code>) is the JVM-heavy
+                bit, and it stays hot between invocations.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                IDE imports &amp; <em>reloads</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Open a project the first time. Switch a branch with a
+                different Kotlin version and reload. In Gradle or sbt
+                that&rsquo;s a configuration phase, plugin loading,
+                dep resolution, and IDE model rebuild: minutes on
+                real projects. Bleep reads <code>bleep.yaml</code>,
+                builds the BSP model, syncs to the IDE. Initial
+                import: a second or two. Branch reload: milliseconds.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                <em>Incremental</em> compile
+              </h3>
+              <p className={styles.mcpCardBody}>
+                One file changed in a 200-class module. Maven
+                recompiles all 200. Bleep uses Zinc with file-level
+                tracking: one file changed, one (or two) recompiled.
+                The save-to-result loop stays tight.
+              </p>
+            </article>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
+   CI, bleep invalidated + remote cache, the outer-loop money win.
+   ------------------------------------------------------------------ */
+function CISection() {
+  return (
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="CI"
+          title={
+            <>
+              Stupidly <em>fast</em> CI.
+            </>
+          }
+        >
+          The same simplification pays off again at CI scale. Build
+          only what changed, pull the rest from cache: two commands,
+          and your CI bill stops being a thing you complain about.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Skip what <em>hasn&rsquo;t</em> changed
+              </h3>
+              <p className={styles.mcpCardBody}>
+                <code>bleep build invalidated</code> compares against a
+                git ref and prints exactly which projects have
+                invalidated state. Scope the rest of your CI run to
+                those. Everything else is already green from the last
+                build.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Pull what <em>someone else</em> built
+              </h3>
+              <p className={styles.mcpCardBody}>
+                <code>bleep remote-cache push</code> uploads compile
+                outputs to S3, keyed by a SHA-256 over config plus
+                sources plus transitive deps.{" "}
+                <code>bleep remote-cache pull</code> fetches them on
+                the next run. Skip the compile entirely for projects
+                that haven&rsquo;t changed.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                <em>Explicit</em>, on purpose
+              </h3>
+              <p className={styles.mcpCardBody}>
+                No transparent freshness checks across the network.
+                You push when you want a cache populated, you pull
+                when you want to use it. The fail-hard error model
+                stays clean, your CI logs stay grep-able.
+              </p>
+            </article>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Self-editing build, bleep rewrites its own bleep.yaml.
    ------------------------------------------------------------------ */
 function RoundtripSection() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Round-trip"
+          eyebrow="Self-editing"
           title={
             <>
               Read it. Change it. Write it <em>back</em>.
             </>
           }
         >
-          Because <code>bleep.yaml</code> is data, the build tool can do to it
-          what any other tool can do to a file: read, transform, write. No DSL
-          to interpret. No plugin lifecycle to mutate. Just the file and a
-          small library of commands that round-trip cleanly through the same
-          model bleep itself uses.
+          Build-as-data has one more payoff: bleep can rewrite its own
+          input. <code>update-deps</code>, <code>project-rename</code>,
+          <code>templates-reapply</code>: each reads the file,
+          transforms the model, writes it back. No DSL to interpret,
+          no build plugin lifecycle to mutate, just a small library of
+          commands operating on the same model bleep itself uses.
         </SectionHeader>
 
         <Reveal>
@@ -466,222 +515,95 @@ function RoundtripSection() {
 }
 
 /* ------------------------------------------------------------------
-   Tenets, what we stand for (closes with "bleeping performance")
-   ------------------------------------------------------------------ */
-const tenets = [
-  {
-    title: <>Builds are <em>data</em>.</>,
-    body: (
-      <>
-        A build is a description of projects and dependencies, not a program that produces one.
-        Data is greppable, diffable, generable, machine-rewritable. Code is none of those things
-        without a parser you usually don't have.
-      </>
-    ),
-  },
-  {
-    title: <>Round-trip, <em>always</em>.</>,
-    body: (
-      <>
-        Bleep reads its build, transforms it, and writes it back. That&rsquo;s
-        how <code>update-deps</code>, <code>project-rename</code>, and
-        <code>templates-reapply</code> work; that&rsquo;s how your scripts can
-        do the same. The model on disk and the model in memory are the
-        <em> same model</em>.
-      </>
-    ),
-  },
-  {
-    title: <>Open <em>standards</em>.</>,
-    body: (
-      <>
-        Bleep speaks <code>BSP</code>, the Build Server Protocol. Any editor
-        that speaks BSP talks to bleep on day one: IntelliJ, Metals, VS Code
-        via Metals. We didn&rsquo;t invent a private wire format. We didn&rsquo;t
-        ship our own IDE plugin. The ecosystem already agreed on the protocol.
-      </>
-    ),
-  },
-  {
-    title: <>Debuggable <em>end to end</em>.</>,
-    body: (
-      <>
-        Bleep is a normal program; scripts are normal programs. You can attach a debugger to
-        the build tool itself, to the BSP server, to your scripts. There is no privileged
-        layer of magic dust.
-      </>
-    ),
-  },
-  {
-    title: <><em>Repeatable</em>, on purpose.</>,
-    body: (
-      <>
-        <code>bleep.yaml</code> pins what turns YAML into bytecode , 
-        bleep itself, the JVM, and (for Scala.js) Node, and downloads
-        the right versions on first run. Two checkouts of the same commit
-        produce the same build, no matter what&rsquo;s installed on the host.
-        No <code>.tool-versions</code>, no <code>nvmrc</code>, no
-        &ldquo;works on my machine.&rdquo;
-      </>
-    ),
-  },
-  {
-    title: <><em>Simplicity</em>, on purpose.</>,
-    body: (
-      <>
-        We will refuse features that buy 5% flexibility for 50% complexity.
-        We will pick the boring answer. We will not invent a fourth way to declare a dependency.
-      </>
-    ),
-  },
-  {
-    title: <>Native, <em>by default</em>.</>,
-    body: (
-      <>
-        Bleep is GraalVM native-image. The CLI starts in roughly the time it takes for your
-        terminal to render the prompt. That is not a feature; that is the floor.
-      </>
-    ),
-  },
-  {
-    title: <>Performance, bleeping <em>performance</em>.</>,
-    body: (
-      <>
-        Instant CLI. One-second imports. Fast incremental compiles via Zinc, javac, and
-        kotlinc, in a single BSP server we wrote for the job. We do not compete with build
-        tools that are "fast enough." We are not.
-      </>
-    ),
-  },
-];
-
-function TenetsSection() {
-  return (
-    <section className={`${styles.section} ${styles.tenetSection}`}>
-      <div className={styles.container}>
-        <SectionHeader
-          eyebrow="The tenets"
-          title={
-            <>
-              What we propose <em>instead</em>.
-            </>
-          }
-        >
-          A small list. We can recite it from memory at standup, in code review,
-          and during the inevitable argument about whether to add a build plugin.
-        </SectionHeader>
-
-        <div className={styles.dossierGrid}>
-          {tenets.map((t, i) => (
-            <Reveal key={i} delay={(i % 4) * 60}>
-              <article className={`${styles.dossierCard} ${styles.dossierCardTenet}`}>
-                <div className={styles.dossierHead}>
-                  <span className={styles.dossierKicker}>
-                    <span className={styles.dossierDot} />
-                    <span>Tenet</span>
-                  </span>
-                  <span className={styles.dossierNum}>{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <h3 className={styles.dossierTitle}>{t.title}</h3>
-                <p className={styles.dossierBody}>{t.body}</p>
-                <div className={styles.dossierAccent} aria-hidden="true" />
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------
    Build extensions, the codegen + scripts argument.
-   Reassures readers that everything plugins do can still be done.
+   Reassures readers that everything build plugins do can still be done.
    ------------------------------------------------------------------ */
 function BuildExtensionsSection() {
   return (
     <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="What about plugins?"
+          eyebrow="What about build plugins?"
           title={
             <>
-              <em>Anything</em> a plugin does.
+              <em>Code</em>, not build plugins.
             </>
           }
         >
-          Anyone arriving from sbt or Gradle gets the same uneasy thought
-          looking at the YAML, <em>where does my codegen go? the
-          publish step? the thing that signs my JARs?</em> Bleep has two
-          places for that work, and both are real programs.
+          Two reasons, and a rule.
         </SectionHeader>
 
         <div
           style={{
+            maxWidth: "720px",
+            margin: "2.25rem auto 0",
             display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: "1.5rem",
-            marginTop: "2.25rem",
           }}
         >
           <Reveal>
-            <article className={`${styles.dossierCard} ${styles.dossierCardTenet}`}>
-              <div className={styles.dossierHead}>
-                <span className={styles.dossierKicker}>
-                  <span className={styles.dossierDot} />
-                  <span>Before compile</span>
-                </span>
-                <span className={styles.dossierNum}>01</span>
-              </div>
+            <article>
               <h3 className={styles.dossierTitle}>
-                <em>Generate</em> code from what the build can see.
+                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>01</span>{" "}
+                A build plugin is a black box you trust.
               </h3>
               <p className={styles.dossierBody}>
-                A schema, a protobuf descriptor, a build version, an OpenAPI
-                spec. You inspect the build, you generate the source, the
-                build keeps compiling. <strong>Sourcegen</strong> is a
-                first-class field in <code>bleep.yaml</code>, bleep
-                runs your generator, hashes inputs, recompiles when needed,
-                and never leaves stale generated code behind on failure.
+                A build plugin activates by rules you didn&rsquo;t write,
+                mutates settings you can&rsquo;t see, composes in an
+                order the framework picks. To configure it, you write
+                key-value pairs it documents in a README. To debug it,
+                you reach for <code>println</code> because the build
+                doesn&rsquo;t host a real debugger. The pitch (one
+                line activates a graph of behavior) sounds easier than
+                writing code. It&rsquo;s infinitely more complex:
+                opaque, hard to understand, impossible to know what
+                your build will actually do.
               </p>
-              <div className={styles.dossierAccent} aria-hidden="true" />
             </article>
           </Reveal>
 
           <Reveal delay={80}>
-            <article className={`${styles.dossierCard} ${styles.dossierCardTenet}`}>
-              <div className={styles.dossierHead}>
-                <span className={styles.dossierKicker}>
-                  <span className={styles.dossierDot} />
-                  <span>After compile</span>
-                </span>
-                <span className={styles.dossierNum}>02</span>
-              </div>
+            <article>
               <h3 className={styles.dossierTitle}>
-                <em>Run</em> a program against the artifacts.
+                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>02</span>{" "}
+                Most of what build plugins did shouldn&rsquo;t be in the build.
               </h3>
               <p className={styles.dossierBody}>
-                Publish them, sign them, ship them, package them, post a
-                release note. <strong>Scripts</strong> are regular Java,
-                Kotlin, or Scala programs registered in <code>bleep.yaml
-                </code>. They have a <code>main</code>. You debug them with
-                breakpoints. They get a typed handle on the resolved build
-                model. There is no privileged layer of magic dust between
-                you and the JVM.
+                Signing, containers, docs, integration sidecars, CI
+                glue: distribution. None of it runs when you save a
+                file. None of it needs a task DAG. None of it should
+                have been wired into the build&rsquo;s lifecycle in the
+                first place. The inner loop (compile, test, sourcegen)
+                is what the build is for. Everything else is just
+                programs.
               </p>
-              <div className={styles.dossierAccent} aria-hidden="true" />
+            </article>
+          </Reveal>
+
+          <Reveal delay={160}>
+            <article>
+              <h3 className={styles.dossierTitle}>
+                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>03</span>{" "}
+                The rule.
+              </h3>
+              <p className={styles.dossierBody}>
+                Produces files the compiler reads &rarr; it&rsquo;s
+                in the build (<code>sourcegen</code>). Consumes what
+                compile produced &rarr; it&rsquo;s a script.
+                That&rsquo;s the whole extension surface.
+              </p>
             </article>
           </Reveal>
         </div>
 
-        <Reveal delay={160}>
+        <Reveal delay={220}>
           <p
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            The liberating part isn&rsquo;t the syntax. It&rsquo;s that you
-            stop forcing every random thing into the build. <em>Compile.
-            Follow the graph. Then say what you want in code.</em>
+            Anything you&rsquo;ve used a build plugin for falls on one side
+            of that line. The rest didn&rsquo;t belong in the build to
+            begin with.
           </p>
         </Reveal>
 
@@ -790,7 +712,7 @@ function McpSection() {
           eyebrow="Tooling for the future"
           title={
             <>
-              Built for the <em>agents</em> next to you.
+              Built for the <em>agents</em>.
             </>
           }
         >
@@ -853,89 +775,6 @@ function McpSection() {
               MCP server docs &nbsp;→
             </Link>
           </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------
-   Pull quote, the manifesto punch
-   ------------------------------------------------------------------ */
-function PullQuoteSection() {
-  return (
-    <section className={styles.section}>
-      <div className={styles.container}>
-        <Reveal>
-          <p className={styles.pullQuote}>
-            We don&rsquo;t want a <em>build tool that lets you do anything</em>.
-            We want a build tool that lets you do <em>the obvious thing</em>,
-            in a file that anyone on the team can read.
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------
-   Numbers
-   ------------------------------------------------------------------ */
-function NumbersSection() {
-  return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
-      <div className={styles.container}>
-        <SectionHeader
-          eyebrow="By the numbers"
-          title={
-            <>
-              Small numbers, on <em>purpose</em>.
-            </>
-          }
-        />
-        <Reveal>
-          <div className={styles.numbersGrid}>
-            <div className={styles.numberCell}>
-              <span className={styles.numberKicker}>Cold start</span>
-              <span className={styles.numberValue}>
-                <em>10</em>
-                <span className={styles.numberValueUnit}>ms</span>
-              </span>
-              <span className={styles.numberCaption}>
-                Native CLI. Inspection commands are instant; compile/test go through{" "}
-                <code>bleep-bsp</code>, a JVM daemon shared across every bleep workspace on the machine.
-              </span>
-            </div>
-            <div className={styles.numberCell}>
-              <span className={styles.numberKicker}>IDE import</span>
-              <span className={styles.numberValue}>
-                ~<em>1</em>
-                <span className={styles.numberValueUnit}>sec</span>
-              </span>
-              <span className={styles.numberCaption}>
-                IntelliJ and Metals over BSP. You hit import, you start typing.
-              </span>
-            </div>
-            <div className={styles.numberCell}>
-              <span className={styles.numberKicker}>Build files</span>
-              <span className={styles.numberValue}>
-                <em>1</em>
-              </span>
-              <span className={styles.numberCaption}>
-                One <code>bleep.yaml</code>. Not a tree of <code>build.sbt</code>,
-                <code>plugins.sbt</code>, <code>project/</code>, and a <code>Dependencies.scala</code>.
-              </span>
-            </div>
-            <div className={styles.numberCell}>
-              <span className={styles.numberKicker}>Lines of build code</span>
-              <span className={styles.numberValue}>
-                <em>0</em>
-              </span>
-              <span className={styles.numberCaption}>
-                Custom logic lives in scripts: real programs, with a <code>main</code> and a debugger.
-              </span>
-            </div>
-          </div>
         </Reveal>
       </div>
     </section>
@@ -1009,20 +848,19 @@ export default function Home() {
   return (
     <Layout
       title="A build tool that gives a damn"
-      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No scopes, no XML, no plugin acrobatics."
+      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No scopes, no XML, no build plugin acrobatics."
     >
       <div className={styles.page}>
         <Hero />
         <main>
-          <RefusalsSection />
-          <TenetsSection />
-          <BuildExtensionsSection />
           <SpecimenSection />
+          <RefusalsSection />
+          <BuildExtensionsSection />
+          <PerformanceSection />
+          <CISection />
           <RoundtripSection />
           <TestRunnerSection />
           <McpSection />
-          <PullQuoteSection />
-          <NumbersSection />
           <InstallCTA />
         </main>
       </div>
