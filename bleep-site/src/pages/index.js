@@ -553,17 +553,16 @@ function BuildExtensionsSection() {
                 A build plugin is a black box.
               </h3>
               <p className={styles.dossierBody}>
-                It activates by rules you don&rsquo;t write, mutates
+                Activates by rules you don&rsquo;t write, mutates
                 settings you can&rsquo;t see, composes in an order the
-                framework picks. Configured by key-value pairs in a
-                README. Debugged with <code>println</code> because the
-                build doesn&rsquo;t host a real debugger.
+                framework picks. Configured with key-value pairs the
+                README documents. Debugged with <code>println</code>{" "}
+                because the build doesn&rsquo;t host a debugger.
               </p>
               <p className={styles.dossierBody}>
                 One declaration activates a graph of behavior. That
-                looks easier than writing code. It is infinitely more
-                complex: opaque, undebuggable, impossible to predict
-                what your build will do.
+                looks easier than writing code, but it&rsquo;s the
+                opposite: opaque, undebuggable, unpredictable.
               </p>
             </article>
           </Reveal>
@@ -575,13 +574,12 @@ function BuildExtensionsSection() {
                 Most of what build plugins did shouldn&rsquo;t be in the build.
               </h3>
               <p className={styles.dossierBody}>
-                Signing, containers, docs, integration sidecars, CI
-                glue: distribution. None of it runs when you save a
-                file. None of it needs a task DAG. None of it should
-                have been wired into the build&rsquo;s lifecycle in the
-                first place. The inner loop (compile, test, sourcegen)
-                is what the build is for. Everything else is just
-                programs.
+                Signing, containers, docs, CI glue: distribution. None
+                of it runs when you save a file. None of it needs a
+                task DAG. None of it belonged in the build&rsquo;s
+                lifecycle to begin with. The inner loop, meaning
+                compile, test, sourcegen, is what the build is for.
+                Everything else is a program.
               </p>
             </article>
           </Reveal>
@@ -599,11 +597,10 @@ function BuildExtensionsSection() {
                 after.
               </p>
               <p className={styles.dossierBody}>
-                Either way it&rsquo;s a script: a regular program
-                you can read, run, and debug. Nothing is &ldquo;in
-                the build&rdquo; in the build-plugin sense. The
-                build orchestrates timing; the logic lives in
-                scripts. That&rsquo;s the extension surface.
+                Either way it&rsquo;s a script: a program, not part
+                of the build. You read it, run it, debug it like any
+                other code. The build orchestrates timing; the logic
+                lives in scripts. That&rsquo;s the extension surface.
               </p>
             </article>
           </Reveal>
@@ -614,9 +611,8 @@ function BuildExtensionsSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            Anything you&rsquo;ve used a build plugin for falls on one side
-            of that line. The rest didn&rsquo;t belong in the build to
-            begin with.
+            Every build plugin you&rsquo;ve used falls on one side of
+            that line. The rest didn&rsquo;t belong in the build.
           </p>
         </Reveal>
 
