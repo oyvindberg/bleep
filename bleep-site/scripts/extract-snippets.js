@@ -146,6 +146,8 @@ async function main() {
     "docs-snippets-from-tests/**/*.kt",
     "docs-snippets-from-tests/**/*.scala",
     "docs-snippets-from-tests/**/*.md",
+    "docs-snippets-from-tests/**/*.properties",
+    "docs-snippets-from-tests/**/*.sql",
   ];
 
   const snippetFiles = [];

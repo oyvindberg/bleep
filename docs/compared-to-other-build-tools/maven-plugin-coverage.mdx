@@ -15,8 +15,13 @@ This page is the answer. It surveys the 50 most-used Maven plugins by
 real-world usage and shows where each one lands in bleep's model.
 **Forty-six out of 50 fit cleanly.** The four that don't either solve
 problems bleep deliberately doesn't have (no plugin system means no
-plugin descriptor) or describe one genuinely hard case (Spring Boot,
-covered below).
+plugin descriptor) or are concerns better solved by a separate tool.
+
+The remaining concern from a previous version of this page was Spring
+Boot. That one was real, and it's now solved: see
+[Spring Boot proves the model](/docs/spring-boot-proves-the-model) for
+the design argument and
+[the tutorial](/docs/tutorials/spring-boot) for the working setup.
 
 ## Methodology
 
@@ -41,10 +46,9 @@ but are dropped here. They're listed at the end with reasons.
 
 | Symbol | Category | What it means |
 |---|---|---|
-| 🟢 | Built-in | Bleep handles this out of the box. Either a CLI primitive (`compile`, `test`, `package`, `link`, `publish`, `clean`, `run`) or a script shipped in bleep's standard library (`bleep-plugin-pgp`, `bleep-plugin-sonatype` including the new Central Portal API, `bleep-plugin-dynver`, `bleep-plugin-ci-release`, `bleep-plugin-native-image`) |
+| 🟢 | Built-in | Bleep handles this out of the box. Either a CLI primitive (`compile`, `test`, `package`, `link`, `publish`, `clean`, `run`) or a script shipped in bleep's standard library (`bleep-plugin-pgp`, `bleep-plugin-sonatype` including the new Central Portal API, `bleep-plugin-dynver`, `bleep-plugin-ci-release`, `bleep-plugin-native-image`, `bleep-plugin-spring-boot`) |
 | ⚙️ | Sourcegen | Maps to bleep's sourcegen mechanism. The plugin produces files the compiler reads, which is exactly what sourcegen is for |
 | 📝 | User script | A `main` in your repo. Clear path, modest engineering. Typical case: distribution concerns (Docker, signing, doc gen, CI glue, migrations) |
-| 🟡 | Hard | A user script with real engineering effort. One entry: Spring Boot |
 | 🚫 | Out of scope | Solved by a separate tool, not the build |
 | 🔧 | Meta to Maven | Only exists because Maven plugins exist. No equivalent needed |
 | ⚠️ | Refused on principle | The thing bleep was built to reject |
@@ -73,7 +77,7 @@ but are dropped here. They're listed at the end with reasons.
 | 18 | `org.apache.maven.plugins:maven-install-plugin` | Install to local repo | `bleep publish-local` | 🟢 Built-in |
 | 19 | `org.apache.maven.plugins:maven-clean-plugin` | Delete `target/` | `bleep clean` | 🟢 Built-in |
 | 20 | `org.apache.maven.plugins:maven-resources-plugin` | Copy resources, filter | Native (resources); sourcegen (filtering) | 🟢 + ⚙️ |
-| 21 | `org.springframework.boot:spring-boot-maven-plugin` | Fat JAR, run, build-image, AOT | Multi-script: fat-JAR layout, buildpacks CLI, AOT wiring | 🟡 Hard |
+| 21 | `org.springframework.boot:spring-boot-maven-plugin` | Fat JAR, run, build-info, build-image, AOT | `bleep-plugin-spring-boot` — see [the tutorial](/docs/tutorials/spring-boot) | 🟢 Built-in |
 | 22 | `org.codehaus.mojo:versions-maven-plugin` | Update dep versions | `bleep build update-deps` (lossless round-trip) | 🟢 Built-in |
 | 23 | `org.codehaus.mojo:exec-maven-plugin` | Run main class or external program | `bleep run` for main; script otherwise | 🟢 + 📝 |
 | 24 | `org.apache.maven.plugins:maven-war-plugin` | WAR file | Script (write WAR layout, package) | 📝 Script |
@@ -109,9 +113,12 @@ but are dropped here. They're listed at the end with reasons.
 The 50 most-used Maven plugins decompose into a handful of categories
 that bleep already handles:
 
-- **18 plugins are built-ins.** Compile, test, package, publish, sign,
-  Sonatype Central, native-image, the version-bump dance. The plugin you
-  would have used in Maven, you don't need to think about in bleep.
+- **19 plugins are built-ins.** Compile, test, package, publish, sign,
+  Sonatype Central, native-image, the version-bump dance, and the full
+  Spring Boot integration via
+  [`bleep-plugin-spring-boot`](/docs/spring-boot-proves-the-model). The
+  plugin you would have used in Maven, you don't need to think about in
+  bleep.
 - **6 plugins are sourcegen.** Avro, OpenAPI Generator, ANTLR, JAXB2,
   MyBatis Generator, jsonschema2pojo. Every one of these is a schema or
   IDL feeding a code generator. Bleep's
@@ -125,19 +132,20 @@ that bleep already handles:
   dependency inspection, exec, build helpers, frontend tooling. Clean
   primitive path for the common case, script path for the edge.
 
-That accounts for **47 out of 50** by mechanisms that already exist.
+That accounts for **48 out of 50** by mechanisms that already exist.
 
-The remaining three split into one genuine refusal
+The remaining four split into one genuine refusal
 (`maven-antrun-plugin`: inline Ant tasks in `pom.xml` is precisely what
 bleep was built to reject), two plugins that exist only because Maven's
 plugin system does (`maven-plugin-plugin` and `maven-invoker-plugin`),
 and one separate concern (`maven-archetype-plugin`: project archetypes
 are a job for a different tool).
 
-## The hard case
+## The case that used to be hard
 
-`spring-boot-maven-plugin` is the only entry on the list that's
-neither built-in, sourcegen, nor a one-script weekend.
+When this page was first written, `spring-boot-maven-plugin` was the
+single entry that fit neither built-in, sourcegen, nor a one-script
+weekend.
 
 It bundles five different jobs under one Maven goal namespace:
 
@@ -152,15 +160,37 @@ It bundles five different jobs under one Maven goal namespace:
 - **`spring-boot:start`** and **`spring-boot:stop`** manage a
   background JVM for integration tests.
 
-A Spring Boot team using bleep would write a `bleep-plugin-spring-boot`
-covering at minimum the fat-JAR layout and `run`. Image building and
-AOT can come later. The work is real, but it's tractable: every piece
-has a published Java API. There's no Spring Boot magic that requires
-Maven's lifecycle. The plugin is the shape it is because Maven was the
-shape it was.
+The honest assessment was that each piece was tractable as a script
+because Spring Boot ships clean Java APIs for the parts that matter
+(`spring-boot-loader-tools`, `spring-boot-buildpack-platform`, Spring
+AOT). It just needed someone to write the script. So we did.
 
-If you're a Spring Boot shop evaluating bleep today, this is the case
-to test. The rest of your build is on the easy path.
+`bleep-plugin-spring-boot` now ships with three classes wrapping the
+upstream API:
+
+- **`SpringBootRun`** — fork a JVM with profile, JVM args, agents, env
+  vars, system properties.
+- **`SpringBootRepackage`** — produce the executable fat JAR with
+  layout, layers, requires-unpack, and reproducible timestamps.
+- **`SpringBootBuildInfo`** — write `META-INF/build-info.properties`
+  as a sourcegen, so Spring Boot Actuator's `/actuator/info` endpoint
+  returns build metadata.
+
+The
+[Spring Boot proves the model](/docs/spring-boot-proves-the-model)
+page walks through why this integration was the right test of the
+build-as-data thesis. The
+[Spring Boot tutorial](/docs/tutorials/spring-boot) walks through the
+working example: a DuckDB-backed REST service with a repository,
+service, controller, profile-specific configuration, and three named
+scripts that bind ports and JVM args explicitly. If you're a Spring
+Boot shop evaluating bleep, start there.
+
+Build-image (Buildpacks) and AOT (native-image) are not in
+`bleep-plugin-spring-boot` yet. The integration shape is the same: one
+more `SpringBoot*` class wrapping `spring-boot-buildpack-platform` and
+`spring-aot`. Open an issue or send a PR if either matters for your
+project.
 
 ## What about BOM and `dependencyManagement`?
 
@@ -214,6 +244,8 @@ three.
 ## See also
 
 - [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Spring Boot proves the model](/docs/spring-boot-proves-the-model) — the design argument for the four-primitives claim, with Spring Boot as the worked example
+- [Spring Boot tutorial](/docs/tutorials/spring-boot) — the practical walkthrough of the worked example
 - [Sourcegen concept](/docs/concepts/sourcegen)
 - [Scripts concept](/docs/concepts/scripts)
 - [Project status](/docs/appendix/status)

@@ -30,7 +30,7 @@ This page is the how-to.
   metadata.
 
 The full source lives at
-[`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/master/docs-snippets-from-tests/spring-boot-myapp)
+[`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp)
 and is included throughout this page via `<Snippet>` blocks.
 
 ## Prerequisites
@@ -172,8 +172,8 @@ bleep run-myapp-dev
 ```
 
 The script forks a JVM with the dev profile, 512 MB heap,
-`addResources=true` so changes to `src/main/resources` are live without
-rebuild, and `APP_PORT=9090`. The app exposes:
+`addResources=true` so changes to `myapp/src/resources/` are live
+without rebuild, and `APP_PORT=9090`. The app exposes:
 
 ```bash
 curl http://localhost:9090/items
@@ -294,4 +294,4 @@ much they would expand the example:
 - [Sourcegen concept](/docs/concepts/sourcegen)
 - [Maven plugin coverage](/docs/compared-to-other-build-tools/maven-plugin-coverage) — Spring Boot in the broader picture
 - [Project status](/docs/appendix/status) — what's missing, including BOM support
-- The example workspace: [`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/master/docs-snippets-from-tests/spring-boot-myapp)
+- The example workspace: [`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp)
