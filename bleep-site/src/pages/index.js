@@ -639,7 +639,7 @@ function TestRunnerSection() {
         <Reveal>
           <div className={styles.testRunnerVideo}>
             <video
-              src="https://github.com/user-attachments/assets/e772a346-e999-495f-8a57-f8680b061cd3"
+              src="https://github.com/user-attachments/assets/06ba4fa0-2ab0-4199-ac24-3806d6c80206"
               controls
               loop
               muted
