@@ -13,9 +13,10 @@ twenty years of Maven, is: *what about all my plugins?*
 
 This page is the answer. It surveys the 50 most-used Maven plugins by
 real-world usage and shows where each one lands in bleep's model.
-**Forty-six out of 50 fit cleanly.** The four that don't either solve
-problems bleep deliberately doesn't have (no plugin system means no
-plugin descriptor) or are concerns better solved by a separate tool.
+**Forty-seven out of 50 fit cleanly.** The three that don't only exist
+because Maven's plugin system does: scaffolding Maven projects,
+building Maven plugins, and testing Maven plugins. None of them apply
+to bleep.
 
 The remaining concern from a previous version of this page was Spring
 Boot. That one was real, and it's now solved: see
@@ -49,9 +50,7 @@ but are dropped here. They're listed at the end with reasons.
 | 🟢 | Built-in | Bleep handles this out of the box. Either a CLI primitive (`compile`, `test`, `package`, `link`, `publish`, `clean`, `run`) or a script shipped in bleep's standard library (`bleep-plugin-pgp`, `bleep-plugin-sonatype` including the new Central Portal API, `bleep-plugin-dynver`, `bleep-plugin-ci-release`, `bleep-plugin-native-image`, `bleep-plugin-spring-boot`) |
 | ⚙️ | Sourcegen | Maps to bleep's sourcegen mechanism. The plugin produces files the compiler reads, which is exactly what sourcegen is for |
 | 📝 | User script | A `main` in your repo. Clear path, modest engineering. Typical case: distribution concerns (Docker, signing, doc gen, CI glue, migrations) |
-| 🚫 | Out of scope | Solved by a separate tool, not the build |
 | 🔧 | Meta to Maven | Only exists because Maven plugins exist. No equivalent needed |
-| ⚠️ | Refused on principle | The thing bleep was built to reject |
 
 ## The list
 
@@ -85,7 +84,7 @@ but are dropped here. They're listed at the end with reasons.
 | 26 | `org.apache.maven.plugins:maven-pmd-plugin` | PMD report | Pre-commit hook or CI script | 📝 Script |
 | 27 | `org.codehaus.mojo:build-helper-maven-plugin` | Misc helpers (source roots, ports) | Source roots native; rest via script | 🟢 + 📝 |
 | 28 | `org.jetbrains.kotlin:kotlin-maven-plugin` | Compile Kotlin | `bleep compile` (Kotlin is native) | 🟢 Built-in |
-| 29 | `org.apache.maven.plugins:maven-antrun-plugin` | Inline Ant tasks in `pom.xml` | Refused on principle; write a Java/Scala script | ⚠️ Refused |
+| 29 | `org.apache.maven.plugins:maven-antrun-plugin` | Run arbitrary tasks (Ant in `pom.xml`) | Write a Java/Scala script; or call `ant` from a script | 📝 Script |
 | 30 | `com.mycila:license-maven-plugin` | License headers | Pre-commit hook | 📝 Script |
 | 31 | `com.github.eirslett:frontend-maven-plugin` | Install Node, run npm scripts | `node:` config (native); npm via script | 🟢 + 📝 |
 | 32 | `org.apache.maven.plugins:maven-scm-plugin` | SCM commands as Maven goals | Call `git` from a script | 📝 Script |
@@ -97,7 +96,7 @@ but are dropped here. They're listed at the end with reasons.
 | 38 | `org.liquibase:liquibase-maven-plugin` | Database migrations | Script (Liquibase CLI or Java API) | 📝 Script |
 | 39 | `org.sonarsource.scanner.maven:sonar-maven-plugin` | Upload to SonarQube | Script (Sonar Scanner CLI) | 📝 Script |
 | 40 | `org.eluder.coveralls:coveralls-maven-plugin` | Upload coverage to coveralls.io | Script (HTTP POST to coveralls API) | 📝 Script |
-| 41 | `org.apache.maven.plugins:maven-archetype-plugin` | New project from template | Separate concern; bleep templates are intra-build | 🚫 Out of scope |
+| 41 | `org.apache.maven.plugins:maven-archetype-plugin` | New Maven project from template | Bleep needs no archetype mechanism; scaffold from any directory | 🔧 Meta |
 | 42 | `org.codehaus.mojo:properties-maven-plugin` | Read and write `.properties` files | Trivial script | 📝 Script |
 | 43 | `org.apache.maven.plugins:maven-plugin-plugin` | Generate Maven plugin descriptor | Bleep has no plugin system | 🔧 Meta |
 | 44 | `org.apache.maven.plugins:maven-invoker-plugin` | Nested Maven builds for plugin tests | Bleep has no plugin system | 🔧 Meta |
@@ -113,7 +112,7 @@ but are dropped here. They're listed at the end with reasons.
 The 50 most-used Maven plugins decompose into a handful of categories
 that bleep already handles:
 
-- **19 plugins are built-ins.** Compile, test, package, publish, sign,
+- **17 plugins are built-ins.** Compile, test, package, publish, sign,
   Sonatype Central, native-image, the version-bump dance, and the full
   Spring Boot integration via
   [`bleep-plugin-spring-boot`](/docs/spring-boot-proves-the-model). The
@@ -124,22 +123,23 @@ that bleep already handles:
   IDL feeding a code generator. Bleep's
   [sourcegen mechanism](/docs/concepts/sourcegen) is built for exactly
   this shape.
-- **18 plugins are user scripts.** Container builds, doc generation,
+- **19 plugins are user scripts.** Container builds, doc generation,
   integration-test sidecars, CI glue, database migrations, coverage
-  uploads. They consume what the compiler produced, run when you say
-  so, and don't need a task DAG to make sense.
-- **5 plugins span built-in plus partial script.** Resource filtering,
-  dependency inspection, exec, build helpers, frontend tooling. Clean
-  primitive path for the common case, script path for the edge.
+  uploads, license headers, ad-hoc Ant-style steps, enforcer rules.
+  They consume what the compiler produced, run when you say so, and
+  don't need a task DAG to make sense.
+- **5 plugins span built-in plus a script or sourcegen edge.**
+  Resource filtering, dependency inspection, exec, build helpers,
+  frontend tooling. Clean primitive path for the common case, script
+  or sourcegen for the edge.
 
-That accounts for **48 out of 50** by mechanisms that already exist.
+That accounts for **47 out of 50** by mechanisms that already exist.
 
-The remaining four split into one genuine refusal
-(`maven-antrun-plugin`: inline Ant tasks in `pom.xml` is precisely what
-bleep was built to reject), two plugins that exist only because Maven's
-plugin system does (`maven-plugin-plugin` and `maven-invoker-plugin`),
-and one separate concern (`maven-archetype-plugin`: project archetypes
-are a job for a different tool).
+The remaining three only exist because Maven's plugin system does:
+`maven-plugin-plugin` and `maven-invoker-plugin` are infrastructure
+for authoring and testing Maven plugins, and `maven-archetype-plugin`
+scaffolds Maven projects from XML archetypes. Without a plugin system
+or Maven-shaped projects, bleep needs none of them.
 
 ## The case that used to be hard
 

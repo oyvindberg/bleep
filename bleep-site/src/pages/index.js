@@ -213,7 +213,6 @@ function RefusalsSection() {
                     <span className={styles.dossierDot} />
                     <span>Simplification</span>
                   </span>
-                  <span className={styles.dossierNum}>{String(i + 1).padStart(2, "0")}</span>
                 </div>
                 <h3 className={styles.dossierTitle}>{r.title}</h3>
                 <p className={styles.dossierBody}>{r.body}</p>
@@ -364,10 +363,10 @@ function PerformanceSection() {
               </h3>
               <p className={styles.mcpCardBody}>
                 One file changed in a 200-class module. Maven
-                recompiles all 200, slowly. Bleep uses Zinc with
-                file-level tracking: one file changed, one (or two)
-                recompiled, in milliseconds. The save-to-result loop
-                stays tight.
+                recompiles all 200, slowly. Bleep does file-level
+                incremental compilation: one file changed, one (or
+                two) recompiled, in milliseconds. The save-to-result
+                loop stays tight.
               </p>
             </article>
           </div>
@@ -535,7 +534,8 @@ function BuildExtensionsSection() {
             </>
           }
         >
-          Two reasons, and a rule.
+          Two integration points cover what build plugins ever did.
+          Most of that didn&rsquo;t belong in the build to begin with.
         </SectionHeader>
 
         <div
@@ -549,7 +549,6 @@ function BuildExtensionsSection() {
           <Reveal>
             <article>
               <h3 className={styles.dossierTitle}>
-                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>01</span>{" "}
                 A build plugin is a black box.
               </h3>
               <p className={styles.dossierBody}>
@@ -563,13 +562,13 @@ function BuildExtensionsSection() {
           <Reveal delay={80}>
             <article>
               <h3 className={styles.dossierTitle}>
-                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>02</span>{" "}
                 Most plugin work isn&rsquo;t build work.
               </h3>
               <p className={styles.dossierBody}>
                 Signing, containers, docs, CI glue: distribution.
-                None of it runs when you save a file. None of it
-                needs a task DAG.
+                None of it runs when you save a file; none of it
+                needs to be coupled to compile and test. Write a
+                script, run it when you want it.
               </p>
             </article>
           </Reveal>
@@ -577,16 +576,22 @@ function BuildExtensionsSection() {
           <Reveal delay={160}>
             <article>
               <h3 className={styles.dossierTitle}>
-                <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>03</span>{" "}
-                The rule.
+                Two patterns cover the rest.
               </h3>
               <p className={styles.dossierBody}>
-                Two kinds of plugin work. Generates files the
-                compiler reads &rarr; the build runs it as{" "}
-                <code>sourcegen</code> before compile. Operates on
-                what compile produced &rarr; you run it after. No
-                plugin API.
+                Bring a build plugin&rsquo;s logic into bleep and it
+                becomes one of two things.
               </p>
+              <ul className={styles.dossierList}>
+                <li>
+                  Generates files the compiler reads &rarr; the build
+                  runs it as <code>sourcegen</code> before compile.
+                </li>
+                <li>
+                  Operates on what compile produced &rarr; you run it
+                  after.
+                </li>
+              </ul>
             </article>
           </Reveal>
         </div>
@@ -596,12 +601,24 @@ function BuildExtensionsSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            Every build plugin you&rsquo;ve used falls on one side of
-            that line. The rest didn&rsquo;t belong in the build.
+            We verified this model three ways: by analyzing each of
+            the{" "}
+            <Link to="/docs/compared-to-other-build-tools/maven-plugin-coverage/">
+              top 50 Maven plugins
+            </Link>
+            , by implementing the hardest case (
+            <Link to="/docs/spring-boot-proves-the-model/">
+              Spring Boot
+            </Link>
+            ), and by shipping{" "}
+            <Link to="/docs/appendix/status/">
+              codebases of millions of lines
+            </Link>{" "}
+            on it.
           </p>
         </Reveal>
 
-        <Reveal delay={220}>
+        <Reveal delay={260}>
           <p className={styles.compareCta}>
             <Link
               className={styles.compareCtaLink}
@@ -775,6 +792,87 @@ function McpSection() {
 }
 
 /* ------------------------------------------------------------------
+   Migration, import Maven / sbt builds in one command.
+   ------------------------------------------------------------------ */
+function MigrationSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Already have a project?"
+          title={
+            <>
+              Import Maven and sbt. <em>One command.</em>
+            </>
+          }
+        >
+          Bleep reads your existing build and writes the equivalent{" "}
+          <code>bleep.yaml</code>. Project graph derived, dependencies
+          preserved, common configuration lifted into templates. You
+          should have a compiling, testing build after one command.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                <em>One command</em> in
+              </h3>
+              <p className={styles.mcpCardBody}>
+                <Link to="/docs/reference/cli/import/"><code>bleep import</code></Link>{" "}
+                for sbt projects,{" "}
+                <Link to="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></Link>{" "}
+                for Maven. Both load your existing build, derive the
+                project graph, infer templates from repeated
+                configuration, and write <code>bleep.yaml</code>.
+                Compile and test run immediately.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Codegen carries over as a <em>stub</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Import takes the generated files it finds on disk and
+                freezes them as static sourcegen output. Compile
+                works on day one. But once your schemas, grammars, or
+                templates change, the frozen output is stale; you
+                write a real{" "}
+                <Link to="/docs/concepts/sourcegen/">sourcegen script</Link>{" "}
+                then, calling the generator (<code>protoc</code>,{" "}
+                <code>antlr</code>, <code>openapi-generator</code>,
+                JAXB) directly. Typically tens of lines.
+              </p>
+            </article>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "1.75rem", textAlign: "center", fontSize: "0.88rem", opacity: 0.75 }}
+          >
+            Coming from Gradle? Gradle import may come later;
+            hand-porting is the path today.
+          </p>
+        </Reveal>
+
+        <Reveal delay={180}>
+          <p className={styles.compareCta}>
+            <Link
+              className={styles.compareCtaLink}
+              to="/docs/demos/importing-maven-build"
+            >
+              Importing from Maven, end-to-end &nbsp;&rarr;
+            </Link>
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
    Install + CTA
    ------------------------------------------------------------------ */
 function InstallCTA() {
@@ -854,6 +952,7 @@ export default function Home() {
           <RoundtripSection />
           <TestRunnerSection />
           <McpSection />
+          <MigrationSection />
           <InstallCTA />
         </main>
       </div>
