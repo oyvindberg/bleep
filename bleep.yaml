@@ -235,10 +235,22 @@ projects:
     - org.springframework.boot:spring-boot-loader-tools:3.4.0
     dependsOn:
     - bleepscript
-    extends:
-    - template-common
     java:
       options: -proc:none --release 17
+    platform:
+      name: jvm
+    publish:
+      groupId: build.bleep
+      url: https://github.com/oyvindberg/bleep/
+      description: Spring Boot integration for bleep
+      developers:
+      - id: oyvindberg
+        name: Øyvind Raddum Berg
+        url: https://github.com/oyvindberg
+      licenses:
+      - name: MIT
+        url: http://opensource.org/licenses/MIT
+        distribution: repo
     sources: ./src/main/java
   bleep-plugin-sonatype:
     dependencies:
