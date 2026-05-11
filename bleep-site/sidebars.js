@@ -299,6 +299,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Maven plugin coverage",
+          id: "compared-to-other-build-tools/maven-plugin-coverage",
+        },
+        {
+          type: "doc",
           label: "Gradle",
           id: "compared-to-other-build-tools/gradle",
         },
