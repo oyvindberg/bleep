@@ -581,7 +581,7 @@ function BuildExtensionsSection() {
                 The rule.
               </h3>
               <p className={styles.dossierBody}>
-                Your code goes one of two ways. Generates files the
+                Two kinds of plugin work. Generates files the
                 compiler reads &rarr; the build runs it as{" "}
                 <code>sourcegen</code> before compile. Operates on
                 what compile produced &rarr; you run it after. No
