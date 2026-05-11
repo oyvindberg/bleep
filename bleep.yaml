@@ -230,6 +230,16 @@ projects:
     - template-common
     - template-scala-3
     sources: ../liberated/mill-scalafix/mill-scalafix/src
+  bleep-plugin-spring-boot:
+    dependencies:
+    - org.springframework.boot:spring-boot-loader-tools:3.4.0
+    dependsOn:
+    - bleepscript
+    extends:
+    - template-common
+    java:
+      options: -proc:none --release 17
+    sources: ./src/main/java
   bleep-plugin-sonatype:
     dependencies:
     - com.lumidion::sonatype-central-client-sttp-core:0.3.0
