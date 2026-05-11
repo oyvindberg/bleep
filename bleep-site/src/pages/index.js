@@ -593,10 +593,17 @@ function BuildExtensionsSection() {
                 The rule.
               </h3>
               <p className={styles.dossierBody}>
-                Produces files the compiler reads &rarr; it&rsquo;s
-                in the build (<code>sourcegen</code>). Consumes what
-                compile produced &rarr; it&rsquo;s a script.
-                That&rsquo;s the whole extension surface.
+                Produces files the compiler reads &rarr; the build
+                calls it before compile, as <code>sourcegen</code>.
+                Consumes what compile produced &rarr; you call it
+                after.
+              </p>
+              <p className={styles.dossierBody}>
+                Either way it&rsquo;s a script: a regular program
+                you can read, run, and debug. Nothing is &ldquo;in
+                the build&rdquo; in the build-plugin sense. The
+                build orchestrates timing; the logic lives in
+                scripts. That&rsquo;s the extension surface.
               </p>
             </article>
           </Reveal>
@@ -643,11 +650,10 @@ function TestRunnerSection() {
             </>
           }
         >
-          You don&rsquo;t watch a build tool think about tests for two
-          minutes and get a fifty-thousand-line transcript dumped at the
-          end. You watch suites compile, watch them run, see failures the
-          second they happen, and walk away with a precise summary you
-          can act on.
+          Failures show up the moment they happen. Suites compile and run
+          in parallel across every CPU, the terminal stays live, and the
+          summary at the end is short enough to act on. No two-minute
+          pause. No fifty-thousand-line transcript.
         </SectionHeader>
 
         <Reveal>
