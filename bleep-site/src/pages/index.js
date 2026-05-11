@@ -160,14 +160,16 @@ const refusals = [
     ),
   },
   {
-    title: <>No <em>scopes</em>.</>,
+    title: <>No <em>project scopes</em>.</>,
     body: (
       <>
-        Dependencies are a flat list. <code>compile</code>,{" "}
-        <code>provided</code>, <code>runtime</code>,{" "}
-        <code>Test/test/it/Compile</code> graft a second axis on top
-        of the project graph. Different context? Different project.
-        A project is a project.
+        A test project is a project. A scripts project (your build
+        code) is a project. Your production app is a project. Same
+        fields, same dependency model, same{" "}
+        <code>bleep compile</code> and <code>bleep test</code>, no
+        second category. No <code>Test/test/itTest/Compile</code>{" "}
+        scope dance grafted onto the project graph. A project is a
+        project is a project.
       </>
     ),
   },
@@ -362,9 +364,10 @@ function PerformanceSection() {
               </h3>
               <p className={styles.mcpCardBody}>
                 One file changed in a 200-class module. Maven
-                recompiles all 200. Bleep uses Zinc with file-level
-                tracking: one file changed, one (or two) recompiled.
-                The save-to-result loop stays tight.
+                recompiles all 200, slowly. Bleep uses Zinc with
+                file-level tracking: one file changed, one (or two)
+                recompiled, in milliseconds. The save-to-result loop
+                stays tight.
               </p>
             </article>
           </div>
@@ -401,11 +404,13 @@ function CISection() {
                 Skip what <em>hasn&rsquo;t</em> changed
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep build invalidated</code> compares against a
-                git ref and prints exactly which projects have
-                invalidated state. Scope the rest of your CI run to
-                those. Everything else is already green from the last
-                build.
+                <code>bleep build invalidated</code> loads the build
+                at two git refs, digests each project from config
+                plus sources plus transitive deps, and prints the
+                ones that differ. Both loads are instant because the
+                build is data and dependency resolution is cached.
+                Scope the rest of your CI run to those projects.
+                Everything else is already green from the last build.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -545,19 +550,20 @@ function BuildExtensionsSection() {
             <article>
               <h3 className={styles.dossierTitle}>
                 <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>01</span>{" "}
-                A build plugin is a black box you trust.
+                A build plugin is a black box.
               </h3>
               <p className={styles.dossierBody}>
-                A build plugin activates by rules you didn&rsquo;t write,
-                mutates settings you can&rsquo;t see, composes in an
-                order the framework picks. To configure it, you write
-                key-value pairs it documents in a README. To debug it,
-                you reach for <code>println</code> because the build
-                doesn&rsquo;t host a real debugger. The pitch (one
-                line activates a graph of behavior) sounds easier than
-                writing code. It&rsquo;s infinitely more complex:
-                opaque, hard to understand, impossible to know what
-                your build will actually do.
+                It activates by rules you don&rsquo;t write, mutates
+                settings you can&rsquo;t see, composes in an order the
+                framework picks. Configured by key-value pairs in a
+                README. Debugged with <code>println</code> because the
+                build doesn&rsquo;t host a real debugger.
+              </p>
+              <p className={styles.dossierBody}>
+                One declaration activates a graph of behavior. That
+                looks easier than writing code. It is infinitely more
+                complex: opaque, undebuggable, impossible to predict
+                what your build will do.
               </p>
             </article>
           </Reveal>
@@ -848,7 +854,7 @@ export default function Home() {
   return (
     <Layout
       title="A build tool that gives a damn"
-      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No scopes, no XML, no build plugin acrobatics."
+      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No project scopes, no XML, no build plugin acrobatics."
     >
       <div className={styles.page}>
         <Hero />
