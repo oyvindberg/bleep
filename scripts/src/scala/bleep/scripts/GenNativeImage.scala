@@ -39,7 +39,8 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         "--enable-native-access=ALL-UNNAMED",
         "-J--sun-misc-unsafe-memory-access=allow",
         "-H:+ForeignAPISupport",
-        "--native-image-info"
+        "--native-image-info",
+        "-J-Xmx5g"
       ),
       env = sys.env.toList
     ) {

@@ -4,15 +4,41 @@ title: Project status
 
 # Project status
 
-Bleep self-hosts: bleep itself is built with bleep, including a
+Bleep exists because the existing JVM build tools couldn't keep up
+with the codebases we needed to ship. Maven, Gradle, and sbt all
+slow to a crawl on multi-hundred-thousand-line builds — import in
+IntelliJ takes minutes, incremental compiles stall on configuration
+overhead, and every CI run pays the JVM startup tax. Bleep is shaped
+for enormous codebases from the start: a flat YAML model, an
+in-process BSP server, native-image CLI startup, per-project locks,
+and an incremental compile loop tuned for projects with thousands of
+source files.
+
+It self-hosts — bleep itself is built with bleep, including a
 multi-project Scala 3 codebase, several ported sbt plugins, and the
-GraalVM native-image release pipeline. Several teams use it in
-production for backend services, libraries published to Maven Central,
-and large generated-source codebases (parser projects with hundreds of
-thousands of lines of generated Java).
+GraalVM native-image release pipeline. It's also in production on
+private codebases with **millions of lines of source**, plus
+libraries published to Maven Central, generated-source projects with
+hundreds of thousands of lines, and backend services shipping to
+real users.
 
 The version is `1.0.0-M*`, milestone, not GA. The build model is
 stable in practice; named features are tested by integration tests.
+
+## The bleep-bsp rewrite
+
+The compile server (`bleep-bsp`) was recently rewritten with heavy
+Claude assistance — BSP protocol handling, Zinc invocation, the
+per-project lock model, the shared-daemon lifecycle, the test runner.
+Core paths are tested and the rewrite is what powers the bleep build
+itself today. Edge cases are still being found and fixed: expect
+occasional rough spots over the next few months, especially around
+concurrent workspaces, unusual project shapes, and crash recovery.
+The CLI surface above the BSP layer is unchanged.
+
+If you hit a bleep-bsp issue, the server log at
+`~/Library/Caches/build.bleep/socket/<hash>/output` (or the equivalent
+on Linux) is the first thing to attach to a bug report.
 
 ## What's not yet covered
 

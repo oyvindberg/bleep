@@ -602,6 +602,27 @@
   line-height: 1.6;
   font-size: 0.92rem;
 }
+.dossierList {
+  margin: 0.65rem 0 0;
+  padding-left: 1.15rem;
+  color: var(--ink-300);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+.dossierList li {
+  margin: 0.3rem 0;
+}
+.dossierList li::marker {
+  color: var(--ink-700);
+}
+.dossierList code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.06em 0.36em;
+  border-radius: 3px;
+  background: rgba(230, 234, 239, 0.06);
+  color: var(--red-300);
+}
 .dossierBody code {
   font-family: var(--font-mono);
   font-size: 0.86em;

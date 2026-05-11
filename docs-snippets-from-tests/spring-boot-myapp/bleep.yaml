@@ -1,0 +1,48 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  myapp:
+    dependencies:
+      - org.springframework.boot:spring-boot-starter-web:3.4.0
+      - org.springframework.boot:spring-boot-starter-jdbc:3.4.0
+      - org.springframework.boot:spring-boot-starter-actuator:3.4.0
+      - org.duckdb:duckdb_jdbc:1.1.3
+    extends:
+      - template-common
+    platform:
+      mainClass: com.example.myapp.MyApp
+    sourcegen:
+      - main: bleep.plugin.springboot.SpringBootBuildInfo
+        project: scripts
+  myapp-test:
+    dependencies:
+      - org.springframework.boot:spring-boot-starter-test:3.4.0
+    dependsOn: myapp
+    extends:
+      - template-common
+    isTestProject: true
+  scripts:
+    dependencies:
+      - build.bleep:bleep-plugin-spring-boot:${BLEEP_VERSION}
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+scripts:
+  run-myapp-dev:
+    main: scripts.RunMyappDev
+    project: scripts
+  run-myapp-prod:
+    main: scripts.RunMyappProd
+    project: scripts
+  package-myapp:
+    main: scripts.PackageMyapp
+    project: scripts
+templates:
+  template-common:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm

@@ -1,0 +1,331 @@
+---
+title: Spring Boot with bleep
+---
+
+import Snippet from '@site/src/components/Snippet';
+
+# Spring Boot with bleep
+
+This tutorial walks through a working Spring Boot 3.x service that
+compiles, tests, runs in dev or prod mode, and packages to an
+executable fat JAR — all through bleep. The example uses Spring Boot
+Web, Spring Boot JDBC, Spring Boot Actuator, and DuckDB as an in-memory
+database. It also wires per-environment configuration through scripts,
+which is the recommended pattern.
+
+If you want the argument for why this pattern is the right one, see
+[Spring Boot proves the model](/docs/spring-boot-proves-the-model).
+This page is the how-to.
+
+## What you'll end up with
+
+- One main project (`myapp`) with a controller, service, repository, and a couple of REST endpoints.
+- One test project (`myapp-test`) with a Spring `@SpringBootTest` slice and a `MockMvc` test.
+- Three named scripts in `bleep.yaml`:
+  - `run-myapp-dev` — dev profile, 512 MB heap, port 9090, live resource edits.
+  - `run-myapp-prod` — prod profile, 2 GB heap, G1GC tuning, port 9091.
+  - `package-myapp` — produces a layered executable fat JAR.
+- `META-INF/build-info.properties` auto-generated as sourcegen so
+  Spring Boot Actuator's `/actuator/info` endpoint returns build
+  metadata.
+
+The full source lives at
+[`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp)
+and is included throughout this page via `<Snippet>` blocks.
+
+## Prerequisites
+
+[Bleep installed](/docs/installing). That's it — bleep downloads the
+JVM specified in `bleep.yaml` on first use. The example uses DuckDB
+embedded; no Docker, no external services.
+
+## The build file
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/bleep.yaml" lang="yaml" />
+
+Three projects (`myapp`, `myapp-test`, `scripts`), three named scripts,
+one template that just sets the JVM target. That is the entire build
+configuration. There is no `<plugin>` block; the Spring Boot machinery
+lives in the `scripts` project as a regular dependency.
+
+Worth pointing out:
+
+- **`myapp` dependencies.** Plain Maven coordinates pinned to the same
+  Spring Boot version. Bleep does not do BOM-style version inheritance
+  yet ([status](/docs/appendix/status)); when every starter you pull
+  in is on the same Spring Boot version, the transitive graph stays
+  consistent.
+- **`myapp.sourcegen`** references
+  `bleep.plugin.springboot.SpringBootBuildInfo` directly. The plugin
+  ships a `BleepCodegenScript` you can use as-is — no wrapper class
+  needed for the default case.
+- **`myapp-test`** has `isTestProject: true` and depends on `myapp`.
+  There is no `Test/test/itTest/Compile` scope dance; the test project
+  is just another project that picks up `myapp`'s classes and adds the
+  Spring Boot test starter.
+- **`scripts.dependencies`** pulls in
+  `build.bleep:bleep-plugin-spring-boot` which provides the three
+  `SpringBoot*` library classes used by the script files.
+
+## The application code
+
+Plain Spring Boot beans wired by constructor injection. Nothing
+bleep-specific. Click to expand any of them.
+
+<details>
+<summary>The main class — <code>MyApp.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/java/com/example/myapp/MyApp.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The <code>Item</code> record</summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/java/com/example/myapp/Item.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The repository (<code>JdbcTemplate</code>-backed, talking to DuckDB)</summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/java/com/example/myapp/ItemRepository.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The service (validation, simple state changes)</summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/java/com/example/myapp/ItemService.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The controller (REST + error handler)</summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/java/com/example/myapp/ItemController.java" lang="java" />
+
+</details>
+
+## The properties files
+
+Base `application.properties` exposes the server port as a `${APP_PORT}`
+lever (default 9090); the scripts below set it explicitly. The
+`schema.sql` initializes the items table on startup. Profile-specific
+files override logging levels.
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/resources/application.properties" lang="properties" />
+
+<details>
+<summary><code>schema.sql</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/resources/schema.sql" lang="sql" />
+
+</details>
+
+<details>
+<summary><code>application-dev.properties</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/resources/application-dev.properties" lang="properties" />
+
+</details>
+
+<details>
+<summary><code>application-prod.properties</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp/src/resources/application-prod.properties" lang="properties" />
+
+</details>
+
+<details>
+<summary><code>application-test.properties</code> (test classpath)</summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp-test/src/resources/application-test.properties" lang="properties" />
+
+</details>
+
+## The scripts
+
+Each script hardcodes the parameters you actually care about for one
+combination. Read it and you know what runs. **These three stay open
+because they are the manifesto point**: per-environment configuration
+lives in plain Java, not in YAML config blocks.
+
+`scripts/RunMyappDev.java`:
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/scripts/src/java/scripts/RunMyappDev.java" lang="java" />
+
+`scripts/RunMyappProd.java`:
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/scripts/src/java/scripts/RunMyappProd.java" lang="java" />
+
+`scripts/PackageMyapp.java`:
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/scripts/src/java/scripts/PackageMyapp.java" lang="java" />
+
+## The tests
+
+Standard JUnit 5 + Spring Boot test slices. `ItemServiceTest` hits
+the real (in-memory) DuckDB through the wired beans; `ItemControllerTest`
+uses MockMvc to exercise the controller without binding a port.
+
+<details>
+<summary><code>ItemServiceTest.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp-test/src/java/com/example/myapp/ItemServiceTest.java" lang="java" />
+
+</details>
+
+<details>
+<summary><code>ItemControllerTest.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/myapp-test/src/java/com/example/myapp/ItemControllerTest.java" lang="java" />
+
+</details>
+
+## Running it
+
+Compile the main project (this also runs the build-info sourcegen):
+
+```bash
+bleep compile myapp
+```
+
+Run the tests:
+
+```bash
+bleep test myapp-test
+```
+
+You should see two suites, six tests, all green.
+
+Run the app in dev mode:
+
+```bash
+bleep run-myapp-dev
+```
+
+The script forks a JVM with the dev profile, 512 MB heap,
+`addResources=true` so changes to `myapp/src/resources/` are live
+without rebuild, and `APP_PORT=9090`. The app exposes:
+
+```bash
+curl http://localhost:9090/items
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"name":"bread","quantity":5}' http://localhost:9090/items
+curl http://localhost:9090/actuator/info
+```
+
+The `/actuator/info` endpoint returns the contents of
+`META-INF/build-info.properties`, which the sourcegen wrote at compile
+time.
+
+Run in prod mode on a different port:
+
+```bash
+bleep run-myapp-prod
+```
+
+That picks up the prod profile, the heap and GC tuning from
+`RunMyappProd`, and binds to port 9091. Different script, different
+config, both visible in plain Java.
+
+Build the executable fat JAR:
+
+```bash
+bleep package-myapp
+java -jar build/myapp/myapp-boot.jar
+```
+
+`build/myapp/myapp-boot.jar` is a regular Spring Boot fat JAR with the
+standard `BOOT-INF/` layout, the loader classes at root, and
+`Spring-Boot-Version: 3.x.x` in the manifest. You can deploy it
+anywhere you would deploy a Maven-built Spring Boot artifact. It also
+includes a `layers.idx` because `PackageMyapp.java` sets
+`withLayered(true)`, so it works directly with Docker layered builds.
+
+## Adding a new run combination
+
+This is where the pattern pays off. Say you want a staging mode: prod
+profile, dev heap size, a specific port, a Java agent for tracing.
+
+Add a `RunMyappStaging.java` next to the others:
+
+```java
+package scripts;
+
+import bleep.plugin.springboot.SpringBootRun;
+import bleepscript.BleepScript;
+import bleepscript.Commands;
+import bleepscript.Started;
+import java.nio.file.Paths;
+import java.util.List;
+
+public class RunMyappStaging extends BleepScript {
+  public RunMyappStaging() { super("run-myapp-staging"); }
+
+  @Override
+  public void run(Started started, Commands commands, List<String> args) {
+    new SpringBootRun()
+        .withJvmArgs("-Xmx512m")
+        .withProfiles("prod")
+        .withEnvironment("APP_PORT", "9100")
+        .withAgents(Paths.get("/opt/tracing/agent.jar"))
+        .runOn(started, commands, "myapp");
+  }
+}
+```
+
+Register it in `bleep.yaml`:
+
+```yaml
+scripts:
+  run-myapp-staging:
+    main: scripts.RunMyappStaging
+    project: scripts
+```
+
+`bleep run-myapp-staging` now works. The class is twelve lines of
+plain Java. Anyone reading it knows exactly what it runs.
+
+## Adding a knob the library doesn't expose
+
+`bleep-plugin-spring-boot`'s `SpringBootRun` exposes the parameters
+most teams need (JVM args, profiles, agents, system properties,
+environment, working directory). If you want a parameter that isn't
+there, you have two options that don't require touching the published
+plugin:
+
+1. Set it directly via `withEnvironment` or `withSystemProperty`.
+   Spring Boot reads almost everything through one of those.
+2. Copy `SpringBootRun.java` into your own scripts project, rename it,
+   add the fluent setter you want, and register it as a new script
+   `main`. The class is about 200 lines of straight Java; reading and
+   adapting it takes minutes.
+
+This is one of the reasons scripts live in your repo: when a published
+library doesn't expose something you need, you copy the relevant part
+and adjust it. No fork, no upstream PR, no new published artifact.
+
+## What's not in this tutorial
+
+A few things deliberately left out, in roughly increasing order of how
+much they would expand the example:
+
+- **`build-image`** for Buildpacks-based OCI image production. The
+  plugin can be extended to wrap `spring-boot-buildpack-platform` the
+  same way it wraps `spring-boot-loader-tools`; not shipped yet.
+- **Spring AOT** for GraalVM native-image. Niche enough that we'll
+  ship it once a user asks. The integration would be one more script.
+- **DevTools live restart.** Already works at runtime if
+  `spring-boot-devtools` is on the classpath — bleep does not need to
+  do anything special, Spring Boot wires it itself.
+
+## See also
+
+- [Spring Boot proves the model](/docs/spring-boot-proves-the-model) — the design argument
+- [Scripts concept](/docs/concepts/scripts)
+- [Sourcegen concept](/docs/concepts/sourcegen)
+- [Maven plugin coverage](/docs/compared-to-other-build-tools/maven-plugin-coverage) — Spring Boot in the broader picture
+- [Project status](/docs/appendix/status) — what's missing, including BOM support
+- The example workspace: [`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp)

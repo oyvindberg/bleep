@@ -230,6 +230,28 @@ projects:
     - template-common
     - template-scala-3
     sources: ../liberated/mill-scalafix/mill-scalafix/src
+  bleep-plugin-spring-boot:
+    dependencies:
+    - org.springframework.boot:spring-boot-loader-tools:3.4.0
+    dependsOn:
+    - bleepscript
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    publish:
+      groupId: build.bleep
+      url: https://github.com/oyvindberg/bleep/
+      description: Spring Boot integration for bleep
+      developers:
+      - id: oyvindberg
+        name: Øyvind Raddum Berg
+        url: https://github.com/oyvindberg
+      licenses:
+      - name: MIT
+        url: http://opensource.org/licenses/MIT
+        distribution: repo
+    sources: ./src/main/java
   bleep-plugin-sonatype:
     dependencies:
     - com.lumidion::sonatype-central-client-sttp-core:0.3.0

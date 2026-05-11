@@ -1,0 +1,227 @@
+---
+title: Spring Boot proves the model
+---
+
+import Snippet from "@site/src/components/Snippet";
+
+# Bleep is four things, and that is the whole list.
+
+There are exactly four primitives in bleep:
+
+1. **Projects.** Data. A name, a source root, a dependency list, a few flags.
+2. **Dependencies.** Data. Coordinates, version, optional flags.
+3. **Scripts.** Java/Kotlin/Scala programs with a `main`. Code.
+4. **Sourcegen.** Programs that produce files the compiler reads. Code.
+
+There is no fifth concept. No plugin system, no task graph, no
+lifecycle phases, no scopes, no convention plugins, no auto-activation,
+no DSL on top of YAML. The build's surface is those four things. The
+landing page argues this is enough. This page is the proof.
+
+## The hardest case
+
+Spring Boot is the JVM framework that took the most for itself. It
+brought auto-configuration, embedded servers, a custom fat-JAR layout,
+its own classloader, DevTools, Buildpacks integration, Spring AOT, an
+Actuator endpoint that wants build metadata. Its Maven plugin has five
+goals plus variants. When [we audited the top 50 Maven
+plugins](/docs/compared-to-other-build-tools/maven-plugin-coverage), it
+was the single entry we flagged as genuinely hard.
+
+Every requirement of it lands in one of the four primitives. Here is the whole integration:
+
+| What | Where |
+|---|---|
+| Compile the application | `bleep compile` (primitive) |
+| Run unit and slice tests | `bleep test` (primitive) |
+| Generate `build-info.properties` | `sourcegen` entry on the project |
+| Build the executable fat JAR | One Java script wrapping `spring-boot-loader-tools` |
+| Run the application in dev mode | One Java script that forks a JVM |
+| Run with prod tuning | A second Java script with different JVM args |
+
+Six lines of fluent Java per script, three scripts total. A 200-line
+`bleep-plugin-spring-boot` artifact wrapping Spring's published
+`spring-boot-loader-tools` API. No new primitive in bleep. No build
+phase. No plugin lifecycle.
+
+## The wiring, in `bleep.yaml`
+
+Here is the build-side wiring for the dev-mode script (the prod and
+package scripts are entries in the same block):
+
+```yaml
+scripts:
+  run-myapp-dev:
+    main: scripts.RunMyappDev
+    project: scripts
+```
+
+That is it. No plugin block, no lifecycle binding, no order of
+activation. The [Spring Boot tutorial](/docs/tutorials/spring-boot)
+walks through the rest.
+
+## Where Spring Boot logic actually lives
+
+Here is the part most build tools get wrong. Compile and test know
+nothing about Spring Boot. They compile Java sources. They run JUnit
+suites. That is all.
+
+Spring Boot only enters the picture *after* compile produces classes,
+or *before* compile via sourcegen. Look at the integration above:
+
+- **Repackage** consumes compiled classes. After.
+- **Run** consumes the runtime classpath. After.
+- **Build-image** consumes the fat JAR. After.
+- **AOT** consumes compiled classes and produces hints. After.
+- **build-info.properties** is a resource. Before.
+
+Not one of those needs to be modeled as part of the build's compile
+graph. They are downstream programs that take build outputs and do
+something with them. Bleep treats them as exactly that: scripts you
+run when you want, against artifacts the build produced.
+
+When you read the bleep.yaml for a Spring Boot project, you see
+projects and dependencies. You do not see Spring Boot. Spring Boot's
+presence in your build is precisely the set of dependencies your code
+imports. The build does not care which framework you are using. That
+is the right shape.
+
+## What about all the boilerplate?
+
+A Maven-shaped Spring Boot configuration is one `<plugin>` block.
+Bleep's version is three Java files plus a `bleep-plugin-spring-boot`
+dependency. There is more text. The user is right to flag this.
+
+The text is not ceremony. Compare a typical Maven dev-mode invocation:
+
+```xml
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>run-dev</id>
+      <configuration>
+        <profiles>dev</profiles>
+        <jvmArguments>-Xmx512m</jvmArguments>
+        <addResources>true</addResources>
+        <environmentVariables>
+          <APP_PORT>9090</APP_PORT>
+        </environmentVariables>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+…with the bleep equivalent:
+
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/scripts/src/java/scripts/RunMyappDev.java" lang="java" />
+
+The Java version is longer in lines, shorter in concepts. Every line is
+either a method call on a fluent API, or scaffolding the Java language
+demands once. To know what the Maven version does you read the
+plugin's documentation, find the right element names, hope the version
+of the plugin documents this particular knob, and remember that
+`<addResources>` lives under `<configuration>` and not under
+`<execution>` directly. To know what the Java version does you read
+the Java.
+
+**The boilerplate clarifies.** It states the configuration in the same
+language and the same place as the program that consumes it. No
+indirection through XML key names, no surprise inheritance from a
+parent POM, no profile-activation matrix that depends on the phase of
+the moon.
+
+## How you discover what knobs exist
+
+In Maven, you read [the plugin's reference
+documentation](https://docs.spring.io/spring-boot/maven-plugin/reference/htmlsingle/),
+find the goal you want, scroll to its parameters, match XML element
+names to behavior.
+
+In bleep, you press `.` after `new SpringBootRun()` in your IDE and
+look at the methods.
+
+```
+.withJvmArgs(String... args)
+.withProfiles(String... profiles)
+.withAddResources(boolean addResources)
+.withOptimizedLaunch(boolean optimizedLaunch)
+.withAgents(Path... agents)
+.withSystemProperty(String key, String value)
+.withEnvironment(String key, String value)
+.withMainClass(String mainClass)
+.withWorkingDirectory(Path workingDirectory)
+.withAppArgs(String... args)
+.runOn(Started started, Commands commands, String projectName)
+```
+
+The fluent API is the documentation. Each method has a Javadoc line
+explaining what it does. Reading the source of `SpringBootRun.java`
+takes about a minute and tells you exactly what happens when the
+script runs.
+
+## What if you need a knob the plugin doesn't expose
+
+Spring Boot has a long tail of obscure plugin parameters. The bleep
+plugin doesn't expose all of them. Maven faces the same problem on the
+margin and solves it by accumulating plugin parameters indefinitely
+until the documentation is a labyrinth.
+
+The bleep answer is different: **fork the script.** It is fifteen lines
+of Java. Pull a copy into your own scripts project, adjust what you
+need, give it a different name in `bleep.yaml`. You cannot do this in
+a Maven plugin without forking the plugin itself, publishing the fork,
+and depending on it.
+
+This asymmetry is the entire model paying off. Because scripts are
+just code in your repo, the floor for customization is "edit the
+file." Because Maven plugins are versioned artifacts authored by
+someone else, the floor for customization is "open source contribution
+or fork a JAR."
+
+## What the model does not have, and does not miss
+
+Things bleep deliberately doesn't have, that the Spring Boot
+integration also doesn't need:
+
+- A plugin system. The integration is one library dependency and three
+  scripts. No autoplugin trigger, no `requires` graph, no order of
+  activation.
+- A user-definable task DAG. Compile, test, sourcegen, and your
+  scripts. The scripts compose by calling each other in plain Java if
+  needed.
+- Lifecycle phases. There is no "between phase X and phase Y" hook to
+  install. There is just compile, and there are programs you can run
+  before or after it.
+- Scopes. Test dependencies live on the test project (which is just
+  another project with `isTestProject: true`). Runtime-only versus
+  compile-only is solved by what the project imports, not a second
+  axis on each coordinate.
+
+A Spring Boot team using bleep writes the same code they would in any
+other build tool, with three short Java scripts in place of one big
+XML block. The build itself stays small enough to read.
+
+## The claim, stated as plainly as possible
+
+Projects describe what you have. Dependencies describe what you need.
+Sourcegen describes what gets written before compile. Scripts describe
+what runs after compile. That is the whole vocabulary of a JVM build.
+
+We tested it against the JVM framework with the most opinionated build
+plugin in the ecosystem. The framework's actual requirements decompose
+into the four primitives without needing a fifth. There is no Spring
+Boot-shaped hole in the model.
+
+Projects are projects. Code is code. The build is the build. Nothing
+else has to exist.
+
+## See also
+
+- [Spring Boot with bleep](/docs/tutorials/spring-boot) — the practical walkthrough
+- [Maven plugin coverage](/docs/compared-to-other-build-tools/maven-plugin-coverage) — where Spring Boot was first flagged
+- [Scripts concept](/docs/concepts/scripts)
+- [Sourcegen concept](/docs/concepts/sourcegen)
+- [`bleep-plugin-spring-boot` source](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/bleep-plugin-spring-boot/src/main/java/bleep/plugin/springboot)

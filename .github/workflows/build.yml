@@ -78,7 +78,7 @@ jobs:
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
