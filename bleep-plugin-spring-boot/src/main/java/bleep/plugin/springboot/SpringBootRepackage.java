@@ -1,8 +1,6 @@
 package bleep.plugin.springboot;
 
 import bleepscript.*;
-import org.springframework.boot.loader.tools.*;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,6 +16,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import org.springframework.boot.loader.tools.*;
 
 /**
  * Produces a Spring Boot executable fat JAR for a project. Equivalent to {@code mvn

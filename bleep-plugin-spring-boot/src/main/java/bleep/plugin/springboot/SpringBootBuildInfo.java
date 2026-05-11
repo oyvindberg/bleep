@@ -1,9 +1,6 @@
 package bleep.plugin.springboot;
 
 import bleepscript.*;
-import org.springframework.boot.loader.tools.BuildPropertiesWriter;
-import org.springframework.boot.loader.tools.BuildPropertiesWriter.ProjectDetails;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +8,8 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.boot.loader.tools.BuildPropertiesWriter;
+import org.springframework.boot.loader.tools.BuildPropertiesWriter.ProjectDetails;
 
 /**
  * Writes {@code META-INF/build-info.properties} for one or more projects. Read at runtime by Spring

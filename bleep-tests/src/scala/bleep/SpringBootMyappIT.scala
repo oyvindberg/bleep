@@ -94,10 +94,8 @@ class SpringBootMyappIT extends IntegrationTestHarness {
     succeed
   }
 
-  /** Walks every file under `fixtureRoot` (excluding the file named by `skip`), reads the content,
-    * writes it into the workspace at the same relative path, and tags it as a snippet at
-    * `spring-boot-myapp/<relPath>` so the harness's mirror loop overwrites the fixture with
-    * the same bytes (no-op).
+  /** Walks every file under `fixtureRoot` (excluding the file named by `skip`), reads the content, writes it into the workspace at the same relative path, and
+    * tags it as a snippet at `spring-boot-myapp/<relPath>` so the harness's mirror loop overwrites the fixture with the same bytes (no-op).
     */
   private def copyFixtureInto(ws: Workspace, fixtureRoot: Path, skip: String): Unit =
     Files

@@ -1,7 +1,6 @@
 package bleep.plugin.springboot;
 
 import bleepscript.*;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
