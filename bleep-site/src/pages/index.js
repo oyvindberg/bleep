@@ -553,16 +553,9 @@ function BuildExtensionsSection() {
                 A build plugin is a black box.
               </h3>
               <p className={styles.dossierBody}>
-                Activates by rules you don&rsquo;t write, mutates
-                settings you can&rsquo;t see, composes in an order the
-                framework picks. Configured with key-value pairs the
-                README documents. Debugged with <code>println</code>{" "}
-                because the build doesn&rsquo;t host a debugger.
-              </p>
-              <p className={styles.dossierBody}>
-                One declaration activates a graph of behavior. That
-                looks easier than writing code, but it&rsquo;s the
-                opposite: opaque, undebuggable, unpredictable.
+                Rules you don&rsquo;t write, settings you can&rsquo;t
+                see, order you don&rsquo;t control. Debugged with{" "}
+                <code>println</code>.
               </p>
             </article>
           </Reveal>
@@ -571,15 +564,12 @@ function BuildExtensionsSection() {
             <article>
               <h3 className={styles.dossierTitle}>
                 <span className={styles.dossierNum} style={{ marginRight: "0.5em" }}>02</span>{" "}
-                Most of what build plugins did shouldn&rsquo;t be in the build.
+                Most plugin work isn&rsquo;t build work.
               </h3>
               <p className={styles.dossierBody}>
-                Signing, containers, docs, CI glue: distribution. None
-                of it runs when you save a file. None of it needs a
-                task DAG. None of it belonged in the build&rsquo;s
-                lifecycle to begin with. The inner loop, meaning
-                compile, test, sourcegen, is what the build is for.
-                Everything else is a program.
+                Signing, containers, docs, CI glue: distribution.
+                None of it runs when you save a file. None of it
+                needs a task DAG.
               </p>
             </article>
           </Reveal>
@@ -591,16 +581,10 @@ function BuildExtensionsSection() {
                 The rule.
               </h3>
               <p className={styles.dossierBody}>
-                Produces files the compiler reads &rarr; the build
-                calls it before compile, as <code>sourcegen</code>.
-                Consumes what compile produced &rarr; you call it
-                after.
-              </p>
-              <p className={styles.dossierBody}>
-                Either way it&rsquo;s a script: a program, not part
-                of the build. You read it, run it, debug it like any
-                other code. The build orchestrates timing; the logic
-                lives in scripts. That&rsquo;s the extension surface.
+                Generates files the compiler reads &rarr; the build
+                runs it as <code>sourcegen</code> before compile.
+                Operates on what compile produced &rarr; you run it
+                after. Both are programs. No plugin API.
               </p>
             </article>
           </Reveal>
