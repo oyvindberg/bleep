@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs Gradle | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/gradle/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs Gradle | Bleep"><meta data-rh="true" name="description" content="Gradle is what you reach for when Maven isn&#x27;t expressive enough. The price"><meta data-rh="true" property="og:description" content="Gradle is what you reach for when Maven isn&#x27;t expressive enough. The price"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/gradle/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/gradle/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/gradle/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Gradle","item":"https://bleep.build/docs/compared-to-other-build-tools/gradle"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.0de63af3.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -33,8 +33,18 @@ properties, they depend on things. Done.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="faster-everything">Faster everything<a href="#faster-everything" class="hash-link" aria-label="Direct link to Faster everything" title="Direct link to Faster everything" translate="no">​</a></h2>
 <p>Gradle&#x27;s daemon, configuration cache, and build cache exist because Gradle
 is slow. Bleep&#x27;s startup model means none of that machinery is needed.</p>
-<table><thead><tr><th></th><th>Gradle</th><th>Bleep</th></tr></thead><tbody><tr><td>Cold startup</td><td>~5-10s of JVM + daemon spin-up</td><td>~0ms (native binary)</td></tr><tr><td>Configuration phase</td><td>Re-evaluated unless cached; cache invalidates often</td><td>YAML is parsed once, reused</td></tr><tr><td>Daemon memory</td><td>512MB-2GB resident, easy to OOM</td><td>No daemon</td></tr><tr><td>Incremental compile</td><td>Available; depends on plugin authors</td><td>Zinc, file-level, always on</td></tr><tr><td>IDE import</td><td>Minutes for large multi-module projects</td><td>~1 second via BSP</td></tr></tbody></table>
-<p>When you don&#x27;t have to design around the daemon. You don&#x27;t need a daemon.</p>
+<table><thead><tr><th></th><th>Gradle</th><th>Bleep</th></tr></thead><tbody><tr><td>CLI process</td><td>JVM, paid on every command</td><td>Native (Graal), ~0ms on every command</td></tr><tr><td>Daemon</td><td>Required for everything; per-build-root</td><td>Required only for compile/test/run/link; shared across every workspace on the machine</td></tr><tr><td>Daemon cold start</td><td>Several seconds; longer for plugin-heavy or Android builds</td><td>Several seconds (JVM warmup, Zinc load)</td></tr><tr><td>Daemon hit cost (warm)</td><td>One JVM-to-JVM jump from CLI to daemon</td><td>One native-to-JVM socket jump from CLI to BSP server</td></tr><tr><td>Daemon memory</td><td>Default 512MB heap; commonly raised to 2-4GB for Android or Kotlin builds</td><td>Configurable; defaults work for most repos</td></tr><tr><td>Configuration phase</td><td>Re-evaluated unless the configuration cache is enabled and hits (much improved in Gradle 8/9)</td><td>YAML is parsed once, reused</td></tr><tr><td>Incremental compile</td><td>Built-in for Java and Kotlin language plugins; task-level incrementality depends on plugin authors</td><td>Zinc, file-level, always on</td></tr><tr><td>IDE import</td><td>Tens of seconds to several minutes depending on project size</td><td>~1 second via BSP</td></tr></tbody></table>
+<p>The native CLI matters because most things you ask a build tool to
+do don&#x27;t need the compiler. Listing projects, showing the resolved
+config, finding what changed since <code>HEAD~1</code>, dispatching a refactor
+across the build, all run in the native binary in milliseconds and
+never touch the daemon. For compile, test, run, and link, bleep does
+have a JVM daemon (<code>bleep-bsp</code>); see
+<a class="" href="/docs/guides/compile-servers/">Compile servers</a>. The differences
+that matter against Gradle: it&#x27;s shared across workspaces (one
+<code>bleep-bsp</code> serves every bleep build on your machine), and the
+configuration phase is a YAML parse, not a Kotlin/Groovy program
+that has to be re-evaluated on every change.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="no-dsl-to-learn">No DSL to learn<a href="#no-dsl-to-learn" class="hash-link" aria-label="Direct link to No DSL to learn" title="Direct link to No DSL to learn" translate="no">​</a></h2>
 <p>Gradle&#x27;s surface area:</p>
 <ul>

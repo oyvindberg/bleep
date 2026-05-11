@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs sbt | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/sbt/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs sbt | Bleep"><meta data-rh="true" name="description" content="sbt was a real achievement. It made arbitrary Scala code in builds"><meta data-rh="true" property="og:description" content="sbt was a real achievement. It made arbitrary Scala code in builds"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"sbt","item":"https://bleep.build/docs/compared-to-other-build-tools/sbt"}]}</script><link rel="stylesheet" href="/assets/css/styles.62c0819d.css">
-<script src="/assets/js/runtime~main.713d3eb7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.0de63af3.js" defer="defer"></script>
 <script src="/assets/js/main.b0fc1f85.js" defer="defer"></script>
 </head>
 <body>
@@ -32,7 +32,7 @@ read.</p>
 have a script edit it, paste it into an LLM and get a useful answer.
 There is no <code>project/</code> sibling to maintain.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="faster-everything">Faster everything<a href="#faster-everything" class="hash-link" aria-label="Direct link to Faster everything" title="Direct link to Faster everything" translate="no">​</a></h2>
-<table><thead><tr><th></th><th>sbt</th><th>Bleep</th></tr></thead><tbody><tr><td>Cold startup</td><td>30-90s (JVM warmup, Scala compiler load, plugins resolved &amp; compiled, build evaluated)</td><td>~0ms (native binary)</td></tr><tr><td>Incremental compile</td><td>Zinc</td><td>Zinc (same incremental engine)</td></tr><tr><td>IDE import</td><td>minutes for large projects</td><td>~1 second via BSP</td></tr><tr><td>Build re-evaluation after editing build.sbt</td><td>seconds (recompile project/)</td><td>instant (re-parse YAML)</td></tr><tr><td>Memory footprint</td><td>sbt server + JVM, often 1-2GB</td><td>native binary process, no daemon</td></tr></tbody></table>
+<table><thead><tr><th></th><th>sbt</th><th>Bleep</th></tr></thead><tbody><tr><td>Cold startup</td><td>~10-60s (JVM warmup, Scala compiler load, plugins resolved &amp; compiled, build evaluated); minutes for large or plugin-heavy builds</td><td>~0ms (native binary)</td></tr><tr><td>Incremental compile</td><td>Zinc</td><td>Zinc (same incremental engine)</td></tr><tr><td>IDE import</td><td>Tens of seconds to several minutes depending on project size</td><td>~1 second via BSP</td></tr><tr><td>Build re-evaluation after editing build.sbt</td><td>seconds (recompile project/)</td><td>instant (re-parse YAML)</td></tr><tr><td>Memory footprint</td><td>sbt server + JVM, often 1-2GB</td><td>native CLI is ~tens of MB; <code>bleep-bsp</code> daemon (used for compile/test/run) holds Zinc analysis in a separate JVM, configurable heap, shared across every bleep workspace on the machine</td></tr></tbody></table>
 <p>The Zinc compile core is identical, both tools wrap the same
 incremental compiler. What&#x27;s different is everything that wraps it:
 the launcher, the build evaluator, the plugin model, the IDE
@@ -68,7 +68,7 @@ command-line model is one-shot.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-bleep-does-that-sbt-doesnt">What bleep does that sbt doesn&#x27;t<a href="#what-bleep-does-that-sbt-doesnt" class="hash-link" aria-label="Direct link to What bleep does that sbt doesn&#x27;t" title="Direct link to What bleep does that sbt doesn&#x27;t" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>Native binary startup.</strong> ~0ms vs 30-90s.</li>
+<li class=""><strong>Native binary startup.</strong> ~0ms vs ~10-60s, longer for large or plugin-heavy builds.</li>
 <li class=""><strong>BSP-driven IDE import in ~1 second.</strong> No project/ sibling to
 re-evaluate.</li>
 <li class=""><strong>YAML build that&#x27;s safe to edit machine-side</strong>: LLMs, scripts,
@@ -77,8 +77,10 @@ IDE refactors all work without compiling project code.</li>
 macro-evaluated DSL.</li>
 <li class=""><strong>Built-in <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> from sbt and Maven.</strong> Convert an existing
 build to bleep in one command.</li>
-<li class=""><strong>First-class cross-building</strong> for Java, Kotlin, and Scala. Sbt&#x27;s
-cross-building is Scala-only.</li>
+<li class=""><strong>First-class cross-building axes</strong> for Java release, Kotlin version,
+and Scala version (plus platform). sbt&#x27;s cross-building axes are Scala
+version and platform; Java-version and Kotlin-version axes need plugins
+or <code>projectMatrix</code>.</li>
 <li class=""><strong>CI project invalidation</strong> built in (<code>bleep build invalidated --base HEAD~1</code>).</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="migrating-from-sbt">Migrating from sbt<a href="#migrating-from-sbt" class="hash-link" aria-label="Direct link to Migrating from sbt" title="Direct link to Migrating from sbt" translate="no">​</a></h2>
