@@ -2,6 +2,8 @@
 title: Spring Boot proves the model
 ---
 
+import Snippet from "@site/src/components/Snippet";
+
 # Bleep is four things, and that is the whole list.
 
 There are exactly four primitives in bleep:
@@ -42,12 +44,21 @@ Six lines of fluent Java per script, three scripts total. A 200-line
 `spring-boot-loader-tools` API. No new primitive in bleep. No build
 phase. No plugin lifecycle.
 
-The full working example is in
-[`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp):
-DuckDB-backed REST service with a repository, service, controller,
-MockMvc and service-layer tests, dev/prod/test profile properties, and
-three scripts that bind ports and JVM args explicitly. The
-[Spring Boot tutorial](/docs/tutorials/spring-boot) walks through it.
+## The wiring, in `bleep.yaml`
+
+Here is the build-side wiring for the dev-mode script (the prod and
+package scripts are entries in the same block):
+
+```yaml
+scripts:
+  run-myapp-dev:
+    main: scripts.RunMyappDev
+    project: scripts
+```
+
+That is it. No plugin block, no lifecycle binding, no order of
+activation. The [Spring Boot tutorial](/docs/tutorials/spring-boot)
+walks through the rest.
 
 ## Where Spring Boot logic actually lives
 
@@ -105,21 +116,7 @@ The text is not ceremony. Compare a typical Maven dev-mode invocation:
 
 …with the bleep equivalent:
 
-```java
-public class RunMyappDev extends BleepScript {
-  public RunMyappDev() { super("run-myapp-dev"); }
-
-  @Override
-  public void run(Started started, Commands commands, List<String> args) {
-    new SpringBootRun()
-        .withJvmArgs("-Xmx512m")
-        .withProfiles("dev")
-        .withAddResources(true)
-        .withEnvironment("APP_PORT", "9090")
-        .runOn(started, commands, "myapp");
-  }
-}
-```
+<Snippet path="docs-snippets-from-tests/spring-boot-myapp/scripts/src/java/scripts/RunMyappDev.java" lang="java" />
 
 The Java version is longer in lines, shorter in concepts. Every line is
 either a method call on a fluent API, or scaffolding the Java language
