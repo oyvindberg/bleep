@@ -58,7 +58,7 @@ object ReadSbtExportFile {
       override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): ExportedProject =
         jsOpt match {
           case Some(j) =>
-            unbuilder.beginObject(j)
+            unbuilder.beginObject(j): Unit
             val organization = unbuilder.readField[String]("organization")
             val bloopName = unbuilder.readField[String]("bloopName")
             val sbtName = unbuilder.readField[String]("sbtName")

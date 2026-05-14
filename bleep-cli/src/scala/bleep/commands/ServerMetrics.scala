@@ -324,7 +324,6 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val maxConcurrent = if (events.jvm.nonEmpty) events.jvm.map(_.get("concurrent_compiles").getAsInt).max else 0
     val maxHeap = if (events.jvm.nonEmpty) events.jvm.map(_.get("heap_used_mb").getAsLong).max else 0L
     val heapMax = if (events.jvm.nonEmpty) events.jvm.head.get("heap_max_mb").getAsLong else 0L
-    val totalBuilds = events.buildEnd.size + events.buildStart.size - events.buildEnd.size // count started builds
     val completedBuilds = events.buildEnd.size
     val avgBuildMs = if (completedBuilds > 0) events.buildEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / completedBuilds else 0.0
 

@@ -234,8 +234,6 @@ object TestRunner {
           }
 
         case Right((suiteFiber, raceOutcome)) =>
-          val durationMs = System.currentTimeMillis() - startTime
-
           // Drain any stderr from JVM before killing it
           def drainStderrToEvents: IO[Unit] =
             jvm.drainStderr

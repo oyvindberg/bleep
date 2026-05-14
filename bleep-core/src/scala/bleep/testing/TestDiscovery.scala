@@ -4,6 +4,7 @@ import bleep.bsp.BuildServer
 import bleep.model.CrossProjectName
 import ch.epfl.scala.bsp4j
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
 /** A discovered test suite ready to be executed */
@@ -42,7 +43,7 @@ object TestDiscovery {
     val params = new bsp4j.ScalaTestClassesParams(targets)
 
     val result: bsp4j.ScalaTestClassesResult =
-      server.buildTargetScalaTestClasses(params).get()
+      callScalaTestClasses(server, params)
 
     result.getItems.asScala.toList.flatMap { item =>
       val targetId = item.getTarget
@@ -88,7 +89,7 @@ object TestDiscovery {
     val params = new bsp4j.ScalaTestClassesParams(List(buildTarget).asJava)
 
     val result: bsp4j.ScalaTestClassesResult =
-      server.buildTargetScalaTestClasses(params).get()
+      callScalaTestClasses(server, params)
 
     result.getItems.asScala.toList.flatMap { item =>
       val framework = Option(item.getFramework).getOrElse("unknown")
@@ -103,6 +104,10 @@ object TestDiscovery {
       }
     }
   }
+
+  @nowarn("msg=buildTargetScalaTestClasses")
+  private def callScalaTestClasses(server: BuildServer, params: bsp4j.ScalaTestClassesParams): bsp4j.ScalaTestClassesResult =
+    server.buildTargetScalaTestClasses(params).get()
 
   /** Group discovered suites by project */
   def groupByProject(suites: List[DiscoveredSuite]): Map[CrossProjectName, List[DiscoveredSuite]] =

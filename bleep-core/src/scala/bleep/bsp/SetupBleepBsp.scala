@@ -149,7 +149,7 @@ object SetupBleepBsp {
             Try {
               Files.createDirectories(cacheFile.getParent)
               Files.writeString(cacheFile, paths.map(_.toString).mkString(java.io.File.pathSeparator))
-            }
+            }: Unit
             Right(paths)
         }
     }
@@ -177,18 +177,18 @@ object SetupBleepBsp {
               PosixFilePermission.OWNER_READ,
               PosixFilePermission.OWNER_WRITE
             )
-          )
+          ): Unit
         }
         try
-          Files.move(tmpDir, dir, StandardCopyOption.ATOMIC_MOVE)
+          Files.move(tmpDir, dir, StandardCopyOption.ATOMIC_MOVE): Unit
         catch {
           case _: AtomicMoveNotSupportedException =>
-            try Files.move(tmpDir, dir)
+            try Files.move(tmpDir, dir): Unit
             catch { case _: FileAlreadyExistsException => () }
           case _: FileAlreadyExistsException => ()
         }
       } finally
-        try Files.deleteIfExists(tmpDir)
+        try Files.deleteIfExists(tmpDir): Unit
         catch { case _: Exception => () }
     }
 

@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.internal.traverseish
 import bleep.packaging.*
 import bleep.publishing.MavenRemotePublisher
 import coursier.core.Info
@@ -105,7 +104,6 @@ object Publish {
   /** Render a dry-run report showing what would be published. */
   def renderDryRun(
       logger: ryddig.Logger,
-      projects: Array[model.CrossProjectName],
       version: String,
       target: Target,
       allArtifacts: Map[model.CrossProjectName, Map[RelPath, Array[Byte]]]
@@ -208,7 +206,7 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
           cancel = buildOpts.cancel
         )
         .run(started)
-      version <- resolveVersion(started)
+      version <- resolveVersion()
       _ <- checkAssertRelease(version)
       _ <-
         if (options.dryRun) dryRun(started, projects, version)
@@ -221,7 +219,7 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
           }
     } yield ()
 
-  private def resolveVersion(started: Started): Either[BleepException, String] =
+  private def resolveVersion(): Either[BleepException, String] =
     options.versionOverride
       .orElse(options.versionFallback.map(_.apply()))
       .toRight(new BleepException.Text("No --version specified and no git tags found for automatic versioning."): BleepException)
@@ -262,16 +260,17 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
       version: String
   ): Either[BleepException, Unit] = {
     val firstProject = started.build.explodedProjects(projects.head)
-    val publishConfig = firstProject.publish.getOrElse(
-      return Left(new BleepException.Text(s"Project ${projects.head.value} has no 'publish' config"))
-    )
-    val info = Publish.toInfo(publishConfig, None)
-
-    packageAll(started, projects, version, PublishLayout.Maven(info)).map { packagedLibraries =>
-      val allArtifacts = packagedLibraries.map { case (pName, PackagedLibrary(_, files)) =>
-        pName -> Checksums(files.all, List(Checksums.Algorithm.Md5, Checksums.Algorithm.Sha1))
-      }
-      Publish.renderDryRun(started.logger, projects, version, options.target, allArtifacts)
+    firstProject.publish match {
+      case None =>
+        Left(new BleepException.Text(s"Project ${projects.head.value} has no 'publish' config"))
+      case Some(publishConfig) =>
+        val info = Publish.toInfo(publishConfig, None)
+        packageAll(started, projects, version, PublishLayout.Maven(info)).map { packagedLibraries =>
+          val allArtifacts = packagedLibraries.map { case (pName, PackagedLibrary(_, files)) =>
+            pName -> Checksums(files.all, List(Checksums.Algorithm.Md5, Checksums.Algorithm.Sha1))
+          }
+          Publish.renderDryRun(started.logger, version, options.target, allArtifacts)
+        }
     }
   }
 
@@ -328,23 +327,25 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
     val publisher = new MavenRemotePublisher(started.logger)
 
     val firstProject = started.build.explodedProjects(projects.head)
-    val publishConfig = firstProject.publish.getOrElse(
-      return Left(new BleepException.Text(s"Project ${projects.head.value} has no 'publish' config"))
-    )
-    val info = Publish.toInfo(publishConfig, None)
+    firstProject.publish match {
+      case None =>
+        Left(new BleepException.Text(s"Project ${projects.head.value} has no 'publish' config"))
+      case Some(publishConfig) =>
+        val info = Publish.toInfo(publishConfig, None)
 
-    packageAll(started, projects, version, PublishLayout.Maven(info)).map { packagedLibraries =>
-      packagedLibraries.foreach { case (pName, PackagedLibrary(_, files)) =>
-        val artifacts =
-          if (resolved.uploadChecksums) Checksums(files.all, List(Checksums.Algorithm.Md5, Checksums.Algorithm.Sha1))
-          else files.all
-        val projectLogger = started.logger
-          .withContext("projectName", pName.value)
-          .withContext("version", version)
-          .withContext("repository", resolved.httpsUri)
-        projectLogger.info(s"Publishing ${artifacts.size} files")
-        publisher.publish(resolved.httpsUri, artifacts, resolved.authentication)
-      }
+        packageAll(started, projects, version, PublishLayout.Maven(info)).map { packagedLibraries =>
+          packagedLibraries.foreach { case (pName, PackagedLibrary(_, files)) =>
+            val artifacts =
+              if (resolved.uploadChecksums) Checksums(files.all, List(Checksums.Algorithm.Md5, Checksums.Algorithm.Sha1))
+              else files.all
+            val projectLogger = started.logger
+              .withContext("projectName", pName.value)
+              .withContext("version", version)
+              .withContext("repository", resolved.httpsUri)
+            projectLogger.info(s"Publishing ${artifacts.size} files")
+            publisher.publish(resolved.httpsUri, artifacts, resolved.authentication)
+          }
+        }
     }
   }
 }

@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.analysis.ScalaJsLinkConfig
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.TestRunnerTypes.{RunnerEvent, StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
+import bleep.bsp.TestRunnerTypes.{StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
@@ -84,7 +84,7 @@ object ScalaJsTestRunner {
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite],
       eventHandler: TestEventHandler,
-      nodeEnv: NodeEnvironment,
+      @annotation.unused nodeEnv: NodeEnvironment,
       env: Map[String, String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TestResult] =
@@ -345,7 +345,7 @@ object ScalaJsTestRunner {
 
   private def createTestRunnerScript(
       linkedJs: Path,
-      moduleKind: ScalaJsLinkConfig.ModuleKind,
+      @annotation.unused moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite]
   ): String = {
     val suiteNames = suites.map(s => s"'${s.fullyQualifiedName}'").mkString(", ")

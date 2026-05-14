@@ -6,7 +6,6 @@ import java.nio.file.Path
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 
-@scala.annotation.nowarn("cat=scala3-migration")
 case class RelPath private (segments: Array[String]) {
   def mapSegments(f: String => String): RelPath =
     RelPath(segments.map(f))

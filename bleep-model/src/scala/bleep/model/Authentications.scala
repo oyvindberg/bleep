@@ -65,9 +65,9 @@ object Authentications {
             val uri = URI.create(uriStr)
             val entryResult =
               if (PrivateRepoScheme.isPrivateScheme(uri))
-                valueJson.as[AuthEntry.PrivateRepo](privateRepoCodec).map(x => x: AuthEntry)
+                valueJson.as[AuthEntry.PrivateRepo](using privateRepoCodec).map(x => x: AuthEntry)
               else
-                valueJson.as[Authentication](authenticationCodec).map(a => AuthEntry.Static(a): AuthEntry)
+                valueJson.as[Authentication](using authenticationCodec).map(a => AuthEntry.Static(a): AuthEntry)
             entryResult.map(entry => uri -> entry)
           }
           results.foldLeft(Right(Map.empty[URI, AuthEntry]): Either[DecodingFailure, Map[URI, AuthEntry]]) { case (acc, entry) =>
@@ -88,7 +88,7 @@ object Authentications {
         }
         uri.toString -> valueJson
       }
-      Json.obj(fields: _*)
+      Json.obj(fields*)
     }
 
   implicit val codec: Codec[Authentications] =

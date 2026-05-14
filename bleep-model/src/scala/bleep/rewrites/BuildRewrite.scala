@@ -85,7 +85,7 @@ object BuildRewrite {
       val newProjects = bf.projects.map {
         // non-empty cross, as well as all represented in current project (as opposed to being all inherited)
         case (name, p) if p.cross.value.size >= 2 && patched.explodedProjectsByName(name).size == p.cross.value.size =>
-          val shared = p.cross.value.values.reduce(_ intersect _)
+          val shared = p.cross.value.values.reduce(_ `intersect` _)
           val newCross = p.cross.map { case (crossId, p) => (crossId, p.removeAll(shared)) }
           (name, p.union(shared).copy(cross = newCross))
         case unchanged => unchanged

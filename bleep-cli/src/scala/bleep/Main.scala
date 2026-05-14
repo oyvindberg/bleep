@@ -20,7 +20,7 @@ object Main {
   // Install SIGINFO handler on macOS (Ctrl+T) for thread dumps
   if (Properties.isMac) {
     try
-      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => internal.ChildProcessDiagnostics.dumpAll(System.err))
+      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => internal.ChildProcessDiagnostics.dumpAll(System.err)): Unit
     catch {
       case _: Exception => // Signal handling not available
     }
@@ -82,11 +82,11 @@ object Main {
   def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
-        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
+        .arguments(metavars.projectNameNoCross)(using argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
     val projectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
+        .arguments(metavars.projectName)(using argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenProjects)
@@ -94,27 +94,27 @@ object Main {
     /** Like projectNames but returns empty array when nothing specified, so publish commands can auto-discover publishable projects. */
     val publishProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
+        .arguments(metavars.projectName)(using argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
         .map(_.getOrElse(Array.empty))
 
     val projectNameNoCross: Opts[model.ProjectName] =
-      Opts.argument(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
+      Opts.argument(metavars.projectNameNoCross)(using argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
     val projectName: Opts[model.CrossProjectName] =
-      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
+      Opts.argument(metavars.projectNameExact)(using argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
 
     val projectNamesNoExpand: Opts[Option[List[String]]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap).map(_.map { case (s, _) => (s, s) })))
+        .arguments(metavars.projectName)(using argumentFrom(metavars.projectName, Some(started.globs.projectNameMap).map(_.map { case (s, _) => (s, s) })))
         .map(_.toList)
         .orNone
 
     /** Accepts all project names. When none given, defaults to test projects only. Non-test projects will just be compiled. */
     val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
+        .arguments(metavars.projectName)(using argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
         .map {
@@ -141,7 +141,7 @@ object Main {
 
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.hasSourceGenProject)(argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
+        .arguments(metavars.hasSourceGenProject)(using argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenHasSourceGenProjects)
@@ -405,7 +405,7 @@ object Main {
           ),
           Opts.subcommand("run", "run project or script")(
             (
-              Opts.argument[String](metavars.projectOrScriptName)(
+              Opts.argument[String](metavars.projectOrScriptName)(using
                 Argument.fromMap(
                   metavars.projectOrScriptName,
                   started.globs.exactProjectMap.map { case (k, _) => k -> k } ++
@@ -803,12 +803,14 @@ object Main {
           }
           .withDefault(commands.BuildCreateNew.Language.Scala),
         Opts
-          .options("platform", "specify wanted platform(s) (Scala only)", metavar = metavars.platformName, short = "p")(
+          .options("platform", "specify wanted platform(s) (Scala only)", metavar = metavars.platformName, short = "p")(using
             Argument.fromMap(metavars.platformName, model.PlatformId.All.map(p => (p.value, p)).toMap)
           )
           .withDefault(NonEmptyList.of(model.PlatformId.Jvm)),
         Opts
-          .options("scala", "specify scala version(s) (Scala only)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
+          .options("scala", "specify scala version(s) (Scala only)", "s", metavars.scalaVersion)(using
+            Argument.fromMap(metavars.scalaVersion, possibleScalaVersions)
+          )
           .withDefault(NonEmptyList.of(model.VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
       ).mapN { case (language, platforms, scalas, name) =>
@@ -844,7 +846,7 @@ object Main {
                 case Left(buildException) =>
                   fatal("couldn't download bleep release", logger, buildException)
                 case Right(binaryPath) if OsArch.current.os == model.Os.Windows || !isGraalvmNativeImage =>
-                  val status = scala.sys.process.Process(binaryPath.toString :: args.toList, FileUtils.cwd.toFile, sys.env.toSeq: _*).!<
+                  val status = scala.sys.process.Process(binaryPath.toString :: args.toList, FileUtils.cwd.toFile, sys.env.toSeq*).!<
                   sys.exit(status)
                 case Right(path) =>
                   Execve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
@@ -1134,7 +1136,7 @@ object Main {
             case ryddig.LogLevel.info  => target.info(msg)
             case ryddig.LogLevel.warn  => target.warn(msg)
             case ryddig.LogLevel.error => target.error(msg)
-            case _                     => target.info(msg)
+            case null                  => target.info(msg)
           }
         }
       case _ => ()

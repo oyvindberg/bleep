@@ -4,7 +4,6 @@ import bleep.model
 import bleep.packaging.ManifestCreator
 
 import java.util
-import java.util.Optional
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 

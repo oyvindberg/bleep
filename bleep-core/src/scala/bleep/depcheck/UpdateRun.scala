@@ -42,7 +42,7 @@ object UpdateRun {
       }
       .groupBy(_.withConfiguration(Configuration.empty))
       .map { case (dep, l) =>
-        dep.withConfiguration(Configuration.join(l.map(_.configuration).toSeq: _*))
+        dep.withConfiguration(Configuration.join(l.map(_.configuration).toSeq*))
       }
       .toSet
 

@@ -2,7 +2,7 @@ package bleep.scripts.dev
 
 import bleep.{model, BleepScript, Commands, Started}
 import com.monovore.decline.CliDocsWalker
-import com.monovore.decline.CliDocsWalker.{ArgumentDoc, CommandDoc, FlagDoc}
+import com.monovore.decline.CliDocsWalker.{CommandDoc, FlagDoc}
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
@@ -113,7 +113,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     sb.append("---\n\n")
     sb.append(autoGenBanner)
     sb.append(s"# `$title`\n\n")
-    sb.append(renderDescription(cmd.description)).append("\n\n")
+    sb.append(renderDescription(cmd.description)).append("\n\n"): Unit
     renderBody(cmd, sb, parentPath, headingLevel = 2)
     sb.toString
   }
@@ -129,7 +129,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     sb.append("---\n\n")
     sb.append(autoGenBanner)
     sb.append(s"# `$parentPath`\n\n")
-    sb.append(renderDescription(cmd.description)).append("\n\n")
+    sb.append(renderDescription(cmd.description)).append("\n\n"): Unit
 
     sb.append("## Synopsis\n\n")
     sb.append("```bash\n")
@@ -171,7 +171,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       sb.append("```bash\n")
       sb.append(parentPath)
       if (subPart.nonEmpty) sb.append(subPart)
-      if (argsPart.nonEmpty) sb.append(" ").append(argsPart)
+      if (argsPart.nonEmpty) sb.append(" ").append(argsPart): Unit
       if (flagsPart.nonEmpty) sb.append(flagsPart)
       sb.append("\n```\n\n")
     }
@@ -198,7 +198,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       cmd.subcommands.foreach { sub =>
         val subPath = s"$parentPath ${sub.name}"
         sb.append(s"$h `$subPath`\n\n")
-        if (sub.description.trim.nonEmpty) sb.append(renderDescription(sub.description)).append("\n\n")
+        if (sub.description.trim.nonEmpty) sb.append(renderDescription(sub.description)).append("\n\n"): Unit
         renderBody(sub, sb, subPath, headingLevel + 1)
       }
     }

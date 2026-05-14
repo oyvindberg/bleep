@@ -254,9 +254,7 @@ object ClasspathAnalyzer {
   }
 
   /** Hash a type member symbol (type alias, abstract type) */
-  private def hashTypeMemberSymbol(typeMember: tastyquery.Symbols.TypeMemberSymbol)(using
-      tastyquery.Contexts.Context
-  ): String = {
+  private def hashTypeMemberSymbol(typeMember: tastyquery.Symbols.TypeMemberSymbol): String = {
     val sb = new StringBuilder
     sb.append("type:")
     sb.append(typeMember.displayFullName)
@@ -379,7 +377,7 @@ object ClasspathAnalyzer {
           if symbols.nonEmpty && !symbols.contains(sym) then () // skip
           else {
             // Hash with rich Kotlin metadata
-            val hash = hashKotlinClassFile(classBytes, reader)
+            val hash = hashKotlinClassFile(reader)
             hashes(sym) = TypeHash(sym, hash, jarPath)
           }
         } finally is.close()
@@ -389,7 +387,7 @@ object ClasspathAnalyzer {
   }
 
   /** Extract Kotlin metadata from class bytes using ASM */
-  private def extractKotlinMetadata(classBytes: Array[Byte], reader: ClassReader): Option[kotlin.Metadata] = {
+  private def extractKotlinMetadata(reader: ClassReader): Option[kotlin.Metadata] = {
     var kind: Int = 0
     var metadataVersion: Array[Int] = Array.empty
     var data1: Array[String] = Array.empty
@@ -446,13 +444,13 @@ object ClasspathAnalyzer {
   }
 
   /** Hash a Kotlin class file - uses kotlin-metadata-jvm for rich type information */
-  private def hashKotlinClassFile(classBytes: Array[Byte], reader: ClassReader): String = {
+  private def hashKotlinClassFile(reader: ClassReader): String = {
     val sb = new StringBuilder
     sb.append("kotlin-class:")
     sb.append(reader.getClassName)
 
     // Try to extract and parse rich Kotlin metadata
-    extractKotlinMetadata(classBytes, reader) match {
+    extractKotlinMetadata(reader) match {
       case Some(metadata) =>
         try {
           val kcm = KotlinClassMetadata.Companion.readLenient(metadata)

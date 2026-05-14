@@ -38,9 +38,9 @@ object BspBuildData {
 
     // Map encoder/decoder for CrossProjectName keys
     private implicit val mapEncoder: Encoder[Map[model.CrossProjectName, List[Path]]] =
-      Encoder.encodeMap[model.CrossProjectName, List[Path]](model.CrossProjectName.keyEncodes, Encoder.encodeList[Path])
+      Encoder.encodeMap[model.CrossProjectName, List[Path]](using model.CrossProjectName.keyEncodes, Encoder.encodeList[Path])
     private implicit val mapDecoder: Decoder[Map[model.CrossProjectName, List[Path]]] =
-      Decoder.decodeMap[model.CrossProjectName, List[Path]](model.CrossProjectName.keyDecodes, Decoder.decodeList[Path])
+      Decoder.decodeMap[model.CrossProjectName, List[Path]](using model.CrossProjectName.keyDecodes, Decoder.decodeList[Path])
 
     implicit val encoder: Encoder[Payload] = deriveEncoder
     implicit val decoder: Decoder[Payload] = deriveDecoder

@@ -37,7 +37,7 @@ object BspServerOperations {
       val prevOutputFile = socketDir.resolve("output.prev")
       Files.deleteIfExists(prevOutputFile)
       if (Files.exists(outputFile)) {
-        Files.move(outputFile, prevOutputFile)
+        Files.move(outputFile, prevOutputFile): Unit
       }
 
       val command = buildServerCommand(config)
@@ -289,13 +289,13 @@ object BspServerOperations {
   /** Send shutdown signal to process */
   private def sendShutdownSignal(pid: Long): IO[Unit] = IO.blocking {
     ProcessHandle.of(pid).ifPresent { handle =>
-      handle.destroy() // SIGTERM on Unix
+      handle.destroy(): Unit // SIGTERM on Unix
     }
   }
 
   /** Force kill a process */
   def forceKill(pid: Long): IO[Unit] = IO.blocking {
-    ProcessHandle.of(pid).ifPresent(_.destroyForcibly())
+    ProcessHandle.of(pid).ifPresent { h => h.destroyForcibly(); () }
   }
 
   /** Wait for a process to exit */
@@ -352,7 +352,7 @@ object BspServerOperations {
       Files.createDirectories(dir)
       // Set restrictive permissions on Unix
       try
-        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString("rwx------"))
+        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString("rwx------")): Unit
       catch {
         case _: UnsupportedOperationException => () // Windows
       }
@@ -395,8 +395,8 @@ object BspServerOperations {
             // If it still hasn't exited after 5s, try killing descendants too
             IO.blocking {
               ProcessHandle.of(pid).ifPresent { handle =>
-                handle.descendants().forEach(_.destroyForcibly())
-                handle.destroyForcibly()
+                handle.descendants().forEach { h => h.destroyForcibly(); () }
+                handle.destroyForcibly(): Unit
               }
             } >> IO.sleep(500.millis)
           } >>

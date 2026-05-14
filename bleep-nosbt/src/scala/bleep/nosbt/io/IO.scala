@@ -60,8 +60,8 @@ object IO {
   def relativize(base: File, file: File): Option[String] = {
     val basePath = (if (base.isAbsolute) base else base.getCanonicalFile).toPath
     val filePath = (if (file.isAbsolute) file else file.getCanonicalFile).toPath
-    if ((filePath startsWith basePath) || (filePath.normalize() startsWith basePath.normalize())) {
-      val relativePath = catching(classOf[IllegalArgumentException]) opt (basePath relativize filePath)
+    if ((filePath `startsWith` basePath) || (filePath.normalize() `startsWith` basePath.normalize())) {
+      val relativePath = catching(classOf[IllegalArgumentException]) opt (basePath `relativize` filePath)
       relativePath map (_.toString)
     } else None
   }

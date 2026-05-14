@@ -90,17 +90,17 @@ case class Project(
       resources = resources.union(other.resources),
       dependencies = dependencies.union(other.dependencies),
       jars = jars.union(other.jars),
-      java = List(java, other.java).flatten.reduceOption(_ union _),
-      scala = List(scala, other.scala).flatten.reduceOption(_ union _),
-      kotlin = List(kotlin, other.kotlin).flatten.reduceOption(_ union _),
+      java = List(java, other.java).flatten.reduceOption(_ `union` _),
+      scala = List(scala, other.scala).flatten.reduceOption(_ `union` _),
+      kotlin = List(kotlin, other.kotlin).flatten.reduceOption(_ `union` _),
       // may throw
-      platform = List(platform, other.platform).flatten.reduceOption(_ union _),
+      platform = List(platform, other.platform).flatten.reduceOption(_ `union` _),
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
       sourcegen = sourcegen.union(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
-      publish = List(publish, other.publish).flatten.reduceOption(_ union _)
+      publish = List(publish, other.publish).flatten.reduceOption(_ `union` _)
     )
 
   override def isEmpty: Boolean = this match {

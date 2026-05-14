@@ -248,7 +248,7 @@ object SuiteScheduler {
   /** Result of a tick */
   case class TickResult(
       state: SuiteSchedulerState,
-      actions: List[SchedulerAction[_]]
+      actions: List[SchedulerAction[?]]
   )
 
   /** Apply a single event to the state */
@@ -360,8 +360,8 @@ object SuiteScheduler {
   /** Timeout for getting thread dump before giving up */
   private val ThreadDumpTimeoutMs = 5000L
 
-  private def checkTimeouts(state: SuiteSchedulerState, nowMs: Long): (SuiteSchedulerState, List[SchedulerAction[_]]) = {
-    var actions = List.empty[SchedulerAction[_]]
+  private def checkTimeouts(state: SuiteSchedulerState, nowMs: Long): (SuiteSchedulerState, List[SchedulerAction[?]]) = {
+    var actions = List.empty[SchedulerAction[?]]
     var updatedJvms = state.jvms
 
     state.jvms.foreach { case (jvmId, jvmState) =>
@@ -403,10 +403,10 @@ object SuiteScheduler {
     (state.copy(jvms = updatedJvms), actions)
   }
 
-  private def scheduleWork(state: SuiteSchedulerState, nowMs: Long): (SuiteSchedulerState, List[SchedulerAction[_]]) = {
+  private def scheduleWork(state: SuiteSchedulerState, nowMs: Long): (SuiteSchedulerState, List[SchedulerAction[?]]) = {
     if (!state.canScheduleWork) return (state, Nil)
 
-    var actions = List.empty[SchedulerAction[_]]
+    var actions = List.empty[SchedulerAction[?]]
     var updatedJvms = state.jvms
     var remainingQueue = state.pendingSuites
     var slotsUsed = 0

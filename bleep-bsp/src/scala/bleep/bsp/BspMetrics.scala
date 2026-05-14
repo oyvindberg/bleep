@@ -14,9 +14,9 @@ import scala.jdk.CollectionConverters._
   */
 object BspMetrics {
 
-  @volatile private var writer: BufferedWriter = _
-  @volatile private var samplerThread: Thread = _
-  @volatile private var metricsPath: Path = _
+  @volatile private var writer: BufferedWriter = scala.compiletime.uninitialized
+  @volatile private var samplerThread: Thread = scala.compiletime.uninitialized
+  @volatile private var metricsPath: Path = scala.compiletime.uninitialized
 
   // High watermarks
   private val maxConcurrentCompiles = AtomicInteger(0)
@@ -187,7 +187,7 @@ object BspMetrics {
     val (cpuProcess, cpuSystem) =
       try {
         val osBean = ManagementFactory.getOperatingSystemMXBean.asInstanceOf[com.sun.management.OperatingSystemMXBean]
-        (osBean.getProcessCpuLoad, osBean.getSystemCpuLoad)
+        (osBean.getProcessCpuLoad, osBean.getCpuLoad)
       } catch {
         case _: ClassCastException => (-1.0, -1.0)
       }
@@ -268,7 +268,7 @@ object BspMetrics {
     try
       if (Files.exists(metricsPath) && Files.size(metricsPath) > MaxMetricsFileBytes) {
         val prev = metricsPath.resolveSibling("metrics.prev.jsonl")
-        Files.move(metricsPath, prev, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        Files.move(metricsPath, prev, java.nio.file.StandardCopyOption.REPLACE_EXISTING): Unit
       }
     catch { case _: Exception => () }
 

@@ -256,12 +256,11 @@ object LinkExecutor {
     if (isUpToDate(binaryPath, classpath, logger)) {
       IO.pure((TaskResult.Success, LinkResult.NativeSuccess(binaryPath, wasUpToDate = true)))
     } else {
-      doScalaNativeLink(projectName, platform, classpath, mainClass, binaryPath, outputDir, logger, killSignal)
+      doScalaNativeLink(platform, classpath, mainClass, binaryPath, outputDir, logger, killSignal)
     }
   }
 
   private def doScalaNativeLink(
-      projectName: String,
       platform: LinkPlatform.ScalaNative,
       classpath: Seq[Path],
       mainClass: String,
@@ -322,12 +321,11 @@ object LinkExecutor {
 
     checkJsUpToDate(jsOutputDir, classpath, logger) match {
       case Some(cached) => IO.pure(cached)
-      case None         => doKotlinJsLink(projectName, platform, classpath, jsOutputDir, moduleName, logger, killSignal)
+      case None         => doKotlinJsLink(platform, classpath, jsOutputDir, moduleName, logger, killSignal)
     }
   }
 
   private def doKotlinJsLink(
-      projectName: String,
       platform: LinkPlatform.KotlinJs,
       classpath: Seq[Path],
       jsOutputDir: Path,
@@ -443,7 +441,7 @@ object LinkExecutor {
         // Up-to-date - return cached result
         IO.blocking {
           if (!Files.isExecutable(existingPath)) {
-            existingPath.toFile.setExecutable(true)
+            existingPath.toFile.setExecutable(true): Unit
           }
           (TaskResult.Success, LinkResult.NativeSuccess(existingPath, wasUpToDate = true))
         }
@@ -573,7 +571,7 @@ object LinkExecutor {
               .map { result =>
                 if (result.isSuccess) {
                   if (!Files.isExecutable(binaryPath)) {
-                    binaryPath.toFile.setExecutable(true)
+                    binaryPath.toFile.setExecutable(true): Unit
                   }
                   (TaskResult.Success, LinkResult.NativeSuccess(binaryPath, wasUpToDate = false))
                 } else {

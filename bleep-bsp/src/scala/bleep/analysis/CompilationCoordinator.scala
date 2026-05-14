@@ -262,7 +262,7 @@ class CompilationCoordinator(
       case Right(deferred) =>
         // We're responsible for compiling
         // Use guaranteeCase to ensure deferred is completed even on error/cancellation
-        doCompile(key, sources, classpath, outputDir, config)
+        doCompile(sources, classpath, outputDir, config)
           .guaranteeCase {
             case cats.effect.Outcome.Succeeded(fa) =>
               fa.flatMap(result => inProcessState.complete(key, result))
@@ -283,7 +283,6 @@ class CompilationCoordinator(
     }
 
   private def doCompile(
-      key: CompileKey,
       sources: Map[Path, String],
       classpath: Seq[Path],
       outputDir: Path,

@@ -3,7 +3,7 @@ package bleep
 import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
 import bleep.internal.FileUtils
-import coursier.cache.{CacheDefaults, FileCache}
+import coursier.cache.CacheDefaults
 import coursier.core.*
 import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
@@ -150,10 +150,10 @@ object CoursierResolver {
 
     // break circular structure
     private implicit lazy val encoderMap: Encoder[Map[String, Artifact]] =
-      Encoder.instance(a => Encoder.encodeMap(KeyEncoder.encodeKeyString, codecArtifact).apply(a))
+      Encoder.instance(a => Encoder.encodeMap(using KeyEncoder.encodeKeyString, codecArtifact).apply(a))
 
     private implicit lazy val decoderMap: Decoder[Map[String, Artifact]] =
-      Decoder.instance(c => Decoder.decodeMap(KeyDecoder.decodeKeyString, codecArtifact).apply(c))
+      Decoder.instance(c => Decoder.decodeMap(using KeyDecoder.decodeKeyString, codecArtifact).apply(c))
 
     implicit lazy val codecArtifact: Codec[Artifact] =
       Codec.forProduct6[Artifact, String, Map[String, String], Map[String, Artifact], Boolean, Boolean, Option[Authentication]]("url", "checksumUrls", "extra", "changing", "optional", "authentication")(Artifact.apply)(x => (x.url, x.checksumUrls, x.extra, x.changing, x.optional, x.authentication))
@@ -280,7 +280,7 @@ object CoursierResolver {
           .withDependencies(deps)
           .withResolutionParams(resolutionParams)
           .withMainArtifacts(true)
-          .addClassifiers(newClassifiers: _*)
+          .addClassifiers(newClassifiers*)
           .eitherResult() match {
           case Left(coursierError) if remainingAttempts > 0 =>
             val newRemainingAttempts = remainingAttempts - 1

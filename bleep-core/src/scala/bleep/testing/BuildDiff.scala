@@ -249,7 +249,6 @@ object BuildDiff {
   def formatCompileSummary(
       totalProjects: Int,
       totalErrors: Int,
-      totalWarnings: Int,
       newErrors: Int,
       fixedErrors: Int
   ): String =

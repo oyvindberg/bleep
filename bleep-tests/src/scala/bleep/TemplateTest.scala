@@ -67,7 +67,7 @@ class TemplateTest extends SnapshotTest {
     val content = Files.readString(path)
 
     implicit val foo: Decoder[model.Project] =
-      model.Project.decodes(model.TemplateId.decoder(Nil), Decoder[String].map(model.ProjectName.apply))
+      model.Project.decodes(using model.TemplateId.decoder(Nil), Decoder[String].map(model.ProjectName.apply))
 
     val Right(projects) = io.circe.parser.decode[Map[model.CrossProjectName, model.Project]](content): @unchecked
     run(projects, "bug.yaml", ignoreWhenInferringTemplates = Set(b.name))

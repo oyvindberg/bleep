@@ -102,7 +102,7 @@ case class ConfigAuthSetup(logger: Logger, userPaths: UserPaths) extends BleepCo
         out = cli.Out.ViaLogger(logger),
         in = cli.In.No,
         env = pathEnv
-      )
+      ): Unit
       logger.info("GitHub CLI is authenticated. No additional bleep configuration needed.")
       logger.info("Just add github://owner/repo to your bleep.yaml resolvers.")
       Right(())
@@ -126,7 +126,7 @@ case class ConfigAuthSetup(logger: Logger, userPaths: UserPaths) extends BleepCo
         out = cli.Out.ViaLogger(logger),
         in = cli.In.No,
         env = pathEnv
-      )
+      ): Unit
       logger.info("GitLab CLI is authenticated. No additional bleep configuration needed.")
       logger.info("Just add gitlab://host/path to your bleep.yaml resolvers.")
       Right(())
@@ -146,5 +146,5 @@ case class ConfigAuthSetup(logger: Logger, userPaths: UserPaths) extends BleepCo
         val updated = existing.copy(configs = existing.configs + (uri -> entry))
         config.copy(authentications = Some(updated))
       }
-      .orThrow
+      .orThrow: Unit
 }

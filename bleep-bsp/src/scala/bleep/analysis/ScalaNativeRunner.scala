@@ -99,7 +99,7 @@ object ScalaNativeRunner {
         PosixFilePermission.GROUP_EXECUTE,
         PosixFilePermission.OTHERS_EXECUTE
       )
-      Files.setPosixFilePermissions(binary, newPerms.asJava)
+      Files.setPosixFilePermissions(binary, newPerms.asJava): Unit
     }
   }
 

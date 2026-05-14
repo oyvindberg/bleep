@@ -283,44 +283,42 @@ object ClasspathTestDiscovery {
 
     clazz.flatMap { cls =>
       // Skip abstract classes and interfaces
-      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) {
-        return None
-      }
+      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
+      else
+        fingerprints.find { case (_, fp) =>
+          fp match {
+            case sfp: SubclassFingerprint =>
+              val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(cls)
+              hasConstructor && Try {
+                val superclass = classLoader.loadClass(sfp.superclassName())
+                if (sfp.isModule) {
+                  // Check if it's a Scala object
+                  val moduleName = className + "$"
+                  Try(classLoader.loadClass(moduleName))
+                    .map(m => superclass.isAssignableFrom(m))
+                    .getOrElse(false)
+                } else {
+                  superclass.isAssignableFrom(cls)
+                }
+              }.getOrElse(false)
 
-      fingerprints.find { case (_, fp) =>
-        fp match {
-          case sfp: SubclassFingerprint =>
-            val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(cls)
-            hasConstructor && Try {
-              val superclass = classLoader.loadClass(sfp.superclassName())
-              if (sfp.isModule) {
-                // Check if it's a Scala object
-                val moduleName = className + "$"
-                Try(classLoader.loadClass(moduleName))
-                  .map(m => superclass.isAssignableFrom(m))
-                  .getOrElse(false)
-              } else {
-                superclass.isAssignableFrom(cls)
+            case afp: AnnotatedFingerprint =>
+              val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
+              annotationClass.exists { annClass =>
+                if (afp.isModule) {
+                  val moduleName = className + "$"
+                  Try(classLoader.loadClass(moduleName))
+                    .map(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
+                    .getOrElse(false)
+                } else {
+                  cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
+                }
               }
-            }.getOrElse(false)
 
-          case afp: AnnotatedFingerprint =>
-            val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
-            annotationClass.exists { annClass =>
-              if (afp.isModule) {
-                val moduleName = className + "$"
-                Try(classLoader.loadClass(moduleName))
-                  .map(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
-                  .getOrElse(false)
-              } else {
-                cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
-              }
-            }
-
-          case _ =>
-            false
+            case _ =>
+              false
+          }
         }
-      }
     }
   }
 
@@ -390,25 +388,24 @@ object ClasspathTestDiscovery {
   ): Option[String] =
     Try(classLoader.loadClass(className)).toOption.flatMap { cls =>
       // Skip abstract classes and interfaces
-      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) {
-        return None
-      }
+      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
+      else {
+        // Check for class-level @Test annotation (TestNG style)
+        val classLevelAnnotation = findTestAnnotation(cls.getAnnotations, classLoader)
 
-      // Check for class-level @Test annotation (TestNG style)
-      val classLevelAnnotation = findTestAnnotation(cls.getAnnotations, classLoader)
+        // Check for method-level test annotations
+        val methodLevelAnnotation = cls.getDeclaredMethods.flatMap { method =>
+          findTestAnnotation(method.getAnnotations, classLoader)
+        }.headOption
 
-      // Check for method-level test annotations
-      val methodLevelAnnotation = cls.getDeclaredMethods.flatMap { method =>
-        findTestAnnotation(method.getAnnotations, classLoader)
-      }.headOption
-
-      // Determine framework from annotation
-      (classLevelAnnotation orElse methodLevelAnnotation).map {
-        case ann if ann.contains("jupiter") => "JUnit Jupiter"
-        case ann if ann.contains("junit")   => "JUnit"
-        case ann if ann.contains("testng")  => "TestNG"
-        case ann if ann.contains("kotlin")  => "kotlin.test"
-        case _                              => "JUnit" // Default
+        // Determine framework from annotation
+        (classLevelAnnotation orElse methodLevelAnnotation).map {
+          case ann if ann.contains("jupiter") => "JUnit Jupiter"
+          case ann if ann.contains("junit")   => "JUnit"
+          case ann if ann.contains("testng")  => "TestNG"
+          case ann if ann.contains("kotlin")  => "kotlin.test"
+          case _                              => "JUnit" // Default
+        }
       }
     }
 
@@ -475,23 +472,22 @@ object ClasspathTestDiscovery {
   ): Option[String] =
     Try(classLoader.loadClass(className)).toOption.flatMap { cls =>
       // Skip abstract classes and interfaces
-      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) {
-        return None
-      }
+      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
+      else {
+        // Also check module class for Scala objects
+        val classesToCheck = List(
+          Some(cls),
+          Try(classLoader.loadClass(className + "$")).toOption
+        ).flatten
 
-      // Also check module class for Scala objects
-      val classesToCheck = List(
-        Some(cls),
-        Try(classLoader.loadClass(className + "$")).toOption
-      ).flatten
-
-      testBaseClasses.collectFirst {
-        case (framework, baseClasses) if baseClasses.exists { baseName =>
-              Try(classLoader.loadClass(baseName)).toOption.exists { baseClass =>
-                classesToCheck.exists(baseClass.isAssignableFrom)
-              }
-            } =>
-          framework
+        testBaseClasses.collectFirst {
+          case (framework, baseClasses) if baseClasses.exists { baseName =>
+                Try(classLoader.loadClass(baseName)).toOption.exists { baseClass =>
+                  classesToCheck.exists(baseClass.isAssignableFrom)
+                }
+              } =>
+            framework
+        }
       }
     }
 

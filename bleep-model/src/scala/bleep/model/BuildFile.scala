@@ -28,10 +28,10 @@ object BuildFile {
         templateIdDecoder = TemplateId.decoder(templateIds)
         projectNames <- c.downField("projects").as[Option[JsonObject]].map(_.fold(Iterable.empty[ProjectName])(_.keys.map(ProjectName.apply)))
         projectNameDecoder = ProjectName.decoder(projectNames)
-        projectDecoder = Project.decodes(templateIdDecoder, projectNameDecoder)
+        projectDecoder = Project.decodes(using templateIdDecoder, projectNameDecoder)
 
-        templates <- c.downField("templates").as[JsonMap[TemplateId, Project]](JsonMap.decodes(TemplateId.keyDecodes, projectDecoder))
-        projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](JsonMap.decodes(ProjectName.keyDecodes, projectDecoder))
+        templates <- c.downField("templates").as[JsonMap[TemplateId, Project]](using JsonMap.decodes(using TemplateId.keyDecodes, projectDecoder))
+        projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](using JsonMap.decodes(using ProjectName.keyDecodes, projectDecoder))
         scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
         resolvers <- c.downField("resolvers").as[JsonList[Repository]]
         jvm <- c.downField("jvm").as[Option[Jvm]]

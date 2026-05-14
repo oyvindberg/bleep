@@ -7,7 +7,6 @@ import bleep.plugin.cirelease.CiReleasePlugin
 import bleep.plugin.dynver.DynVerPlugin
 import bleep.plugin.pgp.PgpPlugin
 import bleep.plugin.sonatype.Sonatype
-import coursier.core.Info
 
 import scala.collection.immutable.SortedMap
 

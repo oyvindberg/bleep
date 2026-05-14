@@ -92,10 +92,10 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
         Opts.subcommand("cmd2", "")(
           (
             Opts
-              .options("platform", platformHelp, metavar = platformMetavar, short = "p")(Argument.fromMap(platformMetavar, platforms))
+              .options("platform", platformHelp, metavar = platformMetavar, short = "p")(using Argument.fromMap(platformMetavar, platforms))
               .withDefault(NonEmptyList.of("jvm")),
             Opts
-              .options("foo", fooHelp, metavar = fooMetavar, short = "f")(Argument.fromMap(fooMetavar, foos))
+              .options("foo", fooHelp, metavar = fooMetavar, short = "f")(using Argument.fromMap(fooMetavar, foos))
               .withDefault(NonEmptyList.of("one")),
             Opts.argument[String]("bar")
           ).mapN((_, _, _) => ())

@@ -24,7 +24,7 @@ object EnvironmentVars {
   val empty: EnvironmentVars = EnvironmentVars(SortedMap.empty)
 
   implicit val decodes: Decoder[EnvironmentVars] =
-    Decoder.decodeOption(Decoder.decodeMap[String, String].map(m => EnvironmentVars(SortedMap.from(m)))).map(_.getOrElse(empty))
+    Decoder.decodeOption(using Decoder.decodeMap[String, String].map(m => EnvironmentVars(SortedMap.from(m)))).map(_.getOrElse(empty))
 
   implicit val encodes: Encoder[EnvironmentVars] =
     Encoder.encodeMap[String, String].contramap(_.value)

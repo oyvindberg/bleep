@@ -16,7 +16,7 @@ object GenBloopFiles {
   def encodedFiles(buildPaths: BuildPaths, resolved: ResolveProjects.Projects): Map[Path, String] =
     resolved.map { case (projectName, lazyResolved) =>
       val bloopFile = BloopConversions.toBloopConfig(lazyResolved.forceGet)
-      val string = writeToString(bloopFile, WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
+      val string = writeToString(bloopFile, WriterConfig.withIndentionStep(2))(using ConfigCodecs.codecFile)
       val file = buildPaths.bloopFile(projectName)
       (file, string)
     }

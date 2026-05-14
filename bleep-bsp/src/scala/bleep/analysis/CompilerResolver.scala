@@ -880,7 +880,7 @@ object CompilerResolver {
           s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz"
         val conn = java.net.URI.create(url).toURL.openConnection()
         val in = conn.getInputStream
-        try Files.copy(in, tarGz)
+        try Files.copy(in, tarGz): Unit
         finally in.close()
       }
       // Extract

@@ -631,7 +631,6 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
           ScalaNativeTestRunner.TestFramework.MUnit,
           handler,
           Map.empty,
-          tempDir,
           snVersion,
           killSignal
         )

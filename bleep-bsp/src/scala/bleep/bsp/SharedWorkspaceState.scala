@@ -28,7 +28,7 @@ object SharedWorkspaceState {
   /** Register an operation. Always succeeds — multiple operations can be active per workspace. */
   def register(workspace: Path, work: ActiveWork): Unit = {
     val ops = activeWork.computeIfAbsent(workspace, _ => new ConcurrentHashMap[String, ActiveWork]())
-    ops.put(work.operationId, work)
+    ops.put(work.operationId, work): Unit
   }
 
   /** Unregister a specific operation by ID. */
@@ -37,7 +37,7 @@ object SharedWorkspaceState {
     if (ops != null) {
       ops.remove(operationId)
       // Clean up empty inner maps to avoid memory leak
-      if (ops.isEmpty) activeWork.remove(workspace, ops)
+      if (ops.isEmpty) activeWork.remove(workspace, ops): Unit
     }
   }
 
@@ -46,7 +46,7 @@ object SharedWorkspaceState {
     val ops = activeWork.get(workspace)
     if (ops != null) {
       operationIds.foreach(ops.remove)
-      if (ops.isEmpty) activeWork.remove(workspace, ops)
+      if (ops.isEmpty) activeWork.remove(workspace, ops): Unit
     }
   }
 

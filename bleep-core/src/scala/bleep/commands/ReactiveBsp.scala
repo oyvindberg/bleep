@@ -164,7 +164,7 @@ case class ReactiveBsp(
 
     try {
       val summary = program.unsafeRunSync()
-      resultFromSummary(started, summary)
+      resultFromSummary(summary)
     } catch {
       case ex: Exception =>
         Left(new BleepException.Cause(ex, "Build failed"))
@@ -412,7 +412,7 @@ case class ReactiveBsp(
     try {
       val summary = program.unsafeRunSync()
       summaryOpt = Some(summary)
-      resultFromSummary(started, summary)
+      resultFromSummary(summary)
     } catch {
       case ex: Exception =>
         errorOpt = Some(ex)
@@ -617,7 +617,7 @@ case class ReactiveBsp(
     }
 
   /** Convert build summary to result. Shared by runWithBleepBsp and runInProcess. */
-  private def resultFromSummary(started: Started, summary: BuildSummary): Either[BleepException, Unit] =
+  private def resultFromSummary(summary: BuildSummary): Either[BleepException, Unit] =
     summary.toEither
 
   /** Build target identifier for a project */
