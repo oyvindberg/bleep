@@ -32,15 +32,12 @@ object BleepDevDeps {
     "bleep-model" -> cpn("bleep-model"),
     "bleep-nosbt" -> cpn("bleep-nosbt"),
     "bleep-bsp-protocol" -> cpn("bleep-bsp-protocol"),
-    "bleep-plugin-ci-release" -> cpn("bleep-plugin-ci-release"),
     "bleep-plugin-dynver" -> cpn("bleep-plugin-dynver"),
     "bleep-plugin-git-versioning" -> cpn("bleep-plugin-git-versioning"),
     "bleep-plugin-jni" -> cpn("bleep-plugin-jni"),
     "bleep-plugin-mdoc" -> cpn("bleep-plugin-mdoc"),
     "bleep-plugin-native-image" -> cpn("bleep-plugin-native-image"),
-    "bleep-plugin-pgp" -> cpn("bleep-plugin-pgp"),
     "bleep-plugin-scalafix" -> cpn("bleep-plugin-scalafix"),
-    "bleep-plugin-sonatype" -> cpn("bleep-plugin-sonatype"),
     "bleep-test-runner" -> cpn("bleep-test-runner")
   )
 
@@ -54,25 +51,13 @@ object BleepDevDeps {
     "bleep-model" -> Set.empty,
     "bleep-nosbt" -> Set.empty,
     "bleep-bsp-protocol" -> Set("bleep-model"),
-    "bleep-core" -> Set("bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-dynver" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-git-versioning" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-jni" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-mdoc" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-native-image" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-pgp" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-scalafix" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-sonatype" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-test-runner"),
-    "bleep-plugin-ci-release" -> Set(
-      "bleep-plugin-dynver",
-      "bleep-plugin-pgp",
-      "bleep-plugin-sonatype",
-      "bleep-core",
-      "bleep-model",
-      "bleep-nosbt",
-      "bleep-bsp-protocol",
-      "bleep-test-runner"
-    ),
+    "bleep-core" -> Set("bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-plugin-dynver" -> Set.empty,
+    "bleep-plugin-git-versioning" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-plugin-jni" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-plugin-mdoc" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-plugin-native-image" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-plugin-scalafix" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
     "bleep-test-runner" -> Set.empty
   )
 
