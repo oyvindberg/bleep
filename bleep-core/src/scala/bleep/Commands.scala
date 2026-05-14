@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.commands.{Publish, PublishLocal}
+import bleep.commands.{Publish, PublishLocal, PublishSonatype}
 import cats.data.NonEmptyList
 
 class Commands(started: Started) {
@@ -58,4 +58,7 @@ class Commands(started: Started) {
 
   def publish(options: Publish.Options, watch: Boolean = false): Unit =
     force(commands.Publish(watch, options, noTuiBuildOpts))
+
+  def publishSonatype(options: PublishSonatype.Options): Unit =
+    force(commands.PublishSonatype(options, noTuiBuildOpts))
 }

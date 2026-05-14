@@ -11,6 +11,10 @@ object constants {
     URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)
 
   val ivy2Path = Path.of(ivyLocalUri)
+
+  /** The local Maven repository: {@code $HOME/.m2/repository}. */
+  val m2Path: Path = Path.of(System.getProperty("user.home"), ".m2", "repository")
+
   val DefaultRepos = List(
     model.Repository.Ivy(None, ivyLocalUri),
     model.Repository.Maven(None, URI.create(Repositories.central.root))

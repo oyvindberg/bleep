@@ -2,68 +2,129 @@ import Snippet from '@site/src/components/Snippet';
 
 # Write Your First Script (Java)
 
-This page walks through the Java flow for adding a script to your
-build. For *what* a script is, why bleep models scripts as a core
-concept, and when to choose a script over a [source generation
-script](/docs/concepts/sourcegen), see
-[Scripts and source generation](/docs/concepts/scripts).
+By the end of this page you will have written a bleep script that:
+
+1. compiles a Java library,
+2. packages it into a publishable JAR (plus sources, javadoc, POM),
+3. runs ProGuard over the main JAR to shrink dead code, and
+4. publishes the optimized library to your local Maven repo.
+
+That's a small, real release pipeline you can wrap your head around
+in 100 lines of Java.
+
+Why it's a good first example: the same task in Maven or Gradle is
+what you'd reach for a plugin for. Here it's a regular Java class.
+The ProGuard step lives in its own file (`Proguard.java`) that the
+script calls. That file is shareable: copy it into another project,
+point a second build's `sources:` at it, or publish it to Maven.
+Same shape either way.
+
+For *what* a script is, why bleep models scripts as a core concept,
+and when to choose a script over a [source generation
+script](/docs/concepts/sourcegen), see [Scripts and source
+generation](/docs/concepts/scripts).
 
 > **Other languages:**
 > [Kotlin →](/docs/tutorials/your-first-script-kotlin) ·
 > [Scala →](/docs/tutorials/your-first-script-scala)
 
-## Prerequisites
+## Step 1: The build
 
-- A working bleep project (see [Your First Project](/docs/tutorials/your-first-project))
-- Java 17+
+Two projects: a library to publish (`mylib`) and the scripts project
+that hosts our publish logic. The scripts project depends on
+`bleepscript` for the build API and on `io.get-coursier:interface` to
+fetch ProGuard at runtime.
 
-## Step 1: Add a scripts project
-
-Add a `scripts` project to your `bleep.yaml`. The scripts project
-depends on `bleepscript` and is registered under the top-level
-`scripts:` section.
-
-<Snippet path="docs-snippets-from-tests/first-script-java/bleep.yaml" lang="yaml" />
+<Snippet path="docs-snippets-from-tests/proguard-publish-java/bleep.yaml" lang="yaml" />
 
 Key points:
 
 - `${BLEEP_VERSION}` is interpolated by bleep to your installed
-  version, so you don't have to keep the script project's dependency
-  in sync by hand.
-- The top-level `scripts:` section maps a CLI name (`hello`) to a
-  fully qualified class name (`scripts.HelloScript`) plus the project
-  that contains it.
-- `sources: ./src/main/java` keeps the conventional Maven-style
-  layout for Java code.
+  version, so the script project's dependency stays in sync with the
+  bleep CLI you're running.
+- `mylib` has a `publish:` block. Any project with a `groupId` under
+  `publish:` is publishable; the script will read that as the
+  fallback when no explicit groupId is passed.
+- The top-level `scripts:` section maps a CLI name (`proguard-publish`)
+  to a fully qualified class name (`scripts.ProguardPublish`) plus the
+  project that contains it.
 
-## Step 2: Write the script
+## Step 2: A tiny library to publish
 
-Extend `bleepscript.BleepScript` and implement `run`:
+Any Java class will do. Put it under `mylib/src/java/...`.
 
-<Snippet path="docs-snippets-from-tests/first-script-java/HelloScript.java" lang="java" />
+<Snippet path="docs-snippets-from-tests/proguard-publish-java/MyLib.java" lang="java" />
 
-`BleepScript` provides the `main` method via reflection, so you don't
-need any explicit `public static void main` boilerplate. Just extend,
-pass a name to the super constructor, and override `run`.
+## Step 3: A reusable ProGuard helper
 
-## Step 3: Run it
+Before the script, the actual ProGuard logic lives in a separate
+class. It takes JAR bytes, returns shrunk JAR bytes — nothing in it
+is specific to this build:
+
+<Snippet path="docs-snippets-from-tests/proguard-publish-java/Proguard.java" lang="java" />
+
+This is what a "plugin" looks like when you don't have a plugin API
+— a regular class with a regular method. You can copy this file into
+any other bleep project, share it via a source dependency (point
+another build's `sources:` field at the same directory), or publish
+it to Maven as `com.example::my-proguard:1.0` and depend on it from
+the `scripts` project. No registration, no `requires` graph, no
+lifecycle hooks — same as any other Java class.
+
+`Coursier.fetchClasspath` and `Cli.command` come from the
+`bleepscript` API: ProGuard is fetched through the build's
+configured resolver (same cache, same credentials as `bleep compile`
+uses), and the JVM fork goes through bleep's logger-aware process
+wrapper. `started.resolvedJvm().javaBin()` is the JVM bleep chose
+for this build, so the child process inherits the right JDK.
+
+## Step 4: The script
+
+Now the script can be thin. Extend `bleepscript.BleepScript`, parse
+args, package, hand off to `Proguard`, publish:
+
+<Snippet path="docs-snippets-from-tests/proguard-publish-java/ProguardPublish.java" lang="java" />
+
+It walks four bleepscript primitives:
+
+1. **`commands.compile`** — make sure classes are fresh.
+2. **`Packaging.packageProject`** — get the publish artifacts (JAR,
+   sources, javadoc, POM) as bytes.
+3. **`PackagedLibrary.withJarFile`** — swap the main JAR for the
+   ProGuard'd version, leaving sources/javadoc/POM untouched.
+4. **`Packaging.publishToLocalMaven`** — publish the mutated library.
+
+`BleepScript` provides the `main` method via reflection — no
+`public static void main` boilerplate. The `Packaging` helpers
+return an immutable `PackagedLibrary`; use `withJarFile(...)` to
+derive a new library from an existing one.
+
+## Step 5: Run it
 
 ```bash
-bleep hello
+bleep proguard-publish mylib 1.0.0 com.example
 ```
 
+Output:
+
 ```
-This build has 2 projects
-Hello, world!
+[script proguard-publish]: ✅ compiled (42ms) [project => mylib]
+[script proguard-publish]: Build Summary
+[script proguard-publish]: Projects: compiled, 0 failed, 0 skipped
+[script proguard-publish]: Time:     0,2s
+[script proguard-publish]: packaging [project => mylib]
+[script proguard-publish]: main JAR: com/example/mylib/1.0.0/mylib-1.0.0.jar (833 bytes) [project => mylib]
+[script proguard-publish]: running ProGuard 7.7.0
+[script proguard-publish] / [subprocess: proguard]: ProGuard, version 7.7.0
+[script proguard-publish]: ProGuard output: 761 bytes (saved 72) [project => mylib]
+[script proguard-publish]: Published com.example:mylib:1.0.0 [project => mylib]
 ```
+
+Verify:
 
 ```bash
-bleep hello Alice
-```
-
-```
-This build has 2 projects
-Hello, Alice!
+$ ls ~/.m2/repository/com/example/mylib/1.0.0/
+mylib-1.0.0-javadoc.jar  mylib-1.0.0-sources.jar  mylib-1.0.0.jar  mylib-1.0.0.pom
 ```
 
 ## Where to go from here
@@ -73,5 +134,5 @@ Hello, Alice!
   protocol, and IDE debugging.
 - **[Source generation scripts](/docs/concepts/sourcegen)**: for
   scripts whose output is consumed by `compile`.
-- **[Publish to Maven Central](/docs/tutorials/publish-to-maven)** , 
-  scripts that ship artifacts.
+- **[Publish to Maven Central](/docs/tutorials/publish-to-maven)**:
+  the same flow targeting Sonatype with PGP signing.

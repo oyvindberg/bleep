@@ -22,10 +22,6 @@ projects:
     - org.typelevel::cats-parse:1.0.0
     dependsOn:
     - bleep-core
-    - bleep-plugin-ci-release
-    - bleep-plugin-dynver
-    - bleep-plugin-pgp
-    - bleep-plugin-sonatype
     extends:
     - template-common
     - template-scala-3
@@ -36,24 +32,40 @@ projects:
     dependencies:
     - ch.epfl.scala:bsp4j:2.2.0-M2
     - co.fs2::fs2-core:3.10.2
+    - com.eed3si9n::gigahorse-okhttp:0.9.3
     - com.google.code.gson:gson:2.10.1
+    - com.lumidion::sonatype-central-client-sttp-core:0.3.0
+    - com.lumidion::sonatype-central-client-upickle:0.3.0
     - com.olvind.ryddig::ryddig:0.0.6
     - com.olvind.ryddig::ryddig-jul:0.0.6
     - com.olvind.tui::tui:0.0.10
+    - com.softwaremill.sttp.client4::slf4j-backend:4.0.0-M16
+    - com.softwaremill.sttp.client4::upickle:4.0.0-M16
     - com.swoval:file-tree-views:2.1.12
     - io.github.alexarchambault.native-terminal:native-terminal:0.0.9.1
+    - org.bouncycastle:bcpg-jdk15on:1.70
+    - org.scala-lang.modules::scala-parser-combinators:2.4.0
+    - org.sonatype.spice.zapper:spice-zapper:1.3
     - org.typelevel::cats-effect:3.5.4
     - org.typelevel::scalac-options:0.1.8
+    - org.wvlet.airframe::airframe-http:24.12.2
     dependsOn:
     - bleep-model
     - bleep-nosbt
     - bleep-bsp-protocol
+    - bleep-plugin-dynver
     - bleep-test-runner
     - bleepscript
     extends:
     - template-common
     - template-scala-3
-    sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
+    - template-parcollection-ok
+    sources:
+    - ../liberated/sbt-ci-release/plugin/src/main/scala
+    - ../liberated/sbt-pgp/gpg-library/src/main/scala
+    - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
+    - ../liberated/sbt-sonatype/src/main/scala
+    - ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleepscript:
     dependencies:
       - io.get-coursier:interface:1.0.28
@@ -159,18 +171,7 @@ projects:
     - ../liberated/librarymanagement/core/src/main/contraband-scala
     - ../liberated/librarymanagement/core/src/main/java
     - ../liberated/librarymanagement/core/src/main/scala
-  bleep-plugin-ci-release:
-    dependsOn:
-    - bleep-plugin-dynver
-    - bleep-plugin-pgp
-    - bleep-plugin-sonatype
-    extends:
-    - template-common
-    - template-scala-3
-    - template-parcollection-ok
-    sources: ../liberated/sbt-ci-release/plugin/src/main/scala
   bleep-plugin-dynver:
-    dependsOn: bleep-core
     extends:
     - template-common
     - template-scala-3
@@ -211,18 +212,6 @@ projects:
     - template-scala-3
     resources: ../liberated/sbt-native-image/plugin/src/main/resources
     sources: ../liberated/sbt-native-image/plugin/src/main/scala
-  bleep-plugin-pgp:
-    dependencies:
-    - com.eed3si9n::gigahorse-okhttp:0.9.3
-    - org.bouncycastle:bcpg-jdk15on:1.70
-    - org.scala-lang.modules::scala-parser-combinators:2.4.0
-    dependsOn: bleep-core
-    extends:
-    - template-common
-    - template-scala-3
-    sources:
-    - ../liberated/sbt-pgp/gpg-library/src/main/scala
-    - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
   bleep-plugin-scalafix:
     dependencies: ch.epfl.scala:scalafix-interfaces:0.14.4
     dependsOn: bleep-core
@@ -252,20 +241,6 @@ projects:
         url: http://opensource.org/licenses/MIT
         distribution: repo
     sources: ./src/main/java
-  bleep-plugin-sonatype:
-    dependencies:
-    - com.lumidion::sonatype-central-client-sttp-core:0.3.0
-    - com.lumidion::sonatype-central-client-upickle:0.3.0
-    - com.softwaremill.sttp.client4::slf4j-backend:4.0.0-M16
-    - com.softwaremill.sttp.client4::upickle:4.0.0-M16
-    - org.sonatype.spice.zapper:spice-zapper:1.3
-    - org.wvlet.airframe::airframe-http:24.12.2
-    dependsOn: bleep-core
-    extends:
-    - template-common
-    - template-scala-3
-    - template-parcollection-ok
-    sources: ../liberated/sbt-sonatype/src/main/scala
   bleep-test-runner:
     dependencies:
       - org.scala-sbt:test-interface:1.0

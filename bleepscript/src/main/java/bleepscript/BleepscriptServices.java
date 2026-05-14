@@ -6,7 +6,9 @@ import coursierapi.Module;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -36,6 +38,69 @@ public interface BleepscriptServices {
 
   /** Default ManifestCreator for publish-local. */
   ManifestCreator defaultManifestCreator();
+
+  // ---- Packaging primitives (Stage 2) ----
+
+  /**
+   * Package one project. groupId comes from publish config, falling back to {@code
+   * fallbackGroupId}.
+   */
+  PackagedLibrary packageProject(
+      Started started,
+      CrossProjectName project,
+      String fallbackGroupId,
+      String version,
+      PublishLayout layout,
+      ManifestCreator manifestCreator);
+
+  /**
+   * Package multiple projects in one DAG walk. Returned map keys are exactly the requested
+   * projects.
+   */
+  Map<CrossProjectName, PackagedLibrary> packageProjects(
+      Started started,
+      List<CrossProjectName> projects,
+      String fallbackGroupId,
+      String version,
+      PublishLayout layout,
+      ManifestCreator manifestCreator);
+
+  /** Build a JAR from one or more class/resource folders. */
+  byte[] createJar(
+      JarType jarType,
+      ManifestCreator manifestCreator,
+      List<Path> fromFolders,
+      Optional<CrossProjectName> projectName,
+      Optional<String> mainClass);
+
+  /** Publish a previously-packaged library to the user's local Ivy cache. */
+  void publishToLocalIvy(PackagedLibrary library);
+
+  /** Publish a previously-packaged library to the user's local Maven repo. */
+  void publishToLocalMaven(PackagedLibrary library);
+
+  /** Publish a previously-packaged library to a local Maven-layout folder. */
+  void publishToFolder(PackagedLibrary library, Path folder);
+
+  /** Publish a previously-packaged library to a named resolver declared in bleep.yaml. */
+  void publishToResolver(Started started, PackagedLibrary library, String resolverName);
+
+  /** Sign every file in a library with the caller's PGP key and return the augmented library. */
+  PackagedLibrary signArtifacts(Started started, PackagedLibrary library);
+
+  /**
+   * Resolve and download a dependency plus its transitive closure using bleep's configured Coursier
+   * resolver. Returns the local file paths.
+   */
+  List<Path> fetchClasspath(Started started, String coordinates);
+
+  /** Fork an external process and wait for it. Throws on non-zero exit. */
+  Cli.Result runCli(
+      Started started,
+      String action,
+      List<String> command,
+      Path cwd,
+      List<Map.Entry<String, String>> env);
 
   final class Holder {
     private Holder() {}

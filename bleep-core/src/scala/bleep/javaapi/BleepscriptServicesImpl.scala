@@ -60,4 +60,70 @@ final class BleepscriptServicesImpl extends bleepscript.BleepscriptServices {
 
   override def defaultManifestCreator(): bleepscript.ManifestCreator =
     JModel.defaultManifestCreator()
+
+  override def packageProject(
+      started: bleepscript.Started,
+      project: bleepscript.CrossProjectName,
+      fallbackGroupId: String,
+      version: String,
+      layout: bleepscript.PublishLayout,
+      manifestCreator: bleepscript.ManifestCreator
+  ): bleepscript.PackagedLibrary =
+    JPackaging.packageProject(started, project, fallbackGroupId, version, layout, manifestCreator)
+
+  override def packageProjects(
+      started: bleepscript.Started,
+      projects: java.util.List[bleepscript.CrossProjectName],
+      fallbackGroupId: String,
+      version: String,
+      layout: bleepscript.PublishLayout,
+      manifestCreator: bleepscript.ManifestCreator
+  ): java.util.Map[bleepscript.CrossProjectName, bleepscript.PackagedLibrary] =
+    JPackaging.packageProjects(started, projects, fallbackGroupId, version, layout, manifestCreator)
+
+  override def createJar(
+      jarType: bleepscript.JarType,
+      manifestCreator: bleepscript.ManifestCreator,
+      fromFolders: java.util.List[java.nio.file.Path],
+      projectName: java.util.Optional[bleepscript.CrossProjectName],
+      mainClass: java.util.Optional[String]
+  ): Array[Byte] =
+    JPackaging.createJar(jarType, manifestCreator, fromFolders, projectName, mainClass)
+
+  override def publishToLocalIvy(library: bleepscript.PackagedLibrary): Unit =
+    JPackaging.publishToLocalIvy(library)
+
+  override def publishToLocalMaven(library: bleepscript.PackagedLibrary): Unit =
+    JPackaging.publishToLocalMaven(library)
+
+  override def publishToFolder(library: bleepscript.PackagedLibrary, folder: java.nio.file.Path): Unit =
+    JPackaging.publishToFolder(library, folder)
+
+  override def publishToResolver(
+      started: bleepscript.Started,
+      library: bleepscript.PackagedLibrary,
+      resolverName: String
+  ): Unit =
+    JPackaging.publishToResolver(started, library, resolverName)
+
+  override def signArtifacts(
+      started: bleepscript.Started,
+      library: bleepscript.PackagedLibrary
+  ): bleepscript.PackagedLibrary =
+    JPackaging.signArtifacts(started, library)
+
+  override def fetchClasspath(
+      started: bleepscript.Started,
+      coordinates: String
+  ): java.util.List[java.nio.file.Path] =
+    JCoursier.fetchClasspath(started, coordinates)
+
+  override def runCli(
+      started: bleepscript.Started,
+      action: String,
+      command: java.util.List[String],
+      cwd: java.nio.file.Path,
+      env: java.util.List[java.util.Map.Entry[String, String]]
+  ): bleepscript.Cli.Result =
+    JCli.runCli(started, action, command, cwd, env)
 }

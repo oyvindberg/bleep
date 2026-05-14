@@ -2,69 +2,132 @@ import Snippet from '@site/src/components/Snippet';
 
 # Write Your First Script (Kotlin)
 
-This page walks through the Kotlin flow for adding a script to your
-build. For *what* a script is and why bleep models scripts as a core
-concept, see [Scripts and source
-generation](/docs/concepts/scripts).
+By the end of this page you will have written a bleep script that:
+
+1. compiles a Kotlin library,
+2. packages it into a publishable JAR (plus sources, javadoc, POM),
+3. runs ProGuard over the main JAR to shrink dead code, and
+4. publishes the optimized library to your local Maven repo.
+
+That's a small, real release pipeline you can wrap your head around
+in 100 lines of Kotlin.
+
+Why it's a good first example: the same task in Gradle is what
+you'd reach for a plugin for. Here it's a regular Kotlin class. The
+ProGuard step lives in its own file (`Proguard.kt`) that the script
+calls. That file is shareable: copy it into another project, point a
+second build's `sources:` at it, or publish it to Maven. Same shape
+either way.
+
+For *what* a script is and why bleep models scripts as a core concept,
+see [Scripts and source generation](/docs/concepts/scripts).
 
 > **Other languages:**
 > [Java →](/docs/tutorials/your-first-script) ·
 > [Scala →](/docs/tutorials/your-first-script-scala)
 
-## Prerequisites
+## Step 1: The build
 
-- A working bleep project (see [Your First Project (Kotlin)](/docs/tutorials/your-first-kotlin-project))
-- Kotlin 2.x
+Two projects: a Kotlin library (`mylib`) and the scripts project that
+hosts our publish logic. Both use the same Kotlin version and JVM
+target. The scripts project depends on `bleepscript` (the Java API,
+fully usable from Kotlin) and on `io.get-coursier:interface` to fetch
+ProGuard at runtime.
 
-## Step 1: Add a scripts project
-
-The scripts project depends on `bleepscript` (Java) and is registered
-under the top-level `scripts:` section. Both `kotlin:` and `java:`
-blocks are present. Kotlin always emits JVM bytecode against a Java
-target.
-
-<Snippet path="docs-snippets-from-tests/first-script-kotlin/bleep.yaml" lang="yaml" />
+<Snippet path="docs-snippets-from-tests/proguard-publish-kotlin/bleep.yaml" lang="yaml" />
 
 Key points:
 
-- `${BLEEP_VERSION}` is interpolated by bleep to your installed version.
-- `scripts.HelloScript` resolves to the JVM class generated for the
-  Kotlin `class HelloScript` below, no `Kt` suffix because it's a
-  class, not top-level functions.
+- `${BLEEP_VERSION}` is interpolated by bleep to your installed
+  version.
+- `mylib` has a `publish:` block. Any project with a `groupId` under
+  `publish:` is publishable.
+- The Kotlin class `scripts.ProguardPublish` is referenced by its JVM
+  class name — no `Kt` suffix because it's a class, not top-level
+  functions.
 
-## Step 2: Write the script
+## Step 2: A tiny library to publish
 
-Extend `bleepscript.BleepScript` and implement `run`:
+Anything Kotlin will do. Put it under `mylib/src/kotlin/...`.
 
-<Snippet path="docs-snippets-from-tests/first-script-kotlin/HelloScript.kt" lang="kotlin" />
+<Snippet path="docs-snippets-from-tests/proguard-publish-kotlin/MyLib.kt" lang="kotlin" />
+
+## Step 3: A reusable ProGuard helper
+
+Before the script, the actual ProGuard logic lives in a separate
+class. It takes JAR bytes, returns shrunk JAR bytes — nothing in it
+is specific to this build:
+
+<Snippet path="docs-snippets-from-tests/proguard-publish-kotlin/Proguard.kt" lang="kotlin" />
+
+This is what a "plugin" looks like when you don't have a plugin API
+— a regular class with a regular method. You can copy this file into
+any other bleep project, share it via a source dependency (point
+another build's `sources:` field at the same directory), or publish
+it to Maven and depend on it from the `scripts` project. No
+registration, no `requires` graph, no lifecycle hooks — same as any
+other Kotlin class.
+
+`Coursier.fetchClasspath` and `Cli.command` come from the
+`bleepscript` API: ProGuard is fetched through the build's
+configured resolver, and the JVM fork goes through bleep's
+logger-aware process wrapper. `started.resolvedJvm().javaBin()` is
+the JVM bleep chose for this build, so the child process inherits
+the right JDK.
+
+## Step 4: The script
+
+Now the script is thin. Extend `bleepscript.BleepScript`, parse
+args, package, hand off to `Proguard`, publish:
+
+<Snippet path="docs-snippets-from-tests/proguard-publish-kotlin/ProguardPublish.kt" lang="kotlin" />
+
+It walks four bleepscript primitives:
+
+1. **`commands.compile`** — make sure classes are fresh.
+2. **`Packaging.packageProject`** — get the publish artifacts (JAR,
+   sources, javadoc, POM) as bytes.
+3. **`PackagedLibrary.withJarFile`** — swap the main JAR for the
+   ProGuard'd version, leaving sources/javadoc/POM untouched.
+4. **`Packaging.publishToLocalMaven`** — publish the mutated library.
 
 Notes:
 
 - The Kotlin primary constructor passes the script name to the Java
-  super constructor: `class HelloScript : BleepScript("hello")`.
-- `BleepScript` supplies `main` by reflection. You don't write your
-  own.
-- `args` is `List<String>` (Kotlin's interface, but compatible with the
+  super constructor: `class ProguardPublish : BleepScript("proguard-publish")`.
+- `BleepScript` supplies `main` by reflection.
+- `args` is `List<String>` (Kotlin's interface, compatible with the
   Java `List<String>` signature on the base class).
+- The `Packaging`, `PackagedLibrary`, and `PublishLayout` types come
+  from the Java bleepscript API. Kotlin reads them like any other
+  Java library — no special adapters.
 
-## Step 3: Run it
-
-```bash
-bleep hello
-```
-
-```
-This build has 2 projects
-Hello, world!
-```
+## Step 5: Run it
 
 ```bash
-bleep hello Alice
+bleep proguard-publish mylib 1.0.0 com.example
 ```
 
+Output:
+
 ```
-This build has 2 projects
-Hello, Alice!
+[script proguard-publish]: ✅ compiled (274ms) [project => mylib]
+[script proguard-publish]: Build Summary
+[script proguard-publish]: Projects: compiled, 0 failed, 0 skipped
+[script proguard-publish]: Time:     0,5s
+[script proguard-publish]: packaging [project => mylib]
+[script proguard-publish]: main JAR: com/example/mylib/1.0.0/mylib-1.0.0.jar (5288 bytes) [project => mylib]
+[script proguard-publish]: running ProGuard 7.7.0
+[script proguard-publish] / [subprocess: proguard]: ProGuard, version 7.7.0
+[script proguard-publish]: ProGuard output: 4617 bytes (saved 671) [project => mylib]
+[script proguard-publish]: Published com.example:mylib:1.0.0 [project => mylib]
+```
+
+Verify:
+
+```bash
+$ ls ~/.m2/repository/com/example/mylib/1.0.0/
+mylib-1.0.0-javadoc.jar  mylib-1.0.0-sources.jar  mylib-1.0.0.jar  mylib-1.0.0.pom
 ```
 
 ## Where to go from here
@@ -74,5 +137,5 @@ Hello, Alice!
   Java interop.
 - **[Source generation scripts](/docs/concepts/sourcegen)**: for
   scripts whose output is consumed by `compile`.
-- **[Java script tutorial](/docs/tutorials/your-first-script)** , 
-  same API, different language.
+- **[Java script tutorial](/docs/tutorials/your-first-script)**: same
+  API, different host language.
