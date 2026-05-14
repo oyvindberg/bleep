@@ -47,6 +47,9 @@ object JModel {
   def relPath(r: bleep.RelPath): bleepscript.RelPath =
     new bleepscript.RelPath(r.segments.toList.asJava)
 
+  def toRelPath(r: bleepscript.RelPath): bleep.RelPath =
+    bleep.RelPath.of(r.segments.asScala.toSeq*)
+
   def repository(r: model.Repository): bleepscript.Repository = r match {
     case m: model.Repository.Maven =>
       new bleepscript.Repository.Maven(m.name.map(_.value).toJava, m.uri)

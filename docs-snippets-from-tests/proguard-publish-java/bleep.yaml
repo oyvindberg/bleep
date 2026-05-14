@@ -1,0 +1,23 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M10
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mylib:
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+    publish:
+      groupId: com.example
+  scripts:
+    dependencies:
+      - build.bleep:bleepscript:${BLEEP_VERSION}
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+scripts:
+  proguard-publish:
+    main: scripts.ProguardPublish
+    project: scripts

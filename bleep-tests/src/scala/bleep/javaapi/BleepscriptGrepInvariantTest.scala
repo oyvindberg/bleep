@@ -16,6 +16,14 @@ class BleepscriptGrepInvariantTest extends AnyFunSuite {
   private val forbidden: List[String] =
     List("bleep.", "scala.", "ryddig.")
 
+  // The test enforces that forbidden tokens don't appear in *code* — javadoc/comments may reference
+  // bleep.yaml, bleep.packaging.MavenLayout, etc. because the IDE never shows comment contents in
+  // autocomplete. So strip /* ... */ block comments (incl. javadoc) and // line comments before grepping.
+  private def stripComments(src: String): String = {
+    val noBlock = src.replaceAll("(?s)/\\*.*?\\*/", "")
+    noBlock.replaceAll("//[^\n]*", "")
+  }
+
   test("bleepscript Java source files contain no forbidden type references") {
     assert(Files.isDirectory(javaSources), s"expected $javaSources to exist")
 
@@ -25,7 +33,7 @@ class BleepscriptGrepInvariantTest extends AnyFunSuite {
         .asScala
         .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".java"))
         .flatMap { file =>
-          val content = Files.readString(file)
+          val content = stripComments(Files.readString(file))
           forbidden.iterator.collect {
             case needle if content.contains(needle) =>
               s"${javaSources.relativize(file)}: contains forbidden token '$needle'"
