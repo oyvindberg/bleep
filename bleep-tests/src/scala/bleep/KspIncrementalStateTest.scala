@@ -245,6 +245,27 @@ class KspIncrementalStateTest extends AnyFunSuite {
     assert(!found.contains(classFile))
   }
 
+  test("manifest field set is pinned (forces deliberate SchemaVersion bump on changes)") {
+    // If you're seeing this test fail because you added or removed a field on `KspIncrementalState`, that's the schema mismatch this test is supposed to catch.
+    // The action you want is to (1) bump `KspIncrementalState.SchemaVersion`, then (2) update the expected set below. The bump makes existing on-disk manifests
+    // self-invalidate to FullRebuild, which is the safe behaviour for an incompatible field-set change.
+    val expectedFields = Set(
+      "schemaVersion",
+      "kspVersion",
+      "kotlinVersion",
+      "processorOptions",
+      "processorJarFingerprint",
+      "librariesFingerprint",
+      "sources"
+    )
+    val actualFields = classOf[KspIncrementalState].getDeclaredFields.iterator.map(_.getName).toSet
+    assert(
+      actualFields === expectedFields,
+      s"KspIncrementalState fields changed. If this is deliberate, bump SchemaVersion and update this test. " +
+        s"missing=${expectedFields -- actualFields}, extra=${actualFields -- expectedFields}"
+    )
+  }
+
   test("save manifest is JSON-deterministic for stable inputs (round-trip)") {
     val (root, stateFile) = freshState()
     val src = writeSrc(root, "Foo.kt", "package myapp")

@@ -48,12 +48,13 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    // Cap forked test-runner JVMs at 512m. Each IT spawns its own test runner JVM; the runner
-    // itself doesn't fork the user's Main (that path is now [[JvmRunner.InProcess]] via
-    // [[Workspace.start]]) but the runner's heap × IT-parallelism still has to fit the GHA budget.
+    // Cap forked subprocesses tightly. Each IT may spawn a test-runner JVM and/or a KSP runner JVM; their heap × IT-parallelism has to fit the GHA budget.
+    // 512m for the test runner (Scala stdlib + sbt-test-interface). 384m for KSP — the runner bundles a full Analysis-API kotlinc but the toy fixtures we
+    // process are tiny, so a few hundred megs is plenty.
     bspServerConfig = Some(
       model.BspServerConfig.default.copy(
-        testRunnerMaxMemory = Some("512m")
+        testRunnerMaxMemory = Some("512m"),
+        kspRunnerMaxMemory = Some("384m")
       )
     ),
     remoteCacheCredentials = None

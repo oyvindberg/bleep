@@ -1267,7 +1267,9 @@ class MultiWorkspaceBspServer(
               javaSourceRoots = sourceRoots.filter(_.getFileName.toString.matches("java|java\\..*")),
               moduleName = s"${cn.name.value}${cn.crossId.fold("")(c => s"_${c.value}")}",
               jvmTarget = kot.jvmTarget.getOrElse("11"),
-              jdkHome = s.jvmCommand.getParent.getParent,
+              // `jvmCommand` is `<jdk>/bin/java`; KSP wants `<jdk>`. Use `toRealPath` first so a JDK reached via a symlink chain (e.g.
+              // `/usr/bin/java -> /etc/alternatives/java -> /usr/lib/jvm/.../bin/java` on Linux distros) resolves to the actual JDK root, not `/usr`.
+              jdkHome = s.jvmCommand.toRealPath().getParent.getParent,
               versionCombo = bleep.model.VersionCombo.fromExplodedProject(proj).orThrowTextWithContext(cn),
               libraryVersionSchemes = proj.libraryVersionSchemes.values,
               resolver = s.resolver,
@@ -1286,7 +1288,8 @@ class MultiWorkspaceBspServer(
               libraries = ksp.librariesClasspath,
               sources = KspIncrementalState.listSources(ksp.sourceRoots)
             )
-            val decision = KspIncrementalState.decide(stateFile, currentInputs)
+            // decideWithSnapshot hashes sources once and hands us back the manifest we'll persist on success — no re-hashing in save.
+            val (decision, snap) = KspIncrementalState.decideWithSnapshot(stateFile, currentInputs)
             if (decision == KspIncrementalState.Decision.CacheBust && Files.exists(ksp.cachesDir))
               bleep.internal.FileUtils.deleteDirectory(ksp.cachesDir)
             logger
@@ -1294,10 +1297,10 @@ class MultiWorkspaceBspServer(
               .withContext("decision", decision.getClass.getSimpleName.stripSuffix("$"))
               .debug("KSP incremental decision")
 
-            bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, cancellation, logger) match {
+            bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, s.config.bspServerConfigOrDefault.kspRunnerMaxMemory, cancellation, logger) match {
               case bleep.analysis.KspRunner.RunResult.Success =>
                 // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
-                KspIncrementalState.save(stateFile, currentInputs)
+                KspIncrementalState.save(stateFile, snap)
                 (TaskDag.TaskResult.Success, ksp.processorJars.size)
               case bleep.analysis.KspRunner.RunResult.Cancelled        => (TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest), 0)
               case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>

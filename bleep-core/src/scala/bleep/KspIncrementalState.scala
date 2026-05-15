@@ -83,50 +83,11 @@ object KspIncrementalState {
     case class Incremental(modifiedSources: List[Path], removedSources: List[Path]) extends Decision
   }
 
-  /** Compute deltas: read the persisted manifest (if any), hash current inputs, decide whether this run can be incremental, and if so produce the
-    * modified/removed-sources lists.
+  /** Hash the current inputs into a manifest snapshot. Used by [[decide]] internally and exposed so callers can thread the same snapshot from the decide step
+    * into the [[save]] step on a successful KSP run — no need to re-hash every source on the way out.
     */
-  def decide(stateFile: Path, current: CurrentInputs): Decision = {
-    val prior = readState(stateFile)
-    val currentProcessorJarFingerprint = fingerprintFiles(current.processorJars)
-    val currentLibrariesFingerprint = fingerprintFiles(current.libraries)
-
-    prior match {
-      case None =>
-        Decision.FullRebuild
-
-      case Some(p) if p.schemaVersion != SchemaVersion =>
-        Decision.FullRebuild
-
-      case Some(p)
-          if p.kspVersion != current.kspVersion ||
-            p.kotlinVersion != current.kotlinVersion ||
-            p.processorJarFingerprint != currentProcessorJarFingerprint ||
-            p.librariesFingerprint != currentLibrariesFingerprint ||
-            p.processorOptions != current.processorOptions =>
-        Decision.CacheBust
-
-      case Some(p) =>
-        val priorPaths: Set[String] = p.sources.keySet
-        val currentPaths: Set[String] = current.sources.iterator.map(_.toString).toSet
-        val removed: List[Path] = priorPaths.diff(currentPaths).toList.sorted.map(java.nio.file.Paths.get(_))
-        val modified: List[Path] = current.sources.flatMap { src =>
-          val path = src.toString
-          val currentHash = hashFile(src)
-          p.sources.get(path) match {
-            case Some(priorHash) if priorHash == currentHash => None
-            case _                                           => Some(src)
-          }
-        }
-        Decision.Incremental(modifiedSources = modified, removedSources = removed)
-    }
-  }
-
-  /** Persist the manifest after a successful KSP run. Hashes are computed fresh from disk. Written via [[FileUtils.writeBytesAtomic]] so a crash mid-write
-    * doesn't leave a partial JSON file that would parse as garbage and silently force a FullRebuild on the next run.
-    */
-  def save(stateFile: Path, current: CurrentInputs): Unit = {
-    val state = KspIncrementalState(
+  def snapshot(current: CurrentInputs): KspIncrementalState =
+    KspIncrementalState(
       schemaVersion = SchemaVersion,
       kspVersion = current.kspVersion,
       kotlinVersion = current.kotlinVersion,
@@ -135,8 +96,59 @@ object KspIncrementalState {
       librariesFingerprint = fingerprintFiles(current.libraries),
       sources = SortedMap.from(current.sources.iterator.map(src => src.toString -> hashFile(src)))
     )
-    FileUtils.writeBytesAtomic(stateFile, state.asJson.spaces2.getBytes(StandardCharsets.UTF_8))
+
+  /** Compute deltas + a fresh snapshot in one pass: read the persisted manifest (if any), hash current inputs, decide whether this run can be incremental, and
+    * if so produce the modified/removed-sources lists. Return the snapshot alongside the decision so the caller can pass it back to [[save]] without
+    * re-hashing.
+    */
+  def decideWithSnapshot(stateFile: Path, current: CurrentInputs): (Decision, KspIncrementalState) = {
+    val prior = readState(stateFile)
+    val snap = snapshot(current)
+    val decision = prior match {
+      case None =>
+        Decision.FullRebuild
+
+      case Some(p) if p.schemaVersion != SchemaVersion =>
+        Decision.FullRebuild
+
+      case Some(p)
+          if p.kspVersion != snap.kspVersion ||
+            p.kotlinVersion != snap.kotlinVersion ||
+            p.processorJarFingerprint != snap.processorJarFingerprint ||
+            p.librariesFingerprint != snap.librariesFingerprint ||
+            p.processorOptions != snap.processorOptions =>
+        Decision.CacheBust
+
+      case Some(p) =>
+        val priorPaths: Set[String] = p.sources.keySet
+        val currentPaths: Set[String] = snap.sources.keySet
+        val removed: List[Path] = priorPaths.diff(currentPaths).toList.sorted.map(java.nio.file.Paths.get(_))
+        val modified: List[Path] = current.sources.filter { src =>
+          val path = src.toString
+          !p.sources.get(path).contains(snap.sources(path))
+        }
+        Decision.Incremental(modifiedSources = modified, removedSources = removed)
+    }
+    (decision, snap)
   }
+
+  /** Convenience for callers that only need the decision (e.g. tests). Production paths should use [[decideWithSnapshot]] and feed the snapshot to [[save]] so
+    * sources are hashed exactly once per build.
+    */
+  def decide(stateFile: Path, current: CurrentInputs): Decision =
+    decideWithSnapshot(stateFile, current)._1
+
+  /** Persist a previously-computed snapshot. Written via [[FileUtils.writeBytesAtomic]] so a crash mid-write doesn't leave a partial JSON file that would parse
+    * as garbage and silently force a FullRebuild on the next run.
+    */
+  def save(stateFile: Path, snapshot: KspIncrementalState): Unit =
+    FileUtils.writeBytesAtomic(stateFile, snapshot.asJson.spaces2.getBytes(StandardCharsets.UTF_8))
+
+  /** Convenience overload that hashes inputs from scratch. Tests and any caller that doesn't already have a snapshot can use this; the hot build path uses
+    * [[decideWithSnapshot]] + [[save]] (snapshot overload) to avoid hashing twice.
+    */
+  def save(stateFile: Path, current: CurrentInputs): Unit =
+    save(stateFile, snapshot(current))
 
   /** Best-effort read of the persisted manifest. Returns None if the file is missing or unparseable (in which case the caller treats it as "no prior state" and
     * does a full rebuild).

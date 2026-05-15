@@ -362,9 +362,12 @@ object CompilerResolver {
   def resolveKspPlugin(kotlinVersion: VersionKotlin, kspVersion: String): Seq[Path] = {
     val fullVersion = s"${kotlinVersion.kotlinVersion}-$kspVersion"
     val key = InstanceKey("ksp-plugin", fullVersion)
-    Option(jarCache.get(key)).getOrElse {
-      val dep = Dep.Java("com.google.devtools.ksp", "symbol-processing-aa-embeddable", fullVersion)
-      val allPaths =
+    // computeIfAbsent: under racing callers, exactly one resolves; the other waits on the bucket lock. Coursier resolution is idempotent so the duplicate-work
+    // window is harmless, but locking still saves the redundant network/disk traffic.
+    jarCache.computeIfAbsent(
+      key,
+      _ => {
+        val dep = Dep.Java("com.google.devtools.ksp", "symbol-processing-aa-embeddable", fullVersion)
         try resolveDep(dep)
         catch {
           case e: Throwable =>
@@ -375,9 +378,8 @@ object CompilerResolver {
               e
             )
         }
-      jarCache.put(key, allPaths)
-      allPaths
-    }
+      }
+    )
   }
 
   // ============================================================================

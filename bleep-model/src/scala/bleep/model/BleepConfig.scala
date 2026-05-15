@@ -39,6 +39,10 @@ case class BspServerConfig(
     testRunnerMaxMemory: Option[String],
     /** Max heap for forked sourcegen JVMs, e.g. "500m", "2g". None = JVM default */
     sourcegenMaxMemory: Option[String],
+    /** Max heap for forked KSP runner JVMs (`KSPJvmMain`), e.g. "512m", "1500m". KSP bundles its own Analysis-API kotlinc which is memory-hungry on real builds
+      * but tiny on toy fixtures — set this low for integration tests. None = JVM default.
+      */
+    kspRunnerMaxMemory: Option[String],
     /** Max heap for the compile server JVM, e.g. "4g". None = JVM default */
     compileServerMaxMemory: Option[String],
     /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory. When other compilations are running and heap exceeds this threshold, the
@@ -70,6 +74,7 @@ object BspServerConfig {
     testIdleTimeoutMinutes = None,
     testRunnerMaxMemory = None,
     sourcegenMaxMemory = None,
+    kspRunnerMaxMemory = None,
     compileServerMaxMemory = None,
     heapPressureThreshold = None
   )

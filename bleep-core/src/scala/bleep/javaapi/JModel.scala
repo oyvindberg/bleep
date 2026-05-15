@@ -179,17 +179,29 @@ object JModel {
     )
   }
 
+  /** Wrap a Scala [[bleep.BuildPaths]] as a [[bleepscript.BuildPaths]] for the script-facing API. All path-computing methods delegate to the Scala side so the
+    * layout convention has exactly one source of truth.
+    */
   def buildPaths(bp: bleep.BuildPaths): bleepscript.BuildPaths =
-    new bleepscript.BuildPaths(
-      bp.cwd,
-      bp.bleepYamlFile,
-      bp.buildDir,
-      bp.dotBleepDir,
-      bp.projectsDir,
-      bp.workspaceBuildsDir,
-      bp.workspaceVariantDir,
-      bp.logFile
-    )
+    new bleepscript.BuildPaths {
+      override def cwd: java.nio.file.Path = bp.cwd
+      override def bleepYamlFile: java.nio.file.Path = bp.bleepYamlFile
+      override def buildDir: java.nio.file.Path = bp.buildDir
+      override def dotBleepDir: java.nio.file.Path = bp.dotBleepDir
+      override def projectsDir: java.nio.file.Path = bp.projectsDir
+      override def workspaceBuildsDir: java.nio.file.Path = bp.workspaceBuildsDir
+      override def workspaceVariantDir: java.nio.file.Path = bp.workspaceVariantDir
+      override def logFile: java.nio.file.Path = bp.logFile
+
+      override def crossProjectDir(cn: bleepscript.CrossProjectName): java.nio.file.Path =
+        bp.crossProjectDir(toCross(cn))
+      override def variantBuildDir(cn: bleepscript.CrossProjectName): java.nio.file.Path =
+        bp.variantBuildDir(toCross(cn))
+      override def generatedSourcesDir(cn: bleepscript.CrossProjectName, folderName: String): java.nio.file.Path =
+        bp.generatedSourcesDir(toCross(cn), folderName)
+      override def generatedResourcesDir(cn: bleepscript.CrossProjectName, folderName: String): java.nio.file.Path =
+        bp.generatedResourcesDir(toCross(cn), folderName)
+    }
 
   def userPaths(up: bleep.UserPaths): bleepscript.UserPaths =
     new bleepscript.UserPaths(

@@ -228,42 +228,34 @@ object KotlinProjectCompiler extends ProjectCompiler {
     val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
     val kotlinSources = sourceFiles.filterNot(_.path.toString.endsWith(".java"))
 
-    if (kotlinSources.isEmpty && javaSources.nonEmpty) {
-      // Java-only "Kotlin" project — degenerate case (no .kt at all). Skip kotlinc, just compile with javac directly to outputDir.
-      val javaResult = compileJavaSources(javaSources, config, diagnosticListener)
-      return javaResult
-    }
-    if (kotlinSources.isEmpty && javaSources.isEmpty) {
-      Files.createDirectories(config.outputDir)
-      return ProjectCompileSuccess(config.outputDir, Set.empty, None)
-    }
+    (kotlinSources.isEmpty, javaSources.isEmpty) match {
+      // No sources at all — create an empty outputDir so downstream tasks have a stable path to read.
+      case (true, true) =>
+        Files.createDirectories(config.outputDir)
+        ProjectCompileSuccess(config.outputDir, Set.empty, None)
 
-    // Phase 1: kotlinc compiles .kt with .java sources passed for symbol resolution. Kotlinc reads .java sources via its lightweight Java parser and resolves
-    // references without emitting Java .class files. Pass both kotlinSources and javaSources together so this works.
-    val kotlinInputSources = kotlinSources ++ javaSources
-    val input = CompilationInput(kotlinInputSources, config.classpath, config.outputDir, kotlinConfig)
-    val kotlinResult = KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken)
-    kotlinResult match {
-      case CompilationFailure(errs) =>
-        return ProjectCompileFailure(errs)
-      case CompilationCancelled =>
-        return ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
-      case _: CompilationSuccess => // continue to Phase 2 (javac)
-    }
+      // Java-only "Kotlin" project (degenerate). Skip kotlinc, javac straight to outputDir.
+      case (true, false) =>
+        compileJavaSources(javaSources, config, diagnosticListener)
 
-    if (javaSources.isEmpty) {
-      val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
-      return ProjectCompileSuccess(config.outputDir, allClasses, None)
-    }
-
-    // Phase 2: javac compiles .java with kotlinc's output on the classpath. Java code can now reference any Kotlin types compiled in Phase 1.
-    val javacClasspath = config.classpath :+ config.outputDir
-    val javacConfig = config.copy(classpath = javacClasspath)
-    compileJavaSources(javaSources, javacConfig, diagnosticListener) match {
-      case _: ProjectCompileSuccess =>
-        val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
-        ProjectCompileSuccess(config.outputDir, allClasses, None)
-      case failure: ProjectCompileFailure => failure
+      case (false, _) =>
+        // Phase 1: kotlinc compiles .kt and reads .java sources via its lightweight Java parser for symbol resolution (no .class for Java is emitted here).
+        val input = CompilationInput(kotlinSources ++ javaSources, config.classpath, config.outputDir, kotlinConfig)
+        KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken) match {
+          case CompilationFailure(errs) => ProjectCompileFailure(errs)
+          case CompilationCancelled     =>
+            ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
+          case _: CompilationSuccess if javaSources.isEmpty =>
+            ProjectCompileSuccess(config.outputDir, Compiler.collectClassFilesStatic(config.outputDir), None)
+          case _: CompilationSuccess =>
+            // Phase 2: javac compiles .java with kotlinc's output on the classpath — Java code can now reference Kotlin types from Phase 1.
+            val javacConfig = config.copy(classpath = config.classpath :+ config.outputDir)
+            compileJavaSources(javaSources, javacConfig, diagnosticListener) match {
+              case _: ProjectCompileSuccess =>
+                ProjectCompileSuccess(config.outputDir, Compiler.collectClassFilesStatic(config.outputDir), None)
+              case failure: ProjectCompileFailure => failure
+            }
+        }
     }
   }
 

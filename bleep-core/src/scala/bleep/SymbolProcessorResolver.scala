@@ -265,25 +265,25 @@ object SymbolProcessorResolver {
     * `META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider` entry), returns the parsed list of fully-qualified class names. `None`
     * means the jar has no service file. `Some(Nil)` means the file exists but is empty / comment-only.
     */
-  def symbolProcessorProviderClasses(jarPath: Path): Option[List[String]] =
-    if (!java.nio.file.Files.isRegularFile(jarPath)) None
-    else {
-      val zip = new java.util.zip.ZipFile(jarPath.toFile)
-      try {
-        val entry = zip.getEntry("META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider")
-        if (entry == null) None
-        else {
-          val src = scala.io.Source.fromInputStream(zip.getInputStream(entry), "UTF-8")
-          try {
-            val classes = src
-              .getLines()
-              .map(line => line.indexOf('#') match { case -1 => line; case i => line.substring(0, i) })
-              .map(_.trim)
-              .filter(_.nonEmpty)
-              .toList
-            Some(classes)
-          } finally src.close()
-        }
-      } finally zip.close()
-    }
+  def symbolProcessorProviderClasses(jarPath: Path): Option[List[String]] = {
+    if (!java.nio.file.Files.isRegularFile(jarPath)) return None
+    val zip = new java.util.zip.ZipFile(jarPath.toFile)
+    try {
+      val entry = zip.getEntry("META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider")
+      if (entry == null) None
+      else {
+        val in = zip.getInputStream(entry)
+        try {
+          val src = scala.io.Source.fromInputStream(in, "UTF-8")
+          val classes = src
+            .getLines()
+            .map(line => line.indexOf('#') match { case -1 => line; case i => line.substring(0, i) })
+            .map(_.trim)
+            .filter(_.nonEmpty)
+            .toList
+          Some(classes)
+        } finally in.close()
+      }
+    } finally zip.close()
+  }
 }

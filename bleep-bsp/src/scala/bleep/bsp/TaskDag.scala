@@ -818,6 +818,18 @@ object TaskDag {
       /** Check if kill has been requested (non-blocking) */
       def isKilled: IO[Option[KillReason]] = killSignal.tryGet
 
+      /** Reduce a TaskResult to the `(success, errorMsg)` pair the finished-event constructors take. Shared by every per-task branch that emits a
+        * `DagEvent.*Finished` to keep the success/failure mapping consistent across task kinds.
+        */
+      def resultSummary(result: TaskResult): (Boolean, Option[String]) = result match {
+        case TaskResult.Success            => (true, None)
+        case TaskResult.Failure(error, _)  => (false, Some(error))
+        case TaskResult.Error(error, _)    => (false, Some(error))
+        case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
+        case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
+        case TaskResult.TimedOut(_)        => (false, Some("timed out"))
+      }
+
       def executeTask(task: Task, dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
         val startTime = System.currentTimeMillis()
 
@@ -938,16 +950,10 @@ object TaskDag {
                         _ <- emit(DagEvent.SourcegenStarted(sgt.script.project, sgt.script.main, forProjectsList, sourcegenStartTs))
                         result <- handlers.sourcegen(sgt, taskKill)
                         sourcegenEndTs <- now
-                        durationMs = sourcegenEndTs - sourcegenStartTs
-                        (success, errorMsg) = result match {
-                          case TaskResult.Success            => (true, None)
-                          case TaskResult.Failure(error, _)  => (false, Some(error))
-                          case TaskResult.Error(error, _)    => (false, Some(error))
-                          case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
-                          case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
-                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
-                        }
-                        _ <- emit(DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, durationMs, errorMsg, sourcegenEndTs))
+                        (success, errorMsg) = resultSummary(result)
+                        _ <- emit(
+                          DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, sourcegenEndTs - sourcegenStartTs, errorMsg, sourcegenEndTs)
+                        )
                       } yield result
                     }
 
@@ -958,17 +964,9 @@ object TaskDag {
                         _ <- emit(DagEvent.ResolveAnnotationProcessorsStarted(apt.project, apStartTs))
                         (result, discoveredJarCount) <- handlers.annotationProcessor(apt, taskKill)
                         apEndTs <- now
-                        durationMs = apEndTs - apStartTs
-                        (success, errorMsg) = result match {
-                          case TaskResult.Success            => (true, None)
-                          case TaskResult.Failure(error, _)  => (false, Some(error))
-                          case TaskResult.Error(error, _)    => (false, Some(error))
-                          case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
-                          case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
-                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
-                        }
+                        (success, errorMsg) = resultSummary(result)
                         _ <- emit(
-                          DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, durationMs, errorMsg, discoveredJarCount, apEndTs)
+                          DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, apEndTs - apStartTs, errorMsg, discoveredJarCount, apEndTs)
                         )
                       } yield result
                     }
@@ -980,18 +978,8 @@ object TaskDag {
                         _ <- emit(DagEvent.RunSymbolProcessorsStarted(kspt.project, kspStartTs))
                         (result, discoveredJarCount) <- handlers.symbolProcessor(kspt, taskKill)
                         kspEndTs <- now
-                        durationMs = kspEndTs - kspStartTs
-                        (success, errorMsg) = result match {
-                          case TaskResult.Success            => (true, None)
-                          case TaskResult.Failure(error, _)  => (false, Some(error))
-                          case TaskResult.Error(error, _)    => (false, Some(error))
-                          case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
-                          case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
-                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
-                        }
-                        _ <- emit(
-                          DagEvent.RunSymbolProcessorsFinished(kspt.project, success, durationMs, errorMsg, discoveredJarCount, kspEndTs)
-                        )
+                        (success, errorMsg) = resultSummary(result)
+                        _ <- emit(DagEvent.RunSymbolProcessorsFinished(kspt.project, success, kspEndTs - kspStartTs, errorMsg, discoveredJarCount, kspEndTs))
                       } yield result
                     }
                 }

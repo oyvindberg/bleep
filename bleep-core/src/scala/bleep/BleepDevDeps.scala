@@ -118,40 +118,58 @@ object BleepDevDeps {
     }
   }
 
-  /** Scan the JVM's classpath for class dirs matching the given artifact and its transitive deps.
+  /** Scan the JVM's classpath for class dirs (and `src/resources` / `src/main/resources` dirs) matching the given artifact and its transitive deps.
     *
-    * SourceGenRunner launches forked JVMs with `-cp <classpath>` that includes all needed class dirs. We match entries ending with `/<projectName>/classes` or
-    * `/<projectName>/<crossId>/classes`.
+    * SourceGenRunner launches forked JVMs with `-cp <classpath>` that includes class dirs AND source-resource dirs for each bleep project on the classpath. We
+    * match entries ending with `/<projectName>/classes`, `/<projectName>/<crossId>/classes`, `/<projectName>/src/resources`, and
+    * `/<projectName>/src/main/resources`. Resources are included so dev-resolved consumers see the same files a published JAR would expose (e.g.
+    * META-INF/services).
     */
   private def resolveFromJvmClasspath(artifactName: String): List[Path] = {
     val allNames = Set(artifactName) ++ transitiveBleepDeps.getOrElse(artifactName, Set.empty)
-    val rawCp = System.getProperty("java.class.path", "")
-    val cpEntries = rawCp
+    val cpEntries = System
+      .getProperty("java.class.path", "")
       .split(java.io.File.pathSeparator)
+      .iterator
       .filter(_.nonEmpty)
       .map(Path.of(_))
+      .toArray
+
+    def matchesClassesDir(entry: Path, crossName: model.CrossProjectName): Boolean =
+      entry.toString.endsWith("/classes") && {
+        val parent = entry.getParent
+        if (parent == null) false
+        else
+          crossName.crossId match {
+            case None      => parent.getFileName.toString == crossName.name.value
+            case Some(cid) =>
+              parent.getFileName.toString == cid.value && {
+                val grandparent = parent.getParent
+                grandparent != null && grandparent.getFileName.toString == crossName.name.value
+              }
+          }
+      }
+
+    def matchesResourcesDir(entry: Path, crossName: model.CrossProjectName): Boolean = {
+      val s = entry.toString
+      // Match `<workspace>/<projectName>/src/resources` (kotlin/scala source-layout) or `<workspace>/<projectName>/src/main/resources` (sbt-matrix).
+      // Cross-built projects don't currently expose per-variant resources, so we ignore crossId here — first match wins.
+      def projectMatches(suffix: String): Boolean = {
+        if (!s.endsWith(suffix)) return false
+        val segments = suffix.count(_ == '/')
+        var p: Path = entry
+        var i = 0
+        while (i < segments && p != null) { p = p.getParent; i += 1 }
+        p != null && p.getFileName != null && p.getFileName.toString == crossName.name.value
+      }
+      projectMatches("/src/resources") || projectMatches("/src/main/resources")
+    }
 
     allNames.toList.flatMap { name =>
-      artifacts.get(name).flatMap { crossName =>
-        val crossPart = crossName.crossId.fold("")(_.value)
-        cpEntries
-          .find { entry =>
-            val s = entry.toString
-            s.endsWith("/classes") && {
-              val parent = entry.getParent
-              if (parent == null) false
-              else if (crossPart.isEmpty)
-                // No cross ID: match .../bleep-core/classes
-                parent.getFileName.toString == crossName.name.value
-              else
-                // With cross ID: match .../bleep-core/jvm3/classes
-                parent.getFileName.toString == crossPart && {
-                  val grandparent = parent.getParent
-                  grandparent != null && grandparent.getFileName.toString == crossName.name.value
-                }
-            }
-          }
-          .map(_.toAbsolutePath)
+      artifacts.get(name).toList.flatMap { crossName =>
+        val classes = cpEntries.find(e => matchesClassesDir(e, crossName)).map(_.toAbsolutePath)
+        val resources = cpEntries.filter(e => matchesResourcesDir(e, crossName)).map(_.toAbsolutePath).toList
+        classes.toList ++ resources
       }
     }
   }
