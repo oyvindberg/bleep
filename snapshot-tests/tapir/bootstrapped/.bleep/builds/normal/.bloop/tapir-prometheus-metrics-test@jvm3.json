@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-prometheus-metrics-test@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics-test/jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics-test@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/test/java",
@@ -59,11 +59,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.18/scalatest-wordspec_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.18/scalatest_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_3/3.2.19.0/scalacheck-1-18_3-3.2.19.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/jvm3/test-classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server-test/jvm3/test-classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/protobuf",
@@ -75,8 +75,8 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/test/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics-test/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics-test/jvm3/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics-test@jvm3/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/test/resources"
@@ -130,7 +130,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics-test/jvm3/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics-test@jvm3/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

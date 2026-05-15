@@ -91,13 +91,28 @@ object ResolveProjects {
         explodedBuild.copy(explodedProjects = newProjects)
       }
 
-      // Verify that all required bleep project class directories exist.
-      // They should already be compiled since bleep-tests depends on these projects.
-      b.values.flatten.toList.distinct.foreach { crossName =>
-        val classesDir = bleepBuild.forceGet.projectPaths(crossName).classes
-        if (!java.nio.file.Files.isDirectory(classesDir))
-          sys.error(s"Expected compiled classes at $classesDir for ${crossName.value}, but directory does not exist. Compile bleep first.")
+      // Pick the classes directory for a bleep-internal project. Tries the v2 layout first (`.bleep/projects/<cross>/builds/<variant>/classes`), then falls back
+      // to the legacy v1 layout (`.bleep/builds/<variant>/.bloop/<cross>/classes`) so the integration tests work even when the calling bleep CLI hasn't been
+      // re-deployed with layout-v2 yet. Once a v2-aware CLI is shipping everywhere this fallback can be deleted.
+      def resolveClassesDir(crossName: model.CrossProjectName): java.nio.file.Path = {
+        val built = bleepBuild.forceGet
+        val v2 = built.projectPaths(crossName).classes
+        if (java.nio.file.Files.isDirectory(v2)) v2
+        else {
+          val legacy = built.buildPaths.workspaceVariantDir.resolve(".bloop").resolve(crossName.value).resolve("classes")
+          if (java.nio.file.Files.isDirectory(legacy)) legacy
+          else sys.error(s"Expected compiled classes for ${crossName.value} at $v2 (or legacy $legacy), but neither exists. Compile bleep first.")
+        }
       }
+
+      // Resource directories live under the source tree (`<project>/src/resources` etc.), not inside `.bleep/`, so they're layout-agnostic — same value for v1
+      // and v2 builds. Included on the dev classpath so SPI registration files (META-INF/services/...) reach forked sourcegen JVMs the same way published JARs
+      // would expose them to consumers.
+      def resolveResourceDirs(crossName: model.CrossProjectName): List[java.nio.file.Path] =
+        bleepBuild.forceGet.projectPaths(crossName).resourcesDirs.all.toList.filter(java.nio.file.Files.isDirectory(_))
+
+      // Verify upfront that every required class dir resolves. Same error semantics as before; just expressed via resolveClassesDir.
+      b.values.flatten.toList.distinct.foreach(crossName => resolveClassesDir(crossName).discard())
 
       val projects: Projects = rewriteDependentData(rewrittenBuild.explodedProjects).apply[ResolvedProject] { (crossName, project, eval) =>
         val resolved = resolveProject(
@@ -109,7 +124,33 @@ object ResolveProjects {
           getResolvedProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}")
         )
 
-        val newClassPath = b.getOrElse(crossName, Nil).toList.map(bleepBuild.forceGet.projectPaths).map(_.classes)
+        val transitiveBleep = b.getOrElse(crossName, Nil).toList
+        // When the consumer depends on bleepscript in dev mode, also borrow bleep-core's classpath. We can't declare bleep-core as a transitive dep (the
+        // consumer might be Java-only with no Scala version to resolve bleep-core's Scala 3 deps); we can't fetch bleep-core via Coursier from the forked
+        // sourcegen JVM either (the in-dev SNAPSHOT coord doesn't exist anywhere). So we hand its already-resolved jars + classes/resources directly to the
+        // consumer's classpath. The SPI lookup in `BleepscriptServices.Holder.load()` then finds the impl on the classpath the fast way, no Coursier needed.
+        val coreSpiClasspath: List[java.nio.file.Path] = {
+          val coreCpn = model.CrossProjectName(model.ProjectName("bleep-core"), None)
+          val needsBleepCoreSpi =
+            transitiveBleep.exists(_.name.value == "bleepscript") && !transitiveBleep.contains(coreCpn)
+          if (!needsBleepCoreSpi) Nil
+          else {
+            // Take bleep-core's transitive bleep-internal projects (via resolveClassesDir + resolveResourceDirs so the legacy-layout fallback kicks in) plus
+            // the Coursier-resolved third-party jars from bleep-core's classpath (filtering out the v2-layout class/resource paths the test fixture may not
+            // have populated).
+            val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) + coreCpn
+            val bleepInternalPaths =
+              coreBleepProjects.toList.map(resolveClassesDir) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
+            val coreCoursierJars: List[java.nio.file.Path] =
+              bleepBuild.forceGet.resolvedProjects
+                .get(coreCpn)
+                .map(_.forceGet.classpath)
+                .getOrElse(Nil)
+                .filter(p => p.getFileName.toString.endsWith(".jar"))
+            bleepInternalPaths ::: coreCoursierJars
+          }
+        }
+        val newClassPath = transitiveBleep.map(resolveClassesDir) ::: transitiveBleep.flatMap(resolveResourceDirs) ::: coreSpiClasspath
         resolved.copy(classpath = newClassPath ++ resolved.classpath)
       }
 

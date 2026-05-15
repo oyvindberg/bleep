@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-refined-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-refined-test@jvm212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/refined/src/test/java",
@@ -48,16 +48,16 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_2.12/2.1.0/munit-cats-effect_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_2.12/2.0.0-M2/scalacheck-effect-munit_2.12-2.0.0-M2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.12/2.0.0-M2/scalacheck-effect_2.12-2.0.0-M2.jar",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm212/generated-resources/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-free@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-refined@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/refined/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-refined-test@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-refined-test@jvm212/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/refined/src/test/resources"
     ],
@@ -119,7 +119,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-refined-test@jvm212/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

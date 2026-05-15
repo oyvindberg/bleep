@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "scalameta-docs",
-    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta-docs",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/scalameta-docs/scripts.GenerateForScalametaDocs",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-sources/scripts.GenerateForScalametaDocs",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/scala",
@@ -117,10 +117,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/client/wildfly-client-config/1.0.1.Final/wildfly-client-config-1.0.1.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/common/wildfly-common/1.5.4.Final/wildfly-common-1.5.4.Final.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta-docs",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta-docs/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/scalameta-docs/scripts.GenerateForScalametaDocs",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-resources/scripts.GenerateForScalametaDocs",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/resources"
     ],
@@ -142,7 +142,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta-docs/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

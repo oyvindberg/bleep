@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-opentelemetry-metrics-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics-test@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/test/java",
@@ -61,11 +61,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.13/3.2.19.0/scalacheck-1-18_2.13-3.2.19.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/jvm213/test-classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server-test/jvm213/test-classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@jvm213/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics@jvm213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server-test@jvm213/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/protobuf",
@@ -77,8 +77,8 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/test/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics-test@jvm213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics-test@jvm213/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/test/resources"
@@ -150,7 +150,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics-test@jvm213/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

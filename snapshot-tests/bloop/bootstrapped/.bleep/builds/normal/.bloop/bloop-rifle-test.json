@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-rifle-test",
-    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/test/java",
@@ -40,14 +40,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.1.1/junit-interface-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_2.13/1.1.1/munit-diff_2.13-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.1.1/munit_2.13-1.1.1.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-rifle/scripts.GenerateForBloopRifle",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.GenerateForBloopRifle",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle-test",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle-test/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle-test/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/test/resources"
     ],
@@ -74,7 +74,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle-test/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle-test/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

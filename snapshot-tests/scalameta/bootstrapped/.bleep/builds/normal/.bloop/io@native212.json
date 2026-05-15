@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "io@native212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/scala",
@@ -35,8 +35,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.6/scalalib_native0.5_2.12-2.12.20%2B0.5.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.12/0.5.6/windowslib_native0.5_2.12-0.5.6.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native212/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/resources",
@@ -49,7 +49,7 @@
       "name": "scala-compiler",
       "version": "2.12.20",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native212/builds/normal/src_managed/${SCOPE}",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.12.20/0.5.6/nscplugin_2.12.20-0.5.6.jar",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.20/2.1.1/paradise_2.12.20-2.1.1.jar",
         "-feature",
@@ -61,7 +61,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native212/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

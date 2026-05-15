@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "semanticdb-scalac-core@jvm2.12.19",
-    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.19",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-scalac-core@jvm2.12.19/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/scalac/library/src/main/java",
@@ -33,15 +33,15 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.19/scala-library-2.12.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.19/scala-reflect-2.12.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.19/scalap-2.12.19.jar",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-shared/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@jvm212/scripts.GenerateForCommon",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@jvm212/scripts.GenerateForParsers",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/semanticdb-shared@jvm212/scripts.GenerateForSemanticdbShared",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@jvm212/generated-resources/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/parsers@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/parsers@jvm212/generated-resources/scripts.GenerateForParsers",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-shared@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-shared@jvm212/generated-resources/scripts.GenerateForSemanticdbShared",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/trees@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/protobuf",
@@ -75,8 +75,8 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/proto/semanticidx.proto",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.19",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.19/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-scalac-core@jvm2.12.19/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-scalac-core@jvm2.12.19/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/scalac/library/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/scalac/library/src/main/resources"
@@ -96,7 +96,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.19/scala-reflect-2.12.19.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.2.0/scala-xml_2.12-2.2.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.19/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-scalac-core@jvm2.12.19/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

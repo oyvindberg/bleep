@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "run-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/run-test/jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/run-test@jvm212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/run/src/test/java",
@@ -67,14 +67,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-core_2.12/0.7.0/hedgehog-core_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-runner_2.12/0.7.0/hedgehog-runner_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-sbt_2.12/0.7.0/hedgehog-sbt_2.12-0.7.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/core-macros/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/run/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-control/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-logging/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/generated-resources/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/core-macros@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/run@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-control@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-interface/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-logging@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/src/main/resources",
@@ -92,8 +92,8 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/run/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/run/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/run-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/run-test/jvm212/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/run-test@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/run-test@jvm212/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/run/src/test/resources"
     ],
@@ -132,7 +132,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/run-test/jvm212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/run-test@jvm212/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

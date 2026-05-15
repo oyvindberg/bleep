@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-core-test@native213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/java",
@@ -58,12 +58,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_native0.5_2.13/3.2.18/scalatest-wordspec_native0.5_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_native0.5_2.13/3.2.18/scalatest_native0.5_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_native0.5_2.13/3.2.19.0/scalacheck-1-18_native0.5_2.13-3.2.19.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@native213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/resources"
@@ -73,8 +73,8 @@
       "name": "scala-compiler",
       "version": "2.13.16",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scalanative-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213/src_managed/${SCOPE}",
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scalanative-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/boilerplate-gen;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213/src_managed/main",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scalanative-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/${SCOPE}/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scalanative-2.13;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/boilerplate-gen;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal/src_managed/main",
         "-Wconf:cat=other-match-analysis:error",
         "-Wconf:msg=unused",
         "value",
@@ -137,7 +137,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/native213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@native213/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

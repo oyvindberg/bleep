@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-bloop",
-    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/sbt-bloop/scripts.GenerateForSbtBloop",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/generated-sources/scripts.GenerateForSbtBloop",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala-2",
@@ -105,10 +105,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.5.7/zinc_2.12-1.5.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.26/slf4j-api-1.7.26.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sbt-bloop/scripts.GenerateForSbtBloop",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/generated-resources/scripts.GenerateForSbtBloop",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/resources"
@@ -139,7 +139,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/sbt-bloop/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

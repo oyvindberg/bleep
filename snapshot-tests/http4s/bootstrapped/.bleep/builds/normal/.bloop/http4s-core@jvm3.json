@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "http4s-core@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/generated-sources/scripts.GenerateForHttp4sCore",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/scala",
@@ -40,10 +40,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/generated-resources/scripts.GenerateForHttp4sCore",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
@@ -86,7 +86,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

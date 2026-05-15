@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "http4s-circe-test@native213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/native213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe-test@native213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.native/src/test/java",
@@ -86,13 +86,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_native0.4_2.13/2.0.0-M2/scalacheck-effect-munit_native0.4_2.13-2.0.0-M2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_native0.4_2.13/2.0.0-M2/scalacheck-effect_native0.4_2.13-2.0.0-M2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_native0.4_2.13/3.6.0/vault_native0.4_2.13-3.6.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn-test/native213/test-classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@native213/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native213/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-jawn-test@native213/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-jawn@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-tests@native213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/resources",
@@ -110,8 +110,8 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/native213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/native213/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe-test@native213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe-test@native213/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.native/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/test/resources"
@@ -152,7 +152,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.26.3/jline-3.26.3.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe-test/native213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe-test@native213/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

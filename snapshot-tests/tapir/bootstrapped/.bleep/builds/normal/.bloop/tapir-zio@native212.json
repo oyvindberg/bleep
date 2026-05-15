@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-zio@native212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/native212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@native212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/java",
@@ -45,12 +45,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.8/posixlib_native0.5_2.12-0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.8/scalalib_native0.5_2.12-2.12.20%2B0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.12/0.5.8/windowslib_native0.5_2.12-0.5.8.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@native212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/native212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/native212/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@native212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@native212/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources"
@@ -60,7 +60,7 @@
       "name": "scala-compiler",
       "version": "2.12.20",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scalanative-2.12;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2.13-;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/native212/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scalanative-2.12;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/${SCOPE}/scala-2.13-;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@native212/builds/normal/src_managed/${SCOPE}",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
@@ -113,7 +113,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/native212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@native212/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

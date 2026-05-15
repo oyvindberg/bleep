@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-cli",
-    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-cli",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/bloop-cli/scripts.GenerateForBloopCli",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/generated-sources/scripts.GenerateForBloopCli",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/cli/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/cli/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/cli/src/main/scala-2",
@@ -87,16 +87,16 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/1.1.3/config_2.13-1.1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/specification-level_2.13/1.1.3/specification-level_2.13-1.1.3.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-rifle/scripts.GenerateForBloopRifle",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.GenerateForBloopRifle",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-cli",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-cli/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-cli/scripts.GenerateForBloopCli",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/generated-resources/scripts.GenerateForBloopCli",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/cli/src/main/resources"
@@ -124,7 +124,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-cli/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-cli/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

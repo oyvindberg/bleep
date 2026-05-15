@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scalafixinternaltests@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/scalafixinternaltests@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/main/java",
@@ -17,11 +17,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-scalafix-internal@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm3/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/scalafixinternaltests@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/scalafixinternaltests@jvm3/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/main/resources"
     ],
@@ -63,7 +63,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm3/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/scalafixinternaltests@jvm3/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

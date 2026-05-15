@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "zinc-lm-integration-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/zinc-lm-integration-test@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/test/java",
@@ -88,12 +88,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-core_2.13/0.7.0/hedgehog-core_2.13-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-runner_2.13/0.7.0/hedgehog-runner_2.13-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-sbt_2.13/0.7.0/hedgehog-sbt_2.13-0.7.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/zinc-lm-integration@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm213/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/zinc-lm-integration-test@jvm213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/zinc-lm-integration-test@jvm213/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/test/resources"
     ],
@@ -129,7 +129,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration-test/jvm213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/zinc-lm-integration-test@jvm213/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

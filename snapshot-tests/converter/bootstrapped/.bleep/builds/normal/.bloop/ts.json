@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "ts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/ts/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/ts/src/main/java",
@@ -35,13 +35,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.1.0/cats-kernel_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/logging/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/ts/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/ts/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/ts/src/main/resources"
     ],
@@ -105,7 +105,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/ts/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

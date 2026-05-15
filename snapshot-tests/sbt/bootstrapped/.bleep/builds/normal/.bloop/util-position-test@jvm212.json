@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "util-position-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position-test@jvm212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/test/java",
@@ -33,12 +33,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm212/test-classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position-test@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position-test@jvm212/builds/normal/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/test/resources"
     ],
@@ -77,7 +77,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position-test@jvm212/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,
