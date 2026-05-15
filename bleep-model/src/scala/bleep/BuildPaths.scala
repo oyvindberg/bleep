@@ -61,12 +61,6 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   lazy val localConfig: Path = dotBleepDir / "conf"
   lazy val bspProjectSelectionYaml: Path = localConfig / "bsp-project-selection.yaml"
 
-  /** `<workspace>/.bleep/.bleep-version` — last bleep release that wrote to this `.bleep/`. Used by layout-migration logic. */
-  lazy val bleepVersionMarker: Path = dotBleepDir / ".bleep-version"
-
-  /** `<workspace>/.bleep/.gitignore` — auto-written so users don't have to remember to ignore the cache directory. */
-  lazy val gitignoreFile: Path = dotBleepDir / ".gitignore"
-
   // === per cross-project paths ===
 
   /** `<workspace>/.bleep/projects/<crossName>/`. Everything related to one cross variant of one project lives here. */

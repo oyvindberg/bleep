@@ -36,19 +36,20 @@ import scala.collection.immutable.{SortedMap, SortedSet}
   * @param projectBaseDir
   *   The project's source directory. Used by KSP for relative-path resolution. Maps to `-project-base-dir=`.
   * @param kspOutputBaseDir
-  *   `.bleep/generated-sources/<cross>/ksp/`. Maps to `-output-base-dir=`.
+  *   `.bleep/projects/<cross>/generated-sources/ksp/`. Maps to `-output-base-dir=`. Source-like outputs (`kotlin/`, `java/`, `resources/`) live underneath.
   * @param kotlinOutputDir
-  *   `kspOutputBaseDir/kotlin/`. Maps to `-kotlin-output-dir=`.
+  *   `<kspOutputBaseDir>/kotlin/`. Maps to `-kotlin-output-dir=`.
   * @param javaOutputDir
-  *   `kspOutputBaseDir/java/`.
+  *   `<kspOutputBaseDir>/java/`. Maps to `-java-output-dir=`.
   * @param classOutputDir
-  *   `kspOutputBaseDir/classes/`.
+  *   `.bleep/projects/<cross>/builds/<variant>/ksp/classes/`. Per-variant so a BSP and a Normal compile don't overwrite each other's bytecode.
   * @param resourceOutputDir
-  *   `kspOutputBaseDir/resources/`.
+  *   `<kspOutputBaseDir>/resources/`. Maps to `-resource-output-dir=`.
   * @param cachesDir
-  *   `kspOutputBaseDir/caches/`. Persisted between runs so KSP's own incremental cache survives.
+  *   `.bleep/projects/<cross>/builds/<variant>/ksp/caches/`. Per-variant; KSP's own incremental cache.
   * @param processorOptions
-  *   Per-processor `apoption=<k>=<v>` flags. Mapped to KSP's `-processor-options=` argument, encoded as `k1=v1<sep>k2=v2`.
+  *   Per-processor `<k>=<v>` flags. Passed via KSP's `-processor-options=` argument and joined with the platform path separator (`:` on Unix, `;` on Windows).
+  *   A value containing the separator will be misparsed by KSP on the receiving side — a known limitation that hasn't bitten users yet.
   */
 case class SymbolProcessorResult(
     runnerClasspath: List[Path],

@@ -210,15 +210,13 @@ object KotlinProjectCompiler extends ProjectCompiler {
     }
   }
 
-  /** Compile a Kotlin project with Java-first order.
+  /** Compile a Kotlin project with kotlinc-first order:
+    *   1. Compile `.kt` + `.java` together with kotlinc. kotlinc emits `.class` only for `.kt` sources and reads the `.java` files via its lightweight Java
+    *      parser for symbol resolution — so Kotlin code can reference Java types even before javac runs.
+    *   2. Compile `.java` files with javac, with kotlinc's output on the classpath — so Java code can reference Kotlin types.
     *
-    * kotlinc does NOT compile .java files — it only uses them for type resolution. So for mixed Java+Kotlin projects we use Java-first compilation order:
-    *   1. Compile .kt + .java together with kotlinc. Kotlinc emits .class for .kt sources and reads .java sources via its lightweight Java parser for symbol
-    *      resolution — so Kotlin code can reference Java types even before javac runs.
-    *   2. Compile .java files with javac, with kotlinc's output on classpath — so Java code can reference Kotlin types.
-    *
-    * This is the "kotlinc first" order. The previous "javac first" order broke for Java that references Kotlin (and for KSP processors like Dagger which emit
-    * Java that references the project's Kotlin code). Kotlinc reads .java sources without emitting class files for them, so this is safe.
+    * Replaces the prior "javac first" order, which broke for Java that references Kotlin (and for KSP processors like Dagger that emit Java referencing the
+    * project's Kotlin code).
     */
   private def doKotlinCompile(
       sourceFiles: Seq[SourceFile],

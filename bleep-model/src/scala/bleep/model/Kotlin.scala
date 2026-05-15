@@ -18,16 +18,16 @@ import io.circe.{Decoder, Encoder}
   * @param kspVersion
   *   The KSP-side version suffix (e.g. "1.0.29"). Bleep concatenates this with [[version]] to form the full coord
   *   `com.google.devtools.ksp:symbol-processing-aa-embeddable:<kotlin>-<ksp>`. Required when [[symbolProcessors]] is non-empty or [[scanForSymbolProcessors]]
-  *   is true. No default — fail loud at resolution if missing. KSP1 releases are pinned 1:1 to exact kotlinc versions, so [[version]] determines the prefix;
+  *   is true. No default — fail loud at resolution if missing. KSP releases are pinned 1:1 to exact kotlinc versions, so [[version]] determines the prefix;
   *   this field only carries the KSP-side suffix.
   * @param scanForSymbolProcessors
   *   When set to true, bleep scans every resolved-`dependencies` jar for `META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider` and
   *   adds matching jars to KSP's processor classpath. Default off — explicit opt-in.
   * @param symbolProcessors
-  *   KSP processor-only deps. Resolved separately and passed to KSP via `-P plugin:com.google.devtools.ksp.symbol-processing:apclasspath=…`, never on the
-  *   runtime classpath. Composes with [[scanForSymbolProcessors]] when both are set.
+  *   KSP processor-only deps. Resolved separately and passed as the trailing positional classpath to the standalone `KSPJvmMain` runner — never on the
+  *   project's runtime classpath. Composes with [[scanForSymbolProcessors]] when both are set.
   * @param symbolProcessorOptions
-  *   `apoption=<key>=<value>` flags passed to KSP. Any processor sees any option.
+  *   `<key>=<value>` flags passed to KSP via `-processor-options=`. Every configured processor can see every option (no per-processor scoping).
   * @param js
   *   Kotlin/JS specific configuration
   * @param native

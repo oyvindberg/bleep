@@ -228,14 +228,14 @@
               }
             }
           ],
-          "description": "KSP processor-only deps. Resolved separately and passed to KSP via `apclasspath`; never on the runtime classpath. Composes with `scanForSymbolProcessors`."
+          "description": "KSP processor-only deps. Resolved separately and passed as the trailing positional classpath to the standalone `KSPJvmMain` runner — never on the project's runtime classpath. Composes with `scanForSymbolProcessors`."
         },
         "symbolProcessorOptions": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
           },
-          "description": "`apoption=<key>=<value>` flags passed to KSP. Visible to all configured processors."
+          "description": "`<key>=<value>` flags passed to KSP via `-processor-options=`. Visible to every configured processor (no per-processor scoping)."
         }
       }
     },

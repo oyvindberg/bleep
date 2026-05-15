@@ -4,8 +4,9 @@ import io.circe.{Decoder, Encoder}
 
 import scala.collection.immutable.SortedMap
 
-/** `apoption=<key>=<value>` flags passed to KSP via the kotlinc plugin option surface (`-P plugin:com.google.devtools.ksp.symbol-processing:apoption=<k>=<v>`).
-  * Modeled on [[AnnotationProcessorOptions]]: child overrides template on union, deterministic ordering on iteration.
+/** `<key>=<value>` flags passed to KSP processors via the standalone runner's `-processor-options=` argument (each value pair joined with the platform path
+  * separator). Visible to every configured processor — there's no per-processor scoping. Modeled on [[AnnotationProcessorOptions]]: child overrides template on
+  * union, deterministic ordering on iteration.
   */
 case class SymbolProcessorOptions(value: SortedMap[String, String]) extends SetLike[SymbolProcessorOptions] {
 

@@ -8,7 +8,8 @@ import java.nio.file.{Files, Path}
   * aren't published to any repository. Instead, we resolve them from the compiled class dirs in the .bleep directory.
   *
   * Two resolution strategies:
-  *   1. From buildDir: `<buildDir>/.bleep/builds/normal/.bloop/<name>/classes`
+  *   1. From buildDir: `<buildDir>/.bleep/projects/<name>/builds/normal/classes` (plus the project's `src/resources/` when present, so SPI files end up on the
+  *      dev-mode classpath the same way they would on a published JAR)
   *   2. From JVM classpath: scan `java.class.path` for matching entries (used by forked sourcegen JVMs where buildDir points to a consumer build, not bleep's
   *      own build)
   *

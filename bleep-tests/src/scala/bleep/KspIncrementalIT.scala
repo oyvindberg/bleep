@@ -5,7 +5,7 @@ import java.security.MessageDigest
 
 /** Incremental-compilation behaviour for KSP. Uses Moshi codegen as the real-world processor (same as `KspBasicIT`).
   *
-  * KSP runs as a standalone JVM (`KspRunner`) with its own incremental cache under `.bleep/generated-sources/<cross>/ksp/caches/`. The checks here are
+  * KSP runs as a standalone JVM (`KspRunner`) with its own incremental cache under `.bleep/projects/<cross>/builds/<variant>/ksp/caches/`. The checks here are
   * end-to-end: run, mutate inputs, run again, inspect the generated-sources tree.
   *
   * The original §13 plan (`ksp-design.md`) had 15 cases requiring a custom toy KSP processor with per-invocation logging. The cases that need invocation

@@ -68,8 +68,9 @@ object TaskDag {
     }
 
     /** Per-project KSP run: resolve the KSP standalone-runner classpath and the user-listed processor JARs, then fork a JVM that runs
-      * `com.google.devtools.ksp.cmdline.KSPJvmMain` against the project's sources. Generated `.kt`/`.java`/`.class`/resources land under
-      * `.bleep/generated-sources/<cross>/ksp/`, picked up by the project's source set and the subsequent kotlinc compile.
+      * `com.google.devtools.ksp.cmdline.KSPJvmMain` against the project's sources. Generated `.kt`/`.java`/resources land under
+      * `.bleep/projects/<cross>/generated-sources/ksp/`; KSP-emitted `.class`es and caches live per-variant under
+      * `.bleep/projects/<cross>/builds/<variant>/ksp/`. The generated sources are picked up by the project's source set for the subsequent kotlinc compile.
       */
     case class RunSymbolProcessors(project: CrossProjectName) extends TaskId {
       val value: String = s"run-ksp:${project.value}"
