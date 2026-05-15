@@ -489,27 +489,27 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("formatCompileSummary: all clear, no history") {
-    BuildDiff.formatCompileSummary(10, 0, 0, 0, 0) shouldBe "Build: 10 projects compiled, all clear"
+    BuildDiff.formatCompileSummary(10, 0, 0, 0).shouldBe("Build: 10 projects compiled, all clear")
   }
 
   test("formatCompileSummary: all clear after fixing errors") {
-    BuildDiff.formatCompileSummary(10, 0, 0, 0, 3) shouldBe "Build: 10 projects compiled, all clear (fixed 3 errors)"
+    BuildDiff.formatCompileSummary(10, 0, 0, 3).shouldBe("Build: 10 projects compiled, all clear (fixed 3 errors)")
   }
 
   test("formatCompileSummary: errors with new and fixed and remaining") {
-    BuildDiff.formatCompileSummary(10, 2, 0, 1, 1) shouldBe "Build: 10 projects compiled, 2 errors (1 fixed, 1 new, 1 remaining)"
+    BuildDiff.formatCompileSummary(10, 2, 1, 1).shouldBe("Build: 10 projects compiled, 2 errors (1 fixed, 1 new, 1 remaining)")
   }
 
   test("formatCompileSummary: errors with new and remaining") {
-    BuildDiff.formatCompileSummary(10, 3, 0, 2, 0) shouldBe "Build: 10 projects compiled, 3 errors (2 new, 1 remaining)"
+    BuildDiff.formatCompileSummary(10, 3, 2, 0).shouldBe("Build: 10 projects compiled, 3 errors (2 new, 1 remaining)")
   }
 
   test("formatCompileSummary: singular error") {
-    BuildDiff.formatCompileSummary(5, 1, 0, 1, 0) shouldBe "Build: 5 projects compiled, 1 error (1 new)"
+    BuildDiff.formatCompileSummary(5, 1, 1, 0).shouldBe("Build: 5 projects compiled, 1 error (1 new)")
   }
 
   test("formatCompileSummary: fixed singular error") {
-    BuildDiff.formatCompileSummary(5, 0, 0, 0, 1) shouldBe "Build: 5 projects compiled, all clear (fixed 1 error)"
+    BuildDiff.formatCompileSummary(5, 0, 0, 1).shouldBe("Build: 5 projects compiled, all clear (fixed 1 error)")
   }
 
   // ==========================================================================

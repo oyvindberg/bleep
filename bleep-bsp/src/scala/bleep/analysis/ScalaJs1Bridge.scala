@@ -2,7 +2,7 @@ package bleep.analysis
 
 import cats.effect.IO
 import java.nio.file.{Files, Path}
-import java.lang.reflect.{InvocationTargetException, Method}
+import java.lang.reflect.InvocationTargetException
 import scala.jdk.CollectionConverters.*
 
 /** Scala.js 1.x linker bridge.
@@ -10,7 +10,6 @@ import scala.jdk.CollectionConverters.*
   * Uses reflection to invoke the Scala.js linker APIs, allowing different Scala.js versions to be loaded in isolated classloaders.
   */
 class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends ScalaJsToolchain {
-  import ScalaJs1Bridge.*
 
   override def link(
       config: ScalaJsLinkConfig,
@@ -90,11 +89,9 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     val standardConfigClass = loader.loadClass("org.scalajs.linker.interface.StandardConfig")
     val standardConfigCompanion = loader.loadClass("org.scalajs.linker.interface.StandardConfig$")
     val linkerClass = loader.loadClass("org.scalajs.linker.StandardImpl$")
-    val moduleInitializerClass = loader.loadClass("org.scalajs.linker.interface.ModuleInitializer")
     val moduleInitializerCompanion = loader.loadClass("org.scalajs.linker.interface.ModuleInitializer$")
     val pathIRContainerClass = loader.loadClass("org.scalajs.linker.PathIRContainer$")
     val pathOutputDirectoryClass = loader.loadClass("org.scalajs.linker.PathOutputDirectory$")
-    val loggerClass = loader.loadClass("org.scalajs.logging.Logger")
     val levelClass = loader.loadClass("org.scalajs.logging.Level")
 
     // Get companion objects
@@ -107,7 +104,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     // Create linker config
     val linkerConfig = createLinkerConfig(
       standardConfigObj,
-      standardConfigClass,
       config,
       loader
     )
@@ -117,7 +113,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     val linker = linkerMethod.invoke(linkerObj, linkerConfig)
 
     // Create logger adapter
-    val scalaJsLogger = createLoggerAdapter(logger, loader, loggerClass, levelClass)
+    val scalaJsLogger = createLoggerAdapter(loader, levelClass)
 
     // Check cancellation
     checkCancellation(cancellation)
@@ -135,7 +131,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     val moduleInitializers = createModuleInitializers(mainClass, moduleInitializerObj, loader, isTest)
 
     // Create output directory handler
-    val outputDirectory = createOutputDirectory(outputDir, pathOutputDirectoryObj, loader)
+    val outputDirectory = createOutputDirectory(outputDir, pathOutputDirectoryObj)
     logger.info(s"[ScalaJs1Bridge] Output directory: $outputDir")
 
     // Check cancellation before linking
@@ -143,7 +139,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
     // Link
     logger.info(s"[ScalaJs1Bridge] Starting linker...")
-    val linkedFiles = runLinker(linker, irFilesSeq, moduleInitializers, outputDirectory, scalaJsLogger, loader, cancellation)
+    runLinker(linker, irFilesSeq, moduleInitializers, outputDirectory, scalaJsLogger, loader, cancellation)
     logger.info(s"[ScalaJs1Bridge] Linker completed")
 
     // Check cancellation after linking
@@ -183,7 +179,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
   private def createLinkerConfig(
       standardConfigObj: Any,
-      standardConfigClass: Class[?],
       config: ScalaJsLinkConfig,
       loader: ClassLoader
   ): Any = {
@@ -194,8 +189,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
     // Apply settings using withXxx methods
     val moduleKindClass = loader.loadClass("org.scalajs.linker.interface.ModuleKind")
-    val moduleKindCompanion = loader.loadClass("org.scalajs.linker.interface.ModuleKind$")
-    val moduleKindObj = moduleKindCompanion.getField("MODULE$").get(null)
 
     val moduleKindName = config.moduleKind match {
       case ScalaJsLinkConfig.ModuleKind.NoModule       => "NoModule$"
@@ -257,9 +250,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
   }
 
   private def createLoggerAdapter(
-      logger: ScalaJsToolchain.Logger,
       loader: ClassLoader,
-      loggerClass: Class[?],
       levelClass: Class[?]
   ): Any = {
     // Create ScalaConsoleLogger with Level.Debug (Debug is a nested case object)
@@ -274,9 +265,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
       linkerObj: Any,
       loader: ClassLoader
   ): Any = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.concurrent.{Await, Future}
-    import scala.concurrent.duration.*
 
     // PathIRContainer.fromClasspath
     val fromClasspathMethod = pathIRContainerObj.getClass.getMethods.find(m => m.getName == "fromClasspath" && m.getParameterCount == 2).get
@@ -297,8 +285,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     }
 
     // Get the IR containers
-    val futureClass = loader.loadClass("scala.concurrent.Future")
-    val ecClass = loader.loadClass("scala.concurrent.ExecutionContext")
     val globalEC = loader.loadClass("scala.concurrent.ExecutionContext$").getField("MODULE$").get(null)
     val ecGlobal = globalEC.getClass.getMethod("global").invoke(globalEC)
 
@@ -388,8 +374,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
   private def createOutputDirectory(
       outputDir: Path,
-      pathOutputDirectoryObj: Any,
-      loader: ClassLoader
+      pathOutputDirectoryObj: Any
   ): Any = {
     val applyMethod = pathOutputDirectoryObj.getClass.getMethods.find(m => m.getName == "apply" && m.getParameterCount == 1).get
     applyMethod.invoke(pathOutputDirectoryObj, outputDir)
@@ -404,16 +389,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
       loader: ClassLoader,
       cancellation: CancellationToken
   ): Any = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.concurrent.{Await, Future}
-    import scala.concurrent.duration.*
-
-    // Get the link method
-    val irFileClass = loader.loadClass("org.scalajs.linker.interface.IRFile")
-    val moduleInitializerClass = loader.loadClass("org.scalajs.linker.interface.ModuleInitializer")
-    val outputDirectoryClass = loader.loadClass("org.scalajs.linker.interface.OutputDirectory")
-    val loggerClass = loader.loadClass("org.scalajs.logging.Logger")
-    val ecClass = loader.loadClass("scala.concurrent.ExecutionContext")
 
     val globalEC = loader.loadClass("scala.concurrent.ExecutionContext$").getField("MODULE$").get(null)
     val ecGlobal = globalEC.getClass.getMethod("global").invoke(globalEC)

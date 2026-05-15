@@ -131,9 +131,9 @@ object CompileDisplay {
 
       case CompileEvent.DiagnosticEmitted(project, file, line, severity, message, timestamp) =>
         val logFn = severity.toLowerCase match {
-          case "error"   => logError _
-          case "warning" => logWarn _
-          case _         => log _
+          case "error"   => logError
+          case "warning" => logWarn
+          case _         => log
         }
         val sevColor = severity.toLowerCase match {
           case "error"   => SConsole.RED

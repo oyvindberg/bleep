@@ -35,7 +35,6 @@ class MavenRemotePublisher(logger: Logger) {
   ): Unit = {
     val total = artifacts.size
     var uploaded = 0
-    var failed = 0
 
     artifacts.foreach { case (relPath, content) =>
       val targetUri = resolveArtifactUri(baseUri, relPath)
@@ -50,7 +49,6 @@ class MavenRemotePublisher(logger: Logger) {
           uploaded += 1
           logger.debug(s"  $code OK ($uploaded/$total)")
         case code =>
-          failed += 1
           val body = response.body()
           throw new BleepException.Text(
             s"Failed to publish $relPath to $targetUri: HTTP $code\n$body"

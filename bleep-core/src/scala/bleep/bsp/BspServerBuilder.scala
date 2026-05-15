@@ -131,8 +131,7 @@ object BspServerBuilder {
     buildData.foreach { data =>
       params.setDataKind(BspBuildData.DataKind)
       val jsonStr = BspBuildData.Payload.encode(data)
-      val gsonParser = new com.google.gson.JsonParser()
-      val jsonElement = gsonParser.parse(jsonStr)
+      val jsonElement = com.google.gson.JsonParser.parseString(jsonStr)
       params.setData(jsonElement)
     }
 

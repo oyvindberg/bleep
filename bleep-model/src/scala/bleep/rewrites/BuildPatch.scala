@@ -120,8 +120,8 @@ object BuildPatch {
         val remainingValues =
           crossProjectNamesList
             .map(build.explodedProjects.apply)
-            .optReduce(_ intersectDropEmpty _)
-            .foldLeft(values)(_ removeAll _)
+            .optReduce(_ `intersectDropEmpty` _)
+            .foldLeft(values)(_ `removeAll` _)
 
         if (remainingValues.isEmpty) build
         else
@@ -183,7 +183,7 @@ object BuildPatch {
         build.explodedProjects
           // note: all cross projects are not necessarily chosen. this finds all
           .collect { case (model.CrossProjectName(`projectName`, _), p) => p }
-          .reduce(_ intersect _)
+          .reduce(_ `intersect` _)
 
       values.removeAll(sharedBetweenCrossProjects)
     }
@@ -285,7 +285,7 @@ object BuildPatch {
 
     val newProjects = build.file.projects.map { case (name, project) =>
       val beforeCross = {
-        val project1 = pushedValues.get(model.CrossProjectName(name, None)).foldLeft(project)(_ union _)
+        val project1 = pushedValues.get(model.CrossProjectName(name, None)).foldLeft(project)(_ `union` _)
 
         if (!affected.projectNames(name)) project1
         else {

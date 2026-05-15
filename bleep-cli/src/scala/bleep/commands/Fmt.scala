@@ -167,7 +167,7 @@ case class Fmt(check: Boolean, projects: Array[model.CrossProjectName]) extends 
   override def run(started: Started): Either[BleepException, Unit] = {
     val selectedProjects =
       if (projects.isEmpty) started.build.explodedProjects.keys
-      else projects.toIterable
+      else projects.toSeq
 
     val sourcesDirs: Set[Path] =
       selectedProjects

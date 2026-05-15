@@ -67,13 +67,13 @@ object BspServerDaemon {
     */
   def registerWorkspace(workspaceRoot: Path): Unit = {
     val normalized = workspaceRoot.toAbsolutePath.normalize()
-    workspaces.putIfAbsent(normalized, WorkspaceState(normalized, None))
+    workspaces.putIfAbsent(normalized, WorkspaceState(normalized, None)): Unit
   }
 
   /** Unregister a workspace from the server. */
   def unregisterWorkspace(workspaceRoot: Path): Unit = {
     val normalized = workspaceRoot.toAbsolutePath.normalize()
-    workspaces.remove(normalized)
+    workspaces.remove(normalized): Unit
   }
 
   /** Get all registered workspaces */
@@ -83,7 +83,7 @@ object BspServerDaemon {
   /** Update build state for a workspace */
   def updateBuildState(workspaceRoot: Path, state: BuildState): Unit = {
     val normalized = workspaceRoot.toAbsolutePath.normalize()
-    workspaces.computeIfPresent(normalized, (_, ws) => ws.copy(buildState = Some(state)))
+    workspaces.computeIfPresent(normalized, (_, ws) => ws.copy(buildState = Some(state))): Unit
   }
 
   /** Get workspace state */
@@ -225,7 +225,7 @@ object BspServerDaemon {
         catch { case _: Exception => () }
         try
           ProcessHandle.current().descendants().forEach { ph =>
-            try ph.destroyForcibly()
+            try ph.destroyForcibly(): Unit
             catch { case _: Exception => () }
           }
         catch { case _: Exception => () }
@@ -263,7 +263,6 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  config.socketDir,
                   compileSemaphore
                 )
               finally BspMetrics.recordConnectionClose(connId)
@@ -279,7 +278,6 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      config.socketDir,
                       compileSemaphore
                     )
                   finally {
@@ -328,7 +326,6 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      socketDir: Path,
       compileSemaphore: java.util.concurrent.Semaphore
   ): Unit =
     try {
@@ -337,7 +334,6 @@ object BspServerDaemon {
         input,
         output,
         logger,
-        socketDir = Some(socketDir),
         compileSemaphore = compileSemaphore,
         heapMonitor = HeapMonitor.system
       )

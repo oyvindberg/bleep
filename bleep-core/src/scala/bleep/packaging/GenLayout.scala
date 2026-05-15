@@ -4,8 +4,10 @@ package packaging
 import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.nowarn
 import scala.xml.{Elem, NodeSeq}
 
+@nowarn("msg=unused value of type scala.xml.NodeBuffer")
 object GenLayout {
   val p = new scala.xml.PrettyPrinter(120, 2)
 
@@ -57,7 +59,7 @@ object GenLayout {
     (prelude + p.format(xml)).getBytes(StandardCharsets.UTF_8)
   }
 
-  def ivyFile(self: Dependency, deps: List[Dependency]): Elem =
+  def ivyFile(self: Dependency, deps: List[Dependency]): Elem = {
     <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
       <info organisation={self.module.organization.value}
             module={self.module.name.value}
@@ -97,6 +99,7 @@ object GenLayout {
     }
       </dependencies>
     </ivy-module>
+  }
 
   implicit class OptionOps[T](ot: Option[T]) {
     def render(asXml: T => Elem): NodeSeq =
@@ -111,7 +114,7 @@ object GenLayout {
       if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
   }
 
-  def pomFile(self: Dependency, dependencies: List[Dependency], info: Info): Elem =
+  def pomFile(self: Dependency, dependencies: List[Dependency], info: Info): Elem = {
     <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
       <modelVersion>4.0.0</modelVersion>
       <groupId>{self.module.organization.value}</groupId>
@@ -189,4 +192,5 @@ object GenLayout {
     }
       </dependencies>
     </project>
+  }
 }

@@ -5,6 +5,7 @@ import bleep.bsp.BuildServer
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.ScalaTestClassesParams
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
 case class ListTests(projects: Array[model.CrossProjectName], outputMode: OutputMode) extends BleepBuildCommand {
@@ -34,6 +35,7 @@ case class ListTests(projects: Array[model.CrossProjectName], outputMode: Output
       Right(())
     }
 
+  @nowarn("msg=buildTargetScalaTestClasses")
   private def testsByCrossProject(started: Started, server: BuildServer): Iterator[(model.CrossProjectName, String)] = {
     val targets = BspQuery.buildTargets(started.buildPaths, projects)
     val result: bsp4j.ScalaTestClassesResult = server.buildTargetScalaTestClasses(new ScalaTestClassesParams(targets)).get()

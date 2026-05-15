@@ -48,7 +48,7 @@ object BspProxy {
         val stdinToServer = new Thread("bsp-stdin-to-server") {
           setDaemon(true)
           override def run(): Unit =
-            try System.in.transferTo(connection.output)
+            try System.in.transferTo(connection.output): Unit
             catch { case _: Exception => () }
             finally
               try connection.output.close()
@@ -57,7 +57,7 @@ object BspProxy {
         val serverToStdout = new Thread("bsp-server-to-stdout") {
           setDaemon(true)
           override def run(): Unit =
-            try connection.input.transferTo(System.out)
+            try connection.input.transferTo(System.out): Unit
             catch { case _: Exception => () }
             finally
               try System.out.close()

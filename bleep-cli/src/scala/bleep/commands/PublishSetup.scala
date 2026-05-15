@@ -431,7 +431,7 @@ case class PublishSetup(logger: Logger, userPaths: UserPaths, maybeStarted: Opti
         out = cli.Out.ViaLogger(logger),
         in = cli.In.No,
         env = pathEnv
-      )
+      ): Unit
       logger.info("Public key uploaded successfully.")
     } catch {
       case e: BleepException.Text =>
@@ -501,7 +501,7 @@ case class PublishSetup(logger: Logger, userPaths: UserPaths, maybeStarted: Opti
         val updated = existing.copy(configs = existing.configs + (uri -> entry))
         config.copy(authentications = Some(updated))
       }
-      .orThrow
+      .orThrow: Unit
 
   /** Add a named resolver to bleep.yaml if we have build access and it doesn't already exist. */
   private def addResolverToBuild(name: String, repo: Repository): Unit =

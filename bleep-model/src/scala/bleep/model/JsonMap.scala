@@ -52,7 +52,7 @@ object JsonMap {
   def empty[K, V <: SetLike[V]]: JsonMap[K, V] = JsonMap(Map.empty)
 
   implicit def decodes[K: KeyDecoder, V <: SetLike[V]: Decoder]: Decoder[JsonMap[K, V]] =
-    Decoder.decodeOption(Decoder.decodeMap[K, V].map(JsonMap.apply)).map(_.getOrElse(empty))
+    Decoder.decodeOption(using Decoder.decodeMap[K, V].map(JsonMap.apply)).map(_.getOrElse(empty))
 
   implicit def encodes[K: KeyEncoder, V <: SetLike[V]: Encoder]: Encoder[JsonMap[K, V]] =
     Encoder.encodeMap[K, V].contramap(_.value)

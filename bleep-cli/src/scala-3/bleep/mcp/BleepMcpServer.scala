@@ -77,7 +77,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           jobs.values.toList.traverse_(_.cancel)
         }
       )
-    } yield new BleepMcpSession(client, bspConfig, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
+    } yield new BleepMcpSession(client, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
 
   private def setupBspConfig(): Either[BleepException, BspRifleConfig] =
     started.bspServerClasspathSource match {
@@ -107,14 +107,14 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               case Left(ex) =>
                 val msg = s"Build file changed (${changedFiles.mkString(", ")}), but reload failed: ${ex.getMessage}"
                 started.logger.error(msg)
-                client.log(protocol.LoggingLevel.Error, None, msg).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                client.log(protocol.LoggingLevel.Error, None, msg).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
               case Right(None) =>
                 () // parsed JSON identical, no actual change
               case Right(Some(newStarted)) =>
                 startedRef.set(newStarted)
                 val msg = s"Build reloaded (${changedFiles.mkString(", ")}). Project list and build model updated."
                 newStarted.logger.info(msg)
-                client.log(protocol.LoggingLevel.Info, None, msg).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                client.log(protocol.LoggingLevel.Info, None, msg).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
             }
           }
           val thread = new Thread(() => watcher.run(FileWatching.StopWhen.Never), "mcp-build-watcher")
@@ -127,7 +127,6 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
   private class BleepMcpSession(
       _client: McpServer.Client[IO],
-      bspConfig: BspRifleConfig,
       bspServer: bleep.bsp.BuildServer,
       bspListening: java.util.concurrent.Future[Void],
       eventRoutes: ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]],
@@ -518,7 +517,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                 case None       => run.events
               }
               val mode = run.mode
-              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true, includeThrowables = true, args.limit, args.offset)
+              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, includeThrowables = true, args.limit, args.offset)
               else formatCompileResult(events, PreviousRunState.empty, true, args.limit, args.offset)
             case None =>
               """{"message":"No previous build results. Run bleep.compile or bleep.test first."}"""
@@ -607,7 +606,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
         // Register event routing for this operation
         _ <- IO.delay(eventRoutes.put(originId, eventQueue))
-        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
+        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback()))
 
         // Consumer fiber: filter events, log per-project diffs to MCP, collect for final response
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
@@ -667,7 +666,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
         // Register event routing for this operation
         _ <- IO.delay(eventRoutes.put(originId, eventQueue))
-        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
+        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback()))
 
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
         heartbeatFiber <- heartbeat(collectedEvents, done, "test", context).start
@@ -695,7 +694,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                   data <- Option(result.getData)
                   jsonStr = data.toString
                   decoded <- BleepBspProtocol.TestRunResult.decode(jsonStr).toOption
-                } testRunResult.set(Some(decoded)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                } testRunResult.set(Some(decoded)).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
               }
             }
         }.guarantee(
@@ -711,7 +710,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         trr <- testRunResult.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "test", events.reverse)))
-      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = verbose, None, None)
+      } yield formatTestResult(events.reverse, trr, previousState, includeThrowables = verbose, None, None)
     }
 
     /** Start a background watch job. */
@@ -765,7 +764,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
           // Register event routing for this cycle
           _ <- IO.delay(eventRoutes.put(originId, eventQueue))
-          _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
+          _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback()))
           consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
 
           _ <- {
@@ -811,7 +810,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), modeStr, reversedEvents)))
 
           summary =
-            if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false, None, None)
+            if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, includeThrowables = false, None, None)
             else formatCompileResult(reversedEvents, previousState, false, None, None)
           watchMode = new WatchMode(if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile")
           _ <- watchResults.update(_ + (jobId -> WatchCycleResult(jobId, watchMode, summary, System.currentTimeMillis())))
@@ -1281,7 +1280,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     /** Diagnostic callback — no-op since we stream errors per-project via CompileFinished events in streamDiffLine. Per-diagnostic streaming was too verbose (N
       * individual JSON objects flooding the agent's context).
       */
-    private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = _ => ()
+    private def diagnosticCallback(): bsp4j.PublishDiagnosticsParams => Unit = _ => ()
 
     // ========================================================================
     // Filtering
@@ -1384,7 +1383,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           }
           fields += "newErrors" -> Json.fromInt(totalNew)
           fields += "fixedErrors" -> Json.fromInt(totalFixed)
-          fields += "summary" -> Json.fromString(BuildDiff.formatCompileSummary(compileEvents.size, errorCount, warningCount, totalNew, totalFixed))
+          fields += "summary" -> Json.fromString(BuildDiff.formatCompileSummary(compileEvents.size, errorCount, totalNew, totalFixed))
         } else {
           val summaryParts = List.newBuilder[String]
           if (success) summaryParts += s"Build succeeded (${compileEvents.size} projects)"
@@ -1417,7 +1416,6 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         events: List[BleepBspProtocol.Event],
         testRunResult: Option[BleepBspProtocol.TestRunResult],
         previousState: PreviousRunState,
-        verbose: Boolean,
         includeThrowables: Boolean,
         limit: Option[Int],
         offset: Option[Int]
@@ -1560,11 +1558,11 @@ private[mcp] class SharedMcpBspClient(
             val targetQueue = originId.flatMap(id => Option(eventRoutes.get(id)))
             targetQueue match {
               case Some(queue) =>
-                queue.offer(Some(event)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                queue.offer(Some(event)).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
               case None =>
                 // No specific route — broadcast to all active consumers
                 eventRoutes.values().forEach { queue =>
-                  queue.offer(Some(event)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                  queue.offer(Some(event)).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
                 }
             }
           case Left(_) => ()

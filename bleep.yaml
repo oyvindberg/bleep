@@ -412,5 +412,5 @@ templates:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-scala-3:
     scala:
-      options: -source 3.4 -no-indent -Wconf:name=PatternMatchExhaustivity:error
+      options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error
       version: 3.8.3

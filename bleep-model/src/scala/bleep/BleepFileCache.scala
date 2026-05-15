@@ -31,9 +31,9 @@ object BleepFileCache {
   /** Idempotent. Sets the JVM-wide HTTP/HTTPS connect/read timeouts unless the user already set them. */
   def ensureSystemPropertyDefaults(): Unit = {
     if (System.getProperty("sun.net.client.defaultConnectTimeout") == null)
-      System.setProperty("sun.net.client.defaultConnectTimeout", connectTimeoutMs.toString)
+      System.setProperty("sun.net.client.defaultConnectTimeout", connectTimeoutMs.toString): Unit
     if (System.getProperty("sun.net.client.defaultReadTimeout") == null)
-      System.setProperty("sun.net.client.defaultReadTimeout", readTimeoutMs.toString)
+      System.setProperty("sun.net.client.defaultReadTimeout", readTimeoutMs.toString): Unit
   }
 
   def apply(): FileCache[Task] = FileCache[Task]()

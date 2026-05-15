@@ -78,7 +78,7 @@ object ChildProcessDiagnostics {
         }
       case None =>
         // No jstack — try kill -QUIT and note it
-        Try(Runtime.getRuntime.exec(Array("kill", "-QUIT", pid.toString)))
+        Try(Runtime.getRuntime.exec(Array("kill", "-QUIT", pid.toString))): Unit
         out.println(s"  (sent SIGQUIT — dump appears in child's stderr)")
     }
   }

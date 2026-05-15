@@ -151,15 +151,15 @@ object Build {
 
     // Explicit encoder/decoder for Map[CrossProjectName, Project]
     private implicit val mapCPNProjectEncoder: Encoder[Map[CrossProjectName, Project]] =
-      Encoder.encodeMap[CrossProjectName, Project](CrossProjectName.keyEncodes, Project.encodes)
+      Encoder.encodeMap[CrossProjectName, Project](using CrossProjectName.keyEncodes, Project.encodes)
     private implicit val mapCPNProjectDecoder: Decoder[Map[CrossProjectName, Project]] =
-      Decoder.decodeMap[CrossProjectName, Project](CrossProjectName.keyDecodes, Project.decodes)
+      Decoder.decodeMap[CrossProjectName, Project](using CrossProjectName.keyDecodes, Project.decodes)
 
     // Explicit encoder/decoder for Map[ScriptName, JsonList[ScriptDef]]
     private implicit val mapScriptEncoder: Encoder[Map[ScriptName, JsonList[ScriptDef]]] =
-      Encoder.encodeMap[ScriptName, JsonList[ScriptDef]](ScriptName.keyEncodes, JsonList.encodes[ScriptDef])
+      Encoder.encodeMap[ScriptName, JsonList[ScriptDef]](using ScriptName.keyEncodes, JsonList.encodes[ScriptDef])
     private implicit val mapScriptDecoder: Decoder[Map[ScriptName, JsonList[ScriptDef]]] =
-      Decoder.decodeMap[ScriptName, JsonList[ScriptDef]](ScriptName.keyDecodes, JsonList.decodes[ScriptDef])
+      Decoder.decodeMap[ScriptName, JsonList[ScriptDef]](using ScriptName.keyDecodes, JsonList.decodes[ScriptDef])
 
     implicit val encodes: Encoder[Exploded] = deriveEncoder
     implicit val decodes: Decoder[Exploded] = deriveDecoder

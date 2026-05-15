@@ -71,7 +71,7 @@ object KotlinBuildTarget {
           }
           if !in.isCurrentToken('}') then in.objectEndOrCommaError()
         }
-      } else in.readNullOrTokenError(default, '{')
+      } else in.readNullOrTokenError(default, '{'): Unit
       KotlinBuildTarget(kotlinVersion, jvmTarget, kotlincOptions, isK2)
     }
   }

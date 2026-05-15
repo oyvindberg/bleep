@@ -50,12 +50,12 @@ object Credentials {
     } else
       Left("Credentials file " + path + " does not exist")
 
-  private[this] val RealmKeys = List("realm")
-  private[this] val HostKeys = List("host", "hostname")
-  private[this] val UserKeys = List("user", "user.name", "username")
-  private[this] val PasswordKeys = List("password", "pwd", "pass", "passwd")
+  private val RealmKeys = List("realm")
+  private val HostKeys = List("host", "hostname")
+  private val UserKeys = List("user", "user.name", "username")
+  private val PasswordKeys = List("password", "pwd", "pass", "passwd")
 
-  private[this] def read(from: File): Map[String, String] = {
+  private def read(from: File): Map[String, String] = {
     val properties = new java.util.Properties
     IO.load(properties, from)
     val b = Map.newBuilder[String, String]

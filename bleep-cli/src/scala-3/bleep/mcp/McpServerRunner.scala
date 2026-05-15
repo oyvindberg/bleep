@@ -40,7 +40,7 @@ object McpServerRunner {
         .as(bleep.ExitCode.Success)
 
       try {
-        program.unsafeRunSync()
+        program.unsafeRunSync(): Unit
         return bleep.ExitCode.Success
       } catch {
         case _: InterruptedException =>

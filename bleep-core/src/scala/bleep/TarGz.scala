@@ -71,7 +71,7 @@ object TarGz {
 
           if (name.nonEmpty && size >= 0) {
             val content = new Array[Byte](size.toInt)
-            readFully(gzIn, content)
+            readFully(gzIn, content): Unit
 
             // Skip padding to 512-byte boundary
             val padding = (512 - (size % 512).toInt) % 512
@@ -79,7 +79,7 @@ object TarGz {
 
             val targetFile = tmpDir.resolve(name)
             Files.createDirectories(targetFile.getParent)
-            Files.write(targetFile, content)
+            Files.write(targetFile, content): Unit
           }
         }
       }
@@ -88,15 +88,17 @@ object TarGz {
 
       // Move extracted files into target dir
       Files.createDirectories(targetDir)
-      scala.util.Using(Files.list(tmpDir)) { stream =>
-        stream.forEach { entry =>
-          val dest = targetDir.resolve(tmpDir.relativize(entry))
-          // Delete existing target if present, then move
-          if (Files.isDirectory(dest)) internal.FileUtils.deleteDirectory(dest)
-          else Files.deleteIfExists(dest)
-          Files.move(entry, dest, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+      scala.util
+        .Using(Files.list(tmpDir)) { stream =>
+          stream.forEach { entry =>
+            val dest = targetDir.resolve(tmpDir.relativize(entry))
+            // Delete existing target if present, then move
+            if (Files.isDirectory(dest)) internal.FileUtils.deleteDirectory(dest)
+            else Files.deleteIfExists(dest)
+            Files.move(entry, dest, java.nio.file.StandardCopyOption.ATOMIC_MOVE): Unit
+          }
         }
-      }
+        .get
     } finally
       // Clean up temp dir
       try internal.FileUtils.deleteDirectory(tmpDir)
@@ -137,9 +139,9 @@ object TarGz {
     // Type: regular file
     header(156) = '0'.toByte
     // USTAR magic
-    "ustar\u0000".getBytes("UTF-8").copyToArray(header, 257)
+    "ustar\u0000".getBytes("UTF-8").copyToArray(header, 257): Unit
     // USTAR version
-    "00".getBytes("UTF-8").copyToArray(header, 263)
+    "00".getBytes("UTF-8").copyToArray(header, 263): Unit
 
     // Compute checksum (sum of all bytes in header, treating checksum field as spaces)
     java.util.Arrays.fill(header, 148, 156, ' '.toByte)
@@ -157,7 +159,7 @@ object TarGz {
 
   private def writeOctal(buf: Array[Byte], offset: Int, length: Int, value: Long): Unit = {
     val octal = String.format(s"%${length - 1}o", value).replace(' ', '0')
-    octal.getBytes("UTF-8").copyToArray(buf, offset)
+    octal.getBytes("UTF-8").copyToArray(buf, offset): Unit
     buf(offset + length - 1) = 0
   }
 

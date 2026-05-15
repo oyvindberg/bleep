@@ -55,8 +55,8 @@ case class Kotlin(
       options = options.union(other.options),
       jvmTarget = jvmTarget.orElse(other.jvmTarget),
       compilerPlugins = compilerPlugins.union(other.compilerPlugins),
-      js = List(js, other.js).flatten.reduceOption(_ union _),
-      native = List(native, other.native).flatten.reduceOption(_ union _)
+      js = List(js, other.js).flatten.reduceOption(_ `union` _),
+      native = List(native, other.native).flatten.reduceOption(_ `union` _)
     )
 
   override def isEmpty: Boolean =

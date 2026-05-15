@@ -91,7 +91,7 @@ object KotlinNativeCompiler {
           s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz"
         val conn = java.net.URI.create(url).toURL.openConnection()
         val in = conn.getInputStream
-        try Files.copy(in, tarGz)
+        try Files.copy(in, tarGz): Unit
         finally in.close()
       }
       // Extract
@@ -249,8 +249,8 @@ object KotlinNativeCompiler {
         KotlinNativeCompileResult(outputPath, 1)
     } finally
       // Restore previous konan.home
-      if (oldKonanHome != null) System.setProperty("konan.home", oldKonanHome)
-      else System.clearProperty("konan.home")
+      if (oldKonanHome != null) System.setProperty("konan.home", oldKonanHome): Unit
+      else System.clearProperty("konan.home"): Unit
   }
 
   /** Check cancellation and throw if cancelled. Also checks thread interrupt. */
@@ -344,7 +344,7 @@ object KotlinNativeCompiler {
         .inheritIO()
 
       val process = pb.start()
-      cancellation.onCancel(() => process.destroyForcibly())
+      cancellation.onCancel { () => process.destroyForcibly(); () }
 
       val exitCode = process.waitFor()
       if (cancellation.isCancelled) {

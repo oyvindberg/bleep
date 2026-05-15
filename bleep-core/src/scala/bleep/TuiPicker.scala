@@ -2,7 +2,6 @@ package bleep
 
 import bleep.testing.FancyBuildDisplay.Palette
 import tui._
-import tui.crossterm.CrosstermJni
 import tui.widgets.{BlockWidget, ListWidget, ParagraphWidget}
 
 /** Reusable single-select picker using tui-scala. Returns the selected index, or None if user cancelled (Esc). */

@@ -1,6 +1,6 @@
 package bleep
 
-import coursier.cache.{ArchiveCache, CacheLogger, FileCache}
+import coursier.cache.{ArchiveCache, CacheLogger}
 import coursier.util.{Artifact, Task}
 
 import java.nio.file.Path

@@ -4,8 +4,6 @@ import bleep.model.VersionKotlin
 import cats.effect.IO
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
-import scala.jdk.CollectionConverters.*
-import scala.collection.mutable
 
 /** Kotlin/JS compiler.
   *
@@ -287,7 +285,6 @@ object KotlinJsCompiler {
   /** Create Services instance with CompilationCanceledStatus. */
   private def createServicesWithCancellation(loader: ClassLoader, cancellation: CancellationToken): Any =
     try {
-      val servicesClass = loader.loadClass("org.jetbrains.kotlin.config.Services")
       val servicesBuilderClass = loader.loadClass("org.jetbrains.kotlin.config.Services$Builder")
       val canceledStatusClass = loader.loadClass("org.jetbrains.kotlin.progress.CompilationCanceledStatus")
 
@@ -334,7 +331,6 @@ object KotlinJsCompiler {
 
   private def createEmptyServices(loader: ClassLoader): Any = {
     val servicesClass = loader.loadClass("org.jetbrains.kotlin.config.Services")
-    val servicesCompanion = loader.loadClass("org.jetbrains.kotlin.config.Services$Companion")
     val companionField = servicesClass.getField("Companion")
     val companion = companionField.get(null)
     val emptyMethod = companion.getClass.getMethod("getEMPTY")
@@ -359,12 +355,6 @@ object KotlinJsCompiler {
           }
         }
     }
-
-  private def getField[T](obj: Any, fieldName: String): T = {
-    val field = obj.getClass.getDeclaredField(fieldName)
-    field.setAccessible(true)
-    field.get(obj).asInstanceOf[T]
-  }
 
   private def createMessageCollector(
       listener: DiagnosticListener,
@@ -722,7 +712,6 @@ object KotlinJsLinker {
 
   private def createServicesWithCancellation(loader: ClassLoader, cancellation: CancellationToken): Any =
     try {
-      val servicesClass = loader.loadClass("org.jetbrains.kotlin.config.Services")
       val servicesBuilderClass = loader.loadClass("org.jetbrains.kotlin.config.Services$Builder")
       val canceledStatusClass = loader.loadClass("org.jetbrains.kotlin.progress.CompilationCanceledStatus")
 
@@ -730,7 +719,7 @@ object KotlinJsLinker {
         loader,
         Array(canceledStatusClass),
         new java.lang.reflect.InvocationHandler {
-          override def invoke(proxy: Any, method: java.lang.reflect.Method, args: Array[AnyRef]): AnyRef =
+          override def invoke(@annotation.unused proxy: Any, method: java.lang.reflect.Method, @annotation.unused args: Array[AnyRef]): AnyRef =
             method.getName match {
               case "checkCanceled" =>
                 if (Thread.interrupted()) {
@@ -765,7 +754,6 @@ object KotlinJsLinker {
 
   private def createEmptyServices(loader: ClassLoader): Any = {
     val servicesClass = loader.loadClass("org.jetbrains.kotlin.config.Services")
-    val servicesCompanion = loader.loadClass("org.jetbrains.kotlin.config.Services$Companion")
     val companionField = servicesClass.getField("Companion")
     val companion = companionField.get(null)
     val emptyMethod = companion.getClass.getMethod("getEMPTY")
