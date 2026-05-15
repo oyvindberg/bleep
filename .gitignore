@@ -17,4 +17,4 @@ sbt-build
 bleep-cli.sh
 test-project
 reports
-.claude/settings.local.json
+.claude/
