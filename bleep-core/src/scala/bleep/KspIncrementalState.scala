@@ -5,6 +5,8 @@ import io.circe.generic.semiauto.*
 import io.circe.parser.decode
 import io.circe.syntax.*
 
+import bleep.internal.FileUtils
+
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
@@ -120,7 +122,9 @@ object KspIncrementalState {
     }
   }
 
-  /** Persist the manifest after a successful KSP run. Hashes are computed fresh from disk. */
+  /** Persist the manifest after a successful KSP run. Hashes are computed fresh from disk. Written via [[FileUtils.writeBytesAtomic]] so a crash mid-write
+    * doesn't leave a partial JSON file that would parse as garbage and silently force a FullRebuild on the next run.
+    */
   def save(stateFile: Path, current: CurrentInputs): Unit = {
     val state = KspIncrementalState(
       schemaVersion = SchemaVersion,
@@ -131,8 +135,7 @@ object KspIncrementalState {
       librariesFingerprint = fingerprintFiles(current.libraries),
       sources = SortedMap.from(current.sources.iterator.map(src => src.toString -> hashFile(src)))
     )
-    Files.createDirectories(stateFile.getParent)
-    Files.write(stateFile, state.asJson.spaces2.getBytes(StandardCharsets.UTF_8))
+    FileUtils.writeBytesAtomic(stateFile, state.asJson.spaces2.getBytes(StandardCharsets.UTF_8))
   }
 
   /** Best-effort read of the persisted manifest. Returns None if the file is missing or unparseable (in which case the caller treats it as "no prior state" and

@@ -46,6 +46,10 @@ object KspRunner {
       cancellation: CancellationToken,
       logger: Logger
   ): RunResult = {
+    // Bail out before forking if the build is already being cancelled (e.g. the user hit Ctrl-C between this task being scheduled and starting). A KSP fork is
+    // ~150MB resident — not worth spinning one up just to destroy it.
+    if (cancellation.isCancelled) return RunResult.Cancelled
+
     // Create output dirs eagerly. KSP will write into them; missing parents otherwise produce confusing IOException stack traces from inside Analysis API.
     List(ksp.kotlinOutputDir, ksp.javaOutputDir, ksp.classOutputDir, ksp.resourceOutputDir, ksp.cachesDir).foreach { d =>
       Files.createDirectories(d)

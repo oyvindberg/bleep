@@ -34,6 +34,28 @@ object FileUtils {
     ()
   }
 
+  /** Atomic counterpart to [[writeBytes]]: writes to a sibling temp file, then renames into place. A JVM crash or OS interruption mid-write leaves either the
+    * prior content or the new content — never a half-written file. Use this for state files where a partial write would parse as garbage and silently force a
+    * rebuild / cache wipe on the next read (e.g. incremental-compile manifests).
+    *
+    * Falls back to a plain `REPLACE_EXISTING` rename if the underlying filesystem doesn't support `ATOMIC_MOVE` (some FUSE mounts, a few Windows network
+    * drives). Same "no-op if identical" short-circuit as `writeBytes`.
+    */
+  def writeBytesAtomic(path: Path, newContent: Array[Byte]): Unit = {
+    if (path.toFile.exists()) {
+      val existing = Files.readAllBytes(path)
+      if (java.util.Arrays.equals(existing, newContent)) return
+    }
+    Files.createDirectories(path.getParent)
+    val tmp = path.resolveSibling(path.getFileName.toString + ".tmp")
+    Files.write(tmp, newContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+    try Files.move(tmp, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    catch {
+      case _: AtomicMoveNotSupportedException => Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING)
+    }
+    ()
+  }
+
   def writeGzippedBytes(path: Path, newContent: Array[Byte]): Unit = {
     val bos = new ByteArrayOutputStream(1024)
     val gos = new GZIPOutputStream(bos)
