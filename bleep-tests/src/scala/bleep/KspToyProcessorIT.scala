@@ -1,7 +1,5 @@
 package bleep
 
-import bleep.internal.FileUtils
-
 import java.nio.file.Files
 
 /** End-to-end ITs that drive bleep's KSP pipeline with the in-tree toy processor (`bleep-test-ksp-processor`).
@@ -29,24 +27,7 @@ class KspToyProcessorIT extends IntegrationTestHarness {
 
   private def projectName: model.CrossProjectName = model.CrossProjectName(model.ProjectName("myapp"), None)
 
-  /** Pre-condition guard for all tests in this suite. The toy processor is wired through bleep's dev-deps mechanism: tests reference it as
-    * `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}`, which `BleepDevDeps` resolves to its compiled `classes/` + `src/resources/` dirs in bleep's own
-    * `.bleep/`. The bleep build itself must therefore have been compiled into the v2 layout (`.bleep/projects/<cross>/builds/normal/classes`). Until that
-    * deploy cycle (sourcegen → compile → my-publish-local → re-deploy bleep CLI) has run on a branch carrying the layout-v2 change, the directory is missing
-    * and these tests should skip rather than report a misleading failure.
-    */
-  private def requireToyProcessorBuilt(): Unit = {
-    val expected = FileUtils.cwd.resolve(".bleep/projects/bleep-test-ksp-processor/builds/normal/classes")
-    if (!Files.isDirectory(expected)) {
-      cancel(
-        s"bleep-test-ksp-processor not present at $expected. " +
-          s"Run a fresh `bleep compile bleep-test-ksp-processor` from a layout-v2-aware bleep CLI to populate it."
-      )
-    }
-  }
-
   integrationTest("@GenerateKotlin emits a sibling Kotlin class that user code can reference") { ws =>
-    requireToyProcessorBuilt()
     ws.yaml(
       s"""projects:
          |  myapp:
@@ -83,7 +64,6 @@ class KspToyProcessorIT extends IntegrationTestHarness {
   }
 
   integrationTest("@GenerateJava emits a .java that bleep mixed-compile picks up and Kotlin can call") { ws =>
-    requireToyProcessorBuilt()
     ws.yaml(
       s"""projects:
          |  myapp:
@@ -126,7 +106,6 @@ class KspToyProcessorIT extends IntegrationTestHarness {
   }
 
   integrationTest("@ThrowOnMe surfaces as a compile failure") { ws =>
-    requireToyProcessorBuilt()
     ws.yaml(
       s"""projects:
          |  myapp:
@@ -159,7 +138,6 @@ class KspToyProcessorIT extends IntegrationTestHarness {
   }
 
   integrationTest("KSP configured on a Kotlin JS project fails fast with a clear platform message") { ws =>
-    // No requireToyProcessorBuilt() needed — this test only validates plan-building, not actual KSP execution.
     ws.yaml(
       s"""projects:
          |  myapp:
@@ -191,7 +169,6 @@ class KspToyProcessorIT extends IntegrationTestHarness {
   }
 
   integrationTest("processor-options reach the processor — toy processor writes an invocation log") { ws =>
-    requireToyProcessorBuilt()
     // Symbol-processor options aren't run through the project's `${PROJECT_DIR}` template engine, so we
     // resolve the log path against the workspace root up-front and embed it as an absolute path. This also
     // makes the test independent of the KSP runner's working directory.
