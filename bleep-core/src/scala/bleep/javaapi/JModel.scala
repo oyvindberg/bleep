@@ -185,9 +185,9 @@ object JModel {
       bp.bleepYamlFile,
       bp.buildDir,
       bp.dotBleepDir,
-      bp.buildsDir,
-      bp.buildVariantDir,
-      bp.bleepBloopDir,
+      bp.projectsDir,
+      bp.workspaceBuildsDir,
+      bp.workspaceVariantDir,
       bp.logFile
     )
 

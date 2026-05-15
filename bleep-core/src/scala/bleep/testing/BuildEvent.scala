@@ -264,6 +264,17 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
+  /** KSP run finished for a project. `success=false` means resolution or the KSP standalone runner errored (missing kspVersion, coursier resolution failure,
+    * scan-opt-in with no jars, processor threw, etc.).
+    */
+  case class RunSymbolProcessorsFinished(
+      project: CrossProjectName,
+      success: Boolean,
+      durationMs: Long,
+      error: Option[String],
+      timestamp: Long
+  ) extends BuildEvent
+
   /** An error occurred during test execution */
   case class Error(
       message: String,

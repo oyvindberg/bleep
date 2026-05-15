@@ -66,6 +66,14 @@ object TaskDag {
     case class ResolveAnnotationProcessors(project: CrossProjectName) extends TaskId {
       val value: String = s"resolve-ap:${project.value}"
     }
+
+    /** Per-project KSP run: resolve the KSP standalone-runner classpath and the user-listed processor JARs, then fork a JVM that runs
+      * `com.google.devtools.ksp.cmdline.KSPJvmMain` against the project's sources. Generated `.kt`/`.java`/`.class`/resources land under
+      * `.bleep/generated-sources/<cross>/ksp/`, picked up by the project's source set and the subsequent kotlinc compile.
+      */
+    case class RunSymbolProcessors(project: CrossProjectName) extends TaskId {
+      val value: String = s"run-ksp:${project.value}"
+    }
   }
 
   /** A task in the DAG */
@@ -118,6 +126,22 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.ResolveAnnotationProcessors(project)
     val dependencies: Set[TaskId] = Set.empty
+  }
+
+  /** Run KSP for a project. Resolves the KSP standalone-runner classpath + user processors, then forks a JVM running `KSPJvmMain` which processes the project's
+    * Kotlin/Java sources and emits generated code.
+    *
+    * Depends on the `CompileTask` of every transitive upstream project: KSP's `-libraries` argument needs those projects' compiled class dirs so type
+    * references across projects resolve.
+    *
+    * The project's own `CompileTask` depends on this task (wired in `compileDeps`), so the generated sources are on disk before kotlinc runs.
+    */
+  case class RunSymbolProcessorsTask(
+      project: CrossProjectName,
+      upstreamCompileDeps: Set[CrossProjectName]
+  ) extends Task {
+    val id: TaskId = TaskId.RunSymbolProcessors(project)
+    val dependencies: Set[TaskId] = upstreamCompileDeps.map(p => TaskId.Compile(p): TaskId)
   }
 
   /** Link a non-JVM project (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
@@ -354,6 +378,21 @@ object TaskDag {
         discoveredJarCount: Int,
         timestamp: Long
     ) extends DagEvent
+
+    // KSP run events (mirror AP events; the task itself runs the KSP standalone runner end-to-end).
+    case class RunSymbolProcessorsStarted(
+        project: CrossProjectName,
+        timestamp: Long
+    ) extends DagEvent
+
+    case class RunSymbolProcessorsFinished(
+        project: CrossProjectName,
+        success: Boolean,
+        durationMs: Long,
+        error: Option[String],
+        discoveredJarCount: Int,
+        timestamp: Long
+    ) extends DagEvent
   }
 
   /** The DAG itself - holds tasks and tracks execution state */
@@ -507,8 +546,19 @@ object TaskDag {
     val empty: AnnotationProcessorPlan = AnnotationProcessorPlan(Set.empty)
   }
 
-  /** Inputs to DAG construction. Bundles project-graph and per-task-type plans (sourcegen, AP) so that `buildDag` and friends take a single value instead of a
-    * cascade of positional parameters that grows every time a new task type is added.
+  /** Which projects need KSP processor resolution as a DAG step. A project belongs in `projects` iff its `model.Kotlin` declares any KSP configuration (scan
+    * opt-in or non-empty explicit list). Projects without KSP configuration skip the DAG step entirely.
+    */
+  case class SymbolProcessorPlan(projects: Set[CrossProjectName]) {
+    def isEmpty: Boolean = projects.isEmpty
+    def needsResolution(project: CrossProjectName): Boolean = projects.contains(project)
+  }
+  object SymbolProcessorPlan {
+    val empty: SymbolProcessorPlan = SymbolProcessorPlan(Set.empty)
+  }
+
+  /** Inputs to DAG construction. Bundles project-graph and per-task-type plans (sourcegen, AP, KSP) so that `buildDag` and friends take a single value instead
+    * of a cascade of positional parameters that grows every time a new task type is added.
     *
     * Tests use [[BuildContext.empty]] and `.copy(...)` to populate just the fields they care about.
     */
@@ -516,8 +566,18 @@ object TaskDag {
       allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]],
       platforms: Map[CrossProjectName, LinkPlatform],
       sourcegen: SourcegenPlan,
-      apPlan: AnnotationProcessorPlan
+      apPlan: AnnotationProcessorPlan,
+      kspPlan: SymbolProcessorPlan
   )
+  object BuildContext {
+    val empty: BuildContext = BuildContext(
+      allProjectDeps = Map.empty,
+      platforms = Map.empty,
+      sourcegen = SourcegenPlan.empty,
+      apPlan = AnnotationProcessorPlan.empty,
+      kspPlan = SymbolProcessorPlan.empty
+    )
+  }
 
   /** Build DAG based on build mode. */
   def buildDag(
@@ -533,7 +593,9 @@ object TaskDag {
       buildLinkDag(projects, ctx, releaseMode = false)
   }
 
-  /** Compute the CompileTask deps for a project: upstream-project compiles plus sourcegen tasks plus the project's annotation-processor resolution task. */
+  /** Compute the CompileTask deps for a project: upstream-project compiles plus sourcegen tasks plus the project's annotation-processor and KSP resolution
+    * tasks (when configured).
+    */
   private def compileDeps(
       project: CrossProjectName,
       ctx: BuildContext,
@@ -546,7 +608,10 @@ object TaskDag {
     val apDeps: Set[TaskId] =
       if (ctx.apPlan.needsResolution(project)) Set(TaskId.ResolveAnnotationProcessors(project): TaskId)
       else Set.empty
-    (projectDeps, compileTaskDeps ++ sourcegenDeps ++ apDeps)
+    val kspDeps: Set[TaskId] =
+      if (ctx.kspPlan.needsResolution(project)) Set(TaskId.RunSymbolProcessors(project): TaskId)
+      else Set.empty
+    (projectDeps, compileTaskDeps ++ sourcegenDeps ++ apDeps ++ kspDeps)
   }
 
   /** Build the per-project AP resolution tasks for projects in the plan that are also in scope. */
@@ -556,6 +621,21 @@ object TaskDag {
   ): Seq[ResolveAnnotationProcessorsTask] =
     if (apPlan.isEmpty) Seq.empty
     else apPlan.projects.intersect(inScope).toSeq.map(ResolveAnnotationProcessorsTask.apply)
+
+  /** Build the per-project KSP run tasks for projects in the plan that are also in scope. Each task's `upstreamCompileDeps` is the project's transitive
+    * dependency set intersected with the in-scope set — KSP needs those compiled before it can resolve cross-project types.
+    */
+  private def symbolProcessorTasks(
+      inScope: Set[CrossProjectName],
+      kspPlan: SymbolProcessorPlan,
+      allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]]
+  ): Seq[RunSymbolProcessorsTask] =
+    if (kspPlan.isEmpty) Seq.empty
+    else
+      kspPlan.projects.intersect(inScope).toSeq.map { project =>
+        val upstream = allProjectDeps.getOrElse(project, Set.empty).filter(inScope.contains)
+        RunSymbolProcessorsTask(project, upstream)
+      }
 
   /** Build SourcegenTasks from the plan plus the set of project compiles already in scope. Returns the sourcegen tasks plus any extra script-project compiles
     * that need to be included (if not already present).
@@ -597,8 +677,9 @@ object TaskDag {
     }
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
+    val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks(compileTasks.toSeq ++ sourcegenTasks ++ apTasks)
+    Dag.fromTasks(compileTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build initial DAG for test execution.
@@ -630,8 +711,9 @@ object TaskDag {
     }
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
+    val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks)
+    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build DAG for linking (compile + link without tests). */
@@ -655,8 +737,9 @@ object TaskDag {
     }
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
+    val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks)
+    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Get transitive dependencies for a set of projects */
@@ -714,7 +797,8 @@ object TaskDag {
       discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
       test: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
+      annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
+      symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
   )
 
   /** Create a DAG executor with the given handlers. */
@@ -884,6 +968,28 @@ object TaskDag {
                         }
                         _ <- emit(
                           DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, durationMs, errorMsg, discoveredJarCount, apEndTs)
+                        )
+                      } yield result
+                    }
+
+                  case kspt: RunSymbolProcessorsTask =>
+                    withRecovery(s"RunSymbolProcessors ${kspt.project.value}", taskKill) {
+                      for {
+                        kspStartTs <- now
+                        _ <- emit(DagEvent.RunSymbolProcessorsStarted(kspt.project, kspStartTs))
+                        (result, discoveredJarCount) <- handlers.symbolProcessor(kspt, taskKill)
+                        kspEndTs <- now
+                        durationMs = kspEndTs - kspStartTs
+                        (success, errorMsg) = result match {
+                          case TaskResult.Success            => (true, None)
+                          case TaskResult.Failure(error, _)  => (false, Some(error))
+                          case TaskResult.Error(error, _)    => (false, Some(error))
+                          case TaskResult.Skipped(failedDep) => (false, Some(s"dependency ${failedDep.id.value} failed"))
+                          case TaskResult.Killed(reason)     => (false, Some(s"killed: $reason"))
+                          case TaskResult.TimedOut(_)        => (false, Some("timed out"))
+                        }
+                        _ <- emit(
+                          DagEvent.RunSymbolProcessorsFinished(kspt.project, success, durationMs, errorMsg, discoveredJarCount, kspEndTs)
                         )
                       } yield result
                     }

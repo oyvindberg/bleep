@@ -303,6 +303,22 @@ object BleepBspProtocol {
         timestamp: Long
     ) extends Event
 
+    // === KSP run events ===
+
+    case class RunSymbolProcessorsStarted(
+        project: CrossProjectName,
+        timestamp: Long
+    ) extends Event
+
+    case class RunSymbolProcessorsFinished(
+        project: CrossProjectName,
+        success: Boolean,
+        durationMs: Long,
+        error: Option[String],
+        discoveredJarCount: Int,
+        timestamp: Long
+    ) extends Event
+
     // === Discovery events ===
 
     case class DiscoveryStarted(
@@ -511,6 +527,8 @@ object BleepBspProtocol {
     implicit val sourcegenFinishedCodec: Codec[SourcegenFinished] = deriveCodec
     implicit val resolveAnnotationProcessorsStartedCodec: Codec[ResolveAnnotationProcessorsStarted] = deriveCodec
     implicit val resolveAnnotationProcessorsFinishedCodec: Codec[ResolveAnnotationProcessorsFinished] = deriveCodec
+    implicit val runSymbolProcessorsStartedCodec: Codec[RunSymbolProcessorsStarted] = deriveCodec
+    implicit val runSymbolProcessorsFinishedCodec: Codec[RunSymbolProcessorsFinished] = deriveCodec
     implicit val discoveryStartedCodec: Codec[DiscoveryStarted] = deriveCodec
     implicit val suitesDiscoveredCodec: Codec[SuitesDiscovered] = deriveCodec
     implicit val suiteStartedCodec: Codec[SuiteStarted] = deriveCodec
@@ -554,6 +572,10 @@ object BleepBspProtocol {
         Json.obj("type" -> "ResolveAnnotationProcessorsStarted".asJson, "data" -> e.asJson)
       case e: ResolveAnnotationProcessorsFinished =>
         Json.obj("type" -> "ResolveAnnotationProcessorsFinished".asJson, "data" -> e.asJson)
+      case e: RunSymbolProcessorsStarted =>
+        Json.obj("type" -> "RunSymbolProcessorsStarted".asJson, "data" -> e.asJson)
+      case e: RunSymbolProcessorsFinished =>
+        Json.obj("type" -> "RunSymbolProcessorsFinished".asJson, "data" -> e.asJson)
       case e: DiscoveryStarted    => Json.obj("type" -> "DiscoveryStarted".asJson, "data" -> e.asJson)
       case e: SuitesDiscovered    => Json.obj("type" -> "SuitesDiscovered".asJson, "data" -> e.asJson)
       case e: SuiteStarted        => Json.obj("type" -> "SuiteStarted".asJson, "data" -> e.asJson)
@@ -596,6 +618,8 @@ object BleepBspProtocol {
         case "SourcegenFinished"                   => cursor.downField("data").as[SourcegenFinished]
         case "ResolveAnnotationProcessorsStarted"  => cursor.downField("data").as[ResolveAnnotationProcessorsStarted]
         case "ResolveAnnotationProcessorsFinished" => cursor.downField("data").as[ResolveAnnotationProcessorsFinished]
+        case "RunSymbolProcessorsStarted"          => cursor.downField("data").as[RunSymbolProcessorsStarted]
+        case "RunSymbolProcessorsFinished"         => cursor.downField("data").as[RunSymbolProcessorsFinished]
         case "DiscoveryStarted"                    => cursor.downField("data").as[DiscoveryStarted]
         case "SuitesDiscovered"                    => cursor.downField("data").as[SuitesDiscovered]
         case "SuiteStarted"                        => cursor.downField("data").as[SuiteStarted]

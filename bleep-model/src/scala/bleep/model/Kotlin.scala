@@ -15,6 +15,19 @@ import io.circe.{Decoder, Encoder}
   * @param compilerPlugins
   *   Kotlin compiler plugin IDs (e.g., "spring", "jpa", "allopen", "noarg", "serialization"). These are resolved to JARs at compile time using the project's
   *   Kotlin version.
+  * @param kspVersion
+  *   The KSP-side version suffix (e.g. "1.0.29"). Bleep concatenates this with [[version]] to form the full coord
+  *   `com.google.devtools.ksp:symbol-processing-aa-embeddable:<kotlin>-<ksp>`. Required when [[symbolProcessors]] is non-empty or [[scanForSymbolProcessors]]
+  *   is true. No default — fail loud at resolution if missing. KSP1 releases are pinned 1:1 to exact kotlinc versions, so [[version]] determines the prefix;
+  *   this field only carries the KSP-side suffix.
+  * @param scanForSymbolProcessors
+  *   When set to true, bleep scans every resolved-`dependencies` jar for `META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider` and
+  *   adds matching jars to KSP's processor classpath. Default off — explicit opt-in.
+  * @param symbolProcessors
+  *   KSP processor-only deps. Resolved separately and passed to KSP via `-P plugin:com.google.devtools.ksp.symbol-processing:apclasspath=…`, never on the
+  *   runtime classpath. Composes with [[scanForSymbolProcessors]] when both are set.
+  * @param symbolProcessorOptions
+  *   `apoption=<key>=<value>` flags passed to KSP. Any processor sees any option.
   * @param js
   *   Kotlin/JS specific configuration
   * @param native
@@ -25,6 +38,10 @@ case class Kotlin(
     options: Options,
     jvmTarget: Option[String],
     compilerPlugins: JsonSet[String],
+    kspVersion: Option[String],
+    scanForSymbolProcessors: Option[Boolean],
+    symbolProcessors: JsonSet[Dep],
+    symbolProcessorOptions: SymbolProcessorOptions,
     js: Option[KotlinJs],
     native: Option[KotlinNative]
 ) extends SetLike[Kotlin] {
@@ -35,6 +52,10 @@ case class Kotlin(
       options = options.intersect(other.options),
       jvmTarget = if (jvmTarget == other.jvmTarget) jvmTarget else None,
       compilerPlugins = compilerPlugins.intersect(other.compilerPlugins),
+      kspVersion = if (kspVersion == other.kspVersion) kspVersion else None,
+      scanForSymbolProcessors = if (scanForSymbolProcessors == other.scanForSymbolProcessors) scanForSymbolProcessors else None,
+      symbolProcessors = symbolProcessors.intersect(other.symbolProcessors),
+      symbolProcessorOptions = symbolProcessorOptions.intersect(other.symbolProcessorOptions),
       js = js.zipCompat(other.js).map { case (a, b) => a.intersect(b) },
       native = native.zipCompat(other.native).map { case (a, b) => a.intersect(b) }
     )
@@ -45,6 +66,10 @@ case class Kotlin(
       options = options.removeAll(other.options),
       jvmTarget = if (jvmTarget == other.jvmTarget) None else jvmTarget,
       compilerPlugins = compilerPlugins.removeAll(other.compilerPlugins),
+      kspVersion = if (kspVersion == other.kspVersion) None else kspVersion,
+      scanForSymbolProcessors = if (scanForSymbolProcessors == other.scanForSymbolProcessors) None else scanForSymbolProcessors,
+      symbolProcessors = symbolProcessors.removeAll(other.symbolProcessors),
+      symbolProcessorOptions = symbolProcessorOptions.removeAll(other.symbolProcessorOptions),
       js = removeAllFrom(js, other.js),
       native = removeAllFrom(native, other.native)
     )
@@ -55,13 +80,22 @@ case class Kotlin(
       options = options.union(other.options),
       jvmTarget = jvmTarget.orElse(other.jvmTarget),
       compilerPlugins = compilerPlugins.union(other.compilerPlugins),
+      kspVersion = kspVersion.orElse(other.kspVersion),
+      scanForSymbolProcessors = scanForSymbolProcessors.orElse(other.scanForSymbolProcessors),
+      symbolProcessors = symbolProcessors.union(other.symbolProcessors),
+      symbolProcessorOptions = symbolProcessorOptions.union(other.symbolProcessorOptions),
       js = List(js, other.js).flatten.reduceOption(_ union _),
       native = List(native, other.native).flatten.reduceOption(_ union _)
     )
 
   override def isEmpty: Boolean =
     version.isEmpty && options.isEmpty && jvmTarget.isEmpty && compilerPlugins.isEmpty &&
+      kspVersion.isEmpty && scanForSymbolProcessors.isEmpty && symbolProcessors.isEmpty && symbolProcessorOptions.isEmpty &&
       js.forall(_.isEmpty) && native.forall(_.isEmpty)
+
+  /** True iff this project is configured to run KSP symbol processors. Used to decide whether to schedule a [[ResolveSymbolProcessorsTask]] for the project. */
+  def hasSymbolProcessing: Boolean =
+    scanForSymbolProcessors.contains(true) || symbolProcessors.values.nonEmpty
 
   /** Helper to remove all SetLike elements */
   private def removeAllFrom[T <: SetLike[T]](a: Option[T], b: Option[T]): Option[T] =
@@ -77,6 +111,10 @@ object Kotlin {
     options = Options.empty,
     jvmTarget = None,
     compilerPlugins = JsonSet.empty,
+    kspVersion = None,
+    scanForSymbolProcessors = None,
+    symbolProcessors = JsonSet.empty,
+    symbolProcessorOptions = SymbolProcessorOptions.empty,
     js = None,
     native = None
   )

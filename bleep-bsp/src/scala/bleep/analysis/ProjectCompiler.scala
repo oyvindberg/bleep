@@ -213,10 +213,12 @@ object KotlinProjectCompiler extends ProjectCompiler {
   /** Compile a Kotlin project with Java-first order.
     *
     * kotlinc does NOT compile .java files — it only uses them for type resolution. So for mixed Java+Kotlin projects we use Java-first compilation order:
-    *   1. Compile .java files with javac (output to project output dir)
-    *   2. Compile .kt/.kts files with kotlinc (with Java class output on classpath)
+    *   1. Compile .kt + .java together with kotlinc. Kotlinc emits .class for .kt sources and reads .java sources via its lightweight Java parser for symbol
+    *      resolution — so Kotlin code can reference Java types even before javac runs.
+    *   2. Compile .java files with javac, with kotlinc's output on classpath — so Java code can reference Kotlin types.
     *
-    * This matches the default compile order for Scala projects (JavaThenScala).
+    * This is the "kotlinc first" order. The previous "javac first" order broke for Java that references Kotlin (and for KSP processors like Dagger which emit
+    * Java that references the project's Kotlin code). Kotlinc reads .java sources without emitting class files for them, so this is safe.
     */
   private def doKotlinCompile(
       sourceFiles: Seq[SourceFile],
@@ -228,40 +230,42 @@ object KotlinProjectCompiler extends ProjectCompiler {
     val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
     val kotlinSources = sourceFiles.filterNot(_.path.toString.endsWith(".java"))
 
-    // Phase 1: Compile Java sources with javac to a separate directory.
-    // We use a separate temp directory (NOT under outputDir) because the Kotlin incremental
-    // compiler may clean the output directory on full compiles.
-    val javaClassesDir = if (javaSources.nonEmpty) {
-      val javaDir = Files.createTempDirectory("kotlin-project-java-classes-")
-      val javaConfig = config.copy(outputDir = javaDir)
-      val javaResult = compileJavaSources(javaSources, javaConfig, diagnosticListener)
-      javaResult match {
-        case failure: ProjectCompileFailure => return failure
-        case _                              => // continue to Kotlin
-      }
-      Some(javaDir)
-    } else None
+    if (kotlinSources.isEmpty && javaSources.nonEmpty) {
+      // Java-only "Kotlin" project — degenerate case (no .kt at all). Skip kotlinc, just compile with javac directly to outputDir.
+      val javaResult = compileJavaSources(javaSources, config, diagnosticListener)
+      return javaResult
+    }
+    if (kotlinSources.isEmpty && javaSources.isEmpty) {
+      Files.createDirectories(config.outputDir)
+      return ProjectCompileSuccess(config.outputDir, Set.empty, None)
+    }
 
-    if (kotlinSources.isEmpty) {
-      // Copy Java classes to main output dir
-      javaClassesDir.foreach(jd => copyClassFiles(jd, config.outputDir))
+    // Phase 1: kotlinc compiles .kt with .java sources passed for symbol resolution. Kotlinc reads .java sources via its lightweight Java parser and resolves
+    // references without emitting Java .class files. Pass both kotlinSources and javaSources together so this works.
+    val kotlinInputSources = kotlinSources ++ javaSources
+    val input = CompilationInput(kotlinInputSources, config.classpath, config.outputDir, kotlinConfig)
+    val kotlinResult = KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken)
+    kotlinResult match {
+      case CompilationFailure(errs) =>
+        return ProjectCompileFailure(errs)
+      case CompilationCancelled =>
+        return ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
+      case _: CompilationSuccess => // continue to Phase 2 (javac)
+    }
+
+    if (javaSources.isEmpty) {
       val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
       return ProjectCompileSuccess(config.outputDir, allClasses, None)
     }
 
-    // Phase 2: Compile Kotlin sources with kotlinc (Java classes dir on classpath)
-    val kotlinClasspath = javaClassesDir.fold(config.classpath)(jd => config.classpath :+ jd)
-    val input = CompilationInput(kotlinSources, kotlinClasspath, config.outputDir, kotlinConfig)
-    KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken) match {
-      case CompilationSuccess(outDir, _) =>
-        // Copy Java classes into the main output dir alongside Kotlin classes
-        javaClassesDir.foreach(jd => copyClassFiles(jd, outDir))
-        val allClasses = Compiler.collectClassFilesStatic(outDir)
-        ProjectCompileSuccess(outDir, allClasses, None)
-      case CompilationFailure(errs) =>
-        ProjectCompileFailure(errs)
-      case CompilationCancelled =>
-        ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
+    // Phase 2: javac compiles .java with kotlinc's output on the classpath. Java code can now reference any Kotlin types compiled in Phase 1.
+    val javacClasspath = config.classpath :+ config.outputDir
+    val javacConfig = config.copy(classpath = javacClasspath)
+    compileJavaSources(javaSources, javacConfig, diagnosticListener) match {
+      case _: ProjectCompileSuccess =>
+        val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
+        ProjectCompileSuccess(config.outputDir, allClasses, None)
+      case failure: ProjectCompileFailure => failure
     }
   }
 

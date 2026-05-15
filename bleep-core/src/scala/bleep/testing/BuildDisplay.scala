@@ -36,6 +36,7 @@ trait BuildDisplay {
 case class BuildSummary(
     sourcegenFailed: Int,
     apResolutionFailed: Int,
+    kspResolutionFailed: Int,
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -76,6 +77,8 @@ case class BuildSummary(
       Left(new bleep.BleepException.Text(s"Source generation failed for $sourcegenFailed project(s)"))
     else if (apResolutionFailed > 0)
       Left(new bleep.BleepException.Text(s"Annotation processor resolution failed for $apResolutionFailed project(s)"))
+    else if (kspResolutionFailed > 0)
+      Left(new bleep.BleepException.Text(s"KSP processor resolution failed for $kspResolutionFailed project(s)"))
     else {
       val testProblems = testsFailed + testsTimedOut + testsCancelled
       if (testProblems > 0 || suitesCancelled > 0) {
@@ -403,6 +406,7 @@ object BuildSummary {
   val empty: BuildSummary = BuildSummary(
     sourcegenFailed = 0,
     apResolutionFailed = 0,
+    kspResolutionFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
@@ -768,6 +772,15 @@ object BuildDisplay {
             logger
               .withContext("project", project.value)
               .error(s"❌ annotation processor resolution failed (${durationMs}ms): ${error.getOrElse("unknown error")}")
+          )
+
+      case BuildEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, _) =>
+        if (success) IO.unit
+        else
+          IO.delay(
+            logger
+              .withContext("project", project.value)
+              .error(s"❌ KSP run failed (${durationMs}ms): ${error.getOrElse("unknown error")}")
           )
 
       case _: BuildEvent.ConnectionLost =>

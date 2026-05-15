@@ -38,6 +38,7 @@ object BleepDevDeps {
     "bleep-plugin-mdoc" -> cpn("bleep-plugin-mdoc"),
     "bleep-plugin-native-image" -> cpn("bleep-plugin-native-image"),
     "bleep-plugin-scalafix" -> cpn("bleep-plugin-scalafix"),
+    "bleep-test-ksp-processor" -> cpn("bleep-test-ksp-processor"),
     "bleep-test-runner" -> cpn("bleep-test-runner")
   )
 
@@ -58,18 +59,33 @@ object BleepDevDeps {
     "bleep-plugin-mdoc" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
     "bleep-plugin-native-image" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
     "bleep-plugin-scalafix" -> Set("bleep-core", "bleep-model", "bleep-nosbt", "bleep-bsp-protocol", "bleep-plugin-dynver", "bleep-test-runner"),
+    "bleep-test-ksp-processor" -> Set.empty,
     "bleep-test-runner" -> Set.empty
   )
 
   /** Compute the class dir path for a CrossProjectName within a build directory.
     *
-    * Uses the same path convention as BuildPaths: `<buildDir>/.bleep/builds/normal/.bloop/<name>/<crossId>/classes`
+    * Uses the same path convention as BuildPaths: `<buildDir>/.bleep/projects/<crossName>/builds/normal/classes`.
     */
-  def classDir(buildDir: Path, crossName: model.CrossProjectName): Path = {
-    val bleepBloopDir = buildDir.resolve(".bleep").resolve("builds").resolve("normal").resolve(".bloop")
-    val crossPart = crossName.crossId.fold("")(_.value)
-    bleepBloopDir.resolve(crossName.name.value).resolve(crossPart).resolve("classes")
-  }
+  def classDir(buildDir: Path, crossName: model.CrossProjectName): Path =
+    buildDir
+      .resolve(".bleep")
+      .resolve("projects")
+      .resolve(crossName.value)
+      .resolve("builds")
+      .resolve("normal")
+      .resolve("classes")
+
+  /** Best-effort source-resources directories for a dev-resolved artifact, so dev consumers see resources the same way published consumers do (resources are
+    * inside the JAR for published artifacts). Probes the two shapes used in bleep's own build: `<projectName>/src/resources` (kotlin / scala source-layout) and
+    * `<projectName>/src/main/resources` (sbt-matrix). Returns whichever exists. Used so that test fixtures (e.g. `bleep-test-ksp-processor`'s META-INF/services
+    * SPI file) land on the dev-mode classpath.
+    */
+  def resourceDirs(buildDir: Path, crossName: model.CrossProjectName): List[Path] =
+    List(
+      buildDir.resolve(crossName.name.value).resolve("src").resolve("resources"),
+      buildDir.resolve(crossName.name.value).resolve("src").resolve("main").resolve("resources")
+    ).filter(p => Files.isDirectory(p))
 
   /** Resolve all class dirs for a `build.bleep::*` dep with a `dev:` version.
     *
@@ -88,10 +104,10 @@ object BleepDevDeps {
         val selfDir = classDir(buildDir, selfCpn)
         if (Files.isDirectory(selfDir)) {
           // Class dirs exist at the expected path — use them directly
-          val transitiveDirs = transitiveBleepDeps.getOrElse(baseName, Set.empty).toList.flatMap { transName =>
-            artifacts.get(transName).map(tn => classDir(buildDir, tn))
-          }
-          selfDir :: transitiveDirs
+          val transitiveCps = transitiveBleepDeps.getOrElse(baseName, Set.empty).toList.flatMap(artifacts.get)
+          val transitiveDirs = transitiveCps.map(tn => classDir(buildDir, tn))
+          val resourcesDirs = (selfCpn :: transitiveCps).flatMap(cn => resourceDirs(buildDir, cn))
+          selfDir :: transitiveDirs ++ resourcesDirs
         } else {
           // Class dirs don't exist at buildDir (forked JVM in a different build).
           // The forked JVM was launched with all needed classes on its classpath

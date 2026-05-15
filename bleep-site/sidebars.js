@@ -207,8 +207,13 @@ const sidebars = {
       items: [
         {
           type: "doc",
-          label: "Annotation Processing",
+          label: "Annotation Processing (Java + Kotlin/KSP)",
           id: "usage/annotation-processing",
+        },
+        {
+          type: "doc",
+          label: "Kotlin with a KSP processor (Moshi)",
+          id: "tutorials/kotlin-with-ksp",
         },
         {
           type: "doc",

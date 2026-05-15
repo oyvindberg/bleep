@@ -345,6 +345,41 @@ object CompilerResolver {
     case other                                     => s"kotlin-$other-compiler-plugin"
   }
 
+  /** Resolve the KSP standalone runner classpath for a given Kotlin + KSP version pair.
+    *
+    * Resolves `com.google.devtools.ksp:symbol-processing-aa-embeddable:<kotlin>-<ksp>` via Coursier and returns the full transitive closure. The Kotlin prefix
+    * is mandatory and exact (KSP releases are pinned 1:1 to kotlinc versions); the KSP suffix is user-chosen.
+    *
+    * `symbol-processing-aa-embeddable` is the Analysis-API-based standalone runner: it ships its own bundled kotlinc and Analysis API, and we invoke it as a
+    * separate `java -cp ... com.google.devtools.ksp.cmdline.KSPJvmMain` process. We do NOT use the legacy `symbol-processing-cmdline` variant because that
+    * registers only via the K1 `ComponentRegistrar` service file and is silently ignored by kotlinc 2.x's K2 frontend.
+    *
+    * The returned classpath includes the embeddable JAR plus transitive deps (symbol-processing-api, symbol-processing-common-deps, kotlin-stdlib,
+    * kotlinx-coroutines, …). All of these are needed by the runner JVM — the embeddable JAR's `KSPJvmMain.main` references classes from each.
+    *
+    * Fail-loud on a non-existent coordinate by surfacing the Coursier resolution error along with the full coord and a pointer to the KSP releases page.
+    */
+  def resolveKspPlugin(kotlinVersion: VersionKotlin, kspVersion: String): Seq[Path] = {
+    val fullVersion = s"${kotlinVersion.kotlinVersion}-$kspVersion"
+    val key = InstanceKey("ksp-plugin", fullVersion)
+    Option(jarCache.get(key)).getOrElse {
+      val dep = Dep.Java("com.google.devtools.ksp", "symbol-processing-aa-embeddable", fullVersion)
+      val allPaths =
+        try resolveDep(dep)
+        catch {
+          case e: Throwable =>
+            throw new IllegalArgumentException(
+              s"Could not resolve KSP runner com.google.devtools.ksp:symbol-processing-aa-embeddable:$fullVersion. " +
+                s"Check that the kotlin/ksp version pair exists at https://github.com/google/ksp/releases. " +
+                s"Underlying error: ${e.getMessage}",
+              e
+            )
+        }
+      jarCache.put(key, allPaths)
+      allPaths
+    }
+  }
+
   // ============================================================================
   // Internal Resolution
   // ============================================================================

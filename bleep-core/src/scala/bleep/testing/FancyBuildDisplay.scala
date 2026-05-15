@@ -479,7 +479,7 @@ object FancyBuildDisplay {
 
       case BuildEvent.SuitesDiscovered(_, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _) |
           _: BuildEvent.TestRunCompleted | _: BuildEvent.SourcegenStarted | _: BuildEvent.SourcegenFinished |
-          _: BuildEvent.ResolveAnnotationProcessorsFinished =>
+          _: BuildEvent.ResolveAnnotationProcessorsFinished | _: BuildEvent.RunSymbolProcessorsFinished =>
         () // No TUI-specific state for these (core state updated via BuildStateReducer)
 
       case _: BuildEvent.CompileStalled | _: BuildEvent.CompileResumed =>

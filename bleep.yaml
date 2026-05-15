@@ -265,6 +265,19 @@ projects:
         distribution: repo
     sources: ./src/main/java
     resources: ./src/main/resources
+  bleep-test-ksp-processor:
+    # Tiny KSP SymbolProcessor used as an in-tree fixture by KSP integration tests. NOT published; consumers
+    # depend on it via `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}` which the dev-deps shim
+    # routes to this project's classes + resources dirs. Resources contain the SPI registration file.
+    dependencies:
+      - com.google.devtools.ksp:symbol-processing-api:2.1.20-1.0.32
+    kotlin:
+      version: 2.1.20
+    platform:
+      name: jvm
+    publish:
+      enabled: false
+    source-layout: kotlin
   bleep-bsp:
     dependencies:
     - org.scala-lang::scala3-compiler:3.8.3
@@ -313,6 +326,10 @@ projects:
     dependsOn:
     - bleep-cli
     - bleep-bsp
+    # KSP toy-processor fixture: not used by bleep-tests' own code, but listed here so it's compiled before
+    # the KSP integration tests run. Tests reference it via `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}`
+    # which the dev-deps shim resolves to its classes + resources dirs.
+    - bleep-test-ksp-processor
     extends:
     - template-common
     - template-scala-3

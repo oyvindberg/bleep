@@ -207,6 +207,35 @@
         "jvmTarget": {
           "type": "string",
           "description": "JVM bytecode target version (e.g., \"11\", \"17\", \"21\")"
+        },
+        "kspVersion": {
+          "type": "string",
+          "description": "KSP-side version suffix (e.g. \"1.0.29\"). Bleep concatenates with `version` to form the full coord `com.google.devtools.ksp:symbol-processing-aa-embeddable:<kotlin>-<ksp>`. Required when `symbolProcessors` is non-empty or `scanForSymbolProcessors` is true."
+        },
+        "scanForSymbolProcessors": {
+          "type": "boolean",
+          "description": "When true, scan resolved-`dependencies` JARs for `META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider` and add matches to KSP's processor classpath. Default off (explicit opt-in)."
+        },
+        "symbolProcessors": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Dependency"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              }
+            }
+          ],
+          "description": "KSP processor-only deps. Resolved separately and passed to KSP via `apclasspath`; never on the runtime classpath. Composes with `scanForSymbolProcessors`."
+        },
+        "symbolProcessorOptions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "`apoption=<key>=<value>` flags passed to KSP. Visible to all configured processors."
         }
       }
     },

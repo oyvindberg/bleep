@@ -2,7 +2,19 @@ package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.TaskDag.{AnnotationProcessorPlan, BuildContext, CompileTask, DagEvent, Handlers, LinkResult, SourcegenPlan, SourcegenTask, TaskId, TaskResult}
+import bleep.bsp.TaskDag.{
+  AnnotationProcessorPlan,
+  BuildContext,
+  CompileTask,
+  DagEvent,
+  Handlers,
+  LinkResult,
+  SourcegenPlan,
+  SourcegenTask,
+  SymbolProcessorPlan,
+  TaskId,
+  TaskResult
+}
 import bleep.model.{CrossProjectName, JsonSet, ProjectName, ScriptDef}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Queue
@@ -35,7 +47,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val p = projectName("p")
     val dag = TaskDag.buildCompileDag(
       Set(p),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = SourcegenPlan.empty, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
     dag.tasks.values.collect { case t: SourcegenTask => t } shouldBe empty
     dag.tasks.values.collect { case t: CompileTask => t } should have size 1
@@ -53,7 +71,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
@@ -84,7 +108,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         allProjectDeps = Map(scriptsProject -> Set(scriptsLib), scriptsLib -> Set.empty),
         platforms = Map.empty,
         sourcegen = plan,
-        apPlan = AnnotationProcessorPlan.empty
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
       )
     )
 
@@ -112,7 +137,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildCompileDag(
       Set(a, b),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
@@ -137,7 +168,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildCompileDag(
       Set(withSg, withoutSg),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
@@ -162,7 +199,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val sgIds = dag.tasks.values.collect { case t: SourcegenTask => t.id }.toSet
@@ -184,7 +227,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildTestDag(
       Set(testProject),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     dag.tasks.values.collect { case t: SourcegenTask => t } should have size 1
@@ -203,7 +252,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val dag = TaskDag.buildLinkDag(
       Set(linked),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      ),
       releaseMode = false
     )
 
@@ -226,7 +281,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val order = new ConcurrentLinkedQueue[String]()
@@ -238,7 +299,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -264,7 +326,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val sourcegenCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -280,7 +348,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -308,7 +377,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -322,7 +397,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -349,7 +425,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -363,7 +445,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success), // up-to-date fast path
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -392,7 +475,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val executor = TaskDag.executor(
@@ -402,7 +491,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -437,7 +527,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val executor = TaskDag.executor(
@@ -447,7 +543,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("boom", Nil)),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -476,7 +573,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val targetCompileCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -490,7 +593,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -517,7 +621,13 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     )
     val dag = TaskDag.buildCompileDag(
       Set(target),
-      BuildContext(allProjectDeps = Map.empty, platforms = Map.empty, sourcegen = plan, apPlan = AnnotationProcessorPlan.empty)
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
     )
 
     val timeline = new ConcurrentLinkedQueue[(String, Long)]()
@@ -533,7 +643,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           record("sourcegen:start") >>
             IO.sleep(scala.concurrent.duration.DurationInt(100).millis) >>
             record("sourcegen:end").as(TaskResult.Success),
-        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here")
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 

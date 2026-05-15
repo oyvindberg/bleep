@@ -880,7 +880,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def buildTargetId(buildPaths: BuildPaths, crossName: CrossProjectName): BuildTargetIdentifier = {
-    val baseUri = buildPaths.buildVariantDir.toUri.toASCIIString.stripSuffix("/")
+    val baseUri = buildPaths.workspaceVariantDir.toUri.toASCIIString.stripSuffix("/")
     val uri = s"$baseUri?id=${crossName.value}"
     BuildTargetIdentifier(Uri(java.net.URI.create(uri)))
   }
@@ -1134,6 +1134,32 @@ class MultiWorkspaceBspServer(
     TaskDag.AnnotationProcessorPlan(configured)
   }
 
+  /** Walk projects in scope and collect those whose `model.Kotlin` configures KSP — either by setting `scanForSymbolProcessors: true` or by listing entries in
+    * `symbolProcessors`. Projects without any KSP configuration skip the DAG step entirely.
+    *
+    * Loud-fails when a project sets KSP but targets Kotlin/JS or Kotlin/Native. See `ksp-design.md` §25: `symbol-processing-aa-embeddable` ships only
+    * `KSPJvmMain` today; there is no `KSPJsMain` / `KSPNativeMain` in KSP2. Silently dropping these projects from the plan would produce "code compiles but my @JsonClass
+    * annotations did nothing" confusion. The right experience is a fast, explicit error so the user can flip the platform or drop the processor list.
+    */
+  private def buildSymbolProcessorPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.SymbolProcessorPlan = {
+    val configured = projects.filter { projectName =>
+      started.build.explodedProjects.get(projectName).flatMap(_.kotlin).exists(_.hasSymbolProcessing)
+    }
+    configured.foreach { projectName =>
+      val project = started.build.explodedProjects(projectName)
+      project.platform.flatMap(_.name).foreach { platformId =>
+        if (platformId != bleep.model.PlatformId.Jvm) {
+          sys.error(
+            s"project ${projectName.value}: kotlin.symbolProcessors / kotlin.scanForSymbolProcessors is set but platform='${platformId.value}'. " +
+              "KSP2 (symbol-processing-aa-embeddable) currently ships only a JVM runner — Kotlin/JS and Kotlin/Native are not supported. " +
+              "See ksp-design.md §25 for the upstream blocker."
+          )
+        }
+      }
+    }
+    TaskDag.SymbolProcessorPlan(configured)
+  }
+
   private def buildSourcegenPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.SourcegenPlan = {
     val perProject: Map[CrossProjectName, Set[bleep.model.ScriptDef.Main]] =
       projects.iterator.flatMap { projectName =>
@@ -1204,6 +1230,86 @@ class MultiWorkspaceBspServer(
           case Left(error)  =>
             val msg = Option(error.getMessage).getOrElse(error.getClass.getName)
             (TaskDag.TaskResult.Failure(msg, Nil), 0)
+        }
+  }
+
+  private type RunSymbolProcessorsHandler =
+    (TaskDag.RunSymbolProcessorsTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, Int)]
+
+  /** Per-project KSP handler: resolves the runner classpath + processor jars, computes the incremental decision against a per-variant `inputs-manifest.json`,
+    * forks `KSPJvmMain`. Generated `.kt`/`.java`/resources land under `.bleep/projects/<cross>/generated-sources/ksp/`; KSP caches + emitted `.class`es under
+    * `.bleep/projects/<cross>/builds/<variant>/ksp/`.
+    */
+  private def makeSymbolProcessorHandler(s: Started, originId: Option[String]): RunSymbolProcessorsHandler = {
+    val _ = originId
+    (task, kill) =>
+      val cn = task.project
+      val cancellation = bleep.analysis.CancellationToken.create()
+      // Watcher fiber: forward the DAG-wide kill signal into the KSP runner's cancellation token. `.background.surround` runs the watcher alongside the work
+      // and cancels it when the work completes — no explicit thread/interrupt lifecycle to manage.
+      val watcher = kill.get *> IO(cancellation.cancel())
+      watcher.background
+        .surround {
+          IO.blocking {
+            val proj = s.build.explodedProjects(cn)
+            val kot = proj.kotlin.getOrElse(sys.error(s"project ${cn.value}: scheduled for KSP but has no kotlin configuration"))
+            val rp = s.resolvedProject(cn)
+            val paths = s.projectPaths(cn)
+            // Exclude KSP-generated dirs from the input set — otherwise each run reads its own previous output.
+            val sourceRoots = (paths.sourcesDirs.fromSourceLayout.toList ++ paths.sourcesDirs.fromJson.values.toList)
+              .filterNot(_.toString.contains(s"/generated-sources/${cn.value}/ksp/"))
+            val ksp = SymbolProcessorResolver.resolve(
+              crossName = cn,
+              kotlin = kot,
+              resolvedDependencyJars = rp.classpath.filter(_.toString.endsWith(".jar")),
+              librariesClasspath = rp.classpath.toList,
+              sourceRoots = sourceRoots,
+              javaSourceRoots = sourceRoots.filter(_.getFileName.toString.matches("java|java\\..*")),
+              moduleName = s"${cn.name.value}${cn.crossId.fold("")(c => s"_${c.value}")}",
+              jvmTarget = kot.jvmTarget.getOrElse("11"),
+              jdkHome = s.jvmCommand.getParent.getParent,
+              versionCombo = bleep.model.VersionCombo.fromExplodedProject(proj).orThrowTextWithContext(cn),
+              libraryVersionSchemes = proj.libraryVersionSchemes.values,
+              resolver = s.resolver,
+              projectBaseDir = paths.dir,
+              kspSharedOutputBaseDir = s.buildPaths.generatedSourcesDir(cn, "ksp"),
+              kspVariantStateDir = s.buildPaths.variantBuildDir(cn).resolve("ksp"),
+              resolveKspPlugin = bleep.analysis.CompilerResolver.resolveKspPlugin,
+              logger = logger
+            )
+            val stateFile = s.buildPaths.variantBuildDir(cn).resolve("ksp/inputs-manifest.json")
+            val currentInputs = KspIncrementalState.CurrentInputs(
+              kspVersion = kot.kspVersion.getOrElse(""),
+              kotlinVersion = kot.version.map(_.kotlinVersion).getOrElse(""),
+              processorOptions = ksp.processorOptions,
+              processorJars = ksp.processorJars,
+              libraries = ksp.librariesClasspath,
+              sources = KspIncrementalState.listSources(ksp.sourceRoots)
+            )
+            val decision = KspIncrementalState.decide(stateFile, currentInputs)
+            if (decision == KspIncrementalState.Decision.CacheBust && Files.exists(ksp.cachesDir))
+              bleep.internal.FileUtils.deleteDirectory(ksp.cachesDir)
+            logger
+              .withContext("project", cn.value)
+              .withContext("decision", decision.getClass.getSimpleName.stripSuffix("$"))
+              .debug("KSP incremental decision")
+
+            bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, cancellation, logger) match {
+              case bleep.analysis.KspRunner.RunResult.Success =>
+                // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
+                KspIncrementalState.save(stateFile, currentInputs)
+                (TaskDag.TaskResult.Success, ksp.processorJars.size)
+              case bleep.analysis.KspRunner.RunResult.Cancelled        => (TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest), 0)
+              case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>
+                val short = if (msg.length > 4000) msg.substring(0, 4000) + "\n... [truncated]" else msg
+                (TaskDag.TaskResult.Failure(s"KSP runner exited with code $ec\n$short", Nil), 0)
+            }
+          }
+        }
+        .attempt
+        .map {
+          case Right(v)    => v
+          case Left(error) => (TaskDag.TaskResult.Failure(Option(error.getMessage).getOrElse(error.getClass.getName), Nil), 0)
         }
   }
 
@@ -1416,18 +1522,19 @@ class MultiWorkspaceBspServer(
         BleepBspProtocol.BuildMode.Compile
       }
       val apPlan = buildAnnotationProcessorPlan(started, projectsToCompile)
-      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val kspPlan = buildSymbolProcessorPlan(started, projectsToCompile)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan, kspPlan)
       val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
       debugLog(
-        s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size})"
+        s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size})"
       )
 
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
       // Per-build map populated by the AP DAG handler and read by the compile handler.
-      // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories
-      // are called synchronously here, before the IO program starts.
+      // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories are called synchronously here, before the IO program starts.
+      // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
       val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
       val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
@@ -1453,6 +1560,7 @@ class MultiWorkspaceBspServer(
         (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
 
       val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
+      val kspHandler = makeSymbolProcessorHandler(started, params.originId)
 
       // Create executor
       val executor = TaskDag.executor(
@@ -1462,7 +1570,8 @@ class MultiWorkspaceBspServer(
           discover = discoverHandler,
           test = testHandler,
           sourcegen = sourcegenHandler,
-          annotationProcessor = apHandler
+          annotationProcessor = apHandler,
+          symbolProcessor = kspHandler
         )
       )
 
@@ -1735,10 +1844,11 @@ class MultiWorkspaceBspServer(
 
       // Build the unified DAG with platforms (includes sourcegen tasks if any)
       val apPlan = buildAnnotationProcessorPlan(started, testProjects)
-      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan)
+      val kspPlan = buildSymbolProcessorPlan(started, testProjects)
+      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan, kspPlan)
       val initialDag = TaskDag.buildTestDag(testProjects, buildCtx)
       debugLog(
-        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}"
+        s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size}"
       )
 
       // Parse test options from params
@@ -1793,7 +1903,8 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          // Per-test-run map populated by the AP DAG handler and read by the compile handler.
+          // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
+          // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
@@ -1876,8 +1987,9 @@ class MultiWorkspaceBspServer(
               }
 
           val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
+          val kspHandler = makeSymbolProcessorHandler(started, params.originId)
 
-          // Create executor with link + sourcegen + annotation-processor support
+          // Create executor with link + sourcegen + annotation-processor + KSP support
           val executor = TaskDag.executor(
             TaskDag.Handlers(
               compile = compileHandler,
@@ -1885,7 +1997,8 @@ class MultiWorkspaceBspServer(
               discover = discoverHandler,
               test = testHandler,
               sourcegen = sourcegenHandler,
-              annotationProcessor = apHandler
+              annotationProcessor = apHandler,
+              symbolProcessor = kspHandler
             )
           )
 
@@ -2094,7 +2207,7 @@ class MultiWorkspaceBspServer(
   private def computeDependencyAnalyses(started: Started, projectDeps: Set[CrossProjectName]): Map[Path, Path] =
     projectDeps.flatMap { dep =>
       val depOutputDir = java.nio.file.Paths.get(started.resolvedProject(dep).classesDir.toString)
-      val depTargetDir = started.buildPaths.bleepBloopDir.resolve(dep.name.value).resolve(dep.crossId.fold("")(_.value))
+      val depTargetDir = started.buildPaths.variantBuildDir(dep)
       val depAnalysisFile = depTargetDir.resolve(".zinc").resolve("analysis.zip")
       if (java.nio.file.Files.exists(depAnalysisFile)) Some(depOutputDir -> depAnalysisFile)
       else None
@@ -2829,6 +2942,7 @@ class MultiWorkspaceBspServer(
     case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
     case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
     case apt: TaskDag.ResolveAnnotationProcessorsTask => (TraceCategory.ResolveAnnotationProcessors, apt.project.value)
+    case kspt: TaskDag.RunSymbolProcessorsTask        => (TraceCategory.RunSymbolProcessors, kspt.project.value)
   }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -2939,6 +3053,32 @@ class MultiWorkspaceBspServer(
       case _ => IO.unit
     }
 
+  /** KSP-side counterpart of [[processAnnotationProcessorEvent]]: logs lifecycle, records trace spans, emits BSP events that ReactiveBsp folds into
+    * `BuildEvent.RunSymbolProcessorsFinished` and the build-state reducer counts toward `kspResolutionFailed`.
+    */
+  private def processSymbolProcessorEvent(
+      event: TaskDag.DagEvent,
+      originId: Option[String],
+      traceRecorder: TraceRecorder
+  ): IO[Unit] =
+    event match {
+      case TaskDag.DagEvent.RunSymbolProcessorsStarted(project, timestamp) =>
+        val protocolEvent = BleepBspProtocol.Event.RunSymbolProcessorsStarted(project, timestamp)
+        IO(logger.withContext("project", project.value).debug("KSP starting")) >>
+          traceRecorder.recordStart(TraceCategory.RunSymbolProcessors, project.value) >>
+          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent))
+      case TaskDag.DagEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp) =>
+        val msg =
+          if (success) s"KSP run finished (${discoveredJarCount} processor jars, ${durationMs}ms)"
+          else s"KSP run failed: ${error.getOrElse("unknown")} (${durationMs}ms)"
+        val protocolEvent =
+          BleepBspProtocol.Event.RunSymbolProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp)
+        IO(logger.withContext("project", project.value).info(msg)) >>
+          traceRecorder.recordEnd(TraceCategory.RunSymbolProcessors, project.value) >>
+          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent))
+      case _ => IO.unit
+    }
+
   /** Wrap event processing with dead-client detection and kill signal propagation. */
   private def withDeadClientDetection(
       killSignal: Deferred[IO, Outcome.KillReason],
@@ -2992,6 +3132,8 @@ class MultiWorkspaceBspServer(
                 None // Sourcegen is reported via DagEvent.SourcegenStarted/Finished, not TaskStarted/Finished
               case _: TaskDag.ResolveAnnotationProcessorsTask =>
                 None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
+              case _: TaskDag.RunSymbolProcessorsTask =>
+                None // KSP execution is reported via DagEvent.RunSymbolProcessors{Started,Finished}
             }
             traceRecorder.recordStart(cat, name) >>
               IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
@@ -3042,6 +3184,8 @@ class MultiWorkspaceBspServer(
                 None // Sourcegen is reported via DagEvent.SourcegenFinished, not TaskFinished
               case _: TaskDag.ResolveAnnotationProcessorsTask =>
                 None // AP resolution is reported via DagEvent.ResolveAnnotationProcessors{Started,Finished}
+              case _: TaskDag.RunSymbolProcessorsTask =>
+                None // KSP execution is reported via DagEvent.RunSymbolProcessors{Started,Finished}
             }
             val failureRefUpdate = (task, result) match {
               case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
@@ -3097,6 +3241,8 @@ class MultiWorkspaceBspServer(
           case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
           case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
           case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
+          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -3151,6 +3297,8 @@ class MultiWorkspaceBspServer(
         case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
         case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
         case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
+        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
+        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
 
         case _ => IO.unit
       }
@@ -3547,8 +3695,8 @@ class MultiWorkspaceBspServer(
           bleep.internal.FileUtils.deleteDirectory(classesDir)
           cleaned = true
         }
-        // Also clean analysis dir - use same path structure as BuildPaths.targetDir
-        val targetDir = started.buildPaths.bleepBloopDir.resolve(crossName.name.value).resolve(crossName.crossId.fold("")(_.value))
+        // Also clean analysis dir - same path structure as BuildPaths.targetDir
+        val targetDir = started.buildPaths.variantBuildDir(crossName)
         val analysisDir = targetDir.resolve(".zinc")
         if (Files.exists(analysisDir)) {
           bleep.internal.FileUtils.deleteDirectory(analysisDir)

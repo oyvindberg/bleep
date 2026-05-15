@@ -184,6 +184,10 @@ object BuildCreateNew {
         options = model.Options.empty,
         jvmTarget = Some(model.Jvm.graalvm.majorVersion),
         compilerPlugins = model.JsonSet.empty,
+        kspVersion = None,
+        scanForSymbolProcessors = None,
+        symbolProcessors = model.JsonSet.empty,
+        symbolProcessorOptions = model.SymbolProcessorOptions.empty,
         js = None,
         native = None
       )
