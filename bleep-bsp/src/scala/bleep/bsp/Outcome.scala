@@ -225,16 +225,19 @@ object Outcome {
       }
     }
 
-  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken.
+  /** Bridge a Deferred kill signal to a [[bleep.analysis.CancellationToken]] for toolchains that still use CancellationToken.
     *
-    * Creates a CancellationToken that gets cancelled when the kill signal fires. This is needed for Scala.js and Scala Native toolchains which predate the
-    * Deferred-based kill signal design.
+    * Returns a `Resource` rather than a plain `IO` so the listener fiber is properly lifecycle-managed: the fiber blocks on `killSignal.get` and, if the
+    * killSignal never fires (the common case — the operation completes normally), `.background` cancels it on resource release. With `.start.void` the fiber
+    * would block forever, pinning the Deferred and the token in memory once per operation.
+    *
+    * Usage: `bridgeKillSignal(killSignal).use { cancellation => ...do the work that takes a CancellationToken... }`.
     */
-  def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[bleep.analysis.CancellationToken] = {
+  def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, bleep.analysis.CancellationToken] = {
     import java.util.concurrent.atomic.AtomicBoolean
     import scala.collection.mutable.ListBuffer
 
-    IO.delay {
+    val mkToken: IO[bleep.analysis.CancellationToken] = IO.delay {
       val cancelled = new AtomicBoolean(false)
       val callbacks = ListBuffer[() => Unit]()
 
@@ -252,9 +255,14 @@ object Outcome {
             else callbacks += callback
           }
       }
-    }.flatTap { token =>
-      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
     }
+
+    // .background returns a Resource whose acquire spawns the listener and whose release cancels it. If killSignal fires before release, the listener cancels
+    // the token and exits naturally. If release fires first (the work completed normally), .background cancels the still-blocked listener.
+    for {
+      token <- cats.effect.Resource.eval(mkToken)
+      _ <- killSignal.get.flatMap(_ => IO.delay(token.cancel())).background
+    } yield token
   }
 
 }

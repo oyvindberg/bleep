@@ -174,8 +174,10 @@ object LinkExecutor {
         }
     }
 
-  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal, which returns a Resource that properly lifecycle-manages the
+    * listener fiber.
+    */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, CancellationToken] =
     Outcome.bridgeKillSignal(killSignal)
 
   /** Execute Scala.js linking. */
@@ -208,7 +210,7 @@ object LinkExecutor {
       killSignal: Deferred[IO, KillReason],
       isTest: Boolean
   ): IO[(TaskResult, LinkResult)] =
-    bridgeKillSignal(killSignal).flatMap { cancellation =>
+    bridgeKillSignal(killSignal).use { cancellation =>
       val toolchain = ScalaJsToolchain.forVersion(platform.version, platform.scalaVersion)
 
       val scalaJsLogger = LinkLogger.toScalaJsLogger(logger)
@@ -264,7 +266,7 @@ object LinkExecutor {
       logger: LinkLogger,
       killSignal: Deferred[IO, KillReason]
   ): IO[(TaskResult, LinkResult)] =
-    bridgeKillSignal(killSignal).flatMap { cancellation =>
+    bridgeKillSignal(killSignal).use { cancellation =>
       val toolchain = ScalaNativeToolchain.forVersion(platform.version, platform.scalaVersion)
       val workDir = outputDir.resolve("native-work")
 
@@ -323,7 +325,7 @@ object LinkExecutor {
       logger: LinkLogger,
       killSignal: Deferred[IO, KillReason]
   ): IO[(TaskResult, LinkResult)] =
-    bridgeKillSignal(killSignal).flatMap { cancellation =>
+    bridgeKillSignal(killSignal).use { cancellation =>
       // Find KLIB files from classpath (project output + dependencies)
       val klibs = classpath.flatMap { p =>
         val name = p.getFileName.toString.toLowerCase
@@ -486,7 +488,7 @@ object LinkExecutor {
           )
         } else {
           // Link KLIBs into executable using KotlinNativeCompiler
-          bridgeKillSignal(killSignal).flatMap { cancellation =>
+          bridgeKillSignal(killSignal).use { cancellation =>
             val diagnosticListener = new DiagnosticListener {
               def onDiagnostic(error: CompilerError): Unit =
                 error.severity match {

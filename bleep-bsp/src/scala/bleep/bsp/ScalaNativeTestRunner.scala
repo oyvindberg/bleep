@@ -25,8 +25,10 @@ object ScalaNativeTestRunner {
     case object Unknown extends TestFramework { val name = "unknown" }
   }
 
-  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal, which returns a Resource that properly lifecycle-manages the
+    * listener fiber.
+    */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, CancellationToken] =
     Outcome.bridgeKillSignal(killSignal)
 
   /** Link a native test binary with embedded test runner. */
@@ -40,7 +42,7 @@ object ScalaNativeTestRunner {
       logger: ScalaNativeToolchain.Logger,
       killSignal: Deferred[IO, KillReason]
   ): IO[LinkResult] =
-    bridgeKillSignal(killSignal).flatMap { cancellation =>
+    bridgeKillSignal(killSignal).use { cancellation =>
       IO.blocking {
         Files.createDirectories(workDir)
         Files.createDirectories(outputPath.getParent)
