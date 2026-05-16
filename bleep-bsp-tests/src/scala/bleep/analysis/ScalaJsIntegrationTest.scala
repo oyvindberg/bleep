@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.Outcome
 import bleep.bsp.Outcome.RunOutcome
 import org.scalatest.funsuite.AnyFunSuite
@@ -182,6 +183,7 @@ class ScalaJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Plat
       val result = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, "Linking failed")
       assert(result.outputFiles.nonEmpty, "No output files")
@@ -205,6 +207,7 @@ class ScalaJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Plat
       val result = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, "Linking failed")
       assert(result.outputFiles.nonEmpty, "No output files")
@@ -228,6 +231,7 @@ class ScalaJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Plat
       val linkResult = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(linkResult.isSuccess, "Linking failed")
 

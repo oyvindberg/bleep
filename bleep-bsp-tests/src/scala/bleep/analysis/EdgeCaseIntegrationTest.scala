@@ -849,8 +849,8 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
       )
 
       val result = (for {
-        killSignal <- cats.effect.Deferred[IO, bleep.bsp.KillReason]
-        _ <- killSignal.complete(bleep.bsp.KillReason.UserRequest)
+        killSignal <- cats.effect.Deferred[IO, bleep.bsp.protocol.KillReason]
+        _ <- killSignal.complete(bleep.bsp.protocol.KillReason.UserRequest)
         outcome <- LinkExecutor.execute(
           linkTask,
           classpath = Seq.empty,

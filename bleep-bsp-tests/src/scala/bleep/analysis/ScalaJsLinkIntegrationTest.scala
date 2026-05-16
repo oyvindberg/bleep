@@ -1,7 +1,9 @@
 package bleep.analysis
 
+import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.{LinkExecutor, Outcome, TaskDag}
-import bleep.bsp.Outcome.{KillReason, RunOutcome}
+import bleep.bsp.Outcome.RunOutcome
+import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
@@ -274,6 +276,7 @@ class ScalaJsAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, "CommonJS linking failed")
       result.outputFiles.exists(_.getFileName.toString.endsWith(".js")) shouldBe true
@@ -293,6 +296,7 @@ class ScalaJsAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, "ESModule linking failed")
       result.outputFiles.nonEmpty shouldBe true
@@ -315,6 +319,7 @@ class ScalaJsAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, "Linking with source maps failed")
       val hasSourceMap = result.outputFiles.exists(_.getFileName.toString.endsWith(".js.map"))
@@ -334,6 +339,7 @@ class ScalaJsAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers with 
       val linkResult = toolchain
         .link(config, classpath, Some("example.Main"), linkDir, "main", ScalaJsToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(linkResult.isSuccess, "Linking failed")
 

@@ -198,11 +198,10 @@ object Outcome {
     fromCancellationToken(cancellation).flatMap { killSignal =>
       val workIO: IO[Either[Throwable, A]] = IO.async[Either[Throwable, A]] { cb =>
         IO.delay {
-          val t = new Thread(
-            () =>
-              try cb(Right(Right(work)))
-              catch { case e: Throwable => cb(Right(Left(e))) }, name
-          )
+          val runnable: Runnable = () =>
+            try cb(Right(Right(work)))
+            catch { case e: Throwable => cb(Right(Left(e))) }
+          val t = new Thread(runnable, name)
           contextClassLoader.foreach(t.setContextClassLoader)
           t.setDaemon(true)
           t.start()

@@ -108,7 +108,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
       failed = 0,
       skipped = 0,
       ignored = 0,
-      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.KillReason.UserRequest)
+      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.protocol.KillReason.UserRequest)
     )
 
     result.isSuccess shouldBe false
