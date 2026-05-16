@@ -12,7 +12,7 @@ import bleep.bsp.TaskDag.{
   TaskId,
   TaskResult
 }
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.LinkPlatformName
 import bleep.bsp.TaskDag.LinkPlatform
 import bleep.model.{CrossProjectName, ProjectName}

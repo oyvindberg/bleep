@@ -384,6 +384,8 @@ object Compiler {
               CompilationSuccess(outDir, classFiles)
             case ProjectCompileFailure(errors) =>
               CompilationFailure(errors)
+            case ProjectCompileCancelled(_) =>
+              CompilationCancelled
           }
         } finally deleteRecursively(tempDir)
       } catch {

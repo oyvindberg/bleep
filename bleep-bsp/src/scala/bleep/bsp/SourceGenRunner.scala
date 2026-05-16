@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.*
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.internal.jvmRunCommand
 import bleep.model.{CrossProjectName, ScriptDef}
 import cats.effect.{Deferred, IO}

@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.analysis._
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag.LinkResult
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}

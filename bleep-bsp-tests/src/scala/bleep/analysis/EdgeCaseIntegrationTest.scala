@@ -2,7 +2,7 @@ package bleep.analysis
 
 import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
@@ -849,8 +849,8 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
       )
 
       val result = (for {
-        killSignal <- cats.effect.Deferred[IO, bleep.bsp.Outcome.KillReason]
-        _ <- killSignal.complete(bleep.bsp.Outcome.KillReason.UserRequest)
+        killSignal <- cats.effect.Deferred[IO, bleep.bsp.KillReason]
+        _ <- killSignal.complete(bleep.bsp.KillReason.UserRequest)
         outcome <- LinkExecutor.execute(
           linkTask,
           classpath = Seq.empty,

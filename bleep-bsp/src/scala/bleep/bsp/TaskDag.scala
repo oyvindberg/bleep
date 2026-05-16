@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, KotlinJsModuleKind, ScriptDef, SuiteName, TestName}

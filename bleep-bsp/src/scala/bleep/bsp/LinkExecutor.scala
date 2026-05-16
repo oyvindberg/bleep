@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.analysis._
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag._
 import bleep.bsp.protocol.ProcessExit
 import bleep.model.KotlinJsModuleKind

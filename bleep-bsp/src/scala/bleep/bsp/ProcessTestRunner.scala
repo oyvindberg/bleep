@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult}
 import cats.effect.{Deferred, IO}
 import cats.syntax.all._

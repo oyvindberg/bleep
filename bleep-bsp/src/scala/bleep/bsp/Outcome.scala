@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO}
 
 /** Shared ADT types for explicit outcome tracking.
@@ -14,30 +15,6 @@ import cats.effect.{Deferred, IO}
   *   - Kill signals via Deferred[IO, KillReason]
   */
 object Outcome {
-
-  /** Why a process/task was killed.
-    *
-    * This is the explicit kill signal - when you want to stop something, complete a Deferred[IO, KillReason] with one of these values. The running code will
-    * then include this reason in its Killed outcome.
-    */
-  sealed trait KillReason
-  object KillReason {
-
-    /** User requested cancellation (Ctrl-C, $/cancelRequest) */
-    case object UserRequest extends KillReason
-
-    /** Operation exceeded its time limit */
-    case object Timeout extends KillReason
-
-    /** Parent process/task is dying and taking children with it */
-    case object ParentDying extends KillReason
-
-    /** Server is shutting down */
-    case object ServerShutdown extends KillReason
-
-    /** Client connection died (failed to send notification) */
-    case object DeadClient extends KillReason
-  }
 
   /** What can happen when we wait for a process to exit.
     *

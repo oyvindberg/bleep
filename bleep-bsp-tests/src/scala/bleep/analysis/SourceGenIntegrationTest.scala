@@ -2,7 +2,7 @@ package bleep.analysis
 
 import bleep.*
 import bleep.bsp.{Outcome, SourceGenRunner}
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.model.{CrossProjectName, ScriptDef}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global

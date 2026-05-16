@@ -2,7 +2,7 @@ package bleep.analysis
 
 import bleep.bsp.{LinkExecutor, Outcome, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.model
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
@@ -110,7 +110,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       failed = 0,
       skipped = 0,
       ignored = 0,
-      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
+      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.KillReason.UserRequest)
     )
 
     result.isSuccess shouldBe false

@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag.{
   AnnotationProcessorPlan,
   BuildContext,

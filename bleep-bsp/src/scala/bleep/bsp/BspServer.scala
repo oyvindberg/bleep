@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.analysis.*
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
 import ch.epfl.scala.bsp.*

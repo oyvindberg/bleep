@@ -40,6 +40,10 @@ case class KspIncrementalState(
     schemaVersion: Int,
     kspVersion: String,
     kotlinVersion: String,
+    jdkHome: String,
+    jvmTarget: String,
+    languageVersion: String,
+    apiVersion: String,
     processorOptions: SortedMap[String, String],
     processorJarFingerprint: String,
     librariesFingerprint: String,
@@ -48,8 +52,10 @@ case class KspIncrementalState(
 
 object KspIncrementalState {
 
-  /** Bump when changing the manifest fields incompatibly. */
-  val SchemaVersion: Int = 1
+  /** Bump when changing the manifest fields incompatibly. Schema version 2 added jdkHome / jvmTarget / languageVersion / apiVersion to invalidation; an on-disk
+    * manifest at schema 1 self-invalidates to FullRebuild on the next run.
+    */
+  val SchemaVersion: Int = 2
 
   implicit val codec: Codec[KspIncrementalState] = deriveCodec
 
@@ -59,6 +65,10 @@ object KspIncrementalState {
   case class CurrentInputs(
       kspVersion: String,
       kotlinVersion: String,
+      jdkHome: String,
+      jvmTarget: String,
+      languageVersion: String,
+      apiVersion: String,
       processorOptions: SortedMap[String, String],
       processorJars: List[Path],
       libraries: List[Path],
@@ -91,6 +101,10 @@ object KspIncrementalState {
       schemaVersion = SchemaVersion,
       kspVersion = current.kspVersion,
       kotlinVersion = current.kotlinVersion,
+      jdkHome = current.jdkHome,
+      jvmTarget = current.jvmTarget,
+      languageVersion = current.languageVersion,
+      apiVersion = current.apiVersion,
       processorOptions = current.processorOptions,
       processorJarFingerprint = fingerprintFiles(current.processorJars),
       librariesFingerprint = fingerprintFiles(current.libraries),
@@ -114,6 +128,10 @@ object KspIncrementalState {
       case Some(p)
           if p.kspVersion != snap.kspVersion ||
             p.kotlinVersion != snap.kotlinVersion ||
+            p.jdkHome != snap.jdkHome ||
+            p.jvmTarget != snap.jvmTarget ||
+            p.languageVersion != snap.languageVersion ||
+            p.apiVersion != snap.apiVersion ||
             p.processorJarFingerprint != snap.processorJarFingerprint ||
             p.librariesFingerprint != snap.librariesFingerprint ||
             p.processorOptions != snap.processorOptions =>
@@ -173,24 +191,37 @@ object KspIncrementalState {
       md.digest().map(b => f"$b%02x").mkString
     }
 
-  /** A coarse fingerprint over a list of paths: hash (filename + mtime + size) for each. Stable across path-order shuffles. Used for processor jars and
-    * libraries — these are bigger and we don't need source-level precision; any change to the set or to a file's mtime/size means "something moved."
+  /** A coarse fingerprint over a list of paths. Stable across input order. Regular files contribute `filename|mtime|size`; directories recurse so deep changes
+    * (e.g. a single `.class` file under `target/classes/com/foo/Bar.class` getting recompiled) actually register — directory `mtime` only bubbles up one level
+    * on Unix, so a top-level dir stat alone misses changes nested below it. Cost: an extra `Files.walk` per directory input per build.
     */
   def fingerprintFiles(paths: List[Path]): String = {
     val md = MessageDigest.getInstance("SHA-256")
-    val entries = paths.iterator
-      .map { p =>
-        if (!Files.exists(p)) s"${p.getFileName}|missing"
-        else {
-          val attrs = Files.readAttributes(p, classOf[java.nio.file.attribute.BasicFileAttributes])
-          s"${p.getFileName}|${attrs.lastModifiedTime.toMillis}|${attrs.size}"
-        }
-      }
-      .toArray
-      .sorted // stable across input ordering
+    val entries = paths.iterator.map(fingerprintPath).toArray.sorted
     entries.foreach(e => md.update(e.getBytes(StandardCharsets.UTF_8)))
     md.digest().map(b => f"$b%02x").mkString
   }
+
+  private def fingerprintPath(p: Path): String =
+    if (!Files.exists(p)) s"${p.getFileName}|missing"
+    else if (Files.isRegularFile(p)) {
+      val attrs = Files.readAttributes(p, classOf[java.nio.file.attribute.BasicFileAttributes])
+      s"${p.getFileName}|f|${attrs.lastModifiedTime.toMillis}|${attrs.size}"
+    } else if (Files.isDirectory(p)) {
+      val stream = Files.walk(p)
+      try {
+        val children = stream
+          .iterator()
+          .asScala
+          .filter(Files.isRegularFile(_))
+          .map { child =>
+            val attrs = Files.readAttributes(child, classOf[java.nio.file.attribute.BasicFileAttributes])
+            s"${p.relativize(child)}|${attrs.lastModifiedTime.toMillis}|${attrs.size}"
+          }
+          .toArray
+        children.sorted.mkString(s"${p.getFileName}|d|", "\n", "")
+      } finally stream.close()
+    } else s"${p.getFileName}|special"
 
   /** List Kotlin and Java source files transitively under a set of source roots. Filter out KSP's own output dirs to avoid the "process my own output" feedback
     * loop. Returns sorted paths for determinism.
