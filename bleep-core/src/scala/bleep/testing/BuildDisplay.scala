@@ -834,8 +834,12 @@ object BuildDisplay {
         durationMs: Long
     ): IO[Unit] = {
       val ignoredStr = if (ignored > 0) s", $ignored ignored" else ""
+      // Distinguish three cases instead of binary FAILED/PASSED — a suite that reports zero tests across the board ("no tests found") used to render as green
+      // "PASSED 0 passed", which was indistinguishable from a real pass and masked the runner-anomaly bug fixed in 7d5fb0360. Now: yellow NO TESTS for "nothing
+      // ran, nothing failed" — visible to the user without claiming success.
       val status =
         if (failed > 0) SConsole.RED + "FAILED" + SConsole.RESET
+        else if (passed == 0 && skipped == 0 && ignored == 0) SConsole.YELLOW + "NO TESTS" + SConsole.RESET
         else SConsole.GREEN + "PASSED" + SConsole.RESET
       log(s"$status ${suite.value}: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
     }

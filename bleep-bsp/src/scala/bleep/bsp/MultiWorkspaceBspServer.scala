@@ -2285,8 +2285,10 @@ class MultiWorkspaceBspServer(
           if (noopResult.isDefined) {
             IO.pure(TaskDag.TaskResult.Success)
           } else {
-            // Cooperative cancellation: set CancellationToken so advance() returns false
-            val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+            // Cooperative cancellation: a background fiber waits for the task-level kill signal and trips the CancellationToken so the inner compile's
+            // `advance()` polling sees it. `.background` gives us a Resource — fiber is spawned on acquire, cancelled on release; whether the surrounded race
+            // completes via gatedCompile or waitForKill, the listener is always cleaned up. Replaces the prior `.start` + manual `.guarantee(_.cancel)` pattern.
+            val cooperativeCancelFiber = taskKillSignal.get.flatMap(_ => IO(token.cancel())).background
 
             // Gate on server-wide semaphore to limit total concurrent compiles across all connections
             val gatedCompile = IO
@@ -2311,9 +2313,7 @@ class MultiWorkspaceBspServer(
               }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
-            cooperativeCancelIO.flatMap { cancelFiber =>
-              IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
-            }
+            cooperativeCancelFiber.surround(IO.race(gatedCompile, waitForKill).map(_.merge))
           }
       }
     }
