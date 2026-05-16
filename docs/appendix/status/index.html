@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><meta data-rh="true" property="og:description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.833866ae.css">
-<script src="/assets/js/runtime~main.caa19dfd.js" defer="defer"></script>
-<script src="/assets/js/main.521f2045.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.7c574ad6.js" defer="defer"></script>
+<script src="/assets/js/main.59a7ffe9.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -46,8 +46,10 @@ on Linux) is the first thing to attach to a bug report.</p>
 <ul>
 <li class=""><strong>No BOM / <code>dependencyManagement</code></strong>: every dependency declares its
 version explicitly. Spring Boot users feel this most.</li>
-<li class=""><strong>No KSP / KAPT</strong> for Kotlin annotation processing. Java&#x27;s
-<code>javac -processor</code> flow works.</li>
+<li class=""><strong>No KAPT</strong> for Kotlin. KAPT is legacy; migrate to KSP1, which is
+supported (see <a class="" href="/docs/usage/annotation-processing/#kotlin-ksp">annotation processing</a>).
+KSP runs from scratch on every compile today; per-file change
+tracking for incremental mode is a planned follow-up.</li>
 <li class=""><strong>No Gradle import</strong>: Maven and sbt are imported via <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a>
 / <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>.</li>
 <li class=""><strong>Single-host caching only</strong>: remote cache works via
