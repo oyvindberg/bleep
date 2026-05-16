@@ -833,18 +833,21 @@ object TaskDag {
       def executeTask(task: Task, dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
         val startTime = System.currentTimeMillis()
 
-        // Create a per-task kill signal that can be completed either by the global signal or individually
-        def createTaskKillSignal: IO[Deferred[IO, KillReason]] =
-          for {
+        // Per-task kill signal as a Resource so the propagation fiber + registration are both scoped to the task's lifetime. On release: the `.background`
+        // cancels the propagation fiber (no leaked listener), and `taskKillSignals` is deregistered.
+        val taskKillSignal: cats.effect.Resource[IO, Deferred[IO, KillReason]] = {
+          val acquire = for {
             taskKill <- Deferred[IO, KillReason]
-            // Register this task's kill signal
             _ <- taskKillSignals.update(_ + (task.id -> taskKill))
-            // Set up propagation from global kill signal to this task's signal.
-            // .attempt handles already-completed Deferred (task finished before global kill arrived).
-            _ <- killSignal.get
-              .flatMap(reason => taskKill.complete(reason).attempt.void)
-              .start
           } yield taskKill
+          val release = taskKillSignals.update(_ - task.id)
+
+          for {
+            taskKill <- cats.effect.Resource.make(acquire)(_ => release)
+            // .attempt handles "already completed" (task finished before global kill arrived).
+            _ <- killSignal.get.flatMap(reason => taskKill.complete(reason).attempt.void).background
+          } yield taskKill
+        }
 
         // Helper to convert ALL outcomes (success, error, killed) to TaskResult
         // Uses fiber.join to get Outcome, then embed to convert back to IO with kill fallback
@@ -893,9 +896,8 @@ object TaskDag {
               // Task was killed before it started
               IO.pure(TaskResult.Killed(reason))
             case None =>
-              for {
-                taskKill <- createTaskKillSignal
-                result <- task match {
+              taskKillSignal.use { taskKill =>
+                task match {
                   case ct: CompileTask =>
                     withRecovery(s"Compile ${ct.project.value}", taskKill)(handlers.compile(ct, taskKill))
 
@@ -983,9 +985,7 @@ object TaskDag {
                       } yield result
                     }
                 }
-                // Unregister this task's kill signal
-                _ <- taskKillSignals.update(_ - task.id)
-              } yield result
+              }
           }
           endTimestamp <- now
           durationMs = endTimestamp - startTime
@@ -1023,7 +1023,8 @@ object TaskDag {
           dagRef: Ref[IO, Dag],
           runningRef: Ref[IO, Set[TaskId]],
           taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]],
-          signalRef: Ref[IO, Deferred[IO, Unit]]
+          signalRef: Ref[IO, Deferred[IO, Unit]],
+          supervisor: cats.effect.std.Supervisor[IO]
       ): IO[Unit] =
         for {
           dag <- dagRef.get
@@ -1051,7 +1052,7 @@ object TaskDag {
               IO(System.err.println(s"[DAG] Kill requested (${maybeKilled.get}), waiting for ${running.size} running tasks: ${running.mkString(", ")}")) >>
                 signalRef.get.flatMap(_.get) >>
                 Deferred[IO, Unit].flatMap { newSignal =>
-                  signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef)
+                  signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
                 }
             } else {
               // Normal execution
@@ -1069,14 +1070,16 @@ object TaskDag {
                 // Start tasks - they will signal completion via the signalRef
                 _ <- tasksToStart.toList.parTraverse_ { task =>
                   runningRef.update(_ + task.id) >>
-                    executeTask(task, dagRef, taskKillSignals)
-                      .guarantee(
-                        runningRef.update(_ - task.id) >>
-                          // Signal the CURRENT deferred (read from ref to avoid stale reference).
-                          // .attempt handles already-completed Deferred (multiple tasks finishing concurrently).
-                          signalRef.get.flatMap(_.complete(()).attempt.void)
+                    supervisor
+                      .supervise(
+                        executeTask(task, dagRef, taskKillSignals)
+                          .guarantee(
+                            runningRef.update(_ - task.id) >>
+                              // Signal the CURRENT deferred (read from ref to avoid stale reference).
+                              // .attempt handles already-completed Deferred (multiple tasks finishing concurrently).
+                              signalRef.get.flatMap(_.complete(()).attempt.void)
+                          )
                       )
-                      .start
                       .void
                 }
                 // If no tasks are running, we're done or in error state
@@ -1106,7 +1109,7 @@ object TaskDag {
                         } else {
                           // Some tasks became ready (e.g., from skipping) — retry
                           Deferred[IO, Unit].flatMap { newSignal =>
-                            signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef)
+                            signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
                           }
                         }
                       }
@@ -1115,22 +1118,27 @@ object TaskDag {
                     // Wait for any task to complete, then create fresh signal and continue
                     signalRef.get.flatMap(_.get) >>
                       Deferred[IO, Unit].flatMap { newSignal =>
-                        signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef)
+                        signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
                       }
                   }
               } yield ()
             }
         } yield ()
 
-      for {
-        dagRef <- Ref.of[IO, Dag](initialDag)
-        runningRef <- Ref.of[IO, Set[TaskId]](Set.empty)
-        taskKillSignals <- Ref.of[IO, Map[TaskId, Deferred[IO, KillReason]]](Map.empty)
-        initialSignal <- Deferred[IO, Unit]
-        signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
-        _ <- loop(dagRef, runningRef, taskKillSignals, signalRef)
-        finalDag <- dagRef.get
-      } yield finalDag
+      // Supervisor scopes the per-task fibers: if the executor's parent fiber is cancelled mid-execution, the supervisor cancels every still-running supervised
+      // task fiber on resource release. Previously each task was spawned via `.start.void`, which orphans them on parent cancellation — they'd keep running
+      // until they self-noticed the kill signal (which is also raced against the same parent cancellation).
+      cats.effect.std.Supervisor[IO](await = false).use { supervisor =>
+        for {
+          dagRef <- Ref.of[IO, Dag](initialDag)
+          runningRef <- Ref.of[IO, Set[TaskId]](Set.empty)
+          taskKillSignals <- Ref.of[IO, Map[TaskId, Deferred[IO, KillReason]]](Map.empty)
+          initialSignal <- Deferred[IO, Unit]
+          signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
+          _ <- loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
+          finalDag <- dagRef.get
+        } yield finalDag
+      }
     }
   }
 }

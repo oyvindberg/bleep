@@ -71,8 +71,8 @@ object ProcessTestRunner {
     */
   def run(config: Config): IO[TestResult] = {
     val work = ProcessRunner.start(config.processBuilder).use { process =>
-      TestRunnerTypes.startKillWatcher(process, config.killSignal, killDescendants = config.killDescendants).flatMap { killFiber =>
-        val body = config.preRun >> {
+      TestRunnerTypes.killWatcher(process, config.killSignal, killDescendants = config.killDescendants).surround {
+        config.preRun >> {
           val stdout = ProcessRunner.lines(process.getInputStream).evalMap(config.handleStdoutLine)
           val stderr = ProcessRunner.lines(process.getErrorStream).evalMap(config.handleStderrLine)
 
@@ -92,7 +92,6 @@ object ProcessTestRunner {
               }
             }
         }
-        body.guarantee(killFiber.cancel)
       }
     }
 
