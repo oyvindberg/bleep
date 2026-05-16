@@ -139,8 +139,10 @@ object BleepDevDeps {
       entry.toString.endsWith("/classes") && {
         val parent = entry.getParent
         if (parent == null) false
-        else
-          crossName.crossId match {
+        else {
+          // v1 layout: `<projectName>/classes` (cross-less) or `<projectName>/<crossId>/classes` (cross-built).
+          // v2 layout: `.bleep/projects/<crossName>/builds/<variant>/classes` — parent is `<variant>`, grandparent `builds`, ancestor `<crossName>`.
+          def v1Match: Boolean = crossName.crossId match {
             case None      => parent.getFileName.toString == crossName.name.value
             case Some(cid) =>
               parent.getFileName.toString == cid.value && {
@@ -148,6 +150,16 @@ object BleepDevDeps {
                 grandparent != null && grandparent.getFileName.toString == crossName.name.value
               }
           }
+          def v2Match: Boolean = {
+            val grandparent = parent.getParent
+            if (grandparent == null || grandparent.getFileName == null || grandparent.getFileName.toString != "builds") false
+            else {
+              val crossDir = grandparent.getParent
+              crossDir != null && crossDir.getFileName != null && crossDir.getFileName.toString == crossName.value
+            }
+          }
+          v1Match || v2Match
+        }
       }
 
     def matchesResourcesDir(entry: Path, crossName: model.CrossProjectName): Boolean = {
