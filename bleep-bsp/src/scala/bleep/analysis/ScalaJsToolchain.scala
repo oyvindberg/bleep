@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.bsp.Outcome.ThreadOutcome
 import cats.effect.IO
 import java.nio.file.Path
 
@@ -28,7 +29,7 @@ trait ScalaJsToolchain {
     * @param isTest
     *   true if linking for tests (uses test module initializers when no mainClass)
     * @return
-    *   the result of linking, or IO.canceled if cancelled
+    *   `Completed(result)` on success, `Cancelled(reason)` if the cancellation token fires mid-link, `Crashed(throwable)` if the toolchain throws.
     */
   def link(
       config: ScalaJsLinkConfig,
@@ -39,7 +40,7 @@ trait ScalaJsToolchain {
       logger: ScalaJsToolchain.Logger,
       cancellation: CancellationToken,
       isTest: Boolean = false
-  ): IO[ScalaJsLinkResult]
+  ): IO[ThreadOutcome[ScalaJsLinkResult]]
 }
 
 object ScalaJsToolchain {

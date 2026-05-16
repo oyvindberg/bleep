@@ -1,7 +1,8 @@
 package bleep.bsp
 
 import bleep.analysis.*
-import cats.effect.IO
+import bleep.bsp.protocol.KillReason
+import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
 import ch.epfl.scala.bsp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*

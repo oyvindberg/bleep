@@ -1,0 +1,233 @@
+---
+title: Kotlin with a KSP processor (Moshi)
+---
+
+This tutorial walks through wiring a real KSP processor into a Kotlin
+project with bleep. We use Moshi codegen because it's small,
+JVM-pure, and on Maven Central, but the same pattern works for Room,
+Hilt, Koin KSP, kotlinx.serialization's KSP variant, and other KSP
+processors.
+
+> **Other languages**: KSP is Kotlin-specific. For Java's
+> `javac -processor` flow (Lombok, MapStruct, Dagger, Immutables), see
+> [Annotation processing](/docs/usage/annotation-processing).
+
+## What you'll build
+
+A small Kotlin project with one `@JsonClass(generateAdapter = true)`
+data class. Moshi's KSP processor generates a `*JsonAdapter` class for
+it at compile time. Your code can then read and write JSON using that
+adapter without reflection.
+
+## Step 1: Scaffold the project
+
+```bash
+mkdir kotlin-ksp-demo
+cd kotlin-ksp-demo
+bleep new myapp --lang kotlin
+```
+
+## Step 2: Wire KSP and Moshi into `bleep.yaml`
+
+Replace the generated `bleep.yaml` with:
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M9
+
+projects:
+  myapp:
+    source-layout: kotlin
+    kotlin:
+      version: 2.1.20
+      kspVersion: 1.0.32
+      symbolProcessors:
+        - com.squareup.moshi:moshi-kotlin-codegen:1.15.0
+    dependencies:
+      - com.squareup.moshi:moshi:1.15.0
+    platform:
+      name: jvm
+      mainClass: myapp.Main
+```
+
+Key lines:
+- `kotlin.kspVersion: 1.0.32` is the KSP-side release. Bleep
+  concatenates it with `kotlin.version` to form the full coord
+  `com.google.devtools.ksp:symbol-processing-aa-embeddable:2.1.20-1.0.32`.
+  See [KSP releases](https://github.com/google/ksp/releases) for the
+  pair that ships against your `kotlin.version`.
+- `kotlin.symbolProcessors:` declares the processor JARs. Each entry
+  resolves with its full transitive closure, so you don't list Moshi's
+  internal deps separately.
+- `dependencies:` declares the runtime library. `moshi:1.15.0` is the
+  runtime; `moshi-kotlin-codegen:1.15.0` is the build-time processor.
+  Same group, different artifacts.
+
+## Step 3: Annotate a data class
+
+Write `myapp/src/kotlin/myapp/Person.kt`:
+
+```kotlin
+package myapp
+
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class Person(val name: String, val age: Int)
+```
+
+## Step 4: Compile
+
+```bash
+bleep compile myapp
+```
+
+Bleep does two things, in order:
+
+1. **Runs KSP** as a separate JVM process. KSP reads `Person.kt`, sees
+   the `@JsonClass(generateAdapter = true)` annotation, and emits
+   `PersonJsonAdapter.kt` under
+   `.bleep/generated-sources/myapp/ksp/kotlin/myapp/`.
+2. **Runs kotlinc** on `Person.kt` plus the generated
+   `PersonJsonAdapter.kt`.
+
+Inspect the generated file:
+
+```bash
+ls -la .bleep/generated-sources/myapp/ksp/kotlin/myapp/
+# PersonJsonAdapter.kt
+```
+
+## Step 5: Use the generated adapter
+
+Write `myapp/src/kotlin/myapp/Main.kt`:
+
+```kotlin
+package myapp
+
+import com.squareup.moshi.Moshi
+
+fun main() {
+  val moshi = Moshi.Builder().build()
+  val adapter = moshi.adapter(Person::class.java)
+  val alice = Person("Alice", 30)
+  val json = adapter.toJson(alice)
+  println(json)
+  // {"name":"Alice","age":30}
+}
+```
+
+Run it:
+
+```bash
+bleep run myapp
+```
+
+You should see the JSON output. Behind the scenes, `moshi.adapter(Person::class.java)`
+delegates to the generated `PersonJsonAdapter` rather than to runtime
+reflection.
+
+## Versioning
+
+KSP releases are pinned 1:1 to exact kotlinc versions. The full coord
+KSP resolves to is `<kotlin.version>-<kspVersion>`. If a KSP release
+exists for your kotlin version, the pair will resolve cleanly. Common
+pairs:
+
+| Kotlin  | KSP suffix |
+|---------|------------|
+| 2.0.21  | 1.0.28     |
+| 2.1.0   | 1.0.29     |
+| 2.1.10  | 1.0.30     |
+| 2.1.20  | 1.0.32     |
+
+Browse [KSP releases](https://github.com/google/ksp/releases) for the
+full list; only the suffix (e.g. `1.0.32`) goes in
+`kotlin.kspVersion`. Bleep adds the kotlin prefix automatically.
+
+## Alternate: scan mode
+
+If a library ships both the runtime and the KSP processor in the same
+artifact graph (Moshi codegen does), you can let bleep auto-discover
+the processor JAR:
+
+```yaml
+projects:
+  myapp:
+    kotlin:
+      version: 2.1.20
+      kspVersion: 1.0.32
+      scanForSymbolProcessors: true
+    dependencies:
+      - com.squareup.moshi:moshi:1.15.0
+      - com.squareup.moshi:moshi-kotlin-codegen:1.15.0
+```
+
+`scanForSymbolProcessors: true` makes bleep look in every resolved
+dependency JAR for a
+`META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider`
+entry. Any JAR that registers one is treated as a KSP processor. If
+the opt-in finds nothing, bleep fails loud at compile time.
+
+Explicit listing under `symbolProcessors:` is more deterministic;
+scan mode is convenient when you want a library to "just work."
+
+## Other KSP processors
+
+Same pattern, different deps:
+
+| Processor                  | Library on `dependencies:` | Processor on `symbolProcessors:` |
+|----------------------------|----------------------------|----------------------------------|
+| **Moshi codegen**          | `com.squareup.moshi:moshi:1.15.0` | `com.squareup.moshi:moshi-kotlin-codegen:1.15.0` |
+| **Room (JVM-pure, 2.7+)**  | `androidx.room:room-runtime:2.7.0` | `androidx.room:room-compiler:2.7.0` |
+| **Koin KSP**               | `io.insert-koin:koin-core:3.5.6` | `io.insert-koin:koin-ksp-compiler:1.3.1` |
+| **kotlinx.serialization (KSP variant)** | `org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3` | `org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:2.1.20` |
+| **kotlin-inject**          | `me.tatarka.inject:kotlin-inject-runtime:0.7.2` | `me.tatarka.inject:kotlin-inject-compiler-ksp:0.7.2` |
+
+## Processor options
+
+Some processors read configuration from a key-value map. Room, for
+instance:
+
+```yaml
+projects:
+  myapp:
+    kotlin:
+      version: 2.1.20
+      kspVersion: 1.0.32
+      symbolProcessors:
+        - androidx.room:room-compiler:2.7.0
+      symbolProcessorOptions:
+        room.schemaLocation: ./schemas
+        room.incremental: 'true'
+    dependencies:
+      - androidx.room:room-runtime:2.7.0
+```
+
+`symbolProcessorOptions` is a string-to-string map; the entries reach
+the processor as `SymbolProcessorEnvironment.options`. The option
+keys vary per processor; check the processor's own docs.
+
+## Cleaning generated files
+
+`bleep clean myapp` wipes the KSP output tree under
+`.bleep/generated-sources/myapp/ksp/`. KSP regenerates everything on
+the next compile, deterministically.
+
+## Limitations today
+
+- **KSP runs from scratch on every compile.** KSP1's incremental mode
+  requires per-file change tracking that bleep doesn't yet wire;
+  defaulting to full re-processing keeps things correct at the cost of
+  some speed on large modules.
+- **JVM only.** Kotlin/JS and Kotlin/Native targets for KSP are not
+  wired today.
+- **No KAPT.** Migrate to KSP first; every major KAPT processor has a
+  KSP equivalent.
+
+## See also
+
+- [Annotation processing reference](/docs/usage/annotation-processing#kotlin-ksp), the full field surface
+- [Project status](/docs/appendix/status), what's GA vs. milestone
+- [Kotlin tutorial](/docs/tutorials/your-first-kotlin-project), the
+  Kotlin onboarding flow without KSP

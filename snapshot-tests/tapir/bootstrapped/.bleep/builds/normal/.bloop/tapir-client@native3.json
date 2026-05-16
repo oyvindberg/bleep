@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-client@native3",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/native3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@native3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/java",
@@ -36,12 +36,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.5_3/3.3.6%2B0.5.8/scala3lib_native0.5_3-3.3.6%2B0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.8/scalalib_native0.5_2.13-2.13.16%2B0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_3/0.5.8/windowslib_native0.5_3-0.5.8.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@native3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/native3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/native3/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@native3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@native3/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources"
@@ -51,7 +51,7 @@
       "name": "scala3-compiler_3",
       "version": "3.3.6",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scalanative-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/native3/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scalanative-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/${SCOPE}/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@native3/builds/normal/src_managed/${SCOPE}",
         "-Wnonunit-statement",
         "-Wunused:explicits",
         "-Wunused:implicits",
@@ -87,7 +87,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/native3/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@native3/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

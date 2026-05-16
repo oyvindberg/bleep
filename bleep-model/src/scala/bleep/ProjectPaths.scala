@@ -16,9 +16,10 @@ object ProjectPaths {
       fromSourceLayout: SortedSet[Path],
       fromJson: Map[RelPath, Path],
       generated: Map[model.ScriptDef, Path],
-      annotationProcessing: Option[Path]
+      annotationProcessing: Option[Path],
+      ksp: List[Path]
   ) {
-    val all: SortedSet[Path] = fromSourceLayout ++ fromJson.values ++ generated.values ++ annotationProcessing
-    val cleanable: Iterable[Path] = generated.values ++ annotationProcessing
+    val all: SortedSet[Path] = fromSourceLayout ++ fromJson.values ++ generated.values ++ annotationProcessing ++ ksp
+    val cleanable: Iterable[Path] = generated.values ++ annotationProcessing ++ ksp
   }
 }

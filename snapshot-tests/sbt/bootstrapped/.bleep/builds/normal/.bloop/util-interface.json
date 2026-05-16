@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "util-interface",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-interface/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/src/main/java"
@@ -13,8 +13,8 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-interface/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-interface/builds/normal/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/src/main/resources"
@@ -53,7 +53,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-interface/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

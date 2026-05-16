@@ -1,13 +1,13 @@
 ---
-title: Java annotation processing
+title: Annotation processing (Java + Kotlin)
 ---
 
 Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, …) via three composable fields under `java:`. The default is **off**, nothing scans, nothing runs unless you opt in.
 
-> **Kotlin annotation processing (KSP / KAPT)** is not yet
-> supported, see the [Kotlin section](#kotlin-ksp--kapt) at the
-> bottom of this page for the current status and the workarounds
-> that exist today.
+> **Kotlin annotation processing**: bleep ships **KSP1** support as
+> the standalone Analysis-API runner. See the [Kotlin section below](#kotlin-ksp)
+> for the user surface, scan vs. explicit mode, version pairing, and
+> current limitations. KAPT is not supported; migrate to KSP first.
 
 Resolution and processor-jar discovery happen lazily during compile as a first-class DAG task (`bleep:resolve-annotation-processors:<project>`), not at bootstrap. Failures are isolated per project and surface as a build failure with the project name in the message.
 
@@ -113,51 +113,141 @@ Dependency upgrades cannot silently introduce new processors here, only what's i
 
 The directory is reserved at bootstrap whenever a project has any annotation-processor configuration, and added to the project's source set so downstream compile picks up the generated `.java` files. [`bleep clean`](/docs/reference/cli/clean/) wipes it.
 
-## Kotlin: KSP / KAPT
+## Kotlin: KSP
 
-**Status: not yet supported.** Bleep can't currently load Kotlin
-Symbol Processing (KSP) or KAPT processors. This blocks libraries
-that ship as KSP processors at compile time. Spring Modulith, Koin's
-KSP-based DI verification, Room, kotlinx.serialization's
-processor-based variant, Dagger Hilt, and similar.
+Kotlin annotation processing in bleep goes through **KSP**, the Kotlin
+Symbol Processing API. Three composable fields under `kotlin:`. Default
+off, nothing runs unless you opt in:
 
-### Why this is a gap
+```yaml
+projects:
+  myapp:
+    source-layout: kotlin
+    kotlin:
+      version: 2.1.20
+      kspVersion: 1.0.32
+      symbolProcessors:
+        - com.squareup.moshi:moshi-kotlin-codegen:1.15.0
+      symbolProcessorOptions:
+        room.schemaLocation: ./schemas
+    dependencies:
+      - com.squareup.moshi:moshi:1.15.0
+    platform:
+      name: jvm
+```
 
-Bleep invokes `kotlinc` directly for `.kt` sources but doesn't expose
-the Kotlin compiler's plugin loader for KSP / KAPT. Surfacing it means
-adding a `kotlin.symbolProcessors:` field, resolving processor
-artifacts via Coursier, wiring them into `kotlinc`'s plugin classpath,
-and tracking the generated-source directory so it lands on the
-project's source paths the same way the Java side does.
+KSP runs as a separate process before kotlinc. It reads your Kotlin and
+Java sources, invokes the configured processors, and emits generated
+files under `.bleep/generated-sources/<crossName>/ksp/`. The next
+kotlinc step picks those generated files up via the project's source
+set automatically.
 
-### What works today
+### Versioning
 
-- **Pure-Kotlin code** that doesn't need a processor, fine.
-- **Kotlin compiler plugins** that don't generate code: `spring`,
-  `jpa`, `allopen`, `noarg`, `serialization` ship first-class. See
-  the [Kotlin tutorial's "Compiler plugins"
-  section](/docs/tutorials/your-first-kotlin-project#compiler-plugins).
-- **Library variants without KSP.** kotlinx.serialization has a
-  compiler-plugin variant (`serialization` above) that doesn't need
-  KSP. Some Koin features have non-KSP equivalents.
-- **Sourcegen-as-replacement.** If your processor emits code from a
-  schema (Room, Spring Modulith verification reports), a [bleep
-  sourcegen script](/docs/concepts/sourcegen) can do the same job from
-  your IDE in plain Kotlin.
+`kspVersion` is the KSP-side suffix only. Bleep concatenates it with
+`kotlin.version` to form the full Maven coord
+`com.google.devtools.ksp:symbol-processing-aa-embeddable:<kotlin>-<ksp>`,
+e.g. `2.1.20-1.0.32`. KSP releases are pinned 1:1 to exact kotlinc
+versions, so the kotlin prefix is forced; you only pick the KSP-side
+release. Browse [KSP releases](https://github.com/google/ksp/releases)
+to find a release paired with your `kotlin.version`.
 
-### What does *not* work today
+Required when `symbolProcessors` is non-empty or
+`scanForSymbolProcessors: true`. No default. Bleep fails loud at
+compile time if missing.
 
-- Spring Modulith (uses KSP for module verification at compile time).
-- Koin's `koin-ksp-compiler` for compile-time DI verification.
-- Room's KSP processor.
-- Hilt's KSP/KAPT processor.
-- Anything that depends on `ksp(...)` or `kapt(...)` declarations in
-  Gradle.
+### Two ways to declare processors
 
-### Recommendation
+**Explicit** (recommended):
 
-If your build *requires* KSP / KAPT today, **don't migrate that
-module yet.** This is the single largest Kotlin gap on the bleep
-roadmap; it's tracked in the
-[Project status](/docs/appendix/status) page and on the
-project's GitHub issues.
+```yaml
+kotlin:
+  kspVersion: 1.0.32
+  symbolProcessors:
+    - androidx.room:room-compiler:2.7.0
+    - com.google.dagger:hilt-compiler:2.51
+```
+
+Each entry resolves with its full transitive closure and is passed to
+KSP via the processor classpath. Processor jars never leak onto the
+runtime classpath.
+
+**Scan-mode**:
+
+```yaml
+kotlin:
+  kspVersion: 1.0.32
+  scanForSymbolProcessors: true
+dependencies:
+  - com.squareup.moshi:moshi:1.15.0
+  - com.squareup.moshi:moshi-kotlin-codegen:1.15.0
+```
+
+When `scanForSymbolProcessors: true`, bleep scans the resolved
+dependency JARs for
+`META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider`
+and treats any matches as KSP processors. Useful when a single library
+ships both runtime and processor classes (Moshi codegen ships in the
+same artifact graph as Moshi itself).
+
+Failing loud: scan-mode without any matched processors raises at
+compile time. The opt-in had to mean something.
+
+### Processor options
+
+`symbolProcessorOptions` is a string-to-string map. Bleep encodes the
+entries into KSP's `-processor-options=k1=v1:k2=v2:...` argument; any
+processor in the run can read them via
+`SymbolProcessorEnvironment.options`.
+
+### Where generated sources go
+
+```
+.bleep/generated-sources/<crossName>/ksp/
+├── kotlin/        # KSP-emitted .kt files (read by kotlinc on the next compile)
+├── java/          # KSP-emitted .java files (read by javac in mixed compilation)
+├── classes/       # pre-compiled .class files (rare; some processors emit these)
+├── resources/     # KSP-emitted resources (packaged with the project)
+└── caches/        # KSP's own incremental state (today: unused; see below)
+```
+
+The `kotlin/`, `java/`, and `resources/` dirs are added to the
+project's source / resource set automatically.
+[`bleep clean`](/docs/reference/cli/clean/) wipes them.
+
+### Incrementality (current state)
+
+KSP runs from scratch on every compile in bleep today. KSP1's
+incremental mode requires the caller to track and pass changed-source
+file lists explicitly. Bleep doesn't yet track per-file changes
+between runs, so we run with `-incremental=false`. The trade-off is
+slower KSP runs on large modules in exchange for not silently missing
+new files. Wiring up per-file change tracking is a planned follow-up.
+
+### What works
+
+- Real-world JVM KSP processors: **Moshi codegen**, **Room** (JVM-pure
+  2.7+), **Hilt**, **Dagger**, **Koin KSP**, **kotlinx.serialization
+  (KSP variant)**, **kotlin-inject**, **Ktorfit**, **Wire**, **Moshi
+  IR**, and similar.
+- Kotlin compiler plugins compose with KSP: `kotlin.compilerPlugins:
+  [allopen, jpa, spring, noarg, serialization]` runs alongside KSP
+  processors without conflict.
+- Multi-project builds: when project A depends on project B, KSP for A
+  waits on B's compile so KSP can resolve cross-project types.
+
+### What's not supported
+
+- **KAPT**. Kotlin's older annotation-processing model. Migrate to KSP1;
+  every major KAPT processor has a KSP equivalent.
+- **Kotlin/JS, Kotlin/Native**. KSP supports them; bleep wires only the
+  JVM target.
+- **Tracked-incremental KSP**. As above, runs are full each compile.
+
+### Path-separator caveat
+
+KSP's CLI accepts list arguments as `:`-separated on Unix and
+`;`-separated on Windows. A project directory whose path itself
+contains the platform separator (a `:` on macOS / Linux) will break
+KSP. This is rare for normal filesystem layouts; flagged here because
+the underlying tool can't escape.

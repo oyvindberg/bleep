@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.analysis._
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag.LinkResult
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
@@ -24,8 +24,10 @@ object ScalaNativeTestRunner {
     case object Unknown extends TestFramework { val name = "unknown" }
   }
 
-  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal, which returns a Resource that properly lifecycle-manages the
+    * listener fiber.
+    */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, CancellationToken] =
     Outcome.bridgeKillSignal(killSignal)
 
   /** Link a native test binary with embedded test runner. */
@@ -39,36 +41,21 @@ object ScalaNativeTestRunner {
       logger: ScalaNativeToolchain.Logger,
       killSignal: Deferred[IO, KillReason]
   ): IO[LinkResult] =
-    bridgeKillSignal(killSignal).flatMap { cancellation =>
+    bridgeKillSignal(killSignal).use { cancellation =>
       IO.blocking {
         Files.createDirectories(workDir)
         Files.createDirectories(outputPath.getParent)
-      } >> {
-        val work = toolchain
-          .link(
-            config,
-            classpath,
-            testMainClass,
-            outputPath,
-            workDir,
-            logger,
-            cancellation
-          )
-          .map { result =>
+      } >> toolchain
+        .link(config, classpath, testMainClass, outputPath, workDir, logger, cancellation)
+        .map {
+          case Outcome.ThreadOutcome.Completed(result) =>
             if (result.isSuccess) LinkResult.NativeSuccess(result.binary, wasUpToDate = false)
             else LinkResult.Failure(s"Linking failed with exit code ${result.exitCode}", List.empty)
-          }
-
-        Outcome
-          .raceKill(killSignal)(work)
-          .map {
-            case Left(result) => result
-            case Right(_)     => LinkResult.Cancelled
-          }
-          .handleErrorWith { ex =>
-            IO.pure(LinkResult.Failure(ex.getMessage, List.empty))
-          }
-      }
+          case Outcome.ThreadOutcome.Cancelled(_) =>
+            LinkResult.Cancelled
+          case Outcome.ThreadOutcome.Crashed(ex) =>
+            LinkResult.Failure(ex.getMessage, List.empty)
+        }
     }
 
   /** Discover test suites from a linked native binary. */

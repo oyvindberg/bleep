@@ -76,7 +76,7 @@ object BspQuery {
   }
 
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {
-    val id = buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value
+    val id = buildPaths.workspaceVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value
     // Applying the same format as bloop. There might be a better way to do this.
     val amended = id.replace("file:///", "file:/")
     new bsp4j.BuildTargetIdentifier(amended)

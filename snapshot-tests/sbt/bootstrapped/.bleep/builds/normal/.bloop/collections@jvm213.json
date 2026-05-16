@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "collections@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/collections@jvm213/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/generated-sources/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/scala-2",
@@ -22,14 +22,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/0.2.0/scala-parallel-collections_2.13-0.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/util-position@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm213/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm213/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/generated-resources/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources"
@@ -66,7 +66,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm213/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": false,

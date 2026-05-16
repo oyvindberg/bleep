@@ -13,6 +13,7 @@ case class BuildState(
     sourcegenCompleted: Int,
     sourcegenFailed: Int,
     apResolutionFailed: Int, // Number of projects whose annotation-processor resolution DAG task failed
+    kspResolutionFailed: Int, // Number of projects whose KSP processor resolution DAG task failed
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -63,6 +64,7 @@ case class BuildState(
     BuildSummary(
       sourcegenFailed = sourcegenFailed,
       apResolutionFailed = apResolutionFailed,
+      kspResolutionFailed = kspResolutionFailed,
       compilesCompleted = compilesCompleted,
       compilesFailed = compilesFailed,
       compilesSkipped = compilesSkipped,
@@ -99,6 +101,7 @@ object BuildState {
     sourcegenCompleted = 0,
     sourcegenFailed = 0,
     apResolutionFailed = 0,
+    kspResolutionFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
@@ -153,6 +156,9 @@ object BuildStateReducer {
 
     case BuildEvent.ResolveAnnotationProcessorsFinished(_, success, _, _, _) =>
       if (success) state else state.copy(apResolutionFailed = state.apResolutionFailed + 1)
+
+    case BuildEvent.RunSymbolProcessorsFinished(_, success, _, _, _) =>
+      if (success) state else state.copy(kspResolutionFailed = state.kspResolutionFailed + 1)
 
     case BuildEvent.CompileStarted(project, timestamp) =>
       state.copy(

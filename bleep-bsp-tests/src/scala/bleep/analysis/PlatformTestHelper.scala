@@ -16,6 +16,17 @@ object PlatformTestHelper {
     val fetchNode = new bleep.FetchNode(CacheLogger.nop, scala.concurrent.ExecutionContext.global)
     fetchNode(DefaultNodeVersion).toAbsolutePath.toString
   }
+
+  /** Unwrap a `ThreadOutcome.Completed` in tests, failing loudly on `Cancelled` or `Crashed`. Lets the rest of a test read the result type's fields directly
+    * without inline pattern matching at every call site.
+    */
+  extension [A](o: bleep.bsp.Outcome.ThreadOutcome[A]) {
+    def assertCompleted: A = o match {
+      case bleep.bsp.Outcome.ThreadOutcome.Completed(r) => r
+      case bleep.bsp.Outcome.ThreadOutcome.Cancelled(r) => throw new AssertionError(s"Expected Completed but got Cancelled($r)")
+      case bleep.bsp.Outcome.ThreadOutcome.Crashed(t)   => throw new AssertionError(s"Expected Completed but got Crashed: ${t.getMessage}", t)
+    }
+  }
 }
 
 trait PlatformTestHelper {
@@ -118,8 +129,9 @@ trait PlatformTestHelper {
       .unsafeRunSync()
 
     result match {
-      case ProjectCompileSuccess(_, _, _) => Seq(outDir) ++ scalaLibJars ++ sjsLibJars
-      case f: ProjectCompileFailure       => throw new RuntimeException(s"Scala.js compilation failed: ${f.errors.map(_.formatted).mkString("\n")}")
+      case ProjectCompileSuccess(_, _, _)  => Seq(outDir) ++ scalaLibJars ++ sjsLibJars
+      case f: ProjectCompileFailure        => throw new RuntimeException(s"Scala.js compilation failed: ${f.errors.map(_.formatted).mkString("\n")}")
+      case ProjectCompileCancelled(reason) => throw new RuntimeException(s"Scala.js compilation cancelled: $reason")
     }
   }
 
@@ -186,8 +198,9 @@ trait PlatformTestHelper {
       .unsafeRunSync()
 
     result match {
-      case ProjectCompileSuccess(_, _, _) => Seq(outDir) ++ fullClasspath
-      case f: ProjectCompileFailure       => throw new RuntimeException(s"Scala Native compilation failed: ${f.errors.map(_.formatted).mkString("\n")}")
+      case ProjectCompileSuccess(_, _, _)  => Seq(outDir) ++ fullClasspath
+      case f: ProjectCompileFailure        => throw new RuntimeException(s"Scala Native compilation failed: ${f.errors.map(_.formatted).mkString("\n")}")
+      case ProjectCompileCancelled(reason) => throw new RuntimeException(s"Scala Native compilation cancelled: $reason")
     }
   }
 }

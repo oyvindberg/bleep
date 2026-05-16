@@ -1,8 +1,9 @@
 package bleep.analysis
 
+import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.{LinkExecutor, Outcome, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.model
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
@@ -110,7 +111,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       failed = 0,
       skipped = 0,
       ignored = 0,
-      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
+      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.protocol.KillReason.UserRequest)
     )
 
     result.isSuccess shouldBe false
@@ -405,6 +406,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
     val result = toolchain
       .link(ScalaNativeLinkConfig.Debug, classpath, mainClass, binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
       .unsafeRunSync()
+      .assertCompleted
 
     assert(result.isSuccess, s"Linking failed with exit code ${result.exitCode}")
     binaryPath

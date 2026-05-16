@@ -622,7 +622,7 @@ case class ReactiveBsp(
 
   /** Build target identifier for a project */
   private def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {
-    val id = buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value
+    val id = buildPaths.workspaceVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value
     val amended = id.replace("file:///", "file:/")
     new bsp4j.BuildTargetIdentifier(amended)
   }
@@ -840,6 +840,12 @@ class ReactiveBspClient(
 
       case PE.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
         Some(BuildEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, timestamp))
+
+      case PE.RunSymbolProcessorsStarted(_, _) =>
+        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
+
+      case PE.RunSymbolProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
+        Some(BuildEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, timestamp))
 
       case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
         Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))

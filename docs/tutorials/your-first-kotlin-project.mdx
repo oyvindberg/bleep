@@ -126,12 +126,13 @@ projects:
         - jpa
 ```
 
-> **KSP / KAPT?** Kotlin Symbol Processing and KAPT processors are not
-> yet supported. If your project uses Spring Modulith, Koin's KSP
-> verifier, Room, Hilt, or any other `ksp(...)` / `kapt(...)`-based
-> dependency, see the
-> [Kotlin section of Annotation processing](/docs/usage/annotation-processing#kotlin-ksp--kapt)
-> for status, what works today, and what doesn't.
+> **Using KSP processors?** Room, Hilt, Moshi codegen, Koin KSP,
+> kotlinx.serialization (KSP variant), kotlin-inject, Wire, and similar
+> are supported via `kotlin.symbolProcessors:` / `kotlin.kspVersion:`.
+> See [Annotation processing](/docs/usage/annotation-processing#kotlin-ksp)
+> for the full surface, scan-vs-explicit modes, and current
+> incremental-compile limitations. KAPT is not supported; migrate to
+> KSP first.
 
 ## Project structure
 

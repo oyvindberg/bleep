@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.bsp.Outcome
 import cats.effect.IO
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
@@ -20,50 +21,9 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
       logger: ScalaJsToolchain.Logger,
       cancellation: CancellationToken,
       isTest: Boolean = false
-  ): IO[ScalaJsLinkResult] =
-    // Check cancellation before starting
-    if (cancellation.isCancelled) {
-      IO.canceled.asInstanceOf[IO[ScalaJsLinkResult]]
-    } else {
-      // Run blocking link on a dedicated thread to avoid cats-effect prepareForBlocking deadlock.
-      // IO.interruptible/IO.blocking use LinkedTransferQueue.transfer internally which can
-      // deadlock the work-stealing pool. Using IO.async with a plain thread avoids this.
-      IO.async[ScalaJsLinkResult] { cb =>
-        IO.delay {
-          val thread = new Thread(() =>
-            try {
-              val result = linkBlocking(config, classpath, mainClass, outputDir, moduleName, logger, cancellation, isTest)
-              if (cancellation.isCancelled) cb(Left(new LinkingCancelledException("Linking cancelled")))
-              else cb(Right(result))
-            } catch {
-              case _: InterruptedException =>
-                cb(Left(new LinkingCancelledException("Linking interrupted")))
-              case e: LinkingCancelledException =>
-                cb(Left(e))
-              case e: Throwable =>
-                cb(Left(e))
-            }
-          )
-          thread.setDaemon(true)
-          thread.setName("scalajs-linker")
-          thread.start()
-          // Return finalizer that interrupts the thread on cancel
-          Some(IO.delay {
-            cancellation.cancel()
-            thread.interrupt()
-          })
-        }
-      }.flatMap { result =>
-        if (cancellation.isCancelled) IO.canceled.asInstanceOf[IO[ScalaJsLinkResult]]
-        else IO.pure(result)
-      }.handleErrorWith {
-        case _: InterruptedException =>
-          IO.canceled.asInstanceOf[IO[ScalaJsLinkResult]]
-        case _: LinkingCancelledException =>
-          IO.canceled.asInstanceOf[IO[ScalaJsLinkResult]]
-        case e =>
-          IO.raiseError(new RuntimeException(s"Scala.js linking failed: ${e.getMessage}", e))
-      }
+  ): IO[Outcome.ThreadOutcome[ScalaJsLinkResult]] =
+    Outcome.runInFreshThread[ScalaJsLinkResult](name = "scalajs-linker", contextClassLoader = None, cancellation = cancellation) {
+      linkBlocking(config, classpath, mainClass, outputDir, moduleName, logger, cancellation, isTest)
     }
 
   private def linkBlocking(
@@ -433,5 +393,5 @@ object ScalaJs1Bridge {
   // Companion object for any shared utilities
 }
 
-/** Exception thrown when linking is cancelled. */
-class LinkingCancelledException(message: String) extends Exception(message)
+/** Exception thrown when linking is cancelled. Extends `InterruptedException` so `Outcome.runInFreshThread` classifies it as `Cancelled`, not `Crashed`. */
+class LinkingCancelledException(message: String) extends InterruptedException(message)

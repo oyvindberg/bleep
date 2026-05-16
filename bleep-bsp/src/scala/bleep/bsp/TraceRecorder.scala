@@ -37,6 +37,7 @@ object TraceCategory {
   case object Test extends TraceCategory { val value = "test" }
   case object Sourcegen extends TraceCategory { val value = "sourcegen" }
   case object ResolveAnnotationProcessors extends TraceCategory { val value = "resolve-annotation-processors" }
+  case object RunSymbolProcessors extends TraceCategory { val value = "run-symbol-processors" }
 }
 
 /** Records execution traces in Chrome Trace Event Format.

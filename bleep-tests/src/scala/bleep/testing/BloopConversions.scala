@@ -7,7 +7,8 @@ import java.nio.file.Paths
 
 /** Conversions between bleep's ResolvedProject and bloop's Config types.
   *
-  * This is only used in tests for comparing bloop file output.
+  * Test-only — bleep-bsp doesn't write bloop files at runtime any more. The snapshot tests still use the bloop file format as a stable serialised
+  * representation of a resolved project, which makes import/bootstrap regressions easy to spot in diffs.
   */
 object BloopConversions {
 

@@ -91,7 +91,9 @@ jobs:
           - os: ubuntu-22.04-arm
             file_name: bleep
             artifact_name: bleep-arm64-pc-linux
-            run_tests: true
+            # Kotlin Native ships x86_64-only prebuilts; the Konan compiler can't load its native libs on aarch64. Skipping test on arm64 mirrors the macOS
+            # arm64 path; the x86_64 ubuntu job covers the actual test surface.
+            run_tests: false
             bootstrap_coursier: true
           - os: macos-15-intel
             file_name: bleep

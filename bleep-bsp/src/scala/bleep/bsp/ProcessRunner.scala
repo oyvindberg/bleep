@@ -1,6 +1,7 @@
 package bleep.bsp
 
-import bleep.bsp.Outcome.{KillReason, ProcessOutcome, RunOutcome}
+import bleep.bsp.Outcome.{ProcessOutcome, RunOutcome}
+import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO, Resource}
 
 /** Shared utilities for running external processes with explicit outcome tracking.

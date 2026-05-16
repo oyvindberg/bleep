@@ -167,6 +167,10 @@ object buildFromMavenPom {
         options = model.Options.parse(kotlinArgs ++ pluginOptionArgs, None),
         jvmTarget = jvmTarget,
         compilerPlugins = model.JsonSet.fromIterable(plugins),
+        kspVersion = None,
+        scanForSymbolProcessors = None,
+        symbolProcessors = model.JsonSet.empty,
+        symbolProcessorOptions = model.SymbolProcessorOptions.empty,
         js = None,
         native = None
       )

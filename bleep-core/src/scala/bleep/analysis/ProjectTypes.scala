@@ -70,6 +70,13 @@ case class ProjectCompileFailure(
   def isSuccess: Boolean = false
 }
 
+/** Compilation was cancelled (build/shutdown, Ctrl-C, kill signal). Distinct from Failure so the BSP compile handler can surface `TaskResult.Killed`, not a
+  * synthetic error. Carries the `KillReason` so downstream telemetry can distinguish user-initiated cancels from server shutdowns.
+  */
+case class ProjectCompileCancelled(reason: bleep.bsp.protocol.KillReason) extends ProjectCompileResult {
+  def isSuccess: Boolean = false
+}
+
 /** A compiler error with location information */
 case class CompilerError(
     path: Option[Path],

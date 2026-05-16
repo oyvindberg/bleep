@@ -40,7 +40,9 @@ class CreateNewSnapshotTests extends SnapshotTest {
       val Right(started) = bootstrap.from(pre, ResolveProjects.InMemory, Nil, model.BleepConfig.default, testResolver): @unchecked
 
       val generatedBloopFiles: Map[Path, String] =
-        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.resolvedProjects).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
+        GenBloopFiles
+          .encodedFiles(GenBloopFiles.defaultBloopFilePath(bootstrappedDestinationPaths), started.resolvedProjects)
+          .map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
 
       val allGeneratedFiles = generatedBloopFiles
 

@@ -1,7 +1,8 @@
 package bleep.analysis
 
 import bleep.bsp.{LinkExecutor, Outcome, TaskDag}
-import bleep.bsp.Outcome.{KillReason, RunOutcome}
+import bleep.bsp.Outcome.RunOutcome
+import bleep.bsp.protocol.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global

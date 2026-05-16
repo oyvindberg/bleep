@@ -1288,17 +1288,19 @@ private class EcjCompiler(
     cancellationToken.onCancel(() => cancelFlag.set(true))
 
     def runEcj(ecjMain: AnyRef, hasProgress: Boolean): java.lang.Boolean = {
-      @volatile var success: java.lang.Boolean = java.lang.Boolean.FALSE
-      @volatile var compileException: Throwable = null
+      // AtomicReference for the cross-thread handoff from the compile thread to the polling thread. Was @volatile var; AtomicReference makes the intent (one
+      // writer, one reader, no other field-level fence interleaving) explicit.
+      val successRef = new java.util.concurrent.atomic.AtomicReference[java.lang.Boolean](java.lang.Boolean.FALSE)
+      val exceptionRef = new java.util.concurrent.atomic.AtomicReference[Throwable](null)
 
       val compileThread = new Thread("ecj-compiler") {
         override def run(): Unit =
           try
-            success = compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean]
+            successRef.set(compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean])
           catch {
             case _: InterruptedException                                                                         => ()
             case e: java.lang.reflect.InvocationTargetException if e.getCause.isInstanceOf[InterruptedException] => ()
-            case e: Throwable                                                                                    => compileException = e
+            case e: Throwable                                                                                    => exceptionRef.set(e)
           }
       }
 
@@ -1337,11 +1339,12 @@ private class EcjCompiler(
         throw new RuntimeException("ECJ compilation cancelled")
       }
 
+      val compileException = exceptionRef.get()
       if (compileException != null) {
         throw compileException
       }
 
-      success
+      successRef.get()
     }
 
     val (ecjMain, hasProgress) = EcjCompiler.createMainWithProgress(

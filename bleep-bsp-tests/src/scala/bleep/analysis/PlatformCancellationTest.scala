@@ -5,6 +5,7 @@ import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
 import cats.effect.{IO, Outcome}
 import cats.effect.unsafe.implicits.global
+import bleep.bsp.Outcome.ThreadOutcome
 import scala.concurrent.duration.*
 
 /** Integration tests for platform compiler/linker cancellation.
@@ -53,7 +54,7 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
   // Kotlin/JS Cancellation Tests
   // ============================================================================
 
-  test("Kotlin/JS: pre-cancelled compilation results in IO.canceled") {
+  test("Kotlin/JS: pre-cancelled compilation returns ThreadOutcome.Cancelled") {
     val outputDir = createTempDir("kotlin-js-cancel-")
     try {
       val source = generateLargeKotlinSource(numClasses = 5, methodsPerClass = 5)
@@ -91,16 +92,13 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
         cancellation = cancellation
       )
 
-      // Run and check outcome
-      val outcome = io.start.flatMap(_.join).unsafeRunSync()
-
-      outcome match {
-        case Outcome.Canceled() =>
-          info("Pre-cancelled Kotlin/JS compilation correctly returned Canceled")
-        case Outcome.Succeeded(fa) =>
-          fail(s"Expected Canceled but got Succeeded")
-        case Outcome.Errored(e) =>
-          fail(s"Expected Canceled but got Errored: ${e.getMessage}")
+      io.timeout(10.seconds).unsafeRunSync() match {
+        case ThreadOutcome.Cancelled(_) =>
+          info("Pre-cancelled Kotlin/JS compilation correctly returned ThreadOutcome.Cancelled")
+        case ThreadOutcome.Completed(_) =>
+          fail("Expected Cancelled but got Completed")
+        case ThreadOutcome.Crashed(e) =>
+          fail(s"Expected Cancelled but got Crashed: ${e.getMessage}")
       }
     } finally deleteRecursively(outputDir)
   }
@@ -233,38 +231,23 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
   // Scala.js Cancellation Tests
   // ============================================================================
 
-  test("Scala.js: pre-cancelled linking results in IO.canceled") {
+  test("Scala.js: pre-cancelled linking returns ThreadOutcome.Cancelled") {
     val outputDir = createTempDir("scalajs-cancel-")
     try {
       val config = ScalaJsLinkConfig.Debug
-
-      // Pre-cancelled token
       val cancellation = CancellationToken.create()
       cancellation.cancel()
-
       val toolchain = ScalaJsToolchain.forVersion("1.16.0", "3.3.3")
 
-      val io = toolchain.link(
-        config = config,
-        classpath = Seq.empty,
-        mainClass = Some("test.Main"),
-        outputDir = outputDir,
-        moduleName = "test",
-        logger = ScalaJsToolchain.Logger.Silent,
-        cancellation = cancellation
-      )
+      val io = toolchain.link(config, Seq.empty, Some("test.Main"), outputDir, "test", ScalaJsToolchain.Logger.Silent, cancellation)
 
-      // Run and check outcome
-      val outcome = io.start.flatMap(_.join).unsafeRunSync()
-
-      outcome match {
-        case Outcome.Canceled() =>
-          info("Pre-cancelled Scala.js linking correctly returned Canceled")
-        case Outcome.Succeeded(fa) =>
-          fail(s"Expected Canceled but got Succeeded")
-        case Outcome.Errored(e) =>
-          // Empty classpath might cause error before cancellation check
-          info(s"Got error (acceptable with empty classpath): ${e.getMessage}")
+      io.timeout(10.seconds).unsafeRunSync() match {
+        case ThreadOutcome.Cancelled(_) =>
+          info("Pre-cancelled Scala.js linking correctly returned ThreadOutcome.Cancelled")
+        case ThreadOutcome.Completed(_) =>
+          fail("Expected Cancelled but got Completed")
+        case ThreadOutcome.Crashed(e) =>
+          info(s"Got Crashed (acceptable with empty classpath): ${e.getMessage}")
       }
     } finally deleteRecursively(outputDir)
   }
@@ -317,39 +300,24 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
   // Scala Native Cancellation Tests
   // ============================================================================
 
-  test("Scala Native: pre-cancelled linking results in IO.canceled") {
+  test("Scala Native: pre-cancelled linking returns ThreadOutcome.Cancelled") {
     val outputDir = createTempDir("scala-native-cancel-")
     val outputPath = outputDir.resolve("test-binary")
     try {
       val config = ScalaNativeLinkConfig.Debug
-
-      // Pre-cancelled token
       val cancellation = CancellationToken.create()
       cancellation.cancel()
-
       val toolchain = ScalaNativeToolchain.forVersion("0.5.6", "3.3.3")
 
-      val io = toolchain.link(
-        config = config,
-        classpath = Seq.empty,
-        mainClass = "test.Main",
-        outputPath = outputPath,
-        workDir = outputDir,
-        logger = ScalaNativeToolchain.Logger.Silent,
-        cancellation = cancellation
-      )
+      val io = toolchain.link(config, Seq.empty, "test.Main", outputPath, outputDir, ScalaNativeToolchain.Logger.Silent, cancellation)
 
-      // Run and check outcome
-      val outcome = io.start.flatMap(_.join).unsafeRunSync()
-
-      outcome match {
-        case Outcome.Canceled() =>
-          info("Pre-cancelled Scala Native linking correctly returned Canceled")
-        case Outcome.Succeeded(fa) =>
-          fail(s"Expected Canceled but got Succeeded")
-        case Outcome.Errored(e) =>
-          // Empty classpath might cause error before cancellation check
-          info(s"Got error (acceptable with empty classpath): ${e.getMessage}")
+      io.timeout(10.seconds).unsafeRunSync() match {
+        case ThreadOutcome.Cancelled(_) =>
+          info("Pre-cancelled Scala Native linking correctly returned ThreadOutcome.Cancelled")
+        case ThreadOutcome.Completed(_) =>
+          fail("Expected Cancelled but got Completed")
+        case ThreadOutcome.Crashed(e) =>
+          info(s"Got Crashed (acceptable with empty classpath): ${e.getMessage}")
       }
     } finally deleteRecursively(outputDir)
   }

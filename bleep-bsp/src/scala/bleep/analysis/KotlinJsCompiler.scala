@@ -26,7 +26,7 @@ object KotlinJsCompiler {
     * @param cancellation
     *   token for cancelling compilation
     * @return
-    *   the compilation result, or IO.canceled if cancelled
+    *   `Completed(result)` on success, `Cancelled(reason)` if the cancellation token fires, `Crashed(throwable)` if the compiler throws.
     */
   def compile(
       sources: Seq[Path],
@@ -35,48 +35,9 @@ object KotlinJsCompiler {
       config: KotlinJsCompilerConfig,
       diagnosticListener: DiagnosticListener,
       cancellation: CancellationToken
-  ): IO[KotlinJsCompileResult] =
-    // Check cancellation before starting
-    if (cancellation.isCancelled) {
-      IO.canceled.asInstanceOf[IO[KotlinJsCompileResult]]
-    } else {
-      // Run blocking compilation on a dedicated thread to avoid cats-effect
-      // prepareForBlocking deadlock (LinkedTransferQueue.transfer can hang).
-      IO.async[KotlinJsCompileResult] { cb =>
-        IO.delay {
-          val thread = new Thread(() =>
-            try {
-              val result = compileBlocking(sources, libraries, outputDir, config, diagnosticListener, cancellation)
-              if (cancellation.isCancelled) cb(Left(new CompilationCancelledException("Compilation cancelled")))
-              else cb(Right(result))
-            } catch {
-              case _: InterruptedException =>
-                cb(Left(new CompilationCancelledException("Compilation interrupted")))
-              case e: CompilationCancelledException =>
-                cb(Left(e))
-              case e: Throwable =>
-                cb(Left(e))
-            }
-          )
-          thread.setDaemon(true)
-          thread.setName("kotlin-js-compiler")
-          thread.start()
-          Some(IO.delay {
-            cancellation.cancel()
-            thread.interrupt()
-          })
-        }
-      }.flatMap { result =>
-        if (cancellation.isCancelled) IO.canceled.asInstanceOf[IO[KotlinJsCompileResult]]
-        else IO.pure(result)
-      }.handleErrorWith {
-        case _: InterruptedException =>
-          IO.canceled.asInstanceOf[IO[KotlinJsCompileResult]]
-        case _: CompilationCancelledException =>
-          IO.canceled.asInstanceOf[IO[KotlinJsCompileResult]]
-        case e =>
-          IO.raiseError(e)
-      }
+  ): IO[bleep.bsp.Outcome.ThreadOutcome[KotlinJsCompileResult]] =
+    bleep.bsp.Outcome.runInFreshThread[KotlinJsCompileResult](name = "kotlin-js-compiler", contextClassLoader = None, cancellation = cancellation) {
+      compileBlocking(sources, libraries, outputDir, config, diagnosticListener, cancellation)
     }
 
   private def compileBlocking(
@@ -446,7 +407,7 @@ object KotlinJsLinker {
     * @param cancellation
     *   token for cancelling linking
     * @return
-    *   the link result, or IO.canceled if cancelled
+    *   `Completed(result)` on success, `Cancelled(reason)` if the cancellation token fires, `Crashed(throwable)` if the linker throws.
     */
   def link(
       klibs: Seq[Path],
@@ -454,45 +415,9 @@ object KotlinJsLinker {
       config: KotlinJsCompilerConfig,
       diagnosticListener: DiagnosticListener,
       cancellation: CancellationToken
-  ): IO[KotlinJsLinkResult] =
-    if (cancellation.isCancelled) {
-      IO.canceled.asInstanceOf[IO[KotlinJsLinkResult]]
-    } else {
-      IO.async[KotlinJsLinkResult] { cb =>
-        IO.delay {
-          val thread = new Thread(() =>
-            try {
-              val result = linkBlocking(klibs, outputDir, config, diagnosticListener, cancellation)
-              if (cancellation.isCancelled) cb(Left(new CompilationCancelledException("Linking cancelled")))
-              else cb(Right(result))
-            } catch {
-              case _: InterruptedException =>
-                cb(Left(new CompilationCancelledException("Linking interrupted")))
-              case e: CompilationCancelledException =>
-                cb(Left(e))
-              case e: Throwable =>
-                cb(Left(e))
-            }
-          )
-          thread.setDaemon(true)
-          thread.setName("kotlin-js-linker")
-          thread.start()
-          Some(IO.delay {
-            cancellation.cancel()
-            thread.interrupt()
-          })
-        }
-      }.flatMap { result =>
-        if (cancellation.isCancelled) IO.canceled.asInstanceOf[IO[KotlinJsLinkResult]]
-        else IO.pure(result)
-      }.handleErrorWith {
-        case _: InterruptedException =>
-          IO.canceled.asInstanceOf[IO[KotlinJsLinkResult]]
-        case _: CompilationCancelledException =>
-          IO.canceled.asInstanceOf[IO[KotlinJsLinkResult]]
-        case e =>
-          IO.raiseError(e)
-      }
+  ): IO[bleep.bsp.Outcome.ThreadOutcome[KotlinJsLinkResult]] =
+    bleep.bsp.Outcome.runInFreshThread[KotlinJsLinkResult](name = "kotlin-js-linker", contextClassLoader = None, cancellation = cancellation) {
+      linkBlocking(klibs, outputDir, config, diagnosticListener, cancellation)
     }
 
   private def linkBlocking(
@@ -816,5 +741,5 @@ object KotlinJsLinker {
   }
 }
 
-/** Exception thrown when compilation is cancelled. */
-class CompilationCancelledException(message: String) extends Exception(message)
+/** Exception thrown when compilation is cancelled. Extends `InterruptedException` so `Outcome.runInFreshThread` classifies it as `Cancelled`, not `Crashed`. */
+class CompilationCancelledException(message: String) extends InterruptedException(message)

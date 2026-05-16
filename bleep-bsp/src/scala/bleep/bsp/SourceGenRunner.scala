@@ -1,12 +1,13 @@
 package bleep.bsp
 
 import bleep.*
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.internal.jvmRunCommand
 import bleep.model.{CrossProjectName, ScriptDef}
 import cats.effect.{Deferred, IO}
 
-import java.nio.file.{Files, Path}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
@@ -147,20 +148,30 @@ object SourceGenRunner {
     }
   }
 
+  /** Newest `lastModifiedTime` across the given paths (recursing into directories).
+    *
+    * Streams via `Files.walkFileTree` rather than materializing an `Array[Path]` then mapping — for a source dir with 50k files that saves the path list +
+    * intermediate Java/Scala iterator wrappers + the redundant `Files.getLastModifiedTime` call (the visitor already has the BasicFileAttributes from the OS
+    * stat). Also avoids `Files.walk`'s `Stream` (no `Using` block needed; FileVisitor doesn't hold any FDs across calls).
+    */
   private def mostRecentFile(paths: Array[Path]): Option[Instant] = {
-    val allFiles = paths
-      .filter(_.toFile.exists())
-      .flatMap { p =>
-        if (Files.isDirectory(p)) {
-          import scala.jdk.CollectionConverters.*
-          Files.walk(p).filter(Files.isRegularFile(_)).iterator().asScala.toArray
-        } else {
-          Array(p)
-        }
-      }
+    var best: Instant = null
+    def offer(t: Instant): Unit = if (best == null || t.isAfter(best)) best = t
 
-    if (allFiles.isEmpty) None
-    else Some(allFiles.map(p => Files.getLastModifiedTime(p).toInstant).max)
+    val visitor = new SimpleFileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        if (attrs.isRegularFile) offer(attrs.lastModifiedTime.toInstant)
+        FileVisitResult.CONTINUE
+      }
+    }
+
+    paths.foreach { p =>
+      if (Files.exists(p)) {
+        if (Files.isDirectory(p)) Files.walkFileTree(p, visitor): Unit
+        else offer(Files.getLastModifiedTime(p).toInstant)
+      }
+    }
+    Option(best)
   }
 
   /** Run sourcegen scripts.

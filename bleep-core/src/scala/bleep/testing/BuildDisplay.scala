@@ -36,6 +36,7 @@ trait BuildDisplay {
 case class BuildSummary(
     sourcegenFailed: Int,
     apResolutionFailed: Int,
+    kspResolutionFailed: Int,
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -76,6 +77,8 @@ case class BuildSummary(
       Left(new bleep.BleepException.Text(s"Source generation failed for $sourcegenFailed project(s)"))
     else if (apResolutionFailed > 0)
       Left(new bleep.BleepException.Text(s"Annotation processor resolution failed for $apResolutionFailed project(s)"))
+    else if (kspResolutionFailed > 0)
+      Left(new bleep.BleepException.Text(s"KSP processor resolution failed for $kspResolutionFailed project(s)"))
     else {
       val testProblems = testsFailed + testsTimedOut + testsCancelled
       if (testProblems > 0 || suitesCancelled > 0) {
@@ -403,6 +406,7 @@ object BuildSummary {
   val empty: BuildSummary = BuildSummary(
     sourcegenFailed = 0,
     apResolutionFailed = 0,
+    kspResolutionFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
@@ -770,6 +774,15 @@ object BuildDisplay {
               .error(s"❌ annotation processor resolution failed (${durationMs}ms): ${error.getOrElse("unknown error")}")
           )
 
+      case BuildEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, _) =>
+        if (success) IO.unit
+        else
+          IO.delay(
+            logger
+              .withContext("project", project.value)
+              .error(s"❌ KSP run failed (${durationMs}ms): ${error.getOrElse("unknown error")}")
+          )
+
       case _: BuildEvent.ConnectionLost =>
         logWarn("💀 connection lost — server may have been killed")
 
@@ -819,8 +832,12 @@ object BuildDisplay {
         durationMs: Long
     ): IO[Unit] = {
       val ignoredStr = if (ignored > 0) s", $ignored ignored" else ""
+      // Distinguish three cases instead of binary FAILED/PASSED — a suite that reports zero tests across the board ("no tests found") used to render as green
+      // "PASSED 0 passed", which was indistinguishable from a real pass and masked the runner-anomaly bug fixed in 7d5fb0360. Now: yellow NO TESTS for "nothing
+      // ran, nothing failed" — visible to the user without claiming success.
       val status =
         if (failed > 0) SConsole.RED + "FAILED" + SConsole.RESET
+        else if (passed == 0 && skipped == 0 && ignored == 0) SConsole.YELLOW + "NO TESTS" + SConsole.RESET
         else SConsole.GREEN + "PASSED" + SConsole.RESET
       log(s"$status ${suite.value}: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
     }

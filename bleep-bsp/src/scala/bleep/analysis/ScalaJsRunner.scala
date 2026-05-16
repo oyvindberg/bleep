@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.Outcome.{KillReason, RunOutcome}
+import bleep.bsp.Outcome.RunOutcome
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.{Outcome, ProcessRunner}
 import cats.effect.{Deferred, IO}
 import java.nio.file.Path

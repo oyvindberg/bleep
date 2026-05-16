@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO}
 
 /** Shared ADT types for explicit outcome tracking.
@@ -14,30 +15,6 @@ import cats.effect.{Deferred, IO}
   *   - Kill signals via Deferred[IO, KillReason]
   */
 object Outcome {
-
-  /** Why a process/task was killed.
-    *
-    * This is the explicit kill signal - when you want to stop something, complete a Deferred[IO, KillReason] with one of these values. The running code will
-    * then include this reason in its Killed outcome.
-    */
-  sealed trait KillReason
-  object KillReason {
-
-    /** User requested cancellation (Ctrl-C, $/cancelRequest) */
-    case object UserRequest extends KillReason
-
-    /** Operation exceeded its time limit */
-    case object Timeout extends KillReason
-
-    /** Parent process/task is dying and taking children with it */
-    case object ParentDying extends KillReason
-
-    /** Server is shutting down */
-    case object ServerShutdown extends KillReason
-
-    /** Client connection died (failed to send notification) */
-    case object DeadClient extends KillReason
-  }
 
   /** What can happen when we wait for a process to exit.
     *
@@ -189,16 +166,77 @@ object Outcome {
   def neverKillSignal: IO[Deferred[IO, KillReason]] =
     Deferred[IO, KillReason]
 
-  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken.
-    *
-    * Creates a CancellationToken that gets cancelled when the kill signal fires. This is needed for Scala.js and Scala Native toolchains which predate the
-    * Deferred-based kill signal design.
+  /** Outcome of `runInFreshThread`: every outcome is a value — success, cancellation, or thrown error all flow through this ADT rather than through CE's error
+    * or fiber-cancellation channels. Mirrors `RunOutcome` for processes.
     */
-  def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[bleep.analysis.CancellationToken] = {
+  sealed trait ThreadOutcome[+A]
+  object ThreadOutcome {
+    case class Completed[A](result: A) extends ThreadOutcome[A]
+    case class Cancelled(reason: KillReason) extends ThreadOutcome[Nothing]
+    case class Crashed(throwable: Throwable) extends ThreadOutcome[Nothing]
+  }
+
+  /** Run a synchronous, potentially long-blocking computation on a fresh dedicated thread, returning `IO[ThreadOutcome[A]]`.
+    *
+    * The work runs on a newly-started thread (named, daemon, optionally with a context classloader). A `Deferred[IO, KillReason]` is built from the
+    * `CancellationToken` (via `Outcome.fromCancellationToken`) and raced against the work; if the kill signal fires first, the thread is interrupted and we
+    * return `Cancelled(reason)`. If the work completes normally, `Completed(result)`. If the work throws, `Crashed(throwable)`. No exceptions ever leak out of
+    * the returned IO's error channel — every outcome is a value.
+    *
+    * Use this in preference to `IO.interruptibleMany` when:
+    *   - The computation has thread-local state that must not leak between calls (e.g. JetBrains Kotlin compiler — see KT-28037)
+    *   - The computation makes long blocking JNI / native calls that could starve CE's blocker pool (e.g. Scala.js / Scala Native linkers)
+    *
+    * Use `IO.interruptibleMany` for plain in-JVM blocking work without those concerns.
+    */
+  def runInFreshThread[A](
+      name: String,
+      contextClassLoader: Option[ClassLoader],
+      cancellation: bleep.analysis.CancellationToken
+  )(work: => A): IO[ThreadOutcome[A]] =
+    fromCancellationToken(cancellation).flatMap { killSignal =>
+      val workIO: IO[Either[Throwable, A]] = IO.async[Either[Throwable, A]] { cb =>
+        IO.delay {
+          val runnable: Runnable = () =>
+            try cb(Right(Right(work)))
+            catch { case e: Throwable => cb(Right(Left(e))) }
+          val t = new Thread(runnable, name)
+          contextClassLoader.foreach(t.setContextClassLoader)
+          t.setDaemon(true)
+          t.start()
+          Some(IO.delay {
+            cancellation.cancel()
+            t.interrupt()
+          })
+        }
+      }
+      raceKill(killSignal)(workIO).map {
+        case Left(Right(value)) =>
+          ThreadOutcome.Completed(value)
+        // `InterruptedException` is the JVM's cancellation signal — Thread.interrupt at blocking calls, plus toolchain-specific cancellation exceptions that
+        // extend it (LinkingCancelledException, CompilationCancelledException). Classify all as `Cancelled` rather than `Crashed`.
+        case Left(Left(_: InterruptedException)) =>
+          ThreadOutcome.Cancelled(KillReason.UserRequest)
+        case Left(Left(throwable)) =>
+          ThreadOutcome.Crashed(throwable)
+        case Right(reason) =>
+          ThreadOutcome.Cancelled(reason)
+      }
+    }
+
+  /** Bridge a Deferred kill signal to a [[bleep.analysis.CancellationToken]] for toolchains that still use CancellationToken.
+    *
+    * Returns a `Resource` rather than a plain `IO` so the listener fiber is properly lifecycle-managed: the fiber blocks on `killSignal.get` and, if the
+    * killSignal never fires (the common case — the operation completes normally), `.background` cancels it on resource release. With `.start.void` the fiber
+    * would block forever, pinning the Deferred and the token in memory once per operation.
+    *
+    * Usage: `bridgeKillSignal(killSignal).use { cancellation => ...do the work that takes a CancellationToken... }`.
+    */
+  def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, bleep.analysis.CancellationToken] = {
     import java.util.concurrent.atomic.AtomicBoolean
     import scala.collection.mutable.ListBuffer
 
-    IO.delay {
+    val mkToken: IO[bleep.analysis.CancellationToken] = IO.delay {
       val cancelled = new AtomicBoolean(false)
       val callbacks = ListBuffer[() => Unit]()
 
@@ -216,37 +254,14 @@ object Outcome {
             else callbacks += callback
           }: Unit
       }
-    }.flatTap { token =>
-      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
     }
+
+    // .background returns a Resource whose acquire spawns the listener and whose release cancels it. If killSignal fires before release, the listener cancels
+    // the token and exits naturally. If release fires first (the work completed normally), .background cancels the still-blocked listener.
+    for {
+      token <- cats.effect.Resource.eval(mkToken)
+      _ <- killSignal.get.flatMap(_ => IO.delay(token.cancel())).background
+    } yield token
   }
 
-  /** Race a link/compile IO against a kill signal, handling CancellationException from toolchains.
-    *
-    * This is the standard pattern for linking operations: race against kill, map the killed outcome, and handle CancellationException from toolchains that use
-    * CancellationToken internally.
-    */
-  def raceLinkWork(
-      killSignal: Deferred[IO, KillReason],
-      platformName: String
-  )(work: IO[(TaskDag.TaskResult, TaskDag.LinkResult)]): IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-    raceKill(killSignal)(work)
-      .map {
-        case Left(result)  => result
-        case Right(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
-      }
-      .handleErrorWith {
-        case _: java.util.concurrent.CancellationException =>
-          killSignal.tryGet.map {
-            case Some(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
-            case None         => (TaskDag.TaskResult.Killed(KillReason.UserRequest), TaskDag.LinkResult.Cancelled)
-          }
-        case ex =>
-          IO.pure(
-            (
-              TaskDag.TaskResult.Error(s"$platformName linker crashed: ${ex.getMessage}", bleep.bsp.protocol.ProcessExit.Unknown),
-              TaskDag.LinkResult.Failure(ex.getMessage, List.empty)
-            )
-          )
-      }
 }

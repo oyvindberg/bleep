@@ -96,7 +96,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   }
 
   test("TestResult: cancelled overrides passed") {
-    val result = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
+    val result = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.protocol.KillReason.UserRequest))
     result.isSuccess shouldBe false
   }
 
@@ -108,7 +108,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
     val result = TestRunnerTypes.TestResult(0, 0, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe true
 
-    val cancelled = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
+    val cancelled = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.protocol.KillReason.UserRequest))
     cancelled.isSuccess shouldBe false
   }
 

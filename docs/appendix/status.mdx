@@ -44,8 +44,10 @@ on Linux) is the first thing to attach to a bug report.
 
 - **No BOM / `dependencyManagement`**: every dependency declares its
   version explicitly. Spring Boot users feel this most.
-- **No KSP / KAPT** for Kotlin annotation processing. Java's
-  `javac -processor` flow works.
+- **No KAPT** for Kotlin. KAPT is legacy; migrate to KSP1, which is
+  supported (see [annotation processing](/docs/usage/annotation-processing#kotlin-ksp)).
+  KSP runs from scratch on every compile today; per-file change
+  tracking for incremental mode is a planned follow-up.
 - **No Gradle import**: Maven and sbt are imported via [`bleep import`](/docs/reference/cli/import/)
   / [`bleep import-maven`](/docs/reference/cli/import-maven/).
 - **Single-host caching only**: remote cache works via

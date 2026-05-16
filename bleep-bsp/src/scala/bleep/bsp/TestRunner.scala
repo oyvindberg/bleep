@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}

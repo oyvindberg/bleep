@@ -1,7 +1,9 @@
 package bleep.analysis
 
+import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.Outcome
-import bleep.bsp.Outcome.{KillReason, RunOutcome}
+import bleep.bsp.Outcome.RunOutcome
+import bleep.bsp.protocol.KillReason
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
@@ -225,6 +227,7 @@ class ScalaNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(ScalaNativeLinkConfig.Debug, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"Debug linking failed with exit code ${result.exitCode}")
       assert(Files.exists(binaryPath), s"Binary not found at $binaryPath")
@@ -250,6 +253,7 @@ class ScalaNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(config, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"ReleaseFast linking failed with exit code ${result.exitCode}")
       assert(Files.exists(binaryPath), s"Binary not found at $binaryPath")
@@ -272,6 +276,7 @@ class ScalaNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with 
       val linkResult = toolchain
         .link(ScalaNativeLinkConfig.Debug, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(linkResult.isSuccess, "Linking failed")
 
@@ -306,6 +311,7 @@ class ScalaNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with 
       val result = toolchain
         .link(ScalaNativeLinkConfig.Debug, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"0.4.x linking failed with exit code ${result.exitCode}")
       assert(Files.exists(binaryPath), s"Binary not found at $binaryPath")

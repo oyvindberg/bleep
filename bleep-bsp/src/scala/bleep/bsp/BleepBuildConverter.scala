@@ -53,7 +53,7 @@ object BleepBuildConverter {
     }
 
     // Use the same path structure as BuildPaths.targetDir: name/crossId
-    val targetDir = started.buildPaths.bleepBloopDir.resolve(crossName.name.value).resolve(crossName.crossId.fold("")(_.value))
+    val targetDir = started.buildPaths.variantBuildDir(crossName)
     val analysisDir = Some(targetDir.resolve(".zinc"))
 
     ProjectConfig(
@@ -118,9 +118,13 @@ object BleepBuildConverter {
             )
 
           case _ =>
-            // JVM platform (default)
+            // JVM platform (default). KSP is run as a separate process before this (see KspRunner), and its generated sources are picked up via the
+            // project's source set (see BuildPaths). kotlinc here is purely the regular compile and doesn't need to know anything about KSP.
             val jvmTarget = kotlinConfig.flatMap(_.jvmTarget).getOrElse("11")
-            val pluginOptions = resolveCompilerPlugins(kotlinVersion, kotlinConfig.map(_.compilerPlugins.values.toList).getOrElse(Nil))
+            val pluginOptions = resolveCompilerPlugins(
+              kotlinVersion = kotlinVersion,
+              pluginIds = kotlinConfig.map(_.compilerPlugins.values.toList).getOrElse(Nil)
+            )
             // Extract Java release from java options (--release X, -source X, -target X)
             // Options may be rendered as separate strings ("--release", "21") or combined ("--release=21")
             val javaRelease = javaConfig.flatMap { java =>

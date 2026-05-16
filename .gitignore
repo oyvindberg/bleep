@@ -6,9 +6,15 @@ target
 /.bleep
 /.bloop
 /project/.bloop
+# bleep workspaces under docs-snippets-from-tests/ leak runtime state into the source tree
+# when a developer runs `bleep` directly inside one; the docs-snippet ITs themselves use a
+# tmpdir so this only catches manual runs. The fixtures' actual contents (bleep.yaml + src/)
+# are git-tracked; .bleep/ and build/ are not.
+docs-snippets-from-tests/*/.bleep/
+docs-snippets-from-tests/*/build/
 sbt-build
 .vscode
 bleep-cli.sh
 test-project
 reports
-.claude/settings.local.json
+.claude/

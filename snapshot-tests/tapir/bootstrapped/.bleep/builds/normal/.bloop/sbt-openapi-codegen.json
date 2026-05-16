@@ -2,10 +2,10 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-openapi-codegen",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/sbt-openapi-codegen/scripts.GenerateForSbtOpenapiCodegen",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/generated-sources/scripts.GenerateForSbtOpenapiCodegen",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/javajvm",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/protobuf",
@@ -114,14 +114,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-codegen-core/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/resources"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/sbt-openapi-codegen/scripts.GenerateForSbtOpenapiCodegen",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/generated-resources/scripts.GenerateForSbtOpenapiCodegen",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/resources"
     ],
@@ -184,7 +184,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen/builds/normal/inc_compile.zip",
       "setup": {
         "order": "java->scala",
         "addLibraryToBootClasspath": true,

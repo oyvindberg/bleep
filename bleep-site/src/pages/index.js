@@ -309,6 +309,106 @@ function SpecimenSection() {
 }
 
 /* ------------------------------------------------------------------
+   Per-language maturity. Three short columns under the specimen so a
+   reader can answer "is the thing I need first-class?" without
+   drilling into the docs.
+   ------------------------------------------------------------------ */
+function MaturitySection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="What's first-class today"
+          title={<>Per-language <em>maturity</em>.</>}
+        >
+          What works, what's partial, what's not in scope yet. Compile,
+          test, run, publish, BSP, cross-build, scripts and sourcegen
+          are first-class for every language.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Java</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: javac and ECJ, annotation
+                processors (Lombok, MapStruct, Dagger, Immutables, …),
+                Spring Boot via{" "}
+                <Link to="/docs/spring-boot-proves-the-model/">
+                  bleep-plugin-spring-boot
+                </Link>
+                , Maven import.
+                <br />
+                <strong>Partial</strong>: BOM /{" "}
+                <code>dependencyManagement</code> not yet, every
+                dependency declares its own version explicitly.
+                <br />
+                <strong>Not in scope</strong>: Android.
+              </p>
+            </article>
+
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Kotlin</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: kotlinc 2.x, compiler
+                plugins (<code>allopen</code>, <code>jpa</code>,{" "}
+                <code>spring</code>, <code>noarg</code>,{" "}
+                <code>serialization</code>),{" "}
+                <Link to="/docs/usage/annotation-processing#kotlin-ksp">
+                  KSP processors
+                </Link>{" "}
+                (Room, Hilt, Moshi codegen, Koin KSP,
+                kotlinx.serialization KSP variant, kotlin-inject, …),
+                Kotlin/JS via <code>cross:</code>.
+                <br />
+                <strong>Partial</strong>: KSP runs from scratch each
+                compile, per-file change tracking is a planned
+                follow-up. Kotlin/Native targets exist but the
+                ecosystem expects Gradle.
+                <br />
+                <strong>Not in scope</strong>: KAPT (migrate to KSP),
+                Android, Gradle import.
+              </p>
+            </article>
+
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Scala</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: Scala 2.13 + Scala 3
+                cross-builds, Scala.js, Scala Native, scalafmt,
+                scalafix, Zinc incremental, sbt import, ports of
+                sbt-ci-release / sbt-sonatype / sbt-pgp / sbt-dynver /
+                sbt-native-image / mdoc.
+                <br />
+                <strong>Partial</strong>:{" "}
+                <code>projectMatrix</code>-style third axes,
+                per-minor-Scala-version overrides; the cross-build
+                model covers JVM × {"{"}2.13, 3{"}"} × {"{"}JVM, JS,
+                Native{"}"} but not arbitrary fourth dimensions.
+                <br />
+                <strong>Not in scope</strong>: publishing as an sbt
+                plugin artifact (consuming sbt plugins works).
+              </p>
+            </article>
+          </div>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <p className={styles.compareCta}>
+            <Link
+              className={styles.compareCtaLink}
+              to="/docs/appendix/status/"
+            >
+              Full project status &amp; what's not yet covered &nbsp;&rarr;
+            </Link>
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
    Performance, inner loop. Branch switch, incremental compile, read-only.
    ------------------------------------------------------------------ */
 function PerformanceSection() {
@@ -945,6 +1045,7 @@ export default function Home() {
         <Hero />
         <main>
           <SpecimenSection />
+          <MaturitySection />
           <RefusalsSection />
           <BuildExtensionsSection />
           <PerformanceSection />

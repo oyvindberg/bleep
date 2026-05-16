@@ -181,7 +181,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
       // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
       val generatedBloopFiles: Map[Path, String] =
-        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.resolvedProjects)
+        GenBloopFiles.encodedFiles(GenBloopFiles.defaultBloopFilePath(bootstrappedDestinationPaths), started.resolvedProjects)
 
       // further property checks to see that we haven't made any illegal rewrites
       assertSameIshBloopFiles(inputData, started).discard()

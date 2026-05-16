@@ -18,7 +18,7 @@ projects:
     - org.gnieh::diffson-circe:4.6.1
     - org.scalameta:svm-subs:101.0.0
       # note: weird binary incompatibility when bumping this for scala3
-    - org.typelevel::cats-core:2.9.0
+    - org.typelevel::cats-core:2.13.0
     - org.typelevel::cats-parse:1.0.0
     dependsOn:
     - bleep-core
@@ -46,7 +46,7 @@ projects:
     - org.bouncycastle:bcpg-jdk15on:1.70
     - org.scala-lang.modules::scala-parser-combinators:2.4.0
     - org.sonatype.spice.zapper:spice-zapper:1.3
-    - org.typelevel::cats-effect:3.5.4
+    - org.typelevel::cats-effect:3.6.1
     - org.typelevel::scalac-options:0.1.8
     - org.wvlet.airframe::airframe-http:24.12.2
     dependsOn:
@@ -265,6 +265,19 @@ projects:
         distribution: repo
     sources: ./src/main/java
     resources: ./src/main/resources
+  bleep-test-ksp-processor:
+    # Tiny KSP SymbolProcessor used as an in-tree fixture by KSP integration tests. NOT published; consumers
+    # depend on it via `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}` which the dev-deps shim
+    # routes to this project's classes + resources dirs. Resources contain the SPI registration file.
+    dependencies:
+      - com.google.devtools.ksp:symbol-processing-api:2.1.20-1.0.32
+    kotlin:
+      version: 2.1.20
+    platform:
+      name: jvm
+    publish:
+      enabled: false
+    source-layout: kotlin
   bleep-bsp:
     dependencies:
     - org.scala-lang::scala3-compiler:3.8.3
@@ -274,7 +287,7 @@ projects:
     - org.ow2.asm:asm:9.7.1
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
-    - org.typelevel::cats-effect:3.5.4
+    - org.typelevel::cats-effect:3.6.1
     - for3Use213: true
       module: org.scala-sbt::zinc:1.12.0
     - for3Use213: true
@@ -298,7 +311,7 @@ projects:
   bleep-bsp-tests:
     dependencies:
     - org.scalatest::scalatest:3.2.19
-    - org.typelevel::cats-effect-testkit:3.5.4
+    - org.typelevel::cats-effect-testkit:3.6.1
     - for3Use213: true
       module: io.get-coursier::coursier:2.1.24
     dependsOn: bleep-bsp
@@ -313,6 +326,10 @@ projects:
     dependsOn:
     - bleep-cli
     - bleep-bsp
+    # KSP toy-processor fixture: not used by bleep-tests' own code, but listed here so it's compiled before
+    # the KSP integration tests run. Tests reference it via `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}`
+    # which the dev-deps shim resolves to its classes + resources dirs.
+    - bleep-test-ksp-processor
     extends:
     - template-common
     - template-scala-3

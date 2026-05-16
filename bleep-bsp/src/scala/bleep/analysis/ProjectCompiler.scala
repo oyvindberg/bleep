@@ -1,5 +1,7 @@
 package bleep.analysis
 
+import bleep.bsp.Outcome
+import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
@@ -124,99 +126,90 @@ object KotlinProjectCompiler extends ProjectCompiler {
       kt: ProjectLanguage.Kotlin,
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken
-  ): IO[ProjectCompileResult] = IO.blocking {
-    Files.createDirectories(config.outputDir)
-
+  ): IO[ProjectCompileResult] = {
     val kotlinConfig = KotlinConfig(kt.kotlinVersion, kt.jvmTarget, kt.kotlinOptions)
 
-    val sourceFiles = ZincBridge.removeNestedDirs(config.sources).toSeq.flatMap { srcDir =>
-      if (Files.isDirectory(srcDir)) {
-        scala.util
-          .Using(Files.walk(srcDir)) { stream =>
-            stream
-              .iterator()
-              .asScala
-              .filter(p => p.toString.endsWith(".kt") || p.toString.endsWith(".kts") || p.toString.endsWith(".java"))
-              .map(p => SourceFile(p, Files.readString(p)))
-              .toSeq
-          }
-          .getOrElse(Seq.empty)
-      } else if (Files.exists(srcDir)) {
-        Seq(SourceFile(srcDir, Files.readString(srcDir)))
-      } else {
-        Seq.empty
+    // Synchronous setup: create output dir + walk source dirs. Wrapped in IO.blocking so the work runs on the blocking pool; the result is a Seq[SourceFile] we
+    // then thread through the fast-path decision and into the (possibly IO-returning) compile chain.
+    val gatherSources: IO[Seq[SourceFile]] = IO.blocking {
+      Files.createDirectories(config.outputDir)
+      ZincBridge.removeNestedDirs(config.sources).toSeq.flatMap { srcDir =>
+        if (Files.isDirectory(srcDir)) {
+          scala.util
+            .Using(Files.walk(srcDir)) { stream =>
+              stream
+                .iterator()
+                .asScala
+                .filter(p => p.toString.endsWith(".kt") || p.toString.endsWith(".kts") || p.toString.endsWith(".java"))
+                .map(p => SourceFile(p, Files.readString(p)))
+                .toSeq
+            }
+            .getOrElse(Seq.empty)
+        } else if (Files.exists(srcDir)) {
+          Seq(SourceFile(srcDir, Files.readString(srcDir)))
+        } else {
+          Seq.empty
+        }
       }
     }
 
-    if (sourceFiles.isEmpty) {
-      ProjectCompileSuccess(config.outputDir, Set.empty, None)
-    } else {
-      // === FAST PATH: Check if up-to-date before expensive compilation ===
-      // Quick check: any .class file exists?
-      val hasClassFiles = scala.util
-        .Using(Files.walk(config.outputDir)) { stream =>
-          stream.iterator().asScala.exists(_.toString.endsWith(".class"))
+    gatherSources.flatMap { sourceFiles =>
+      if (sourceFiles.isEmpty) IO.pure(ProjectCompileSuccess(config.outputDir, Set.empty, None))
+      else
+        IO.blocking {
+          // === FAST PATH: Check if up-to-date before expensive compilation ===
+          val hasClassFiles = scala.util
+            .Using(Files.walk(config.outputDir)) { stream =>
+              stream.iterator().asScala.exists(_.toString.endsWith(".class"))
+            }
+            .getOrElse(false)
+
+          if (hasClassFiles) {
+            val classFiles = scala.util
+              .Using(Files.walk(config.outputDir)) { stream =>
+                stream.iterator().asScala.filter(_.toString.endsWith(".class")).toSeq
+              }
+              .getOrElse(Seq.empty)
+            val outputModTime = classFiles.map(f => Files.getLastModifiedTime(f).toMillis).max
+            val newerSources = sourceFiles.filter(sf => Files.getLastModifiedTime(sf.path).toMillis > outputModTime).map(_.path)
+            val newerDeps = config.classpath.filter { dep =>
+              try Files.exists(dep) && Files.getLastModifiedTime(dep).toMillis > outputModTime
+              catch { case _: Exception => true }
+            }.toSeq
+
+            if (newerSources.isEmpty && newerDeps.isEmpty) {
+              System.err.println(
+                s"[KotlinFastPath] ${config.name}: UpToDate (${classFiles.size} class files, outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)})"
+              )
+              diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
+              Left(ProjectCompileSuccess(config.outputDir, classFiles.toSet, None): ProjectCompileResult)
+            } else {
+              System.err.println(s"[KotlinFastPath] ${config.name}: Incremental — ${newerSources.size} newer sources, ${newerDeps.size} newer deps")
+              newerSources.take(5).foreach(s => System.err.println(s"  source: $s (mtime=${Files.getLastModifiedTime(s)})"))
+              newerDeps.take(5).foreach(d => System.err.println(s"  dep: $d (mtime=${Files.getLastModifiedTime(d)})"))
+              System.err.println(s"  outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)}")
+              diagnosticListener.onCompilationReason(config.name, CompilationReason.Incremental(sourceFiles.length, newerSources, newerDeps))
+              Right(())
+            }
+          } else {
+            System.err.println(s"[KotlinFastPath] ${config.name}: CleanBuild (no class files in ${config.outputDir})")
+            diagnosticListener.onCompilationReason(config.name, CompilationReason.CleanBuild)
+            Right(())
+          }
+        }.flatMap {
+          case Left(upToDate) => IO.pure(upToDate)
+          case Right(_)       => doKotlinCompile(sourceFiles, config, kotlinConfig, diagnosticListener, cancellationToken)
         }
-        .getOrElse(false)
-
-      if (hasClassFiles) {
-        // Now collect class files for timestamp comparison
-        val classFiles = scala.util
-          .Using(Files.walk(config.outputDir)) { stream =>
-            stream.iterator().asScala.filter(_.toString.endsWith(".class")).toSeq
-          }
-          .getOrElse(Seq.empty)
-
-        val outputModTime = classFiles.map(f => Files.getLastModifiedTime(f).toMillis).max
-
-        // Check if any source is newer than output
-        val newerSources = sourceFiles
-          .filter { sf =>
-            Files.getLastModifiedTime(sf.path).toMillis > outputModTime
-          }
-          .map(_.path)
-
-        // Check if any classpath entry is newer than output
-        val newerDeps = config.classpath.filter { dep =>
-          try
-            Files.exists(dep) && Files.getLastModifiedTime(dep).toMillis > outputModTime
-          catch {
-            case _: Exception => true
-          }
-        }.toSeq
-
-        if (newerSources.isEmpty && newerDeps.isEmpty) {
-          // Up to date!
-          System.err.println(
-            s"[KotlinFastPath] ${config.name}: UpToDate (${classFiles.size} class files, outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)})"
-          )
-          diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
-          ProjectCompileSuccess(config.outputDir, classFiles.toSet, None)
-        } else {
-          System.err.println(s"[KotlinFastPath] ${config.name}: Incremental — ${newerSources.size} newer sources, ${newerDeps.size} newer deps")
-          newerSources.take(5).foreach(s => System.err.println(s"  source: $s (mtime=${Files.getLastModifiedTime(s)})"))
-          newerDeps.take(5).foreach(d => System.err.println(s"  dep: $d (mtime=${Files.getLastModifiedTime(d)})"))
-          System.err.println(s"  outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)}")
-          val reason = CompilationReason.Incremental(sourceFiles.length, newerSources, newerDeps)
-          diagnosticListener.onCompilationReason(config.name, reason)
-          doKotlinCompile(sourceFiles, config, kotlinConfig, diagnosticListener, cancellationToken)
-        }
-      } else {
-        System.err.println(s"[KotlinFastPath] ${config.name}: CleanBuild (no class files in ${config.outputDir})")
-        val reason = CompilationReason.CleanBuild
-        diagnosticListener.onCompilationReason(config.name, reason)
-        doKotlinCompile(sourceFiles, config, kotlinConfig, diagnosticListener, cancellationToken)
-      }
     }
   }
 
-  /** Compile a Kotlin project with Java-first order.
+  /** Compile a Kotlin project with kotlinc-first order:
+    *   1. Compile `.kt` + `.java` together with kotlinc. kotlinc emits `.class` only for `.kt` sources and reads the `.java` files via its lightweight Java
+    *      parser for symbol resolution — so Kotlin code can reference Java types even before javac runs.
+    *   2. Compile `.java` files with javac, with kotlinc's output on the classpath — so Java code can reference Kotlin types.
     *
-    * kotlinc does NOT compile .java files — it only uses them for type resolution. So for mixed Java+Kotlin projects we use Java-first compilation order:
-    *   1. Compile .java files with javac (output to project output dir)
-    *   2. Compile .kt/.kts files with kotlinc (with Java class output on classpath)
-    *
-    * This matches the default compile order for Scala projects (JavaThenScala).
+    * Replaces the prior "javac first" order, which broke for Java that references Kotlin (and for KSP processors like Dagger that emit Java referencing the
+    * project's Kotlin code).
     */
   private def doKotlinCompile(
       sourceFiles: Seq[SourceFile],
@@ -224,121 +217,123 @@ object KotlinProjectCompiler extends ProjectCompiler {
       kotlinConfig: KotlinConfig,
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken
-  ): ProjectCompileResult = {
+  ): IO[ProjectCompileResult] = {
     val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
     val kotlinSources = sourceFiles.filterNot(_.path.toString.endsWith(".java"))
 
-    // Phase 1: Compile Java sources with javac to a separate directory.
-    // We use a separate temp directory (NOT under outputDir) because the Kotlin incremental
-    // compiler may clean the output directory on full compiles.
-    val javaClassesDir = if (javaSources.nonEmpty) {
-      val javaDir = Files.createTempDirectory("kotlin-project-java-classes-")
-      val javaConfig = config.copy(outputDir = javaDir)
-      val javaResult = compileJavaSources(javaSources, javaConfig, diagnosticListener)
-      javaResult match {
-        case failure: ProjectCompileFailure => return failure
-        case _                              => // continue to Kotlin
-      }
-      Some(javaDir)
-    } else None
+    (kotlinSources.isEmpty, javaSources.isEmpty) match {
+      // No sources at all — create an empty outputDir so downstream tasks have a stable path to read.
+      case (true, true) =>
+        IO.blocking {
+          Files.createDirectories(config.outputDir)
+          ProjectCompileSuccess(config.outputDir, Set.empty, None)
+        }
 
-    if (kotlinSources.isEmpty) {
-      // Copy Java classes to main output dir
-      javaClassesDir.foreach(jd => copyClassFiles(jd, config.outputDir))
-      val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
-      return ProjectCompileSuccess(config.outputDir, allClasses, None)
-    }
+      // Java-only "Kotlin" project (degenerate). Skip kotlinc, javac straight to outputDir.
+      case (true, false) =>
+        compileJavaSources(javaSources, config, diagnosticListener, cancellationToken)
 
-    // Phase 2: Compile Kotlin sources with kotlinc (Java classes dir on classpath)
-    val kotlinClasspath = javaClassesDir.fold(config.classpath)(jd => config.classpath :+ jd)
-    val input = CompilationInput(kotlinSources, kotlinClasspath, config.outputDir, kotlinConfig)
-    KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken) match {
-      case CompilationSuccess(outDir, _) =>
-        // Copy Java classes into the main output dir alongside Kotlin classes
-        javaClassesDir.foreach(jd => copyClassFiles(jd, outDir))
-        val allClasses = Compiler.collectClassFilesStatic(outDir)
-        ProjectCompileSuccess(outDir, allClasses, None)
-      case CompilationFailure(errs) =>
-        ProjectCompileFailure(errs)
-      case CompilationCancelled =>
-        ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
+      case (false, _) =>
+        // Phase 1: kotlinc compiles .kt and reads .java sources via its lightweight Java parser for symbol resolution (no .class for Java is emitted here).
+        val input = CompilationInput(kotlinSources ++ javaSources, config.classpath, config.outputDir, kotlinConfig)
+        IO.blocking(KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken)).flatMap {
+          case CompilationFailure(errs)                     => IO.pure(ProjectCompileFailure(errs))
+          case CompilationCancelled                         => IO.pure(ProjectCompileCancelled(KillReason.UserRequest))
+          case _: CompilationSuccess if javaSources.isEmpty =>
+            IO.blocking(ProjectCompileSuccess(config.outputDir, Compiler.collectClassFilesStatic(config.outputDir), None))
+          case _: CompilationSuccess =>
+            // Phase 2: javac compiles .java with kotlinc's output on the classpath — Java code can now reference Kotlin types from Phase 1.
+            val javacConfig = config.copy(classpath = config.classpath :+ config.outputDir)
+            compileJavaSources(javaSources, javacConfig, diagnosticListener, cancellationToken).flatMap {
+              case _: ProjectCompileSuccess =>
+                IO.blocking(ProjectCompileSuccess(config.outputDir, Compiler.collectClassFilesStatic(config.outputDir), None))
+              case other => IO.pure(other) // Failure or Cancelled — propagate as-is.
+            }
+        }
     }
   }
 
-  /** Compile .java files using javac, outputting to the project's output directory. */
+  /** Compile .java files using javac, with mid-flight cancellation. We race the javac call (wrapped in `IO.interruptibleMany` so cancellation translates to a
+    * thread interrupt — javac responds to interrupts at safe points) against a `Deferred[IO, KillReason]` that fires when the CancellationToken is cancelled.
+    *
+    * Implementation note: the bridge MUST be Deferred-based, not `IO.async_`. `IO.race(IO.async_(...), work)` deadlocks: even when `work` succeeds, the race
+    * never returns because `fa.cancel` on the async_ side never completes (its finalizer is produced by an IO-that-must-evaluate, unlike `IO.never`'s
+    * known-None-upfront finalizer). See `InterruptibleRaceReproTest` A4–A7 for the bisection.
+    */
   private def compileJavaSources(
       javaSources: Seq[SourceFile],
       config: ProjectConfig,
-      diagnosticListener: DiagnosticListener
-  ): ProjectCompileResult = {
-    val javac = javax.tools.ToolProvider.getSystemJavaCompiler
-    val diagnosticCollector = new javax.tools.DiagnosticCollector[javax.tools.JavaFileObject]()
-    val fileManager = javac.getStandardFileManager(diagnosticCollector, null, null)
+      diagnosticListener: DiagnosticListener,
+      cancellationToken: CancellationToken
+  ): IO[ProjectCompileResult] =
+    if (cancellationToken.isCancelled) IO.pure(ProjectCompileCancelled(KillReason.UserRequest))
+    else
+      Outcome.fromCancellationToken(cancellationToken).flatMap { killSignal =>
+        val work: IO[ProjectCompileResult] = IO.interruptibleMany {
+          val javac = javax.tools.ToolProvider.getSystemJavaCompiler
+          val diagnosticCollector = new javax.tools.DiagnosticCollector[javax.tools.JavaFileObject]()
+          val fileManager = javac.getStandardFileManager(diagnosticCollector, null, null)
+          try {
+            val tempDir = Files.createTempDirectory("kotlin-java-compile-")
+            try {
+              val javaFiles = javaSources.map { sf =>
+                val target = tempDir.resolve(sf.path)
+                Files.createDirectories(target.getParent)
+                Files.writeString(target, sf.content)
+                target
+              }
 
-    try {
-      val tempDir = Files.createTempDirectory("kotlin-java-compile-")
-      try {
-        val javaFiles = javaSources.map { sf =>
-          val target = tempDir.resolve(sf.path)
-          Files.createDirectories(target.getParent)
-          Files.writeString(target, sf.content)
-          target
-        }
+              Files.createDirectories(config.outputDir)
+              val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
+              val fullClasspath = config.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
+              // Use --release from the project's Java config (imported from maven.compiler.source/target/release). Fall back to Kotlin's jvmTarget when no
+              // explicit Java release is configured.
+              val javaRelease = config.language match {
+                case kt: ProjectLanguage.Kotlin => kt.javaRelease.orElse(kt.jvmTarget.toIntOption.filter(_ >= 9))
+                case _                          => None
+              }
+              val baseOptions = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
+              val options = javaRelease match {
+                case Some(rel) =>
+                  val list = new java.util.ArrayList[String](baseOptions)
+                  list.add("--release")
+                  list.add(rel.toString)
+                  list
+                case None => baseOptions
+              }
 
-        Files.createDirectories(config.outputDir)
-        val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
-        val fullClasspath = config.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
-        // Use --release from the project's Java config (imported from maven.compiler.source/target/release)
-        // Fall back to Kotlin's jvmTarget if no explicit Java release is configured
-        val javaRelease = config.language match {
-          case kt: ProjectLanguage.Kotlin => kt.javaRelease.orElse(kt.jvmTarget.toIntOption.filter(_ >= 9))
-          case _                          => None
-        }
-        val baseOptions = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
-        val options = javaRelease match {
-          case Some(rel) =>
-            val list = new java.util.ArrayList[String](baseOptions)
-            list.add("--release")
-            list.add(rel.toString)
-            list
-          case None => baseOptions
-        }
-
-        val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
-        val success = task.call()
-
-        if (success) {
-          val classFiles = Compiler.collectClassFilesStatic(config.outputDir)
-          ProjectCompileSuccess(config.outputDir, classFiles, None)
-        } else {
-          val errors = diagnosticCollector.getDiagnostics.asScala.toList
-            .filter(_.getKind == javax.tools.Diagnostic.Kind.ERROR)
-            .map { d =>
-              val path = Option(d.getSource).map(s => Path.of(s.toUri))
-              CompilerError(
-                path,
-                d.getLineNumber.toInt,
-                d.getColumnNumber.toInt,
-                d.getMessage(null),
-                None,
-                CompilerError.Severity.Error
-              )
+              val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
+              if (task.call().booleanValue) {
+                val classFiles = Compiler.collectClassFilesStatic(config.outputDir)
+                ProjectCompileSuccess(config.outputDir, classFiles, None)
+              } else {
+                val errors = diagnosticCollector.getDiagnostics.asScala.toList
+                  .filter(_.getKind == javax.tools.Diagnostic.Kind.ERROR)
+                  .map { d =>
+                    val path = Option(d.getSource).map(s => Path.of(s.toUri))
+                    CompilerError(path, d.getLineNumber.toInt, d.getColumnNumber.toInt, d.getMessage(null), None, CompilerError.Severity.Error)
+                  }
+                errors.foreach(diagnosticListener.onDiagnostic)
+                ProjectCompileFailure(errors)
+              }
+            } finally {
+              import scala.util.Using
+              import scala.jdk.StreamConverters.*
+              Using(Files.walk(tempDir)) { stream =>
+                stream
+                  .toScala(LazyList)
+                  .sorted(using Ordering[String].reverse.on[Path](_.toString))
+                  .foreach(p => scala.util.Try(Files.delete(p)))
+              }: Unit
             }
-          errors.foreach(diagnosticListener.onDiagnostic)
-          ProjectCompileFailure(errors)
+          } finally fileManager.close()
         }
-      } finally {
-        import scala.util.Using
-        import scala.jdk.StreamConverters.*
-        Using(Files.walk(tempDir)) { stream =>
-          stream
-            .toScala(LazyList)
-            .sorted(using Ordering[String].reverse.on[Path](_.toString))
-            .foreach(p => scala.util.Try(Files.delete(p)))
-        }: Unit
+
+        Outcome.raceKill(killSignal)(work).map {
+          case Left(result)  => result
+          case Right(reason) => ProjectCompileCancelled(reason)
+        }
       }
-    } finally fileManager.close()
-  }
 
   /** Copy .class files from source dir to target dir, preserving package directory structure. */
   private def copyClassFiles(sourceDir: Path, targetDir: Path): Unit = {
@@ -593,18 +588,20 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
         diagnosticListener = diagnosticListener,
         cancellation = cancellationToken
       )
-      .map { result =>
-        if (result.isSuccess) {
-          val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
-          ProjectCompileSuccess(result.outputDir, outputFiles, None)
-        } else {
-          ProjectCompileFailure(
-            List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
-          )
-        }
-      }
-      .handleErrorWith { case e: Exception =>
-        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}", None, CompilerError.Severity.Error))))
+      .map {
+        case bleep.bsp.Outcome.ThreadOutcome.Completed(result) =>
+          if (result.isSuccess) {
+            val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
+            ProjectCompileSuccess(result.outputDir, outputFiles, None)
+          } else {
+            ProjectCompileFailure(
+              List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
+            )
+          }
+        case bleep.bsp.Outcome.ThreadOutcome.Cancelled(reason) =>
+          ProjectCompileCancelled(reason)
+        case bleep.bsp.Outcome.ThreadOutcome.Crashed(e) =>
+          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}", None, CompilerError.Severity.Error)))
       }
   }
 }

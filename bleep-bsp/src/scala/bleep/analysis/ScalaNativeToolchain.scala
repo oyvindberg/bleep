@@ -26,7 +26,7 @@ trait ScalaNativeToolchain {
     * @param cancellation
     *   token for cancelling linking
     * @return
-    *   the result of linking, or IO.canceled if cancelled
+    *   `Completed(result)` on success, `Cancelled(reason)` if the cancellation token fires mid-link, `Crashed(throwable)` if the toolchain throws.
     */
   def link(
       config: ScalaNativeLinkConfig,
@@ -36,7 +36,7 @@ trait ScalaNativeToolchain {
       workDir: Path,
       logger: ScalaNativeToolchain.Logger,
       cancellation: CancellationToken
-  ): IO[ScalaNativeLinkResult]
+  ): IO[bleep.bsp.Outcome.ThreadOutcome[ScalaNativeLinkResult]]
 }
 
 object ScalaNativeToolchain {

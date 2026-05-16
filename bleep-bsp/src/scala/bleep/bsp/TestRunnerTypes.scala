@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.bsp.Outcome.KillReason
+import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
@@ -166,9 +166,10 @@ object TestRunnerTypes {
       Ref.of[IO, List[String]](Nil).map(ref => new StderrBuffer(ref, eventHandler))
   }
 
-  /** Start a fiber that kills a process when the kill signal fires.
+  /** Watch the kill signal and forcibly kill the process if it fires. Returns a `Resource[IO, Unit]` whose acquire spawns the watcher fiber and whose release
+    * cancels it; the caller never needs to remember an explicit `.cancel`.
     *
-    * This breaks the deadlock where IO.blocking(readLine) can't be cancelled but needs the process to die for the stream to close.
+    * Breaks the deadlock where `IO.blocking(readLine)` can't be cancelled but needs the process to die for the stream to close.
     *
     * @param process
     *   the process to kill
@@ -177,7 +178,7 @@ object TestRunnerTypes {
     * @param killDescendants
     *   if true, kill all descendant processes first (needed for shell scripts where children inherit the pipe)
     */
-  def startKillWatcher(process: Process, killSignal: Deferred[IO, KillReason], killDescendants: Boolean): IO[cats.effect.Fiber[IO, Throwable, Unit]] =
+  def killWatcher(process: Process, killSignal: Deferred[IO, KillReason], killDescendants: Boolean): cats.effect.Resource[IO, Unit] =
     killSignal.get
       .flatMap(_ =>
         IO.blocking {
@@ -188,5 +189,6 @@ object TestRunnerTypes {
           ()
         }
       )
-      .start
+      .background
+      .void
 }

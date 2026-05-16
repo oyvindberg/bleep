@@ -1,7 +1,9 @@
 package bleep.analysis
 
+import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.{LinkExecutor, Outcome, TaskDag}
-import bleep.bsp.Outcome.{KillReason, RunOutcome}
+import bleep.bsp.Outcome.RunOutcome
+import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
@@ -283,6 +285,7 @@ class ScalaNativeAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers w
       val result = toolchain
         .link(ScalaNativeLinkConfig.Debug, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"Debug link failed: exit code ${result.exitCode}")
       assert(Files.exists(binaryPath))
@@ -312,6 +315,7 @@ class ScalaNativeAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers w
       val result = toolchain
         .link(config, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"ReleaseFast link failed: exit code ${result.exitCode}")
       assert(Files.exists(binaryPath))
@@ -336,6 +340,7 @@ class ScalaNativeAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers w
       val result = toolchain
         .link(config, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(result.isSuccess, s"Boehm GC link failed: exit code ${result.exitCode}")
       assert(Files.exists(binaryPath))
@@ -354,6 +359,7 @@ class ScalaNativeAdvancedLinkIntegrationTest extends AnyFunSuite with Matchers w
       val linkResult = toolchain
         .link(ScalaNativeLinkConfig.Debug, classpath, "example.Main", binaryPath, workDir, ScalaNativeToolchain.Logger.Silent, CancellationToken.never)
         .unsafeRunSync()
+        .assertCompleted
 
       assert(linkResult.isSuccess, "Link failed")
 
