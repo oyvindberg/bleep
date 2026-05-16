@@ -112,9 +112,18 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     // sources to `.bleep/generated-sources/<cross>/<folder>/`. The forked sourcegen subprocess fetches its bleep-core from Maven (per `BLEEP_VERSION`
     // substitution), so during CI on a fresh checkout it gets the released M9 layout. The bleep-server in this PR uses v2 layout
     // (`.bleep/projects/<cross>/generated-sources/<folder>/`). Without this fallback the v2-layout-aware source list misses the v1-written files and the
-    // compile fails with "Not found: type BleepVersion" or similar. Delete this when a v2-aware bleep is shipping everywhere.
-    def legacyGeneratedSourcesDir(folderName: String): Path = dotBleepDir / "generated-sources" / crossName.value / folderName
-    def legacyGeneratedResourcesDir(folderName: String): Path = dotBleepDir / "generated-resources" / crossName.value / folderName
+    // compile fails with "Not found: type BleepVersion" or similar.
+    //
+    // Gated on `Files.isDirectory` so fresh builds (snapshot tests, `bleep new` workspaces) — which have no M9-generated content — don't see these phantom
+    // paths in their bloop.json. Once a v2-aware bleep is shipping everywhere and no v1 dirs survive bootstraps, this whole block can go.
+    def legacyGeneratedSourcesDir(folderName: String): Option[Path] = {
+      val p = dotBleepDir / "generated-sources" / crossName.value / folderName
+      if (java.nio.file.Files.isDirectory(p)) Some(p) else None
+    }
+    def legacyGeneratedResourcesDir(folderName: String): Option[Path] = {
+      val p = dotBleepDir / "generated-resources" / crossName.value / folderName
+      if (java.nio.file.Files.isDirectory(p)) Some(p) else None
+    }
 
     val sources = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
@@ -131,7 +140,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
         }
       // Append v1-layout sourcegen paths to ksp (which is just an opaque List[Path] in DirsByOrigin). Wrong field semantically, but it threads through .all
       // without changing the ADT — the legacy fallback is temporary anyway.
-      val legacySourcegen = p.sourcegen.values.iterator.map(s => legacyGeneratedSourcesDir(s.folderName)).toList
+      val legacySourcegen = p.sourcegen.values.iterator.flatMap(s => legacyGeneratedSourcesDir(s.folderName)).toList
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, annotationProcessing, ksp ++ legacySourcegen)
     }
 
@@ -142,7 +151,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
       // KSP resources land at .bleep/projects/<cross>/generated-sources/ksp/resources/; expose them so they're packaged like normal resources.
       val ksp: List[Path] =
         p.kotlin.filter(_.hasSymbolProcessing).toList.map(_ => generatedSourcesDir(crossName, "ksp") / "resources")
-      val legacySourcegenResources = p.sourcegen.values.iterator.map(s => legacyGeneratedResourcesDir(s.folderName)).toList
+      val legacySourcegenResources = p.sourcegen.values.iterator.flatMap(s => legacyGeneratedResourcesDir(s.folderName)).toList
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, None, ksp ++ legacySourcegenResources)
     }
 

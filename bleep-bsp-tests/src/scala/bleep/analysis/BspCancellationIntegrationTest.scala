@@ -95,9 +95,17 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
 
           val handle = client.compileAsync(targetIds)
 
-          // Cancel almost immediately — just long enough for the BSP server to have received and dispatched the compile request. On a fast Scala 3 compiler a
-          // 15000-method source can finish in ~7s, so a long pre-cancel sleep causes the compile to win the race and produces a flaky Ok status.
-          Thread.sleep(100)
+          // Wait for the BSP server to emit a compile-task-started event so we know the compile is actually running before sending cancel. Without this, a
+          // slow cold start (especially under native-image CI runners) means the cancel can race ahead of the compile dispatch — the compile then finishes
+          // its tiny first slice and reports Ok before cancellation can interrupt it. Once a TaskStart event is observed, the compile is in flight and the
+          // cancel hits Zinc mid-work. 30s is the upper bound for cold-start scenarios on slow CI.
+          val pollDeadline = System.currentTimeMillis() + 30000
+          while (
+            System.currentTimeMillis() < pollDeadline && !client.events.exists {
+              case BspTestHarness.BspEvent.TaskStart(_, _) => true
+              case _                                       => false
+            }
+          ) Thread.sleep(50)
           handle.cancel()
 
           // The `longTimeout` failAfter wrapping bounds the whole test, so we don't assert "cancellation returned within Nms" — flaky on slow CI and doesn't
