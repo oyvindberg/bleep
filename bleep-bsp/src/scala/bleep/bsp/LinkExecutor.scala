@@ -215,29 +215,23 @@ object LinkExecutor {
 
       logger.info(s"[LINK] Starting Scala.js link: classpath=${classpath.size} files, outputDir=$jsOutputDir, isTest=$isTest")
 
-      val work = toolchain
-        .link(
-          platform.config,
-          classpath,
-          mainClass,
-          jsOutputDir,
-          moduleName,
-          scalaJsLogger,
-          cancellation,
-          isTest
-        )
-        .map { result =>
-          logger.info(s"[LINK] Scala.js link result: isSuccess=${result.isSuccess}, outputFiles=${result.outputFiles.size}, mainModule=${result.mainModule}")
-          if (result.isSuccess) {
-            val sourceMap = result.outputFiles.find(_.toString.endsWith(".map"))
-            (TaskResult.Success, LinkResult.JsSuccess(result.mainModule, sourceMap, result.outputFiles, wasUpToDate = false))
-          } else {
-            logger.error(s"[LINK] Scala.js linking produced no output files in $jsOutputDir")
-            (TaskResult.Failure("Scala.js linking produced no output", List.empty), LinkResult.Failure("No output files", List.empty))
-          }
+      toolchain
+        .link(platform.config, classpath, mainClass, jsOutputDir, moduleName, scalaJsLogger, cancellation, isTest)
+        .map {
+          case Outcome.ThreadOutcome.Completed(result) =>
+            logger.info(s"[LINK] Scala.js link result: isSuccess=${result.isSuccess}, outputFiles=${result.outputFiles.size}, mainModule=${result.mainModule}")
+            if (result.isSuccess) {
+              val sourceMap = result.outputFiles.find(_.toString.endsWith(".map"))
+              (TaskResult.Success, LinkResult.JsSuccess(result.mainModule, sourceMap, result.outputFiles, wasUpToDate = false))
+            } else {
+              logger.error(s"[LINK] Scala.js linking produced no output files in $jsOutputDir")
+              (TaskResult.Failure("Scala.js linking produced no output", List.empty), LinkResult.Failure("No output files", List.empty))
+            }
+          case Outcome.ThreadOutcome.Cancelled(reason) =>
+            (TaskResult.Killed(reason), LinkResult.Cancelled)
+          case Outcome.ThreadOutcome.Crashed(ex) =>
+            (TaskResult.Error(s"Scala.js linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty))
         }
-
-      Outcome.raceLinkWork(killSignal, "Scala.js")(work)
     }
 
   /** Execute Scala Native linking. */
@@ -277,31 +271,25 @@ object LinkExecutor {
       IO.blocking(Files.createDirectories(workDir)) >> {
         val nativeLogger = LinkLogger.toScalaNativeLogger(logger)
 
-        val work = toolchain
-          .link(
-            platform.config,
-            classpath,
-            mainClass,
-            binaryPath,
-            workDir,
-            nativeLogger,
-            cancellation
-          )
-          .map { result =>
-            if (result.isSuccess) {
-              (TaskResult.Success, LinkResult.NativeSuccess(result.binary, wasUpToDate = false))
-            } else {
-              // Non-zero exit code from linker - this is an infrastructure error (process crashed or linker bug)
-              val exitCode = result.exitCode
-              val processExit = if (exitCode > 128) ProcessExit.Signal(exitCode - 128) else ProcessExit.ExitCode(exitCode)
-              (
-                TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", processExit),
-                LinkResult.Failure(s"Exit code: $exitCode", List.empty)
-              )
-            }
+        toolchain
+          .link(platform.config, classpath, mainClass, binaryPath, workDir, nativeLogger, cancellation)
+          .map {
+            case Outcome.ThreadOutcome.Completed(result) =>
+              if (result.isSuccess) {
+                (TaskResult.Success, LinkResult.NativeSuccess(result.binary, wasUpToDate = false))
+              } else {
+                val exitCode = result.exitCode
+                val processExit = if (exitCode > 128) ProcessExit.Signal(exitCode - 128) else ProcessExit.ExitCode(exitCode)
+                (
+                  TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", processExit),
+                  LinkResult.Failure(s"Exit code: $exitCode", List.empty)
+                )
+              }
+            case Outcome.ThreadOutcome.Cancelled(reason) =>
+              (TaskResult.Killed(reason), LinkResult.Cancelled)
+            case Outcome.ThreadOutcome.Crashed(ex) =>
+              (TaskResult.Error(s"Scala Native linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty))
           }
-
-        Outcome.raceLinkWork(killSignal, "Scala Native")(work)
       }
     }
 
@@ -393,27 +381,30 @@ object LinkExecutor {
             }
         }
 
-        val work = KotlinJsLinker
+        KotlinJsLinker
           .link(klibs, jsOutputDir, config, diagnosticListener, cancellation)
-          .map { result =>
-            logger.info(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
-            if (result.isSuccess && result.jsFile.isDefined) {
-              val allFiles =
-                scala.util
-                  .Using(Files.list(jsOutputDir)) { stream =>
-                    import scala.jdk.CollectionConverters._
-                    stream.iterator().asScala.toSeq
-                  }
-                  .get
-              val sourceMap = allFiles.find(_.toString.endsWith(".map"))
-              (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
-            } else {
-              logger.error(s"[LINK] Kotlin/JS linking failed")
-              (TaskResult.Failure("Kotlin/JS linking failed", List.empty), LinkResult.Failure("Linking failed", List.empty))
-            }
+          .map {
+            case Outcome.ThreadOutcome.Completed(result) =>
+              logger.info(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
+              if (result.isSuccess && result.jsFile.isDefined) {
+                val allFiles =
+                  scala.util
+                    .Using(Files.list(jsOutputDir)) { stream =>
+                      import scala.jdk.CollectionConverters._
+                      stream.iterator().asScala.toSeq
+                    }
+                    .get
+                val sourceMap = allFiles.find(_.toString.endsWith(".map"))
+                (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
+              } else {
+                logger.error(s"[LINK] Kotlin/JS linking failed")
+                (TaskResult.Failure("Kotlin/JS linking failed", List.empty), LinkResult.Failure("Linking failed", List.empty))
+              }
+            case Outcome.ThreadOutcome.Cancelled(reason) =>
+              (TaskResult.Killed(reason), LinkResult.Cancelled)
+            case Outcome.ThreadOutcome.Crashed(ex) =>
+              (TaskResult.Error(s"Kotlin/JS linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty))
           }
-
-        Outcome.raceLinkWork(killSignal, "Kotlin/JS")(work)
       }
     }
 

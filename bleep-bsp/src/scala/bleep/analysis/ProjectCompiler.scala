@@ -588,18 +588,20 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
         diagnosticListener = diagnosticListener,
         cancellation = cancellationToken
       )
-      .map { result =>
-        if (result.isSuccess) {
-          val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
-          ProjectCompileSuccess(result.outputDir, outputFiles, None)
-        } else {
-          ProjectCompileFailure(
-            List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
-          )
-        }
-      }
-      .handleErrorWith { case e: Exception =>
-        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}", None, CompilerError.Severity.Error))))
+      .map {
+        case bleep.bsp.Outcome.ThreadOutcome.Completed(result) =>
+          if (result.isSuccess) {
+            val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
+            ProjectCompileSuccess(result.outputDir, outputFiles, None)
+          } else {
+            ProjectCompileFailure(
+              List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
+            )
+          }
+        case bleep.bsp.Outcome.ThreadOutcome.Cancelled(reason) =>
+          ProjectCompileCancelled(reason)
+        case bleep.bsp.Outcome.ThreadOutcome.Crashed(e) =>
+          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}", None, CompilerError.Severity.Error)))
       }
   }
 }

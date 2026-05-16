@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.bsp.Outcome
 import cats.effect.IO
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
@@ -21,49 +22,9 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
       workDir: Path,
       logger: ScalaNativeToolchain.Logger,
       cancellation: CancellationToken
-  ): IO[ScalaNativeLinkResult] =
-    // Check cancellation before starting
-    if (cancellation.isCancelled) {
-      IO.canceled.asInstanceOf[IO[ScalaNativeLinkResult]]
-    } else {
-      // Run blocking link on a dedicated thread to avoid cats-effect prepareForBlocking deadlock.
-      // IO.interruptible/IO.blocking use LinkedTransferQueue.transfer internally which can
-      // deadlock the work-stealing pool.
-      IO.async[ScalaNativeLinkResult] { cb =>
-        IO.delay {
-          val thread = new Thread(() =>
-            try {
-              val result = linkBlocking(config, classpath, mainClass, outputPath, workDir, logger, cancellation)
-              if (cancellation.isCancelled) cb(Left(new LinkingCancelledException("Linking cancelled")))
-              else cb(Right(result))
-            } catch {
-              case _: InterruptedException =>
-                cb(Left(new LinkingCancelledException("Linking interrupted")))
-              case e: LinkingCancelledException =>
-                cb(Left(e))
-              case e: Throwable =>
-                cb(Left(e))
-            }
-          )
-          thread.setDaemon(true)
-          thread.setName("scala-native-linker")
-          thread.start()
-          Some(IO.delay {
-            cancellation.cancel()
-            thread.interrupt()
-          })
-        }
-      }.flatMap { result =>
-        if (cancellation.isCancelled) IO.canceled.asInstanceOf[IO[ScalaNativeLinkResult]]
-        else IO.pure(result)
-      }.handleErrorWith {
-        case _: InterruptedException =>
-          IO.canceled.asInstanceOf[IO[ScalaNativeLinkResult]]
-        case _: LinkingCancelledException =>
-          IO.canceled.asInstanceOf[IO[ScalaNativeLinkResult]]
-        case e =>
-          IO.raiseError(e)
-      }
+  ): IO[Outcome.ThreadOutcome[ScalaNativeLinkResult]] =
+    Outcome.runInFreshThread[ScalaNativeLinkResult](name = "scala-native-linker", contextClassLoader = None, cancellation = cancellation) {
+      linkBlocking(config, classpath, mainClass, outputPath, workDir, logger, cancellation)
     }
 
   private def linkBlocking(

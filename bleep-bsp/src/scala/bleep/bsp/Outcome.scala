@@ -167,6 +167,65 @@ object Outcome {
   def neverKillSignal: IO[Deferred[IO, KillReason]] =
     Deferred[IO, KillReason]
 
+  /** Outcome of `runInFreshThread`: every outcome is a value — success, cancellation, or thrown error all flow through this ADT rather than through CE's error
+    * or fiber-cancellation channels. Mirrors `RunOutcome` for processes.
+    */
+  sealed trait ThreadOutcome[+A]
+  object ThreadOutcome {
+    case class Completed[A](result: A) extends ThreadOutcome[A]
+    case class Cancelled(reason: KillReason) extends ThreadOutcome[Nothing]
+    case class Crashed(throwable: Throwable) extends ThreadOutcome[Nothing]
+  }
+
+  /** Run a synchronous, potentially long-blocking computation on a fresh dedicated thread, returning `IO[ThreadOutcome[A]]`.
+    *
+    * The work runs on a newly-started thread (named, daemon, optionally with a context classloader). A `Deferred[IO, KillReason]` is built from the
+    * `CancellationToken` (via `Outcome.fromCancellationToken`) and raced against the work; if the kill signal fires first, the thread is interrupted and we
+    * return `Cancelled(reason)`. If the work completes normally, `Completed(result)`. If the work throws, `Crashed(throwable)`. No exceptions ever leak out of
+    * the returned IO's error channel — every outcome is a value.
+    *
+    * Use this in preference to `IO.interruptibleMany` when:
+    *   - The computation has thread-local state that must not leak between calls (e.g. JetBrains Kotlin compiler — see KT-28037)
+    *   - The computation makes long blocking JNI / native calls that could starve CE's blocker pool (e.g. Scala.js / Scala Native linkers)
+    *
+    * Use `IO.interruptibleMany` for plain in-JVM blocking work without those concerns.
+    */
+  def runInFreshThread[A](
+      name: String,
+      contextClassLoader: Option[ClassLoader],
+      cancellation: bleep.analysis.CancellationToken
+  )(work: => A): IO[ThreadOutcome[A]] =
+    fromCancellationToken(cancellation).flatMap { killSignal =>
+      val workIO: IO[Either[Throwable, A]] = IO.async[Either[Throwable, A]] { cb =>
+        IO.delay {
+          val t = new Thread(
+            () =>
+              try cb(Right(Right(work)))
+              catch { case e: Throwable => cb(Right(Left(e))) }, name
+          )
+          contextClassLoader.foreach(t.setContextClassLoader)
+          t.setDaemon(true)
+          t.start()
+          Some(IO.delay {
+            cancellation.cancel()
+            t.interrupt()
+          })
+        }
+      }
+      raceKill(killSignal)(workIO).map {
+        case Left(Right(value)) =>
+          ThreadOutcome.Completed(value)
+        // `InterruptedException` is the JVM's cancellation signal — Thread.interrupt at blocking calls, plus toolchain-specific cancellation exceptions that
+        // extend it (LinkingCancelledException, CompilationCancelledException). Classify all as `Cancelled` rather than `Crashed`.
+        case Left(Left(_: InterruptedException)) =>
+          ThreadOutcome.Cancelled(KillReason.UserRequest)
+        case Left(Left(throwable)) =>
+          ThreadOutcome.Crashed(throwable)
+        case Right(reason) =>
+          ThreadOutcome.Cancelled(reason)
+      }
+    }
+
   /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken.
     *
     * Creates a CancellationToken that gets cancelled when the kill signal fires. This is needed for Scala.js and Scala Native toolchains which predate the
@@ -199,32 +258,4 @@ object Outcome {
     }
   }
 
-  /** Race a link/compile IO against a kill signal, handling CancellationException from toolchains.
-    *
-    * This is the standard pattern for linking operations: race against kill, map the killed outcome, and handle CancellationException from toolchains that use
-    * CancellationToken internally.
-    */
-  def raceLinkWork(
-      killSignal: Deferred[IO, KillReason],
-      platformName: String
-  )(work: IO[(TaskDag.TaskResult, TaskDag.LinkResult)]): IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-    raceKill(killSignal)(work)
-      .map {
-        case Left(result)  => result
-        case Right(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
-      }
-      .handleErrorWith {
-        case _: java.util.concurrent.CancellationException =>
-          killSignal.tryGet.map {
-            case Some(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
-            case None         => (TaskDag.TaskResult.Killed(KillReason.UserRequest), TaskDag.LinkResult.Cancelled)
-          }
-        case ex =>
-          IO.pure(
-            (
-              TaskDag.TaskResult.Error(s"$platformName linker crashed: ${ex.getMessage}", bleep.bsp.protocol.ProcessExit.Unknown),
-              TaskDag.LinkResult.Failure(ex.getMessage, List.empty)
-            )
-          )
-      }
 }

@@ -44,32 +44,17 @@ object ScalaNativeTestRunner {
       IO.blocking {
         Files.createDirectories(workDir)
         Files.createDirectories(outputPath.getParent)
-      } >> {
-        val work = toolchain
-          .link(
-            config,
-            classpath,
-            testMainClass,
-            outputPath,
-            workDir,
-            logger,
-            cancellation
-          )
-          .map { result =>
+      } >> toolchain
+        .link(config, classpath, testMainClass, outputPath, workDir, logger, cancellation)
+        .map {
+          case Outcome.ThreadOutcome.Completed(result) =>
             if (result.isSuccess) LinkResult.NativeSuccess(result.binary, wasUpToDate = false)
             else LinkResult.Failure(s"Linking failed with exit code ${result.exitCode}", List.empty)
-          }
-
-        Outcome
-          .raceKill(killSignal)(work)
-          .map {
-            case Left(result) => result
-            case Right(_)     => LinkResult.Cancelled
-          }
-          .handleErrorWith { ex =>
-            IO.pure(LinkResult.Failure(ex.getMessage, List.empty))
-          }
-      }
+          case Outcome.ThreadOutcome.Cancelled(_) =>
+            LinkResult.Cancelled
+          case Outcome.ThreadOutcome.Crashed(ex) =>
+            LinkResult.Failure(ex.getMessage, List.empty)
+        }
     }
 
   /** Discover test suites from a linked native binary. */
