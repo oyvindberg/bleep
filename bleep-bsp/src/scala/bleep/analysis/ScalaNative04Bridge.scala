@@ -47,7 +47,6 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
 
     try {
       // Load classes
-      val configClass = loader.loadClass("scala.scalanative.build.Config")
       val configCompanion = loader.loadClass("scala.scalanative.build.Config$")
       val nativeConfigClass = loader.loadClass("scala.scalanative.build.NativeConfig")
       val nativeConfigCompanion = loader.loadClass("scala.scalanative.build.NativeConfig$")
@@ -184,11 +183,11 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
       }
 
       val rawResult =
-        try buildMethod.invoke(buildObj, args: _*)
+        try buildMethod.invoke(buildObj, args*)
         finally
           // Close the Scope if we created one
           if (scope != null) {
-            try scope.getClass.getMethod("close").invoke(scope)
+            try scope.getClass.getMethod("close").invoke(scope): Unit
             catch { case _: Exception => () }
           }
 
@@ -204,7 +203,7 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
 
       // Move result to output path if different
       if (result != outputPath) {
-        Files.copy(result, outputPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(result, outputPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING): Unit
       }
 
       ScalaNativeLinkResult(outputPath, 0)
@@ -320,7 +319,7 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
               // Concrete trait methods (timeAsync, time, running) are default methods
               // on the interface — delegate to the actual implementation so they work.
               if (method.isDefault)
-                java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args: _*)
+                java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args*)
               else {
                 val rt = method.getReturnType
                 if (rt == java.lang.Boolean.TYPE) Boolean.box(false)

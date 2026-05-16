@@ -80,7 +80,7 @@ object BleepException {
       case Right(value) => value
     }
 
-    def orThrowWithError[Th <: Throwable with L](error: String)(implicit ev0: L =:= Th, ev: BleepException.Not[Th]): R = e match {
+    def orThrowWithError[Th <: Throwable & L](error: String)(implicit ev0: L =:= Th, ev: BleepException.Not[Th]): R = e match {
       case Left(th)     => throw new BleepException.Cause[Th](th, error)
       case Right(value) => value
     }

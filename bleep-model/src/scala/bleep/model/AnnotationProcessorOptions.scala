@@ -27,7 +27,7 @@ object AnnotationProcessorOptions {
   val empty: AnnotationProcessorOptions = AnnotationProcessorOptions(SortedMap.empty)
 
   implicit val decodes: Decoder[AnnotationProcessorOptions] =
-    Decoder.decodeOption(Decoder.decodeMap[String, String].map(m => AnnotationProcessorOptions(SortedMap.from(m)))).map(_.getOrElse(empty))
+    Decoder.decodeOption(using Decoder.decodeMap[String, String].map(m => AnnotationProcessorOptions(SortedMap.from(m)))).map(_.getOrElse(empty))
 
   implicit val encodes: Encoder[AnnotationProcessorOptions] =
     Encoder.encodeMap[String, String].contramap(_.value)

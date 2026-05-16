@@ -79,13 +79,13 @@ case class Kotlin(
       version = version.orElse(other.version),
       options = options.union(other.options),
       jvmTarget = jvmTarget.orElse(other.jvmTarget),
-      compilerPlugins = compilerPlugins.union(other.compilerPlugins),
+      compilerPlugins = compilerPlugins.`union`(other.compilerPlugins),
       kspVersion = kspVersion.orElse(other.kspVersion),
       scanForSymbolProcessors = scanForSymbolProcessors.orElse(other.scanForSymbolProcessors),
-      symbolProcessors = symbolProcessors.union(other.symbolProcessors),
-      symbolProcessorOptions = symbolProcessorOptions.union(other.symbolProcessorOptions),
-      js = List(js, other.js).flatten.reduceOption(_ union _),
-      native = List(native, other.native).flatten.reduceOption(_ union _)
+      symbolProcessors = symbolProcessors.`union`(other.symbolProcessors),
+      symbolProcessorOptions = symbolProcessorOptions.`union`(other.symbolProcessorOptions),
+      js = List(js, other.js).flatten.reduceOption(_ `union` _),
+      native = List(native, other.native).flatten.reduceOption(_ `union` _)
     )
 
   override def isEmpty: Boolean =

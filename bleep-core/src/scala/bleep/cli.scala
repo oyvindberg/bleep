@@ -34,9 +34,9 @@ object cli {
       def apply(writtenLine: WrittenLine): Unit =
         writtenLine match {
           case WrittenLine.StdErr(line) =>
-            logger.warn(line)(implicitly, l, f, e)
+            logger.warn(line)(using implicitly, l, f, e)
           case WrittenLine.StdOut(line) =>
-            logger.info(line)(implicitly, l, f, e)
+            logger.info(line)(using implicitly, l, f, e)
         }
 
       def withAction(action: String): ViaLogger =
@@ -60,7 +60,7 @@ object cli {
     }
 
     val process = Process {
-      val builder = new java.lang.ProcessBuilder(patchedCmd: _*)
+      val builder = new java.lang.ProcessBuilder(patchedCmd*)
       builder.directory(cwd.toFile)
       builder.environment().clear()
       env.foreach { case (k, v) => builder.environment.put(k, v) }

@@ -5,9 +5,11 @@ import ch.epfl.scala.bsp4j
 import ryddig.Logger
 
 import java.util
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
 object discoverMain {
+  @nowarn("msg=buildTargetScalaMainClasses")
   def apply(logger: Logger, server: BuildServer, inProject: bsp4j.BuildTargetIdentifier): Either[BleepException, String] = {
     val req = new bsp4j.ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](inProject))
     logger.debug(req.toString)

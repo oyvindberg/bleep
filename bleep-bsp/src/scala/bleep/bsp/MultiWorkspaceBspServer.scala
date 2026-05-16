@@ -7,7 +7,6 @@ import bleep.analysis.{
   CompilePhase,
   CompilerError,
   DiagnosticListener,
-  ParallelProjectCompiler,
   ProgressListener,
   ProjectCompileCancelled,
   ProjectCompileFailure,
@@ -15,8 +14,6 @@ import bleep.analysis.{
   ProjectCompiler,
   ProjectLanguage,
   ScalaJsLinkConfig,
-  ScalaNativeLinkConfig,
-  ScalaNativeToolchain,
   ZincBridge
 }
 import bleep.bsp.protocol.KillReason
@@ -51,7 +48,6 @@ class MultiWorkspaceBspServer(
     in: InputStream,
     out: OutputStream,
     logger: Logger,
-    socketDir: Option[Path],
     compileSemaphore: java.util.concurrent.Semaphore,
     heapMonitor: HeapMonitor
 ) {
@@ -64,8 +60,11 @@ class MultiWorkspaceBspServer(
   /** Track active compile count so heap pressure back-pressure can skip stalling when we're the only compile. */
   private val activeCompileCount = new java.util.concurrent.atomic.AtomicInteger(0)
 
-  /** Pre-allocated emergency memory that gets released during OOM to allow sending error response. */
-  @volatile private var emergencyMemory: Array[Byte] = new Array[Byte](1024 * 1024) // 1MB reserve
+  /** Pre-allocated emergency memory that gets released during OOM to allow sending error response. Not "read" in code — just held until handleOutOfMemory nulls
+    * it to let the GC reclaim 1MB.
+    */
+  @scala.annotation.nowarn("msg=mutated but not read")
+  @volatile private var emergencyMemory: Array[Byte] = new Array[Byte](1024 * 1024)
   private val clientCapabilities = AtomicReference[Option[BuildClientCapabilities]](None)
 
   /** The active workspace for this connection (set during initialize) */
@@ -253,7 +252,7 @@ class MultiWorkspaceBspServer(
         Thread.currentThread().interrupt()
         request.id.foreach(id => activeRequests.remove(id.key))
       case oom: OutOfMemoryError =>
-        handleOutOfMemory(request, oom)
+        handleOutOfMemory(request)
       case e: BspException =>
         request.id.foreach { id =>
           activeRequests.remove(id.key)
@@ -292,7 +291,7 @@ class MultiWorkspaceBspServer(
     *
     * Releases emergency memory to ensure we have enough heap to send the error response, then waits briefly before requesting shutdown.
     */
-  private def handleOutOfMemory(request: JsonRpcRequest, oom: OutOfMemoryError): Unit = {
+  private def handleOutOfMemory(request: JsonRpcRequest): Unit = {
     // Release emergency memory to allow sending error response
     emergencyMemory = null
     System.gc() // Hint to GC to reclaim the emergency memory
@@ -691,13 +690,13 @@ class MultiWorkspaceBspServer(
     val kill: Runnable = () => cancelAllActiveRequests()
     val work = SharedWorkspaceState.ActiveWork(operationId, operation, projects, cancellation, System.currentTimeMillis(), kill)
     SharedWorkspaceState.register(workspace, work)
-    myOperationIds.add(operationId)
+    myOperationIds.add(operationId): Unit
   }
 
   /** Unregister an operation after it completes. */
   private def unregisterOperation(workspace: Path, operationId: String): Unit = {
     SharedWorkspaceState.unregister(workspace, operationId)
-    myOperationIds.remove(operationId)
+    myOperationIds.remove(operationId): Unit
   }
 
   /** Cancel all in-flight requests and kill child processes. */
@@ -719,7 +718,7 @@ class MultiWorkspaceBspServer(
       ProcessHandle.current().children().forEach { child =>
         try {
           debugLog(s"Killing child process: ${child.pid()}")
-          child.destroyForcibly()
+          child.destroyForcibly(): Unit
         } catch { case _: Exception => }
       }
     catch { case _: Exception => }
@@ -1580,16 +1579,15 @@ class MultiWorkspaceBspServer(
       val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
       // Create link handler
-      val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-        (linkTask, taskKillSignal) => {
-          val projectPaths = started.projectPaths(linkTask.project)
-          val project = started.build.explodedProjects(linkTask.project)
-          val resolved = started.resolvedProject(linkTask.project)
-          val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
-          val linkLogger = createLinkLogger()
-          val outputDir = projectPaths.targetDir.resolve("link-output")
-          LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
-        }
+      val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = { (linkTask, taskKillSignal) =>
+        val projectPaths = started.projectPaths(linkTask.project)
+        val project = started.build.explodedProjects(linkTask.project)
+        val resolved = started.resolvedProject(linkTask.project)
+        val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+        val linkLogger = createLinkLogger()
+        val outputDir = projectPaths.targetDir.resolve("link-output")
+        LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+      }
 
       // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
       val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
@@ -1978,11 +1976,11 @@ class MultiWorkspaceBspServer(
 
               (projectPlatform, isKotlin) match {
                 case (Some(model.PlatformId.Js), true) =>
-                  runKotlinJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                  runKotlinJsTestSuite(started, testTask, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Js), false) =>
                   runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), true) =>
-                  runKotlinNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                  runKotlinNativeTestSuite(started, testTask, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), false) =>
                   runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
                 case _ =>
@@ -2290,27 +2288,27 @@ class MultiWorkspaceBspServer(
             // completes via gatedCompile or waitForKill, the listener is always cleaned up. Replaces the prior `.start` + manual `.guarantee(_.cancel)` pattern.
             val cooperativeCancelFiber = taskKillSignal.get.flatMap(_ => IO(token.cancel())).background
 
-            // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-            val gatedCompile = IO
-              .interruptible(compileSemaphore.acquire())
-              .bracket { _ =>
-                IO(activeCompileCount.incrementAndGet()) >>
-                  waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                    val compileStartTime = System.currentTimeMillis()
-                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags)
-                        .guaranteeCase {
-                          case cats.effect.Outcome.Succeeded(resultIO) =>
-                            resultIO.flatMap { result =>
-                              val dur = System.currentTimeMillis() - compileStartTime
-                              val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                            }
-                          case _ =>
-                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                        }
-                  }
-              }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
+          // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+          val gatedCompile = IO
+            .interruptible(compileSemaphore.acquire())
+            .bracket { _ =>
+              IO(activeCompileCount.incrementAndGet()) >>
+                waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                  val compileStartTime = System.currentTimeMillis()
+                  IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                    compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags)
+                      .guaranteeCase {
+                        case cats.effect.Outcome.Succeeded(resultIO) =>
+                          resultIO.flatMap { result =>
+                            val dur = System.currentTimeMillis() - compileStartTime
+                            val ok = result == TaskDag.TaskResult.Success
+                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                          }
+                        case _ =>
+                          IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                      }
+                }
+            }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
             cooperativeCancelFiber.surround(IO.race(gatedCompile, waitForKill).map(_.merge))
@@ -2793,7 +2791,7 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaNativeTestRunner
-              .runTestsViaAdapter(binary, suites, framework, eventHandler, Map.empty, started.buildPaths.cwd, snVersion.scalaNativeVersion, killSignal)
+              .runTestsViaAdapter(binary, suites, framework, eventHandler, Map.empty, snVersion.scalaNativeVersion, killSignal)
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs
@@ -2859,7 +2857,6 @@ class MultiWorkspaceBspServer(
   private def runKotlinJsTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
-      classpath: List[Path],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -2870,7 +2867,6 @@ class MultiWorkspaceBspServer(
     // Test mode always uses dce=false → linkDirSuffix = "debug"
     val linkSuffix = bleep.bsp.protocol.BleepBspProtocol.linkDirSuffix(isRelease = false, hasDebugInfo = false, hasLto = false)
     val jsOutput = projectPaths.targetDir.resolve(linkSuffix).resolve("js").resolve(s"$moduleName.js")
-    val logger = createLinkLogger()
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
@@ -2915,7 +2911,6 @@ class MultiWorkspaceBspServer(
   private def runKotlinNativeTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
-      classpath: List[Path],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -2933,7 +2928,6 @@ class MultiWorkspaceBspServer(
       projectPaths.targetDir.resolve(projectName + ".kexe")
     )
     val binary = possiblePaths.find(Files.exists(_)).getOrElse(linkDir.resolve(projectName))
-    val logger = createLinkLogger()
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
@@ -3466,24 +3460,6 @@ class MultiWorkspaceBspServer(
       )
       sendNotification("build/publishDiagnostics", publishParams)
     }
-
-  /** Create a project-scoped logger that sends BSP log messages */
-  private def projectLogger(project: CrossProjectName): BspProjectLogger = new BspProjectLogger {
-    def info(message: String): Unit = sendProjectLogMessage(project, message, MessageType.Info)
-    def warn(message: String): Unit = sendProjectLogMessage(project, message, MessageType.Warning)
-    def error(message: String): Unit = sendProjectLogMessage(project, message, MessageType.Error)
-  }
-
-  /** Send a project-scoped log message notification to the client */
-  private def sendProjectLogMessage(project: CrossProjectName, message: String, messageType: MessageType): Unit = {
-    val params = LogMessageParams(
-      `type` = messageType,
-      task = Some(TaskId(s"project:${project.value}", None)),
-      originId = None,
-      message = message
-    )
-    sendNotification("build/logMessage", params)
-  }
 
   /** Send a log message without project scope (for rare error cases only) */
   private def createLinkLogger(): LinkExecutor.LinkLogger = new LinkExecutor.LinkLogger {

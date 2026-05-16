@@ -49,7 +49,7 @@ object JsonSet {
         )
       } yield ts
     )
-    Decoder.decodeOption(base).map(_.getOrElse(empty))
+    Decoder.decodeOption(using base).map(_.getOrElse(empty))
   }
 
   implicit def encodes[T: Encoder]: Encoder[JsonSet[T]] =

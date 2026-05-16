@@ -7,7 +7,6 @@ import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandl
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
-import cats.syntax.all._
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 
@@ -62,7 +61,7 @@ object ScalaNativeTestRunner {
   /** Discover test suites from a linked native binary. */
   def discoverSuites(
       binary: Path,
-      classpath: Seq[Path],
+      @annotation.unused classpath: Seq[Path],
       killSignal: Deferred[IO, KillReason]
   ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
     killSignal.tryGet.flatMap {
@@ -99,38 +98,6 @@ object ScalaNativeTestRunner {
           case Right(reason) => ProcessRunner.DiscoveryResult.Killed(reason)
         }
     }
-
-  private def discoverFromClasspath(classpath: Seq[Path]): List[TestSuite] =
-    classpath.flatMap { path =>
-      if (Files.isDirectory(path)) {
-        findTestClasses(path)
-      } else {
-        List.empty
-      }
-    }.toList
-
-  private def findTestClasses(dir: Path): List[TestSuite] = {
-    import scala.jdk.StreamConverters._
-    import scala.util.Using
-    Using(Files.walk(dir)) { stream =>
-      stream
-        .toScala(List)
-        .filter(p => p.toString.endsWith(".class") || p.toString.endsWith(".nir"))
-        .filter { p =>
-          val name = p.getFileName.toString
-          name.contains("Test") || name.contains("Suite") || name.contains("Spec")
-        }
-        .map { p =>
-          val relative = dir.relativize(p).toString
-          val fqn = relative
-            .replace("/", ".")
-            .replace("\\", ".")
-            .replaceAll("\\.(class|nir)$", "")
-          val simpleName = fqn.split('.').lastOption.getOrElse(fqn)
-          TestSuite(simpleName, fqn)
-        }
-    }.get // Fail loudly if directory walk fails (permission error, etc.)
-  }
 
   /** Run tests in a Scala Native binary. */
   def runTests(
@@ -213,7 +180,7 @@ object ScalaNativeTestRunner {
     * All frameworks use the same TestMain entry point from the scala-native test interface. The framework is detected at runtime by TestMain via the
     * sbt.testing.Framework SPI.
     */
-  def getTestMainClass(framework: TestFramework): String = TestMainClass
+  def getTestMainClass(@annotation.unused framework: TestFramework): String = TestMainClass
 
   /** Framework class names for sbt.testing.Framework SPI discovery. */
   private val frameworkClassNames: Map[TestFramework, List[String]] = Map(
@@ -253,7 +220,6 @@ object ScalaNativeTestRunner {
       framework: TestFramework,
       eventHandler: TestEventHandler,
       env: Map[String, String],
-      workingDir: Path,
       scalaNativeVersion: String,
       killSignal: Deferred[IO, KillReason]
   ): IO[TestResult] =
@@ -261,7 +227,7 @@ object ScalaNativeTestRunner {
       case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
       case None         =>
         val work = IO.interruptible {
-          runTestsViaAdapterBlocking(binary, suites, framework, eventHandler, env, workingDir, scalaNativeVersion)
+          runTestsViaAdapterBlocking(binary, suites, framework, eventHandler, env, scalaNativeVersion)
         }
 
         Outcome
@@ -282,7 +248,6 @@ object ScalaNativeTestRunner {
       framework: TestFramework,
       eventHandler: TestEventHandler,
       env: Map[String, String],
-      workingDir: Path,
       scalaNativeVersion: String
   ): TestResult = {
     val instance = CompilerResolver.getScalaNativeTestRunner(scalaNativeVersion)
@@ -491,8 +456,6 @@ object ScalaNativeTestRunner {
   }
 
   private def toScalaList(javaList: List[Any], loader: ClassLoader): Any = {
-    val listCompanion = loader.loadClass("scala.collection.immutable.List$")
-    val listObj = listCompanion.getField("MODULE$").get(null)
     val nilClass = loader.loadClass("scala.collection.immutable.Nil$")
     val nilObj = nilClass.getField("MODULE$").get(null)
     val consClass = loader.loadClass("scala.collection.immutable.$colon$colon")

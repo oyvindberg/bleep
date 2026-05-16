@@ -414,7 +414,7 @@ object ZincBridge {
     }
 
     NoopManifestStore.regenerateFromLocal(analysisFile, sourceDirs, sourcePaths, dependencyAnalyses, language, ecjVersion, result) match {
-      case Some(manifest) => noopManifestCache.put(analysisFile, manifest)
+      case Some(manifest) => noopManifestCache.put(analysisFile, manifest): Unit
       case None           => () // ctime unavailable (Windows) — manifest disabled
     }
   }
@@ -468,7 +468,7 @@ object ZincBridge {
     if (!hasPrevAnalysis && Files.exists(config.outputDir)) {
       debug(s"[ZincBridge] No analysis for ${config.name} — clearing stale class files from ${config.outputDir}")
       bleep.internal.FileUtils.deleteDirectory(config.outputDir)
-      Files.createDirectories(config.outputDir)
+      Files.createDirectories(config.outputDir): Unit
     }
 
     // Emit CompilationReason so the client display shows "Compiling: project-name ..."
@@ -557,7 +557,7 @@ object ZincBridge {
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
         saveAnalysis(analysisFile, result.analysis, result.setup)
         checkCaseInsensitiveCollisions(result.analysis, config.name, diagnosticListener)
-        checkAnalysisPortability(result.analysis, config.name, analysisFile)
+        checkAnalysisPortability(result.analysis, analysisFile)
       }
 
       val classFiles = collectClassFiles(config.outputDir)
@@ -575,7 +575,7 @@ object ZincBridge {
         noopManifestCache.remove(analysisFile)
         if (Files.exists(config.outputDir)) {
           bleep.internal.FileUtils.deleteDirectory(config.outputDir)
-          Files.createDirectories(config.outputDir)
+          Files.createDirectories(config.outputDir): Unit
         }
         ProjectCompileFailure(
           List(
@@ -589,7 +589,7 @@ object ZincBridge {
             )
           )
         )
-      case e @ (_: VirtualMachineError | _: ThreadDeath | _: InterruptedException) =>
+      case e @ (_: VirtualMachineError | _: ThreadDeath @scala.annotation.nowarn("msg=ThreadDeath") | _: InterruptedException) =>
         // Don't trap fatal errors or cancellation — let them propagate.
         throw e
       case e: Throwable =>
@@ -693,7 +693,7 @@ object ZincBridge {
   }
 
   /** Check analysis portability and write warnings file next to analysis.zip. Read at push time. */
-  private def checkAnalysisPortability(analysis: CompileAnalysis, projectName: String, analysisFile: Path): Unit = {
+  private def checkAnalysisPortability(analysis: CompileAnalysis, analysisFile: Path): Unit = {
     val stamps = analysis.asInstanceOf[sbt.internal.inc.Analysis].stamps
     val allVfrs = stamps.sources.keySet ++ stamps.products.keySet ++ stamps.libraries.keySet
     val absoluteIds = allVfrs.iterator
@@ -704,9 +704,9 @@ object ZincBridge {
 
     val warningsFile = analysisFile.resolveSibling("portability-warnings")
     if (absoluteIds.nonEmpty) {
-      Files.writeString(warningsFile, absoluteIds.mkString("\n"))
+      Files.writeString(warningsFile, absoluteIds.mkString("\n")): Unit
     } else {
-      Files.deleteIfExists(warningsFile)
+      Files.deleteIfExists(warningsFile): Unit
     }
   }
 
@@ -793,7 +793,7 @@ object ZincBridge {
     )
 
     // Create a forked Java compiler that uses ECJ
-    val ecjCompiler = new EcjCompiler(ecjJars, ecjClassLoader, cancellationToken, progressListener)
+    val ecjCompiler = new EcjCompiler(ecjClassLoader, cancellationToken, progressListener)
 
     // Use standard javadoc (ECJ doesn't include javadoc)
     val standardJavaTools = sbt.internal.inc.javac.JavaTools.directOrFork(
@@ -1159,7 +1159,7 @@ object ZincBridge {
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
       // Update soft reference cache so dependents see the fresh analysis
       val mtime = Files.getLastModifiedTime(analysisFile).toMillis
-      analysisCache.put(analysisFile, new SoftReference((mtime, analysis)))
+      analysisCache.put(analysisFile, new SoftReference((mtime, analysis))): Unit
     } catch {
       case e: Exception =>
         try Files.deleteIfExists(tempFile)
@@ -1225,7 +1225,6 @@ object ZincBridge {
   * Uses ECJ's batch Main with a CompilationProgress bridge (generated via ASM at runtime) to get per-file progress and native cancellation support.
   */
 private class EcjCompiler(
-    ecjJars: Seq[Path],
     ecjClassLoader: ClassLoader,
     cancellationToken: CancellationToken,
     progressListener: ProgressListener
@@ -1319,7 +1318,7 @@ private class EcjCompiler(
           val worked = workedSoFar.get()
           val total = totalWorkUnits.get()
           if (total > 0) {
-            progressListener.onProgress(worked, total, "ecj")
+            progressListener.onProgress(worked, total, "ecj"): Unit
           }
         }
       }
@@ -1576,7 +1575,7 @@ private[analysis] object EcjCompiler {
     *   - worked(int, int) — updates workedSoFar and totalWork
     */
   private[analysis] def generateBridgeClass(): Array[Byte] = {
-    import org.objectweb.asm.{ClassWriter, MethodVisitor, Opcodes}
+    import org.objectweb.asm.{ClassWriter, Opcodes}
 
     val cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS)
     cw.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, BridgeClassName, null, ProgressSuperClass, null)

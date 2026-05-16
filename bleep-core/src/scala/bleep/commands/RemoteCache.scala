@@ -6,7 +6,6 @@ import bleep.analysis.{NoopManifestStore, ProjectCompileSuccess, ProjectLanguage
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Executors, Future as JFuture}
-import scala.collection.immutable.SortedMap
 import scala.jdk.StreamConverters.*
 
 /** Remote build cache: pull pre-compiled classes from S3, push after building.
@@ -77,7 +76,7 @@ object RemoteCache {
             }
           }
 
-          futures.forEach(_.get())
+          futures.forEach { f => f.get(); () }
           executor.shutdown()
 
           started.logger.info(
@@ -140,7 +139,7 @@ object RemoteCache {
                       case head :: _ =>
                         errors.add(
                           s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile."
-                        )
+                        ): Unit
                       case Nil =>
                         val archive = TarGz.pack(projectPaths.targetDir, packFilter)
                         semaphore.acquire()
@@ -155,7 +154,7 @@ object RemoteCache {
             }
           }
 
-          futures.forEach(_.get())
+          futures.forEach { f => f.get(); () }
           executor.shutdown()
 
           val errorList = scala.jdk.CollectionConverters.IterableHasAsScala(errors).asScala.toList
@@ -247,7 +246,7 @@ object RemoteCache {
       language = maybeLanguage.get,
       ecjVersion = None,
       result = result
-    )
+    ): Unit
     started.logger.debug(s"${crossName.value}: regenerated noop manifest")
   }
 }

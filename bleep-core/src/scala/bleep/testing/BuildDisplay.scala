@@ -541,8 +541,8 @@ object BuildDisplay {
     private val activePhase: mutable.Map[CrossProjectName, (bleep.bsp.protocol.CompilePhase, String, Long)] = mutable.Map.empty
 
     private val progressMonitor: Option[LoggerFn] = logger match {
-      case tl: TypedLogger[?] => tl.progressMonitor
-      case _                  => None
+      case tl: TypedLogger[?] => tl.progressMonitor: @scala.annotation.nowarn("msg=progressMonitor")
+      case null               => None
     }
 
     private def renderCompileProgress(): Unit = progressMonitor.foreach { pm =>
@@ -668,7 +668,7 @@ object BuildDisplay {
         IO.unit
 
       case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _) =>
-        if (!quietMode) printTestResult(suite, test, status, durationMs) else IO.unit
+        if (!quietMode) printTestResult(test, status) else IO.unit
 
       case BuildEvent.SuiteFinished(_, suite, passed, failed, skipped, ignored, durationMs, _) =>
         if (!quietMode) printSuiteResult(suite, passed, failed, skipped, ignored, durationMs) else IO.unit
@@ -806,10 +806,8 @@ object BuildDisplay {
       } yield ()
 
     private def printTestResult(
-        @annotation.nowarn("msg=is never used") suite: SuiteName,
         test: TestName,
-        status: TestStatus,
-        durationMs: Long
+        status: TestStatus
     ): IO[Unit] = {
       val icon = status match {
         case TestStatus.Passed           => SConsole.GREEN + "+" + SConsole.RESET
@@ -1089,7 +1087,7 @@ object BuildDisplay {
               diff.fixedErrors
             }.sum
             val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Error)
-            log(BuildDiff.formatCompileSummary(s.compilesCompleted, totalErrors, 0, totalNew, totalFixed))
+            log(BuildDiff.formatCompileSummary(s.compilesCompleted, totalErrors, totalNew, totalFixed))
 
           case BuildMode.Test =>
             val newFailures = allTests.count { t =>

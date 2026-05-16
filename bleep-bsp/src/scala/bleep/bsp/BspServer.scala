@@ -68,7 +68,7 @@ class BspServer(
             return
         }
     finally
-      try Runtime.getRuntime.removeShutdownHook(shutdownHook)
+      try Runtime.getRuntime.removeShutdownHook(shutdownHook): Unit
       catch { case _: IllegalStateException => () } // JVM already shutting down
   }
 
@@ -518,7 +518,6 @@ class BspServer(
       releaseMode: Boolean,
       cancellation: CancellationToken
   ): CompileResult = {
-    import cats.effect.unsafe.implicits.global
 
     val taskId = "compile-and-link"
     sendTaskStart(params.originId, taskId, s"Compiling and linking ${params.targets.size} target(s)...")
@@ -553,7 +552,7 @@ class BspServer(
             )
 
             val compiler = Compiler.forConfig(project.languageConfig)
-            val listener = createDiagnosticListener(targetId, params.originId)
+            val listener = createDiagnosticListener(targetId)
             val compileResult = compiler.compile(input, listener, cancellation)
 
             compileResult match {
@@ -853,7 +852,7 @@ class BspServer(
 
       // Create diagnostic listener that streams to BSP
       val targetIdByName = targetProjects.map { case (targetId, project) => project.name -> targetId }
-      val listener = createProjectDiagnosticListener(targetIdByName, params.originId)
+      val listener = createProjectDiagnosticListener(targetIdByName)
 
       // Send task start for overall compilation
       val taskId = "compile-all"
@@ -941,8 +940,7 @@ class BspServer(
 
   /** Create a diagnostic listener for project-level compilation */
   private def createProjectDiagnosticListener(
-      targetIdByName: Map[String, BuildTargetIdentifier],
-      originId: Option[String]
+      targetIdByName: Map[String, BuildTargetIdentifier]
   ): DiagnosticListener =
     new DiagnosticListener {
       override def onDiagnostic(error: CompilerError): Unit = {
@@ -1050,7 +1048,7 @@ class BspServer(
               // Kill the process when cancellation is requested — destroyForcibly
               // closes the streams, so readLine returns null and waitFor returns immediately.
               cancellation.onCancel { () =>
-                process.destroyForcibly()
+                process.destroyForcibly(): Unit
               }
 
               // Stream output to log messages with proper resource cleanup
@@ -1110,7 +1108,7 @@ class BspServer(
 
             val testSucceeded = project.platform match {
               case BuildLoader.Platform.Jvm =>
-                runJvmTests(project, params, cancellation)
+                runJvmTests(project, params)
               case BuildLoader.Platform.ScalaJs(sjsVersion, scalaVersion) =>
                 runScalaJsTests(project, sjsVersion, scalaVersion, cancellation)
               case BuildLoader.Platform.ScalaNative(snVersion, scalaVersion) =>
@@ -1156,8 +1154,7 @@ class BspServer(
   /** Run JVM tests using detected test framework. */
   private def runJvmTests(
       project: buildLoader.ProjectInfo,
-      params: TestParams,
-      cancellation: CancellationToken
+      params: TestParams
   ): Boolean = {
     val classpath = (project.outputDir :: project.classpath).map(_.toString).mkString(java.io.File.pathSeparator)
 
@@ -1359,7 +1356,6 @@ class BspServer(
               framework,
               eventHandler,
               Map.empty,
-              workspaceRoot,
               snVersion,
               killSignal
             )
@@ -1711,8 +1707,7 @@ class BspServer(
 
   /** Create a diagnostic listener that streams to BSP */
   private def createDiagnosticListener(
-      targetId: BuildTargetIdentifier,
-      originId: Option[String]
+      targetId: BuildTargetIdentifier
   ): DiagnosticListener =
     new DiagnosticListener {
       override def onDiagnostic(error: CompilerError): Unit = {

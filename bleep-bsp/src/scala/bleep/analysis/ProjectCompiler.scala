@@ -322,7 +322,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
               Using(Files.walk(tempDir)) { stream =>
                 stream
                   .toScala(LazyList)
-                  .sorted(Ordering[String].reverse.on[Path](_.toString))
+                  .sorted(using Ordering[String].reverse.on[Path](_.toString))
                   .foreach(p => scala.util.Try(Files.delete(p)))
               }: Unit
             }
@@ -349,7 +349,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
           Files.createDirectories(target.getParent)
           Files.copy(classFile, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         }
-    }
+    }.get
   }
 }
 

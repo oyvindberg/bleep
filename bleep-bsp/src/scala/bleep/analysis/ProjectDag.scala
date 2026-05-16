@@ -108,26 +108,27 @@ case class ProjectDag(
     val visited = mutable.Set[String]()
     val path = mutable.ListBuffer[String]()
 
-    def dfs(node: String): Option[List[String]] = {
-      if (path.contains(node)) {
-        // Found cycle
-        val cycleStart = path.indexOf(node)
-        return Some((path.drop(cycleStart) :+ node).toList)
-      }
-      if (visited.contains(node)) return None
-
-      visited += node
-      path += node
-
-      for (dep <- dependenciesOf(node) if remaining.contains(dep))
-        dfs(dep) match {
-          case Some(cycle) => return Some(cycle)
-          case None        => ()
+    def dfs(node: String): Option[List[String]] =
+      scala.util.boundary {
+        if (path.contains(node)) {
+          // Found cycle
+          val cycleStart = path.indexOf(node)
+          scala.util.boundary.break(Some((path.drop(cycleStart) :+ node).toList))
         }
+        if (visited.contains(node)) scala.util.boundary.break(None)
 
-      path.dropRightInPlace(1)
-      None
-    }
+        visited += node
+        path += node
+
+        for (dep <- dependenciesOf(node) if remaining.contains(dep))
+          dfs(dep) match {
+            case Some(cycle) => scala.util.boundary.break(Some(cycle))
+            case None        => ()
+          }
+
+        path.dropRightInPlace(1)
+        None
+      }
 
     remaining
       .collectFirst {

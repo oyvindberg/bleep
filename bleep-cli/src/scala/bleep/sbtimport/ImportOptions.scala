@@ -67,13 +67,13 @@ object ImportOptions {
     List(model.VersionScala.Scala3, model.VersionScala.Scala213, model.VersionScala.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
   val filterPlatforms: Opts[Option[NonEmptyList[model.PlatformId]]] = Opts
-    .options("platform", "only import projects for specified platform(s)", metavar = "platform", short = "p")(
+    .options("platform", "only import projects for specified platform(s)", metavar = "platform", short = "p")(using
       Argument.fromMap("platform", model.PlatformId.All.map(p => (p.value, p)).toMap)
     )
     .orNone
 
   val filterScalaVersions: Opts[Option[NonEmptyList[model.VersionScala]]] = Opts
-    .options("scala", "only import projects for specified scala version(s)", "s", "scala version")(
+    .options("scala", "only import projects for specified scala version(s)", "s", "scala version")(using
       Argument.fromMap("scala version", possibleScalaVersions)
     )
     .orNone

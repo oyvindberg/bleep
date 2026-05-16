@@ -86,5 +86,5 @@ object BspQuery {
     started.build.explodedProjects.keys.find(_.value == name.getUri.split("=").last)
 
   def buildTargets(buildPaths: BuildPaths, projects: Array[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
-    util.List.of(projects.map(p => buildTarget(buildPaths, p)): _*)
+    util.List.of(projects.map(p => buildTarget(buildPaths, p))*)
 }

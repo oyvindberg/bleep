@@ -11,7 +11,6 @@ import coursier._
 
 import java.nio.file.{Files, Path, Paths}
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
 
 /** Reactive test runner that starts tests as soon as their dependencies compile.
   *
@@ -111,7 +110,7 @@ object ReactiveTestRunner {
             )
           }
 
-          runSuites.flatMap { results =>
+          runSuites.flatMap { _ =>
             for {
               _ <- display.printSummary
               summary <- display.summary
@@ -275,9 +274,8 @@ object ReactiveTestRunner {
       threadDump <- threadDumpResult match {
         case Left((outcome, timerFiber)) =>
           // Thread dump completed - cancel timer and get result
-          timerFiber.cancel >> outcome.embedError.map { dump =>
-            IO(debugLog(s"Thread dump received for $suiteKey: ${dump.map(d => s"${d.threads.size} threads").getOrElse("None")}"))
-            dump
+          timerFiber.cancel >> outcome.embedError.flatMap { dump =>
+            IO(debugLog(s"Thread dump received for $suiteKey: ${dump.map(d => s"${d.threads.size} threads").getOrElse("None")}")).as(dump)
           }
         case Right((dumpFiber, _)) =>
           // Timer won - abandon thread dump attempt (don't wait for it)

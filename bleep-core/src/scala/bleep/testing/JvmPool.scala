@@ -2,7 +2,6 @@ package bleep.testing
 
 import cats.effect._
 import cats.effect.std.{Queue, Semaphore}
-import cats.syntax.all._
 import fs2.Stream
 
 import java.io._
@@ -150,21 +149,20 @@ object JvmPool {
     private val stderrBuffer = new java.util.concurrent.ConcurrentLinkedDeque[String]()
     private val stderrBufferCap = 2048
 
-    private val stderrDrainThread: Thread = {
+    locally {
       val t = new Thread(s"jvm-stderr-drain-${process.pid}") {
         override def run(): Unit =
           try {
             var line = stderr.readLine()
             while (line != null) {
               stderrBuffer.addLast(line)
-              while (stderrBuffer.size > stderrBufferCap) stderrBuffer.pollFirst()
+              while (stderrBuffer.size > stderrBufferCap) stderrBuffer.pollFirst(): Unit
               line = stderr.readLine()
             }
           } catch { case NonFatal(_) => () }
       }
       t.setDaemon(true)
       t.start()
-      t
     }
 
     def isAlive: Boolean =
@@ -202,7 +200,7 @@ object JvmPool {
             try {
               var line = reader.readLine()
               while (line != null) {
-                buffer.synchronized(buffer += line)
+                buffer.synchronized(buffer += line): Unit
                 line = reader.readLine()
               }
             } catch { case NonFatal(_) => () }
@@ -210,7 +208,7 @@ object JvmPool {
         drainer.setDaemon(true)
         drainer.start()
         val finished = p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS)
-        if (!finished) p.destroyForcibly()
+        if (!finished) p.destroyForcibly(): Unit
         drainer.join(1000)
         buffer.synchronized(buffer.toList)
       } catch { case NonFatal(_) => Nil }
@@ -228,13 +226,13 @@ object JvmPool {
         process
           .descendants()
           .forEach(ph =>
-            try ph.destroyForcibly()
+            try ph.destroyForcibly(): Unit
             catch { case _: Exception => () }
           )
       catch { case NonFatal(_) => }
       process.destroyForcibly()
       try
-        process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+        process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS): Unit
       catch { case NonFatal(_) => }
     }
 
@@ -243,7 +241,7 @@ object JvmPool {
       val sb = new StringBuilder
       var line = stderrBuffer.pollFirst()
       while (line != null) {
-        sb.append(line).append("\n")
+        sb.append(line).append("\n"): Unit
         line = stderrBuffer.pollFirst()
       }
       sb.toString()
@@ -346,11 +344,11 @@ object JvmPool {
             else
               List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-          val pb = new ProcessBuilder(cmd: _*)
+          val pb = new ProcessBuilder(cmd*)
           pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
           pb.redirectErrorStream(false)
           if (useEnvClasspath) {
-            pb.environment().put("CLASSPATH", cpString)
+            pb.environment().put("CLASSPATH", cpString): Unit
           }
           environment.foreach { case (k, v) => pb.environment().put(k, v) }
 
@@ -364,7 +362,7 @@ object JvmPool {
         .flatTap(jvm => allJvms.update(_ + jvm))
         .flatTap(jvm =>
           waitForReady(jvm).onError { case _ =>
-            IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) })
+            IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
           }
         )
         .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success

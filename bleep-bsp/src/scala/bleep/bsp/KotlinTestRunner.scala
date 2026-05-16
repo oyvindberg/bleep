@@ -92,7 +92,7 @@ object KotlinTestRunner {
       */
     def runTests(
         jsOutput: Path,
-        suites: List[TestSuite],
+        @annotation.unused suites: List[TestSuite],
         eventHandler: TestEventHandler,
         env: Map[String, String],
         killSignal: Deferred[IO, KillReason]
@@ -101,7 +101,7 @@ object KotlinTestRunner {
         case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
         case None         =>
           IO.blocking {
-            val runnerScript = createTestRunnerScript(jsOutput, suites)
+            val runnerScript = createTestRunnerScript(jsOutput)
             val scriptPath = Files.createTempFile("kotlin-js-test-", ".js")
             Files.writeString(scriptPath, runnerScript)
             scriptPath
@@ -225,7 +225,7 @@ object KotlinTestRunner {
          |}
          |""".stripMargin
 
-    private def createTestRunnerScript(jsOutput: Path, suites: List[TestSuite]): String = {
+    private def createTestRunnerScript(jsOutput: Path): String = {
       // Kotlin/JS kotlin.test uses QUnit adapter by default, so we need to provide QUnit stubs
       // that capture and run the registered tests
       s"""

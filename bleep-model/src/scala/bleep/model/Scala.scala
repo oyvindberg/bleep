@@ -33,7 +33,7 @@ case class Scala(
     Scala(
       version = version.orElse(other.version),
       options = options.union(other.options),
-      setup = List(setup, other.setup).flatten.reduceOption(_ union _),
+      setup = List(setup, other.setup).flatten.reduceOption(_ `union` _),
       compilerPlugins = compilerPlugins.union(other.compilerPlugins),
       strict = strict.orElse(other.strict)
     )

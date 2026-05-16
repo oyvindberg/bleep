@@ -402,9 +402,11 @@ object Compiler {
       if Files.exists(path) then {
         if Files.isDirectory(path) then {
           import scala.jdk.StreamConverters.*
-          scala.util.Using(Files.list(path)) { stream =>
-            stream.toScala(List).foreach(deleteRecursively)
-          }
+          scala.util
+            .Using(Files.list(path)) { stream =>
+              stream.toScala(List).foreach(deleteRecursively)
+            }
+            .get
         }
         Files.delete(path)
       }

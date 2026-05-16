@@ -1,7 +1,7 @@
 package bleep
 
-import coursier.cache.{CacheLogger, FileCache}
-import coursier.util.{Artifact, Task}
+import coursier.cache.CacheLogger
+import coursier.util.Artifact
 
 import java.nio.file.Path
 import scala.concurrent.duration.Duration

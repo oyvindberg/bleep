@@ -195,7 +195,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
       } yield maybeReason).unsafeRunSync()
 
       // Should have completed on the right (sleep finished) not left (kill signal)
-      result shouldBe a[Right[_, _]]
+      result shouldBe a[Right[?, ?]]
     }
   }
 
@@ -211,7 +211,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         reasonAfter <- killSignal.get
       } yield (maybeReasonBefore, reasonAfter)).unsafeRunSync()
 
-      result._1 shouldBe a[Right[_, _]] // Not completed before
+      result._1 shouldBe a[Right[?, ?]] // Not completed before
       result._2 shouldBe KillReason.UserRequest // Completed after
     }
   }

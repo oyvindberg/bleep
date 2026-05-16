@@ -23,7 +23,7 @@ object GenBloopFiles {
   ): Map[Path, String] =
     resolved.map { case (projectName, lazyResolved) =>
       val bloopFile = BloopConversions.toBloopConfig(lazyResolved.forceGet)
-      val string = writeToString(bloopFile, WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
+      val string = writeToString(bloopFile, WriterConfig.withIndentionStep(2))(using ConfigCodecs.codecFile)
       (filePathFor(projectName), string)
     }
 }

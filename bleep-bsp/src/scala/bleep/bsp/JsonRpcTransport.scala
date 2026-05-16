@@ -147,7 +147,7 @@ object JsonRpcCodecs {
           }
           if !in.isCurrentToken('}') then in.objectEndOrCommaError()
         }
-      } else in.readNullOrTokenError(default, '{')
+      } else in.readNullOrTokenError(default, '{'): Unit
       JsonRpcRequest(jsonrpc, id, method, params)
     }
   }
@@ -192,7 +192,7 @@ object JsonRpcCodecs {
           }
           if !in.isCurrentToken('}') then in.objectEndOrCommaError()
         }
-      } else in.readNullOrTokenError(default, '{')
+      } else in.readNullOrTokenError(default, '{'): Unit
       JsonRpcResponse(jsonrpc, id, result, error)
     }
   }
@@ -231,7 +231,7 @@ object JsonRpcCodecs {
           }
           if !in.isCurrentToken('}') then in.objectEndOrCommaError()
         }
-      } else in.readNullOrTokenError(default, '{')
+      } else in.readNullOrTokenError(default, '{'): Unit
       JsonRpcNotification(jsonrpc, method, params)
     }
   }

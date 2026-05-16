@@ -157,8 +157,7 @@ object Outcome {
         cancellation.onCancel { () =>
           // Complete the kill signal from the cancellation callback thread.
           // unsafeRunSync is safe here — Deferred.complete is non-blocking.
-          deferred.complete(KillReason.UserRequest).attempt.unsafeRunSync()(cats.effect.unsafe.IORuntime.global)
-          ()
+          deferred.complete(KillReason.UserRequest).attempt.unsafeRunSync()(using cats.effect.unsafe.IORuntime.global): Unit
         }
       }
     }
@@ -253,7 +252,7 @@ object Outcome {
           callbacks.synchronized {
             if (cancelled.get()) callback()
             else callbacks += callback
-          }
+          }: Unit
       }
     }
 

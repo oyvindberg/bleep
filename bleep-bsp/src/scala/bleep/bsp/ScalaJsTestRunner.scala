@@ -84,7 +84,7 @@ object ScalaJsTestRunner {
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite],
       eventHandler: TestEventHandler,
-      nodeEnv: NodeEnvironment,
+      @annotation.unused nodeEnv: NodeEnvironment,
       env: Map[String, String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TestResult] =
@@ -345,7 +345,7 @@ object ScalaJsTestRunner {
 
   private def createTestRunnerScript(
       linkedJs: Path,
-      moduleKind: ScalaJsLinkConfig.ModuleKind,
+      @annotation.unused moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite]
   ): String = {
     val suiteNames = suites.map(s => s"'${s.fullyQualifiedName}'").mkString(", ")

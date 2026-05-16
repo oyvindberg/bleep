@@ -154,9 +154,9 @@ object KotlinSourceCompiler extends Compiler {
           .toScala(LazyList)
           .filter(p => Files.isRegularFile(p) && p != hashFile)
           .foreach { p =>
-            Try(Files.delete(p))
+            Try(Files.delete(p)): Unit
           }
-      }
+      }.get
 
       // Also delete subdirectories (but not the cache dir itself)
       Using(Files.walk(cacheDir)) { stream =>
@@ -164,11 +164,11 @@ object KotlinSourceCompiler extends Compiler {
           .toScala(LazyList)
           .filter(p => Files.isDirectory(p) && p != cacheDir)
           .toList
-          .sortBy(_.toString)(Ordering[String].reverse) // Delete deepest first
+          .sortBy(_.toString)(using Ordering[String].reverse) // Delete deepest first
           .foreach { p =>
-            Try(Files.delete(p))
+            Try(Files.delete(p)): Unit
           }
-      }
+      }.get
 
       debug("Invalidated IC cache due to classpath change")
     }
@@ -263,9 +263,9 @@ object KotlinSourceCompiler extends Compiler {
         Using(Files.walk(dir)) { stream =>
           stream
             .toScala(LazyList)
-            .sorted(Ordering[String].reverse.on[Path](_.toString)) // Delete deepest first
+            .sorted(using Ordering[String].reverse.on[Path](_.toString)) // Delete deepest first
             .foreach(p => Try(Files.delete(p)))
-        }
+        }: Unit
       catch {
         case _: Exception => () // Ignore cleanup errors
       }
@@ -380,7 +380,6 @@ object KotlinSourceCompiler extends Compiler {
       listener: DiagnosticListener,
       cancellation: CancellationToken
   ): CompilationResult = {
-    val loader = setup.loader
     val collectedErrors = mutable.ListBuffer[CompilerError]()
 
     try {
@@ -429,7 +428,7 @@ object KotlinSourceCompiler extends Compiler {
         s"IncrementalJvmCompilerRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}"
       )
 
-      val runner = tryConstructRunner(
+      val maybeRunner = tryConstructRunner(
         allConstructors,
         7,
         Array[Object](
@@ -441,25 +440,26 @@ object KotlinSourceCompiler extends Compiler {
           kotlinExtensions,
           icFeatures.asInstanceOf[Object]
         )
-      )
-        .orElse(
-          tryConstructRunner(
-            allConstructors,
-            6,
-            Array[Object](
-              cacheDirFile,
-              setup.buildReporterInstance.asInstanceOf[Object],
-              outputDirs,
-              setup.classpathChangesInstance.asInstanceOf[Object],
-              kotlinExtensions,
-              icFeatures.asInstanceOf[Object]
-            )
+      ).orElse(
+        tryConstructRunner(
+          allConstructors,
+          6,
+          Array[Object](
+            cacheDirFile,
+            setup.buildReporterInstance.asInstanceOf[Object],
+            outputDirs,
+            setup.classpathChangesInstance.asInstanceOf[Object],
+            kotlinExtensions,
+            icFeatures.asInstanceOf[Object]
           )
         )
-        .getOrElse {
-          debug(s"No matching IncrementalJvmCompilerRunner constructor found, falling back to non-incremental compilation")
-          return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
-        }
+      )
+
+      if (maybeRunner.isEmpty) {
+        debug(s"No matching IncrementalJvmCompilerRunner constructor found, falling back to non-incremental compilation")
+        return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
+      }
+      val runner = maybeRunner.get
 
       // Create K2JVMCompilerArguments
       val arguments = setup.argumentsClass.getDeclaredConstructor().newInstance()
@@ -476,7 +476,7 @@ object KotlinSourceCompiler extends Compiler {
       // Set classpath
       if input.classpath.nonEmpty then {
         val setClasspath = setup.argumentsClass.getMethod("setClasspath", classOf[String])
-        setClasspath.invoke(arguments, input.classpath.map(_.toString).mkString(java.io.File.pathSeparator))
+        setClasspath.invoke(arguments, input.classpath.map(_.toString).mkString(java.io.File.pathSeparator)): Unit
       }
 
       // Set JVM target
@@ -644,7 +644,7 @@ object KotlinSourceCompiler extends Compiler {
       // Set classpath
       if input.classpath.nonEmpty then {
         val setClasspath = setup.argumentsClass.getMethod("setClasspath", classOf[String])
-        setClasspath.invoke(arguments, input.classpath.map(_.toString).mkString(java.io.File.pathSeparator))
+        setClasspath.invoke(arguments, input.classpath.map(_.toString).mkString(java.io.File.pathSeparator)): Unit
       }
 
       // Set JVM target
@@ -728,7 +728,7 @@ object KotlinSourceCompiler extends Compiler {
   /** Try to construct IncrementalJvmCompilerRunner with the given parameter count and args. */
   private def tryConstructRunner(constructors: Array[java.lang.reflect.Constructor[?]], paramCount: Int, args: Array[Object]): Option[Any] =
     constructors.find(_.getParameterCount == paramCount).flatMap { ctor =>
-      try Some(ctor.newInstance(args: _*))
+      try Some(ctor.newInstance(args*))
       catch {
         case e: Exception =>
           debug(s"Constructor with $paramCount params failed: ${e.getClass.getSimpleName}: ${e.getMessage}")
@@ -775,7 +775,7 @@ object KotlinSourceCompiler extends Compiler {
       if (pluginOptions.nonEmpty) {
         try {
           val setPluginOptions = setup.argumentsClass.getMethod("setPluginOptions", classOf[Array[String]])
-          setPluginOptions.invoke(arguments, pluginOptions.toArray.asInstanceOf[AnyRef])
+          setPluginOptions.invoke(arguments, pluginOptions.toArray.asInstanceOf[AnyRef]): Unit
         } catch {
           case _: NoSuchMethodException =>
             debug(s"K2JVMCompilerArguments.setPluginOptions not found, skipping -P options")
@@ -807,7 +807,7 @@ object KotlinSourceCompiler extends Compiler {
           }
           parseMethod match {
             case Some(m) =>
-              m.invoke(null, remainingOpts.asJava, arguments, java.lang.Boolean.FALSE)
+              m.invoke(null, remainingOpts.asJava, arguments, java.lang.Boolean.FALSE): Unit
             case None =>
               debug(s"ParseCommandLineArgumentsKt.parseCommandLineArguments(List, Args, Boolean) not found; could not apply: ${remainingOpts.mkString(", ")}")
           }

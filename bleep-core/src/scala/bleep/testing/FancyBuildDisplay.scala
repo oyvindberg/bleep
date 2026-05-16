@@ -199,7 +199,7 @@ object FancyBuildDisplay {
           restoreTerminal()
           // Remove shutdown hook if we cleaned up normally
           if (shutdownHook != null) {
-            try Runtime.getRuntime.removeShutdownHook(shutdownHook)
+            try Runtime.getRuntime.removeShutdownHook(shutdownHook): Unit
             catch { case _: IllegalStateException => () } // JVM already shutting down
           }
         }
@@ -381,7 +381,7 @@ object FancyBuildDisplay {
     // Use FancyBuildDisplay's own runningSuites for cancellation tracking
     // (runningTests might be empty between tests even when suite is running)
     val summary = state.core.toSummary(durationMs = state.elapsedMs, wasCancelled = userCancelled)
-    summary.copy(currentlyRunning = state.runningSuites.values.map(_.suite).toList.sorted(SuiteName.ordering))
+    summary.copy(currentlyRunning = state.runningSuites.values.map(_.suite).toList.sorted(using SuiteName.ordering))
   }
 
   private def processEvent(state: State, event: BuildEvent): State = {
@@ -768,36 +768,6 @@ object FancyBuildDisplay {
       titleColor: Color,
       borderColor: Color
   )
-
-  /** Compute pane heights to fit available rows. Each pane needs itemCount + 2 (borders). */
-  private def fitPaneHeights(itemCounts: Array[Int], available: Int): Array[Int] = {
-    if (itemCounts.isEmpty) return Array.empty
-    val desired = itemCounts.map(_ + 2)
-    val total = desired.sum
-    if (total <= available) {
-      desired
-    } else {
-      val minPerPane = 3 // 1 item + 2 borders
-      val totalMin = minPerPane * desired.length
-      if (available <= totalMin) {
-        Array.fill(desired.length)(math.max(minPerPane, available / math.max(1, desired.length)))
-      } else {
-        val extra = available - totalMin
-        val totalAboveMin = desired.map(d => math.max(0, d - minPerPane)).sum
-        if (totalAboveMin == 0) {
-          Array.fill(desired.length)(minPerPane)
-        } else {
-          val result = desired.map { d =>
-            val aboveMin = math.max(0, d - minPerPane)
-            minPerPane + (aboveMin.toDouble / totalAboveMin * extra).toInt
-          }
-          val shortfall = available - result.sum
-          if (shortfall > 0 && result.nonEmpty) result(result.length - 1) += shortfall
-          result
-        }
-      }
-    }
-  }
 
   private def renderPane(f: Frame, area: Rect, title: String, titleColor: Color, borderColor: Color, items: Array[ListWidget.Item]): Unit = {
     val list = ListWidget(
@@ -1351,7 +1321,7 @@ object FancyBuildDisplay {
         val inThumb = i >= thumbPos && i < thumbPos + thumbHeight
         val ch = if (inThumb) "\u2503" else "\u2502" // ┃ for thumb, │ for track
         val style = if (inThumb) s(Palette.info) else s(Palette.border)
-        f.buffer.setString(x, y, ch, style)
+        f.buffer.setString(x, y, ch, style): Unit
       }
     }
   }

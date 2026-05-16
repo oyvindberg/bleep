@@ -47,7 +47,6 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
 
     try {
       // Load classes
-      val configClass = loader.loadClass("scala.scalanative.build.Config")
       val configCompanion = loader.loadClass("scala.scalanative.build.Config$")
       val nativeConfigClass = loader.loadClass("scala.scalanative.build.NativeConfig")
       val nativeConfigCompanion = loader.loadClass("scala.scalanative.build.NativeConfig$")
@@ -249,12 +248,12 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
       }
 
       val future =
-        try buildMethod.invoke(buildObj, args: _*)
+        try buildMethod.invoke(buildObj, args*)
         catch {
           case e: Throwable =>
             // Close scope on failure before rethrowing
             if (scope != null) {
-              try scope.getClass.getMethod("close").invoke(scope)
+              try scope.getClass.getMethod("close").invoke(scope): Unit
               catch { case _: Exception => () }
             }
             throw e
@@ -270,7 +269,7 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
         try awaitResult(future, loader, cancellation)
         finally
           if (scope != null) {
-            try scope.getClass.getMethod("close").invoke(scope)
+            try scope.getClass.getMethod("close").invoke(scope): Unit
             catch { case _: Exception => () }
           }
 
@@ -280,7 +279,7 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
       // Copy result to output path if needed
       val resultPath = result.asInstanceOf[Path]
       if (resultPath != outputPath && Files.exists(resultPath)) {
-        Files.copy(resultPath, outputPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(resultPath, outputPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING): Unit
       }
 
       ScalaNativeLinkResult(outputPath, 0)
@@ -385,7 +384,7 @@ class ScalaNative05Bridge(scalaNativeVersion: String, scalaVersion: String) exte
               // Concrete trait methods (timeAsync, time, running) are default methods
               // on the interface — delegate to the actual implementation so they work.
               if (method.isDefault)
-                java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args: _*)
+                java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args*)
               else {
                 val rt = method.getReturnType
                 if (rt == java.lang.Boolean.TYPE) Boolean.box(false)

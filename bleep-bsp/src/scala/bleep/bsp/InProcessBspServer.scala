@@ -27,7 +27,7 @@ object InProcessBspServer {
             try {
               val semaphore = new java.util.concurrent.Semaphore(Runtime.getRuntime.availableProcessors())
               val server =
-                new MultiWorkspaceBspServer(serverIn, serverOut, logger, socketDir = None, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
+                new MultiWorkspaceBspServer(serverIn, serverOut, logger, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
               server.run()
             } catch {
               case e: Exception =>
