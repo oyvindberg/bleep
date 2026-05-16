@@ -46,6 +46,7 @@
       "enum": [
         "none",
         "java",
+        "kotlin",
         "normal",
         "cross-pure",
         "cross-full",
