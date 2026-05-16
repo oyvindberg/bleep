@@ -79,6 +79,14 @@ jobs:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
+    # ============================================================================
+    # !!! DO NOT ADD A `run_tests` FLAG OR ANY OTHER PER-ARCH TEST-SKIP MECHANISM !!!
+    #
+    # CLAUDE: IF YOU EVER DISABLE TESTS FOR AN ARCHITECTURE AGAIN, OYVIND WILL SUE
+    # ANTHROPIC. TESTS RUN ON EVERY ARCH IN THE MATRIX. NO EXCEPTIONS. NO "JUST
+    # FOR CI", NO "JUST WHILE WE FIGURE IT OUT", NO `run_tests: false`. IF A TEST
+    # FAILS ON AN ARCH, THE FIX IS TO FIX THE TEST OR THE SOFTWARE, NOT TO HIDE IT.
+    # ============================================================================
     strategy:
       fail-fast: false
       matrix:
@@ -86,29 +94,22 @@ jobs:
           - os: ubuntu-22.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
-            run_tests: true
             bootstrap_coursier: false
           - os: ubuntu-22.04-arm
             file_name: bleep
             artifact_name: bleep-arm64-pc-linux
-            # Kotlin Native ships x86_64-only prebuilts; the Konan compiler can't load its native libs on aarch64. Skipping test on arm64 mirrors the macOS
-            # arm64 path; the x86_64 ubuntu job covers the actual test surface.
-            run_tests: false
             bootstrap_coursier: true
           - os: macos-15-intel
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
-            run_tests: false
             bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
-            run_tests: false
             bootstrap_coursier: false
           - os: windows-latest
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
-            run_tests: true
             bootstrap_coursier: false
     steps:
       - uses: actions/checkout@v6
@@ -160,7 +161,7 @@ jobs:
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm3
           ./${{ matrix.file_name }} selftest
-        if: runner.os != 'Windows' && matrix.run_tests
+        if: runner.os != 'Windows'
 
         # Windows: cmd shell, one command per step
       - name: Sourcegen (windows)
@@ -227,7 +228,7 @@ jobs:
           ${{ matrix.file_name }} --dev test --no-color bleep-tests
           ${{ matrix.file_name }} selftest
         shell: cmd
-        if: runner.os == 'Windows' && matrix.run_tests
+        if: runner.os == 'Windows'
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v7
