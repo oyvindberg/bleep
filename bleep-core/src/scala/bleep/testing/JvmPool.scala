@@ -466,31 +466,29 @@ object JvmPool {
 
       private def readResponses: Stream[IO, TestProtocol.TestResponse] =
         Stream.repeatEval {
-          // Daemon stderr-drain thread on ManagedJvm pulls stderr off the OS pipe
-          // continuously into a bounded buffer, so we don't need to interleave drains
-          // here. Just block on stdout. (The previous IO.race with a drainLoop also
-          // discarded the drained lines via `.void`, so failure-time drainStderr
-          // always returned empty — silent diagnostic loss.)
+          // Daemon stderr-drain thread on ManagedJvm pulls stderr off the OS pipe continuously into a bounded buffer, so we don't need to interleave drains
+          // here. Just block on stdout.
           IO.interruptible {
             val line = jvm.stdout.readLine()
             if (line == null) {
+              // EOF on stdout mid-session = the forked JVM died unexpectedly. Mark it dead so the pool drops it, then emit a structured `Error` response
+              // (the stream's `takeThrough` upstream treats Error as a terminator). The caller's processResponses sees the Error and routes it to
+              // `SuiteError`, not the silent `SuiteFinished(0,0,0,0,...)` path. Previously this returned `None` + `unNoneTerminate` — silent zero-count finish.
               jvm.markDead()
-              None
+              val pid = jvm.process.pid()
+              val stderrTail = jvm.readStderr()
+              val details = if (stderrTail.nonEmpty) Some(s"stderr tail:\n$stderrTail") else None
+              TestProtocol.TestResponse.Error(s"Forked test JVM (pid=$pid) died unexpectedly (EOF on stdout)", details)
             } else {
               TestProtocol.decodeResponse(line) match {
-                case Right(response) => Some(response)
+                case Right(response) => response
                 case Left(err)       =>
                   jvm.markProtocolDirty()
-                  Some(
-                    TestProtocol.TestResponse.Error(
-                      s"Protocol error: ${err.getMessage}",
-                      Some(s"Line: $line")
-                    )
-                  )
+                  TestProtocol.TestResponse.Error(s"Protocol error: ${err.getMessage}", Some(s"Line: $line"))
               }
             }
           }
-        }.unNoneTerminate
+        }
 
       override def getThreadDump: IO[Option[TestProtocol.TestResponse.ThreadDump]] =
         for {

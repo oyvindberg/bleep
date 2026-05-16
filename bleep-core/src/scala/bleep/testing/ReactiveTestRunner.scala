@@ -136,17 +136,19 @@ object ReactiveTestRunner {
       display: BuildDisplay,
       options: Options
   ): IO[Unit] = {
-    // Get classpath for this project
     val classpath = getClasspath(started, project)
 
-    // The ForkedTestRunner class must be on the classpath
-    // It's in the bleep-test-runner project which has minimal dependencies
+    // The ForkedTestRunner class must be on the classpath. It's in the bleep-test-runner project which has minimal dependencies.
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
     val environment = started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
     val projectDir = started.build.explodedProjects.get(project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
-    pool.acquire(classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
-      suites.traverse_ { suite =>
+
+    // Each suite acquires its own JVM from the pool, allowing the pool's max-concurrency semaphore to parallelize suites instead of serialising them on a single
+    // shared JVM. A failure in one suite (e.g. the forked JVM dying) only fails that suite; siblings keep running on their own JVMs. The pool reuses healthy
+    // JVMs across suites (warm classloader, same classpath hash), drops dead ones in `release`.
+    suites.parTraverse_ { suite =>
+      pool.acquire(classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
         runSuite(
           projectName = project,
           suite = suite,
@@ -166,7 +168,8 @@ object ReactiveTestRunner {
       passed: Int,
       failed: Int,
       skipped: Int,
-      ignored: Int
+      ignored: Int,
+      errorMessage: Option[String]
   )
 
   /** Run a single test suite on the given JVM */
@@ -196,6 +199,8 @@ object ReactiveTestRunner {
       failedCount <- Ref.of[IO, Int](0)
       skippedCount <- Ref.of[IO, Int](0)
       ignoredCount <- Ref.of[IO, Int](0)
+      // First Error response wins — captures e.g. "Forked JVM died" as the SuiteError reason without losing subsequent diagnostic Output lines.
+      firstError <- Ref.of[IO, Option[String]](None)
 
       // Convert responses to events
       _ <- responses.traverse_ {
@@ -238,12 +243,13 @@ object ReactiveTestRunner {
             .flatMap(now => display.handle(BuildEvent.Output(projectName, SuiteName(effectiveSuite), s"[$level] $message", channel, now)))
 
         case TestProtocol.TestResponse.Error(message, throwable) =>
-          IO.realTime
-            .map(_.toMillis)
-            .flatMap(now =>
-              display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), s"[ERROR] $message", OutputChannel.Stderr, now)) >>
-                throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), t, OutputChannel.Stderr, now)))
-            )
+          firstError.update(_.orElse(Some(message))) >>
+            IO.realTime
+              .map(_.toMillis)
+              .flatMap(now =>
+                display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), s"[ERROR] $message", OutputChannel.Stderr, now)) >>
+                  throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), t, OutputChannel.Stderr, now)))
+              )
 
         case TestProtocol.TestResponse.Ready =>
           IO.unit // Ignore Ready messages during suite execution
@@ -256,7 +262,8 @@ object ReactiveTestRunner {
       failed <- failedCount.get
       skipped <- skippedCount.get
       ignored <- ignoredCount.get
-    } yield SuiteResult(sent, passed, failed, skipped, ignored)
+      err <- firstError.get
+    } yield SuiteResult(sent, passed, failed, skipped, ignored, err)
 
     def handleTimeout: IO[Unit] = for {
       _ <- IO(debugLog(s"IDLE TIMEOUT TRIGGERED for suite: $suiteKey"))
@@ -324,22 +331,39 @@ object ReactiveTestRunner {
         case Left((outcome, timerFiber)) =>
           // processResponses won - cancel the timer (instant) and process result
           timerFiber.cancel >> outcome.embedError.flatMap { result =>
-            IO(debugLog(s"Normal completion for $suiteKey: sent=${result.suiteFinishedSent}")) >>
-              (if (!result.suiteFinishedSent) {
-                 display.handle(
-                   BuildEvent
-                     .SuiteFinished(
-                       projectName,
-                       SuiteName(suite.className),
-                       result.passed,
-                       result.failed,
-                       result.skipped,
-                       result.ignored,
-                       endTime - startTime,
-                       endTime
-                     )
-                 )
-               } else IO.unit)
+            IO(debugLog(s"Normal completion for $suiteKey: sent=${result.suiteFinishedSent}, error=${result.errorMessage.isDefined}")) >>
+              (
+                if (result.suiteFinishedSent) IO.unit
+                else
+                  result.errorMessage match {
+                    // The JVM either died mid-suite or sent a malformed protocol response, and `SuiteDone` never arrived. Emit `SuiteError` so the suite shows
+                    // up as a crash, not as `SuiteFinished(0,0,0,0)` (which would render as a spurious "PASSED: 0 passed, 0 failed").
+                    case Some(msg) =>
+                      display.handle(
+                        BuildEvent.SuiteError(
+                          projectName,
+                          SuiteName(suite.className),
+                          msg,
+                          bleep.bsp.protocol.ProcessExit.Unknown,
+                          endTime - startTime,
+                          endTime
+                        )
+                      )
+                    case None =>
+                      display.handle(
+                        BuildEvent.SuiteFinished(
+                          projectName,
+                          SuiteName(suite.className),
+                          result.passed,
+                          result.failed,
+                          result.skipped,
+                          result.ignored,
+                          endTime - startTime,
+                          endTime
+                        )
+                      )
+                  }
+              )
           }
         case Right((responseFiber, _)) =>
           // Timeout won - kill JVM first (which will unblock readLine), then cancel fiber
