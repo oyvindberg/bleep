@@ -221,6 +221,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
 
         case ProjectCompileFailure(errors) =>
           fail(s"Compilation failed: ${errors.map(_.formatted).mkString(", ")}")
+        case ProjectCompileCancelled(reason) =>
+          fail(s"Unexpected cancellation: $reason")
       }
     } finally {
       deleteRecursively(outputDir)
@@ -272,6 +274,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
           info(s"First compile reported ${files1.size} files")
         case ProjectCompileFailure(errors) =>
           fail(s"First compilation failed: ${errors.map(_.formatted).mkString(", ")}")
+        case ProjectCompileCancelled(reason) =>
+          fail(s"Unexpected cancellation: $reason")
       }
 
       // Second compile without changes
@@ -296,6 +300,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
 
         case ProjectCompileFailure(errors) =>
           fail(s"Second compilation failed: ${errors.map(_.formatted).mkString(", ")}")
+        case ProjectCompileCancelled(reason) =>
+          fail(s"Unexpected cancellation: $reason")
       }
     } finally {
       deleteRecursively(outputDir)

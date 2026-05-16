@@ -1519,6 +1519,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
           classNames should contain("JavaHelper.class")
         case ProjectCompileFailure(errors) =>
           fail(s"Mixed compilation failed: ${errors.map(_.formatted).mkString("\n")}")
+        case ProjectCompileCancelled(reason) =>
+          fail(s"Unexpected cancellation: $reason")
       }
     } finally {
       deleteRecursively(sourceDir)
