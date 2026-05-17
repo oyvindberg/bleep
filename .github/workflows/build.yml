@@ -168,7 +168,12 @@ jobs:
           bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
-          ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
+          # Two-phase native-image: first compile the GenNativeImage script and emit a stand-alone launcher (this still requires the BSP server). Then shut the
+          # compile-server down so its heap is released, and finally run the launcher — `native-image` gets the whole RAM budget to itself. Matters most on
+          # memory-constrained runners (mac arm).
+          ./bleep-cli.sh --dev native-image --emit-script ni-build.sh ${{ matrix.file_name }}
+          bleep config compile-server stop-all
+          ./ni-build.sh
 
         if: runner.os != 'Windows'
 
@@ -238,8 +243,16 @@ jobs:
         run: bleep setup-dev-script bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
+      - name: Emit native-image launcher (windows)
+        run: bleep-cli.bat --dev native-image --emit-script ni-build.cmd ${{ matrix.file_name }}
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Stop compile-server before native-image (windows)
+        run: bleep config compile-server stop-all
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Build native image (windows)
-        run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
+        run: ni-build.cmd
         shell: cmd
         if: runner.os == 'Windows'
       - name: Test binary after build (windows)
