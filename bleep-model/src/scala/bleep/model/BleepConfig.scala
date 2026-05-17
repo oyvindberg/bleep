@@ -65,11 +65,9 @@ case class BspServerConfig(
 }
 
 object BspServerConfig {
-  // 10 min covers the slowest legitimate single-test duration we see in CI. The dominant case is `LinkExecutorIntegrationTest`'s Kotlin/Native test on a cold
-  // macos runner: it downloads the ~200MB Konan prebuilt + links the binary without emitting interim progress events, and the macOS GitHub Actions runners
-  // vary enough that we see 313s on one run and 349s on another. We previously had 2 min, then 5 min — both bit on slow runs. 10 min keeps the safety net for
-  // hanging suites while staying well clear of the legitimate slow path. Override via `~/.config/bleep/config.yaml`.
-  val DefaultTestIdleTimeoutMinutes: Int = 10
+  // 2 min is the right default — no individual test in a healthy build should take longer than that to emit a single event. If a particular environment
+  // (typically a cold mac CI runner downloading the Konan prebuilt) needs more, override via `~/.config/bleep/config.yaml` rather than relaxing the default.
+  val DefaultTestIdleTimeoutMinutes: Int = 2
   val DefaultHeapPressureThreshold: Double = 0.80
 
   val default: BspServerConfig = BspServerConfig(
