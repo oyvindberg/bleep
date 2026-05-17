@@ -43,10 +43,14 @@ jobs:
       - name: Bleep config — set parallelism + relaxed test idle timeout
         # Bleep's in-code default test idle timeout is 2 min — the right ceiling for healthy code. CI runs through Kotlin/Native compile + LLVM bitcode link
         # which legitimately exceeds 2 min on a fresh runner. Bump per-environment via the config file rather than the in-code default so devs don't inherit
-        # a slack timeout from the build tool.
+        # a slack timeout from the build tool. Path depends on OS (~/.config/bleep on Linux, ~/Library/Application Support/build.bleep on macOS, %APPDATA% on
+        # Windows) — ask bleep where its config lives instead of hardcoding.
+        shell: bash
         run: |
-          mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 4\n  testIdleTimeoutMinutes: 10\n' > "$HOME/.config/bleep/config.yaml"
+          CONFIG_FILE=$(bleep config file --output raw)
+          mkdir -p "$(dirname "$CONFIG_FILE")"
+          printf 'bspServerConfig:\n  parallelism: 4\n  testIdleTimeoutMinutes: 10\n' > "$CONFIG_FILE"
+          cat "$CONFIG_FILE"
 
       - name: Run tests
         env:
@@ -167,11 +171,14 @@ jobs:
       - name: Bleep config — relax test idle timeout for slow native paths
         # bleep's in-code default is 2 min — the right ceiling for healthy code. Kotlin/Native compile + LLVM bitcode link on a fresh CI runner legitimately
         # exceeds that (LinkExecutorIntegrationTest's KN test hit 132s on ubuntu-22.04, ~300s on macOS). Bump per-environment via the config file rather than
-        # the in-code default, so devs don't inherit a slack timeout. Bash on all platforms since the file path uses `$HOME`.
+        # the in-code default, so devs don't inherit a slack timeout. `bleep config file --output raw` resolves the right per-OS path
+        # (~/.config/bleep on Linux, ~/Library/Application Support/build.bleep on macOS, %APPDATA% on Windows).
         shell: bash
         run: |
-          mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  testIdleTimeoutMinutes: 10\n' > "$HOME/.config/bleep/config.yaml"
+          CONFIG_FILE=$(bleep config file --output raw)
+          mkdir -p "$(dirname "$CONFIG_FILE")"
+          printf 'bspServerConfig:\n  testIdleTimeoutMinutes: 10\n' > "$CONFIG_FILE"
+          cat "$CONFIG_FILE"
 
       - name: Build native image (non-windows)
         env:
