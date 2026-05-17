@@ -86,8 +86,12 @@ object KotlinNativeCompiler {
       case _                                     => "linux-x86_64"
     }
 
-    val archiveName = s"kotlin-native-prebuilt-$platform-$kotlinVersion"
-    val url = s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/$archiveName.tar.gz"
+    // Two distinct names: Maven Central names the artifact `kotlin-native-prebuilt-<version>-<platform>.tar.gz` (classifier convention), but the directory the
+    // tarball extracts to is `kotlin-native-prebuilt-<platform>-<version>` (Kotlin's own naming). Get either one wrong → either 404 from Coursier or "Konan
+    // distribution not found after extraction".
+    val artifactFileName = s"kotlin-native-prebuilt-$kotlinVersion-$platform"
+    val extractedFolderName = s"kotlin-native-prebuilt-$platform-$kotlinVersion"
+    val url = s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/$artifactFileName.tar.gz"
     val fileCache = BleepFileCache().withLogger(CacheLogger.nop)
     val cache = ArchiveCache[Task]().withCache(fileCache)
     val extractedRoot = Await.result(cache.get(Artifact(url)).value(ExecutionContext.global), Duration.Inf) match {
@@ -97,7 +101,7 @@ object KotlinNativeCompiler {
 
     // Coursier's ArchiveCache extracts into `<arc-cache>/<hash>/`, and the tarball's top-level entry is `kotlin-native-prebuilt-<platform>-<version>/`. That
     // subfolder is what Konan calls "konan.home" — points at `bin/`, `klib/`, `konan/lib/`, etc.
-    val konanHome = extractedRoot.resolve(archiveName)
+    val konanHome = extractedRoot.resolve(extractedFolderName)
     if (!Files.isDirectory(konanHome))
       throw new RuntimeException(
         s"Kotlin/Native distribution not found after extraction. Expected directory at $konanHome (extracted root: $extractedRoot)"

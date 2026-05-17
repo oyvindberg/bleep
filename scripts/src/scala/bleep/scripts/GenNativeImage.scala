@@ -30,13 +30,11 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
   )
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    // Parse `--emit-script <path>`: when present, write a stand-alone launcher script for the native-image command (no bleep CLI, no BSP server) instead of
-    // running the build inline. CI can then shut down the compile-server and run the script with the full RAM budget free for `native-image` — important on
-    // memory-constrained runners (mac arm in particular).
-    val (emitScript, rest) = args match {
-      case "--emit-script" :: path :: tail => (Some(Path.of(path)), tail)
-      case _                               => (None, args)
-    }
+    // Env-var signal to switch to script-emit mode (env not flag, because bleep's script subcommand parser uses `Opts.arguments[String]()` which rejects
+    // anything starting with `--`). Set `BLEEP_NATIVE_IMAGE_EMIT_SCRIPT=<path>` to make this script write a stand-alone launcher to <path> and exit, instead
+    // of running the build inline. CI then stops the compile-server and runs the launcher so `native-image` gets the full RAM budget.
+    val emitScript = sys.env.get("BLEEP_NATIVE_IMAGE_EMIT_SCRIPT").map(Path.of(_))
+    val rest = args
 
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProject(projectName)

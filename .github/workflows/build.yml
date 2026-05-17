@@ -145,16 +145,20 @@ jobs:
           extraFiles: bleep.yaml
 
       - name: Build native image (non-windows)
+        env:
+          # Tell GenNativeImage to write a stand-alone launcher script instead of running the build inline. The bleep CLI's script subcommand parser only takes
+          # positional args (Opts.arguments[String]), so we can't pass `--emit-script <path>` as a script arg — env var is the cleanest bridge.
+          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.sh
         run: |
           bleep sourcegen
           bleep compile bleep-cli
           bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
-          # Two-phase native-image: first compile the GenNativeImage script and emit a stand-alone launcher (this still requires the BSP server). Then shut the
-          # compile-server down so its heap is released, and finally run the launcher — `native-image` gets the whole RAM budget to itself. Matters most on
-          # memory-constrained runners (mac arm).
-          ./bleep-cli.sh --dev native-image --emit-script ni-build.sh ${{ matrix.file_name }}
+          # Two-phase native-image: first compile GenNativeImage and emit a stand-alone launcher (BSP server still alive). Then shut the compile-server down so
+          # its heap is released, and finally run the launcher — `native-image` gets the whole RAM budget to itself. Matters most on memory-constrained runners
+          # (mac arm).
+          ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
           bleep config compile-server stop-all
           ./ni-build.sh
 
@@ -223,7 +227,9 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
       - name: Emit native-image launcher (windows)
-        run: bleep-cli.bat --dev native-image --emit-script ni-build.cmd ${{ matrix.file_name }}
+        env:
+          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.cmd
+        run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
         shell: cmd
         if: runner.os == 'Windows'
       - name: Stop compile-server before native-image (windows)
