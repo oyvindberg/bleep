@@ -50,6 +50,21 @@ jobs:
           CI: true
         run: ./bleep-cli.sh --dev test
 
+      - name: Collect BSP server metrics
+        if: always()
+        run: ./bleep-cli.sh --dev server-metrics --html metrics-build.html --jsonl metrics-build.jsonl
+
+      - name: Upload metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: metrics-build
+          path: |
+            metrics-build.html
+            metrics-build.jsonl
+          if-no-files-found: warn
+          retention-days: 14
+
   yaml-ls-check:
     runs-on: ubuntu-latest
     steps:
@@ -78,7 +93,9 @@ jobs:
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    # Bumped from 25 → 40: macos-latest (arm64) cancelled at 25:19 mid native-image build under the prior 25-min ceiling. Other arches finish in ~13-20min, but
+    # mac arm needs the headroom for the native-image step itself before the test phase even starts.
+    timeout-minutes: 40
     # ============================================================================
     # !!! DO NOT ADD A `run_tests` FLAG OR ANY OTHER PER-ARCH TEST-SKIP MECHANISM !!!
     #
@@ -163,6 +180,10 @@ jobs:
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows'
 
+      - name: Collect BSP server metrics (non-windows)
+        if: always() && runner.os != 'Windows'
+        run: ./${{ matrix.file_name }} --dev server-metrics --html metrics-${{ matrix.os }}.html --jsonl metrics-${{ matrix.os }}.jsonl
+
         # Windows: cmd shell, one command per step
       - name: Sourcegen (windows)
         run: bleep sourcegen
@@ -230,12 +251,28 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
 
+      - name: Collect BSP server metrics (windows)
+        if: always() && runner.os == 'Windows'
+        run: ${{ matrix.file_name }} --dev server-metrics --html metrics-${{ matrix.os }}.html --jsonl metrics-${{ matrix.os }}.jsonl
+        shell: cmd
+
       - name: Temporarily save package
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.file_name }}
           retention-days: 1
+
+      - name: Upload metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: metrics-${{ matrix.os }}
+          path: |
+            metrics-${{ matrix.os }}.html
+            metrics-${{ matrix.os }}.jsonl
+          if-no-files-found: warn
+          retention-days: 14
 
   release:
     timeout-minutes: 40
