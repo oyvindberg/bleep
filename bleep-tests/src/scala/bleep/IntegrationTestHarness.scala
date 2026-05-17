@@ -103,7 +103,11 @@ class Workspace(
     testConfig: model.BleepConfig
 ) {
 
-  val root: Path = Files.createTempDirectory(s"bleep-doc-$testName-")
+  // Scrub the test name to ASCII alphanumerics + `-` before stuffing it into a temp-dir path. Test names like "E. clean → recompile rebuilds generated sources
+  // deterministically" otherwise produced temp dirs with spaces and a `→`, which we've seen confuse external tools (`rm -Rf` got SIGKILLed by what we suspect
+  // was the kernel reaping a child of an OOM-pressured test JVM on CI runners — exit 137 with no other signal). Sanitizing keeps the path predictable.
+  private val safeTestName = testName.replaceAll("[^A-Za-z0-9._-]+", "-").stripPrefix("-").stripSuffix("-")
+  val root: Path = Files.createTempDirectory(s"bleep-doc-$safeTestName-")
 
   private var rawYaml: Option[String] = None
   private val taggedSnippets: mutable.LinkedHashMap[String, String] = mutable.LinkedHashMap.empty
