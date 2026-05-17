@@ -129,15 +129,15 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
 
   /** Format a single classpath entry for a Class-Path: manifest attribute. On Windows we prefer relative paths because some older JDKs reject absolute paths
     * here, but when the entry's drive differs from the manifest jar's drive (typical on GitHub Actions: D:\workspace, C:\Users\…\Coursier cache),
-    * `Path.relativize` throws `IllegalArgumentException("'other' has different root")`. In that case fall back to a `file:` URI — modern JDKs accept those and
-    * cross-drive paths can't be expressed any other way.
+    * `Path.relativize` throws `IllegalArgumentException("'other' has different root")`. In that case fall back to an absolute forward-slashed path —
+    * native-image's class-path attribute parser does `Path.of(entry)` on each token, which accepts `C:/foo/bar.jar` but not `file:` URIs.
     */
   private def manifestEntry(manifestJar: Path, path: Path): String = {
     val isWin = scala.util.Properties.isWin
     val syntax: String =
       if (isWin) {
         try manifestJar.getParent.relativize(path).toString.replace('\\', '/')
-        catch { case _: IllegalArgumentException => path.toUri.toString }
+        catch { case _: IllegalArgumentException => path.toAbsolutePath.toString.replace('\\', '/') }
       } else path.toUri.getPath
     if (syntax.endsWith(".jar") || syntax.endsWith(File.separator) || syntax.endsWith("/")) syntax else syntax + "/"
   }
