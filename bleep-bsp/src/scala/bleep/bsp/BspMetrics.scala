@@ -132,6 +132,36 @@ object BspMetrics {
   def recordSourcegenEnd(scriptName: String, durationMs: Long, success: Boolean): Unit =
     writeEvent(s"""{"type":"sourcegen_end","ts":${now()},"script":"${esc(scriptName)}","duration_ms":$durationMs,"success":$success}""")
 
+  /** Suite-level start: emitted when a test suite begins execution in a forked JVM. Pairs with `recordSuiteEnd` for total wall-clock duration including JVM
+    * acquisition.
+    */
+  def recordSuiteStart(project: String, workspace: String, suite: String, framework: String): Unit =
+    writeEvent(
+      s"""{"type":"suite_start","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","suite":"${esc(suite)}","framework":"${esc(
+          framework
+        )}"}"""
+    )
+
+  /** Suite-level end: pairs with `recordSuiteStart`. `durationMs` is wall-clock from suite start to the SuiteFinished event from the runner. Counts are the
+    * final values reported by the runner (or reconciled from individual TestFinished events).
+    */
+  def recordSuiteEnd(project: String, workspace: String, suite: String, passed: Int, failed: Int, skipped: Int, durationMs: Long, success: Boolean): Unit =
+    writeEvent(
+      s"""{"type":"suite_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","suite":"${esc(
+          suite
+        )}","passed":$passed,"failed":$failed,"skipped":$skipped,"duration_ms":$durationMs,"success":$success}"""
+    )
+
+  /** Individual test end: emitted on each TestFinished from the runner. `durationMs` is what the test framework reports for that single test. `status` is one
+    * of: "passed", "failed", "skipped", "canceled", "error", "ignored" — whatever the framework emitted.
+    */
+  def recordTestEnd(project: String, workspace: String, suite: String, test: String, status: String, durationMs: Long): Unit =
+    writeEvent(
+      s"""{"type":"test_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","suite":"${esc(suite)}","test":"${esc(
+          test
+        )}","status":"${esc(status)}","duration_ms":$durationMs}"""
+    )
+
   def recordCompilePhase(project: String, phase: String, trackedApis: Int): Unit =
     writeEvent(
       s"""{"type":"compile_phase","ts":${now()},"project":"${esc(project)}","phase":"${esc(phase)}","tracked_apis":$trackedApis}"""

@@ -60,6 +60,7 @@ object TestRunner {
     */
   def runSuite(
       project: CrossProjectName,
+      workspace: String,
       suiteName: String,
       framework: String,
       classpath: List[Path],
@@ -73,6 +74,7 @@ object TestRunner {
     pool.acquire(classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
       executeWithIdleTimeout(
         project = project,
+        workspace = workspace,
         suiteName = suiteName,
         framework = framework,
         jvm = jvm,
@@ -90,6 +92,7 @@ object TestRunner {
     */
   private def executeWithIdleTimeout(
       project: CrossProjectName,
+      workspace: String,
       suiteName: String,
       framework: String,
       jvm: TestJvm,
@@ -103,6 +106,7 @@ object TestRunner {
     def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
     val startTime = System.currentTimeMillis()
+    BspMetrics.recordSuiteStart(project.value, workspace, suiteName, framework)
 
     for {
       lastActivityAt <- Ref.of[IO, Long](startTime)
@@ -128,22 +132,24 @@ object TestRunner {
                   if (status == TestStatus.Passed) passedCount.update(_ + 1)
                   else if (status.isFailure) failedCount.update(_ + 1) >> failures.update(test :: _)
                   else skippedCount.update(_ + 1)
-                updateCount >> now.flatMap { ts =>
-                  // Reset idle timeout on each test completion
-                  lastActivityAt.set(ts) >>
-                    emit(
-                      TaskDag.DagEvent.TestFinished(
-                        project = project,
-                        suite = SuiteName(suiteName),
-                        test = TestName(test),
-                        status = status,
-                        durationMs = durationMs,
-                        message = message,
-                        throwable = throwable,
-                        timestamp = ts
+                updateCount >>
+                  IO(BspMetrics.recordTestEnd(project.value, workspace, suiteName, test, statusStr, durationMs)) >>
+                  now.flatMap { ts =>
+                    // Reset idle timeout on each test completion
+                    lastActivityAt.set(ts) >>
+                      emit(
+                        TaskDag.DagEvent.TestFinished(
+                          project = project,
+                          suite = SuiteName(suiteName),
+                          test = TestName(test),
+                          status = status,
+                          durationMs = durationMs,
+                          message = message,
+                          throwable = throwable,
+                          timestamp = ts
+                        )
                       )
-                    )
-                }
+                  }
 
               case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
                 // Use the higher of accumulated individual counts vs authoritative SuiteDone.
@@ -207,6 +213,7 @@ object TestRunner {
             .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}")) >> outcome.embedError.flatMap {
             result =>
               val durationMs = System.currentTimeMillis() - startTime
+              BspMetrics.recordSuiteEnd(project.value, workspace, suiteName, result.passed, result.failed, result.skipped, durationMs, result.failed == 0)
               // Emit SuiteFinished with actual counts
               now.flatMap { ts =>
                 emit(
@@ -268,19 +275,27 @@ object TestRunner {
           // converts to SuiteTimedOut event. Emitting SuiteFinished here would cause
           // double-counting on the client side.
 
+          // Record a suite_end metric with success=false on every non-clean exit so the dashboard sees the wall-clock cost even when the suite didn't finish.
+          // Counts are 0 because we don't have access to the partial Refs from this scope; what matters here is the duration.
+          def recordAbortedSuite(): Unit = {
+            val durationMs = System.currentTimeMillis() - startTime
+            BspMetrics.recordSuiteEnd(project.value, workspace, suiteName, 0, 0, 0, durationMs, success = false)
+          }
+
           raceOutcome match {
             case Outcome.Succeeded(fa) =>
               fa.flatMap {
                 case Left(_) =>
                   // Idle timeout - dump threads, kill JVM, ship the dump out via TimedOut
-                  captureThreadDump.flatMap(dump => IO.uncancelable(_ => cleanup) >> IO.pure(TaskDag.TaskResult.TimedOut(dump)))
+                  IO(recordAbortedSuite()) >>
+                    captureThreadDump.flatMap(dump => IO.uncancelable(_ => cleanup) >> IO.pure(TaskDag.TaskResult.TimedOut(dump)))
                 case Right(reason) =>
                   // Kill signal - kill JVM and report killed with reason
-                  cleanup >> IO.pure(TaskDag.TaskResult.Killed(reason))
+                  IO(recordAbortedSuite()) >> cleanup >> IO.pure(TaskDag.TaskResult.Killed(reason))
               }
             case Outcome.Errored(e) =>
               // Error during race - this is an infrastructure error, not a test failure
-              cleanup >> IO.pure(
+              IO(recordAbortedSuite()) >> cleanup >> IO.pure(
                 TaskDag.TaskResult.Error(
                   error = s"Error during test: ${e.getMessage}",
                   processExit = ProcessExit.Unknown
@@ -288,7 +303,7 @@ object TestRunner {
               )
             case Outcome.Canceled() =>
               // Fiber was cancelled - treat as killed with default reason
-              cleanup >> IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
+              IO(recordAbortedSuite()) >> cleanup >> IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
           }
       }
     } yield result

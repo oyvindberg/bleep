@@ -1995,6 +1995,7 @@ class MultiWorkspaceBspServer(
                   }
                   TestRunner.runSuite(
                     project = testTask.project,
+                    workspace = started.buildPaths.buildDir.toString,
                     suiteName = testTask.suiteName.value,
                     framework = testTask.framework,
                     classpath = classpath,

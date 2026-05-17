@@ -71,8 +71,15 @@ object Main {
       importMavenCmd(buildPaths, logger),
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
-      Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
-        Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(logger, userPaths, pid))
+      Opts.subcommand(
+        "server-metrics",
+        "BSP server metrics: by default opens the dashboard in a browser; with `--html PATH` writes the dashboard HTML there (no browser); with `--jsonl PATH` copies the raw events JSONL; either flag suppresses the browser launch, both flags can be combined for CI-style collection"
+      )(
+        (
+          Opts.argument[Long]("pid").orNone,
+          Opts.option[Path]("html", "write the dashboard HTML to this path and do not open a browser").orNone,
+          Opts.option[Path]("jsonl", "copy the raw metrics JSONL to this path").orNone
+        ).mapN((pid, html, jsonl) => commands.ServerMetrics(logger, userPaths, pid, html, jsonl))
       )
     ).foldK
 
@@ -509,8 +516,15 @@ object Main {
           },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
-          Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
-            Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid))
+          Opts.subcommand(
+            "server-metrics",
+            "BSP server metrics: by default opens the dashboard in a browser; with `--html PATH` writes the dashboard HTML there (no browser); with `--jsonl PATH` copies the raw events JSONL; either flag suppresses the browser launch, both flags can be combined for CI-style collection"
+          )(
+            (
+              Opts.argument[Long]("pid").orNone,
+              Opts.option[Path]("html", "write the dashboard HTML to this path and do not open a browser").orNone,
+              Opts.option[Path]("jsonl", "copy the raw metrics JSONL to this path").orNone
+            ).mapN((pid, html, jsonl) => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, html, jsonl))
           ),
           Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local')") {
             (

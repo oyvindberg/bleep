@@ -11,7 +11,13 @@ import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
 import scala.jdk.StreamConverters._
 
-case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]) extends BleepCommand {
+case class ServerMetrics(
+    logger: Logger,
+    userPaths: UserPaths,
+    pid: Option[Long],
+    htmlOutput: Option[Path],
+    jsonlOutput: Option[Path]
+) extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] =
     findMetricsFile(userPaths.bspSocketDir) match {
@@ -22,17 +28,37 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
         }
         Left(new BleepException.Text(msg))
       case Some(metricsPath) =>
-        val events = parseMetrics(metricsPath)
-        val html = generateHtml(events)
-        val tempFile = Files.createTempFile("bleep-metrics-", ".html")
-        Files.writeString(tempFile, html)
-        val os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
-        val openCmd =
-          if (os.contains("mac")) Array("open", tempFile.toString)
-          else if (os.contains("win")) Array("cmd", "/c", "start", tempFile.toString)
-          else Array("xdg-open", tempFile.toString)
-        Runtime.getRuntime.exec(openCmd)
-        logger.info(s"Dashboard opened: $tempFile")
+        // Raw JSONL output: just copy the source file. The metrics.jsonl is append-only and self-contained.
+        jsonlOutput.foreach { dst =>
+          Option(dst.getParent).foreach(Files.createDirectories(_))
+          Files.copy(metricsPath, dst, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+          logger.info(s"Wrote raw metrics JSONL: $dst")
+        }
+
+        // HTML output: render the dashboard. If `htmlOutput` is set, write there and don't launch a browser; otherwise fall back to the default interactive
+        // path (temp file + browser), but only when no other output was requested. The "user picks what to prefer" semantics: pass `--jsonl` alone for CI-style
+        // collection, pass `--html` alone for headless dashboard generation, pass both for both, pass neither for the legacy "open in browser" UX.
+        val anyOutputRequested = htmlOutput.isDefined || jsonlOutput.isDefined
+        if (htmlOutput.isDefined || !anyOutputRequested) {
+          val events = parseMetrics(metricsPath)
+          val html = generateHtml(events)
+          val dst = htmlOutput.getOrElse(Files.createTempFile("bleep-metrics-", ".html"))
+          Option(dst.getParent).foreach(Files.createDirectories(_))
+          Files.writeString(dst, html)
+          logger.info(s"Wrote dashboard HTML: $dst")
+
+          // Browser launch only in the legacy interactive mode (no explicit outputs).
+          if (!anyOutputRequested) {
+            val os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
+            val openCmd =
+              if (os.contains("mac")) Array("open", dst.toString)
+              else if (os.contains("win")) Array("cmd", "/c", "start", dst.toString)
+              else Array("xdg-open", dst.toString)
+            Runtime.getRuntime.exec(openCmd)
+            logger.info(s"Dashboard opened: $dst")
+          }
+        }
+
         logger.info(s"Metrics source: $metricsPath")
         Right(())
     }
@@ -80,6 +106,9 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val summary: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val oomPressure: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val oomCrash: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val testEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -104,6 +133,9 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "summary"          => events.summary += obj
           case "oom_pressure"     => events.oomPressure += obj
           case "oom_crash"        => events.oomCrash += obj
+          case "suite_start"      => events.suiteStart += obj
+          case "suite_end"        => events.suiteEnd += obj
+          case "test_end"         => events.testEnd += obj
           case _                  => ()
         }
       }
@@ -128,6 +160,9 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     events.sourcegenStart.foreach(collectTs)
     events.sourcegenEnd.foreach(collectTs)
     events.summary.foreach(collectTs)
+    events.suiteStart.foreach(collectTs)
+    events.suiteEnd.foreach(collectTs)
+    events.testEnd.foreach(collectTs)
 
     val t0 = if (allTs.isEmpty) 0L else allTs.min
     def relS(tsMs: Long): Double = (tsMs - t0) / 1000.0
@@ -316,6 +351,98 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       }
     }
 
+    // ---- 8. Slowest Suites (bar chart, top 20 by duration_ms) ----
+    if (events.suiteEnd.nonEmpty) {
+      val ranked = events.suiteEnd.sortBy(e => -e.get("duration_ms").getAsLong).take(20)
+      val labels = ranked.map(e => s"${getStr(e, "suite")} (${getStr(e, "project")})")
+      val durations = ranked.map(_.get("duration_ms").getAsLong / 1000.0)
+      val colors = ranked.map(e => if (e.has("success") && e.get("success").getAsBoolean) "#22c55e" else "#ef4444")
+      val t = ArrayBuffer.empty[String]
+      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(durations.reverse)},"y":${fmtStrings(
+          labels.reverse
+        )},"marker":{"color":${fmtStrings(colors.reverse)}},"hovertemplate":"%{y}<br>%{x:.2f}s<extra></extra>"}"""
+      val layout =
+        s"""{"margin":{"t":8,"r":16,"b":44,"l":280},"showlegend":false,"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickfont":{"size":10},"gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"}}"""
+      val barHeight = math.max(280, ranked.size * 22 + 60)
+      addChart("slowest-suites", s"Slowest Suites (top ${ranked.size})", t, layout, true, barHeight)
+    }
+
+    // ---- 9. Slowest Tests (bar chart, top 30 by duration_ms) ----
+    if (events.testEnd.nonEmpty) {
+      val ranked = events.testEnd.sortBy(e => -e.get("duration_ms").getAsLong).take(30)
+      val labels = ranked.map(e => s"${getStr(e, "test")} — ${getStr(e, "suite")}")
+      val durations = ranked.map(_.get("duration_ms").getAsLong / 1000.0)
+      val colors = ranked.map(e => getStr(e, "status").toLowerCase(Locale.ROOT)).map {
+        case "passed"                           => "#22c55e"
+        case "failed" | "error"                 => "#ef4444"
+        case "skipped" | "canceled" | "ignored" => "#9ca3af"
+        case _                                  => "#3b82f6"
+      }
+      val t = ArrayBuffer.empty[String]
+      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(durations.reverse)},"y":${fmtStrings(
+          labels.reverse
+        )},"marker":{"color":${fmtStrings(colors.reverse)}},"hovertemplate":"%{y}<br>%{x:.3f}s<extra></extra>"}"""
+      val layout =
+        s"""{"margin":{"t":8,"r":16,"b":44,"l":340},"showlegend":false,"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickfont":{"size":9},"gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"}}"""
+      val barHeight = math.max(280, ranked.size * 18 + 60)
+      addChart("slowest-tests", s"Slowest Tests (top ${ranked.size})", t, layout, true, barHeight)
+    }
+
+    // ---- 10. Suite Timeline (full width) ----
+    // Same shape as the compile timeline: one row per (workspace, project, suite), bars span suite_start → suite_end.
+    if (events.suiteEnd.nonEmpty && events.suiteStart.nonEmpty) {
+      val startMap = scala.collection.mutable.Map.empty[(String, String, String), ArrayBuffer[Long]]
+      events.suiteStart.foreach { e =>
+        val key = (getStr(e, "project"), getStr(e, "workspace"), getStr(e, "suite"))
+        startMap.getOrElseUpdate(key, ArrayBuffer.empty) += e.get("ts").getAsLong
+      }
+
+      case class SuiteSpan(suite: String, project: String, workspace: String, startS: Double, durationS: Double, success: Boolean)
+      val spans = ArrayBuffer.empty[SuiteSpan]
+      events.suiteEnd.foreach { e =>
+        val key = (getStr(e, "project"), getStr(e, "workspace"), getStr(e, "suite"))
+        startMap.get(key).foreach { starts =>
+          if (starts.nonEmpty) {
+            val startTs = starts.remove(0)
+            val durMs = e.get("duration_ms").getAsLong
+            val ok = e.has("success") && e.get("success").getAsBoolean
+            spans += SuiteSpan(getStr(e, "suite"), getStr(e, "project"), getStr(e, "workspace"), relS(startTs), durMs / 1000.0, ok)
+          }
+        }
+      }
+
+      if (spans.nonEmpty) {
+        val rowKeys = spans.map(s => (pathName(s.workspace), s.project, s.suite)).distinct.sortBy(r => (r._1, r._2, r._3))
+        val rowLabels = rowKeys.map { case (ws, proj, suite) => s"$ws / $proj / $suite" }
+        val rowIndex = rowKeys.zipWithIndex.toMap
+        val height = math.max(400, rowKeys.size * 14 + 80)
+
+        val shapes = spans.map { span =>
+          val row = rowIndex((pathName(span.workspace), span.project, span.suite))
+          val color = if (span.success) "#22c55e" else "#ef4444"
+          s"""{"type":"rect","x0":${span.startS},"x1":${span.startS + span.durationS},"y0":${row - 0.4},"y1":${row + 0.4},"fillcolor":"$color","opacity":0.8,"line":{"width":0}}"""
+        }
+
+        val t = ArrayBuffer.empty[String]
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(spans.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(
+            spans.map(s => rowIndex((pathName(s.workspace), s.project, s.suite)).toDouble)
+          )},"text":${fmtStrings(spans.map(s => s"${s.suite} (${s.project} @ ${pathName(s.workspace)})"))},"customdata":${fmtDoubles(
+            spans.map(_.durationS)
+          )},"marker":{"color":"rgba(0,0,0,0)","size":6},"hovertemplate":"%{text}<br>%{customdata:.2f}s<extra></extra>","showlegend":false}"""
+
+        val tlLayout =
+          s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(
+              rowKeys.indices.map(_.toDouble)
+            )},"ticktext":${fmtStrings(
+              rowLabels
+            )},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes
+              .mkString(",")}]}"""
+
+        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Suite Timeline (${rowKeys.size} suites)</h3><div id="suite-timeline" style="height:${height}px"></div></div>"""
+        plotCalls += s"""Plotly.newPlot('suite-timeline',[${t.mkString(",")}],$tlLayout,{responsive:true,displayModeBar:false});"""
+      }
+    }
+
     // ---- Summary statistics ----
     val totalCompiles = events.compileEnd.size
     val successfulCompiles = events.compileEnd.count(_.get("success").getAsBoolean)
@@ -382,6 +509,30 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
 
     val oomLabel = if (oomCrashCount > 0) s"$oomCrashCount CRASH" else if (oomPressureCount > 0) s"$oomPressureCount events" else "None"
 
+    // Test-level summary
+    val totalSuites = events.suiteEnd.size
+    val failedSuites = events.suiteEnd.count(e => e.has("success") && !e.get("success").getAsBoolean)
+    val totalTests = events.testEnd.size
+    val testStatuses = events.testEnd.groupBy(e => getStr(e, "status").toLowerCase(Locale.ROOT)).view.mapValues(_.size).toMap
+    val passedTests = testStatuses.getOrElse("passed", 0)
+    val failedTests = testStatuses.getOrElse("failed", 0) + testStatuses.getOrElse("error", 0)
+    val cancelledTests = testStatuses.getOrElse("canceled", 0) + testStatuses.getOrElse("skipped", 0) + testStatuses.getOrElse("ignored", 0)
+    val avgSuiteMs = if (totalSuites > 0) events.suiteEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / totalSuites else 0.0
+    val avgTestMs = if (totalTests > 0) events.testEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / totalTests else 0.0
+    val slowestSuiteMs = if (totalSuites > 0) events.suiteEnd.map(_.get("duration_ms").getAsLong).max else 0L
+    val slowestTestMs = if (totalTests > 0) events.testEnd.map(_.get("duration_ms").getAsLong).max else 0L
+
+    val testStatsHtml =
+      if (totalSuites == 0 && totalTests == 0) ""
+      else s"""<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+${stat("Suites", s"$totalSuites${if (failedSuites > 0) s" ($failedSuites failed)" else ""}", if (failedSuites > 0) "#ef4444" else "#22c55e")}
+${stat("Tests", s"$totalTests passed:$passedTests failed:$failedTests skip:$cancelledTests", if (failedTests > 0) "#ef4444" else "#22c55e")}
+${stat("Avg Suite", f"${avgSuiteMs / 1000.0}%.2f s", "#f59e0b")}
+${stat("Avg Test", f"${avgTestMs}%.0f ms", "#f59e0b")}
+${stat("Slowest Suite", f"${slowestSuiteMs / 1000.0}%.2f s", "#8b5cf6")}
+${stat("Slowest Test", f"${slowestTestMs / 1000.0}%.2f s", "#8b5cf6")}
+</div>"""
+
     val statsHtml = s"""$oomWarning<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
 ${stat("Builds", s"$completedBuilds / ${events.buildStart.size}", if (crashedBuilds > 0) "#ef4444" else "#3b82f6")}
 ${stat("Compiles", totalCompiles.toString, "#6366f1")}
@@ -391,7 +542,7 @@ ${stat("Avg Build", f"${avgBuildMs / 1000.0}%.1f s", "#f59e0b")}
 ${stat("Max Concurrent", summaryMaxConcurrent.toString, "#8b5cf6")}
 ${stat("Heap", s"$summaryMaxHeap / $heapMax MB", if (anyOom) "#ef4444" else "#ec4899")}
 ${stat("OOM", oomLabel, if (anyOom) "#ef4444" else "#22c55e")}
-</div>"""
+</div>$testStatsHtml"""
 
     s"""<!DOCTYPE html>
 <html lang="en">
