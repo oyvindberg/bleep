@@ -1,13 +1,14 @@
 package bleep.testing
 
+import bleep.PreBootstrapOpts
 import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}
+import bleep.testing.BleepConsole as SConsole
 import cats.effect._
 import cats.syntax.all._
 
 import scala.collection.mutable
-import scala.{Console => SConsole}
 
 /** Displays build progress in real-time.
   *
@@ -98,7 +99,7 @@ object BuildSummary {
   /** Format a complete summary for display after a build/test run. Returns lines to print. Used by both TUI and non-TUI paths.
     */
   def formatSummary(summary: BuildSummary, mode: BuildMode): List[String] = {
-    import scala.{Console => C}
+    import BleepConsole as C
     val lines = List.newBuilder[String]
 
     // Anything other than passed/skipped/ignored means failure

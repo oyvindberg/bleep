@@ -439,7 +439,7 @@ case class ReactiveBsp(
   }
 
   private def printErrorSummary(started: Started, err: Throwable, durationMs: Long): Unit = {
-    import scala.{Console => C}
+    import bleep.testing.BleepConsole as C
     val logger = started.logger
     logger.info("")
     logger.info(s"${C.RED}${C.BOLD}x Build Failed${C.RESET}")
@@ -450,7 +450,7 @@ case class ReactiveBsp(
   }
 
   private def printCancelledSummary(started: Started, durationMs: Long): Unit = {
-    import scala.{Console => C}
+    import bleep.testing.BleepConsole as C
     val logger = started.logger
     logger.info("")
     logger.info(s"${C.YELLOW}${C.BOLD}! Build Cancelled${C.RESET}")
