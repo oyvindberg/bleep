@@ -157,8 +157,10 @@ jobs:
       - name: Test binary after build (non-windows)
         env:
           CI: true
+        # `--exclude-tag slow` skips the integration tests (**IT) — those run in the `build` job, which is the canonical full-suite gate. Native-image jobs
+        # exercise the binary, not the test surface, so the IT bracket would only slow this matrix down.
         run: |
-          ./${{ matrix.file_name }} --dev test --no-color jvm3
+          ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows' && matrix.run_tests
 
@@ -223,8 +225,9 @@ jobs:
       - name: Test binary after build (windows)
         env:
           CI: true
+        # Slow ITs run in the `build` job — see the non-windows test step for rationale.
         run: |
-          ${{ matrix.file_name }} --dev test --no-color bleep-tests
+          ${{ matrix.file_name }} --dev test --no-color bleep-tests --exclude-tag slow
           ${{ matrix.file_name }} selftest
         shell: cmd
         if: runner.os == 'Windows' && matrix.run_tests
