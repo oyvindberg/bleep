@@ -139,6 +139,24 @@ object Main {
         )
         .orNone
 
+    // Tag-based filtering. Patterns are declared in `bleep.yaml`'s per-project `testTags`. `Argument.fromMap` both enforces known tag names at parse time
+    // (typos fail loudly) and drives decline's tab-completion via started.globs.testTagsMap.
+    val onlyTag: Opts[Option[NonEmptyList[String]]] =
+      Opts
+        .options[String](
+          "only-tag",
+          "Run only tests tagged with these names (declared in `testTags` per project). Multiple are OR-combined."
+        )(using argumentFrom("tag", Some(started.globs.testTagsMap)))
+        .orNone
+
+    val excludeTag: Opts[Option[NonEmptyList[String]]] =
+      Opts
+        .options[String](
+          "exclude-tag",
+          "Exclude tests tagged with these names. Takes precedence over --only-tag."
+        )(using argumentFrom("tag", Some(started.globs.testTagsMap)))
+        .orNone
+
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
         .arguments(metavars.hasSourceGenProject)(using argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
@@ -377,10 +395,12 @@ object Main {
               Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
               only,
               exclude,
+              onlyTag,
+              excludeTag,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir) =>
+            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, onlyTag, excludeTag, flamegraph, cancel, junitReportDir) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
@@ -392,6 +412,8 @@ object Main {
                 testArgs = testArgs.toList,
                 only = only.map(_.toList).getOrElse(Nil),
                 exclude = exclude.map(_.toList).getOrElse(Nil),
+                includeTags = onlyTag.map(_.toList).getOrElse(Nil),
+                excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
                 flamegraph = flamegraph,
                 cancel = cancel,
                 junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_))

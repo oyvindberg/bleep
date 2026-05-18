@@ -44,6 +44,8 @@ class Commands(started: Started) {
         testArgs = Nil,
         only = only.map(_.toList).getOrElse(Nil),
         exclude = exclude.map(_.toList).getOrElse(Nil),
+        includeTags = Nil,
+        excludeTags = Nil,
         flamegraph = false,
         cancel = false,
         junitReportDir = None

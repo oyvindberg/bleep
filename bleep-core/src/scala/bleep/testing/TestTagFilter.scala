@@ -28,7 +28,8 @@ object TestTagFilter {
           sb.append("[^.]*")
           i += 1
         case '.' | '\\' | '+' | '(' | ')' | '[' | ']' | '{' | '}' | '^' | '$' | '|' | '?' =>
-          sb.append('\\').append(c)
+          sb.append('\\')
+          sb.append(c)
           i += 1
         case _ =>
           sb.append(c)

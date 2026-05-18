@@ -35,6 +35,8 @@ case class ReactiveBsp(
     testArgs: List[String],
     only: List[String],
     exclude: List[String],
+    includeTags: List[String],
+    excludeTags: List[String],
     linkOptions: Option[LinkOptions],
     flamegraph: Boolean,
     cancel: Boolean,
@@ -54,7 +56,18 @@ case class ReactiveBsp(
     else runOnce(started)
 
   private def runOnce(started: Started): Either[BleepException, Unit] = {
-    val targetProjects = projects.toSet
+    // For `bleep test --only-tag slow`, prune projects whose `testTags` declare none of the requested tags before BSP dispatch.
+    // The suite-level filter inside the BSP server would catch this too, but pruning here avoids compiling those projects in the first place.
+    val candidateProjects: Set[model.CrossProjectName] = projects.toSet
+    val targetProjects: Set[model.CrossProjectName] = mode match {
+      case BuildMode.Test if includeTags.nonEmpty =>
+        bleep.testing.TestTagFilter.projectsRelevantForIncludes[model.CrossProjectName](
+          candidateProjects,
+          p => started.build.explodedProjects(p).testTags.value.keySet,
+          includeTags.toSet
+        )
+      case _ => candidateProjects
+    }
 
     if (targetProjects.isEmpty) {
       val modeLabel = mode match {
@@ -547,7 +560,7 @@ case class ReactiveBsp(
         BspRequestHelper
           .callCancellable {
             val params = new bsp4j.TestParams(targets.asJava)
-            val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, flamegraph)
+            val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, includeTags, excludeTags, flamegraph)
             params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
             params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
             server.buildTargetTest(params)
@@ -897,6 +910,8 @@ object ReactiveBsp {
     testArgs = Nil,
     only = Nil,
     exclude = Nil,
+    includeTags = Nil,
+    excludeTags = Nil,
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
@@ -912,6 +927,8 @@ object ReactiveBsp {
       testArgs: List[String],
       only: List[String],
       exclude: List[String],
+      includeTags: List[String],
+      excludeTags: List[String],
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[Path]
@@ -924,6 +941,8 @@ object ReactiveBsp {
     testArgs = testArgs,
     only = only,
     exclude = exclude,
+    includeTags = includeTags,
+    excludeTags = excludeTags,
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
@@ -947,6 +966,8 @@ object ReactiveBsp {
     testArgs = Nil,
     only = Nil,
     exclude = Nil,
+    includeTags = Nil,
+    excludeTags = Nil,
     linkOptions = Some(options),
     flamegraph = flamegraph,
     cancel = cancel,

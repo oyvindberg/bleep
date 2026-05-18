@@ -1947,10 +1947,24 @@ class MultiWorkspaceBspServer(
           val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
+          val includeTagsSet = testOptions.includeTags.toSet
+          val excludeTagsSet = testOptions.excludeTags.toSet
+          val tagsActive = includeTagsSet.nonEmpty || excludeTagsSet.nonEmpty
+
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
               discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
-                val filtered = filterSuites(suites, testOptions.only, testOptions.exclude)
+                val regexFiltered = filterSuites(suites, testOptions.only, testOptions.exclude)
+                val filtered =
+                  if (!tagsActive) regexFiltered
+                  else {
+                    val manifest: Map[String, Set[String]] =
+                      started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
+                    val fqdns = regexFiltered.map(_._1)
+                    val (keptFqdns, _) = bleep.testing.TestTagFilter.filter(fqdns, manifest, includeTagsSet, excludeTagsSet)
+                    val keptSet = keptFqdns.toSet
+                    regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
+                  }
                 if (testOptions.only.nonEmpty && filtered.isEmpty) {
                   val msg = if (suites.nonEmpty) {
                     val available = suites.map(_._1).mkString(", ")
