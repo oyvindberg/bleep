@@ -5,7 +5,6 @@ import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import cats.effect._
 import cats.syntax.all._
-import ryddig.{LoggerFn, TypedLogger}
 
 import scala.collection.mutable
 import scala.{Console => SConsole}
@@ -527,39 +526,12 @@ object BuildDisplay {
   ) extends BuildDisplay {
 
     override def reset: IO[Unit] = state.set(BuildState.empty) >> IO {
-      activeCompileProgress.clear()
-      lastProgressLine = ""
       activePhase.clear()
     }
-
-    // Track active compilations and their progress for progressMonitor display
-    private val activeCompileProgress: mutable.Map[CrossProjectName, Int] = mutable.Map.empty
-    private var lastProgressLine: String = ""
 
     // Track compile phase start times per project: project -> (phase, detail, startTimestamp)
     // Used to print completed phase with duration when next phase arrives or compile finishes
     private val activePhase: mutable.Map[CrossProjectName, (bleep.bsp.protocol.CompilePhase, String, Long)] = mutable.Map.empty
-
-    private val progressMonitor: Option[LoggerFn] = logger match {
-      case tl: TypedLogger[?] => tl.progressMonitor: @scala.annotation.nowarn("msg=progressMonitor")
-      case null               => None
-    }
-
-    private def renderCompileProgress(): Unit = progressMonitor.foreach { pm =>
-      val items = activeCompileProgress.toList.sortBy(-_._2)
-      if (items.nonEmpty) {
-        val rendered = items.take(4).map { case (project, pct) =>
-          if (pct > 0) s"${project.value}: $pct%" else s"${project.value}: started"
-        }
-        val rest = items.size - rendered.size
-        val suffix = if (rest > 0) s" +$rest" else ""
-        val line = s"Compiling ${rendered.mkString(", ")}$suffix"
-        if (line != lastProgressLine) {
-          lastProgressLine = line
-          pm.info(line)
-        }
-      }
-    }
 
     override def handle(event: BuildEvent): IO[Unit] =
       state.update(s => BuildStateReducer.reduce(s, event)) >> printSideEffects(event)
@@ -593,12 +565,11 @@ object BuildDisplay {
       }
 
     private def printSideEffects(event: BuildEvent): IO[Unit] = event match {
-      case BuildEvent.CompileStarted(project, _) =>
-        // Track for progressMonitor, but don't print — wait for CompilationReason
-        IO.delay {
-          activeCompileProgress(project) = 0
-          renderCompileProgress()
-        }
+      case BuildEvent.CompileStarted(_, _) =>
+        // Wait for CompilationReason to print — that's the meaningful start. We used to also push a redrawn "Compiling X: started, Y: 14%" progress line via
+        // the ryddig progressMonitor, but it emitted ANSI clear-line escapes (`\x1b[K`) on every refresh which looked like garbage in CI logs and didn't add
+        // anything useful over the per-event log lines. Killed entirely.
+        IO.unit
 
       case BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, _) =>
         // Track up-to-date projects so CompileFinished can suppress output for them
@@ -639,12 +610,7 @@ object BuildDisplay {
         import bleep.bsp.protocol.CompileStatus
         // Complete the last tracked phase (e.g. saving-analysis) and clean up
         val finishPhase = completePhase(project, timestamp)
-        // Remove from active progress tracking
-        val removeProgress = IO.delay {
-          val _ = activeCompileProgress.remove(project)
-          renderCompileProgress()
-        }
-        finishPhase >> removeProgress >>
+        finishPhase >>
           // Suppress output for up-to-date projects (only show single line from CompilationReason)
           upToDateProjects.get.flatMap { upToDate =>
             if (upToDate.contains(project) && status == CompileStatus.Success) {
@@ -712,11 +678,10 @@ object BuildDisplay {
             IO.delay { activePhase(project) = (phase, detail, timestamp) }
         } else IO.unit
 
-      case BuildEvent.CompileProgress(project, percent, _) =>
-        IO.delay {
-          activeCompileProgress(project) = percent
-          renderCompileProgress()
-        }
+      case BuildEvent.CompileProgress(_, _, _) =>
+        // Compile-percent updates used to drive the redrawn in-place "Compiling X: 14%, Y: 35%" line; the redraw emitted ANSI clear-line escapes that looked
+        // like garbage in CI logs and were of no use over the existing per-event lines. Killed entirely; we ignore the event.
+        IO.unit
 
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, _, _) =>
         // The dump is rendered once at the end under "Timeouts" in the summary (BuildState
