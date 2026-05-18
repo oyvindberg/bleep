@@ -45,25 +45,40 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     while (!Files.isDirectory(from))
       from = from.getParent
 
-    GitLock.withLock {
-      cli("git add", from, List("/usr/bin/env", "git", "add", in.toString), logger, out = cli.Out.ViaLogger(logger), env = List(("PATH", sys.env("PATH"))))
-        .discard()
-    }
+    gitWithRetry("git add", from, List("/usr/bin/env", "git", "add", in.toString), logger)
 
     if (Properties.isWin) succeed // let's deal with this later
     else if (isCi) {
-      GitLock.withLock {
-        cli(
-          "git diff",
-          from,
-          List("/usr/bin/env", "git", "diff", "--exit-code", "HEAD", in.toString),
-          logger,
-          out = cli.Out.ViaLogger(logger),
-          env = List(("PATH", sys.env("PATH")))
-        ).discard()
-      }
+      gitWithRetry("git diff", from, List("/usr/bin/env", "git", "diff", "--exit-code", "HEAD", in.toString), logger)
       succeed
     } else succeed
+  }
+
+  /** Run a git subprocess under [[GitLock]], retrying when git fails with the transient `.git/index.lock` collision. The cross-process FileLock serializes
+    * concurrent SnapshotTest calls cleanly, but operations outside it — `git status --porcelain` from `ProjectDigest`, an editor / shell / external tool the
+    * developer happens to be running — still create their own `.git/index.lock` briefly, and our git invocation can't recover from that. We can't lock against
+    * those, so retry on the transient error with exponential backoff. Any other git failure (real diff mismatch, missing path, …) propagates immediately.
+    */
+  private def gitWithRetry(action: String, from: Path, cmd: List[String], logger: Logger): Unit = {
+    val maxAttempts = 10
+    val baseSleepMs = 100L
+    var attempt = 1
+    var lastError: Throwable = null
+    while (attempt <= maxAttempts)
+      try {
+        GitLock.withLock {
+          cli(action, from, cmd, logger, out = cli.Out.ViaLogger(logger), env = List(("PATH", sys.env("PATH")))).discard()
+        }
+        return
+      } catch {
+        case e: BleepException.Text if e.getMessage.contains("index.lock") =>
+          lastError = e
+          if (attempt < maxAttempts) {
+            Thread.sleep(baseSleepMs * attempt)
+            attempt += 1
+          } else throw e
+      }
+    if (lastError != null) throw lastError
   }
 }
 
