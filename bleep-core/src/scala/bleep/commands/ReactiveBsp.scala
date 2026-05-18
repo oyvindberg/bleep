@@ -69,6 +69,13 @@ case class ReactiveBsp(
       case _ => candidateProjects
     }
 
+    // Tell the user when --only-tag pruned projects from their request; silent drops are surprising.
+    val droppedByTagPreFilter = candidateProjects -- targetProjects
+    if (droppedByTagPreFilter.nonEmpty) {
+      val dropped = droppedByTagPreFilter.toList.map(_.value).sorted.mkString(", ")
+      started.logger.info(s"--only-tag ${includeTags.mkString(",")}: pre-filtered ${droppedByTagPreFilter.size} project(s) with no matching tags: $dropped")
+    }
+
     if (targetProjects.isEmpty) {
       val modeLabel = mode match {
         case BuildMode.Compile   => "compile"
@@ -76,7 +83,11 @@ case class ReactiveBsp(
         case BuildMode.Test      => "test"
         case BuildMode.Run(_, _) => "run"
       }
-      started.logger.info(s"No projects to $modeLabel")
+      if (includeTags.nonEmpty)
+        started.logger.info(
+          s"No projects to $modeLabel after --only-tag ${includeTags.mkString(",")}. Candidates were: ${candidateProjects.toList.map(_.value).sorted.mkString(", ")}"
+        )
+      else started.logger.info(s"No projects to $modeLabel")
       return Right(())
     }
 

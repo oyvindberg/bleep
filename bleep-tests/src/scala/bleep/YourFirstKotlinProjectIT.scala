@@ -17,7 +17,9 @@ class YourFirstKotlinProjectIT extends IntegrationTestHarness {
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
       only = None,
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }

@@ -33,7 +33,9 @@ class Commands(started: Started) {
       projects: List[model.CrossProjectName],
       watch: Boolean = false,
       only: Option[NonEmptyList[String]],
-      exclude: Option[NonEmptyList[String]]
+      exclude: Option[NonEmptyList[String]],
+      includeTags: Option[NonEmptyList[String]],
+      excludeTags: Option[NonEmptyList[String]]
   ): Unit =
     force(
       commands.ReactiveBsp.test(
@@ -44,8 +46,8 @@ class Commands(started: Started) {
         testArgs = Nil,
         only = only.map(_.toList).getOrElse(Nil),
         exclude = exclude.map(_.toList).getOrElse(Nil),
-        includeTags = Nil,
-        excludeTags = Nil,
+        includeTags = includeTags.map(_.toList).getOrElse(Nil),
+        excludeTags = excludeTags.map(_.toList).getOrElse(Nil),
         flamegraph = false,
         cancel = false,
         junitReportDir = None

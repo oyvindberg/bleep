@@ -74,7 +74,9 @@ class KotlinIT extends IntegrationTestHarness {
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
       only = None,
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -129,7 +131,9 @@ class KotlinIT extends IntegrationTestHarness {
       projects = List(model.CrossProjectName(model.ProjectName("mylib-test"), None)),
       watch = false,
       only = None,
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -200,7 +204,9 @@ class KotlinIT extends IntegrationTestHarness {
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
       only = None,
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }

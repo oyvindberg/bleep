@@ -62,7 +62,9 @@ class TestFilterIT extends IntegrationTestHarness {
       projects = List(mytest),
       watch = false,
       only = Some(NonEmptyList.of("MyTest")),
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -75,7 +77,9 @@ class TestFilterIT extends IntegrationTestHarness {
       projects = List(mytest),
       watch = false,
       only = Some(NonEmptyList.of("example.MyTest")),
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -89,7 +93,9 @@ class TestFilterIT extends IntegrationTestHarness {
       projects = List(mytest),
       watch = false,
       only = Some(NonEmptyList.of("PassingTest")),
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -103,7 +109,9 @@ class TestFilterIT extends IntegrationTestHarness {
       projects = List(mytest),
       watch = false,
       only = None,
-      exclude = Some(NonEmptyList.of("FailingTest"))
+      exclude = Some(NonEmptyList.of("FailingTest")),
+      includeTags = None,
+      excludeTags = None
     )
     succeed
   }
@@ -117,7 +125,9 @@ class TestFilterIT extends IntegrationTestHarness {
         projects = List(mytest),
         watch = false,
         only = Some(NonEmptyList.of("NonExistentTest")),
-        exclude = None
+        exclude = None,
+        includeTags = None,
+        excludeTags = None
       )
     }
   }

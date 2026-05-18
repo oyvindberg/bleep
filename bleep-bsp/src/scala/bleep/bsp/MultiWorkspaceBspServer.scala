@@ -1950,31 +1950,72 @@ class MultiWorkspaceBspServer(
           val includeTagsSet = testOptions.includeTags.toSet
           val excludeTagsSet = testOptions.excludeTags.toSet
           val tagsActive = includeTagsSet.nonEmpty || excludeTagsSet.nonEmpty
+          val regexActive = testOptions.only.nonEmpty || testOptions.exclude.nonEmpty
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
               discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
+                val projectName = discoverTask.project.value
                 val regexFiltered = filterSuites(suites, testOptions.only, testOptions.exclude)
-                val filtered =
+                val manifest: Map[String, Set[String]] =
+                  started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
+                val tagFiltered =
                   if (!tagsActive) regexFiltered
                   else {
-                    val manifest: Map[String, Set[String]] =
-                      started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
                     val fqdns = regexFiltered.map(_._1)
                     val (keptFqdns, _) = bleep.testing.TestTagFilter.filter(fqdns, manifest, includeTagsSet, excludeTagsSet)
                     val keptSet = keptFqdns.toSet
                     regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
                   }
-                if (testOptions.only.nonEmpty && filtered.isEmpty) {
-                  val msg = if (suites.nonEmpty) {
-                    val available = suites.map(_._1).mkString(", ")
-                    s"--only ${testOptions.only.mkString(", ")} matched no test suites in ${discoverTask.project.value}. Available suites: $available"
-                  } else {
-                    s"--only ${testOptions.only.mkString(", ")} matched no test suites in ${discoverTask.project.value}. No test suites were discovered"
+
+                // Only treat an empty result as an error when the user asked to *include* something (--only or --only-tag).
+                // A pure --exclude / --exclude-tag emptying the set is the user explicitly skipping, not a misconfiguration.
+                val emptyIncludesError = tagFiltered.isEmpty && (testOptions.only.nonEmpty || includeTagsSet.nonEmpty)
+                if (emptyIncludesError) {
+                  // Stage-by-stage diagnostic so the user can tell which filter emptied the set.
+                  // Format: "<N discovered> → <M after --only/--exclude> → <K after tag filter> → 0 in scope".
+                  val pipeline = {
+                    val parts = scala.collection.mutable.ListBuffer.empty[String]
+                    parts += s"${suites.size} discovered"
+                    if (regexActive) parts += s"${regexFiltered.size} after --only/--exclude"
+                    if (tagsActive) parts += s"${tagFiltered.size} after tag filter"
+                    parts.mkString(" → ")
                   }
+                  val whichFilters = {
+                    val parts = scala.collection.mutable.ListBuffer.empty[String]
+                    if (testOptions.only.nonEmpty) parts += s"--only ${testOptions.only.mkString(",")}"
+                    if (testOptions.exclude.nonEmpty) parts += s"--exclude ${testOptions.exclude.mkString(",")}"
+                    if (includeTagsSet.nonEmpty) parts += s"--only-tag ${includeTagsSet.mkString(",")}"
+                    if (excludeTagsSet.nonEmpty) parts += s"--exclude-tag ${excludeTagsSet.mkString(",")}"
+                    parts.mkString(" ")
+                  }
+                  val hints = scala.collection.mutable.ListBuffer.empty[String]
+                  if (suites.isEmpty) hints += "No test suites were discovered in this project."
+                  else if (regexActive && regexFiltered.isEmpty)
+                    hints += s"Available suites: ${suites.map(_._1).mkString(", ")}"
+                  else if (tagsActive && tagFiltered.isEmpty) {
+                    if (manifest.isEmpty)
+                      hints += s"Project ${projectName} declares no testTags; --only-tag will never match here. (Did you mean to declare tags in bleep.yaml?)"
+                    else {
+                      val knownTags = manifest.keys.toList.sorted.mkString(", ")
+                      val sample = regexFiltered.map(_._1).take(5).mkString(", ")
+                      hints += s"Tags declared in ${projectName}: $knownTags"
+                      if (regexFiltered.nonEmpty)
+                        hints += s"Suites that survived --only/--exclude (none of these matched the tag filter): $sample${
+                            if (regexFiltered.size > 5) ", …" else ""
+                          }"
+                    }
+                  }
+
+                  val triggered =
+                    if (testOptions.only.nonEmpty) "--only"
+                    else if (includeTagsSet.nonEmpty) "--only-tag"
+                    else "filter"
+                  val msg =
+                    s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
                   (TaskDag.TaskResult.Failure(msg, Nil), Nil)
                 } else {
-                  (result, filtered)
+                  (result, tagFiltered)
                 }
               }
 

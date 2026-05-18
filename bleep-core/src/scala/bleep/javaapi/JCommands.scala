@@ -18,7 +18,14 @@ final class JCommands(started: Started) extends bleepscript.Commands {
     underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = watch)
 
   override def test(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.test(projects.asScala.iterator.map(JModel.toCross).toList, watch = false, only = None, exclude = None)
+    underlying.test(
+      projects.asScala.iterator.map(JModel.toCross).toList,
+      watch = false,
+      only = None,
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
+    )
 
   override def test(
       projects: java.util.List[bleepscript.CrossProjectName],
@@ -30,7 +37,9 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       projects.asScala.iterator.map(JModel.toCross).toList,
       watch = watch,
       only = toNel(only),
-      exclude = toNel(exclude)
+      exclude = toNel(exclude),
+      includeTags = None,
+      excludeTags = None
     )
 
   override def run(project: bleepscript.CrossProjectName): Unit =
