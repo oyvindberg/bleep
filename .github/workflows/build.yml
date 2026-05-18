@@ -85,7 +85,9 @@ jobs:
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    # Bumped from 25 → 40: macos-latest (arm64) cancelled at 25:19 mid native-image build under the prior 25-min ceiling. Other arches finish in ~13-20min, but
+    # mac arm needs the headroom for the native-image step itself before the test phase even starts.
+    timeout-minutes: 40
     # ============================================================================
     # !!! DO NOT ADD A `run_tests` FLAG OR ANY OTHER PER-ARCH TEST-SKIP MECHANISM !!!
     #
