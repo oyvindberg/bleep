@@ -2638,8 +2638,15 @@ class MultiWorkspaceBspServer(
   }
 
   /** Get environment variables for a test JVM from the model. */
-  private def computeTestEnvironment(started: Started, project: CrossProjectName): Map[String, String] =
-    started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
+  /** Env vars passed to every forked test-runner JVM. We always inject `NO_COLOR=1` (the no-color.org standard, honored by ScalaTest 3.2.16+, JUnit, JUnit 5,
+    * sbt, gradle, and many others) so test framework output captured in CI logs / dashboards is plain text instead of ANSI-decorated. Devs running tests in an
+    * interactive terminal see plain ScalaTest output too, which is barely distinguishable from the colored variant anyway and avoids the per-CI fix-up loop. A
+    * project-supplied `platform.jvmEnvironment` of NO_COLOR overrides this default (Map.++ right-bias).
+    */
+  private def computeTestEnvironment(started: Started, project: CrossProjectName): Map[String, String] = {
+    val projectEnv = started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
+    Map("NO_COLOR" -> "1") ++ projectEnv
+  }
 
   /** Create a TestEventHandler that offers events to the DAG queue via a Dispatcher.
     *
