@@ -1,0 +1,221 @@
+---
+title: Test tags
+---
+
+Bleep can filter the set of test suites it runs at the suite-dispatch boundary, *before* a single test class is loaded by a framework. You declare tag → suite-pattern mappings in `bleep.yaml` and pass `--only-tag` / `--exclude-tag` on the command line. Because filtering happens in bleep's own dispatcher — not inside ScalaTest, JUnit, MUnit, utest, Specs2 or anything else — the tag mechanism is **framework-agnostic** and works uniformly across every test runner bleep supports.
+
+> **Class-level only.** Tags match suite FQDNs, never individual test methods. If a framework offers per-method tagging (ScalaTest `Tag`, JUnit 5 `@Tag`) you can still use that *inside* a class; bleep's tags choose which classes to dispatch in the first place.
+
+## Quick start: mark integration tests as `slow`, run only fast tests
+
+```yaml
+projects:
+  mytests:
+    isTestProject: true
+    dependencies: org.scalatest::scalatest:3.2.19
+    testTags:
+      slow:
+      - "**IT"
+```
+
+Then on the command line:
+
+```bash
+bleep test mytests                       # runs everything
+bleep test mytests --only-tag slow       # runs only **IT
+bleep test mytests --exclude-tag slow    # runs everything except **IT
+```
+
+The `bleep.yaml` declaration above is what bleep itself uses to keep its own native-image CI jobs fast: see [`bleep.yaml`](https://github.com/oyvindberg/bleep/blob/master/bleep.yaml) and [the `--exclude-tag slow` step in `build.yml`](https://github.com/oyvindberg/bleep/blob/master/.github/workflows/build.yml).
+
+## Why suite-dispatch, not framework-native?
+
+Most test frameworks ship their own tagging surface (ScalaTest tags, JUnit 4 categories, JUnit 5 `@Tag`, MUnit, Specs2). They each work — until your build has projects on three different frameworks, or you want to ask one question across them (*"don't run anything that hits the network"*). Bleep tags solve that:
+
+1. **Same syntax for every framework.** You never write `@Slow` in Scala, `@Category(Slow.class)` in Java 4, and `@Tag("slow")` in Java 5. The marker lives in `bleep.yaml`.
+2. **Build-level, not source-level.** A test class doesn't need to know it's slow. Reclassifying a slow test as fast is one line in `bleep.yaml`, no recompile.
+3. **Saves compile work too** (see [project pre-filter](#project-pre-filter) below). Framework-native tags can't, because the framework hasn't loaded yet when bleep decides what to compile.
+
+## Declaration syntax
+
+`testTags` is a map of tag name to one-or-more **suite FQDN glob patterns**. Both forms are valid:
+
+```yaml
+projects:
+  mytests:
+    testTags:
+      slow: "**IT"                      # single string
+      flaky:
+      - "com.example.NetworkTest"       # array of strings
+      - "**FlakyIT"
+      e2e:
+      - "com.example.e2e.**"
+```
+
+### Glob semantics
+
+| Pattern | Matches |
+| --- | --- |
+| Literal characters | Themselves (`Foo`, `Test`, `.`, …) |
+| `*` | Any sequence within a single FQDN segment — does **not** cross dots |
+| `**` | Any sequence including dots |
+
+Examples:
+
+| Pattern | `com.example.FooIT` | `com.example.foo.FooIT` | `com.example.FastTest` |
+| --- | --- | --- | --- |
+| `**IT` | ✓ | ✓ | ✗ |
+| `com.example.*IT` | ✓ | ✗ (dot blocks `*`) | ✗ |
+| `com.example.**Test` | ✗ | ✗ | ✓ |
+| `**` | ✓ | ✓ | ✓ |
+
+Regex metacharacters in the literal portions (`.`, `$`, `+`, `(`, `)`, `[`, `]`, `{`, `}`, `^`, `|`, `?`, `\`) are escaped automatically. `Foo$Bar` matches only `Foo$Bar`, not `FooXBar`.
+
+## CLI surface: `--only-tag` and `--exclude-tag`
+
+The flags mirror the existing `--only` / `--exclude` (which filter on suite-name substrings, not tags):
+
+```bash
+bleep test --only-tag slow                  # union: any suite tagged slow
+bleep test --only-tag slow --only-tag e2e   # OR: tagged slow OR tagged e2e
+bleep test --exclude-tag flaky              # subtractive: drop suites tagged flaky
+bleep test --only-tag slow --exclude-tag flaky   # slow-and-not-flaky
+bleep test --only-tag slow --only FooIT     # AND with --only: must match both
+```
+
+Rules:
+
+* **`--only-tag` is union.** Multiple `--only-tag` flags OR together (suite needs to match *any* requested tag).
+* **`--exclude-tag` is subtractive.** It always drops; never adds. A suite tagged with both `slow` and `flaky` is dropped by `--exclude-tag flaky` even if `--only-tag slow` was also given.
+* **No `--only-tag`s active = all suites considered.** Untagged suites are kept by default — they are only excluded when at least one `--only-tag` is specified.
+* **Mixing with `--only` / `--exclude` = AND.** First the FQDN regex filter runs (the existing `--only`/`--exclude` substring match), then the tag filter narrows further. Both must pass.
+
+### Strict tag validation
+
+Bleep's CLI uses [decline](https://ben.kirw.in/decline/) with `Argument.fromMap`, fed by the set of tag names actually declared in your build. That gives you two things for free:
+
+1. **Tab-completion.** `bleep test --only-tag <TAB>` lists the tags your projects declare.
+2. **Typos fail loud at parse time.** `bleep test --only-tag slo` exits before any work runs with:
+   ```
+   Unknown value: slo. Expected slow.
+   ```
+
+## Project pre-filter
+
+`--only-tag X` narrows the *project* set before BSP dispatch, not just the suite set inside each project. The narrowing rule:
+
+> If a project's `testTags` declare none of the tags requested by `--only-tag`, drop the project entirely. Don't compile it. Don't discover its suites.
+
+In practice this matters when you have, say, `bleep-tests` (which declares `slow`) and `bleep-bsp-tests` (which doesn't):
+
+```bash
+$ bleep test bleep-tests bleep-bsp-tests --only-tag slow
+[info] --only-tag slow: pre-filtered 1 project(s) with no matching tags: bleep-bsp-tests
+...
+  Projects: 1/2 selected (1 pre-filtered by --only-tag slow: bleep-bsp-tests)
+  Filters active: --only-tag slow
+```
+
+`bleep-bsp-tests` never compiled. That's the saved work.
+
+The mirror flag `--exclude-tag` does **not** prune projects, because a project can have a mix of tagged and untagged suites — the untagged ones still need to run.
+
+## Inspecting tags: `bleep list-tests`
+
+Lists every discovered suite alphabetically, with matching tags in parens, and warns about manifest patterns that match nothing:
+
+```bash
+$ bleep list-tests bleep-tests
+bleep-tests:
+  bleep.AnnotationProcessingIT (slow)
+  bleep.BleepDevDepsTest
+  bleep.BuildRewriteTest
+  bleep.CrossBuildingKotlinIT (slow)
+  bleep.FastTest
+  ...
+
+[warn] [bleep-tests] testTags.slow pattern '**LegacyIT' matches no discovered suite
+```
+
+The drift warning is informational, not fatal. It tells you when a tag pattern has fallen out of sync with reality — a class was renamed, deleted, or never existed.
+
+## Summary diagnostics
+
+When any filter is active OR `--only-tag` pre-filtered any project, the test summary appends:
+
+```
+✓ Build Summary
+
+  Tests: 47 passed, 0 failed
+  Suites: 12 total
+  Projects: 1/2 selected (1 pre-filtered by --only-tag slow: bleep-bsp-tests)
+  Filters active: --only NoSuchTest · --only-tag slow
+  Duration: 9.8s
+```
+
+The `Filters active` line is verbatim what you'd type to reproduce the run.
+
+## Error messages
+
+When `--only` or `--only-tag` matches no suites in a project, the error walks the filter pipeline so you can tell which stage emptied the set:
+
+```
+--only-tag matched no test suites in mytest (--only-tag slow):
+1 discovered → 0 after tag filter.
+Tags declared in mytest: slow
+Suites that survived --only/--exclude (none matched the tag filter): example.FastTest
+```
+
+The breakdown — `N discovered → M after --only/--exclude → K after tag filter` — appears whenever the resulting set is empty and an include-style filter (`--only` or `--only-tag`) was requested. Pure `--exclude` / `--exclude-tag` emptying the set stays silent because that's the user explicitly skipping, not a misconfiguration.
+
+Special-cased hints:
+
+* If the project declares no `testTags` at all: *"Project X declares no testTags; --only-tag will never match here. (Did you mean to declare tags in bleep.yaml?)"*
+* If the regex filter emptied things first: lists the suites available before the regex filter ran.
+
+## CI recipe: fast per-arch validation, full coverage in one canonical job
+
+This is exactly how bleep itself uses tags. The full test suite runs in the `build` job; per-arch native-image jobs skip the `slow` bracket since their job is to validate the produced binary boots, not to re-run the integration surface on every architecture.
+
+```yaml
+# bleep.yaml
+projects:
+  bleep-tests:
+    testTags:
+      slow:
+      - "**IT"
+```
+
+```yaml
+# .github/workflows/build.yml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: bleep test    # full suite — canonical gate
+
+  build-native-image:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-22.04-arm, macos-15-intel, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: ./bleep --dev test --no-color jvm3 --exclude-tag slow
+```
+
+The trade: native-image jobs no longer block on the integration-test wall-time, but the integration tests remain a release-blocker via the `build` job. No architecture is silently skipped — every job runs *some* tests, and the slow bracket is gated by exactly one canonical run.
+
+## Comparison to framework-native tagging
+
+You can still use framework-native tagging alongside bleep tags. They occupy different layers:
+
+| Concern | bleep `testTags` | Framework-native (ScalaTest tags, JUnit @Tag, …) |
+| --- | --- | --- |
+| Layer | Build / suite-dispatch | Framework runtime |
+| Granularity | Class FQDN | Test method (usually) |
+| Cross-framework | ✓ One mechanism for everything | ✗ Each framework's own surface |
+| Saves compile work | ✓ (via project pre-filter) | ✗ |
+| Source change to retag | ✗ Edit `bleep.yaml` | ✓ Edit annotation in source |
+| Per-method filtering | ✗ | ✓ |
+
+Use bleep tags for *class-level structural categories* — "integration", "slow", "flaky-on-CI", "needs-network". Reach for framework-native tags when you genuinely want per-method filtering within a class.
