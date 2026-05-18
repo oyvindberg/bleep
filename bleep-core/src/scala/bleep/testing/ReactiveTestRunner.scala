@@ -112,7 +112,8 @@ object ReactiveTestRunner {
 
           runSuites.flatMap { _ =>
             for {
-              _ <- display.printSummary
+              // ReactiveTestRunner is the legacy non-BSP path; it doesn't expose filter flags at this layer, so no FilterContext.
+              _ <- display.printSummary(None)
               summary <- display.summary
             } yield Result(
               passed = summary.testsPassed,

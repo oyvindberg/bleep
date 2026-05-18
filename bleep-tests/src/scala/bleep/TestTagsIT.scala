@@ -60,7 +60,7 @@ class TestTagsIT extends IntegrationTestHarness {
     ws.yaml(TaggedYaml)
     ws.file("mytest/src/scala/FastTest.scala", FastTest)
     ws.file("mytest/src/scala/HeavyIT.scala", SlowIT)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     // FastTest is untagged; with --only-tag slow it must be excluded. HeavyIT is the only suite that should run.
     commands.test(
       projects = List(mytest),
@@ -70,7 +70,9 @@ class TestTagsIT extends IntegrationTestHarness {
       includeTags = Some(NonEmptyList.of("slow")),
       excludeTags = None
     )
-    succeed
+    // Summary always carries the filter accounting when filters are active.
+    val log = storingLogger.underlying.iterator.map(_.message.plainText).mkString("\n")
+    assert(log.contains("Filters active: --only-tag slow"), s"expected 'Filters active: --only-tag slow' in summary log, got:\n$log")
   }
 
   integrationTest("--exclude-tag slow skips **IT suites, keeps untagged ones running") { ws =>
@@ -156,7 +158,7 @@ class TestTagsIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file("mytest/src/scala/FastTest.scala", FastTest)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     // mytest declares no testTags at all. `--only-tag smoke` pre-filters it out → 0 projects to test (no exception, just an info log).
     commands.test(
       projects = List(mytest),
@@ -166,6 +168,53 @@ class TestTagsIT extends IntegrationTestHarness {
       includeTags = Some(NonEmptyList.of("smoke")),
       excludeTags = None
     )
-    succeed
+    // The "No projects to test after --only-tag" line is the user-visible signal that the pre-filter pruned everything.
+    val log = storingLogger.underlying.iterator.map(_.message.plainText).mkString("\n")
+    assert(
+      log.contains("No projects to test after --only-tag smoke"),
+      s"expected pre-filter empty-projects message in log, got:\n$log"
+    )
+  }
+
+  integrationTest("summary reports projects-selected ratio when --only-tag pre-filters some") { ws =>
+    // Two projects, only one declares the `slow` tag. `--only-tag slow` should drop the other before BSP dispatch and the summary should call that out.
+    ws.yaml(
+      """projects:
+        |  tagged:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |    testTags:
+        |      slow: "**IT"
+        |  untagged:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin
+    )
+    ws.file("tagged/src/scala/HeavyIT.scala", SlowIT)
+    ws.file("untagged/src/scala/FastTest.scala", FastTest)
+    val tagged = model.CrossProjectName(model.ProjectName("tagged"), None)
+    val untagged = model.CrossProjectName(model.ProjectName("untagged"), None)
+    val (_, commands, storingLogger) = ws.start()
+    commands.test(
+      projects = List(tagged, untagged),
+      watch = false,
+      only = None,
+      exclude = None,
+      includeTags = Some(NonEmptyList.of("slow")),
+      excludeTags = None
+    )
+    val log = storingLogger.underlying.iterator.map(_.message.plainText).mkString("\n")
+    // Project line should be "Projects: 1/2 selected (1 pre-filtered by --only-tag slow: untagged)".
+    assert(log.contains("Projects: 1/2 selected"), s"expected '1/2 selected' in summary, got:\n$log")
+    assert(log.contains("pre-filtered by --only-tag slow"), s"expected pre-filter reason in summary, got:\n$log")
+    assert(log.contains("untagged"), s"expected dropped project name in summary, got:\n$log")
   }
 }

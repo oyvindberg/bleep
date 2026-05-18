@@ -91,9 +91,25 @@ case class ReactiveBsp(
       return Right(())
     }
 
+    val filterCtx: Option[bleep.testing.FilterContext] =
+      mode match {
+        case BuildMode.Test =>
+          val ctx = bleep.testing.FilterContext(
+            candidateProjects = candidateProjects,
+            selectedProjects = targetProjects,
+            only = only,
+            exclude = exclude,
+            includeTags = includeTags,
+            excludeTags = excludeTags
+          )
+          // Carry the context whenever there is something the user might want to verify: an active filter or a tag-pre-filter that pruned projects.
+          if (ctx.anyActive || ctx.droppedProjects.nonEmpty) Some(ctx) else None
+        case _ => None
+      }
+
     started.bspServerClasspathSource match {
       case BspServerClasspathSource.InProcess(connect) =>
-        runInProcess(started, connect, targetProjects)
+        runInProcess(started, connect, targetProjects, filterCtx)
       case BspServerClasspathSource.FromCoursier(resolver) =>
         SetupBleepBsp(
           compileServerMode = started.config.compileServerModeOrDefault,
@@ -107,7 +123,7 @@ case class ReactiveBsp(
           case Left(err) =>
             Left(err)
           case Right(config) =>
-            runWithBleepBsp(started, config, targetProjects)
+            runWithBleepBsp(started, config, targetProjects, filterCtx)
         }
     }
   }
@@ -116,7 +132,8 @@ case class ReactiveBsp(
   private def runInProcess(
       started: Started,
       connect: ryddig.Logger => Resource[IO, BspConnection],
-      targetProjects: Set[model.CrossProjectName]
+      targetProjects: Set[model.CrossProjectName],
+      filterContext: Option[bleep.testing.FilterContext]
   ): Either[BleepException, Unit] = {
     val bspLogger = started.logger
     val diagLog: String => Unit = _ => ()
@@ -183,7 +200,7 @@ case class ReactiveBsp(
       _ <- eventConsumerFiber.joinWithNever
       _ <- writeJUnitReports(started, junitReportDir, junitCollector)
       summary <- signalCompletion
-      _ <- display.printSummary
+      _ <- display.printSummary(filterContext)
     } yield summary
 
     try {
@@ -198,7 +215,8 @@ case class ReactiveBsp(
   private def runWithBleepBsp(
       started: Started,
       config: BspRifleConfig,
-      targetProjects: Set[model.CrossProjectName]
+      targetProjects: Set[model.CrossProjectName],
+      filterContext: Option[bleep.testing.FilterContext]
   ): Either[BleepException, Unit] = {
 
     // Determine effective mode and logger upfront (no IO needed)
@@ -412,7 +430,7 @@ case class ReactiveBsp(
 
       // Always signal completion to TUI (even if BSP failed or user quit)
       summary <- signalCompletion
-      _ <- display.printSummary
+      _ <- display.printSummary(filterContext)
       // Update previousRunState from collected events (only in DiffWatch mode)
       _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
       _ <- IO.delay(started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}"))
@@ -449,7 +467,7 @@ case class ReactiveBsp(
         val durationMs = System.currentTimeMillis() - startTime
         summaryOpt match {
           case Some(summary) =>
-            printFinalSummary(started, summary)
+            printFinalSummary(started, summary.copy(filterContext = filterContext))
           case None =>
             errorOpt match {
               case Some(err) => printErrorSummary(started, err, durationMs)

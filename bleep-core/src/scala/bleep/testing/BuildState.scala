@@ -90,7 +90,8 @@ case class BuildState(
       skippedProjects = skippedProjects.reverse,
       durationMs = durationMs,
       totalTaskTimeMs = totalTaskTimeMs,
-      wasCancelled = wasCancelled
+      wasCancelled = wasCancelled,
+      filterContext = None
     )
   }
 }
