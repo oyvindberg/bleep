@@ -29,8 +29,33 @@ trait BuildDisplay {
   /** Reset display state (e.g., before retry after server crash) */
   def reset: IO[Unit]
 
-  /** Print final summary */
-  def printSummary: IO[Unit]
+  /** Print final summary. Pass a [[FilterContext]] when test filters are active so the summary can show which filters ran and what they pruned. */
+  def printSummary(filterContext: Option[FilterContext]): IO[Unit]
+}
+
+/** Snapshot of the filters the user asked for in this run. Attached to `BuildSummary` purely for display — does not affect control flow.
+  *
+  *   - `candidateProjects`: the set of projects after the CLI has expanded the user's globs (`jvm3`, prefix groups, etc.) but before any test-tag pre-filter.
+  *     This is what would have been built/tested if `--only-tag` were absent.
+  *   - `selectedProjects`: subset of `candidateProjects` that actually got dispatched after the `--only-tag` pre-filter. Equal to `candidateProjects` when no
+  *     `--only-tag` is active.
+  *
+  * We don't keep the raw user-typed args (globs like `jvm3` or `mylib`) because glob resolution lives in `ProjectGlobs` upstream of this layer — by the time we
+  * have a `ReactiveBsp` to run, projects are already a `Set[CrossProjectName]`. The summary still shows the user a meaningful "N of M" because both N and M are
+  * in their (post-expansion) terms.
+  *
+  * When any filter field is non-empty the summary appends a "Filters active" block so users can verify what their flags did at a glance.
+  */
+case class FilterContext(
+    candidateProjects: Set[CrossProjectName],
+    selectedProjects: Set[CrossProjectName],
+    only: List[String],
+    exclude: List[String],
+    includeTags: List[String],
+    excludeTags: List[String]
+) {
+  def anyActive: Boolean = only.nonEmpty || exclude.nonEmpty || includeTags.nonEmpty || excludeTags.nonEmpty
+  def droppedProjects: Set[CrossProjectName] = candidateProjects -- selectedProjects
 }
 
 case class BuildSummary(
@@ -62,7 +87,8 @@ case class BuildSummary(
     skippedProjects: List[SkippedProject],
     durationMs: Long,
     totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
-    wasCancelled: Boolean
+    wasCancelled: Boolean,
+    filterContext: Option[FilterContext]
 ) {
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
@@ -163,6 +189,36 @@ object BuildSummary {
       f" (total task time: ${totalSec}%.1fs, ${parallelism}%.1fx parallelism)"
     } else ""
     lines += s"  Duration: $durationStr$parallelismStr"
+
+    // --- Filter accounting (test mode only; only when something was filtered) ---
+    mode match {
+      case BuildMode.Test =>
+        summary.filterContext.foreach { ctx =>
+          // Project line: "Projects: 2/5 selected (3 pre-filtered by --only-tag slow: foo, bar, baz)"
+          val totalCandidates = ctx.candidateProjects.size
+          val selectedCount = ctx.selectedProjects.size
+          val droppedCount = ctx.droppedProjects.size
+          if (droppedCount > 0) {
+            val droppedNames = ctx.droppedProjects.toList.map(_.value).sorted
+            val droppedShown = droppedNames.take(5).mkString(", ")
+            val droppedSuffix = if (droppedNames.size > 5) s", … +${droppedNames.size - 5} more" else ""
+            lines += s"  Projects: $selectedCount/$totalCandidates selected ($droppedCount pre-filtered by --only-tag ${ctx.includeTags.mkString(",")}: $droppedShown$droppedSuffix)"
+          } else if (ctx.anyActive) {
+            lines += s"  Projects: $selectedCount/$totalCandidates selected"
+          }
+          // Filter list — concrete reproduction of every flag in play, so a reader can replay the run.
+          if (ctx.anyActive) {
+            val parts = scala.collection.mutable.ListBuffer.empty[String]
+            if (ctx.only.nonEmpty) parts += s"--only ${ctx.only.mkString(",")}"
+            if (ctx.exclude.nonEmpty) parts += s"--exclude ${ctx.exclude.mkString(",")}"
+            if (ctx.includeTags.nonEmpty) parts += s"--only-tag ${ctx.includeTags.mkString(",")}"
+            if (ctx.excludeTags.nonEmpty) parts += s"--exclude-tag ${ctx.excludeTags.mkString(",")}"
+            lines += s"  Filters active: ${parts.mkString(" · ")}"
+          }
+        }
+      case _ => ()
+    }
+
     lines += ""
 
     // === Killed tasks (cancelled builds) ===
@@ -432,7 +488,8 @@ object BuildSummary {
     skippedProjects = Nil,
     durationMs = 0L,
     totalTaskTimeMs = 0L,
-    wasCancelled = false
+    wasCancelled = false,
+    filterContext = None
   )
 }
 
@@ -814,11 +871,11 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary: IO[Unit] = mode match {
+    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] = mode match {
       case BuildMode.Compile | BuildMode.Link(_) =>
         printCompileSummary
       case BuildMode.Test =>
-        printBuildSummary
+        printBuildSummary(filterContext)
       case BuildMode.Run(_, _) =>
         IO.unit // Run mode doesn't need a summary
     }
@@ -874,10 +931,11 @@ object BuildDisplay {
         }
       } yield ()
 
-    private def printBuildSummary: IO[Unit] =
+    private def printBuildSummary(filterContext: Option[FilterContext]): IO[Unit] =
       for {
         s <- summary
-        _ <- BuildSummary.formatSummary(s, mode).traverse_(log)
+        enriched = s.copy(filterContext = filterContext)
+        _ <- BuildSummary.formatSummary(enriched, mode).traverse_(log)
       } yield ()
   }
 
@@ -1034,9 +1092,11 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary: IO[Unit] =
+    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] =
+      // DiffWatch focuses on per-cycle deltas; FilterContext isn't surfaced here since the user already chose the filter and watches its outcome cycle by cycle.
+      // We accept the parameter for trait conformance and ignore it.
       for {
-        s <- summary
+        s <- summary.map(_.copy(filterContext = filterContext))
         allTests <- currentTestResults.get
         _ <- mode match {
           case BuildMode.Compile | BuildMode.Link(_) =>
@@ -1094,6 +1154,6 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary: IO[Unit] = IO.unit // Fancy display handles this
+    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] = IO.unit // Fancy display handles this; filterContext is rendered there.
   }
 }

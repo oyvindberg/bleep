@@ -35,6 +35,8 @@ case class ReactiveBsp(
     testArgs: List[String],
     only: List[String],
     exclude: List[String],
+    includeTags: List[String],
+    excludeTags: List[String],
     linkOptions: Option[LinkOptions],
     flamegraph: Boolean,
     cancel: Boolean,
@@ -54,7 +56,25 @@ case class ReactiveBsp(
     else runOnce(started)
 
   private def runOnce(started: Started): Either[BleepException, Unit] = {
-    val targetProjects = projects.toSet
+    // For `bleep test --only-tag slow`, prune projects whose `testTags` declare none of the requested tags before BSP dispatch.
+    // The suite-level filter inside the BSP server would catch this too, but pruning here avoids compiling those projects in the first place.
+    val candidateProjects: Set[model.CrossProjectName] = projects.toSet
+    val targetProjects: Set[model.CrossProjectName] = mode match {
+      case BuildMode.Test if includeTags.nonEmpty =>
+        bleep.testing.TestTagFilter.projectsRelevantForIncludes[model.CrossProjectName](
+          candidateProjects,
+          p => started.build.explodedProjects(p).testTags.value.keySet,
+          includeTags.toSet
+        )
+      case _ => candidateProjects
+    }
+
+    // Tell the user when --only-tag pruned projects from their request; silent drops are surprising.
+    val droppedByTagPreFilter = candidateProjects -- targetProjects
+    if (droppedByTagPreFilter.nonEmpty) {
+      val dropped = droppedByTagPreFilter.toList.map(_.value).sorted.mkString(", ")
+      started.logger.info(s"--only-tag ${includeTags.mkString(",")}: pre-filtered ${droppedByTagPreFilter.size} project(s) with no matching tags: $dropped")
+    }
 
     if (targetProjects.isEmpty) {
       val modeLabel = mode match {
@@ -63,13 +83,33 @@ case class ReactiveBsp(
         case BuildMode.Test      => "test"
         case BuildMode.Run(_, _) => "run"
       }
-      started.logger.info(s"No projects to $modeLabel")
+      if (includeTags.nonEmpty)
+        started.logger.info(
+          s"No projects to $modeLabel after --only-tag ${includeTags.mkString(",")}. Candidates were: ${candidateProjects.toList.map(_.value).sorted.mkString(", ")}"
+        )
+      else started.logger.info(s"No projects to $modeLabel")
       return Right(())
     }
 
+    val filterCtx: Option[bleep.testing.FilterContext] =
+      mode match {
+        case BuildMode.Test =>
+          val ctx = bleep.testing.FilterContext(
+            candidateProjects = candidateProjects,
+            selectedProjects = targetProjects,
+            only = only,
+            exclude = exclude,
+            includeTags = includeTags,
+            excludeTags = excludeTags
+          )
+          // Carry the context whenever there is something the user might want to verify: an active filter or a tag-pre-filter that pruned projects.
+          if (ctx.anyActive || ctx.droppedProjects.nonEmpty) Some(ctx) else None
+        case _ => None
+      }
+
     started.bspServerClasspathSource match {
       case BspServerClasspathSource.InProcess(connect) =>
-        runInProcess(started, connect, targetProjects)
+        runInProcess(started, connect, targetProjects, filterCtx)
       case BspServerClasspathSource.FromCoursier(resolver) =>
         SetupBleepBsp(
           compileServerMode = started.config.compileServerModeOrDefault,
@@ -83,7 +123,7 @@ case class ReactiveBsp(
           case Left(err) =>
             Left(err)
           case Right(config) =>
-            runWithBleepBsp(started, config, targetProjects)
+            runWithBleepBsp(started, config, targetProjects, filterCtx)
         }
     }
   }
@@ -92,7 +132,8 @@ case class ReactiveBsp(
   private def runInProcess(
       started: Started,
       connect: ryddig.Logger => Resource[IO, BspConnection],
-      targetProjects: Set[model.CrossProjectName]
+      targetProjects: Set[model.CrossProjectName],
+      filterContext: Option[bleep.testing.FilterContext]
   ): Either[BleepException, Unit] = {
     val bspLogger = started.logger
     val diagLog: String => Unit = _ => ()
@@ -159,7 +200,7 @@ case class ReactiveBsp(
       _ <- eventConsumerFiber.joinWithNever
       _ <- writeJUnitReports(started, junitReportDir, junitCollector)
       summary <- signalCompletion
-      _ <- display.printSummary
+      _ <- display.printSummary(filterContext)
     } yield summary
 
     try {
@@ -174,7 +215,8 @@ case class ReactiveBsp(
   private def runWithBleepBsp(
       started: Started,
       config: BspRifleConfig,
-      targetProjects: Set[model.CrossProjectName]
+      targetProjects: Set[model.CrossProjectName],
+      filterContext: Option[bleep.testing.FilterContext]
   ): Either[BleepException, Unit] = {
 
     // Determine effective mode and logger upfront (no IO needed)
@@ -388,7 +430,7 @@ case class ReactiveBsp(
 
       // Always signal completion to TUI (even if BSP failed or user quit)
       summary <- signalCompletion
-      _ <- display.printSummary
+      _ <- display.printSummary(filterContext)
       // Update previousRunState from collected events (only in DiffWatch mode)
       _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
       _ <- IO.delay(started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}"))
@@ -425,7 +467,7 @@ case class ReactiveBsp(
         val durationMs = System.currentTimeMillis() - startTime
         summaryOpt match {
           case Some(summary) =>
-            printFinalSummary(started, summary)
+            printFinalSummary(started, summary.copy(filterContext = filterContext))
           case None =>
             errorOpt match {
               case Some(err) => printErrorSummary(started, err, durationMs)
@@ -547,7 +589,7 @@ case class ReactiveBsp(
         BspRequestHelper
           .callCancellable {
             val params = new bsp4j.TestParams(targets.asJava)
-            val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, flamegraph)
+            val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, includeTags, excludeTags, flamegraph)
             params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
             params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
             server.buildTargetTest(params)
@@ -897,6 +939,8 @@ object ReactiveBsp {
     testArgs = Nil,
     only = Nil,
     exclude = Nil,
+    includeTags = Nil,
+    excludeTags = Nil,
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
@@ -912,6 +956,8 @@ object ReactiveBsp {
       testArgs: List[String],
       only: List[String],
       exclude: List[String],
+      includeTags: List[String],
+      excludeTags: List[String],
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[Path]
@@ -924,6 +970,8 @@ object ReactiveBsp {
     testArgs = testArgs,
     only = only,
     exclude = exclude,
+    includeTags = includeTags,
+    excludeTags = excludeTags,
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
@@ -947,6 +995,8 @@ object ReactiveBsp {
     testArgs = Nil,
     only = Nil,
     exclude = Nil,
+    includeTags = Nil,
+    excludeTags = Nil,
     linkOptions = Some(options),
     flamegraph = flamegraph,
     cancel = cancel,

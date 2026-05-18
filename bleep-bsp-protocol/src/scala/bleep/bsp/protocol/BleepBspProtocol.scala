@@ -86,17 +86,21 @@ object BleepBspProtocol {
   // Request Extensions (client -> server)
   // ==========================================================================
 
-  /** Options passed via TestParams.data field */
+  /** Options passed via TestParams.data field. `only` / `exclude` are regex matches against the FQDN of discovered suites; `includeTags` / `excludeTags` are
+    * tag names that the BSP server resolves against each project's `testTags` manifest after discovery.
+    */
   case class TestOptions(
       jvmOptions: List[String],
       testArgs: List[String],
       only: List[String],
       exclude: List[String],
+      includeTags: List[String],
+      excludeTags: List[String],
       flamegraph: Boolean = false
   )
 
   object TestOptions {
-    val empty: TestOptions = TestOptions(Nil, Nil, Nil, Nil, false)
+    val empty: TestOptions = TestOptions(Nil, Nil, Nil, Nil, Nil, Nil, false)
 
     implicit val codec: Codec[TestOptions] = deriveCodec
 

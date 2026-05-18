@@ -586,6 +586,23 @@
             }
           ]
         },
+        "testTags": {
+          "description": "Tag → suite FQDN glob patterns. Filters tests at the suite-dispatch boundary, so this works for any test framework. `*` matches within a class-name segment; `**` spans dots. CLI: `bleep test --only-tag slow --exclude-tag flaky`.",
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
         "libraryVersionSchemes": {
           "description": "Version scheme to use for specific modules. Same syntax as a normal dependency, but the version need to be one of these values: \"early-semver\", \"pvp\", \"semver-spec\", \"always\", and \"strict\".",
           "oneOf": [
