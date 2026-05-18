@@ -33,8 +33,20 @@ object ProcessRunner {
     if (cancellation.isCancelled) IO.unit
     else IO.sleep(scala.concurrent.duration.Duration(100, "millis")) >> asCancelIO(cancellation)
 
+  /** Inject `NO_COLOR=1` into a ProcessBuilder's environment unless the caller has explicitly set NO_COLOR already. The no-color.org standard env var is
+    * honored by ScalaTest 3.2.16+, JUnit, JUnit 5, sbt, gradle, mill, kotlinc / KSP runner, native-image, and most other JVM-side tools — turns off ANSI
+    * decoration that's just noise in CI log captures and bleep's own subprocess output panels. Centralized here so every subprocess bleep spawns (test runners
+    * via JvmPool, KSP runner, Kotlin/Scala JS/Native linkers, node, tar, …) gets it without per-site plumbing.
+    *
+    * `putIfAbsent` so an explicit caller setting (e.g. `NO_COLOR=` empty in a project's `platform.jvmEnvironment`, or some debug-only tool that wants color)
+    * wins. The parent's inherited NO_COLOR also wins via the same mechanism since `pb.environment()` starts as a copy of the parent's env.
+    */
+  private def applyDefaultEnv(pb: ProcessBuilder): Unit =
+    pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+
   /** A managed process that cleans up on release via destroyForcibly + waitFor. */
-  def start(pb: ProcessBuilder): Resource[IO, Process] =
+  def start(pb: ProcessBuilder): Resource[IO, Process] = {
+    applyDefaultEnv(pb)
     Resource.make(IO.blocking(pb.start())) { p =>
       IO.blocking {
         p.destroyForcibly()
@@ -42,6 +54,7 @@ object ProcessRunner {
         ()
       }
     }
+  }
 
   /** Read lines from a process stream as fs2.Stream.
     *
