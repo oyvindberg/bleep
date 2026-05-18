@@ -54,7 +54,13 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     bspServerConfig = Some(
       model.BspServerConfig.default.copy(
         testRunnerMaxMemory = Some("512m"),
-        kspRunnerMaxMemory = Some("384m")
+        kspRunnerMaxMemory = Some("384m"),
+        // Pin in-process BSP parallelism to 1 for ITs. The outer `bleep test bleep-tests` already runs `effectiveParallelism = cores` ForkedTestRunner JVMs in
+        // parallel; without this cap each IT's in-process BSP would also fork up to `cores` JVMs (`JvmPool.create(maxParallelism, …)` in MultiWorkspaceBspServer
+        // around line 1968), giving us a cartesian explosion of test-runner JVMs. The trace showed 22+ concurrent ForkedTestRunner JVMs each at 300-900 MB —
+        // that's what was starving KspToyProcessorIT/SourcegenIT/etc. into the 2-min suite-idle timeout. Pinning the inner pool to 1 means each IT test's
+        // sub-work is sequential, which is fine since the IT itself runs in parallel with up-to-cores siblings.
+        parallelism = Some(1)
       )
     ),
     remoteCacheCredentials = None
