@@ -25,7 +25,10 @@ case class PreBootstrapOpts(
 
 object PreBootstrapOpts {
   def parse(args: List[String]): (PreBootstrapOpts, List[String]) = {
-    var noColor = false
+    // Honor the no-color.org standard: any non-empty `NO_COLOR` env var means "no ANSI please". `--no-color` on the CLI is a hard override that always wins.
+    // Carrying this in PreBootstrapOpts means every place that uses LoggingOpts.noColor (the CLI logger, BSP-daemon-forked sourcegen scripts launched as their
+    // own JVMs, the native-image script, …) gets the same answer whether the user typed `--no-color` or set the env or both.
+    var noColor = sys.env.get("NO_COLOR").exists(_.nonEmpty)
     var debug = false
     var directory = Option.empty[String]
     val keepArgs = List.newBuilder[String]
