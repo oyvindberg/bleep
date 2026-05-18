@@ -83,9 +83,10 @@ object generateBuild {
           kotlin = None,
           platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
           isTestProject = None,
-          testFrameworks = model.JsonSet.empty,
-          sourcegen = model.JsonSet.empty,
-          libraryVersionSchemes = model.JsonSet.empty,
+          testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
+          testTags = model.JsonMap.empty,
+          sourcegen = model.JsonSet.empty[model.ScriptDef],
+          libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
           ignoreEvictionErrors = None,
           publish = None
         )
