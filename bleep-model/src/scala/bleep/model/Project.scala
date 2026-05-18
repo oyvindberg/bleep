@@ -22,6 +22,13 @@ case class Project(
     platform: Option[Platform],
     isTestProject: Option[Boolean],
     testFrameworks: JsonSet[TestFrameworkName],
+    /** Tag → suite FQDN patterns. Map keys are user-chosen tag names (e.g. `slow`, `flaky`, `e2e`). Values are sets of fully-qualified class-name patterns. `*`
+      * matches any sequence within one FQDN segment (no dots); `**` matches across dots. Method-level tagging is not supported — tag at the class level.
+      *
+      * Filtered at suite-dispatch in the BSP server, so tagging is framework-independent: works for ScalaTest, JUnit, MUnit, utest, anything that the test
+      * runner discovers. CLI surface: `bleep test --only-tag slow --exclude-tag flaky`.
+      */
+    testTags: JsonMap[String, JsonSet[String]],
     sourcegen: JsonSet[ScriptDef],
     libraryVersionSchemes: JsonSet[LibraryVersionScheme],
     ignoreEvictionErrors: Option[IgnoreEvictionErrors],
@@ -45,6 +52,7 @@ case class Project(
       platform = platform.zipCompat(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
+      testTags = testTags.intersect(other.testTags),
       sourcegen = sourcegen.intersect(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None,
@@ -72,6 +80,7 @@ case class Project(
       },
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
       testFrameworks = testFrameworks.removeAll(other.testFrameworks),
+      testTags = testTags.removeAll(other.testTags),
       sourcegen = sourcegen.removeAll(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors,
@@ -97,6 +106,7 @@ case class Project(
       platform = List(platform, other.platform).flatten.reduceOption(_ `union` _),
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
+      testTags = testTags.union(other.testTags),
       sourcegen = sourcegen.union(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
@@ -121,6 +131,7 @@ case class Project(
           platform,
           isTestProject,
           testFrameworks,
+          testTags,
           sourceGeneratorsScripts,
           libraryVersionSchemes,
           ignoreEvictionErrors,
@@ -142,6 +153,7 @@ case class Project(
       platform.fold(true)(_.isEmpty) &&
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
+      testTags.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
       libraryVersionSchemes.isEmpty &&
       ignoreEvictionErrors.isEmpty &&
@@ -167,6 +179,7 @@ object Project {
     platform = None,
     isTestProject = None,
     testFrameworks = JsonSet.empty,
+    testTags = JsonMap.empty,
     sourcegen = JsonSet.empty,
     libraryVersionSchemes = JsonSet.empty,
     ignoreEvictionErrors = None,
