@@ -24,6 +24,17 @@ case class PreBootstrapOpts(
 }
 
 object PreBootstrapOpts {
+
+  /** JVM-local "no-color was requested" marker. Set by [[parse]] when it sees `--no-color` or a non-empty `NO_COLOR` env var; checked by anything in the same
+    * JVM that needs to make a no-color decision without re-parsing the CLI args (chiefly [[bleep.commands.DisplayMode.fromFlags]], which downgrades the TUI to
+    * plain output when no-color is in effect — a colored fullscreen interface is the wrong answer if the user just asked for no colors).
+    */
+  val NoColorProperty: String = "bleep.noColor"
+
+  /** Has no-color been requested in this JVM? True if `--no-color` was passed on the command line, or `NO_COLOR` env var is set to a non-empty value. */
+  def noColorRequested: Boolean =
+    sys.props.get(NoColorProperty).contains("true") || sys.env.get("NO_COLOR").exists(_.nonEmpty)
+
   def parse(args: List[String]): (PreBootstrapOpts, List[String]) = {
     // Honor the no-color.org standard: any non-empty `NO_COLOR` env var means "no ANSI please". `--no-color` on the CLI is a hard override that always wins.
     // Carrying this in PreBootstrapOpts means every place that uses LoggingOpts.noColor (the CLI logger, BSP-daemon-forked sourcegen scripts launched as their
@@ -57,6 +68,9 @@ object PreBootstrapOpts {
       idx += 1
     }
 
+    // Set the JVM-local marker so code that doesn't see the parsed `PreBootstrapOpts` directly — `DisplayMode.fromFlags` is the canonical example — can still
+    // make a no-color decision. Set unconditionally to true/false so later parses (e.g. from completion paths) reflect the latest invocation.
+    sys.props.put(NoColorProperty, noColor.toString): Unit
     (PreBootstrapOpts(noColor, debug, directory, dev, noBspProgress, logAsJson), keepArgs.result())
   }
 }
