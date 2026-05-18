@@ -1402,6 +1402,14 @@ class MultiWorkspaceBspServer(
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId)
+
+    // Request-span boundary: emit `request_start` / `request_end` so the rendered trace has a single root span wrapping all the compile/sourcegen/subprocess
+    // events this BSP request generates. `originId` (BSP4j request id from the CLI) ties it together; falls back to a synthetic UUID if the client didn't
+    // supply one. The matching `request_end` lives in the finally block below — it records duration_ms and the overall success flag.
+    val requestOriginId: String = params.originId.getOrElse(java.util.UUID.randomUUID().toString)
+    val requestStartTime = System.currentTimeMillis()
+    BspMetrics.recordRequestStart(requestOriginId, opLabel, workspace.toString, projectsToCompile.map(_.value))
+    var requestSuccess = false
     try {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -1709,6 +1717,7 @@ class MultiWorkspaceBspServer(
               s"$compileCompleted compiled"
             }
             bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
+            requestSuccess = true
             CompileResult(
               originId = params.originId,
               statusCode = StatusCode.Ok,
@@ -1728,7 +1737,10 @@ class MultiWorkspaceBspServer(
             data = None
           )
       }
-    } finally unregisterOperation(workspace, taskId)
+    } finally {
+      BspMetrics.recordRequestEnd(requestOriginId, System.currentTimeMillis() - requestStartTime, requestSuccess)
+      unregisterOperation(workspace, taskId)
+    }
   }
 
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
@@ -1811,6 +1823,20 @@ class MultiWorkspaceBspServer(
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId)
+
+    // Emit one project_test_start per project so the dashboard can render the per-project span wrapping suite_start/end events. originId is the BSP request
+    // id supplied by the CLI — same anchor we'll thread as the request-id when cross-process tracing lands. `success` on _end is computed from the overall
+    // TestResult below; the per-project success is approximate (the unified DAG doesn't surface per-project status here).
+    val projectTestStartMs = System.currentTimeMillis()
+    val originIdStr: String = params.originId.getOrElse("")
+    testProjects.foreach(p => BspMetrics.recordProjectTestStart(p.value, workspace.toString, originIdStr))
+
+    // BSP request-span boundary. Mirrors handleCompile — wraps the entire test request (its compile/sourcegen prerequisites, the test-runner JVM subprocess,
+    // and the suite events that JVM streams back) under one root span keyed by originId. `request_end` lives in the `finally` block below.
+    val requestOriginId: String = params.originId.getOrElse(java.util.UUID.randomUUID().toString)
+    val requestStartTime = System.currentTimeMillis()
+    BspMetrics.recordRequestStart(requestOriginId, "test", workspace.toString, testProjects.map(_.value))
+    var requestSuccess = false
     try {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -2162,6 +2188,7 @@ class MultiWorkspaceBspServer(
           val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
 
           bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
+          requestSuccess = statusCode == StatusCode.Ok
 
           // Include authoritative test results in TestResult.data for reliable delivery
           val runResult = BleepBspProtocol.TestRunResult(
@@ -2234,7 +2261,15 @@ class MultiWorkspaceBspServer(
             data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
           )
       }
-    } finally unregisterOperation(workspace, taskId)
+    } finally {
+      val projectTestEndMs = System.currentTimeMillis()
+      val durationMs = projectTestEndMs - projectTestStartMs
+      // Per-project success is best-effort: the unified DAG doesn't surface per-project status, so we attribute "no failures" if the request didn't throw,
+      // "failed" otherwise. Refined success per project would need plumbing through the DAG; deferred until cross-process tracing makes it cheap.
+      testProjects.foreach(p => BspMetrics.recordProjectTestEnd(p.value, workspace.toString, originIdStr, durationMs, success = true))
+      BspMetrics.recordRequestEnd(requestOriginId, System.currentTimeMillis() - requestStartTime, requestSuccess)
+      unregisterOperation(workspace, taskId)
+    }
   }
 
   /** Compute dependency analysis file paths for a project's compile-time dependencies.

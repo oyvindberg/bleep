@@ -69,6 +69,7 @@ jobs:
           path: |
             metrics-build.html
             metrics-build.jsonl
+            .bleep/metrics/
           if-no-files-found: warn
           retention-days: 14
 
@@ -321,6 +322,7 @@ jobs:
           path: |
             metrics-${{ matrix.os }}.html
             metrics-${{ matrix.os }}.jsonl
+            .bleep/metrics/
           if-no-files-found: warn
           retention-days: 14
 

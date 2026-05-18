@@ -220,22 +220,60 @@ bleep import  # Convert sbt build to bleep
    - Test with bleep commands
    - Changes automatically picked up by parent build
 
-5. **Testing Bleep-BSP Changes (Reactive Test Runner)**
+5. **Deploying local bleep-bsp / bleep-core changes (the version-dance)**
 
-   When making changes to bleep-bsp or the reactive test runner, you need to publish locally first:
+   `bleep my-publish-local` is *not* a real command — that was a stale note. The real procedure is:
+
    ```bash
-   # Generate fresh version ID
-   bleep sourcegen
-
-   # Publish bleep-bsp, bleep-test-runner, and dependencies locally
-   bleep my-publish-local
-
-   # Then test with the reactive test runner (uses bleep-bsp)
-   bleep test-bsp <test-project>
+   ./bleep publish-local --groupId build.bleep --version <ver>
    ```
 
-   This is required because bleep-cli depends on bleep-bsp, and the reactive test runner
-   connects to bleep-bsp via BSP protocol to execute tests with the fancy TUI display.
+   The catch: every CLI invocation runs `sourcegen` which regenerates `BleepVersion.scala` with the
+   *current minute* timestamp (`+YYYYMMDD-HHMM-SNAPSHOT`). So if you publish at version V, the
+   `bleep-model` class compiled during that same publish run typically gets baked with version V+1
+   (a minute later). On the *next* CLI invocation the CLI reads V+1 from the just-compiled local
+   classes, asks Ivy for BSP at V+1, and finds nothing — only V is published.
+
+   **Working workaround (`scripts/dev-publish-bsp.sh`, also documented below)**: publish once, then
+   read what version the local classes ended up at, then symlink that newer version in Ivy local
+   to point at the version we just published. Coursier resolves the lookup, the in-JAR class agrees
+   with the directory name's content. One-shot:
+
+   ```bash
+   # 1) publish at whatever version is currently baked into the local class
+   VER=$(grep -oE '1\.0\.0-M[0-9]+\+[^"]*' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | head -1)
+   ./bleep publish-local --groupId build.bleep --version "$VER"
+
+   # 2) re-read what version the publish-local's sourcegen left us at
+   VER_NEW=$(grep -oE '1\.0\.0-M[0-9]+\+[^"]*' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | head -1)
+
+   # 3) if it drifted, symlink the new version dir → the just-published one for each artifact
+   if [ "$VER_NEW" != "$VER" ]; then
+     for proj in bleep-bsp_3 bleep-bsp-protocol_3 bleep-core_3 bleep-model_3 bleep-test-runner; do
+       D=~/.ivy2/local/build.bleep/$proj
+       [ -d "$D/$VER" ] && [ ! -e "$D/$VER_NEW" ] && ln -s "$VER" "$D/$VER_NEW"
+     done
+   fi
+
+   # 4) restart the BSP daemon so it picks up the new jars
+   PIDFILE=$(ls ~/Library/Caches/build.bleep/socket/*/pid 2>/dev/null | head -1)
+   [ -f "$PIDFILE" ] && kill "$(cat $PIDFILE)" 2>/dev/null
+
+   # 5) now run things via the dev script (uses local CLI classes + freshly resolved BSP jars)
+   ./bleep-cli.sh test bleep-tests
+   ```
+
+   The version stays consistent within a single minute window: if the whole publish + symlink chain
+   finishes inside the same `HHMM` slot, no drift, no symlink needed. The symlink trick is the
+   safety net for slow publishes that cross a minute boundary.
+
+   **Why the BSP daemon needs restart**: the daemon JVM was launched from the *previous* version's
+   jars. It doesn't re-read them. Killing it forces the next CLI invocation to spawn a fresh daemon
+   resolving the newly published jars (or the symlinked version).
+
+   **The dev script `./bleep-cli.sh`**: a thin wrapper that runs `bleep.Main` from the local class
+   directories (`.bleep/projects/*/builds/normal/classes`). Regenerate it with `bleep setup-dev-script
+   bleep-cli` after each compile so the classpath reflects current artifacts.
 
 ## Important Design Decisions
 

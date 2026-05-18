@@ -61,6 +61,12 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   lazy val localConfig: Path = dotBleepDir / "conf"
   lazy val bspProjectSelectionYaml: Path = localConfig / "bsp-project-selection.yaml"
 
+  /** `<workspace>/.bleep/metrics/` — root for per-invocation metrics. Each bleep CLI invocation creates `<metricsRoot>/<timestamp>-<pid>/` and writes its own
+    * `metrics.jsonl` there. Lives directly under `.bleep` (not under `builds/<variant>/`) because metrics aren't variant-scoped — one invocation can touch
+    * multiple variants and gets one tree.
+    */
+  lazy val metricsRoot: Path = dotBleepDir / "metrics"
+
   // === per cross-project paths ===
 
   /** `<workspace>/.bleep/projects/<crossName>/`. Everything related to one cross variant of one project lives here. */

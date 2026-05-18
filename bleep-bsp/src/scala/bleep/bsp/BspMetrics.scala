@@ -1,5 +1,7 @@
 package bleep.bsp
 
+import bleep.metrics.ProcessTreeSampler
+
 import java.io.{BufferedWriter, FileWriter}
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Path}
@@ -17,6 +19,8 @@ object BspMetrics {
   @volatile private var writer: BufferedWriter = scala.compiletime.uninitialized
   @volatile private var samplerThread: Thread = scala.compiletime.uninitialized
   @volatile private var metricsPath: Path = scala.compiletime.uninitialized
+  @volatile private var processTree: ProcessTreeSampler = scala.compiletime.uninitialized
+  @volatile private var processTreeSampleErrorReported: Boolean = false
 
   // High watermarks
   private val maxConcurrentCompiles = AtomicInteger(0)
@@ -52,11 +56,25 @@ object BspMetrics {
       if (previousHandler != null) previousHandler.uncaughtException(thread, throwable)
     }
 
+    // Observer for every transitive descendant of this process (test runner JVMs, KSP runner, sourcegen forks, native-image-tool, LLVM linkers, …). Shares
+    // the same writer + sampler thread as the JVM metrics — one extra ProcessHandle.descendants() walk + RSS read per 5s tick. See ProcessTreeSampler.
+    processTree = new ProcessTreeSampler(writeEvent)
+
     val t = new Thread("bsp-metrics-sampler") {
       override def run(): Unit =
         try
           while (!Thread.currentThread().isInterrupted) {
             sampleJvm()
+            try processTree.sample()
+            catch {
+              case t: Throwable =>
+                // Print once to stderr but don't kill the thread — observer failures shouldn't take down BSP metrics. Once per JVM (volatile flag) so we don't
+                // spam if descendants() throws on every tick.
+                if (!processTreeSampleErrorReported) {
+                  processTreeSampleErrorReported = true
+                  System.err.println(s"[BspMetrics] ProcessTreeSampler.sample() failed (will not be reported again): ${t.getClass.getName}: ${t.getMessage}")
+                }
+            }
             Thread.sleep(SampleIntervalMs)
           }
         catch {
@@ -74,6 +92,8 @@ object BspMetrics {
       t.interrupt()
       t.join(2000)
     }
+    val tree = processTree
+    if (tree != null) tree.flushOnShutdown()
     writeSummary()
     val w = writer
     if (w != null) {
@@ -108,6 +128,38 @@ object BspMetrics {
 
   def recordBuildEnd(workspace: String, durationMs: Long, success: Boolean): Unit =
     writeEvent(s"""{"type":"build_end","ts":${now()},"workspace":"${esc(workspace)}","duration_ms":$durationMs,"success":$success}""")
+
+  /** Project-scoped test span. Emitted once per (project, BSP test request) pair to give the dashboard a wrapping span around the per-suite events for that
+    * project. `originId` is the BSP `originId` field — the same value the bleep CLI may carry as a trace anchor (the request-id propagation in a later phase
+    * threads this through to InvocationMetrics). For now it's just a correlation token.
+    */
+  def recordProjectTestStart(project: String, workspace: String, originId: String): Unit =
+    writeEvent(
+      s"""{"type":"project_test_start","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","origin_id":"${esc(originId)}"}"""
+    )
+
+  def recordProjectTestEnd(project: String, workspace: String, originId: String, durationMs: Long, success: Boolean): Unit =
+    writeEvent(
+      s"""{"type":"project_test_end","ts":${now()},"project":"${esc(
+          project
+        )}","workspace":"${esc(workspace)}","origin_id":"${esc(originId)}","duration_ms":$durationMs,"success":$success}"""
+    )
+
+  /** BSP-request boundary events. Emitted at handler entry/exit so the dashboard / Perfetto / Jaeger can show one cohesive trace per `bleep` command: a root
+    * `request` span containing the compile/sourcegen/test work plus any subprocesses (test JVMs) the daemon spawned for it. `originId` is the same field BSP4j
+    * propagates from the CLI; it becomes the OTLP `traceId` on the renderer side.
+    */
+  def recordRequestStart(originId: String, method: String, workspace: String, projects: Iterable[String]): Unit = {
+    val projectsJson = projects.iterator.map(p => s""""${esc(p)}"""").mkString("[", ",", "]")
+    writeEvent(
+      s"""{"type":"request_start","ts":${now()},"origin_id":"${esc(originId)}","method":"${esc(method)}","workspace":"${esc(
+          workspace
+        )}","projects":$projectsJson}"""
+    )
+  }
+
+  def recordRequestEnd(originId: String, durationMs: Long, success: Boolean): Unit =
+    writeEvent(s"""{"type":"request_end","ts":${now()},"origin_id":"${esc(originId)}","duration_ms":$durationMs,"success":$success}""")
 
   def recordCacheEvict(cache: String, workspace: String): Unit =
     writeEvent(s"""{"type":"cache_evict","ts":${now()},"cache":"${esc(cache)}","workspace":"${esc(workspace)}"}""")

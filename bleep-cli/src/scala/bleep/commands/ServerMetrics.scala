@@ -14,80 +14,194 @@ import scala.jdk.StreamConverters._
 case class ServerMetrics(
     logger: Logger,
     userPaths: UserPaths,
+    invocationMetricsRoot: Option[Path],
     pid: Option[Long],
     htmlOutput: Option[Path],
     jsonlOutput: Option[Path]
 ) extends BleepCommand {
 
-  override def run(): Either[BleepException, Unit] =
-    findMetricsFile(userPaths.bspSocketDir) match {
-      case None =>
-        val msg = pid match {
-          case Some(p) => s"No metrics found for PID $p. Check that the server wrote metrics.jsonl."
-          case None    => "No metrics found. Run a compilation first to generate BSP server metrics."
-        }
-        Left(new BleepException.Text(msg))
-      case Some(metricsPath) =>
-        // Raw JSONL output: just copy the source file. The metrics.jsonl is append-only and self-contained.
-        jsonlOutput.foreach { dst =>
-          Option(dst.getParent).foreach(Files.createDirectories(_))
-          Files.copy(metricsPath, dst, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-          logger.info(s"Wrote raw metrics JSONL: $dst")
-        }
+  override def run(): Either[BleepException, Unit] = {
+    val bspMetricsPaths = findBspMetricsFiles(userPaths.bspSocketDir)
+    val invocationMetricsPaths = invocationMetricsRoot.toList.flatMap(findInvocationMetricsFiles)
 
-        // HTML output: render the dashboard. If `htmlOutput` is set, write there and don't launch a browser; otherwise fall back to the default interactive
-        // path (temp file + browser), but only when no other output was requested. The "user picks what to prefer" semantics: pass `--jsonl` alone for CI-style
-        // collection, pass `--html` alone for headless dashboard generation, pass both for both, pass neither for the legacy "open in browser" UX.
-        val anyOutputRequested = htmlOutput.isDefined || jsonlOutput.isDefined
-        if (htmlOutput.isDefined || !anyOutputRequested) {
-          val events = parseMetrics(metricsPath)
-          val html = generateHtml(events)
-          val dst = htmlOutput.getOrElse(Files.createTempFile("bleep-metrics-", ".html"))
-          Option(dst.getParent).foreach(Files.createDirectories(_))
-          Files.writeString(dst, html)
-          logger.info(s"Wrote dashboard HTML: $dst")
+    if (bspMetricsPaths.isEmpty && invocationMetricsPaths.isEmpty) {
+      val msg = pid match {
+        case Some(p) => s"No metrics found for PID $p. Check that the server wrote metrics.jsonl."
+        case None    => "No metrics found. Run a compilation first to generate BSP server or per-invocation metrics."
+      }
+      Left(new BleepException.Text(msg))
+    } else {
+      val allPaths = bspMetricsPaths ++ invocationMetricsPaths
+      logger.info(s"Reading ${allPaths.size} metrics file(s): ${allPaths.map(_.toString).mkString(", ")}")
 
-          // Browser launch only in the legacy interactive mode (no explicit outputs).
-          if (!anyOutputRequested) {
-            val os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
-            val openCmd =
-              if (os.contains("mac")) Array("open", dst.toString)
-              else if (os.contains("win")) Array("cmd", "/c", "start", dst.toString)
-              else Array("xdg-open", dst.toString)
-            Runtime.getRuntime.exec(openCmd)
-            logger.info(s"Dashboard opened: $dst")
+      // Raw JSONL output: concatenate everything in timestamp order. Append-only semantics still hold across the merge — the JSONL files are independent log
+      // streams from different processes (BSP daemon, CLI invocations). Output ordering matches the natural read of each file with files concatenated by
+      // last-modified time so older runs come first.
+      jsonlOutput.foreach { dst =>
+        Option(dst.getParent).foreach(Files.createDirectories(_))
+        val sorted = allPaths.sortBy(p => Files.getLastModifiedTime(p).toMillis)
+        val w = Files.newBufferedWriter(dst)
+        try
+          sorted.foreach { p =>
+            w.write(s"# source: $p\n")
+            Files.readAllLines(p).forEach { line => w.write(line); w.newLine() }
           }
+        finally w.close()
+        logger.info(s"Wrote raw metrics JSONL: $dst")
+      }
+
+      val anyOutputRequested = htmlOutput.isDefined || jsonlOutput.isDefined
+      if (htmlOutput.isDefined || !anyOutputRequested) {
+        // Parse each file into its own Events, then merge. We tag every JsonObject with a synthetic `_scope` field (the source-file directory name) so the
+        // span-graph builder can pair `_start`/`_end` events scope-by-scope — events from one BSP daemon run shouldn't end up parented under spans from a
+        // separate CLI invocation just because their timestamps overlap.
+        val merged = new Events
+        allPaths.foreach { p =>
+          val scope = scopeOf(p)
+          val parsed = parseMetrics(p)
+          tagScope(parsed, scope)
+          mergeInto(merged, parsed)
         }
 
-        logger.info(s"Metrics source: $metricsPath")
-        Right(())
-    }
+        // Pick the html destination (temp file if not provided), then write the trace files next to it. Same basename, different suffix — `.trace.json`
+        // (Chrome Trace, drag into ui.perfetto.dev) and `.otlp.json` (OpenTelemetry, opens in Jaeger/Tempo/otel-desktop-viewer/etc).
+        val htmlDst = htmlOutput.getOrElse(Files.createTempFile("bleep-metrics-", ".html"))
+        Option(htmlDst.getParent).foreach(Files.createDirectories(_))
+        val htmlName = htmlDst.getFileName.toString
+        val baseName = if (htmlName.endsWith(".html")) htmlName.dropRight(5) else htmlName
+        val parentDir = Option(htmlDst.getParent).getOrElse(Path.of("."))
+        val traceChrome = parentDir.resolve(s"$baseName.trace.json")
+        val traceOtlp = parentDir.resolve(s"$baseName.otlp.json")
 
-  private def findMetricsFile(socketDir: Path): Option[Path] = {
-    if (!FileUtils.exists(socketDir)) return None
+        val graph = buildSpanGraph(merged)
+        writeChromeTrace(graph, traceChrome)
+        writeOtlpJson(graph, traceOtlp)
+        logger.info(s"Wrote span trace (Chrome Trace, drop into ui.perfetto.dev): $traceChrome")
+        logger.info(s"Wrote span trace (OTLP/JSON, otel-desktop-viewer / Jaeger / Tempo): $traceOtlp")
+
+        val html = generateHtml(merged, Some(traceChrome), Some(traceOtlp))
+        Files.writeString(htmlDst, html)
+        logger.info(s"Wrote dashboard HTML: $htmlDst")
+
+        if (!anyOutputRequested) {
+          val os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
+          val openCmd =
+            if (os.contains("mac")) Array("open", htmlDst.toString)
+            else if (os.contains("win")) Array("cmd", "/c", "start", htmlDst.toString)
+            else Array("xdg-open", htmlDst.toString)
+          Runtime.getRuntime.exec(openCmd)
+          logger.info(s"Dashboard opened: $htmlDst")
+        }
+      }
+
+      Right(())
+    }
+  }
+
+  /** Enumerate every `<metricsRoot>/<timestamp>-<pid>/metrics.jsonl` — one per past invocation. Ordered newest-first by mtime so the dashboard's "recent
+    * invocations" view leads with the most relevant data.
+    */
+  private def findInvocationMetricsFiles(root: Path): List[Path] = {
+    if (!FileUtils.exists(root)) return Nil
+    Files
+      .list(root)
+      .toScala(List)
+      .flatMap { dir =>
+        val mf = dir.resolve("metrics.jsonl")
+        if (FileUtils.exists(mf)) Some(mf) else None
+      }
+      .sortBy(f => -Files.getLastModifiedTime(f).toMillis)
+  }
+
+  /** Derive a short scope label from a metrics file path. BSP daemon files live under `<socketDir>/<hash>/metrics.jsonl` — we surface those as `bsp-<hash>`.
+    * CLI invocation files live under `<workspace>/.bleep/metrics/<timestamp>-<pid>/metrics.jsonl` — we just use the directory name. The label is the natural
+    * grouping unit for spans: everything from one file lives in one scope and shouldn't be parented under spans from a different file.
+    */
+  private def scopeOf(path: Path): String = {
+    val parent = Option(path.getParent).map(_.getFileName.toString).getOrElse("unknown")
+    val grandparent = Option(path.getParent).flatMap(p => Option(p.getParent)).map(_.getFileName.toString).getOrElse("")
+    if (grandparent == "socket") s"bsp-$parent" else parent
+  }
+
+  /** Stamp every JsonObject in `events` with `_scope: <name>` so the span renderer can group them. The synthetic field uses an underscore prefix to avoid
+    * colliding with any real protocol field; nothing on the writer side ever emits a `_scope`.
+    */
+  private def tagScope(events: Events, scope: String): Unit = {
+    def tag(buf: ArrayBuffer[JsonObject]): Unit = buf.foreach(_.addProperty("_scope", scope))
+    tag(events.jvm)
+    tag(events.compileStart)
+    tag(events.compileEnd)
+    tag(events.buildStart)
+    tag(events.buildEnd)
+    tag(events.cacheEvict)
+    tag(events.cleanCache)
+    tag(events.connectionOpen)
+    tag(events.connectionClose)
+    tag(events.sourcegenStart)
+    tag(events.sourcegenEnd)
+    tag(events.summary)
+    tag(events.oomPressure)
+    tag(events.oomCrash)
+    tag(events.suiteStart)
+    tag(events.suiteEnd)
+    tag(events.testEnd)
+    tag(events.subprocessStart)
+    tag(events.subprocessEnd)
+    tag(events.projectTestStart)
+    tag(events.projectTestEnd)
+    tag(events.requestStart)
+    tag(events.requestEnd)
+    tag(events.processEvents)
+    tag(events.invocationEnd)
+  }
+
+  /** Append `src`'s buffers into `dst`. Cheap because all the buffers hold `JsonObject`s by reference. */
+  private def mergeInto(dst: Events, src: Events): Unit = {
+    dst.jvm ++= src.jvm
+    dst.compileStart ++= src.compileStart
+    dst.compileEnd ++= src.compileEnd
+    dst.buildStart ++= src.buildStart
+    dst.buildEnd ++= src.buildEnd
+    dst.cacheEvict ++= src.cacheEvict
+    dst.cleanCache ++= src.cleanCache
+    dst.connectionOpen ++= src.connectionOpen
+    dst.connectionClose ++= src.connectionClose
+    dst.sourcegenStart ++= src.sourcegenStart
+    dst.sourcegenEnd ++= src.sourcegenEnd
+    dst.summary ++= src.summary
+    dst.oomPressure ++= src.oomPressure
+    dst.oomCrash ++= src.oomCrash
+    dst.suiteStart ++= src.suiteStart
+    dst.suiteEnd ++= src.suiteEnd
+    dst.testEnd ++= src.testEnd
+    dst.subprocessStart ++= src.subprocessStart
+    dst.subprocessEnd ++= src.subprocessEnd
+    dst.projectTestStart ++= src.projectTestStart
+    dst.projectTestEnd ++= src.projectTestEnd
+    dst.requestStart ++= src.requestStart
+    dst.requestEnd ++= src.requestEnd
+    dst.processEvents ++= src.processEvents
+    dst.invocationEnd ++= src.invocationEnd
+  }
+
+  /** Collect every BSP daemon's `metrics.jsonl` under `socketDir`. With `pid` set we filter to just that daemon (one match by `pid` file); with `pid` empty we
+    * return everything — there's one socket dir per workspace, and tests in one workspace will only show up by reading that workspace's daemon file (the scope
+    * tagging keeps them visually partitioned in the span tree).
+    */
+  private def findBspMetricsFiles(socketDir: Path): List[Path] = {
+    if (!FileUtils.exists(socketDir)) return Nil
+    val allDaemons = Files.list(socketDir).toScala(List).flatMap { dir =>
+      val mf = dir.resolve("metrics.jsonl")
+      if (FileUtils.exists(mf)) Some((dir, mf)) else None
+    }
     pid match {
       case Some(targetPid) =>
-        // Find socket dir whose pid file matches the given PID
-        Files
-          .list(socketDir)
-          .toScala(List)
-          .flatMap { dir =>
-            val pidFile = dir.resolve("pid")
-            val mf = dir.resolve("metrics.jsonl")
-            if (FileUtils.exists(pidFile) && FileUtils.exists(mf)) {
-              val filePid = Files.readString(pidFile).trim.toLong
-              if (filePid == targetPid) Some(mf) else None
-            } else None
-          }
-          .headOption
-      case None =>
-        // Find most recently modified metrics.jsonl
-        val candidates = Files.list(socketDir).toScala(List).flatMap { dir =>
-          val mf = dir.resolve("metrics.jsonl")
-          if (FileUtils.exists(mf)) Some(mf) else None
+        allDaemons.flatMap { case (dir, mf) =>
+          val pidFile = dir.resolve("pid")
+          if (FileUtils.exists(pidFile) && Files.readString(pidFile).trim.toLong == targetPid) Some(mf) else None
         }
-        if (candidates.isEmpty) None
-        else Some(candidates.maxBy(f => Files.getLastModifiedTime(f).toMillis))
+      case None =>
+        allDaemons.map(_._2).sortBy(f => Files.getLastModifiedTime(f).toMillis)
     }
   }
 
@@ -109,6 +223,14 @@ case class ServerMetrics(
     val suiteStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val suiteEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val testEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val subprocessStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val subprocessEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val projectTestStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val projectTestEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val requestStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val requestEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val processEvents: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val invocationEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -119,33 +241,354 @@ case class ServerMetrics(
         val obj = JsonParser.parseString(trimmed).getAsJsonObject
         val eventType = obj.get("type").getAsString
         eventType match {
-          case "jvm"              => events.jvm += obj
-          case "compile_start"    => events.compileStart += obj
-          case "compile_end"      => events.compileEnd += obj
-          case "build_start"      => events.buildStart += obj
-          case "build_end"        => events.buildEnd += obj
-          case "cache_evict"      => events.cacheEvict += obj
-          case "clean_cache"      => events.cleanCache += obj
-          case "connection_open"  => events.connectionOpen += obj
-          case "connection_close" => events.connectionClose += obj
-          case "sourcegen_start"  => events.sourcegenStart += obj
-          case "sourcegen_end"    => events.sourcegenEnd += obj
-          case "summary"          => events.summary += obj
-          case "oom_pressure"     => events.oomPressure += obj
-          case "oom_crash"        => events.oomCrash += obj
-          case "suite_start"      => events.suiteStart += obj
-          case "suite_end"        => events.suiteEnd += obj
-          case "test_end"         => events.testEnd += obj
-          case _                  => ()
+          case "jvm"                => events.jvm += obj
+          case "compile_start"      => events.compileStart += obj
+          case "compile_end"        => events.compileEnd += obj
+          case "build_start"        => events.buildStart += obj
+          case "build_end"          => events.buildEnd += obj
+          case "cache_evict"        => events.cacheEvict += obj
+          case "clean_cache"        => events.cleanCache += obj
+          case "connection_open"    => events.connectionOpen += obj
+          case "connection_close"   => events.connectionClose += obj
+          case "sourcegen_start"    => events.sourcegenStart += obj
+          case "sourcegen_end"      => events.sourcegenEnd += obj
+          case "summary"            => events.summary += obj
+          case "oom_pressure"       => events.oomPressure += obj
+          case "oom_crash"          => events.oomCrash += obj
+          case "suite_start"        => events.suiteStart += obj
+          case "suite_end"          => events.suiteEnd += obj
+          case "test_end"           => events.testEnd += obj
+          case "subprocess_start"   => events.subprocessStart += obj
+          case "subprocess_end"     => events.subprocessEnd += obj
+          case "project_test_start" => events.projectTestStart += obj
+          case "project_test_end"   => events.projectTestEnd += obj
+          case "request_start"      => events.requestStart += obj
+          case "request_end"        => events.requestEnd += obj
+          case "process"            => events.processEvents += obj
+          case "invocation_end"     => events.invocationEnd += obj
+          case _                    => ()
         }
       }
     }
     events
   }
 
+  // ---- Span graph + trace exporters ----
+
+  /** One paired start/end from the metrics stream. `originId` is the BSP request id when known (set on `request_*`, `project_test_*`, and inherited for other
+    * events emitted during the request — currently inferred via time-containment within the same scope). Carrying it on `Span` lets the OTLP writer group all
+    * spans of one bleep command under a single `traceId`, so Jaeger / Tempo / otel-desktop-viewer render the full request tree as one cohesive trace.
+    */
+  private case class Span(
+      scope: String,
+      kind: String,
+      label: String,
+      startMs: Long,
+      endMs: Long,
+      success: Option[Boolean],
+      peakRssMb: Option[Long],
+      cmd: Option[String],
+      originId: Option[String]
+  )
+
+  /** Spans + the inferred parent index for each span (-1 = root). Index is into `spans`. The renderer side reads this as a tree. */
+  private case class SpanGraph(spans: Array[Span], parentIdx: Array[Int])
+
+  /** Build the unified span graph from the merged event buffers. Pairs `_start` with `_end` events scope-by-scope (so spans from different metrics files never
+    * pair with each other), then infers parent-child relationships from time containment within scope, and prepends a synthetic per-scope "root" span so every
+    * scope has a top-level entry in the resulting trace.
+    */
+  private def buildSpanGraph(events: Events): SpanGraph = {
+    val spans = ArrayBuffer.empty[Span]
+
+    val noBool: JsonObject => Option[Boolean] = _ => None
+    val noLong: JsonObject => Option[Long] = _ => None
+    val noStr: JsonObject => Option[String] = _ => None
+    val readSuccess: JsonObject => Option[Boolean] = e => if (e.has("success")) Some(e.get("success").getAsBoolean) else None
+    def scopeOfObj(o: JsonObject): String = if (o.has("_scope")) o.get("_scope").getAsString else "unknown"
+
+    def pairSpans[K](
+        starts: ArrayBuffer[JsonObject],
+        ends: ArrayBuffer[JsonObject],
+        startKey: JsonObject => K,
+        endKey: JsonObject => K,
+        toLabel: JsonObject => String,
+        kind: String,
+        success: JsonObject => Option[Boolean],
+        peakRssMb: JsonObject => Option[Long],
+        cmd: JsonObject => Option[String],
+        originId: JsonObject => Option[String]
+    ): Unit = {
+      val pending = scala.collection.mutable.Map.empty[(String, K), scala.collection.mutable.Queue[JsonObject]]
+      starts.foreach { s =>
+        val k = (scopeOfObj(s), startKey(s))
+        pending.getOrElseUpdate(k, scala.collection.mutable.Queue.empty[JsonObject]).enqueue(s)
+      }
+      ends.foreach { e =>
+        val k = (scopeOfObj(e), endKey(e))
+        pending.get(k).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None) match {
+          case Some(s) =>
+            spans += Span(scopeOfObj(s), kind, toLabel(s), s.get("ts").getAsLong, e.get("ts").getAsLong, success(e), peakRssMb(e), cmd(s), originId(s))
+          case None => ()
+        }
+      }
+    }
+
+    val readOriginId: JsonObject => Option[String] = o => if (o.has("origin_id")) Some(getStr(o, "origin_id")).filter(_.nonEmpty) else None
+
+    // Request span: the BSP-request boundary, the root of one bleep-command trace. Keyed by `origin_id` so the start/end pair only matches across two events
+    // from the same request even if multiple requests are interleaved.
+    pairSpans(
+      events.requestStart,
+      events.requestEnd,
+      startKey = o => getStr(o, "origin_id"),
+      endKey = o => getStr(o, "origin_id"),
+      toLabel = o => s"${getStr(o, "method")}${if (o.has("projects")) " " + o.get("projects").toString else ""}",
+      kind = "request",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.buildStart,
+      events.buildEnd,
+      startKey = o => getStr(o, "workspace"),
+      endKey = o => getStr(o, "workspace"),
+      toLabel = o => s"build (${pathName(getStr(o, "workspace"))})",
+      kind = "build",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.compileStart,
+      events.compileEnd,
+      startKey = o => (getStr(o, "project"), getStr(o, "workspace")),
+      endKey = o => (getStr(o, "project"), getStr(o, "workspace")),
+      toLabel = o => s"compile ${getStr(o, "project")}",
+      kind = "compile",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.projectTestStart,
+      events.projectTestEnd,
+      startKey = o => (getStr(o, "project"), getStr(o, "workspace"), getStr(o, "origin_id")),
+      endKey = o => (getStr(o, "project"), getStr(o, "workspace"), getStr(o, "origin_id")),
+      toLabel = o => s"project_test ${getStr(o, "project")}",
+      kind = "project_test",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.suiteStart,
+      events.suiteEnd,
+      startKey = o => (getStr(o, "project"), getStr(o, "suite")),
+      endKey = o => (getStr(o, "project"), getStr(o, "suite")),
+      toLabel = o => s"suite ${getStr(o, "suite")}",
+      kind = "suite",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.sourcegenStart,
+      events.sourcegenEnd,
+      startKey = o => getStr(o, "script"),
+      endKey = o => getStr(o, "script"),
+      toLabel = o => s"sourcegen ${getStr(o, "script")}",
+      kind = "sourcegen",
+      success = readSuccess,
+      peakRssMb = noLong,
+      cmd = noStr,
+      originId = readOriginId
+    )
+    pairSpans(
+      events.subprocessStart,
+      events.subprocessEnd,
+      startKey = o => o.get("pid").getAsLong,
+      endKey = o => o.get("pid").getAsLong,
+      toLabel = s => {
+        val cmdStr = getStr(s, "cmd")
+        val name = if (cmdStr.contains("/")) cmdStr.substring(cmdStr.lastIndexOf('/') + 1) else cmdStr
+        s"${getStr(s, "kind")} ($name, pid=${s.get("pid").getAsLong})"
+      },
+      kind = "subprocess",
+      success = noBool,
+      peakRssMb = e => if (e.has("peak_rss_mb")) Some(e.get("peak_rss_mb").getAsLong) else None,
+      cmd = s => Some(getStr(s, "cmd")),
+      originId = readOriginId
+    )
+
+    val real = spans.toList.sortBy(_.startMs)
+    // One synthetic root per scope, covering the union of its children's times — gives every scope a stable top-level entry in the resulting trace.
+    val scopeRoots = real.groupBy(_.scope).toList.map { case (scope, ss) =>
+      Span(
+        scope,
+        kind = "scope",
+        label = scope,
+        startMs = ss.map(_.startMs).min,
+        endMs = ss.map(_.endMs).max,
+        success = None,
+        peakRssMb = None,
+        cmd = None,
+        originId = None
+      )
+    }
+    val all0 = (scopeRoots ::: real).sortBy(_.startMs).toArray
+    val parentIdx = Array.fill(all0.length)(-1)
+    var i = 0
+    while (i < all0.length) {
+      val s = all0(i); var best = -1; var bestDur = Long.MaxValue; var j = 0
+      while (j < all0.length) {
+        if (j != i) {
+          val p = all0(j)
+          val contains = p.scope == s.scope && p.startMs <= s.startMs && s.endMs <= p.endMs && (p.endMs - p.startMs) > (s.endMs - s.startMs)
+          val dur = p.endMs - p.startMs
+          if (contains && dur < bestDur) { best = j; bestDur = dur }
+        }
+        j += 1
+      }
+      parentIdx(i) = best
+      i += 1
+    }
+    // Propagate originId down the tree: any span without its own originId inherits from the nearest ancestor that has one. This is how compile/sourcegen/suite/
+    // subprocess spans pick up the BSP-request originId without explicit plumbing through every emit site — the request_start span sits at the top of their
+    // containment subtree, so once that one has originId set, descendants do too. After this pass, all spans in a request-rooted subtree share originId.
+    val all = all0.clone()
+    var k = 0
+    while (k < all.length) {
+      if (all(k).originId.isEmpty) {
+        var anc = parentIdx(k)
+        while (anc >= 0 && all(anc).originId.isEmpty) anc = parentIdx(anc)
+        if (anc >= 0) all(k) = all(k).copy(originId = all(anc).originId)
+      }
+      k += 1
+    }
+    SpanGraph(all, parentIdx)
+  }
+
+  /** Write the merged span graph as a Chrome Trace Event Format JSON file. Drops into `chrome://tracing` and `ui.perfetto.dev` with zero install.
+    *
+    * pid assignment is **per trace** — i.e. per `originId` for BSP-request work, per scope otherwise. Every span belonging to one `bleep` command lands on the
+    * same pid in the viewer, so the BSP request span, the compile/sourcegen children, the test-runner subprocesses, and the suite spans all stack into a single
+    * nested tree on one lane. tid=0 within each pid, so Perfetto uses time-overlap to nest the spans. Phase `X` = complete event with `ts` (start, µs) and
+    * `dur` (duration, µs).
+    *
+    * pid label uses the request label when available (e.g. `test [bleep-tests]`) so the viewer's process header reads as the command, not as a scope hash.
+    */
+  private def writeChromeTrace(graph: SpanGraph, path: Path): Unit = {
+    def traceKey(s: Span): String = s.originId match { case Some(id) if id.nonEmpty => s"origin:$id"; case _ => s"scope:${s.scope}" }
+
+    val tracesInOrder = graph.spans.toList.zipWithIndex.map { case (s, i) => (traceKey(s), i) }.distinctBy(_._1).map(_._1)
+    val pidByTrace = tracesInOrder.zipWithIndex.toMap.view.mapValues(_ + 1).toMap
+
+    // Label each pid with the most informative span in that trace: the `request` span when present, otherwise the scope. So in Perfetto you see
+    // `test [bleep-tests] (request, e4102302…)` rather than a bare hash.
+    val labelByTrace: Map[String, String] = tracesInOrder.map { tk =>
+      val members = graph.spans.filter(traceKey(_) == tk)
+      val req = members.find(_.kind == "request")
+      val label = req match {
+        case Some(r) => s"${r.label} (request${r.originId.fold("")(id => s", ${id.take(8)}…")})"
+        case None    => members.headOption.map(_.scope).getOrElse(tk)
+      }
+      tk -> label
+    }.toMap
+
+    val events = ArrayBuffer.empty[String]
+    tracesInOrder.foreach { tk =>
+      events += s"""{"name":"process_name","ph":"M","pid":${pidByTrace(tk)},"tid":0,"args":{"name":"${escJson(labelByTrace(tk))}"}}"""
+    }
+    graph.spans.foreach { s =>
+      val pid = pidByTrace(traceKey(s))
+      val startUs = s.startMs * 1000
+      val durUs = math.max(0L, (s.endMs - s.startMs) * 1000)
+      val args = scala.collection.mutable.ArrayBuffer.empty[String]
+      args += s""""kind":"${s.kind}""""
+      args += s""""scope":"${escJson(s.scope)}""""
+      s.originId.foreach(id => args += s""""origin_id":"${escJson(id)}"""")
+      s.success.foreach(b => args += s""""success":${if (b) "true" else "false"}""")
+      s.peakRssMb.foreach(m => args += s""""peak_rss_mb":$m""")
+      s.cmd.foreach(c => args += s""""cmd":"${escJson(c)}"""")
+      val argsJson = s""","args":{${args.mkString(",")}}"""
+      events += s"""{"name":"${escJson(s.label)}","cat":"${s.kind}","ph":"X","ts":$startUs,"dur":$durUs,"pid":$pid,"tid":0$argsJson}"""
+    }
+    val json = s"""{"traceEvents":[${events.mkString(",")}],"displayTimeUnit":"ms"}"""
+    Option(path.getParent).foreach(Files.createDirectories(_))
+    Files.writeString(path, json): Unit
+  }
+
+  /** Write the merged span graph as OTLP/JSON. One `resourceSpans` group per scope (so each shows up as a distinct service in OTel viewers). `traceId` is a
+    * stable 16-byte hash of the scope name (hex-encoded, 32 chars); `spanId` is a sequential 8-byte id within the trace (hex, 16 chars). `parentSpanId` is
+    * looked up from the inferred-parent index when set. Time fields are nanoseconds, encoded as **strings** because JSON numbers don't preserve precision.
+    */
+  private def writeOtlpJson(graph: SpanGraph, path: Path): Unit = {
+    // Trace grouping: when a span has `originId` (BSP request id propagated from the CLI), use that as the trace key so every span in one bleep command shares
+    // a `traceId` and renders as one cohesive trace in Jaeger/Tempo/etc. Spans without originId (CLI process events, idle BSP daemon work outside a request)
+    // fall back to grouping by scope. The resulting `traceId` is a stable hex 16-byte hash of the key.
+    def traceIdOf(key: String): String = {
+      val digest = java.security.MessageDigest.getInstance("SHA-256").digest(key.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+      digest.take(16).map(b => f"$b%02x").mkString
+    }
+    def spanIdOf(n: Long): String = f"$n%016x"
+    def traceKey(s: Span): String = s.originId match { case Some(id) if id.nonEmpty => s"origin:$id"; case _ => s"scope:${s.scope}" }
+
+    // SpanId is per-trace; counter resets per traceKey so the parentSpanId lookups stay within the right trace.
+    val spanIdByIdx = Array.fill(graph.spans.length)("")
+    val counter = scala.collection.mutable.Map.empty[String, Long]
+    var i = 0
+    while (i < graph.spans.length) {
+      val tk = traceKey(graph.spans(i))
+      val n = counter.getOrElse(tk, 0L) + 1
+      counter(tk) = n
+      spanIdByIdx(i) = spanIdOf(n)
+      i += 1
+    }
+
+    // One resourceSpans block per trace (= per bleep request, or per scope for un-attributed spans). service.name = "bleep" always; service.instance.id is the
+    // scope (BSP daemon hash / CLI invocation dir) so multi-tracker views in Jaeger group by it.
+    val resourceBlocks = graph.spans.indices.groupBy(idx => traceKey(graph.spans(idx))).toList.map { case (tk, idxs) =>
+      val firstScope = graph.spans(idxs.head).scope
+      val resourceAttrs =
+        s"""{"key":"service.name","value":{"stringValue":"bleep"}},{"key":"service.instance.id","value":{"stringValue":"${escJson(firstScope)}"}}"""
+      val tid = traceIdOf(tk)
+      val spans = idxs.toList.sortBy(graph.spans(_).startMs).map { idx =>
+        val s = graph.spans(idx)
+        val startNs = s.startMs * 1000000L
+        val endNs = s.endMs * 1000000L
+        // Only emit parentSpanId when the parent lives in the same trace — otherwise span ids from a different trace would dangle.
+        val parentField = {
+          val pi = graph.parentIdx(idx)
+          if (pi >= 0 && traceKey(graph.spans(pi)) == tk) s""","parentSpanId":"${spanIdByIdx(pi)}"""" else ""
+        }
+        val attrs = scala.collection.mutable.ArrayBuffer.empty[String]
+        attrs += s"""{"key":"kind","value":{"stringValue":"${s.kind}"}}"""
+        attrs += s"""{"key":"scope","value":{"stringValue":"${escJson(s.scope)}"}}"""
+        s.originId.foreach(id => attrs += s"""{"key":"origin_id","value":{"stringValue":"${escJson(id)}"}}""")
+        s.peakRssMb.foreach(m => attrs += s"""{"key":"peak_rss_mb","value":{"intValue":"$m"}}""")
+        s.cmd.foreach(c => attrs += s"""{"key":"cmd","value":{"stringValue":"${escJson(c)}"}}""")
+        val statusCode = s.success match { case Some(true) => 1; case Some(false) => 2; case None => 0 }
+        s"""{"traceId":"$tid","spanId":"${spanIdByIdx(idx)}"$parentField,"name":"${escJson(
+            s.label
+          )}","kind":1,"startTimeUnixNano":"$startNs","endTimeUnixNano":"$endNs","attributes":[${attrs.mkString(",")}],"status":{"code":$statusCode}}"""
+      }
+      s"""{"resource":{"attributes":[$resourceAttrs]},"scopeSpans":[{"scope":{"name":"bleep"},"spans":[${spans.mkString(",")}]}]}"""
+    }
+    val json = s"""{"resourceSpans":[${resourceBlocks.mkString(",")}]}"""
+    Option(path.getParent).foreach(Files.createDirectories(_))
+    Files.writeString(path, json): Unit
+  }
+
   // ---- HTML generation ----
 
-  private def generateHtml(events: Events): String = {
+  private def generateHtml(events: Events, traceChromePath: Option[Path], traceOtlpPath: Option[Path]): String = {
     val allTs = ArrayBuffer.empty[Long]
     val collectTs: JsonObject => Unit = obj => if (obj.has("ts")) allTs += obj.get("ts").getAsLong
     events.jvm.foreach(collectTs)
@@ -351,96 +794,27 @@ case class ServerMetrics(
       }
     }
 
-    // ---- 8. Slowest Suites (bar chart, top 20 by duration_ms) ----
-    if (events.suiteEnd.nonEmpty) {
-      val ranked = events.suiteEnd.sortBy(e => -e.get("duration_ms").getAsLong).take(20)
-      val labels = ranked.map(e => s"${getStr(e, "suite")} (${getStr(e, "project")})")
-      val durations = ranked.map(_.get("duration_ms").getAsLong / 1000.0)
-      val colors = ranked.map(e => if (e.has("success") && e.get("success").getAsBoolean) "#22c55e" else "#ef4444")
-      val t = ArrayBuffer.empty[String]
-      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(durations.reverse)},"y":${fmtStrings(
-          labels.reverse
-        )},"marker":{"color":${fmtStrings(colors.reverse)}},"hovertemplate":"%{y}<br>%{x:.2f}s<extra></extra>"}"""
-      val layout =
-        s"""{"margin":{"t":8,"r":16,"b":44,"l":280},"showlegend":false,"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickfont":{"size":10},"gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"}}"""
-      val barHeight = math.max(280, ranked.size * 22 + 60)
-      addChart("slowest-suites", s"Slowest Suites (top ${ranked.size})", t, layout, true, barHeight)
-    }
-
-    // ---- 9. Slowest Tests (bar chart, top 30 by duration_ms) ----
-    if (events.testEnd.nonEmpty) {
-      val ranked = events.testEnd.sortBy(e => -e.get("duration_ms").getAsLong).take(30)
-      val labels = ranked.map(e => s"${getStr(e, "test")} — ${getStr(e, "suite")}")
-      val durations = ranked.map(_.get("duration_ms").getAsLong / 1000.0)
-      val colors = ranked.map(e => getStr(e, "status").toLowerCase(Locale.ROOT)).map {
-        case "passed"                           => "#22c55e"
-        case "failed" | "error"                 => "#ef4444"
-        case "skipped" | "canceled" | "ignored" => "#9ca3af"
-        case _                                  => "#3b82f6"
-      }
-      val t = ArrayBuffer.empty[String]
-      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(durations.reverse)},"y":${fmtStrings(
-          labels.reverse
-        )},"marker":{"color":${fmtStrings(colors.reverse)}},"hovertemplate":"%{y}<br>%{x:.3f}s<extra></extra>"}"""
-      val layout =
-        s"""{"margin":{"t":8,"r":16,"b":44,"l":340},"showlegend":false,"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickfont":{"size":9},"gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"}}"""
-      val barHeight = math.max(280, ranked.size * 18 + 60)
-      addChart("slowest-tests", s"Slowest Tests (top ${ranked.size})", t, layout, true, barHeight)
-    }
-
-    // ---- 10. Suite Timeline (full width) ----
-    // Same shape as the compile timeline: one row per (workspace, project, suite), bars span suite_start → suite_end.
-    if (events.suiteEnd.nonEmpty && events.suiteStart.nonEmpty) {
-      val startMap = scala.collection.mutable.Map.empty[(String, String, String), ArrayBuffer[Long]]
-      events.suiteStart.foreach { e =>
-        val key = (getStr(e, "project"), getStr(e, "workspace"), getStr(e, "suite"))
-        startMap.getOrElseUpdate(key, ArrayBuffer.empty) += e.get("ts").getAsLong
-      }
-
-      case class SuiteSpan(suite: String, project: String, workspace: String, startS: Double, durationS: Double, success: Boolean)
-      val spans = ArrayBuffer.empty[SuiteSpan]
-      events.suiteEnd.foreach { e =>
-        val key = (getStr(e, "project"), getStr(e, "workspace"), getStr(e, "suite"))
-        startMap.get(key).foreach { starts =>
-          if (starts.nonEmpty) {
-            val startTs = starts.remove(0)
-            val durMs = e.get("duration_ms").getAsLong
-            val ok = e.has("success") && e.get("success").getAsBoolean
-            spans += SuiteSpan(getStr(e, "suite"), getStr(e, "project"), getStr(e, "workspace"), relS(startTs), durMs / 1000.0, ok)
-          }
+    // ---- Span Trace card (links to standard-format trace files) ----
+    // We dropped the custom HTML span tree in favour of writing standard trace formats and pointing the user at off-the-shelf viewers. Chrome Trace Event
+    // Format drops straight into ui.perfetto.dev with zero install; OTLP/JSON works with Jaeger / Grafana Tempo / otel-desktop-viewer / Honeycomb / DataDog.
+    (traceChromePath, traceOtlpPath) match {
+      case (None, None) => ()
+      case _            =>
+        val chromeLine = traceChromePath match {
+          case Some(p) =>
+            s"""<div style="margin-bottom:10px"><div style="font-size:12px;color:#475569;font-weight:600;margin-bottom:2px">Chrome Trace Event Format</div><div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#1e3a8a;word-break:break-all">${escJson(
+                p.toString
+              )}</div><div style="font-size:11px;color:#64748b;margin-top:4px">Drop into <a href="https://ui.perfetto.dev" target="_blank" rel="noopener" style="color:#3b82f6;text-decoration:underline">ui.perfetto.dev</a> — no install. Or open <code>chrome://tracing</code>.</div></div>"""
+          case None => ""
         }
-      }
-
-      if (spans.nonEmpty) {
-        val rowKeys = spans.map(s => (pathName(s.workspace), s.project, s.suite)).distinct.sortBy(r => (r._1, r._2, r._3))
-        val rowLabels = rowKeys.map { case (ws, proj, suite) => s"$ws / $proj / $suite" }
-        val rowIndex = rowKeys.zipWithIndex.toMap
-        val height = math.max(400, rowKeys.size * 14 + 80)
-
-        val shapes = spans.map { span =>
-          val row = rowIndex((pathName(span.workspace), span.project, span.suite))
-          val color = if (span.success) "#22c55e" else "#ef4444"
-          s"""{"type":"rect","x0":${span.startS},"x1":${span.startS + span.durationS},"y0":${row - 0.4},"y1":${row + 0.4},"fillcolor":"$color","opacity":0.8,"line":{"width":0}}"""
+        val otlpLine = traceOtlpPath match {
+          case Some(p) =>
+            s"""<div><div style="font-size:12px;color:#475569;font-weight:600;margin-bottom:2px">OpenTelemetry (OTLP/JSON)</div><div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#1e3a8a;word-break:break-all">${escJson(
+                p.toString
+              )}</div><div style="font-size:11px;color:#64748b;margin-top:4px">Open with <a href="https://github.com/CtrlSpice/otel-desktop-viewer" target="_blank" rel="noopener" style="color:#3b82f6;text-decoration:underline">otel-desktop-viewer</a>, Jaeger, Grafana Tempo, Honeycomb, or DataDog.</div></div>"""
+          case None => ""
         }
-
-        val t = ArrayBuffer.empty[String]
-        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(spans.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(
-            spans.map(s => rowIndex((pathName(s.workspace), s.project, s.suite)).toDouble)
-          )},"text":${fmtStrings(spans.map(s => s"${s.suite} (${s.project} @ ${pathName(s.workspace)})"))},"customdata":${fmtDoubles(
-            spans.map(_.durationS)
-          )},"marker":{"color":"rgba(0,0,0,0)","size":6},"hovertemplate":"%{text}<br>%{customdata:.2f}s<extra></extra>","showlegend":false}"""
-
-        val tlLayout =
-          s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(
-              rowKeys.indices.map(_.toDouble)
-            )},"ticktext":${fmtStrings(
-              rowLabels
-            )},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes
-              .mkString(",")}]}"""
-
-        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Suite Timeline (${rowKeys.size} suites)</h3><div id="suite-timeline" style="height:${height}px"></div></div>"""
-        plotCalls += s"""Plotly.newPlot('suite-timeline',[${t.mkString(",")}],$tlLayout,{responsive:true,displayModeBar:false});"""
-      }
+        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Span Trace</h3>$chromeLine$otlpLine</div>"""
     }
 
     // ---- Summary statistics ----

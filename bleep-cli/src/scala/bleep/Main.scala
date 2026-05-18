@@ -79,7 +79,7 @@ object Main {
           Opts.argument[Long]("pid").orNone,
           Opts.option[Path]("html", "write the dashboard HTML to this path and do not open a browser").orNone,
           Opts.option[Path]("jsonl", "copy the raw metrics JSONL to this path").orNone
-        ).mapN((pid, html, jsonl) => commands.ServerMetrics(logger, userPaths, pid, html, jsonl))
+        ).mapN((pid, html, jsonl) => commands.ServerMetrics(logger, userPaths, invocationMetricsRoot = Some(buildPaths.metricsRoot), pid, html, jsonl))
       )
     ).foldK
 
@@ -524,7 +524,16 @@ object Main {
               Opts.argument[Long]("pid").orNone,
               Opts.option[Path]("html", "write the dashboard HTML to this path and do not open a browser").orNone,
               Opts.option[Path]("jsonl", "copy the raw metrics JSONL to this path").orNone
-            ).mapN((pid, html, jsonl) => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, html, jsonl))
+            ).mapN((pid, html, jsonl) =>
+              commands.ServerMetrics(
+                started.pre.logger,
+                started.pre.userPaths,
+                invocationMetricsRoot = Some(started.buildPaths.metricsRoot),
+                pid,
+                html,
+                jsonl
+              )
+            )
           ),
           Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local')") {
             (
@@ -997,6 +1006,13 @@ object Main {
                 run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
               }
             case existing: BuildLoader.Existing =>
+              // Per-invocation metrics: subprocess tree + RSS for whatever this CLI run forks (scripts, native-image, ...). Lives at
+              // `<workspace>/.bleep/metrics/<timestamp>-<pid>/`. Shutdown hook handles SIGINT / clean exits / `System.exit` from `main`.
+              bleep.metrics.InvocationMetrics.initialize(buildPaths.metricsRoot)
+              Runtime.getRuntime.addShutdownHook(new Thread("invocation-metrics-shutdown") {
+                override def run(): Unit = bleep.metrics.InvocationMetrics.shutdown()
+              })
+
               val pre = Prebootstrapped(storingLogger, userPaths, buildPaths, existing, ec)
               bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                 case Left(th) =>
