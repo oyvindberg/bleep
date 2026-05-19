@@ -9,25 +9,39 @@ import java.util.jar.{Attributes, JarOutputStream, Manifest}
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
 
+  /** Match the same condition the `release` job in `.github/workflows/build.yml` uses: `startsWith(github.ref, 'refs/tags/v')`. When CI is building artifacts
+    * that will be uploaded to a GitHub Release, we want full `-O2` optimisation; every other invocation gets `-Ob`.
+    */
+  private def isReleaseBuild: Boolean =
+    sys.env.get("GITHUB_REF").exists(_.startsWith("refs/tags/v"))
+
   /** Native-image options shared by both the inline build path and the `--emit-script` path. Centralised here so the stand-alone launcher script and a regular
     * `bleep native-image` invocation produce the same binary, modulo the host JVM picking the binary up off `JAVA_HOME` on Windows CI.
+    *
+    * `quickBuild` adds GraalVM's `-Ob` (alias `-O0`): skips advanced inlining / escape-analysis / etc., trading runtime performance for **30–50% faster
+    * build**. Selected when not building from a release tag (see [[isReleaseBuild]]): every PR, every master push, every local `bleep native-image` gets the
+    * quick path. Release tag builds get full optimisation. The mode is logged at the top of the build so a reviewer can confirm which mode produced a given
+    * binary.
     */
-  private val nativeImageOptions: List[String] = List(
-    "-march=compatibility",
-    "--no-fallback",
-    "--enable-http",
-    "--enable-https",
-    "-H:+ReportExceptionStackTraces",
-    "-H:+UnlockExperimentalVMOptions",
-    "--initialize-at-build-time=scala.runtime.Statics$VM",
-    "--initialize-at-build-time=scala.Symbol",
-    "--initialize-at-build-time=scala.Symbol$",
-    "--enable-native-access=ALL-UNNAMED",
-    "-J--sun-misc-unsafe-memory-access=allow",
-    "-H:+ForeignAPISupport",
-    "--native-image-info",
-    "-J-Xmx5g"
-  )
+  private def nativeImageOptions(quickBuild: Boolean): List[String] = {
+    val base = List(
+      "-march=compatibility",
+      "--no-fallback",
+      "--enable-http",
+      "--enable-https",
+      "-H:+ReportExceptionStackTraces",
+      "-H:+UnlockExperimentalVMOptions",
+      "--initialize-at-build-time=scala.runtime.Statics$VM",
+      "--initialize-at-build-time=scala.Symbol",
+      "--initialize-at-build-time=scala.Symbol$",
+      "--enable-native-access=ALL-UNNAMED",
+      "-J--sun-misc-unsafe-memory-access=allow",
+      "-H:+ForeignAPISupport",
+      "--native-image-info",
+      "-J-Xmx5g"
+    )
+    if (quickBuild) base :+ "-Ob" else base
+  }
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
     // Env-var signal to switch to script-emit mode (env not flag, because bleep's script subcommand parser uses `Opts.arguments[String]()` which rejects
@@ -35,6 +49,15 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     // of running the build inline. CI then stops the compile-server and runs the launcher so `native-image` gets the full RAM budget.
     val emitScript = sys.env.get("BLEEP_NATIVE_IMAGE_EMIT_SCRIPT").map(Path.of(_))
     val rest = args
+
+    // Quick-build mode (`-Ob`) on every non-release build. Signal: the `GITHUB_REF` env var, which the `release` job in build.yml gates itself on
+    // (`if: "startsWith(github.ref, 'refs/tags/v')"`). When unset (local dev) we also get the fast path — testing a binary locally doesn't need full
+    // optimisation. When set to anything other than a release tag (PR / master) we still want fast: the artifact is throwaway.
+    val quickBuild = !isReleaseBuild
+    val optMode = if (quickBuild) "-Ob (quick build, snapshot/PR/local)" else "-O2 (full optimisation, release tag)"
+    started.logger.withContext("GITHUB_REF", sys.env.getOrElse("GITHUB_REF", "<unset>")).withContext("mode", optMode).info("native-image build mode")
+
+    val options = nativeImageOptions(quickBuild)
 
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProject(projectName)
@@ -54,7 +77,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
       project = project,
       logger = started.logger,
       jvmCommand = jvm,
-      nativeImageOptions = nativeImageOptions,
+      nativeImageOptions = options,
       env = sys.env.toList
     ) {
       // allow user to pass in name of generated binary as parameter
@@ -69,7 +92,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
 
     emitScript match {
       case Some(scriptPath) =>
-        val (command, cwd) = prepareNativeImageCommand(started, plugin, project)
+        val (command, cwd) = prepareNativeImageCommand(started, plugin, project, options)
         writeLauncherScript(scriptPath, command, cwd, sys.env.toList)
         started.logger
           .withContext("scriptPath", scriptPath)
@@ -84,7 +107,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     * indirection so we don't hit "argument list too large" on Windows) and the same argument vector, returning `(command, cwd)`. Kept here instead of in the
     * plugin so we don't have to spin a new release of the liberated sbt-native-image submodule for this feature.
     */
-  private def prepareNativeImageCommand(started: Started, plugin: NativeImagePlugin, project: ResolvedProject): (List[String], Path) = {
+  private def prepareNativeImageCommand(started: Started, plugin: NativeImagePlugin, project: ResolvedProject, options: List[String]): (List[String], Path) = {
     val mainClass = project.platform
       .flatMap {
         case jvm: ResolvedProject.Platform.Jvm       => jvm.mainClass
@@ -105,7 +128,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
       plugin.nativeImageCommand.toString ::
         "-cp" ::
         manifestJar.toAbsolutePath.toString ::
-        nativeImageOptions :::
+        options :::
         mainClass ::
         plugin.nativeImageOutput.toAbsolutePath.toString ::
         Nil
