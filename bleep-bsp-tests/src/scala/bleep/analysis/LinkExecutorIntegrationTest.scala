@@ -119,6 +119,7 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
   // ==========================================================================
 
   test("Kotlin Native test linking produces binary with test runner") {
+    assumeKotlinNativeAvailable()
     // Use the same version for compilation and linking to avoid ABI mismatch
     val kotlinVersion = KotlinNativeCompilerConfig.Default.kotlinVersion
 

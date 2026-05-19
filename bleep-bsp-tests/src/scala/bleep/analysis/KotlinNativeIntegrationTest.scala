@@ -196,6 +196,7 @@ class KotlinNativeIntegrationTest extends AnyFunSuite with Matchers {
 class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
 
   test("KotlinNativeCompiler: compile simple Kotlin file to native binary") {
+    assumeKotlinNativeAvailable()
     withTempDir("kt-native-exe") { tempDir =>
       val srcDir = tempDir.resolve("src")
       writeKotlinSource(srcDir, "Main.kt", "fun main() { println(\"Hello from Kotlin/Native\") }")
@@ -223,6 +224,7 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
   }
 
   test("KotlinNativeCompiler: compile to KLIB") {
+    assumeKotlinNativeAvailable()
     withTempDir("kt-native-klib") { tempDir =>
       val srcDir = tempDir.resolve("src")
       writeKotlinSource(srcDir, "Lib.kt", "fun greet(name: String): String = \"Hello, $name\"")
@@ -250,6 +252,7 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
   }
 
   test("KotlinNativeCompiler: compile and run binary") {
+    assumeKotlinNativeAvailable()
     withTempDir("kt-native-run") { tempDir =>
       val srcDir = tempDir.resolve("src")
       writeKotlinSource(srcDir, "Main.kt", "fun main() { println(\"KotlinNativeOutput42\") }")

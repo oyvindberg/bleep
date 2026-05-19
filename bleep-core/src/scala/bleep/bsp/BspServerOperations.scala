@@ -52,6 +52,11 @@ object BspServerOperations {
 
       val pb = new ProcessBuilder(command.asJava)
       pb.directory(config.workingDir.toFile)
+      // Default ANSI-off for the BSP daemon JVM. With NO_COLOR=1 in the daemon's own env, every subprocess it ever spawns inherits the var via ProcessBuilder's
+      // default env-copy behaviour — covers the test runner JvmPool, KSP runner, Kotlin/Scala JS/Native linkers, native-image, ad-hoc `git status` calls in
+      // `ProjectDigest` (via scala.sys.process), and everything else without per-site plumbing. Use `putIfAbsent` so a developer who sets `NO_COLOR=` empty in
+      // their shell or wants color in some specific case still wins.
+      pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
       // Redirect stderr (where our logger writes) to the output file.
       // Discard stdout — libraries (Bloop, Zinc) dump massive
       // amounts of data to stdout which would bloat the log to tens of GB.

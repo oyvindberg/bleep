@@ -1,8 +1,14 @@
 package bleep.analysis
 
+import bleep.BleepFileCache
 import cats.effect.IO
+import coursier.cache.{ArchiveCache, CacheLogger}
+import coursier.util.{Artifact, Task}
+
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
 
@@ -63,11 +69,12 @@ object KotlinNativeCompiler {
 
   /** Resolve the Kotlin/Native prebuilt distribution home directory.
     *
-    * The K/N compiler needs a distribution directory containing platform libraries, LLVM, etc. This is stored at
-    * ~/.konan/kotlin-native-prebuilt-<os>-<arch>-<version>/. If not present, downloads it from Maven Central.
+    * The K/N compiler needs a distribution directory containing platform libraries, LLVM, etc. We route the download/extract through Coursier's
+    * [[ArchiveCache]] so the ~200MB tarball lands under `~/.cache/coursier/arc/...` — the same path GitHub Actions' `coursier/cache-action@v8` already caches.
+    * Cuts ~90s off first-test cost on warm runners and removes a network dep mid-test on cold ones. Returns the path Konan should be pointed at via
+    * `konan.home`: `<extracted>/kotlin-native-prebuilt-<platform>-<version>/`.
     */
   private def resolveKonanHome(kotlinVersion: String): Path = {
-    val konanDir = Path.of(System.getProperty("user.home"), ".konan")
     val os = System.getProperty("os.name").toLowerCase
     val arch = System.getProperty("os.arch").toLowerCase
 
@@ -79,32 +86,27 @@ object KotlinNativeCompiler {
       case _                                     => "linux-x86_64"
     }
 
-    val distDir = konanDir.resolve(s"kotlin-native-prebuilt-$platform-$kotlinVersion")
-    if (Files.isDirectory(distDir)) {
-      distDir
-    } else {
-      // Download and extract the prebuilt distribution
-      Files.createDirectories(konanDir)
-      val tarGz = konanDir.resolve(s"kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz")
-      if (!Files.exists(tarGz)) {
-        val url =
-          s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz"
-        val conn = java.net.URI.create(url).toURL.openConnection()
-        val in = conn.getInputStream
-        try Files.copy(in, tarGz): Unit
-        finally in.close()
-      }
-      // Extract
-      val pb = new ProcessBuilder("tar", "xzf", tarGz.toString)
-        .directory(konanDir.toFile)
-        .redirectErrorStream(true)
-      val proc = pb.start()
-      proc.getInputStream.transferTo(java.io.OutputStream.nullOutputStream())
-      val exitCode = proc.waitFor()
-      if (exitCode != 0) throw new RuntimeException(s"Failed to extract Kotlin/Native distribution: exit code $exitCode")
-      if (!Files.isDirectory(distDir)) throw new RuntimeException(s"Kotlin/Native distribution not found after extraction at $distDir")
-      distDir
+    // Two distinct names: Maven Central names the artifact `kotlin-native-prebuilt-<version>-<platform>.tar.gz` (classifier convention), but the directory the
+    // tarball extracts to is `kotlin-native-prebuilt-<platform>-<version>` (Kotlin's own naming). Get either one wrong → either 404 from Coursier or "Konan
+    // distribution not found after extraction".
+    val artifactFileName = s"kotlin-native-prebuilt-$kotlinVersion-$platform"
+    val extractedFolderName = s"kotlin-native-prebuilt-$platform-$kotlinVersion"
+    val url = s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/$artifactFileName.tar.gz"
+    val fileCache = BleepFileCache().withLogger(CacheLogger.nop)
+    val cache = ArchiveCache[Task]().withCache(fileCache)
+    val extractedRoot = Await.result(cache.get(Artifact(url)).value(ExecutionContext.global), Duration.Inf) match {
+      case Left(err)     => throw new RuntimeException(s"Failed to fetch Kotlin/Native prebuilt $kotlinVersion ($platform): $err", err)
+      case Right(folder) => folder.toPath
     }
+
+    // Coursier's ArchiveCache extracts into `<arc-cache>/<hash>/`, and the tarball's top-level entry is `kotlin-native-prebuilt-<platform>-<version>/`. That
+    // subfolder is what Konan calls "konan.home" — points at `bin/`, `klib/`, `konan/lib/`, etc.
+    val konanHome = extractedRoot.resolve(extractedFolderName)
+    if (!Files.isDirectory(konanHome))
+      throw new RuntimeException(
+        s"Kotlin/Native distribution not found after extraction. Expected directory at $konanHome (extracted root: $extractedRoot)"
+      )
+    konanHome
   }
 
   private def compileBlocking(

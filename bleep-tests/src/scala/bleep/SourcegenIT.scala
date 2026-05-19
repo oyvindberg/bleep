@@ -1,10 +1,10 @@
 package bleep
 
 class SourcegenIT extends IntegrationTestHarness {
-  integrationTest("resource generator") { ws =>
-    // Forked JVMs (sourcegen script + `bleep run`) get bounded heaps via `jvmRuntimeOptions`
-    // so the total (test JVM + in-process BSP + forks) fits within the 7GB CI runner budget.
-    val Yaml = """projects:
+  // The yaml + main + sourcegen-script bodies are shared by the compile-only and the run-and-assert tests below — the first test exercises the
+  // sourcegen+compile path, the second adds the JVM fork. Splitting them gives the suite-idle timer two reset windows instead of one and keeps total work
+  // inside the per-test 2-minute budget even under parallel-suite CPU contention.
+  private val Yaml = """projects:
                  |  a:
                  |    extends: common
                  |    platform:
@@ -24,7 +24,7 @@ class SourcegenIT extends IntegrationTestHarness {
                  |      version: 3.8.3
                  |""".stripMargin
 
-    val Main = """package test
+  private val Main = """package test
                  |
                  |object Main {
                  |  def main(args: Array[String]): Unit =
@@ -32,7 +32,7 @@ class SourcegenIT extends IntegrationTestHarness {
                  |}
                  |""".stripMargin
 
-    val SourceGen = """package testscripts
+  private val SourceGen = """package testscripts
                       |
                       |import bleep.*
                       |import java.nio.file.Files
@@ -56,9 +56,22 @@ class SourcegenIT extends IntegrationTestHarness {
                       |}
                       |""".stripMargin
 
+  // Bounded heaps (`jvmRuntimeOptions`) so test JVM + in-process BSP + forks fit the 7GB CI budget.
+  private def writeFiles(ws: Workspace): Unit = {
     ws.yaml(Yaml)
     ws.file("a/src/scala/test/Main.scala", Main)
     ws.file("scripts/src/scala/testscripts/SourceGen.scala", SourceGen)
+  }
+
+  integrationTest("resource generator: sourcegen + compile") { ws =>
+    writeFiles(ws)
+    val (_, commands, _) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None)))
+    succeed
+  }
+
+  integrationTest("resource generator: run main, prints generated value") { ws =>
+    writeFiles(ws)
     val (_, commands, storingLogger) = ws.start()
     commands.run(model.CrossProjectName(model.ProjectName("a"), None))
     assert(storingLogger.underlying.exists(_.message.plainText == "result: 100"))

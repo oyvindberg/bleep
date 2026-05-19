@@ -193,7 +193,8 @@ object buildFromBloopFiles {
         `sbt-scope` = Some(projectType.sbtScope),
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
-        sourcegen = model.JsonSet.empty,
+        testTags = model.JsonMap.empty,
+        sourcegen = model.JsonSet.empty[model.ScriptDef],
         libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
         ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),
         publish = None

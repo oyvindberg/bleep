@@ -96,4 +96,19 @@ class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], expl
       }
     projects.map(p => (p.name.value, p.name)).toMap
   }
+
+  /** Union of every `testTags` key declared across all projects in the build. Used to drive tab-completion for `bleep test --only-tag` / `--exclude-tag` and to
+    * validate user-supplied tag names at parse time. Value side is the tag string itself; the map shape is just what decline's `Argument.fromMap` wants.
+    */
+  def testTagsMap: Map[String, String] = {
+    val projects: Iterable[CrossProjectName] =
+      activeProjectsFromPath match {
+        case None           => explodedProjects.keys
+        case Some(nonEmpty) => nonEmpty
+      }
+    projects.iterator
+      .flatMap(p => explodedProjects(p).testTags.value.keysIterator)
+      .map(tag => (tag, tag))
+      .toMap
+  }
 }

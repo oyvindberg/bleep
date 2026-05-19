@@ -65,6 +65,8 @@ case class BspServerConfig(
 }
 
 object BspServerConfig {
+  // 2 min is the right default — no individual test in a healthy build should take longer than that to emit a single event. If a particular environment
+  // (typically a cold mac CI runner downloading the Konan prebuilt) needs more, override via `~/.config/bleep/config.yaml` rather than relaxing the default.
   val DefaultTestIdleTimeoutMinutes: Int = 2
   val DefaultHeapPressureThreshold: Double = 0.80
 

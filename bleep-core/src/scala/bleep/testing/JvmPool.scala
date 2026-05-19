@@ -350,6 +350,9 @@ object JvmPool {
           if (useEnvClasspath) {
             pb.environment().put("CLASSPATH", cpString): Unit
           }
+          // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+          // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+          pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
           environment.foreach { case (k, v) => pb.environment().put(k, v) }
 
           val process = pb.start()

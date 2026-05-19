@@ -82,7 +82,9 @@ class SpringBootMyappIT extends IntegrationTestHarness {
       projects = List(named("myapp-test")),
       watch = false,
       only = None,
-      exclude = None
+      exclude = None,
+      includeTags = None,
+      excludeTags = None
     )
 
     // package-myapp is exercised manually (see the Spring Boot tutorial); we don't drive it

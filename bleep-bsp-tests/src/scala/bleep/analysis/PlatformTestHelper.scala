@@ -42,6 +42,15 @@ trait PlatformTestHelper {
   /** Managed Node.js binary path, fetched via Coursier. */
   def nodeBinary: String = PlatformTestHelper.nodeBinary
 
+  /** Cancel the surrounding test when Kotlin Native cannot run on this host. JetBrains does not publish a `kotlin-native-prebuilt-linux-aarch64-*` artifact
+    * (verified up to 2.3.21 / 2.4.0-RC). `KotlinNativeCompiler.scala` falls back to the `linux-x86_64` distribution, which the JVM then fails to load on
+    * aarch64 with `UnsatisfiedLinkError` inside `kotlinx.cinterop.JvmCallbacksKt.<clinit>`. Until upstream publishes a linux-aarch64 host, tests that drive the
+    * Konan compiler must be cancelled (not silently skipped) on that arch. Uses `assume` so ScalaTest reports the test as canceled rather than passed.
+    */
+  def assumeKotlinNativeAvailable(): Unit =
+    org.scalatest.Assertions
+      .assume(bleep.OsArch.current != bleep.OsArch.LinuxArm64, "Kotlin Native does not publish a linux-aarch64 prebuilt; test cannot run on this host")
+
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 

@@ -54,7 +54,13 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     bspServerConfig = Some(
       model.BspServerConfig.default.copy(
         testRunnerMaxMemory = Some("512m"),
-        kspRunnerMaxMemory = Some("384m")
+        kspRunnerMaxMemory = Some("384m"),
+        // Pin in-process BSP parallelism to 1 for ITs. The outer `bleep test bleep-tests` already runs `effectiveParallelism = cores` ForkedTestRunner JVMs in
+        // parallel; without this cap each IT's in-process BSP would also fork up to `cores` JVMs (`JvmPool.create(maxParallelism, …)` in MultiWorkspaceBspServer
+        // around line 1968), giving us a cartesian explosion of test-runner JVMs. The trace showed 22+ concurrent ForkedTestRunner JVMs each at 300-900 MB —
+        // that's what was starving KspToyProcessorIT/SourcegenIT/etc. into the 2-min suite-idle timeout. Pinning the inner pool to 1 means each IT test's
+        // sub-work is sequential, which is fine since the IT itself runs in parallel with up-to-cores siblings.
+        parallelism = Some(1)
       )
     ),
     remoteCacheCredentials = None
@@ -103,7 +109,11 @@ class Workspace(
     testConfig: model.BleepConfig
 ) {
 
-  val root: Path = Files.createTempDirectory(s"bleep-doc-$testName-")
+  // Scrub the test name to ASCII alphanumerics + `-` before stuffing it into a temp-dir path. Test names like "E. clean → recompile rebuilds generated sources
+  // deterministically" otherwise produced temp dirs with spaces and a `→`, which we've seen confuse external tools (`rm -Rf` got SIGKILLed by what we suspect
+  // was the kernel reaping a child of an OOM-pressured test JVM on CI runners — exit 137 with no other signal). Sanitizing keeps the path predictable.
+  private val safeTestName = testName.replaceAll("[^A-Za-z0-9._-]+", "-").stripPrefix("-").stripSuffix("-")
+  val root: Path = Files.createTempDirectory(s"bleep-doc-$safeTestName-")
 
   private var rawYaml: Option[String] = None
   private val taggedSnippets: mutable.LinkedHashMap[String, String] = mutable.LinkedHashMap.empty

@@ -5,7 +5,7 @@ import cats.effect._
 import cats.syntax.all._
 import ryddig.Logger
 
-import scala.{Console => SConsole}
+import bleep.testing.BleepConsole as SConsole
 
 /** Simple display for compile-bsp that prints all events with timestamps. Used in --no-tui mode.
   */

@@ -336,6 +336,11 @@ projects:
     isTestProject: true
     scala:
       strict: false
+    testTags:
+      # Every *IT in bleep-tests extends IntegrationTestHarness, which spins up an in-process bleep-bsp and runs real builds end-to-end. These dominate suite
+      # wall-time. The full `build` job in GHA still runs them; native-image jobs exclude them with `--exclude-tag slow`.
+      slow:
+      - "**IT"
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}

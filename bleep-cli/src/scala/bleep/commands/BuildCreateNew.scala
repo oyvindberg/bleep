@@ -122,9 +122,10 @@ object BuildCreateNew {
         kotlin = None,
         platform = None,
         isTestProject = None,
-        testFrameworks = model.JsonSet.empty,
-        sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.empty,
+        testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
+        testTags = model.JsonMap.empty,
+        sourcegen = model.JsonSet.empty[model.ScriptDef],
+        libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
         publish = None
       )
@@ -272,9 +273,10 @@ object BuildCreateNew {
         kotlin = None,
         platform = Some(platformFor(mainPlatform, Some(mainClass))),
         isTestProject = None,
-        testFrameworks = model.JsonSet.empty,
-        sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.empty,
+        testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
+        testTags = model.JsonMap.empty,
+        sourcegen = model.JsonSet.empty[model.ScriptDef],
+        libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
         publish = None
       )

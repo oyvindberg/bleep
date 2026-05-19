@@ -40,10 +40,17 @@ jobs:
       - name: Scalafmt Check
         run: ./bleep-cli.sh --dev fmt --check
 
-      - name: Bleep config — set parallelism
+      - name: Bleep config — set parallelism + relaxed test idle timeout
+        # Bleep's in-code default test idle timeout is 2 min — the right ceiling for healthy code. CI runs through Kotlin/Native compile + LLVM bitcode link
+        # which legitimately exceeds 2 min on a fresh runner. Bump per-environment via the config file rather than the in-code default so devs don't inherit
+        # a slack timeout from the build tool. Path depends on OS (~/.config/bleep on Linux, ~/Library/Application Support/build.bleep on macOS, %APPDATA% on
+        # Windows) — ask bleep where its config lives instead of hardcoding.
+        shell: bash
         run: |
-          mkdir -p "$HOME/.config/bleep"
-          printf 'bspServerConfig:\n  parallelism: 4\n' > "$HOME/.config/bleep/config.yaml"
+          CONFIG_FILE=$(bleep config file --output raw)
+          mkdir -p "$(dirname "$CONFIG_FILE")"
+          printf 'bspServerConfig:\n  parallelism: 4\n  testIdleTimeoutMinutes: 10\n' > "$CONFIG_FILE"
+          cat "$CONFIG_FILE"
 
       - name: Run tests
         env:
@@ -78,7 +85,17 @@ jobs:
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    # Bumped from 25 → 40: macos-latest (arm64) cancelled at 25:19 mid native-image build under the prior 25-min ceiling. Other arches finish in ~13-20min, but
+    # mac arm needs the headroom for the native-image step itself before the test phase even starts.
+    timeout-minutes: 40
+    # ============================================================================
+    # !!! DO NOT ADD A `run_tests` FLAG OR ANY OTHER PER-ARCH TEST-SKIP MECHANISM !!!
+    #
+    # CLAUDE: IF YOU EVER DISABLE TESTS FOR AN ARCHITECTURE AGAIN, OYVIND WILL SUE
+    # ANTHROPIC. TESTS RUN ON EVERY ARCH IN THE MATRIX. NO EXCEPTIONS. NO "JUST
+    # FOR CI", NO "JUST WHILE WE FIGURE IT OUT", NO `run_tests: false`. IF A TEST
+    # FAILS ON AN ARCH, THE FIX IS TO FIX THE TEST OR THE SOFTWARE, NOT TO HIDE IT.
+    # ============================================================================
     strategy:
       fail-fast: false
       matrix:
@@ -86,29 +103,22 @@ jobs:
           - os: ubuntu-22.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
-            run_tests: true
             bootstrap_coursier: false
           - os: ubuntu-22.04-arm
             file_name: bleep
             artifact_name: bleep-arm64-pc-linux
-            # Kotlin Native ships x86_64-only prebuilts; the Konan compiler can't load its native libs on aarch64. Skipping test on arm64 mirrors the macOS
-            # arm64 path; the x86_64 ubuntu job covers the actual test surface.
-            run_tests: false
             bootstrap_coursier: true
           - os: macos-15-intel
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
-            run_tests: false
             bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
-            run_tests: false
             bootstrap_coursier: false
           - os: windows-latest
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
-            run_tests: true
             bootstrap_coursier: false
     steps:
       - uses: actions/checkout@v6
@@ -143,24 +153,47 @@ jobs:
         with:
           extraFiles: bleep.yaml
 
+      - name: Bleep config — relax test idle timeout for slow native paths
+        # bleep's in-code default is 2 min — the right ceiling for healthy code. Kotlin/Native compile + LLVM bitcode link on a fresh CI runner legitimately
+        # exceeds that (LinkExecutorIntegrationTest's KN test hit 132s on ubuntu-22.04, ~300s on macOS). Bump per-environment via the config file rather than
+        # the in-code default, so devs don't inherit a slack timeout. `bleep config file --output raw` resolves the right per-OS path
+        # (~/.config/bleep on Linux, ~/Library/Application Support/build.bleep on macOS, %APPDATA% on Windows).
+        shell: bash
+        run: |
+          CONFIG_FILE=$(bleep config file --output raw)
+          mkdir -p "$(dirname "$CONFIG_FILE")"
+          printf 'bspServerConfig:\n  testIdleTimeoutMinutes: 10\n' > "$CONFIG_FILE"
+          cat "$CONFIG_FILE"
+
       - name: Build native image (non-windows)
+        env:
+          # Tell GenNativeImage to write a stand-alone launcher script instead of running the build inline. The bleep CLI's script subcommand parser only takes
+          # positional args (Opts.arguments[String]), so we can't pass `--emit-script <path>` as a script arg — env var is the cleanest bridge.
+          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.sh
         run: |
           bleep sourcegen
           bleep compile bleep-cli
           bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
+          # Two-phase native-image: first compile GenNativeImage and emit a stand-alone launcher (BSP server still alive). Then shut the compile-server down so
+          # its heap is released, and finally run the launcher — `native-image` gets the whole RAM budget to itself. Matters most on memory-constrained runners
+          # (mac arm).
           ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
+          bleep config compile-server stop-all
+          ./ni-build.sh
 
         if: runner.os != 'Windows'
 
       - name: Test binary after build (non-windows)
         env:
           CI: true
+        # `--exclude-tag slow` skips the integration tests (**IT) — those run in the `build` job, which is the canonical full-suite gate. Native-image jobs
+        # exercise the binary, not the test surface, so the IT bracket would only slow this matrix down.
         run: |
-          ./${{ matrix.file_name }} --dev test --no-color jvm3
+          ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           ./${{ matrix.file_name }} selftest
-        if: runner.os != 'Windows' && matrix.run_tests
+        if: runner.os != 'Windows'
 
         # Windows: cmd shell, one command per step
       - name: Sourcegen (windows)
@@ -216,18 +249,29 @@ jobs:
         run: bleep setup-dev-script bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
-      - name: Build native image (windows)
+      - name: Emit native-image launcher (windows)
+        env:
+          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.cmd
         run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Stop compile-server before native-image (windows)
+        run: bleep config compile-server stop-all
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Build native image (windows)
+        run: ni-build.cmd
         shell: cmd
         if: runner.os == 'Windows'
       - name: Test binary after build (windows)
         env:
           CI: true
+        # Slow ITs run in the `build` job — see the non-windows test step for rationale.
         run: |
-          ${{ matrix.file_name }} --dev test --no-color bleep-tests
+          ${{ matrix.file_name }} --dev test --no-color bleep-tests --exclude-tag slow
           ${{ matrix.file_name }} selftest
         shell: cmd
-        if: runner.os == 'Windows' && matrix.run_tests
+        if: runner.os == 'Windows'
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v7
