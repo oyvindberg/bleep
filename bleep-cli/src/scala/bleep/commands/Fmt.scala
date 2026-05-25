@@ -22,7 +22,7 @@ object Fmt {
   /** Scala formatting support via scalafmt */
   object ScalaFmt {
     val defaultConfig: String =
-      """version=3.5.9
+      """version=3.11.1
         |maxColumn = 160
         |runner.dialect = scala213
         |""".stripMargin
@@ -33,6 +33,75 @@ object Fmt {
         .map(_.split("=").map(_.trim))
         .toScala(List)
         .collectFirst { case Array("version", version) => version.stripPrefix("\"").stripSuffix("\"") }
+  }
+
+  /** Kotlin formatting support via ktfmt */
+  object KotlinFmt {
+
+    /** Configuration for Kotlin code formatting via ktfmt.
+      *
+      * @param enabled
+      *   Whether Kotlin formatting is enabled
+      * @param version
+      *   Version of ktfmt to use
+      * @param style
+      *   Formatting style: "kotlinlang" (official Kotlin coding conventions), "google" (Android/Google), or "meta" (Facebook/ktfmt default)
+      * @param excludePaths
+      *   Glob patterns for files to exclude from formatting
+      */
+    case class KotlinFmtConfig(
+        enabled: Boolean,
+        version: String,
+        style: String,
+        excludePaths: List[String]
+    )
+
+    object KotlinFmtConfig {
+      val default: KotlinFmtConfig = KotlinFmtConfig(
+        enabled = true,
+        version = FetchKtfmt.DefaultVersion,
+        style = "kotlinlang",
+        excludePaths = Nil
+      )
+    }
+
+    private val defaultHocon: String =
+      s"""|enabled = true
+          |version = "${FetchKtfmt.DefaultVersion}"
+          |style = "kotlinlang"
+          |excludePaths = []
+          |""".stripMargin
+
+    /** Parses a .kotlinfmt.conf file using HOCON and returns a KotlinFmtConfig. */
+    def parseConfig(configStr: String): KotlinFmtConfig = {
+      val hocon = ConfigFactory.parseString(configStr).withFallback(ConfigFactory.parseString(defaultHocon)).resolve()
+
+      KotlinFmtConfig(
+        enabled = hocon.getBoolean("enabled"),
+        version = hocon.getString("version"),
+        style = hocon.getString("style"),
+        excludePaths = hocon.getStringList("excludePaths").asScala.toList
+      )
+    }
+
+    /** Reads and parses .kotlinfmt.conf from the build directory, returning default config if not found. */
+    def getConfig(buildDir: Path): KotlinFmtConfig = {
+      val configPath = buildDir.resolve(".kotlinfmt.conf")
+      if (FileUtils.exists(configPath)) {
+        parseConfig(Files.readString(configPath))
+      } else {
+        KotlinFmtConfig.default
+      }
+    }
+
+    /** Builds CLI flags for ktfmt based on config. */
+    def buildFlags(config: KotlinFmtConfig): List[String] =
+      config.style.toLowerCase match {
+        case "kotlinlang" => List("--kotlinlang-style")
+        case "google"     => List("--google-style")
+        case "meta"       => Nil
+        case other        => throw new BleepException.Text(s"Unknown ktfmt style '$other'. Valid: kotlinlang, google, meta")
+      }
   }
 
   /** Java formatting support via google-java-format */
@@ -180,29 +249,23 @@ case class Fmt(check: Boolean, projects: Array[model.CrossProjectName]) extends 
 
     val scalaFiles = Fmt.findSourceFiles(sourcesDirs, ".scala")
     val javaFiles = Fmt.findSourceFiles(sourcesDirs, ".java")
+    val kotlinFiles = Fmt.findSourceFiles(sourcesDirs, ".kt")
 
-    val scalaResult: Option[BleepException] =
-      if (scalaFiles.nonEmpty) {
-        scala.util.Try(formatScala(started, sourcesDirs)).failed.toOption.map {
-          case e: BleepException => e
-          case e                 => new BleepException.Text(e.getMessage)
-        }
-      } else None
+    def tryFormat(name: String, run: () => Unit): Option[BleepException] =
+      scala.util.Try(run()).failed.toOption.map {
+        case e: BleepException => e
+        case e                 => new BleepException.Text(s"$name: ${e.getMessage}")
+      }
 
-    val javaResult: Option[BleepException] =
-      if (javaFiles.nonEmpty) {
-        scala.util.Try(formatJava(started, javaFiles)).failed.toOption.map {
-          case e: BleepException => e
-          case e                 => new BleepException.Text(e.getMessage)
-        }
-      } else None
+    val scalaResult = if (scalaFiles.nonEmpty) tryFormat("Scala", () => formatScala(started, sourcesDirs)) else None
+    val javaResult = if (javaFiles.nonEmpty) tryFormat("Java", () => formatJava(started, javaFiles)) else None
+    val kotlinResult = if (kotlinFiles.nonEmpty) tryFormat("Kotlin", () => formatKotlin(started, kotlinFiles)) else None
 
-    (scalaResult, javaResult) match {
-      case (Some(scalaErr), Some(javaErr)) =>
-        Left(new BleepException.Text(s"Formatting failed:\n- Scala: ${scalaErr.getMessage}\n- Java: ${javaErr.getMessage}"))
-      case (Some(err), None) => Left(err)
-      case (None, Some(err)) => Left(err)
-      case (None, None)      => Right(())
+    val errors = List(scalaResult, javaResult, kotlinResult).flatten
+    errors match {
+      case Nil        => Right(())
+      case err :: Nil => Left(err)
+      case multiple   => Left(new BleepException.Text(s"Formatting failed:\n${multiple.map(e => s"- ${e.getMessage}").mkString("\n")}"))
     }
   }
 
@@ -284,6 +347,50 @@ case class Fmt(check: Boolean, projects: Array[model.CrossProjectName]) extends 
 
         cli(
           "google-java-format",
+          started.buildPaths.cwd,
+          cmd,
+          logger = started.logger,
+          out = cli.Out.ViaLogger(started.logger)
+        ).discard()
+      }
+    }
+  }
+
+  private def formatKotlin(started: Started, kotlinFiles: List[Path]): Unit = {
+    val config = Fmt.KotlinFmt.getConfig(started.buildPaths.buildDir)
+
+    if (!config.enabled) {
+      started.logger.debug("Kotlin formatting disabled via .kotlinfmt.conf")
+    } else {
+      val filteredFiles = if (config.excludePaths.nonEmpty) {
+        kotlinFiles.filterNot(path => Fmt.JavaFmt.matchesExcludePattern(path, started.buildPaths.buildDir, config.excludePaths))
+      } else {
+        kotlinFiles
+      }
+
+      if (filteredFiles.isEmpty) {
+        started.logger.info("No Kotlin files to format after applying exclusions")
+      } else {
+        started.logger.info(s"Using ktfmt version ${config.version}")
+
+        val ktfmt = FetchKtfmt(started.pre.cacheLogger, started.executionContext, config.version)
+
+        started.logger
+          .withContext("ktfmt", ktfmt)
+          .withContext("style", config.style)
+          .debug("Using ktfmt")
+
+        val javaCmd = started.jvmCommand.toString
+
+        val configFlags = Fmt.KotlinFmt.buildFlags(config)
+        val modeFlags = if (check) List("--dry-run", "--set-exit-if-changed") else Nil
+
+        val cmd =
+          List(javaCmd, "-jar", ktfmt.toString) ++
+            configFlags ++ modeFlags ++ filteredFiles.map(_.toString)
+
+        cli(
+          "ktfmt",
           started.buildPaths.cwd,
           cmd,
           logger = started.logger,
