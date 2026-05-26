@@ -203,7 +203,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     val clientInput = new PipedInputStream(serverToClient, 65536)
 
     // Start server in background thread
-    val server = new BspServer(serverInput, serverToClient, workspaceRoot)
+    val server = new BspServer(serverInput, serverToClient, workspaceRoot, PlatformTestHelper.nodeBinary)
 
     // Configure build state if project configs provided
     projectConfigs.foreach { configs =>

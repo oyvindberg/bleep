@@ -32,6 +32,7 @@ object ScalaJsTestRunner {
       linkedJs: Path,
       frameworkNames: Seq[String],
       nodeEnv: NodeEnvironment,
+      nodeBinary: String,
       killSignal: Deferred[IO, KillReason]
   ): IO[ProcessRunner.DiscoveryResult[List[DiscoveredSuites]]] =
     killSignal.tryGet.flatMap {
@@ -45,9 +46,9 @@ object ScalaJsTestRunner {
         }.flatMap { scriptPath =>
           val command = nodeEnv match {
             case NodeEnvironment.Node =>
-              java.util.Arrays.asList("node", scriptPath.toAbsolutePath.toString)
+              java.util.Arrays.asList(nodeBinary, scriptPath.toAbsolutePath.toString)
             case NodeEnvironment.JSDOM(url) =>
-              java.util.Arrays.asList("node", "--experimental-vm-modules", scriptPath.toAbsolutePath.toString, "--jsdom", url)
+              java.util.Arrays.asList(nodeBinary, "--experimental-vm-modules", scriptPath.toAbsolutePath.toString, "--jsdom", url)
           }
 
           val pb = new ProcessBuilder(command)
@@ -85,6 +86,7 @@ object ScalaJsTestRunner {
       suites: List[TestSuite],
       eventHandler: TestEventHandler,
       @annotation.unused nodeEnv: NodeEnvironment,
+      nodeBinary: String,
       env: Map[String, String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TestResult] =
@@ -99,9 +101,9 @@ object ScalaJsTestRunner {
         }.flatMap { scriptPath =>
           val nodeArgs = moduleKind match {
             case ScalaJsLinkConfig.ModuleKind.ESModule =>
-              java.util.Arrays.asList("node", "--experimental-vm-modules", scriptPath.toAbsolutePath.toString)
+              java.util.Arrays.asList(nodeBinary, "--experimental-vm-modules", scriptPath.toAbsolutePath.toString)
             case _ =>
-              java.util.Arrays.asList("node", scriptPath.toAbsolutePath.toString)
+              java.util.Arrays.asList(nodeBinary, scriptPath.toAbsolutePath.toString)
           }
 
           val pb = new ProcessBuilder(nodeArgs)

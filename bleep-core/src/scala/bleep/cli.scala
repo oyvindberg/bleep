@@ -114,7 +114,12 @@ object cli {
       case n =>
         ctxLogger.debug("Failed command details")
         val cmdStr = patchedCmd.mkString(" ")
-        throw new BleepException.Text(s"Failed external command '$action' with exit code $n in $cwd: $cmdStr")
+        // Include captured stderr so callers can pattern-match on the underlying error (e.g. SnapshotTest
+        // retries on git's `index.lock` collisions). Without this, the exception message has no signal
+        // beyond the exit code.
+        val stderr = output.result().collect { case WrittenLine.StdErr(line) => line }
+        val stderrSuffix = if (stderr.nonEmpty) s"\n${stderr.mkString("\n")}" else ""
+        throw new BleepException.Text(s"Failed external command '$action' with exit code $n in $cwd: $cmdStr$stderrSuffix")
     }
   }
 }

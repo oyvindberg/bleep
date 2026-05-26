@@ -25,7 +25,8 @@ import scala.jdk.CollectionConverters.*
 class BspServer(
     in: InputStream,
     out: OutputStream,
-    workspaceRoot: Path
+    workspaceRoot: Path,
+    nodeBinary: String
 ) {
 
   private val transport = new JsonRpcTransport(in, out)
@@ -1253,7 +1254,7 @@ class BspServer(
             else Seq("munit.Framework", "org.scalatest.tools.Framework")
 
           ScalaJsTestRunner
-            .discoverSuites(mainModule, frameworkNames, ScalaJsTestRunner.NodeEnvironment.Node, killSignal)
+            .discoverSuites(mainModule, frameworkNames, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, killSignal)
             .flatMap {
               case ProcessRunner.DiscoveryResult.Failed(message) =>
                 IO.delay(sendLogMessage(message, MessageType.Error)).as(false)
@@ -1278,7 +1279,16 @@ class BspServer(
                   }
 
                   ScalaJsTestRunner
-                    .runTests(mainModule, linkConfig.moduleKind, allSuites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, Map.empty, killSignal)
+                    .runTests(
+                      mainModule,
+                      linkConfig.moduleKind,
+                      allSuites,
+                      eventHandler,
+                      ScalaJsTestRunner.NodeEnvironment.Node,
+                      nodeBinary,
+                      Map.empty,
+                      killSignal
+                    )
                     .map(_.isSuccess)
                 }
             }
@@ -1383,7 +1393,7 @@ class BspServer(
 
     val program = for {
       killSignal <- Outcome.fromCancellationToken(cancellation)
-      result <- KotlinTestRunner.Js.discoverSuites(jsOutput, killSignal).flatMap {
+      result <- KotlinTestRunner.Js.discoverSuites(jsOutput, nodeBinary, killSignal).flatMap {
         case ProcessRunner.DiscoveryResult.Failed(message) =>
           IO.delay(sendLogMessage(message, MessageType.Error)).as(false)
         case ProcessRunner.DiscoveryResult.Killed(_) =>
@@ -1405,7 +1415,7 @@ class BspServer(
                 sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
             }
 
-            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).map(_.isSuccess)
+            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, nodeBinary, Map.empty, killSignal).map(_.isSuccess)
           }
       }
     } yield result
@@ -1775,16 +1785,3 @@ class BspException(val code: Int, message: String) extends RuntimeException(mess
 final case class BuildState(
     targets: List[BuildTarget]
 )
-
-object BspServer {
-
-  /** Run a BSP server on stdin/stdout */
-  def runStdio(workspaceRoot: Path): Unit = {
-    val server = new BspServer(System.in, System.out, workspaceRoot)
-    server.run()
-  }
-
-  /** Run a BSP server on stdin/stdout, detecting workspace from current directory */
-  def runStdio(): Unit =
-    runStdio(Path.of(".").toAbsolutePath.normalize())
-}

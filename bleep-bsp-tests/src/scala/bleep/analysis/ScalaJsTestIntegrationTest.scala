@@ -176,6 +176,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
           suites,
           handler,
           ScalaJsTestRunner.NodeEnvironment.Node,
+          PlatformTestHelper.nodeBinary,
           Map.empty,
           killSignal
         )
@@ -220,6 +221,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
           suites,
           handler,
           ScalaJsTestRunner.NodeEnvironment.Node,
+          PlatformTestHelper.nodeBinary,
           Map.empty,
           killSignal
         )
@@ -264,6 +266,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
           suites,
           handler,
           ScalaJsTestRunner.NodeEnvironment.Node,
+          PlatformTestHelper.nodeBinary,
           Map.empty,
           killSignal
         )
