@@ -1,6 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.protocol.KillReason
+import cats.effect.std.Dispatcher
 import cats.effect.{Deferred, IO}
 
 /** Shared ADT types for explicit outcome tracking.
@@ -146,18 +147,36 @@ object Outcome {
   def asKillIO(killSignal: Deferred[IO, KillReason]): IO[KillReason] =
     killSignal.get
 
+  /** Process-wide Dispatcher used to bridge non-IO completion paths (toolchain callbacks, thread.run finalizers) back into CE without `unsafeRunSync`.
+    *
+    * `unsafeRunSync` from inside a callback that may fire on a CE compute thread is forbidden — even if the IO being run is non-blocking, it stalls the calling
+    * thread until completion and reaches into runtime internals. `dispatcher.unsafeRunAndForget` is the legal escape hatch: it submits the IO to the runtime
+    * without blocking the caller.
+    *
+    * The Dispatcher's lifecycle is the JVM's. `.allocated` gives us the value and a release IO; we keep the value and discard the release. This is a deliberate
+    * controlled leak — the alternative (passing a Dispatcher through every call to `fromCancellationToken`) cascades through dozens of callsites for no
+    * functional gain at the JVM-lifetime boundary.
+    */
+  private lazy val cancellationBridgeDispatcher: Dispatcher[IO] = {
+    val (dispatcher, _) = Dispatcher.parallel[IO](await = false).allocated.unsafeRunSync()(using cats.effect.unsafe.IORuntime.global)
+    dispatcher
+  }
+
   /** Create a kill signal from a CancellationToken.
     *
-    * This bridges the CancellationToken interface to the Deferred-based kill signal. The Deferred will be completed with UserRequest when the CancellationToken
-    * is cancelled. Uses the token's onCancel callback for instant notification (no polling).
+    * Bridges the [[bleep.analysis.CancellationToken]] (callback-driven, used by toolchain code that predates CE) to a [[Deferred]] (the CE-side kill signal
+    * that fibers can race against and `tryGet`/`get`/`complete`).
+    *
+    * The token's `onCancel` callback fires on whatever thread calls `token.cancel()` — could be the BSP message-reader thread, the libdaemonjvm shutdown
+    * thread, or even a CE compute thread (when [[bridgeKillSignal]]'s `.background` fiber observes the outer kill signal and propagates it back to a token).
+    * Routing the `Deferred.complete` through [[cancellationBridgeDispatcher]] keeps the completion non-blocking and CE-runtime-safe regardless of caller
+    * thread.
     */
   def fromCancellationToken(cancellation: bleep.analysis.CancellationToken): IO[Deferred[IO, KillReason]] =
     Deferred[IO, KillReason].flatTap { deferred =>
       IO {
         cancellation.onCancel { () =>
-          // Complete the kill signal from the cancellation callback thread.
-          // unsafeRunSync is safe here — Deferred.complete is non-blocking.
-          deferred.complete(KillReason.UserRequest).attempt.unsafeRunSync()(using cats.effect.unsafe.IORuntime.global): Unit
+          cancellationBridgeDispatcher.unsafeRunAndForget(deferred.complete(KillReason.UserRequest).attempt.void)
         }
       }
     }
@@ -189,6 +208,23 @@ object Outcome {
     *
     * Use `IO.interruptibleMany` for plain in-JVM blocking work without those concerns.
     */
+  /** Identity-set of threads spawned by `runInFreshThread` that didn't terminate after their surrounding IO was cancelled. Native compilers (Scala.js/Scala
+    * Native linker, JNI calls) frequently don't respect `Thread.interrupt()` — the IO returns immediately on cancel but the underlying thread runs to natural
+    * completion. This registry gives operators visibility into the leak so it can be diagnosed (jstack shows the named threads; a count surfaces here).
+    *
+    * Each registered thread is daemon-marked so it doesn't block JVM exit.
+    */
+  val runawayThreads: java.util.Set[Thread] =
+    java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap[Thread, java.lang.Boolean]())
+
+  /** Snapshot of currently-running threads spawned by [[runInFreshThread]] that were marked for cancellation but haven't finished. Use for diagnostics.
+    */
+  def runawayThreadsSnapshot: List[(String, Long)] = {
+    val out = List.newBuilder[(String, Long)]
+    runawayThreads.forEach(t => out += ((t.getName, t.threadId())))
+    out.result()
+  }
+
   def runInFreshThread[A](
       name: String,
       contextClassLoader: Option[ClassLoader],
@@ -197,16 +233,26 @@ object Outcome {
     fromCancellationToken(cancellation).flatMap { killSignal =>
       val workIO: IO[Either[Throwable, A]] = IO.async[Either[Throwable, A]] { cb =>
         IO.delay {
+          val threadRef = new java.util.concurrent.atomic.AtomicReference[Thread](null)
           val runnable: Runnable = () =>
             try cb(Right(Right(work)))
             catch { case e: Throwable => cb(Right(Left(e))) }
+            finally {
+              val t = threadRef.get()
+              if (t != null) runawayThreads.remove(t): Unit
+            }
           val t = new Thread(runnable, name)
+          threadRef.set(t)
           contextClassLoader.foreach(t.setContextClassLoader)
           t.setDaemon(true)
           t.start()
           Some(IO.delay {
             cancellation.cancel()
             t.interrupt()
+            // Register only if the thread is still alive shortly after interrupt — most native
+            // compilers ignore interrupt and keep running. Adding here even if the thread is
+            // about to self-complete is harmless: the run-body's finally removes it.
+            if (t.isAlive) runawayThreads.add(t): Unit
           })
         }
       }
@@ -233,26 +279,26 @@ object Outcome {
     * Usage: `bridgeKillSignal(killSignal).use { cancellation => ...do the work that takes a CancellationToken... }`.
     */
   def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): cats.effect.Resource[IO, bleep.analysis.CancellationToken] = {
-    import java.util.concurrent.atomic.AtomicBoolean
-    import scala.collection.mutable.ListBuffer
-
+    // Match [[bleep.analysis.CancellationToken.create]] — CopyOnWriteArrayList so `cancel`'s
+    // foreach over callbacks doesn't hold any lock. A callback that recursively calls
+    // `onCancel` (e.g. a nested resource registering its own listener) would deadlock under a
+    // `synchronized` block; with COWAL the snapshot-iteration is fully unsynchronized and the
+    // re-entrant `onCancel` lands cleanly. Snapshot vs live-list semantics match the original
+    // factory exactly.
     val mkToken: IO[bleep.analysis.CancellationToken] = IO.delay {
-      val cancelled = new AtomicBoolean(false)
-      val callbacks = ListBuffer[() => Unit]()
+      val cancelled = new java.util.concurrent.atomic.AtomicBoolean(false)
+      val callbacks = new java.util.concurrent.CopyOnWriteArrayList[() => Unit]()
 
       new bleep.analysis.CancellationToken {
         def isCancelled: Boolean = cancelled.get()
         def cancel(): Unit =
           if (cancelled.compareAndSet(false, true)) {
-            callbacks.synchronized {
-              callbacks.foreach(cb => cb())
-            }
+            callbacks.forEach(cb => cb())
           }
-        def onCancel(callback: () => Unit): Unit =
-          callbacks.synchronized {
-            if (cancelled.get()) callback()
-            else callbacks += callback
-          }: Unit
+        def onCancel(callback: () => Unit): Unit = {
+          callbacks.add(callback)
+          if (cancelled.get()) callback()
+        }
       }
     }
 

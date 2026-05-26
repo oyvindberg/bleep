@@ -126,7 +126,8 @@ object ParallelProjectCompiler {
     // This ensures new tasks start as soon as a slot opens, not when an entire batch finishes.
     def loop(
         runningRef: Ref[IO, Set[String]],
-        signalRef: Ref[IO, Deferred[IO, Unit]]
+        signalRef: Ref[IO, Deferred[IO, Unit]],
+        supervisor: cats.effect.std.Supervisor[IO]
     ): IO[Unit] =
       for {
         completed <- completedRef.get
@@ -142,7 +143,7 @@ object ParallelProjectCompiler {
             // returning, otherwise Zinc keeps writing class files after the "Cancelled" response has been sent.
             if (running.nonEmpty)
               signalRef.get.flatMap(_.get) >>
-                Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef))
+                Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef, supervisor))
             else IO.unit
           } else {
             val hasFailures = completed.values.exists(!_.isSuccess)
@@ -157,26 +158,31 @@ object ParallelProjectCompiler {
             } else if (hasFailures) {
               // Failures exist but tasks still running — wait for them to drain
               signalRef.get.flatMap(_.get) >>
-                Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef))
+                Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef, supervisor))
             } else {
               val ready = dag.ready(completedNames) -- completedNames -- running
               val availableSlots = parallelism - running.size
               val toStart = ready.toList.take(availableSlots)
 
-              // Launch each task as a fire-and-forget fiber
+              // Spawn each compile via a Supervisor: if the surrounding fiber is cancelled
+              // mid-build, every still-running supervised fiber is cancelled on resource
+              // release. Previously these were `.start.void` orphans — a cancelled outer
+              // would leave them running, with Zinc writing class files indefinitely.
               toStart.traverse_ { name =>
                 runningRef.update(_ + name) >>
-                  (progressListener.onProjectStarted(name) >>
-                    compileProject(dag.projects(name), dag, deferreds, diagnosticListener, cancellationToken).flatMap { result =>
-                      progressListener.onProjectFinished(name, result) >>
-                        completedRef.update(_ + (name -> result)) >>
-                        deferreds(name).complete(result).attempt.void
-                    })
-                    .guarantee(
-                      runningRef.update(_ - name) >>
-                        signalRef.get.flatMap(_.complete(()).attempt.void)
+                  supervisor
+                    .supervise(
+                      (progressListener.onProjectStarted(name) >>
+                        compileProject(dag.projects(name), dag, deferreds, diagnosticListener, cancellationToken).flatMap { result =>
+                          progressListener.onProjectFinished(name, result) >>
+                            completedRef.update(_ + (name -> result)) >>
+                            deferreds(name).complete(result).attempt.void
+                        })
+                        .guarantee(
+                          runningRef.update(_ - name) >>
+                            signalRef.get.flatMap(_.complete(()).attempt.void)
+                        )
                     )
-                    .start
                     .void
               } >>
                 // If nothing is running and nothing was started, we're stuck or done
@@ -198,19 +204,21 @@ object ParallelProjectCompiler {
                   } else {
                     // Wait for any task to complete, then re-evaluate
                     signalRef.get.flatMap(_.get) >>
-                      Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef))
+                      Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef, supervisor))
                   }
                 }
             }
           }
       } yield ()
 
-    for {
-      runningRef <- Ref.of[IO, Set[String]](Set.empty)
-      initialSignal <- Deferred[IO, Unit]
-      signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
-      _ <- loop(runningRef, signalRef)
-    } yield ()
+    cats.effect.std.Supervisor[IO](await = false).use { supervisor =>
+      for {
+        runningRef <- Ref.of[IO, Set[String]](Set.empty)
+        initialSignal <- Deferred[IO, Unit]
+        signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
+        _ <- loop(runningRef, signalRef, supervisor)
+      } yield ()
+    }
   }
 
   private def compileProject(

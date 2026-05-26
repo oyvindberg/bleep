@@ -31,23 +31,22 @@ object SharedWorkspaceState {
     ops.put(work.operationId, work): Unit
   }
 
-  /** Unregister a specific operation by ID. */
+  /** Unregister a specific operation by ID.
+    *
+    * We intentionally do NOT remove the empty inner map: doing so races with a concurrent `register` on the same workspace. `ConcurrentHashMap.remove(K, V)`
+    * compares values by `equals`, and Java's `AbstractMap.equals` is content-based — so a `register` that snuck in between our `isEmpty` check and the
+    * `remove(K, V)` call would leave the inner map *appearing* identical to itself (a single new entry), and we'd drop it, losing the just-registered work. The
+    * inner map is bounded by the number of workspaces this server sees (one in the common case, a handful in tests), so the bookkeeping cost is negligible.
+    */
   def unregister(workspace: Path, operationId: String): Unit = {
     val ops = activeWork.get(workspace)
-    if (ops != null) {
-      ops.remove(operationId)
-      // Clean up empty inner maps to avoid memory leak
-      if (ops.isEmpty) activeWork.remove(workspace, ops): Unit
-    }
+    if (ops != null) ops.remove(operationId): Unit
   }
 
   /** Unregister specific operations by ID (connection cleanup). */
   def unregisterAll(workspace: Path, operationIds: Iterable[String]): Unit = {
     val ops = activeWork.get(workspace)
-    if (ops != null) {
-      operationIds.foreach(ops.remove)
-      if (ops.isEmpty) activeWork.remove(workspace, ops): Unit
-    }
+    if (ops != null) operationIds.foreach(ops.remove)
   }
 
   /** Get all active operations for a workspace. */

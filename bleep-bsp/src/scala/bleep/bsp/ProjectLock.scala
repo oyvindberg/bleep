@@ -7,6 +7,7 @@ import java.io.RandomAccessFile
 import java.nio.channels.{FileChannel, FileLock, OverlappingFileLockException}
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 
 /** Per-project read/write lock for compile and link operations.
   *
@@ -38,10 +39,15 @@ object ProjectLock {
   }
 
   private val states = new ConcurrentHashMap[CrossProjectName, ProjectState]()
-  private val monitors = new ConcurrentHashMap[CrossProjectName, AnyRef]()
 
-  private def getMonitor(project: CrossProjectName): AnyRef =
-    monitors.computeIfAbsent(project, _ => new AnyRef)
+  /** Per-project fair lock. Fairness (FIFO) prevents an exclusive waiter from being starved by a continuous stream of shared acquirers — under sustained IDE
+    * compile bursts mixed with `bleep test` runs, the previous JVM-monitor model gave no ordering guarantees and could leave an exclusive wait queued for the
+    * full 5-minute timeout.
+    */
+  private val locks = new ConcurrentHashMap[CrossProjectName, ReentrantLock]()
+
+  private def getLock(project: CrossProjectName): ReentrantLock =
+    locks.computeIfAbsent(project, _ => new ReentrantLock( /* fair = */ true))
 
   private def getState(project: CrossProjectName): ProjectState =
     states.computeIfAbsent(project, _ => new ProjectState)
@@ -83,17 +89,22 @@ object ProjectLock {
 
     def attempt(remaining: Int, notified: Boolean): IO[Boolean] =
       IO.blocking {
-        val monitor = getMonitor(project)
-        val state = getState(project)
-        monitor.synchronized {
-          // JDK's createDirectories has a known TOCTOU race when parallel threads create overlapping
-          // trees — the internal symlink check uses NOFOLLOW_LINKS and can fail when the final
-          // component is a symlink-to-directory created by another thread.
-          try Files.createDirectories(outputDir)
-          catch {
-            case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) => ()
-          }
+        // Create the output dir OUTSIDE the per-project lock. mkdir is idempotent + safe to call
+        // from many threads concurrently; doing it under the lock just serializes a stat syscall
+        // that has no contention by itself.
+        //
+        // JDK's createDirectories has a known TOCTOU race when parallel threads create overlapping
+        // trees — the internal symlink check uses NOFOLLOW_LINKS and can fail when the final
+        // component is a symlink-to-directory created by another thread.
+        try Files.createDirectories(outputDir)
+        catch {
+          case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) => ()
+        }
 
+        val lock = getLock(project)
+        val state = getState(project)
+        lock.lock()
+        try {
           mode match {
             case LockMode.Shared =>
               if (state.exclusiveLock.isDefined) throw new LockNotAcquiredException(project)
@@ -150,7 +161,7 @@ object ProjectLock {
                 }
           }
           notified
-        }
+        } finally lock.unlock()
       }.handleErrorWith {
         case _: LockNotAcquiredException if remaining > 1 =>
           IO(if (!notified) onContention()) >>
@@ -172,21 +183,29 @@ object ProjectLock {
 
   private def releaseLock(project: CrossProjectName, mode: LockMode): IO[Unit] =
     IO.blocking {
-      val monitor = getMonitor(project)
       val state = states.get(project)
-      if (state != null) monitor.synchronized {
-        mode match {
-          case LockMode.Shared =>
-            state.sharedHolderCount -= 1
-            if (state.sharedHolderCount <= 0) {
-              state.sharedFileLock.foreach(closeQuietly)
-              state.sharedFileLock = None
-              state.sharedHolderCount = 0
-            }
-          case LockMode.Exclusive =>
-            state.exclusiveLock.foreach(closeQuietly)
-            state.exclusiveLock = None
-        }
+      if (state != null) {
+        val lock = getLock(project)
+        // Snapshot the LockInfo that needs closing under the lock; do the actual file-handle
+        // closure outside the lock. Closing a FileChannel under load can trip slow paths
+        // (Windows file system filters, NFS) we don't want to hold the per-project lock for.
+        var toClose: Option[LockInfo] = None
+        lock.lock()
+        try
+          mode match {
+            case LockMode.Shared =>
+              state.sharedHolderCount -= 1
+              if (state.sharedHolderCount <= 0) {
+                toClose = state.sharedFileLock
+                state.sharedFileLock = None
+                state.sharedHolderCount = 0
+              }
+            case LockMode.Exclusive =>
+              toClose = state.exclusiveLock
+              state.exclusiveLock = None
+          }
+        finally lock.unlock()
+        toClose.foreach(closeQuietly)
       }
     }
 

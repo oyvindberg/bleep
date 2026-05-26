@@ -196,10 +196,13 @@ object BspServerDaemon {
     val connectionCounter = AtomicInteger(0)
     val activeClientThreads = ConcurrentHashMap.newKeySet[Thread]()
 
-    // Server-wide compile semaphore: limits total concurrent compilations across all connections
+    // Server-wide compile semaphore: limits total concurrent compilations across all connections.
+    // FIFO-fair so an IDE typing rapidly can't starve a parallel `bleep test` (or vice versa) —
+    // unfair semaphores give better throughput but allow indefinite waiting under sustained
+    // contention, which is the wrong tradeoff for a mixed-traffic build server.
     val numCores = Runtime.getRuntime.availableProcessors()
-    val compileSemaphore = new java.util.concurrent.Semaphore(numCores)
-    logger.info(s"Compile semaphore: $numCores permits (based on available processors)")
+    val compileSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
+    logger.info(s"Compile semaphore: $numCores permits (based on available processors, fair)")
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.

@@ -258,15 +258,20 @@ object SourceGenRunner {
     *
     * Uses cats-effect Semaphore instead of ReentrantLock because IO fibers can switch threads between lock/unlock, causing IllegalMonitorStateException with
     * ReentrantLock.
+    *
+    * Keyed on `(scriptProject, mainClass)` rather than `mainClass` alone — two different script projects can legitimately share a main-class name (e.g. both
+    * declare a `scripts.Generate`), and serializing across project boundaries because of that coincidence would block independent work.
     */
-  private val scriptSemaphores = new ConcurrentHashMap[String, cats.effect.std.Semaphore[IO]]()
+  private case class ScriptKey(scriptProject: CrossProjectName, mainClass: String)
 
-  private def getScriptSemaphore(scriptMain: String): IO[cats.effect.std.Semaphore[IO]] =
-    IO.delay(scriptSemaphores.get(scriptMain)).flatMap {
+  private val scriptSemaphores = new ConcurrentHashMap[ScriptKey, cats.effect.std.Semaphore[IO]]()
+
+  private def getScriptSemaphore(key: ScriptKey): IO[cats.effect.std.Semaphore[IO]] =
+    IO.delay(scriptSemaphores.get(key)).flatMap {
       case null =>
         cats.effect.std.Semaphore[IO](1).flatMap { sem =>
           IO.delay {
-            val existing = scriptSemaphores.putIfAbsent(scriptMain, sem)
+            val existing = scriptSemaphores.putIfAbsent(key, sem)
             if (existing != null) existing else sem
           }
         }
@@ -343,7 +348,7 @@ object SourceGenRunner {
       killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] =
-    getScriptSemaphore(script.main).flatMap { sem =>
+    getScriptSemaphore(ScriptKey(script.project, script.main)).flatMap { sem =>
       sem.permit.use { _ =>
         val stillNeeded = projectsNeedingRegeneration(started, script, forProjects)
         if (stillNeeded.isEmpty) {
