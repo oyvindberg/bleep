@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.{LinkExecutor, Outcome, ScalaJsTestRunner, TestRunnerTypes}
+import bleep.bsp.{Outcome, ScalaJsTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO}

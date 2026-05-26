@@ -8,7 +8,6 @@ import bleep.bsp.TaskDag.{
   CompileTask,
   DagEvent,
   Handlers,
-  LinkResult,
   SourcegenPlan,
   SourcegenTask,
   SymbolProcessorPlan,

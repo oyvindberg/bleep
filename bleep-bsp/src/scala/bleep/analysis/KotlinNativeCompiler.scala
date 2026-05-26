@@ -60,8 +60,6 @@ object KotlinNativeCompiler {
       }.handleErrorWith {
         case _: InterruptedException =>
           IO.canceled.asInstanceOf[IO[KotlinNativeCompileResult]]
-        case _: CompilationCancelledException =>
-          IO.canceled.asInstanceOf[IO[KotlinNativeCompileResult]]
         case e =>
           IO.raiseError(e)
       }

@@ -1,6 +1,5 @@
 package bleep.analysis
 
-import bleep.bsp._
 import ch.epfl.scala.bsp._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers

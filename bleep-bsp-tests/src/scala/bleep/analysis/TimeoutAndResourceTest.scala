@@ -1,9 +1,8 @@
 package bleep.analysis
 
-import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
+import bleep.bsp.{Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.protocol.KillReason
-import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
 import cats.syntax.traverse._

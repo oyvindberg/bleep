@@ -4,7 +4,7 @@ import bleep.model
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 
 class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
 

@@ -1,6 +1,5 @@
 package bleep.testing
 
-import bleep.PreBootstrapOpts
 import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}

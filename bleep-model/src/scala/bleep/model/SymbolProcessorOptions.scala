@@ -28,7 +28,7 @@ object SymbolProcessorOptions {
   val empty: SymbolProcessorOptions = SymbolProcessorOptions(SortedMap.empty)
 
   implicit val decodes: Decoder[SymbolProcessorOptions] =
-    Decoder.decodeOption(Decoder.decodeMap[String, String].map(m => SymbolProcessorOptions(SortedMap.from(m)))).map(_.getOrElse(empty))
+    Decoder.decodeOption(using Decoder.decodeMap[String, String].map(m => SymbolProcessorOptions(SortedMap.from(m)))).map(_.getOrElse(empty))
 
   implicit val encodes: Encoder[SymbolProcessorOptions] =
     Encoder.encodeMap[String, String].contramap(_.value)

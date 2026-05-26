@@ -263,7 +263,6 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       out: PipedOutputStream
   ) extends BspClient {
 
-    private val transport = new JsonRpcTransport(in, out)
     private val requestId = AtomicInteger(0)
     private val collectedEvents = mutable.Buffer[BspEvent]()
     private val collectedDiagnostics = mutable.Map[String, mutable.Buffer[DiagnosticInfo]]()
@@ -330,7 +329,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
         }
       } else if (json.contains("\"method\"")) {
         // It's a notification
-        handleNotification(json, content)
+        handleNotification(content)
       }
     }
 
@@ -350,7 +349,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       if (sb.isEmpty) null else sb.toString
     }
 
-    private def handleNotification(json: String, content: Array[Byte]): Unit = {
+    private def handleNotification(content: Array[Byte]): Unit = {
       val notification = readFromArray[JsonRpcNotification](content)
 
       notification.method match {
@@ -421,7 +420,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     }
 
     /** Create and send a request, returning a handle for async use */
-    private def sendRequestAsync[P: JsonValueCodec, R: JsonValueCodec](method: String, params: P)(using
+    private def sendRequestAsync[P: JsonValueCodec, R](method: String, params: P)(using
         rCodec: JsonValueCodec[R]
     ): RequestHandle[R] = {
       val id = requestId.incrementAndGet()

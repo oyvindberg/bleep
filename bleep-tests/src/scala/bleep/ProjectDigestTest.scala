@@ -4,7 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.{Files, Path}
-import scala.collection.immutable.{SortedMap, SortedSet}
+import scala.collection.immutable.SortedSet
 import scala.jdk.StreamConverters.*
 
 class ProjectDigestTest extends AnyFunSuite with Matchers {
