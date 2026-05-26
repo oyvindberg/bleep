@@ -92,7 +92,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
 
     emitScript match {
       case Some(scriptPath) =>
-        val (command, cwd) = prepareNativeImageCommand(started, plugin, project, options)
+        val (command, cwd) = prepareNativeImageCommand(plugin, project, options)
         writeLauncherScript(scriptPath, command, cwd, sys.env.toList)
         started.logger
           .withContext("scriptPath", scriptPath)
@@ -107,7 +107,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     * indirection so we don't hit "argument list too large" on Windows) and the same argument vector, returning `(command, cwd)`. Kept here instead of in the
     * plugin so we don't have to spin a new release of the liberated sbt-native-image submodule for this feature.
     */
-  private def prepareNativeImageCommand(started: Started, plugin: NativeImagePlugin, project: ResolvedProject, options: List[String]): (List[String], Path) = {
+  private def prepareNativeImageCommand(plugin: NativeImagePlugin, project: ResolvedProject, options: List[String]): (List[String], Path) = {
     val mainClass = project.platform
       .flatMap {
         case jvm: ResolvedProject.Platform.Jvm       => jvm.mainClass
@@ -186,7 +186,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         perms.add(java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE)
         perms.add(java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE)
         perms.add(java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE)
-        Files.setPosixFilePermissions(scriptPath, perms)
+        val _ = Files.setPosixFilePermissions(scriptPath, perms)
       } catch { case _: UnsupportedOperationException => () }
   }
 
@@ -199,9 +199,9 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     )
     sb.append("# available RAM. Shut down the bleep compile-server before invoking this script (e.g. `bleep config compile-server stop-all`).\n")
     sb.append("set -euo pipefail\n")
-    env.foreach { case (k, v) => sb.append("export ").append(k).append('=').append(shQuote(v)).append('\n') }
-    sb.append("cd ").append(shQuote(cwd.toAbsolutePath.toString)).append('\n')
-    sb.append("exec ").append(command.map(shQuote).mkString(" ")).append('\n')
+    env.foreach { case (k, v) => sb.append(s"export $k=${shQuote(v)}\n") }
+    sb.append(s"cd ${shQuote(cwd.toAbsolutePath.toString)}\n")
+    sb.append(s"exec ${command.map(shQuote).mkString(" ")}\n")
     sb.toString
   }
 
@@ -214,9 +214,9 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     )
     sb.append("REM all available RAM. Shut down the bleep compile-server before invoking (e.g. `bleep config compile-server stop-all`).\r\n")
     sb.append("setlocal\r\n")
-    env.foreach { case (k, v) => sb.append("set ").append(k).append('=').append(v.replace("\"", "\"\"")).append("\r\n") }
-    sb.append("cd /d ").append(batQuote(cwd.toAbsolutePath.toString)).append("\r\n")
-    sb.append(command.map(batQuote).mkString(" ")).append("\r\n")
+    env.foreach { case (k, v) => sb.append(s"set $k=${v.replace("\"", "\"\"")}\r\n") }
+    sb.append(s"cd /d ${batQuote(cwd.toAbsolutePath.toString)}\r\n")
+    sb.append(s"${command.map(batQuote).mkString(" ")}\r\n")
     sb.append("exit /b %ERRORLEVEL%\r\n")
     sb.toString
   }

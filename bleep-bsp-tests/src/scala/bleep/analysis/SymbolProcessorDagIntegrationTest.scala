@@ -13,7 +13,6 @@ import bleep.bsp.TaskDag.{
   TaskResult
 }
 import bleep.bsp.protocol.KillReason
-import bleep.bsp.protocol.LinkPlatformName
 import bleep.bsp.TaskDag.LinkPlatform
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}

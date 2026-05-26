@@ -149,18 +149,7 @@ class EcjCompilationProgressBridgeTest extends AnyFunSuite with Matchers {
   }
 
   test("createMainWithProgress falls back when CompilationProgress is missing") {
-    // Use a classloader that deliberately hides CompilationProgress
-    val fakeClassLoader = new ClassLoader(getClass.getClassLoader) {
-      override def loadClass(name: String, resolve: Boolean): Class[?] =
-        if (name == "org.eclipse.jdt.core.compiler.CompilationProgress")
-          throw new ClassNotFoundException(name)
-        else
-          super.loadClass(name, resolve)
-    }
-
-    // We can't load Main either (it's in ECJ), but createMainWithProgress
-    // should catch ClassNotFoundException before reaching that point.
-    // Test with real ECJ to verify the fallback path explicitly.
+    // Use real ECJ wrapped in a classloader that hides CompilationProgress to verify the fallback path.
     withEcjClassLoader("3.40.0") { ecjClassLoader =>
       val mainClass = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.batch.Main")
 

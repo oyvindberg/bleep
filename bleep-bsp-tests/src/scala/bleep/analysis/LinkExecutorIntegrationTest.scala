@@ -2,13 +2,11 @@ package bleep.analysis
 
 import bleep.bsp.{LinkExecutor, Outcome, TaskDag}
 import bleep.bsp.Outcome.RunOutcome
-import bleep.bsp.protocol.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 
 /** Integration tests for LinkExecutor.
   *

@@ -115,7 +115,6 @@ class Workspace(
   private val safeTestName = testName.replaceAll("[^A-Za-z0-9._-]+", "-").stripPrefix("-").stripSuffix("-")
   val root: Path = Files.createTempDirectory(s"bleep-doc-$safeTestName-")
 
-  private var rawYaml: Option[String] = None
   private val taggedSnippets: mutable.LinkedHashMap[String, String] = mutable.LinkedHashMap.empty
   private val staticAuth: mutable.LinkedHashMap[java.net.URI, model.AuthEntry] = mutable.LinkedHashMap.empty
   private var startedOpt: Option[(Started, Commands, TypedLogger[Array[Stored]])] = None
@@ -137,10 +136,8 @@ class Workspace(
   }
 
   /** Write the bleep.yaml. The schema/version/jvm prelude is prepended automatically. */
-  def yaml(content: String): Unit = {
-    rawYaml = Some(content)
+  def yaml(content: String): Unit =
     writeFile(BuildLoader.BuildFileName, prelude + content)
-  }
 
   /** Write the bleep.yaml and mirror the user-facing content (without prelude) to `<snippetsRoot>/<snippet>`. The site sees a self-contained yaml since the
     * published `$schema` / `$version` / `jvm` lines are added back via [[snippetWithPrelude]] when the user wants the full file shown.

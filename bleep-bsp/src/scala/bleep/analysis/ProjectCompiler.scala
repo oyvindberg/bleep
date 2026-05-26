@@ -335,22 +335,6 @@ object KotlinProjectCompiler extends ProjectCompiler {
         }
       }
 
-  /** Copy .class files from source dir to target dir, preserving package directory structure. */
-  private def copyClassFiles(sourceDir: Path, targetDir: Path): Unit = {
-    import scala.jdk.StreamConverters.*
-    import scala.util.Using
-    Using(Files.walk(sourceDir)) { stream =>
-      stream
-        .toScala(LazyList)
-        .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class"))
-        .foreach { classFile =>
-          val relativePath = sourceDir.relativize(classFile)
-          val target = targetDir.resolve(relativePath)
-          Files.createDirectories(target.getParent)
-          Files.copy(classFile, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-        }
-    }.get
-  }
 }
 
 /** Java-only compiler using Zinc for incremental compilation.

@@ -2,7 +2,6 @@ package bleep.bsp
 
 import bleep.BleepException
 import cats.effect.IO
-import cats.syntax.all._
 import java.util.concurrent.{CompletableFuture, ExecutionException}
 import java.io.IOException
 

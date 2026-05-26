@@ -166,7 +166,9 @@ projects:
     - template-common
     - template-scala-3
     scala:
-      strict: false
+      # Liberated sbt/librarymanagement code (incl. contraband-generated) routinely discards
+      # Int returns from fluent builder APIs; silence the "unused value" warning just here.
+      options: -Wconf:id=E176:s
     sources:
     - ../liberated/librarymanagement/core/src/main/contraband-scala
     - ../liberated/librarymanagement/core/src/main/java
@@ -318,9 +320,8 @@ projects:
     extends:
     - template-common
     - template-scala-3
+    - template-test
     isTestProject: true
-    scala:
-      strict: false
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.19
     dependsOn:
@@ -333,9 +334,8 @@ projects:
     extends:
     - template-common
     - template-scala-3
+    - template-test
     isTestProject: true
-    scala:
-      strict: false
     testTags:
       # Every *IT in bleep-tests extends IntegrationTestHarness, which spins up an in-process bleep-bsp and runs real builds end-to-end. These dominate suite
       # wall-time. The full `build` job in GHA still runs them; native-image jobs exclude them with `--exclude-tag slow`.
@@ -427,11 +427,18 @@ templates:
         url: http://opensource.org/licenses/MIT
         distribution: repo
     scala:
-      options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
+      options: -Werror -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
       strict: true
   template-parcollection-ok:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
+  template-test:
+    # Test bodies routinely discard return values (e.g. scalatest's `assert(...)` returns Assertion,
+    # client.initialize() returns InitializeBuildResult). Silence the discarded/unused-value warnings
+    # plus scalatest's alphanumeric-infix `shouldBe` (not declared @infix upstream) so the rest of
+    # strict mode + fatal warnings still apply to test code.
+    scala:
+      options: -Wconf:id=E175:s -Wconf:id=E176:s -Wconf:msg=Alphanumeric.method.*is.not.declared.infix:s
   template-scala-3:
     scala:
       options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error

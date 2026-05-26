@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.*
-import bleep.bsp.{Outcome, SourceGenRunner}
+import bleep.bsp.SourceGenRunner
 import bleep.bsp.protocol.KillReason
 import bleep.model.{CrossProjectName, ScriptDef}
 import cats.effect.IO
@@ -93,10 +93,7 @@ class SourceGenIntegrationTest extends AnyFunSuite with Matchers with PlatformTe
       Files.createDirectories(file3.getParent)
       Files.writeString(file3, "object C")
 
-      // File3 should be newest
-      val newestTime = Files.getLastModifiedTime(file3).toInstant
-
-      // Verify the newest file is found (via reflection or by checking file times)
+      // File3 should be newest. Verify by checking file times.
       val file3Time = Files.getLastModifiedTime(file3).toInstant
       val file2Time = Files.getLastModifiedTime(file2).toInstant
       val file1Time = Files.getLastModifiedTime(file1).toInstant

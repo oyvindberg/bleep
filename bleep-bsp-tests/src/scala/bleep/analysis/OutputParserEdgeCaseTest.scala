@@ -1,10 +1,9 @@
 package bleep.analysis
 
-import bleep.bsp.{KotlinTestRunner, ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
+import bleep.bsp.{ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.TestStatus
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import scala.collection.mutable
 
 /** Tests for output parser edge cases across all test frameworks.
   *

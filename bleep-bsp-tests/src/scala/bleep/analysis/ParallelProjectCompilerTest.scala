@@ -1,11 +1,9 @@
 package bleep.analysis
 
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
-import scala.concurrent.duration.*
 
 class ParallelProjectCompilerTest extends AnyFunSuite with Matchers {
 

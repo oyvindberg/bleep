@@ -3,7 +3,6 @@ package bleep.analysis
 import bleep.analysis.PlatformTestHelper.assertCompleted
 import bleep.bsp.Outcome
 import bleep.bsp.Outcome.RunOutcome
-import bleep.bsp.protocol.KillReason
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}

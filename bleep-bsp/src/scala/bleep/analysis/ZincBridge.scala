@@ -589,8 +589,9 @@ object ZincBridge {
             )
           )
         )
-      case e @ (_: VirtualMachineError | _: ThreadDeath @scala.annotation.nowarn("msg=ThreadDeath") | _: InterruptedException) =>
-        // Don't trap fatal errors or cancellation — let them propagate.
+      // Don't trap fatal errors or cancellation — let them propagate. ThreadDeath matched
+      // by class name to avoid the (deprecated) static type reference under -Werror.
+      case e: Throwable if e.isInstanceOf[VirtualMachineError] || e.isInstanceOf[InterruptedException] || e.getClass.getName == "java.lang.ThreadDeath" =>
         throw e
       case e: Throwable =>
         // Anything else (NoClassDefFoundError, IOException, generic RuntimeException, ...) leaves the

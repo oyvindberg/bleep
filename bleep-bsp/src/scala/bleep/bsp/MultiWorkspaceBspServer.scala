@@ -17,7 +17,7 @@ import bleep.analysis.{
   ZincBridge
 }
 import bleep.bsp.protocol.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit}
 import bleep.bsp.TraceCategory
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.JvmPool
@@ -1358,6 +1358,7 @@ class MultiWorkspaceBspServer(
       started: Started,
       originId: Option[String]
   ): (TaskDag.SourcegenTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
+    val _ = originId
     val listener = new SourceGenRunner.SourceGenListener {
       def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
         BspMetrics.recordSourcegenStart(scriptMain)

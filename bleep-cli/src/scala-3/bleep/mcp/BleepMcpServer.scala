@@ -934,6 +934,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     }
 
     /** Discover test suites via BSP buildTarget/scalaTestClasses. Projects must be compiled first. */
+    @scala.annotation.nowarn("msg=buildTargetScalaTestClasses")
     private def discoverTestSuites(
         projectNames: List[String]
     ): IO[String] = {

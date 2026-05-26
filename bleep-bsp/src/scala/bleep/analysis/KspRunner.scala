@@ -3,7 +3,6 @@ package bleep.analysis
 import bleep.{KspIncrementalState, SymbolProcessorResult}
 import bleep.bsp.{Outcome, ProcessRunner}
 import bleep.bsp.Outcome.RunOutcome
-import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import ryddig.Logger
 

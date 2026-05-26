@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.analysis.PlatformTestHelper.assertCompleted
-import bleep.bsp.{LinkExecutor, Outcome, ScalaNativeTestRunner, TestRunnerTypes}
+import bleep.bsp.{Outcome, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.protocol.KillReason
 import bleep.model

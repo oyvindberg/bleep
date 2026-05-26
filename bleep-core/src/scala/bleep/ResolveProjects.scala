@@ -138,7 +138,7 @@ object ResolveProjects {
             // Take bleep-core's transitive bleep-internal projects (via resolveClassesDir + resolveResourceDirs so the legacy-layout fallback kicks in) plus
             // the Coursier-resolved third-party jars from bleep-core's classpath (filtering out the v2-layout class/resource paths the test fixture may not
             // have populated).
-            val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) + coreCpn
+            val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) ++ List(coreCpn)
             val bleepInternalPaths =
               coreBleepProjects.toList.map(resolveClassesDir) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
             val coreCoursierJars: List[java.nio.file.Path] =
