@@ -35,6 +35,7 @@ object KotlinTestRunner {
       */
     def discoverSuites(
         jsOutput: Path,
+        nodeBinary: String,
         killSignal: Deferred[IO, KillReason]
     ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
       killSignal.tryGet.flatMap {
@@ -46,7 +47,7 @@ object KotlinTestRunner {
             Files.writeString(scriptPath, discoveryScript)
             scriptPath
           }.flatMap { scriptPath =>
-            val pb = new ProcessBuilder("node", scriptPath.toAbsolutePath.toString)
+            val pb = new ProcessBuilder(nodeBinary, scriptPath.toAbsolutePath.toString)
               .directory(jsOutput.getParent.toFile)
               .redirectErrorStream(true)
 
@@ -94,6 +95,7 @@ object KotlinTestRunner {
         jsOutput: Path,
         @annotation.unused suites: List[TestSuite],
         eventHandler: TestEventHandler,
+        nodeBinary: String,
         env: Map[String, String],
         killSignal: Deferred[IO, KillReason]
     ): IO[TestResult] =
@@ -106,7 +108,7 @@ object KotlinTestRunner {
             Files.writeString(scriptPath, runnerScript)
             scriptPath
           }.flatMap { scriptPath =>
-            val pb = new ProcessBuilder("node", scriptPath.toAbsolutePath.toString)
+            val pb = new ProcessBuilder(nodeBinary, scriptPath.toAbsolutePath.toString)
               .directory(jsOutput.getParent.toFile)
             env.foreach { case (k, v) => pb.environment().put(k, v) }
 

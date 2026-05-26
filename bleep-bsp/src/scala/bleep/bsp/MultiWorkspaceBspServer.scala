@@ -2729,6 +2729,12 @@ class MultiWorkspaceBspServer(
         dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.Output(project, SuiteName(suite), line, channel, System.currentTimeMillis()))))
     }
 
+  /** Path to the node binary to use for a JS test/run. Uses the project's `jsNodeVersion` if set; falls back to [[bleep.constants.Node]] so users without a
+    * configured version still get a working node via Coursier without needing one on `PATH`.
+    */
+  private def nodeBinaryFor(started: Started, project: model.Project): String =
+    started.pre.fetchNode(project.platform.flatMap(_.jsNodeVersion).getOrElse(bleep.constants.Node)).toAbsolutePath.toString
+
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
   private def runScalaJsTestSuite(
       started: Started,
@@ -2764,11 +2770,12 @@ class MultiWorkspaceBspServer(
       taskResult <- linkResult match {
         case (TaskDag.TaskResult.Success, TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
           // Run the specific test suite via Node.js
+          val nodeBinary = nodeBinaryFor(started, project)
           Dispatcher.sequential[IO].use { dispatcher =>
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaJsTestRunner
-              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, Map.empty, killSignal)
+              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, Map.empty, killSignal)
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs
@@ -2941,10 +2948,11 @@ class MultiWorkspaceBspServer(
           eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
             IO.pure(TaskDag.TaskResult.Failure(s"Kotlin/JS output not found: $jsOutput", List.empty))
         } else {
+          val nodeBinary = nodeBinaryFor(started, started.build.explodedProjects(testTask.project))
           Dispatcher.sequential[IO].use { dispatcher =>
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
-            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).flatMap { result =>
+            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, nodeBinary, Map.empty, killSignal).flatMap { result =>
               val endTs = System.currentTimeMillis()
               val durationMs = endTs - startTs
               eventQueue

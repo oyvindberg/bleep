@@ -77,6 +77,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("ExceptionSuite", "ExceptionSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -113,6 +114,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("ExitSuite", "ExitSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -151,6 +153,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("EarlyExitSuite", "EarlyExitSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -190,6 +193,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("SyntaxErrorSuite", "SyntaxErrorSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -232,6 +236,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("InfiniteSuite", "InfiniteSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -268,6 +273,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("BlockingSuite", "BlockingSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -291,6 +297,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           List(TestRunnerTypes.TestSuite("Missing", "Missing")),
           handler,
           ScalaJsTestRunner.NodeEnvironment.Node,
+          PlatformTestHelper.nodeBinary,
           Map.empty,
           killSignal
         )
@@ -330,6 +337,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("GoodSuite", "GoodSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -367,6 +375,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("StderrSuite", "StderrSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -408,6 +417,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("LargeSuite", "LargeSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -637,6 +647,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           nonExistentPath,
           List.empty,
           handler,
+          PlatformTestHelper.nodeBinary,
           Map.empty,
           killSignal
         )
@@ -667,6 +678,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             jsFile,
             List(TestRunnerTypes.TestSuite("ExceptionSuite", "ExceptionSuite")),
             handler,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -706,6 +718,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             jsFile,
             List(TestRunnerTypes.TestSuite("InfiniteSuite", "InfiniteSuite")),
             handler,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -740,6 +753,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             jsFile,
             List(TestRunnerTypes.TestSuite("BlockingSuite", "BlockingSuite")),
             handler,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -915,6 +929,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             List(TestRunnerTypes.TestSuite("TruncatedSuite", "TruncatedSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )

@@ -624,7 +624,7 @@ object Main {
               commands.Dist(watch, options, buildOpts)
             }
           },
-          Opts.subcommand("fmt", "format Scala and Java source files") {
+          Opts.subcommand("fmt", "format Scala, Java, and Kotlin source files") {
             (Opts.flag("check", "ensure that all files are already formatted").orFalse, projectNames).mapN { case (check, projects) =>
               commands.Fmt(check, projects)
             }

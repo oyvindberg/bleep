@@ -1,7 +1,9 @@
 
 # Code Formatting
 
-Bleep provides a unified `fmt` command that formats both Scala and Java source files in your project.
+Bleep provides a unified `fmt` command that formats Scala, Java, and Kotlin source files in your project.
+
+The formatter for a given language is only downloaded if your project actually contains files of that language, so polyglot or single-language builds pay only for what they use.
 
 ## Basic Usage
 
@@ -23,7 +25,7 @@ For full configuration options, see the [scalafmt documentation](https://scalame
 
 **Example `.scalafmt.conf`:**
 ```hocon
-version = 3.8.6
+version = 3.11.1
 maxColumn = 120
 runner.dialect = scala3
 ```
@@ -32,14 +34,14 @@ runner.dialect = scala3
 
 Bleep uses [google-java-format](https://github.com/google/google-java-format) for Java code formatting.
 
-Configuration is optional via `.javafmt.conf` in your build directory. If no config file exists, defaults are used.
+google-java-format itself has no native config file — it is driven entirely by CLI flags. Bleep exposes those flags through an optional `.javafmt.conf` (HOCON) in the build directory. With no file present, sensible defaults are used.
 
 ### Configuration Properties
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Whether Java formatting is enabled |
-| `version` | string | `1.33.0` | Version of google-java-format to use |
+| `version` | string | `1.35.0` | Version of google-java-format to use |
 | `style` | string | `google` | Formatting style: `google` (2-space indent) or `aosp` (4-space indent) |
 | `skipSortingImports` | boolean | `false` | Don't sort import statements |
 | `skipRemovingUnusedImports` | boolean | `false` | Keep unused import statements |
@@ -50,7 +52,7 @@ Configuration is optional via `.javafmt.conf` in your build directory. If no con
 
 **Example `.javafmt.conf`:**
 ```hocon
-version = 1.33.0
+version = 1.35.0
 style = aosp
 
 # Skip Javadoc formatting
@@ -64,3 +66,31 @@ excludePaths = ["glob:**/generated/**", "glob:**/build/**"]
 
 - Line length is fixed at 100 characters (google-java-format design decision)
 - Indentation is fixed per style (2-space for Google, 4-space for AOSP)
+
+## Kotlin Formatting
+
+Bleep uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting.
+
+Like google-java-format, ktfmt has no native config file. Bleep exposes its (small) flag surface through an optional `.kotlinfmt.conf` (HOCON) in the build directory. With no file present, sensible defaults are used.
+
+### Configuration Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `enabled` | boolean | `true` | Whether Kotlin formatting is enabled |
+| `version` | string | `0.62` | Version of ktfmt to use |
+| `style` | string | `kotlinlang` | Formatting style: `kotlinlang` (official Kotlin coding conventions), `google` (Android/Google), or `meta` (Facebook/ktfmt default) |
+| `excludePaths` | list | `[]` | Glob patterns for files to exclude |
+
+**Example `.kotlinfmt.conf`:**
+```hocon
+version = 0.62
+style = kotlinlang
+
+# Exclude generated files
+excludePaths = ["glob:**/generated/**"]
+```
+
+### Notes
+
+- ktfmt is deliberately near-zero-configuration. Only the listed style switches are exposed; line length and indent are fixed per style.

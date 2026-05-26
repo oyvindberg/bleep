@@ -75,6 +75,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
             List.empty,
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -115,6 +116,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
             List.empty,
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
+            PlatformTestHelper.nodeBinary,
             Map.empty,
             killSignal
           )
@@ -253,6 +255,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
               List.empty,
               handler,
               ScalaJsTestRunner.NodeEnvironment.Node,
+              PlatformTestHelper.nodeBinary,
               Map.empty,
               killSignal
             )

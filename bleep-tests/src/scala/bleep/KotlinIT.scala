@@ -13,7 +13,7 @@ class KotlinIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file(
-      "myapp/src/main/kotlin/test/Hello.kt",
+      "myapp/src/kotlin/test/Hello.kt",
       """package test
         |
         |fun greet(name: String): String = "Hello, $name!"
@@ -48,14 +48,14 @@ class KotlinIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file(
-      "myapp/src/main/kotlin/test/Hello.kt",
+      "myapp/src/kotlin/test/Hello.kt",
       """package test
         |
         |fun greet(name: String): String = "Hello, $name!"
         |""".stripMargin
     )
     ws.file(
-      "myapp-test/src/test/kotlin/test/HelloTest.kt",
+      "myapp-test/src/kotlin/test/HelloTest.kt",
       """package test
         |
         |import org.junit.Test
@@ -105,14 +105,14 @@ class KotlinIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file(
-      "mylib/src/main/kotlin/mylib/Internal.kt",
+      "mylib/src/kotlin/mylib/Internal.kt",
       """package mylib
         |
         |internal fun secretGreet(name: String): String = "Secret hello, $name!"
         |""".stripMargin
     )
     ws.file(
-      "mylib-test/src/test/kotlin/mylib/InternalTest.kt",
+      "mylib-test/src/kotlin/mylib/InternalTest.kt",
       """package mylib
         |
         |import org.junit.Test
@@ -165,14 +165,14 @@ class KotlinIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file(
-      "myapp/src/main/kotlin/myapp/MyOpen.kt",
+      "myapp/src/kotlin/myapp/MyOpen.kt",
       """package myapp
         |
         |annotation class MyOpen
         |""".stripMargin
     )
     ws.file(
-      "myapp/src/main/kotlin/myapp/Service.kt",
+      "myapp/src/kotlin/myapp/Service.kt",
       """package myapp
         |
         |// The allopen plugin should make this class open (non-final)
@@ -183,7 +183,7 @@ class KotlinIT extends IntegrationTestHarness {
         |""".stripMargin
     )
     ws.file(
-      "myapp-test/src/test/kotlin/myapp/ServiceTest.kt",
+      "myapp-test/src/kotlin/myapp/ServiceTest.kt",
       """package myapp
         |
         |import org.junit.Test

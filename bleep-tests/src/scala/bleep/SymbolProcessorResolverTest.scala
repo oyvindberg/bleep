@@ -26,8 +26,8 @@ class SymbolProcessorResolverTest extends AnyFunSuite {
       runnerClasspath = List(runnerJarA, runnerJarB),
       processorJars = processors,
       librariesClasspath = List(libA, libB),
-      sourceRoots = List(Paths.get("/ws/myapp/src/main/kotlin")),
-      javaSourceRoots = List(Paths.get("/ws/myapp/src/main/java")),
+      sourceRoots = List(Paths.get("/ws/myapp/src/kotlin")),
+      javaSourceRoots = List(Paths.get("/ws/myapp/src/java")),
       moduleName = "myapp",
       jvmTarget = "21",
       languageVersion = "2.0",
@@ -72,9 +72,9 @@ class SymbolProcessorResolverTest extends AnyFunSuite {
   }
 
   test("runnerArgs (Incremental, with deltas): -modified-sources and -removed-sources are pathsep-joined") {
-    val modA = Paths.get("/ws/myapp/src/main/kotlin/Foo.kt")
-    val modB = Paths.get("/ws/myapp/src/main/kotlin/Bar.kt")
-    val rem = Paths.get("/ws/myapp/src/main/kotlin/Old.kt")
+    val modA = Paths.get("/ws/myapp/src/kotlin/Foo.kt")
+    val modB = Paths.get("/ws/myapp/src/kotlin/Bar.kt")
+    val rem = Paths.get("/ws/myapp/src/kotlin/Old.kt")
     val args = result().runnerArgs(KspIncrementalState.Decision.Incremental(List(modA, modB), List(rem)))
     val sep = File.pathSeparator
     assert(args.contains("-incremental=true"))

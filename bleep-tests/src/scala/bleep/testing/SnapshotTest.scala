@@ -86,9 +86,26 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   *
   * Tests may run in separate forked JVMs, so JVM-level synchronization is not sufficient. Uses java.nio.channels.FileLock on a dedicated lock file to serialize
   * git index access across all test processes.
+  *
+  * The lock lives in the per-worktree git dir, not the shared common dir, so concurrent test runs in different worktrees of the same repo don't block each
+  * other — each worktree has its own `index.lock`, so they don't actually conflict.
   */
 private object GitLock {
-  private val lockFile: Path = Paths.get(System.getProperty("user.dir"), ".git", "bleep-test.lock")
+  private val lockFile: Path = {
+    val cwd = Paths.get(System.getProperty("user.dir"))
+    val dotGit = cwd.resolve(".git")
+    val gitDir: Path =
+      if (Files.isDirectory(dotGit)) dotGit
+      else if (Files.isRegularFile(dotGit)) {
+        // Worktree: .git is a file containing `gitdir: <path-to-per-worktree-gitdir>`.
+        val line = Files.readAllLines(dotGit).get(0)
+        require(line.startsWith("gitdir:"), s"Unexpected .git file contents: $line")
+        val raw = line.substring("gitdir:".length).trim
+        val p = Paths.get(raw)
+        if (p.isAbsolute) p else cwd.resolve(p).normalize()
+      } else sys.error(s"Not a git repo or worktree: $cwd")
+    gitDir.resolve("bleep-test.lock")
+  }
 
   def withLock[A](body: => A): A = synchronized {
     val channel = FileChannel.open(lockFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
