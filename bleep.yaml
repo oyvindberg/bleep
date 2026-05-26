@@ -165,8 +165,6 @@ projects:
     extends:
     - template-common
     - template-scala-3
-    scala:
-      strict: false
     sources:
     - ../liberated/librarymanagement/core/src/main/contraband-scala
     - ../liberated/librarymanagement/core/src/main/java
@@ -319,8 +317,6 @@ projects:
     - template-common
     - template-scala-3
     isTestProject: true
-    scala:
-      strict: false
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.19
     dependsOn:
@@ -334,8 +330,6 @@ projects:
     - template-common
     - template-scala-3
     isTestProject: true
-    scala:
-      strict: false
     testTags:
       # Every *IT in bleep-tests extends IntegrationTestHarness, which spins up an in-process bleep-bsp and runs real builds end-to-end. These dominate suite
       # wall-time. The full `build` job in GHA still runs them; native-image jobs exclude them with `--exclude-tag slow`.
@@ -427,7 +421,7 @@ templates:
         url: http://opensource.org/licenses/MIT
         distribution: repo
     scala:
-      options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
+      options: -Werror -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
       strict: true
   template-parcollection-ok:
