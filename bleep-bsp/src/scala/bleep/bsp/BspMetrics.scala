@@ -4,7 +4,8 @@ import java.io.{BufferedWriter, FileWriter}
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Path}
 import java.util.Locale
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong}
 import scala.jdk.CollectionConverters._
 
 /** Lightweight metrics collector for the BSP server.
@@ -16,7 +17,20 @@ object BspMetrics {
 
   @volatile private var writer: BufferedWriter = scala.compiletime.uninitialized
   @volatile private var samplerThread: Thread = scala.compiletime.uninitialized
+  @volatile private var writerThread: Thread = scala.compiletime.uninitialized
   @volatile private var metricsPath: Path = scala.compiletime.uninitialized
+
+  /** Bounded queue of pending event JSON lines. A dedicated writer thread drains this into the BufferedWriter so event-producing threads (every compile/test
+    * phase) don't serialize on BufferedWriter.flush — which under high event volume turned `recordCompilePhase` into a synchronous fsync per call. Cap is
+    * generous: tens of thousands of events queue up to ~16MB before backpressure kicks in.
+    */
+  private val pendingEvents = new LinkedBlockingQueue[String](200000)
+
+  /** Counter of dropped events (queue saturated). Surfaced in the shutdown summary. */
+  private val droppedEvents = new AtomicInteger(0)
+
+  /** Flipped by `shutdown()`. The writer thread polls this so it can drain and exit. */
+  private val shuttingDown = new AtomicBoolean(false)
 
   // High watermarks
   private val maxConcurrentCompiles = AtomicInteger(0)
@@ -66,6 +80,43 @@ object BspMetrics {
     t.setDaemon(true)
     t.start()
     samplerThread = t
+
+    val writerT = new Thread("bsp-metrics-writer") {
+      override def run(): Unit = {
+        val batch = new java.util.ArrayList[String](256)
+        try
+          while (!(shuttingDown.get() && pendingEvents.isEmpty)) {
+            // Block for the first event; then drain whatever else is queued in one batch.
+            val first = pendingEvents.poll(250, java.util.concurrent.TimeUnit.MILLISECONDS)
+            if (first != null) {
+              batch.clear()
+              batch.add(first)
+              pendingEvents.drainTo(batch, 1024)
+              val w = writer
+              if (w != null) {
+                // Single synchronized region per batch, single flush at the end — far less
+                // contention with shutdown.close than per-event sync+flush.
+                w.synchronized {
+                  try {
+                    val it = batch.iterator()
+                    while (it.hasNext) {
+                      w.write(it.next())
+                      w.newLine()
+                    }
+                    w.flush()
+                  } catch { case _: Exception => () }
+                }
+              }
+            }
+          }
+        catch {
+          case _: InterruptedException => ()
+        }
+      }
+    }
+    writerT.setDaemon(true)
+    writerT.start()
+    writerThread = writerT
   }
 
   def shutdown(): Unit = {
@@ -74,11 +125,20 @@ object BspMetrics {
       t.interrupt()
       t.join(2000)
     }
+    // Enqueue the summary BEFORE flipping shuttingDown so the writer drains it.
     writeSummary()
+    shuttingDown.set(true)
+    val wt = writerThread
+    if (wt != null) {
+      // Give the writer up to 2s to drain. If it can't, we lose some tail events —
+      // acceptable at shutdown.
+      wt.join(2000)
+    }
     val w = writer
     if (w != null) {
       w.synchronized {
-        w.close()
+        try w.close()
+        catch { case _: Exception => () }
       }
     }
   }
@@ -226,9 +286,10 @@ object BspMetrics {
 
   private def writeSummary(): Unit = {
     val threadBean = ManagementFactory.getThreadMXBean
-    writeEvent(
+    writeEventSync(
       s"""{"type":"summary","ts":${now()},"max_concurrent_compiles":${maxConcurrentCompiles.get()},"max_active_connections":${maxActiveConnections
-          .get()},"peak_threads":${threadBean.getPeakThreadCount},"max_heap_used_mb":${maxHeapUsedBytes.get() / (1024 * 1024)}}"""
+          .get()},"peak_threads":${threadBean.getPeakThreadCount},"max_heap_used_mb":${maxHeapUsedBytes.get() / (1024 * 1024)},"dropped_events":${droppedEvents
+          .get()}}"""
     )
   }
 
@@ -236,13 +297,26 @@ object BspMetrics {
 
   private def now(): Long = System.currentTimeMillis()
 
-  private def writeEvent(json: String): Unit = {
+  /** Enqueue an event for the writer thread. Non-blocking — if the queue is full (extreme load or writer thread stuck), the event is dropped and counted in
+    * `droppedEvents`. This is the right tradeoff for metrics: never block a compile to record a metric, surface the loss in the summary instead.
+    */
+  private def writeEvent(json: String): Unit =
+    if (writer != null) {
+      if (!pendingEvents.offer(json)) droppedEvents.incrementAndGet(): Unit
+    }
+
+  /** Synchronously write — used only at shutdown for the summary, when the writer thread is about to be joined and we want the summary to land on disk
+    * regardless of queue draining.
+    */
+  private def writeEventSync(json: String): Unit = {
     val w = writer
     if (w != null) {
       w.synchronized {
-        w.write(json)
-        w.newLine()
-        w.flush()
+        try {
+          w.write(json)
+          w.newLine()
+          w.flush()
+        } catch { case _: Exception => () }
       }
     }
   }

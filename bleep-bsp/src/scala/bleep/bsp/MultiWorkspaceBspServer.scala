@@ -122,8 +122,9 @@ class MultiWorkspaceBspServer(
   /** Operation IDs registered by this connection (for cleanup on disconnect) */
   private val myOperationIds = ConcurrentHashMap.newKeySet[String]()
 
-  /** Tracks diagnostic state across compilation cycles for the BSP reset protocol (issue #526). */
-  private val diagnosticTracker = BspDiagnosticTracker()
+  // Diagnostic trackers are scoped per build operation (handleCompile / handleTest) — created
+  // at the top of those methods, threaded through compileProject. Sharing one tracker across
+  // concurrent operations would let one `startCycle` wipe another's in-flight diagnostic state.
 
   /** Run the server message loop with concurrent request handling.
     *
@@ -1385,6 +1386,8 @@ class MultiWorkspaceBspServer(
   private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
+    // Per-operation tracker — see field-level comment on diagnosticTracker for why we don't share.
+    val diagnosticTracker = new BspDiagnosticTracker
     diagnosticTracker.startCycle()
 
     // Parse link options from arguments
@@ -1576,7 +1579,7 @@ class MultiWorkspaceBspServer(
       // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
       val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
+      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
       val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
       // Create link handler
@@ -1653,7 +1656,7 @@ class MultiWorkspaceBspServer(
       }
 
       // Clear stale diagnostics for files that had errors last cycle but not this one
-      clearStaleDiagnostics()
+      clearStaleDiagnostics(diagnosticTracker)
 
       ioResult match {
         case Success(dag) =>
@@ -1803,6 +1806,11 @@ class MultiWorkspaceBspServer(
   private def handleTest(params: TestParams, cancellation: CancellationToken): TestResult = {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
+    // Per-operation diagnostic tracker — keeps test-pipeline compiles' diagnostic state isolated
+    // from any concurrent handleCompile, which otherwise race on startCycle.
+    val diagnosticTracker = new BspDiagnosticTracker
+    diagnosticTracker.startCycle()
+
     val testProjects = params.targets.flatMap { targetId =>
       crossNameFromTargetId(started, targetId)
     }.toSet
@@ -1945,7 +1953,8 @@ class MultiWorkspaceBspServer(
           // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults)
+          val compileHandler =
+            makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val includeTagsSet = testOptions.includeTags.toSet
@@ -2318,7 +2327,8 @@ class MultiWorkspaceBspServer(
       workspace: Path,
       originId: Option[String],
       heapPressureThreshold: Double,
-      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]
+      apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult],
+      diagnosticTracker: BspDiagnosticTracker
   ): (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2352,7 +2362,7 @@ class MultiWorkspaceBspServer(
                   waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
                     val compileStartTime = System.currentTimeMillis()
                     IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags)
+                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
                         .guaranteeCase {
                           case cats.effect.Outcome.Succeeded(resultIO) =>
                             resultIO.flatMap { result =>
@@ -2383,7 +2393,8 @@ class MultiWorkspaceBspServer(
       originId: Option[String],
       cancellation: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      additionalJavaOptions: List[String]
+      additionalJavaOptions: List[String],
+      diagnosticTracker: BspDiagnosticTracker
   ): IO[TaskDag.TaskResult] = {
     val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
     val compiler = ProjectCompiler.forLanguage(config.language)
@@ -3185,19 +3196,24 @@ class MultiWorkspaceBspServer(
       case _ => IO.unit
     }
 
-  /** Wrap event processing with dead-client detection and kill signal propagation. */
+  /** Wrap event processing with dead-client detection and kill signal propagation.
+    *
+    * Only the disconnection-handling tail is uncancelable — we want the killSignal completion + log to run atomically once we observe `clientDisconnected`.
+    * `processEvent` itself stays cancelable so a slow `sendNotification` to a wedged client can be interrupted by the outer build-cancel rather than pinning
+    * the consumer fiber.
+    */
   private def withDeadClientDetection(
       killSignal: Deferred[IO, KillReason],
       contextLabel: String
   )(processEvent: IO[Unit]): IO[Unit] =
-    IO.uncancelable { _ =>
-      processEvent >> IO.whenA(clientDisconnected.get()) {
-        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
-      }
-    }.handleErrorWith {
+    (processEvent >> IO.whenA(clientDisconnected.get()) {
+      IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+    }).handleErrorWith {
       case error: java.io.IOException =>
-        IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event send failed (connection dead)")) >>
-          killSignal.complete(KillReason.DeadClient).attempt >> IO.raiseError(error)
+        IO.uncancelable { _ =>
+          IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event send failed (connection dead)")) >>
+            killSignal.complete(KillReason.DeadClient).attempt.void
+        } >> IO.raiseError(error)
       case error =>
         IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event processing failed")) >>
           IO.raiseError(error)
@@ -3520,7 +3536,7 @@ class MultiWorkspaceBspServer(
   }
 
   /** Send empty diagnostics with reset=true for files that had errors in the previous compilation but are now clean. */
-  private def clearStaleDiagnostics(): Unit =
+  private def clearStaleDiagnostics(diagnosticTracker: BspDiagnosticTracker): Unit =
     diagnosticTracker.filesToClear().foreach { case (docUri, targetUri) =>
       val publishParams = PublishDiagnosticsParams(
         textDocument = TextDocumentIdentifier(Uri(java.net.URI.create(docUri))),
@@ -3887,29 +3903,32 @@ object MultiWorkspaceBspServer {
     model.Dep.Java("org.junit.vintage", "junit-vintage-engine", "5.9.1")
   )
 
-  /** Process-wide memoization of the [[externalTestRunnerDeps]] resolution.
+  /** Per-resolver memoization of the [[externalTestRunnerDeps]] resolution.
     *
-    * The four deps don't change across workspaces or bleep versions, so resolving them once per JVM avoids re-running Coursier on every inner-bleep
-    * `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]] (a fresh [[MultiWorkspaceBspServer]] per `commands.test` call)
-    * re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's enough to trip the 120 s suite-idle timeout in #580.
+    * The four deps don't change across workspaces or bleep versions, so resolving them once per resolver instance avoids re-running Coursier on every
+    * inner-bleep `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]] (a fresh [[MultiWorkspaceBspServer]] per `commands.test`
+    * call) re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's enough to trip the 120 s suite-idle timeout in #580.
     *
-    * `AtomicReference` so we can populate it lock-free on first call and read it without synchronization on every subsequent call. The compute may run twice if
-    * two callers race; harmless — the resolved jars are identical, and Coursier's own disk cache handles concurrent downloads.
+    * Keyed by resolver-instance identity (not process-wide) so two BSP servers configured with different resolver settings — different mirrors, repositories,
+    * credentials — don't share jars resolved against the wrong config. Same resolver instance reused across calls within a server still hits the cache.
     */
-  private val cachedExternalTestRunnerJars: java.util.concurrent.atomic.AtomicReference[List[Path]] =
-    new java.util.concurrent.atomic.AtomicReference[List[Path]](null)
+  private val cachedExternalTestRunnerJars: java.util.concurrent.ConcurrentHashMap[CoursierResolver, List[Path]] =
+    new java.util.concurrent.ConcurrentHashMap[CoursierResolver, List[Path]]()
 
   private def fetchExternalTestRunnerDeps(started: Started): List[Path] = {
-    val cached = cachedExternalTestRunnerJars.get()
+    val resolver = started.resolver
+    val cached = cachedExternalTestRunnerJars.get(resolver)
     if (cached != null) return cached
-    val result = started.resolver.force(
+    val result = resolver.force(
       externalTestRunnerDeps,
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
       libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
       context = "resolving bleep-test-runner external deps",
       model.IgnoreEvictionErrors.No
     )
-    cachedExternalTestRunnerJars.compareAndSet(null, result.jars)
-    cachedExternalTestRunnerJars.get()
+    // putIfAbsent: identical resolver from two threads is harmless (Coursier's disk cache handles
+    // concurrent downloads, and the jars resolved against the same config are identical).
+    val existing = cachedExternalTestRunnerJars.putIfAbsent(resolver, result.jars)
+    if (existing != null) existing else result.jars
   }
 }

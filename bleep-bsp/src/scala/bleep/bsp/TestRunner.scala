@@ -257,10 +257,16 @@ object TestRunner {
           // just sees "Suite idle timeout after 120s" with no idea what the JVM was doing.
           // jstack writes to its own stdout, decoupled from the test JVM's stdio, so the
           // protocol stream doesn't get polluted.
+          //
+          // Bound the dump itself to 5s — jstack attaches via the JVM tool interface, which
+          // can stall during a long GC pause or kernel signal handling. Without this cap a
+          // wedged JVM keeps the TimedOut → SuiteTimedOut protocol event from ever firing,
+          // turning a "suite stuck" into "BSP appears stuck".
           def captureThreadDump: IO[Option[String]] =
-            jvm.dumpThreads.attempt.map {
-              case Right(lines) if lines.nonEmpty => Some(lines.mkString("\n"))
-              case _                              => None
+            IO.race(jvm.dumpThreads.attempt, IO.sleep(5.seconds)).map {
+              case Left(Right(lines)) if lines.nonEmpty => Some(lines.mkString("\n"))
+              case Left(_)                              => None
+              case Right(_)                             => Some("(thread dump timed out after 5s — JVM unresponsive)")
             }
 
           // NOTE: For timeout/kill/error cases, we do NOT emit SuiteFinished here.

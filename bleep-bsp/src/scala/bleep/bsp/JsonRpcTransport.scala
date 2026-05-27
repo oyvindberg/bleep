@@ -383,8 +383,16 @@ class JsonRpcTransport(
   }
 
   def close(): Unit = {
-    bufferedIn.close()
-    bufferedOut.close()
+    // Synchronize close against concurrent reads/writes: a `close` racing a `sendMessage`
+    // can leave bytes in the buffer or trip a write-on-closed-stream IOException.
+    readLock.synchronized {
+      try bufferedIn.close()
+      catch { case _: Exception => () }
+    }
+    synchronized {
+      try bufferedOut.close()
+      catch { case _: Exception => () }
+    }
   }
 }
 

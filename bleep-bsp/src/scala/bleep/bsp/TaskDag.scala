@@ -938,11 +938,16 @@ object TaskDag {
                     }
 
                   case tt: TestSuiteTask =>
-                    // Make test execution uncancelable so it always completes and reports status.
-                    // Without this, fiber cancellation could abort mid-test and leave no status event.
-                    IO.uncancelable { _ =>
-                      withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, taskKill))
-                    }
+                    // Tests handle their own cancellation: the kill-signal Deferred (`taskKill`)
+                    // is racked by handlers.test internally (e.g. TestRunner.runSuite races
+                    // suite-execution vs idle-timeout vs killSignal.get). `withRecovery` catches
+                    // fiber cancellation via outcome.embed and emits a Killed TaskResult, and the
+                    // outer executeTask still runs the TaskFinished emit after — so a cancelled
+                    // test reports a structured Killed status without us blocking cancellation
+                    // entirely. Previously this branch wrapped the whole thing in IO.uncancelable
+                    // "so status events always fire", but that meant a wedged test framework
+                    // could pin the BSP fiber indefinitely and block server shutdown.
+                    withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, taskKill))
 
                   case sgt: SourcegenTask =>
                     withRecovery(s"Sourcegen ${sgt.script.main}", taskKill) {
@@ -1017,13 +1022,18 @@ object TaskDag {
           _ <- dagRef.update(_.kill(task.id))
         } yield ()
 
-      // Use Deferred signaling instead of polling for task completion.
-      // The signalRef holds the current Deferred so running tasks can always signal the latest one.
+      // Coalescing wakeup channel. Every task-completion does `wakeup.tryOffer(())` — non-blocking,
+      // dropped if a wakeup is already pending (no point queuing N wakeups when the loop will
+      // re-read everything anyway). The loop `take`s one wakeup per iteration. This replaces the
+      // prior pattern of rotating a Deferred under a Ref, which conflated "wake the loop" with
+      // "broadcast a signal", had a race window where completions could land between the rotate
+      // and the next get, and made the deadlock-detection path fire spurious false positives on
+      // very fast no-op tasks.
       def loop(
           dagRef: Ref[IO, Dag],
           runningRef: Ref[IO, Set[TaskId]],
           taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]],
-          signalRef: Ref[IO, Deferred[IO, Unit]],
+          wakeup: Queue[IO, Unit],
           supervisor: cats.effect.std.Supervisor[IO]
       ): IO[Unit] =
         for {
@@ -1048,12 +1058,9 @@ object TaskDag {
                   killTask(dag.tasks(taskId), maybeKilled.get, dagRef)
                 }
             } else if (maybeKilled.isDefined) {
-              // Kill requested but tasks still running - wait for signal
+              // Kill requested but tasks still running - wait for any to complete
               IO(System.err.println(s"[DAG] Kill requested (${maybeKilled.get}), waiting for ${running.size} running tasks: ${running.mkString(", ")}")) >>
-                signalRef.get.flatMap(_.get) >>
-                Deferred[IO, Unit].flatMap { newSignal =>
-                  signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
-                }
+                wakeup.take >> loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
             } else {
               // Normal execution
               // Skip tasks with failed dependencies
@@ -1067,59 +1074,42 @@ object TaskDag {
                 depCounts = dag.dependentsCount
                 availableSlots = maxParallelism - running.size
                 tasksToStart = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0)).take(availableSlots)
-                // Start tasks - they will signal completion via the signalRef
+                // Start tasks. The guarantee fires both runningRef cleanup and a wakeup; the
+                // wakeup is `tryOffer` so concurrent completions coalesce on the bounded(1) queue.
                 _ <- tasksToStart.toList.parTraverse_ { task =>
                   runningRef.update(_ + task.id) >>
                     supervisor
                       .supervise(
                         executeTask(task, dagRef, taskKillSignals)
                           .guarantee(
-                            runningRef.update(_ - task.id) >>
-                              // Signal the CURRENT deferred (read from ref to avoid stale reference).
-                              // .attempt handles already-completed Deferred (multiple tasks finishing concurrently).
-                              signalRef.get.flatMap(_.complete(()).attempt.void)
+                            runningRef.update(_ - task.id) >> wakeup.tryOffer(()).void
                           )
                       )
                       .void
                 }
-                // If no tasks are running, we're done or in error state
+                // Re-read state. If nothing is running, the DAG is either complete, in a
+                // transient gap (skips just opened up new ready tasks), or genuinely stuck.
+                newDag <- dagRef.get
                 newRunning <- runningRef.get
                 _ <-
-                  if (newRunning.isEmpty) {
-                    // Nothing running - check if we're complete or stuck
-                    dagRef.get.flatMap { newDag =>
-                      if (newDag.isComplete) IO.unit
-                      else {
-                        // Check if we're actually stuck: no ready tasks and nothing to skip
-                        val stillReady = newDag.ready
-                        val stillToSkip = newDag.toSkip
-                        if (stillReady.isEmpty && stillToSkip.isEmpty) {
-                          // Deadlock: nothing running, nothing ready, nothing to skip, but DAG not complete
-                          val remaining = newDag.tasks.keySet -- newDag.finished
-                          val stuckDetails = remaining.toList.map { taskId =>
-                            val task = newDag.tasks(taskId)
-                            val unsatisfied = task.dependencies.filterNot(newDag.finished.contains)
-                            s"  $taskId (waiting for: ${unsatisfied.mkString(", ")})"
-                          }
-                          IO.raiseError(
-                            new RuntimeException(
-                              s"DAG deadlock: ${remaining.size} tasks stuck:\n${stuckDetails.mkString("\n")}"
-                            )
-                          )
-                        } else {
-                          // Some tasks became ready (e.g., from skipping) — retry
-                          Deferred[IO, Unit].flatMap { newSignal =>
-                            signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
-                          }
-                        }
-                      }
+                  if (newDag.isComplete) IO.unit
+                  else if (newRunning.isEmpty && newDag.ready.isEmpty && newDag.toSkip.isEmpty) {
+                    val remaining = newDag.tasks.keySet -- newDag.finished
+                    val stuckDetails = remaining.toList.map { taskId =>
+                      val task = newDag.tasks(taskId)
+                      val unsatisfied = task.dependencies.filterNot(newDag.finished.contains)
+                      s"  $taskId (waiting for: ${unsatisfied.mkString(", ")})"
                     }
+                    IO.raiseError(
+                      new RuntimeException(
+                        s"DAG deadlock: ${remaining.size} tasks stuck:\n${stuckDetails.mkString("\n")}"
+                      )
+                    )
+                  } else if (newRunning.isEmpty) {
+                    // No tasks running but progress still possible — re-evaluate without waiting.
+                    loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
                   } else {
-                    // Wait for any task to complete, then create fresh signal and continue
-                    signalRef.get.flatMap(_.get) >>
-                      Deferred[IO, Unit].flatMap { newSignal =>
-                        signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
-                      }
+                    wakeup.take >> loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
                   }
               } yield ()
             }
@@ -1133,9 +1123,8 @@ object TaskDag {
           dagRef <- Ref.of[IO, Dag](initialDag)
           runningRef <- Ref.of[IO, Set[TaskId]](Set.empty)
           taskKillSignals <- Ref.of[IO, Map[TaskId, Deferred[IO, KillReason]]](Map.empty)
-          initialSignal <- Deferred[IO, Unit]
-          signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
-          _ <- loop(dagRef, runningRef, taskKillSignals, signalRef, supervisor)
+          wakeup <- Queue.bounded[IO, Unit](1)
+          _ <- loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
           finalDag <- dagRef.get
         } yield finalDag
       }

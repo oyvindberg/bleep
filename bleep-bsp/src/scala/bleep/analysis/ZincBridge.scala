@@ -62,6 +62,24 @@ object ZincBridge {
   /** Singleton incremental compiler — stateless, thread-safe. */
   private lazy val incrementalCompiler: IncrementalCompiler = ZincUtil.defaultIncrementalCompiler
 
+  /** Counter for naming each ECJ compile thread uniquely. Used by jstack-readable thread names and by the abandoned-thread registry below.
+    */
+  private[analysis] val ecjThreadCounter: java.util.concurrent.atomic.AtomicLong = new java.util.concurrent.atomic.AtomicLong(0)
+
+  /** Threads that didn't terminate within the 30s post-cancel join. Identity-set so a thread that eventually self-completes (via the finally in its run body)
+    * removes itself; operators reading `abandonedEcjThreadsSnapshot` get an accurate live count. See `runEcj` for context — known leak when the
+    * CompilationProgress bridge is unavailable and the user cancels mid-compile.
+    */
+  private[analysis] val abandonedEcjThreads: java.util.Set[Thread] =
+    java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap[Thread, java.lang.Boolean]())
+
+  /** Snapshot of currently-leaked ECJ compile threads. Intended for diagnostics (oncall, support). */
+  def abandonedEcjThreadsSnapshot: List[(String, Long)] = {
+    val out = List.newBuilder[(String, Long)]
+    abandonedEcjThreads.forEach(t => out += ((t.getName, t.threadId())))
+    out.result()
+  }
+
   /** Cached ZincScalaInstance per Scala version. Immutable, safe to share. */
   private val scalaInstanceCache = new java.util.concurrent.ConcurrentHashMap[String, ZincScalaInstance]()
 
@@ -1294,7 +1312,13 @@ private class EcjCompiler(
       val successRef = new java.util.concurrent.atomic.AtomicReference[java.lang.Boolean](java.lang.Boolean.FALSE)
       val exceptionRef = new java.util.concurrent.atomic.AtomicReference[Throwable](null)
 
-      val compileThread = new Thread("ecj-compiler") {
+      val threadName = s"ecj-compiler-${ZincBridge.ecjThreadCounter.incrementAndGet()}"
+      val compileThread = new Thread(threadName) {
+        // Daemon so the JVM can exit even if we end up abandoning this thread on a cancel-and-
+        // ECJ-won't-stop scenario (see comments below). Note: ECJ shouldn't normally leak a
+        // thread; this only kicks in when the CompilationProgress bridge is unavailable AND the
+        // user cancelled mid-compile.
+        setDaemon(true)
         override def run(): Unit =
           try
             successRef.set(compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean])
@@ -1302,7 +1326,10 @@ private class EcjCompiler(
             case _: InterruptedException                                                                         => ()
             case e: java.lang.reflect.InvocationTargetException if e.getCause.isInstanceOf[InterruptedException] => ()
             case e: Throwable                                                                                    => exceptionRef.set(e)
-          }
+          } finally
+            // Always deregister, whether the thread completed normally or was abandoned and
+            // later self-terminated.
+            ZincBridge.abandonedEcjThreads.remove(this): Unit
       }
 
       // IMPORTANT: Do NOT call compileThread.interrupt(). Java NIO spec says
@@ -1332,7 +1359,16 @@ private class EcjCompiler(
       if (cancellationToken.isCancelled && compileThread.isAlive) {
         compileThread.join(30000) // 30 second timeout
         if (compileThread.isAlive) {
-          System.err.println(s"[ZincBridge] WARNING: ECJ thread did not exit within 30s after cancellation")
+          // Thread is being abandoned: register it so we have visibility (jstack name shows
+          // the counter; the registry lets ChildProcessDiagnostics surface a count). The
+          // thread itself stays alive — ECJ will continue writing class files to disk and
+          // pinning its in-memory symbol tables until it self-completes. TODO: per-compile
+          // ECJ classloader so abandoning the thread also lets GC reclaim ECJ's symbol table
+          // memory.
+          ZincBridge.abandonedEcjThreads.add(compileThread): Unit
+          System.err.println(
+            s"[ZincBridge] WARNING: ECJ thread '$threadName' did not exit within 30s after cancellation (now ${ZincBridge.abandonedEcjThreads.size} abandoned threads)"
+          )
         }
       }
 

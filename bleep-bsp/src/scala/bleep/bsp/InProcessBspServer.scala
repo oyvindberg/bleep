@@ -4,6 +4,7 @@ import cats.effect.{IO, Resource}
 import ryddig.Logger
 
 import java.io.{PipedInputStream, PipedOutputStream}
+import java.util.concurrent.CompletableFuture
 
 /** Creates an in-process BSP server connected via piped streams.
   *
@@ -20,36 +21,46 @@ object InProcessBspServer {
         val clientIn = new PipedInputStream(1048576) // 1MB buffer
         val serverOut = new PipedOutputStream(clientIn) // server writes -> client reads
 
+        // Use CompletableFuture (not a Deferred) so the server thread can signal exit without
+        // bouncing through cats-effect from a non-IO thread. IO.fromCompletableFuture bridges
+        // it back into IO for callers.
+        val exited = new CompletableFuture[java.lang.Integer]()
+
         // Start BSP server in a daemon thread
         val serverThread = new Thread("in-process-bsp-server") {
           setDaemon(true)
-          override def run(): Unit =
+          override def run(): Unit = {
+            var exitCode: java.lang.Integer = 0
             try {
-              val semaphore = new java.util.concurrent.Semaphore(Runtime.getRuntime.availableProcessors())
+              val semaphore = new java.util.concurrent.Semaphore(Runtime.getRuntime.availableProcessors(), /* fair = */ true)
               val server =
                 new MultiWorkspaceBspServer(serverIn, serverOut, logger, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
               server.run()
             } catch {
-              case e: Exception =>
+              case e: Throwable =>
+                exitCode = 1
                 logger.error(s"In-process BSP server failed: ${e.getClass.getName}: ${e.getMessage}", e)
             } finally {
               try serverOut.close()
               catch { case _: Exception => () }
               try serverIn.close()
               catch { case _: Exception => () }
+              exited.complete(exitCode): Unit
             }
+          }
         }
         serverThread.start()
 
-        new InProcessConnection(clientIn, clientOut)
+        new InProcessConnection(clientIn, clientOut, exited)
       }
     )(_.close)
 
   private class InProcessConnection(
       val input: java.io.InputStream,
-      val output: java.io.OutputStream
+      val output: java.io.OutputStream,
+      exited: CompletableFuture[java.lang.Integer]
   ) extends BspConnection {
-    def serverExited: IO[Int] = IO.never
+    def serverExited: IO[Int] = IO.fromCompletableFuture(IO.pure(exited)).map(_.intValue)
     def close: IO[Unit] = IO.blocking {
       try output.close()
       catch { case _: Exception => () }
