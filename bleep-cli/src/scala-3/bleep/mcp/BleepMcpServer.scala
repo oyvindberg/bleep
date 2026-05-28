@@ -30,6 +30,15 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   */
 class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
   private val startedRef = new AtomicReference(initialStarted)
+
+  /** Tasty-query Context, project classpath and JRE classpath cached per-project. Cold init on a Spring-Boot-sized classpath is ~5s; this turns every
+    * subsequent symbol lookup into a hash-map hit. Invalidated when the build watcher detects a `bleep.yaml` change.
+    */
+  private val symbolContextCache =
+    new java.util.concurrent.ConcurrentHashMap[
+      model.CrossProjectName,
+      (tastyquery.Contexts.Context, tastyquery.Classpaths.Classpath, tastyquery.Classpaths.Classpath)
+    ]()
   private def started: Started = startedRef.get()
 
   override def initialize(
@@ -111,6 +120,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               case Right(None) =>
                 () // parsed JSON identical, no actual change
               case Right(Some(newStarted)) =>
+                // Drop any cached tasty-query Contexts before swapping in the new build — classpaths may have changed.
+                symbolContextCache.clear()
                 startedRef.set(newStarted)
                 val msg = s"Build reloaded (${changedFiles.mkString(", ")}). Project list and build model updated."
                 newStarted.logger.info(msg)
@@ -167,6 +178,9 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           |- bleep.programs — list projects that have a mainClass (runnable programs)
           |- bleep.scripts — list scripts defined in the build
           |- bleep.run — compile and run a project or script, returns stdout/stderr
+          |- bleep.symbol.get — look up a JVM symbol (class/object/method/type) by FQN on a project's classpath, returns signature + members + docs as Markdown
+          |- bleep.symbol.find — discover symbols: set `scope` to enumerate a package/class (companion members included), or set `pattern` to substring-search the whole classpath
+          |- bleep.symbol.get_source — fetch the source code of a symbol from a published -sources.jar (coordinate optional; inferred from the project's classpath when omitted)
           |- bleep.restart — restart the MCP server process (e.g. after producing a new bleep binary)""".stripMargin
         )
       )
@@ -189,6 +203,9 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         scriptsTool,
         runTool,
         statusTool,
+        symbolGetTool,
+        symbolFindTool,
+        symbolGetSourceTool,
         restartTool
       )
     )
@@ -526,6 +543,51 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
+    private def symbolGetTool: ToolFunction[IO] = ToolFunction.text[IO, SymbolGetArgs](
+      ToolFunction.Info(
+        "bleep.symbol.get",
+        Some("Get Symbol"),
+        Some(
+          "Look up a JVM symbol (class, trait, object, method, type, package) by fully qualified name on a project's classpath. Returns Markdown with signature, flags, members, and docstring if available. Prefer this over hallucinating API signatures."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => symbolGet(args),
+      None
+    )
+
+    private def symbolFindTool: ToolFunction[IO] = ToolFunction.text[IO, SymbolFindArgs](
+      ToolFunction.Info(
+        "bleep.symbol.find",
+        Some("Find Symbols"),
+        Some(
+          "Discover symbols on a project's classpath. Two modes selected by which args you set: " +
+            "(a) set `scope` (a package or class FQN) to enumerate its public members — class scopes also include companion-object members, sectioned in the output; " +
+            "(b) omit `scope` and set `pattern` for a case-insensitive substring search across the whole classpath. " +
+            "When both are set, scope members are filtered by pattern. Results are ranked exact-match → prefix → shortest → alphabetical. Limit defaults to 50."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => symbolFind(args),
+      None
+    )
+
+    private def symbolGetSourceTool: ToolFunction[IO] = ToolFunction.text[IO, SymbolGetSourceArgs](
+      ToolFunction.Info(
+        "bleep.symbol.get_source",
+        Some("Get Symbol Source"),
+        Some(
+          "Fetch the source code of a symbol from a published `-sources.jar`. Coordinate is optional — if omitted, it's inferred from the jar path on the project's Coursier-managed classpath. Returns a fenced code block with the file path and line range. Fetches on-demand via Coursier (cached after the first request)."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => symbolGetSource(args),
+      None
+    )
+
     private def restartTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
       ToolFunction.Info(
         "bleep.restart",
@@ -638,6 +700,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         events <- collectedEvents.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "compile", events.reverse)))
+        // Compile rewrote classesDir bytes — drop any tasty-query Contexts that indexed the old artifacts.
+        _ <- IO(symbolContextCache.clear())
       } yield formatCompileResult(events.reverse, previousState, verbose, None, None)
     }
 
@@ -710,6 +774,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         trr <- testRunResult.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "test", events.reverse)))
+        // Test compile rewrote classesDir bytes — drop any tasty-query Contexts that indexed the old artifacts.
+        _ <- IO(symbolContextCache.clear())
       } yield formatTestResult(events.reverse, trr, previousState, includeThrowables = verbose, None, None)
     }
 
@@ -808,6 +874,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           // Push to history
           modeStr = if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile"
           _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), modeStr, reversedEvents)))
+          // Watch cycle just rewrote classesDir bytes — drop any tasty-query Contexts that indexed the old artifacts.
+          _ <- IO(symbolContextCache.clear())
 
           summary =
             if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, includeThrowables = false, None, None)
@@ -1061,6 +1129,440 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           )
           .noSpaces
       }
+
+    // ========================================================================
+    // Symbol lookup (cellar bridge)
+    // ========================================================================
+
+    private def resolveProjectName(name: String): (model.CrossProjectName, bleep.ResolvedProject) = {
+      val cpn = started.globs.exactProjectMap.getOrElse(
+        name,
+        throw new BleepException.Text(s"'$name' is not a valid project name")
+      )
+      (cpn, started.resolvedProject(cpn))
+    }
+
+    /** Build a tasty-query Context for the named bleep project, or reuse the cached one. The cache is invalidated by the build watcher on `bleep.yaml` changes.
+      * Body runs in the caller's IO.blocking thread.
+      */
+    private def withSymbolContext[A](projectName: String)(
+        body: (bleep.ResolvedProject, tastyquery.Contexts.Context, tastyquery.Classpaths.Classpath, tastyquery.Classpaths.Classpath) => A
+    ): IO[A] = IO.blocking {
+      val (cpn, project) = resolveProjectName(projectName)
+      val cached = symbolContextCache.get(cpn)
+      val (ctx, projectCp, jreCp) =
+        if (cached != null) (cached._1, cached._2, cached._3)
+        else {
+          val jvm = started.resolvedJvm.forceGet
+          val jrtCp = bleep.symbols.SymbolsBridge.jreClasspath(jvm)
+          val projCp = bleep.symbols.SymbolsBridge.projectClasspath(project)
+          val context = tastyquery.Contexts.Context.initialize(jrtCp ++ projCp)
+          // putIfAbsent so a parallel call that beat us doesn't get overwritten — both contexts are valid, we just pick one
+          val existing = symbolContextCache.putIfAbsent(cpn, (context, projCp, jrtCp))
+          if (existing != null) (existing._1, existing._2, existing._3)
+          else (context, projCp, jrtCp)
+        }
+      body(project, ctx, projectCp, jreCp)
+    }
+
+    /** Warn the agent when source files are newer than the last compile, so they don't act on data that doesn't reflect their pending edits. */
+    private def stalenessBanner(project: bleep.ResolvedProject): String = {
+      val count = countNewerSources(project)
+      if (count <= 0) ""
+      else
+        s"// Note: $count source file(s) in '${project.name}' are newer than the last compile.\n" +
+          "//       Results may not reflect pending edits — call bleep.compile to refresh.\n\n"
+    }
+
+    private def countNewerSources(project: bleep.ResolvedProject): Int =
+      try {
+        val classesMtime = newestMtime(project.classesDir)
+        if (classesMtime == 0L) 0 // nothing compiled yet → nothing to compare against
+        else {
+          var count = 0
+          project.sources.foreach { sourcePath =>
+            if (java.nio.file.Files.exists(sourcePath)) {
+              if (java.nio.file.Files.isDirectory(sourcePath)) {
+                val stream = java.nio.file.Files.walk(sourcePath)
+                try
+                  stream.forEach { p =>
+                    if (
+                      !java.nio.file.Files.isDirectory(p) && isSourceFile(p.toString) &&
+                      java.nio.file.Files.getLastModifiedTime(p).toMillis > classesMtime
+                    ) count += 1
+                  }
+                finally stream.close()
+              } else if (
+                isSourceFile(sourcePath.toString) &&
+                java.nio.file.Files.getLastModifiedTime(sourcePath).toMillis > classesMtime
+              ) count += 1
+            }
+          }
+          count
+        }
+      } catch case _: Throwable => 0
+
+    private def newestMtime(dir: java.nio.file.Path): Long =
+      if (!java.nio.file.Files.exists(dir)) 0L
+      else {
+        try {
+          val stream = java.nio.file.Files.walk(dir)
+          try {
+            var max = 0L
+            stream.forEach { p =>
+              if (!java.nio.file.Files.isDirectory(p)) {
+                val m = java.nio.file.Files.getLastModifiedTime(p).toMillis
+                if (m > max) max = m
+              }
+            }
+            max
+          } finally stream.close()
+        } catch case _: Throwable => 0L
+      }
+
+    private def isSourceFile(path: String): Boolean =
+      path.endsWith(".scala") || path.endsWith(".java") || path.endsWith(".kt")
+
+    /** Per-symbol location annotation: `(path:line)` for in-project symbols whose source path resolves to an existing file, `(in group:artifact:version)` for
+      * symbols backed by a dep jar, none otherwise.
+      */
+    private def locationFor(
+        sym: tastyquery.Symbols.Symbol,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    ): Option[String] = {
+      val posInfo = sym.tree.flatMap { t =>
+        val pos = t.asInstanceOf[tastyquery.Trees.Tree].pos
+        if (pos.isUnknown || pos.isSynthetic || pos.sourceFile == tastyquery.SourceFile.NoSource) None
+        else Some((pos.sourceFile.path, pos.startLine + 1))
+      }
+      posInfo match {
+        case Some((path, line)) =>
+          val asPath = java.nio.file.Paths.get(path)
+          if (asPath.isAbsolute && java.nio.file.Files.exists(asPath)) {
+            // In-project compiled code: the TASTy file carries the absolute source path scalac was invoked with. Relativize to bleep's build dir for readability.
+            val rel =
+              try started.buildPaths.buildDir.toAbsolutePath.normalize.relativize(asPath.toAbsolutePath.normalize).toString
+              catch case _: Throwable => asPath.toString
+            Some(s"$rel:$line")
+          } else {
+            // Sources-jar-style relative path — combined with the inferred coordinate it's still actionable via get_source.
+            inferCoordinate(sym, project, classpath).map(c => s"in $c").orElse(Some(s"$path:$line"))
+          }
+        case None =>
+          // Java/no-position symbol: best we can do is name the dep that contains it.
+          inferCoordinate(sym, project, classpath).map(c => s"in $c")
+      }
+    }
+
+    private def formatLineWithLocation(
+        sym: tastyquery.Symbols.Symbol,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    )(using ctx: tastyquery.Contexts.Context): String = {
+      val base = cellar.LineFormatter.formatLine(sym)
+      locationFor(sym, project, classpath) match {
+        case Some(loc) => s"$base  ($loc)"
+        case None      => base
+      }
+    }
+
+    private def symbolGet(args: SymbolGetArgs): IO[String] =
+      withSymbolContext(args.project) { (project, ctx, projectCp, jreCp) =>
+        given tastyquery.Contexts.Context = ctx
+        val classpath = jreCp ++ projectCp
+        val body = cellar.SymbolResolver.resolve(args.fqn).unsafeRunSync()(using cats.effect.unsafe.implicits.global) match {
+          case cellar.LookupResult.Found(symbols) =>
+            // Default member-cap so big types (Reactor Flux, Jackson ObjectMapper) don't blow the agent's token budget.
+            val effectiveLimit = args.limit.orElse(Some(30))
+            cellar.GetFormatter.formatGetResult(args.fqn, symbols, None, effectiveLimit, args.hideInherited, args.groupInherited)
+          case cellar.LookupResult.IsPackage =>
+            s"'${args.fqn}' is a package. Use bleep.symbol.list to explore its contents."
+          case cellar.LookupResult.PartialMatch(resolvedFqn, missingMember) =>
+            s"Symbol '${args.fqn}' not found. Resolved up to '$resolvedFqn' but member '$missingMember' was not found."
+          case cellar.LookupResult.NotFound =>
+            val nearMatches = cellar.NearMatchFinder.findNearMatches(args.fqn, classpath).unsafeRunSync()(using cats.effect.unsafe.implicits.global)
+            val base = s"Symbol '${args.fqn}' not found in project '${args.project}'."
+            if (nearMatches.isEmpty) base
+            else s"$base Did you mean one of: ${nearMatches.mkString(", ")}?"
+          case cellar.LookupResult.LookupFailed(cause) =>
+            s"Symbol lookup for '${args.fqn}' failed: ${cause.getClass.getSimpleName}: ${Option(cause.getMessage).getOrElse("(no message)")}"
+        }
+        stalenessBanner(project) + body
+      }
+
+    private def symbolFind(args: SymbolFindArgs): IO[String] =
+      withSymbolContext(args.project) { (project, ctx, projectCp, jreCp) =>
+        given tastyquery.Contexts.Context = ctx
+        val limit = args.limit.getOrElse(50)
+        val patternOpt = args.pattern.map(_.toLowerCase)
+        val classpath = jreCp ++ projectCp
+        val body = args.scope match {
+          case Some(scopeFqn) => findInScope(scopeFqn, patternOpt, limit, args.project, project, classpath)
+          case None           => findGlobal(patternOpt.get, limit, projectCp, jreCp, args.project, project)
+        }
+        stalenessBanner(project) + body
+      }
+
+    private def findInScope(
+        scopeFqn: String,
+        patternOpt: Option[String],
+        limit: Int,
+        projectName: String,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    )(using tastyquery.Contexts.Context): String =
+      cellar.SymbolLister.resolve(scopeFqn).unsafeRunSync()(using cats.effect.unsafe.implicits.global) match {
+        case cellar.ListResolveResult.NotFound =>
+          s"'$scopeFqn' not found in project '$projectName'."
+        case cellar.ListResolveResult.PartialMatch(resolvedFqn, missingMember) =>
+          s"'$scopeFqn' not found. Resolved up to '$resolvedFqn' but member '$missingMember' was not found."
+        case cellar.ListResolveResult.Found(target) =>
+          target match {
+            case cellar.ListTarget.Package(_) =>
+              val all = cellar.SymbolLister.listMembers(target).toList
+              val filtered = patternOpt.fold(all)(p => all.filter(_.name.toString.toLowerCase.contains(p)))
+              renderFlat(scopeFqn, filtered, limit, project, classpath)
+
+            case cellar.ListTarget.Cls(cls) =>
+              val declared = cellar.SymbolLister.listMembers(cellar.ListTarget.Cls(cls)).toList
+              val companion = cellar.SymbolResolver.companionOrJavaStatics(cls) match {
+                case Some(comp) if comp.isModuleClass =>
+                  cellar.SymbolLister.listMembers(cellar.ListTarget.Cls(comp)).toList
+                case _ => Nil
+              }
+              val declaredFiltered = patternOpt.fold(declared)(p => declared.filter(_.name.toString.toLowerCase.contains(p)))
+              val companionFiltered = patternOpt.fold(companion)(p => companion.filter(_.name.toString.toLowerCase.contains(p)))
+              renderClassMembers(scopeFqn, declaredFiltered, companionFiltered, limit, project, classpath)
+          }
+      }
+
+    private def renderFlat(
+        scopeFqn: String,
+        members: List[tastyquery.Symbols.Symbol],
+        limit: Int,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    )(using tastyquery.Contexts.Context): String = {
+      if (members.isEmpty) return s"No members of '$scopeFqn' matched."
+      val truncated = members.length > limit
+      val lines = members.take(limit).map(sym => formatLineWithLocation(sym, project, classpath))
+      val tail =
+        if (truncated) s"\n\nNote: results truncated at $limit (of ${members.length} total). Increase `limit` to see more." else ""
+      lines.mkString("\n") + tail
+    }
+
+    private def renderClassMembers(
+        scopeFqn: String,
+        declared: List[tastyquery.Symbols.Symbol],
+        companion: List[tastyquery.Symbols.Symbol],
+        limit: Int,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    )(using tastyquery.Contexts.Context): String = {
+      val total = declared.length + companion.length
+      if (total == 0) return s"No members of '$scopeFqn' matched."
+      val declaredTaken = declared.take(limit)
+      val remaining = math.max(0, limit - declaredTaken.length)
+      val companionTaken = companion.take(remaining)
+      val parts = List.newBuilder[String]
+      if (declaredTaken.nonEmpty)
+        parts += s"# Declared on $scopeFqn:\n" + declaredTaken.map(sym => formatLineWithLocation(sym, project, classpath)).mkString("\n")
+      if (companionTaken.nonEmpty)
+        parts += s"# Declared on $scopeFqn$$ (companion):\n" + companionTaken.map(sym => formatLineWithLocation(sym, project, classpath)).mkString("\n")
+      val rendered = parts.result().mkString("\n\n")
+      if (total > limit) rendered + s"\n\nNote: results truncated at $limit (of $total total). Increase `limit` to see more." else rendered
+    }
+
+    private def findGlobal(
+        pattern: String,
+        limit: Int,
+        projectCp: tastyquery.Classpaths.Classpath,
+        jreCp: tastyquery.Classpaths.Classpath,
+        projectName: String,
+        project: bleep.ResolvedProject
+    )(using
+        tastyquery.Contexts.Context
+    ): String = {
+      val classpath = jreCp ++ projectCp
+      val matches = cellar.AllSymbolsStream
+        .stream(projectCp, jreCp)
+        .filter(_.name.toString.toLowerCase.contains(pattern))
+        .toList
+      val sorted = matches.sortBy(sym => searchRankKey(pattern, sym.name.toString))
+      val limited = sorted.take(limit)
+      if (limited.isEmpty) return s"No symbols matching '$pattern' found in project '$projectName'."
+
+      // Group adjacent results from the same package — preserves ranking by package-of-first-occurrence while collapsing
+      // the repeated FQN prefix. Each group renders as `pkg:\n  Short — sig` to save tokens on common Spring-style results.
+      val groups = scala.collection.mutable.LinkedHashMap.empty[String, scala.collection.mutable.ListBuffer[tastyquery.Symbols.Symbol]]
+      limited.foreach { sym =>
+        val fqn = sym.displayFullName
+        val idx = fqn.lastIndexOf('.')
+        val pkg = if (idx < 0) "" else fqn.substring(0, idx)
+        groups.getOrElseUpdate(pkg, scala.collection.mutable.ListBuffer.empty) += sym
+      }
+
+      val body = groups.iterator
+        .map { case (pkg, syms) =>
+          val header = if (pkg.isEmpty) "(top-level):" else s"$pkg:"
+          val items = syms.iterator
+            .map { sym =>
+              val name = {
+                val fqn = sym.displayFullName
+                val idx = fqn.lastIndexOf('.')
+                if (idx < 0) fqn else fqn.substring(idx + 1)
+              }
+              s"  $name — ${formatLineWithLocation(sym, project, classpath)}"
+            }
+            .mkString("\n")
+          s"$header\n$items"
+        }
+        .mkString("\n\n")
+
+      val hasScala2 = limited.exists(sym => cellar.TypePrinter.detectLanguage(sym) == cellar.DetectedLanguage.Scala2)
+      val scala2Note = if (hasScala2) "// Note: results include Scala 2 artifacts; some signatures may be incomplete.\n\n" else ""
+      val truncationTail =
+        if (sorted.length > limit) s"\n\n// Showing $limit of ${sorted.length} matches. Increase `limit` for more."
+        else ""
+      scala2Note + body + truncationTail
+    }
+
+    /** Sort key for search results. Exact name match → prefix match → shorter name → alphabetical. */
+    private def searchRankKey(lowerQuery: String, name: String): (Int, Int, Int, String) = {
+      val lowerName = name.toLowerCase
+      val exact = if (lowerName == lowerQuery) 0 else 1
+      val prefix = if (lowerName.startsWith(lowerQuery)) 0 else 1
+      (exact, prefix, name.length, name)
+    }
+
+    private def symbolGetSource(args: SymbolGetSourceArgs): IO[String] =
+      withSymbolContext(args.project) { (project, ctx, projectCp, _) =>
+        given tastyquery.Contexts.Context = ctx
+        val body = cellar.SymbolResolver.resolve(args.fqn).unsafeRunSync()(using cats.effect.unsafe.implicits.global) match {
+          case cellar.LookupResult.IsPackage =>
+            s"'${args.fqn}' is a package, not a symbol."
+          case cellar.LookupResult.NotFound =>
+            s"Symbol '${args.fqn}' not found in project '${args.project}'."
+          case cellar.LookupResult.PartialMatch(resolvedFqn, missingMember) =>
+            s"Symbol '${args.fqn}' not found. Resolved up to '$resolvedFqn' but member '$missingMember' was not found."
+          case cellar.LookupResult.LookupFailed(cause) =>
+            s"Symbol lookup for '${args.fqn}' failed: ${cause.getClass.getSimpleName}: ${Option(cause.getMessage).getOrElse("(no message)")}"
+          case cellar.LookupResult.Found(symbols) =>
+            symbolSourceRef(symbols.head) match {
+              case None =>
+                s"No source position recorded for '${args.fqn}'. Only Scala 3 (TASTy) and Java symbols carry positions."
+              case Some(ref) =>
+                val coordEither = args.coordinate match {
+                  case Some(c) => Right(c)
+                  case None    =>
+                    inferCoordinate(symbols.head, project, projectCp).toRight(
+                      s"Could not auto-infer a Maven coordinate for '${args.fqn}'. Pass `coordinate` explicitly, e.g. via bleep.build.resolved."
+                    )
+                }
+                coordEither match {
+                  case Left(err)    => err
+                  case Right(coord) =>
+                    bleep.symbols.SourceFetcher.fetch(coord, ref.filePath, ref.startLine, ref.endLine) match {
+                      case Left(err)     => err
+                      case Right(result) =>
+                        val lineInfo = if (ref.endLine == Int.MaxValue) "" else s" lines ${ref.startLine + 1}–${ref.endLine + 1}"
+                        val header = s"// ${result.entryPath}$lineInfo  (from $coord)"
+                        s"```${ref.language}\n$header\n${result.lines.mkString("\n")}\n```"
+                    }
+                }
+            }
+        }
+        stalenessBanner(project) + body
+      }
+
+    /** Find which classpath entry holds the symbol's top-level class, then look up that jar in the project's resolved artifacts to recover its Maven
+      * coordinate.
+      */
+    private def inferCoordinate(
+        sym: tastyquery.Symbols.Symbol,
+        project: bleep.ResolvedProject,
+        classpath: tastyquery.Classpaths.Classpath
+    ): Option[String] =
+      topLevelClass(sym).flatMap { topLevel =>
+        val pkgName = topLevel.owner match {
+          case p: tastyquery.Symbols.PackageSymbol => p.fullName.toString
+          case _                                   => ""
+        }
+        val binaryName = topLevel.name.toString
+        val entry = classpath.find { e =>
+          try
+            e.listAllPackages()
+              .exists(p => p.dotSeparatedName == pkgName && p.getClassDataByBinaryName(binaryName).isDefined)
+          catch case _: Exception => false
+        }
+        entry.flatMap { e =>
+          val entryPath = java.nio.file.Paths.get(e.toString)
+          project.resolution.flatMap { res =>
+            res.modules
+              .find(_.artifacts.exists(a => a.classifier.isEmpty && a.path == entryPath))
+              .map(m => s"${m.organization}:${m.name}:${m.version}")
+          }
+        }
+      }
+
+    /** Walk the symbol's owner chain until we hit a package — the result is the top-level enclosing class (the one whose name matches its source file). */
+    private def topLevelClass(sym: tastyquery.Symbols.Symbol): Option[tastyquery.Symbols.ClassSymbol] = {
+      var current: tastyquery.Symbols.Symbol = sym
+      var lastClass: Option[tastyquery.Symbols.ClassSymbol] = sym match {
+        case c: tastyquery.Symbols.ClassSymbol => Some(c)
+        case _                                 => None
+      }
+      while (current.owner != null && !current.owner.isInstanceOf[tastyquery.Symbols.PackageSymbol]) {
+        current = current.owner
+        current match {
+          case c: tastyquery.Symbols.ClassSymbol => lastClass = Some(c)
+          case _                                 => ()
+        }
+      }
+      lastClass
+    }
+
+    /** Source range for a symbol. Widens a class's range to cover its companion if they share a file (so `get_source cats.Monad` returns trait + object
+      * together).
+      */
+    private case class SourceRef(filePath: String, startLine: Int, endLine: Int, language: String)
+    private def symbolSourceRef(sym: tastyquery.Symbols.Symbol)(using tastyquery.Contexts.Context): Option[SourceRef] = {
+      val primary = oneSourceRef(sym)
+      val companion = sym match {
+        case cls: tastyquery.Symbols.ClassSymbol => cls.companionClass.flatMap(oneSourceRef)
+        case _                                   => None
+      }
+      (primary, companion) match {
+        case (Some(p), Some(c)) if p.filePath == c.filePath && p.language == c.language =>
+          Some(SourceRef(p.filePath, math.min(p.startLine, c.startLine), math.max(p.endLine, c.endLine), p.language))
+        case _ => primary
+      }
+    }
+
+    private def oneSourceRef(sym: tastyquery.Symbols.Symbol): Option[SourceRef] =
+      sym.tree
+        .flatMap { t =>
+          val pos = t.asInstanceOf[tastyquery.Trees.Tree].pos
+          if (pos.isUnknown || pos.isSynthetic || pos.sourceFile == tastyquery.SourceFile.NoSource) None
+          else Some(SourceRef(pos.sourceFile.path, pos.startLine, pos.endLine, "scala"))
+        }
+        .orElse {
+          sym match {
+            case s: tastyquery.Symbols.TermOrTypeSymbol if s.sourceLanguage == tastyquery.SourceLanguage.Java =>
+              Some(SourceRef(javaSourcePath(s), 0, Int.MaxValue, "java"))
+            case _ => None
+          }
+        }
+
+    private def javaSourcePath(sym: tastyquery.Symbols.TermOrTypeSymbol): String = {
+      def topLevel(s: tastyquery.Symbols.TermOrTypeSymbol): tastyquery.Symbols.TermOrTypeSymbol =
+        s.owner match {
+          case p: tastyquery.Symbols.TermOrTypeSymbol if !p.isPackage => topLevel(p)
+          case _                                                      => s
+        }
+      topLevel(sym).displayFullName.replace('.', '/') + ".java"
+    }
 
     /** Compile projects via BSP without collecting events (for run tool). */
     private def compileSilently(
