@@ -10,6 +10,7 @@ projects:
   bleep-cli:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.3
+    - ch.epfl.scala::tasty-query:1.7.0
     - ch.linkyard.mcp::mcp-server:0.3.3
     - ch.linkyard.mcp::jsonrpc2-stdio:0.3.3
     - com.lihaoyi::pprint:0.9.6
@@ -21,6 +22,7 @@ projects:
     - org.typelevel::cats-core:2.13.0
     - org.typelevel::cats-parse:1.0.0
     dependsOn:
+    - bleep-cellar
     - bleep-core
     extends:
     - template-common
@@ -280,6 +282,86 @@ projects:
     publish:
       enabled: false
     source-layout: kotlin
+  bleep-cellar:
+    # Vendored from VirtusLab/cellar (MPL-2.0): symbol-lookup library that reads
+    # tasty/pickles/classfiles via tasty-query, formats Markdown for LLM consumption.
+    # See ../liberated/cellar/ — trimmed to just lib/src + lib/test + fixtures.
+    # Uses indent-syntax + accepts upstream's style, so it doesn't extend bleep's
+    # strict template-common / no-indent template-scala-3.
+    dependencies:
+    - ch.epfl.scala::tasty-query:1.7.0
+    - org.typelevel::cats-effect:3.6.1
+    - io.get-coursier:interface:1.0.28
+    - org.scala-lang::scala3-tasty-inspector:3.8.3
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3
+    sources: ../liberated/cellar/lib/src
+  bleep-cellar-fixture-java:
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    sources: ../liberated/cellar/fixtureJava/src
+  bleep-cellar-fixture-scala2:
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    scala:
+      version: 2.13.16
+    sources: ../liberated/cellar/fixtureScala2/src
+  bleep-cellar-fixture-scala3:
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3
+    sources: ../liberated/cellar/fixtureScala3/src
+  bench-bigdeps:
+    # Fat-classpath stress target for the symbol-lookup MCP tools. Realistic
+    # production-flavored stack: Spring Boot web/data/security, Reactor, Netty,
+    # Jackson, Hibernate (via Spring Data JPA), Guava, Apache Commons.
+    # The benchmark runner (script `cellar-benchmark`) queries against this
+    # project's classpath.
+    dependencies:
+    - org.springframework.boot:spring-boot-starter-web:3.4.1
+    - org.springframework.boot:spring-boot-starter-data-jpa:3.4.1
+    - org.springframework.boot:spring-boot-starter-security:3.4.1
+    - org.springframework.boot:spring-boot-starter-webflux:3.4.1
+    - com.fasterxml.jackson.module:jackson-module-scala_3:2.18.2
+    - io.netty:netty-all:4.1.115.Final
+    - com.google.guava:guava:33.4.0-jre
+    - org.apache.commons:commons-lang3:3.18.0
+    - org.apache.commons:commons-collections4:4.5.0
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    publish:
+      enabled: false
+  bleep-cellar-tests:
+    dependencies:
+    - org.scalameta::munit:1.0.4
+    - org.typelevel::munit-cats-effect:2.0.0
+    dependsOn:
+    - bleep-cellar
+    - bleep-cellar-fixture-java
+    - bleep-cellar-fixture-scala2
+    - bleep-cellar-fixture-scala3
+    isTestProject: true
+    java:
+      options: -proc:none
+    platform:
+      name: jvm
+    scala:
+      version: 3.8.3
+    sources: ../liberated/cellar/lib/test/src
+    testFrameworks: munit.Framework
   bleep-bsp:
     dependencies:
     - org.scala-lang::scala3-compiler:3.8.3
@@ -378,6 +460,9 @@ projects:
     publish:
       enabled: false
 scripts:
+  cellar-benchmark:
+    main: bleep.scripts.dev.SymbolBenchmark
+    project: scripts-dev
   gen-cli-docs:
     main: bleep.scripts.dev.GenCliDocs
     project: scripts-dev

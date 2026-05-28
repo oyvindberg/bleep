@@ -247,6 +247,132 @@ object NoArgs {
   ).asInstanceOf[JsonSchemaEncoder[NoArgs]]
 }
 
+/** Args for bleep.symbol.get. */
+case class SymbolGetArgs(project: String, fqn: String, limit: Option[Int], hideInherited: Boolean, groupInherited: Boolean)
+object SymbolGetArgs {
+  private val knownFields = Set("project", "fqn", "limit", "hideInherited", "groupInherited")
+  given Decoder[SymbolGetArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      project <- c.downField("project").as[String]
+      fqn <- c.downField("fqn").as[String]
+      limit <- decodeOptional[Int](c, "limit")
+      hideInherited <- decodeWithFallback(c, "hideInherited", false)
+      groupInherited <- decodeWithFallback(c, "groupInherited", false)
+    } yield SymbolGetArgs(project, fqn, limit, hideInherited, groupInherited)
+  }
+  given JsonSchemaEncoder[SymbolGetArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "project" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Bleep project whose classpath to query. Required.")
+        ),
+        "fqn" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Fully qualified symbol name (e.g. cats.Monad, com.example.Foo.bar).")
+        ),
+        "limit" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Max members to render in the output. Omit for all.")
+        ),
+        "hideInherited" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString("Show only members declared on the type itself.")
+        ),
+        "groupInherited" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString("Group members by declaring type with section headers.")
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("project"), Json.fromString("fqn"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[SymbolGetArgs]]
+}
+
+/** Args for bleep.symbol.find — supersedes the older list + search tools. */
+case class SymbolFindArgs(project: String, scope: Option[String], pattern: Option[String], limit: Option[Int])
+object SymbolFindArgs {
+  private val knownFields = Set("project", "scope", "pattern", "limit")
+  given Decoder[SymbolFindArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      project <- c.downField("project").as[String]
+      scope <- decodeOptional[String](c, "scope")
+      pattern <- decodeOptional[String](c, "pattern")
+      limit <- decodeOptional[Int](c, "limit")
+      _ <-
+        if (scope.isEmpty && pattern.isEmpty)
+          Left(DecodingFailure("At least one of 'scope' or 'pattern' must be set.", c.history))
+        else Right(())
+    } yield SymbolFindArgs(project, scope, pattern, limit)
+  }
+  given JsonSchemaEncoder[SymbolFindArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "project" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Bleep project whose classpath to query. Required.")
+        ),
+        "scope" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString(
+            "Package or class FQN to enumerate. If set, results are the members of that scope (companion members included for classes/traits). If omitted, the whole classpath is searched."
+          )
+        ),
+        "pattern" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Case-insensitive substring filter on symbol names. Required when scope is omitted; optional inside a scope.")
+        ),
+        "limit" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Max number of results. Default 50.")
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("project"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[SymbolFindArgs]]
+}
+
+/** Args for bleep.symbol.get_source. Coordinate is optional — if omitted, inferred from the symbol's classpath entry against the project's resolved artifacts.
+  */
+case class SymbolGetSourceArgs(project: String, fqn: String, coordinate: Option[String])
+object SymbolGetSourceArgs {
+  private val knownFields = Set("project", "fqn", "coordinate")
+  given Decoder[SymbolGetSourceArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      project <- c.downField("project").as[String]
+      fqn <- c.downField("fqn").as[String]
+      coordinate <- decodeOptional[String](c, "coordinate")
+    } yield SymbolGetSourceArgs(project, fqn, coordinate)
+  }
+  given JsonSchemaEncoder[SymbolGetSourceArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "project" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Bleep project whose classpath to resolve the symbol against.")
+        ),
+        "fqn" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Fully qualified symbol name to fetch source for.")
+        ),
+        "coordinate" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString(
+            "Optional Maven coordinate (group:artifact:version). If omitted, inferred from the project's resolved dependency artifacts."
+          )
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("project"), Json.fromString("fqn"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[SymbolGetSourceArgs]]
+}
+
 /** Args for run (project/script execution). */
 case class RunArgs(name: String, args: List[String], mainClass: Option[String], timeoutSeconds: Option[Int])
 object RunArgs {

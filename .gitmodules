@@ -51,3 +51,7 @@
 [submodule "liberated/mill-scalafix"]
 	path = liberated/mill-scalafix
 	url = git@github.com:bleep-build/mill-scalafix.git
+[submodule "liberated/cellar"]
+	path = liberated/cellar
+	url = git@github.com:bleep-build/cellar.git
+	branch = main
