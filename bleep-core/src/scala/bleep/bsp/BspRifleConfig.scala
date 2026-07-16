@@ -76,6 +76,12 @@ object BspRifleConfig {
     "-XX:ZCollectionInterval=5",
     "-XX:+UseStringDeduplication",
     "-XX:+HeapDumpOnOutOfMemoryError",
+    // Die immediately on OOM instead of limping on. A worker-thread OOM otherwise poisons
+    // static initializers (e.g. sbt.nio.file.FileTreeView$ fails init once, then throws
+    // NoClassDefFoundError forever), silently bricking all further compiles for the server's
+    // lifetime. The OOM is typically a transient allocation spike (retained heap is far below
+    // -Xmx), so a clean exit + BspRifle restart recovers, where continuing does not.
+    "-XX:+ExitOnOutOfMemoryError",
     "-XX:+IgnoreUnrecognizedVMOptions"
   )
 

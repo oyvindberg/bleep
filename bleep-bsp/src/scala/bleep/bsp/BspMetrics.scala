@@ -61,6 +61,12 @@ object BspMetrics {
       throwable match {
         case oom: OutOfMemoryError =>
           recordOomCrash(thread.getName, oom.getMessage)
+          // An OOM on a worker thread (CE pool, io-compute) is otherwise only logged, and the
+          // server keeps serving with poisoned static initializers — every later compile then
+          // fails with NoClassDefFoundError. Force-exit so BspRifle restarts a clean server.
+          // (-XX:+ExitOnOutOfMemoryError usually beats us to it; this is the belt-and-suspenders.)
+          System.err.println(s"[FATAL] OutOfMemoryError on thread ${thread.getName} — halting for restart")
+          Runtime.getRuntime.halt(1)
         case _ => ()
       }
       if (previousHandler != null) previousHandler.uncaughtException(thread, throwable)
