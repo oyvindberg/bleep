@@ -61,22 +61,63 @@ public final class TestProtocol {
     return sb.toString();
   }
 
-  public static String encodeSuiteDone(
+  /**
+   * A suite that executed tests. Counts are authoritative; total is > 0 by construction (a
+   * completed suite that produced no test events is {@link #encodeSuiteEmpty}, not this with
+   * zeros).
+   */
+  public static String encodeSuiteExecuted(
       String suite, int passed, int failed, int skipped, int ignored, long durationMs) {
-    return "{\"type\":\"SuiteDone\",\"data\":{"
-        + "\"suite\":"
-        + jsonString(suite)
-        + ",\"passed\":"
-        + passed
-        + ",\"failed\":"
-        + failed
-        + ",\"skipped\":"
-        + skipped
-        + ",\"ignored\":"
-        + ignored
-        + ",\"durationMs\":"
-        + durationMs
-        + "}}";
+    return encodeSuiteDone(
+        suite, "executed", passed, failed, skipped, ignored, durationMs, null, null);
+  }
+
+  /** A suite the framework recognized but that registered/ran zero tests. */
+  public static String encodeSuiteEmpty(String suite, long durationMs) {
+    return encodeSuiteDone(suite, "empty", 0, 0, 0, 0, durationMs, null, null);
+  }
+
+  /** A suite class no engine claimed (e.g. JUnit 4 with no junit-vintage-engine). */
+  public static String encodeSuiteNoFrameworkMatched(
+      String suite, long durationMs, String message) {
+    return encodeSuiteDone(suite, "noFrameworkMatched", 0, 0, 0, 0, durationMs, message, null);
+  }
+
+  /**
+   * A suite that could not run to completion (class-load/link error, Throwable escaped execution).
+   */
+  public static String encodeSuiteErrored(
+      String suite, long durationMs, String message, String throwable) {
+    return encodeSuiteDone(suite, "errored", 0, 0, 0, 0, durationMs, message, throwable);
+  }
+
+  private static String encodeSuiteDone(
+      String suite,
+      String outcome,
+      int passed,
+      int failed,
+      int skipped,
+      int ignored,
+      long durationMs,
+      String message,
+      String throwable) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{\"type\":\"SuiteDone\",\"data\":{");
+    sb.append("\"suite\":").append(jsonString(suite));
+    sb.append(",\"outcome\":").append(jsonString(outcome));
+    sb.append(",\"passed\":").append(passed);
+    sb.append(",\"failed\":").append(failed);
+    sb.append(",\"skipped\":").append(skipped);
+    sb.append(",\"ignored\":").append(ignored);
+    sb.append(",\"durationMs\":").append(durationMs);
+    if (message != null) {
+      sb.append(",\"message\":").append(jsonString(message));
+    }
+    if (throwable != null) {
+      sb.append(",\"throwable\":").append(jsonString(throwable));
+    }
+    sb.append("}}");
+    return sb.toString();
   }
 
   public static String encodeLog(String level, String message) {

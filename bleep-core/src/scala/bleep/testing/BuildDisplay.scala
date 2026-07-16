@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.BleepConsole as SConsole
@@ -700,8 +700,8 @@ object BuildDisplay {
       case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _) =>
         if (!quietMode) printTestResult(test, status) else IO.unit
 
-      case BuildEvent.SuiteFinished(_, suite, passed, failed, skipped, ignored, durationMs, _) =>
-        if (!quietMode) printSuiteResult(suite, passed, failed, skipped, ignored, durationMs) else IO.unit
+      case BuildEvent.SuiteFinished(_, suite, outcome, durationMs, _) =>
+        if (!quietMode) printSuiteResult(suite, outcome, durationMs) else IO.unit
 
       case BuildEvent.Output(_, _, line, _, _) =>
         // Suppress test framework stdout — structural events (TestFinished, SuiteFinished)
@@ -854,21 +854,26 @@ object BuildDisplay {
 
     private def printSuiteResult(
         suite: SuiteName,
-        passed: Int,
-        failed: Int,
-        skipped: Int,
-        ignored: Int,
+        outcome: SuiteOutcome,
         durationMs: Long
     ): IO[Unit] = {
-      val ignoredStr = if (ignored > 0) s", $ignored ignored" else ""
-      // Distinguish three cases instead of binary FAILED/PASSED — a suite that reports zero tests across the board ("no tests found") used to render as green
-      // "PASSED 0 passed", which was indistinguishable from a real pass and masked the runner-anomaly bug fixed in 7d5fb0360. Now: yellow NO TESTS for "nothing
-      // ran, nothing failed" — visible to the user without claiming success.
-      val status =
-        if (failed > 0) SConsole.RED + "FAILED" + SConsole.RESET
-        else if (passed == 0 && skipped == 0 && ignored == 0) SConsole.YELLOW + "NO TESTS" + SConsole.RESET
-        else SConsole.GREEN + "PASSED" + SConsole.RESET
-      log(s"$status ${suite.value}: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
+      // The outcome variant carries the distinction that used to be inferred from count arithmetic:
+      // a discovered-but-empty suite, a framework mismatch, and a hard error are each their own red
+      // line, never a green "0 passed".
+      def red(s: String) = SConsole.RED + s + SConsole.RESET
+      val line = outcome match {
+        case SuiteOutcome.Executed(passed, failed, skipped, ignored) =>
+          val ignoredStr = if (ignored > 0) s", $ignored ignored" else ""
+          val status = if (failed > 0) red("FAILED") else SConsole.GREEN + "PASSED" + SConsole.RESET
+          s"$status ${suite.value}: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)"
+        case SuiteOutcome.Empty =>
+          s"${red("NO TESTS")} ${suite.value}: discovered but executed 0 tests ($durationMs ms)"
+        case SuiteOutcome.NoFrameworkMatched =>
+          s"${red("NO FRAMEWORK")} ${suite.value}: no test framework/engine claimed this suite ($durationMs ms)"
+        case SuiteOutcome.Errored(message, _) =>
+          s"${red("ERRORED")} ${suite.value}: $message ($durationMs ms)"
+      }
+      log(line)
     }
 
     override def summary: IO[BuildSummary] =
@@ -1061,10 +1066,7 @@ object BuildDisplay {
             sf.suite,
             suiteTests,
             previousRun.testResults,
-            sf.passed,
-            sf.failed,
-            sf.skipped,
-            sf.ignored,
+            sf.outcome,
             sf.durationMs
           )
           log(BuildDiff.formatSuiteDiff(diff))

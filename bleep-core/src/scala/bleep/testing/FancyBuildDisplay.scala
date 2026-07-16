@@ -433,7 +433,7 @@ object FancyBuildDisplay {
           if (state.recentPasses.size > 5) state.recentPasses.removeLast(): Unit
         }
 
-      case BuildEvent.SuiteFinished(project, suite, _, _, _, _, _, _) =>
+      case BuildEvent.SuiteFinished(project, suite, _, _, _) =>
         val key = SuiteKey(project, suite)
         state.runningSuites.remove(key): Unit
 

@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompilePhase, CompileReason, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompilePhase, CompileReason, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import java.nio.file.Path
 
@@ -152,14 +152,11 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
-  /** A test suite has finished execution */
+  /** A test suite has finished execution. `outcome` distinguishes executed-with-counts from empty / no-framework / errored — never conflated as `(0,0,0,0)`. */
   case class SuiteFinished(
       project: CrossProjectName,
       suite: SuiteName,
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
+      outcome: SuiteOutcome,
       durationMs: Long,
       timestamp: Long
   ) extends BuildEvent

@@ -67,10 +67,11 @@ object McpEventFilter {
             "event" -> Json.fromString("SuiteFinished"),
             "project" -> e.project.asJson,
             "suite" -> e.suite.asJson,
-            "passed" -> Json.fromInt(e.passed),
-            "failed" -> Json.fromInt(e.failed),
-            "skipped" -> Json.fromInt(e.skipped),
-            "ignored" -> Json.fromInt(e.ignored),
+            "outcome" -> Json.fromString(bleep.bsp.protocol.SuiteOutcome.tagOf(e.outcome)),
+            "passed" -> Json.fromInt(e.outcome.passedCount),
+            "failed" -> Json.fromInt(e.outcome.failedCount),
+            "skipped" -> Json.fromInt(e.outcome.skippedCount),
+            "ignored" -> Json.fromInt(e.outcome.ignoredCount),
             "durationMs" -> Json.fromLong(e.durationMs)
           )
         )

@@ -366,10 +366,7 @@ object BleepBspProtocol {
     case class SuiteFinished(
         project: CrossProjectName,
         suite: SuiteName,
-        passed: Int,
-        failed: Int,
-        skipped: Int,
-        ignored: Int,
+        outcome: SuiteOutcome,
         durationMs: Long,
         timestamp: Long
     ) extends Event

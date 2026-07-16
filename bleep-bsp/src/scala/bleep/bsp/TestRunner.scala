@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.protocol.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
@@ -114,6 +114,10 @@ object TestRunner {
           failedCount <- Ref.of[IO, Int](0)
           skippedCount <- Ref.of[IO, Int](0)
           failures <- Ref.of[IO, List[String]](Nil)
+          // The suite's terminal signal: Right(outcome) from an authoritative SuiteDone, or
+          // Left(message) from a protocol Error (JVM died / bad JSON). None means the stream ended
+          // without either — treated as an infrastructure error below.
+          terminal <- Ref.of[IO, Option[Either[String, SuiteOutcome]]](None)
 
           // Process each response as it arrives (streaming, not batching)
           _ <- jvm
@@ -145,13 +149,8 @@ object TestRunner {
                     )
                 }
 
-              case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
-                // Use the higher of accumulated individual counts vs authoritative SuiteDone.
-                // Individual TestFinished events may be partially received (stream ended early),
-                // so SuiteDone provides a correction floor.
-                passedCount.update(c => math.max(c, passed)) >>
-                  failedCount.update(c => math.max(c, failed)) >>
-                  skippedCount.update(c => math.max(c, skipped))
+              case TestProtocol.TestResponse.SuiteDone(_, outcome, _) =>
+                terminal.set(Some(Right(outcome)))
 
               case TestProtocol.TestResponse.Log(level, message, suite) =>
                 val isError = level == "error" || level == "stderr"
@@ -159,9 +158,9 @@ object TestRunner {
                 now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
 
               case TestProtocol.TestResponse.Error(message, _) =>
-                // Protocol errors - emit as test failure
-                failedCount.update(_ + 1) >>
-                  failures.update(s"[Error] $message" :: _)
+                // Infrastructure error (JVM died mid-stream, or malformed response) — no authoritative
+                // SuiteDone. Record it as the terminal signal so we emit SuiteError, not a green suite.
+                terminal.set(Some(Left(message)))
 
               case TestProtocol.TestResponse.Ready =>
                 IO.unit
@@ -176,7 +175,8 @@ object TestRunner {
           failed <- failedCount.get
           skipped <- skippedCount.get
           failureList <- failures.get
-        } yield SuiteResult(passed, failed, skipped, failureList.reverse)
+          term <- terminal.get
+        } yield SuiteResult(term, passed, failed, skipped, failureList.reverse)
 
       // Idle timeout: polls lastActivityAt every second and fires when no activity for idleTimeout duration
       idleTimeoutIO = {
@@ -207,48 +207,34 @@ object TestRunner {
             .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}")) >> outcome.embedError.flatMap {
             result =>
               val durationMs = System.currentTimeMillis() - startTime
-              val ranNothing = result.passed + result.failed + result.skipped == 0
-              // A suite that was discovered and dispatched but executed nothing is never a real
-              // pass — it is the signature of a stale-analysis desync, a framework mismatch (e.g.
-              // JUnit 4 classes routed to JUnit Platform with no vintage engine), or a task that
-              // threw before running. Report it as a suite error, not a green SuiteFinished.
-              //
-              // In the zero-test case we deliberately skip the SuiteFinished event: the
-              // TaskResult.Failure below becomes a SuiteError on the client, which does its own
-              // suite-completion counting. Emitting SuiteFinished too would double-count the
-              // suite as completed.
-              val emitSuiteFinished =
-                if (ranNothing) IO.unit
-                else
-                  now.flatMap { ts =>
-                    emit(
-                      TaskDag.DagEvent.SuiteFinished(
-                        project,
-                        SuiteName(suiteName),
-                        result.passed,
-                        result.failed,
-                        result.skipped,
-                        0,
-                        durationMs,
-                        ts
-                      )
-                    )
+              result.terminal match {
+                // Authoritative suite outcome from the forked runner. Emit exactly one SuiteFinished
+                // carrying it, then derive the TaskResult from the variant — no count arithmetic, no
+                // separate SuiteError (the TaskFinished mapping returns None for a Failure because
+                // SuiteFinished already conveyed the reason).
+                case Some(Right(rawOutcome)) =>
+                  // Reconcile Executed counts with what we streamed, in case some TestFinished events
+                  // were richer than the runner's tally (belt-and-suspenders floor).
+                  val outcome = rawOutcome match {
+                    case SuiteOutcome.Executed(p, f, s, i) =>
+                      SuiteOutcome.Executed(math.max(p, result.passed), math.max(f, result.failed), math.max(s, result.skipped), i)
+                    case other => other
                   }
+                  now.flatMap(ts => emit(TaskDag.DagEvent.SuiteFinished(project, SuiteName(suiteName), outcome, durationMs, ts))) >>
+                    IO.pure(taskResultFor(suiteName, outcome, result.failures))
 
-              emitSuiteFinished >> IO.pure {
-                if (result.failed > 0) {
-                  TaskDag.TaskResult.Failure(
-                    error = s"${result.failed} test(s) failed",
-                    diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
+                // Infrastructure failure: the JVM died mid-stream or sent garbage, with no SuiteDone.
+                // No SuiteFinished — return an Error so the TaskFinished mapping emits SuiteError.
+                case Some(Left(message)) =>
+                  IO.pure(TaskDag.TaskResult.Error(error = message, processExit = ProcessExit.Unknown))
+
+                case None =>
+                  IO.pure(
+                    TaskDag.TaskResult.Error(
+                      error = s"suite $suiteName produced no terminal event (forked JVM ended silently)",
+                      processExit = ProcessExit.Unknown
+                    )
                   )
-                } else if (ranNothing) {
-                  TaskDag.TaskResult.Failure(
-                    error = s"suite $suiteName was discovered but executed 0 tests",
-                    diagnostics = Nil
-                  )
-                } else {
-                  TaskDag.TaskResult.Success
-                }
               }
           }
 
@@ -319,11 +305,31 @@ object TestRunner {
     } yield result
   }
 
-  /** Result of running a suite */
+  /** Accumulated state of a suite run. `terminal` is the authoritative outcome (Right) or an infrastructure error (Left); the counts and `failures` are what we
+    * streamed from individual TestFinished events.
+    */
   private case class SuiteResult(
+      terminal: Option[Either[String, SuiteOutcome]],
       passed: Int,
       failed: Int,
       skipped: Int,
       failures: List[String]
   )
+
+  /** Map a suite outcome to a DAG task result. The single place suite pass/fail is decided — one match over the ADT, no count comparisons. Empty / no-framework
+    * / errored are all failures (a discovered suite that produced no passing tests is never green).
+    */
+  private def taskResultFor(suiteName: String, outcome: SuiteOutcome, failures: List[String]): TaskDag.TaskResult =
+    outcome match {
+      case SuiteOutcome.Executed(_, failed, _, _) if failed > 0 =>
+        TaskDag.TaskResult.Failure(error = s"$failed test(s) failed", diagnostics = failures.map(BleepBspProtocol.Diagnostic.error))
+      case _: SuiteOutcome.Executed =>
+        TaskDag.TaskResult.Success
+      case SuiteOutcome.Empty =>
+        TaskDag.TaskResult.Failure(error = s"suite $suiteName was discovered but executed 0 tests", diagnostics = Nil)
+      case SuiteOutcome.NoFrameworkMatched =>
+        TaskDag.TaskResult.Failure(error = s"no test framework/engine claimed suite $suiteName", diagnostics = Nil)
+      case SuiteOutcome.Errored(message, throwable) =>
+        TaskDag.TaskResult.Failure(error = message, diagnostics = throwable.toList.map(BleepBspProtocol.Diagnostic.error))
+    }
 }

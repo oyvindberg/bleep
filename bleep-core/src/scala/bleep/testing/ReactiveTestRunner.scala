@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{OutputChannel, TestStatus}
+import bleep.bsp.protocol.{OutputChannel, SuiteOutcome, TestStatus}
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
@@ -226,12 +226,12 @@ object ReactiveTestRunner {
                 )
             }
 
-        case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, ignored, durationMs) =>
+        case TestProtocol.TestResponse.SuiteDone(_, outcome, durationMs) =>
           IO.realTime
             .map(_.toMillis)
             .flatMap(now =>
               display.handle(
-                BuildEvent.SuiteFinished(projectName, SuiteName(suite.className), passed, failed, skipped, ignored, durationMs, now)
+                BuildEvent.SuiteFinished(projectName, SuiteName(suite.className), outcome, durationMs, now)
               )
             ) >> suiteFinishedSent.set(true)
 
@@ -353,10 +353,7 @@ object ReactiveTestRunner {
                         BuildEvent.SuiteFinished(
                           projectName,
                           SuiteName(suite.className),
-                          result.passed,
-                          result.failed,
-                          result.skipped,
-                          result.ignored,
+                          SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
                           endTime - startTime,
                           endTime
                         )

@@ -209,7 +209,7 @@ class JUnitXmlCollector {
       )
       activeSuites.get(key).foreach(state => activeSuites(key) = state.copy(testCases = tc :: state.testCases))
 
-    case BuildEvent.SuiteFinished(project, suite, _, _, _, _, durationMs, _) =>
+    case BuildEvent.SuiteFinished(project, suite, _, durationMs, _) =>
       val key = SuiteKey(project, suite)
       activeSuites.remove(key).foreach { state =>
         completedSuites += TestSuiteResult(

@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, OutputChannel, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, OutputChannel, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
@@ -82,7 +82,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       BuildEvent.SuiteStarted(cpn("proj"), sn("MySuite"), ts),
       testFinished(cpn("proj"), sn("MySuite"), tn("test1"), TestStatus.Passed),
       testFinished(cpn("proj"), sn("MySuite"), tn("test2"), TestStatus.Failed),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("MySuite"), passed = 1, failed = 1, skipped = 0, ignored = 0, durationMs = 100, ts + 1)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("MySuite"), SuiteOutcome.Executed(1, 1, 0, 0), 100, ts + 1)
     )
 
     val state = PreviousRunState.fromEvents(events)
@@ -256,7 +256,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       testFinished(cpn("proj"), sn("MySuite"), tn("test2"), TestStatus.Passed)
     )
 
-    val diff = BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, Map.empty, passed = 2, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+    val diff = BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, Map.empty, SuiteOutcome.Executed(2, 0, 0, 0), 100)
 
     diff.passed shouldBe 2
     diff.failed shouldBe 0
@@ -276,7 +276,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 1, failed = 1, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(1, 1, 0, 0), 100)
 
     diff.newFailures shouldBe List(tn("test2"))
     diff.fixedTests shouldBe empty
@@ -294,7 +294,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 2, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(2, 0, 0, 0), 100)
 
     diff.fixedTests shouldBe List(tn("test2"))
     diff.newFailures shouldBe empty
@@ -310,7 +310,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 0, failed = 1, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(0, 1, 0, 0), 100)
 
     diff.stillFailing shouldBe List(tn("testBad"))
     diff.newFailures shouldBe empty
@@ -327,7 +327,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 1, failed = 1, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(1, 1, 0, 0), 100)
 
     diff.newFailures shouldBe List(tn("testNew"))
   }
@@ -342,7 +342,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 2, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(2, 0, 0, 0), 100)
 
     diff.newFailures shouldBe empty
     diff.fixedTests shouldBe empty
@@ -360,7 +360,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 2, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(2, 0, 0, 0), 100)
 
     diff.fixedTests should contain(tn("testErr"))
     diff.fixedTests should contain(tn("testTimeout"))
@@ -379,7 +379,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 1, failed = 2, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(1, 2, 0, 0), 100)
 
     diff.newFailures shouldBe List(tn("test1"))
     diff.fixedTests shouldBe List(tn("test2"))
@@ -641,7 +641,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 1, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(1, 0, 0, 0), 100)
 
     diff.fixedTests shouldBe List(tn("testCancel"))
   }
@@ -655,7 +655,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
 
     val diff =
-      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, passed = 1, failed = 0, skipped = 0, ignored = 0, durationMs = 100)
+      BuildDiff.diffSuite(cpn("proj"), sn("MySuite"), currentTests, previousResults, SuiteOutcome.Executed(1, 0, 0, 0), 100)
 
     // skipped -> passed is not a "fix" (skipped was never a failure)
     diff.fixedTests shouldBe empty

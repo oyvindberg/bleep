@@ -17,7 +17,7 @@ import bleep.analysis.{
   ZincBridge
 }
 import bleep.bsp.protocol.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome}
 import bleep.bsp.TraceCategory
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.JvmPool
@@ -2801,10 +2801,7 @@ class MultiWorkspaceBspServer(
                         .SuiteFinished(
                           testTask.project,
                           testTask.suiteName,
-                          result.passed,
-                          result.failed,
-                          result.skipped,
-                          result.ignored,
+                          SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
                           durationMs,
                           endTs
                         )
@@ -2816,7 +2813,7 @@ class MultiWorkspaceBspServer(
         case (result, _) =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
+          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, erroredOutcomeOf(result), durationMs, endTs))).void >>
             IO.pure(result)
       }
     } yield taskResult
@@ -2917,10 +2914,7 @@ class MultiWorkspaceBspServer(
                           .SuiteFinished(
                             testTask.project,
                             testTask.suiteName,
-                            result.passed,
-                            result.failed,
-                            result.skipped,
-                            result.ignored,
+                            SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
                             durationMs,
                             endTs
                           )
@@ -2932,7 +2926,11 @@ class MultiWorkspaceBspServer(
         case _ =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
+          eventQueue
+            .offer(
+              Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, SuiteOutcome.Errored("Native linking failed", None), durationMs, endTs))
+            )
+            .void >>
             IO.pure(TaskDag.TaskResult.Failure("Native linking failed", List.empty))
       }
     } yield taskResult
@@ -2960,7 +2958,14 @@ class MultiWorkspaceBspServer(
         if (!Files.exists(jsOutput)) {
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
+          eventQueue
+            .offer(
+              Some(
+                TaskDag.DagEvent
+                  .SuiteFinished(testTask.project, testTask.suiteName, SuiteOutcome.Errored(s"Kotlin/JS output not found: $jsOutput", None), durationMs, endTs)
+              )
+            )
+            .void >>
             IO.pure(TaskDag.TaskResult.Failure(s"Kotlin/JS output not found: $jsOutput", List.empty))
         } else {
           val nodeBinary = nodeBinaryFor(started, started.build.explodedProjects(testTask.project))
@@ -2977,10 +2982,7 @@ class MultiWorkspaceBspServer(
                       .SuiteFinished(
                         testTask.project,
                         testTask.suiteName,
-                        result.passed,
-                        result.failed,
-                        result.skipped,
-                        result.ignored,
+                        SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
                         durationMs,
                         endTs
                       )
@@ -3022,7 +3024,19 @@ class MultiWorkspaceBspServer(
         if (!Files.exists(binary)) {
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
+          eventQueue
+            .offer(
+              Some(
+                TaskDag.DagEvent.SuiteFinished(
+                  testTask.project,
+                  testTask.suiteName,
+                  SuiteOutcome.Errored(s"Kotlin/Native binary not found: $binary", None),
+                  durationMs,
+                  endTs
+                )
+              )
+            )
+            .void >>
             IO.pure(TaskDag.TaskResult.Failure(s"Kotlin/Native binary not found: $binary", List.empty))
         } else {
           Dispatcher.sequential[IO].use { dispatcher =>
@@ -3039,10 +3053,7 @@ class MultiWorkspaceBspServer(
                       .SuiteFinished(
                         testTask.project,
                         testTask.suiteName,
-                        result.passed,
-                        result.failed,
-                        result.skipped,
-                        result.ignored,
+                        SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
                         durationMs,
                         endTs
                       )
@@ -3285,8 +3296,12 @@ class MultiWorkspaceBspServer(
                 result match {
                   case TaskDag.TaskResult.Success =>
                     None // SuiteFinished already emitted by TestRunner
-                  case TaskDag.TaskResult.Failure(errorMsg, _) =>
-                    Some(BleepBspProtocol.Event.SuiteError(tt.project, tt.suiteName, errorMsg, ProcessExit.Unknown, durationMs, timestamp))
+                  case TaskDag.TaskResult.Failure(_, _) =>
+                    // A logical suite failure (failed tests / empty / no-framework / errored-from-
+                    // SuiteDone) was already conveyed by the SuiteFinished(outcome) event. Emitting a
+                    // SuiteError here too would double-count the suite. Infra failures with no
+                    // SuiteFinished come through as TaskResult.Error below.
+                    None
                   case TaskDag.TaskResult.Error(error, processExit) =>
                     val desc = processExit match {
                       case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
@@ -3352,12 +3367,16 @@ class MultiWorkspaceBspServer(
           case TaskDag.DagEvent.Output(project, suite, line, channel, timestamp) =>
             IO(sendTestEvent(originId, s"output:$project:$suite", BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp)))
 
-          case TaskDag.DagEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp)
-            totalPassedRef.update(_ + passed) >>
-              totalFailedRef.update(_ + failed) >>
-              totalSkippedRef.update(_ + skipped) >>
-              totalIgnoredRef.update(_ + ignored) >>
+          case TaskDag.DagEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
+            val protocolEvent = BleepBspProtocol.Event.SuiteFinished(project, suite, outcome, durationMs, timestamp)
+            // Reliable server-side tallies for TestRunResult. A non-Executed outcome (empty /
+            // no-framework / errored) contributes one failed suite so the authoritative summary is
+            // red even if per-test notifications were lost. Executed contributes its real counts.
+            val failedContribution = if (outcome.isFailure && outcome.failedCount == 0) 1 else outcome.failedCount
+            totalPassedRef.update(_ + outcome.passedCount) >>
+              totalFailedRef.update(_ + failedContribution) >>
+              totalSkippedRef.update(_ + outcome.skippedCount) >>
+              totalIgnoredRef.update(_ + outcome.ignoredCount) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
           case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
@@ -3482,8 +3501,9 @@ class MultiWorkspaceBspServer(
           .withContext("taskId", taskId)
           .withContext("project", e.project.value)
           .withContext("suite", e.suite.value)
-          .withContext("passed", e.passed)
-          .withContext("failed", e.failed)
+          .withContext("outcome", SuiteOutcome.tagOf(e.outcome))
+          .withContext("passed", e.outcome.passedCount)
+          .withContext("failed", e.outcome.failedCount)
           .warn("sendTestEvent: SuiteFinished")
       case e: E.SuiteError =>
         logger
@@ -3562,6 +3582,17 @@ class MultiWorkspaceBspServer(
   }
 
   /** Classify non-JVM test result into TaskResult, distinguishing test failures from process crashes. */
+  /** Outcome for a non-JVM suite that could not run (link failure, missing output) — carries the failing result's message so the client shows the reason. */
+  private def erroredOutcomeOf(result: TaskDag.TaskResult): SuiteOutcome =
+    SuiteOutcome.Errored(
+      result match {
+        case TaskDag.TaskResult.Failure(e, _) => e
+        case TaskDag.TaskResult.Error(e, _)   => e
+        case other                            => s"test suite could not run: $other"
+      },
+      None
+    )
+
   private def classifyTestResult(result: TestRunnerTypes.TestResult): TaskDag.TaskResult =
     result.terminationReason match {
       case TestRunnerTypes.TerminationReason.Completed =>

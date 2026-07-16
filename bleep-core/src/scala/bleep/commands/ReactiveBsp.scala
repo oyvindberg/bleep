@@ -839,8 +839,8 @@ class ReactiveBspClient(
       case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
         Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp))
 
-      case PE.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp))
+      case PE.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
+        Some(BuildEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp))
 
       case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
         // protocol's `threadDump: Option[String]` carries the full HotSpot dump text from jstack;
