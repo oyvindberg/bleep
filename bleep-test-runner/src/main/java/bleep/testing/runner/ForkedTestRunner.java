@@ -405,14 +405,25 @@ public class ForkedTestRunner {
       } catch (InterruptedException e) {
         throw e;
       } catch (Throwable e) {
-        // Log error but continue with other tasks.
-        // Must catch Throwable (not just Exception) because test frameworks may let
-        // Errors (e.g. AssertionError) escape from task.execute() in some edge cases.
-        send(
-            TestProtocol.encodeLog(
-                "error",
-                "Task execution failed: " + e.getMessage() + "\n" + stackTraceToString(e)));
+        // Do NOT swallow and continue. A Throwable escaping task.execute — LinkageError,
+        // NoClassDefFoundError, ExceptionInInitializerError, typically from a stale sibling
+        // compile — means this suite's classpath cannot be trusted, not that one test failed.
+        // Swallowing it here let the suite fall through to SuiteDone(...,0,0,0) and be reported
+        // PASSED: a green build over a suite that never ran. Propagate so the caller's handler
+        // records a real failure with a non-zero count.
+        throw new SuiteExecutionException(e);
       }
+    }
+  }
+
+  /**
+   * Wraps a non-interruption Throwable that escaped {@code task.execute} so it propagates out of
+   * {@link #executeTasks} (whose only checked throw is InterruptedException) to runSuite's outer
+   * handler, which reports it as a suite failure.
+   */
+  private static final class SuiteExecutionException extends RuntimeException {
+    SuiteExecutionException(Throwable cause) {
+      super(cause);
     }
   }
 

@@ -144,6 +144,7 @@ object JvmPool {
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
+    @volatile private var _suiteInFlight = false
 
     /** Buffered stderr lines collected by the drain thread. Bounded so a runaway warning storm can't OOM the parent. Oldest lines are dropped past the cap. */
     private val stderrBuffer = new java.util.concurrent.ConcurrentLinkedDeque[String]()
@@ -172,6 +173,19 @@ object JvmPool {
 
     def markProtocolDirty(): Unit =
       _protocolClean = false
+
+    /** True between sending a RunSuite command and consuming that suite's terminal response. While set, the child's stdout may still hold unread
+      * TestFinished/SuiteDone lines from the in-flight suite, so the JVM is NOT safe to hand to another acquirer — the next RunSuite would read this suite's
+      * leftover terminator and misattribute its counts. A suite that ends by cancellation (fiber killed mid-run) leaves this set precisely so [[release]] kills
+      * the JVM instead of re-pooling it.
+      */
+    def suiteInFlight: Boolean = _suiteInFlight
+
+    def markSuiteStarted(): Unit =
+      _suiteInFlight = true
+
+    def markSuiteFinished(): Unit =
+      _suiteInFlight = false
 
     def markDead(): Unit =
       alive = false
@@ -423,7 +437,7 @@ object JvmPool {
 
     /** Return a JVM to the pool for reuse */
     private def release(jvm: ManagedJvm): IO[Unit] =
-      if (jvm.isAlive && jvm.protocolClean) {
+      if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
         for {
           queue <- IO(
             pool.getOrElseUpdate(
@@ -451,12 +465,22 @@ object JvmPool {
       ): Stream[IO, TestProtocol.TestResponse] = {
         val command = TestProtocol.TestCommand.RunSuite(className, framework, args)
 
-        Stream.eval(sendCommand(command)) >>
-          readResponses.takeThrough {
-            case _: TestProtocol.TestResponse.SuiteDone => false
-            case _: TestProtocol.TestResponse.Error     => false
-            case _                                      => true
-          }
+        val body =
+          Stream.eval(IO(jvm.markSuiteStarted()) >> sendCommand(command)) >>
+            readResponses.takeThrough {
+              case _: TestProtocol.TestResponse.SuiteDone => false
+              case _: TestProtocol.TestResponse.Error     => false
+              case _                                      => true
+            }
+
+        // Clear the in-flight flag only when the stream drains to its terminator
+        // (SuiteDone/Error consumed) — then the protocol is at a clean boundary and the JVM
+        // is safe to re-pool. On cancellation the flag stays set, so `release` kills the JVM
+        // rather than handing a mid-suite protocol stream to the next acquirer.
+        body.onFinalizeCase {
+          case Resource.ExitCase.Succeeded => IO(jvm.markSuiteFinished())
+          case _                           => IO.unit
+        }
       }
 
       private def sendCommand(cmd: TestProtocol.TestCommand): IO[Unit] =

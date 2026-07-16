@@ -176,6 +176,26 @@ class JUnitPlatformRunner {
               }
             };
 
+        // Discover before executing. If no engine claims this class — the classic case is a
+        // JUnit 4 (@org.junit.Test) class routed here with junit-platform present but no
+        // junit-vintage-engine on the classpath — execute() silently runs nothing and we would
+        // report SuiteDone(...,0,0,0) as a green pass. Treat an empty plan as a suite failure.
+        TestPlan plan = launcher.discover(request);
+        long discovered = plan.countTestIdentifiers(TestIdentifier::isTest);
+        if (discovered == 0) {
+          send(
+              TestProtocol.encodeLog(
+                  "error",
+                  "No JUnit Platform engine executed any test in "
+                      + className
+                      + ". A JUnit 4 test class needs junit-vintage-engine on the test"
+                      + " classpath."));
+          send(
+              TestProtocol.encodeSuiteDone(
+                  className, 0, 1, 0, 0, System.currentTimeMillis() - startTime));
+          return;
+        }
+
         launcher.execute(request, listener);
       }
 
