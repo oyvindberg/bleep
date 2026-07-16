@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import java.io.{File, IOException}
 import java.lang.ref.SoftReference
@@ -323,22 +324,25 @@ object ZincBridge {
       case None    => return None
     }
 
-    // Check source directory stats — detects file add/delete/rename
+    // The configured source roots must all be recorded — otherwise the build's `sources`
+    // changed since the manifest was written and none of the recorded stats describe it.
     val normalizedDirs = removeNestedDirs(sourceDirs)
-    if (normalizedDirs.size != manifest.sourceDirStats.size) return None
-    val dirIter = normalizedDirs.iterator
+    if (!normalizedDirs.forall(manifest.sourceDirStats.contains)) return None
+
+    // Check every recorded source directory (roots + nested subdirs) — a dir's mtime moves
+    // when a file is added/deleted/renamed directly inside it. Iterating the *recorded* set
+    // rather than walking the tree keeps this O(dirs) pure stats, and still catches
+    // additions: the new file's parent dir is itself recorded. A recorded dir that no
+    // longer exists is likewise a miss.
+    val dirIter = manifest.sourceDirStats.iterator
     while (dirIter.hasNext) {
-      val dir = dirIter.next()
-      manifest.sourceDirStats.get(dir) match {
-        case None           => return None
-        case Some(expected) =>
-          if (!Files.isDirectory(dir)) return None
-          val stat = statFile(dir)
-          if (
-            stat.ctimeMillis != expected.ctimeMillis ||
-            stat.mtimeMillis != expected.mtimeMillis
-          ) return None
-      }
+      val (dir, expected) = dirIter.next()
+      if (!Files.isDirectory(dir)) return None
+      val stat = statFile(dir)
+      if (
+        stat.ctimeMillis != expected.ctimeMillis ||
+        stat.mtimeMillis != expected.mtimeMillis
+      ) return None
     }
 
     // Check per-source file stats (from manifest's recorded paths — no directory walk)
@@ -517,8 +521,7 @@ object ZincBridge {
       dependencyAnalyses,
       progressListener,
       cancellationToken,
-      diagnosticListener,
-      !hasPrevAnalysis
+      diagnosticListener
     )
 
     val compiler = incrementalCompiler
@@ -566,10 +569,20 @@ object ZincBridge {
         diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
       }
 
+      // Zinc swallows cancellation: `Incremental.compile` catches `xsbti.CompileCancelled`
+      // and returns `(hasModified = false, previous)` — i.e. a cancelled compile is
+      // indistinguishable from an up-to-date one by return value alone. Ask the token
+      // instead. Persisting anything here would record the *edited* sources as up-to-date
+      // against the *old* analysis, so the edit stays invisible until its content changes
+      // again. Fail loudly rather than cache a lie.
+      if (cancellationToken.isCancelled) {
+        debug(s"[ZincBridge] Compilation cancelled for ${config.name} — discarding analysis and noop manifest")
+        return ProjectCompileCancelled(KillReason.UserRequest)
+      }
+
       // Save analysis when compilation produced changes OR when there was no previous
-      // analysis (clean build). On clean builds the cycle guard may short-circuit Zinc's
-      // shouldDoIncrementalCompilation, causing hasModified=false even though compilation
-      // happened. Without saving, downstream projects get a missing/null analysis → NPE.
+      // analysis (clean build). Without saving, downstream projects get a missing/null
+      // analysis → NPE.
       if (result.hasModified || !hasPrevAnalysis) {
         diagnosticListener.onCompilePhase(config.name, CompilePhase.SavingAnalysis)
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
@@ -894,8 +907,7 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
       cancellationToken: CancellationToken,
-      diagnosticListener: DiagnosticListener,
-      isCleanBuild: Boolean
+      diagnosticListener: DiagnosticListener
   ): Inputs = {
     val outputDir = config.outputDir
     // Include output directory in classpath for incremental Java compilation.
@@ -983,10 +995,24 @@ object ZincBridge {
       }
     }
 
-    // Detect Zinc incremental cycle bugs:
-    // 1. After a clean build, Zinc should never want another cycle — the analysis is fresh.
-    // 2. If Zinc re-invalidates the exact same classes after recompiling them, it will never converge.
-    // In both cases: stop the cycle and warn.
+    // Detect Zinc incremental cycle bugs: if Zinc re-invalidates the exact same classes
+    // after recompiling them, it will never converge — stop the cycle and warn.
+    //
+    // Zinc calls shouldDoIncrementalCompilation from two sites with different meanings
+    // (zinc 1.12.0), and only the second is a cycle:
+    //
+    //   1. IncrementalCommon.scala:430, inside detectInitialChanges — exactly once per
+    //      compile (Incremental.scala:340), before any compilation, carrying changed
+    //      *external* (upstream) class names. Returning false makes zinc replace them
+    //      with `new APIChanges(Nil)`, silently discarding every upstream API change.
+    //   2. IncrementalCommon.scala:192, inside cycle — once per invalidation cycle,
+    //      carrying the *internal* classes zinc wants to recompile next. Guarded upstream
+    //      by `nextInvalidations.nonEmpty`, so this set is never empty.
+    //
+    // The two carry different namespaces, so comparing one against the other is
+    // meaningless. Site 1 is always the first call, so discriminate on that and never
+    // suppress upstream API changes.
+    var seenInitialProbe = false
     var previousInvalidations: Option[Set[String]] = None
     // Extend ExternalLookup directly (not NoopExternalLookup) because NoopExternalLookup
     // narrows lookupAnalyzedClass return type to None.type which we can't widen back.
@@ -1005,25 +1031,26 @@ object ZincBridge {
       override def shouldDoIncrementalCompilation(
           changedClasses: Set[String],
           analysis: CompileAnalysis
-      ): Boolean = {
-        val isBug = if (isCleanBuild && previousInvalidations.isEmpty) {
-          // Clean build just finished — any invalidation is a Zinc bug
+      ): Boolean =
+        if (!seenInitialProbe) {
+          // Site 1: the upstream-API gate, not a cycle. Never suppress it — returning
+          // false here is how upstream API changes go missing. Deliberately does not
+          // record previousInvalidations: external class names are a different namespace
+          // from the internal invalidations site 2 compares against.
+          seenInitialProbe = true
           true
-        } else {
-          previousInvalidations match {
-            case Some(prev) if prev == changedClasses => true
-            case _                                    => false
-          }
+        } else cycleCheck(changedClasses)
+
+      private def cycleCheck(changedClasses: Set[String]): Boolean = {
+        val isBug = previousInvalidations match {
+          case Some(prev) if prev == changedClasses => true
+          case _                                    => false
         }
 
         if (isBug) {
           val classes = changedClasses.toList.sorted.take(20).mkString(", ")
           val more = if (changedClasses.size > 20) s" (and ${changedClasses.size - 20} more)" else ""
-          val reason =
-            if (isCleanBuild && previousInvalidations.isEmpty)
-              "after a clean build"
-            else
-              "after recompiling, re-invalidated the exact same class(es)"
+          val reason = "after recompiling, re-invalidated the exact same class(es)"
           System.err.println(
             s"[ZincBridge] WARNING: Zinc incremental compilation bug in ${config.name}: " +
               s"$reason. ${changedClasses.size} class(es): $classes$more"

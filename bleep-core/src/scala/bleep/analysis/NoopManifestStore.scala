@@ -22,7 +22,7 @@ object NoopManifestStore {
 
   case class NoopManifest(
       sourceStats: Map[Path, FileStatEntry],
-      sourceDirStats: Map[Path, FileStatEntry], // source dir → stat (detects file add/delete)
+      sourceDirStats: Map[Path, FileStatEntry], // source dir + subdirs → stat (detects file add/delete)
       outputDirStats: Map[Path, FileStatEntry], // output dir + subdirs → stat (detects class file add/delete)
       depAnalysisStats: Map[Path, Long], // outputDir → dep analysis mtime millis
       optionsHash: Long,
@@ -36,7 +36,10 @@ object NoopManifestStore {
     !System.getProperty("os.name", "").toLowerCase.contains("win")
 
   private val NoopManifestMagic: Int = 0x4e4f4f50
-  private val NoopManifestVersion: Byte = 3
+  // v4: sourceDirStats records source roots *and every nested subdirectory*. v3 recorded
+  // only the top-level roots, so a file added in a nested package dir bumped no recorded
+  // mtime and the project was wrongly declared a noop. v3 manifests are a cache miss.
+  private val NoopManifestVersion: Byte = 4
 
   /** Path of the manifest file, sibling to the analysis file. */
   def manifestPath(analysisFile: Path): Path =
@@ -58,6 +61,20 @@ object NoopManifestStore {
     val abs = dirs.map(_.toAbsolutePath.normalize())
     abs.filter(d => !abs.exists(other => other != d && d.startsWith(other)))
   }
+
+  /** Every directory at or below `root`, inclusive. Empty when `root` is not a directory.
+    *
+    * Recording nested dirs (not just the root) is what makes file *additions* detectable by stat alone: adding `src/java/com/foo/New.java` bumps the mtime of
+    * `src/java/com/foo` only — no ancestor's mtime changes — so a manifest holding just `src/java` cannot see it.
+    */
+  def collectDirsRecursively(root: Path): Array[Path] =
+    if (!Files.isDirectory(root)) Array.empty
+    else {
+      import scala.jdk.CollectionConverters.*
+      scala.util.Using.resource(Files.walk(root)) { stream =>
+        stream.iterator().asScala.filter(Files.isDirectory(_)).toArray
+      }
+    }
 
   /** FNV-1a hash of compiler options for cheap equality check. */
   def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String]): Long = {
@@ -105,12 +122,14 @@ object NoopManifestStore {
       i += 1
     }
 
-    // Stat source directories — mtime changes on file add/delete/rename (POSIX)
-    val normalizedDirs = removeNestedDirs(sourceDirs)
-    val sourceDirStatsMap = normalizedDirs.flatMap { dir =>
-      if (Files.isDirectory(dir)) Some(dir -> statFile(dir))
-      else None
-    }.toMap
+    // Stat source directories and every nested subdirectory — a dir's mtime changes when a
+    // file is added/deleted/renamed directly inside it (POSIX), but NOT when something
+    // changes in a descendant. Recording only the roots therefore misses additions in
+    // package subdirectories, which is exactly what code generators produce.
+    val sourceDirStatsMap = removeNestedDirs(sourceDirs).iterator
+      .flatMap(collectDirsRecursively)
+      .map(dir => dir -> statFile(dir))
+      .toMap
 
     val depStats = dependencyAnalyses.map { case (outputDir, depAnalysisFile) =>
       val mtime = if (Files.exists(depAnalysisFile)) Files.getLastModifiedTime(depAnalysisFile).toMillis else 0L
@@ -120,15 +139,7 @@ object NoopManifestStore {
     // Stat output directories (outputDir + all subdirs).
     // Directory mtime changes on file add/delete — catches class file deletion cheaply.
     val outputDirStatsMap: Map[Path, FileStatEntry] =
-      if (Files.isDirectory(result.outputDir)) {
-        import scala.jdk.CollectionConverters.*
-        val dirs = scala.util
-          .Using(Files.walk(result.outputDir)) { stream =>
-            stream.iterator().asScala.filter(Files.isDirectory(_)).toArray
-          }
-          .getOrElse(Array.empty[Path])
-        dirs.map(d => d -> statFile(d)).toMap
-      } else Map.empty
+      collectDirsRecursively(result.outputDir).map(d => d -> statFile(d)).toMap
 
     val manifest = NoopManifest(
       sourceStats = {

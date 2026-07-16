@@ -2341,7 +2341,11 @@ class MultiWorkspaceBspServer(
           // Noop projects skip all waiting and don't consume concurrency slots.
           val apFlags: List[String] = Option(apResults.get(compileTask.project)).fold(List.empty[String])(_.javacFlags)
           val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started, apFlags)
-          val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
+          // Transitive, not `compileTask.projectDependencies` (direct edges only): the compile
+          // classpath is transitive, so an API change two hops upstream is just as breaking as
+          // one hop. It is also invisible via the intermediate project's analysis mtime, because
+          // an intermediate that is itself a noop never rewrites its analysis.zip.
+          val depAnalyses = computeDependencyAnalyses(started, started.build.transitiveDependenciesFor(compileTask.project).keySet)
           val noopResult = config.language match {
             case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
             case _                             => None
