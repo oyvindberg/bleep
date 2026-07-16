@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 
 /** Indexed view of a previous run's results, built from events, for fast per-project diff lookups.
@@ -205,10 +205,7 @@ object BuildDiff {
       suite: SuiteName,
       currentTests: List[BuildEvent.TestFinished],
       previousTestResults: Map[TestKey, TestStatus],
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
+      outcome: SuiteOutcome,
       durationMs: Long
   ): SuiteDiff = {
     val newFailures = List.newBuilder[TestName]
@@ -234,10 +231,10 @@ object BuildDiff {
     SuiteDiff(
       project = project,
       suite = suite,
-      passed = passed,
-      failed = failed,
-      skipped = skipped,
-      ignored = ignored,
+      passed = outcome.passedCount,
+      failed = outcome.failedCount,
+      skipped = outcome.skippedCount,
+      ignored = outcome.ignoredCount,
       newFailures = newFailures.result(),
       fixedTests = fixedTests.result(),
       stillFailing = stillFailing.result(),

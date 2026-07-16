@@ -178,21 +178,19 @@ class JUnitPlatformRunner {
 
         // Discover before executing. If no engine claims this class — the classic case is a
         // JUnit 4 (@org.junit.Test) class routed here with junit-platform present but no
-        // junit-vintage-engine on the classpath — execute() silently runs nothing and we would
-        // report SuiteDone(...,0,0,0) as a green pass. Treat an empty plan as a suite failure.
+        // junit-vintage-engine on the classpath — execute() silently runs nothing. Report it as
+        // NoFrameworkMatched, not a green pass.
         TestPlan plan = launcher.discover(request);
         long discovered = plan.countTestIdentifiers(TestIdentifier::isTest);
         if (discovered == 0) {
           send(
-              TestProtocol.encodeLog(
-                  "error",
-                  "No JUnit Platform engine executed any test in "
+              TestProtocol.encodeSuiteNoFrameworkMatched(
+                  className,
+                  System.currentTimeMillis() - startTime,
+                  "No JUnit Platform engine claimed "
                       + className
                       + ". A JUnit 4 test class needs junit-vintage-engine on the test"
                       + " classpath."));
-          send(
-              TestProtocol.encodeSuiteDone(
-                  className, 0, 1, 0, 0, System.currentTimeMillis() - startTime));
           return;
         }
 
@@ -204,24 +202,28 @@ class JUnitPlatformRunner {
       capturedErr.flush();
 
       long durationMs = System.currentTimeMillis() - startTime;
-      send(
-          TestProtocol.encodeSuiteDone(
-              className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
+      int total = passed[0] + failed[0] + skipped[0] + ignored[0];
+      if (total == 0) {
+        send(TestProtocol.encodeSuiteEmpty(className, durationMs));
+      } else {
+        send(
+            TestProtocol.encodeSuiteExecuted(
+                className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
+      }
 
     } catch (Throwable e) {
-      send(
-          TestProtocol.encodeLog(
-              "error",
-              "Error in JUnit Platform runner: " + e.getClass().getName() + ": " + e.getMessage()));
       send(TestProtocol.encodeLog("error", stackTraceToString(e)));
       send(
-          TestProtocol.encodeSuiteDone(
+          TestProtocol.encodeSuiteErrored(
               className,
-              passed[0],
-              failed[0] + 1,
-              skipped[0],
-              ignored[0],
-              System.currentTimeMillis() - startTime));
+              System.currentTimeMillis() - startTime,
+              "Error in JUnit Platform runner for "
+                  + className
+                  + ": "
+                  + e.getClass().getName()
+                  + ": "
+                  + e.getMessage(),
+              stackTraceToString(e)));
     }
   }
 

@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.protocol.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, KotlinJsModuleKind, ScriptDef, SuiteName, TestName}
 import cats.effect._
@@ -336,14 +336,11 @@ object TaskDag {
     // Output events
     case class Output(project: CrossProjectName, suite: SuiteName, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
 
-    // Suite completion with counts
+    // Suite completion — outcome distinguishes executed-with-counts from empty/no-framework/errored
     case class SuiteFinished(
         project: CrossProjectName,
         suite: SuiteName,
-        passed: Int,
-        failed: Int,
-        skipped: Int,
-        ignored: Int,
+        outcome: SuiteOutcome,
         durationMs: Long,
         timestamp: Long
     ) extends DagEvent

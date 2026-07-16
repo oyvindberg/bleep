@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.bsp.protocol.SuiteOutcome
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.syntax._
@@ -75,13 +76,12 @@ object TestProtocol {
         throwable: Option[String]
     ) extends TestResponse
 
-    /** A test suite has completed */
+    /** A test suite has completed. `outcome` is reconstructed from the flat wire fields (the Java forked runner emits a `kind` discriminator plus counts) into
+      * the [[SuiteOutcome]] ADT so nothing downstream re-derives meaning from an all-zero count tuple.
+      */
     case class SuiteDone(
         suite: String,
-        passed: Int,
-        failed: Int,
-        skipped: Int,
-        ignored: Int,
+        outcome: SuiteOutcome,
         durationMs: Long
     ) extends TestResponse
 
@@ -122,8 +122,37 @@ object TestProtocol {
     implicit val testFinishedEncoder: Encoder[TestFinished] = deriveEncoder
     implicit val testFinishedDecoder: Decoder[TestFinished] = deriveDecoder
 
-    implicit val suiteDoneEncoder: Encoder[SuiteDone] = deriveEncoder
-    implicit val suiteDoneDecoder: Decoder[SuiteDone] = deriveDecoder
+    // The wire is flat (kind discriminator + counts + optional message/throwable), matching the
+    // hand-rolled JSON the Java forked runner emits; the outcome ADT is (re)constructed here.
+    implicit val suiteDoneEncoder: Encoder[SuiteDone] = Encoder.instance { sd =>
+      val base = Json.obj(
+        "suite" -> sd.suite.asJson,
+        "outcome" -> SuiteOutcome.tagOf(sd.outcome).asJson,
+        "passed" -> sd.outcome.passedCount.asJson,
+        "failed" -> sd.outcome.failedCount.asJson,
+        "skipped" -> sd.outcome.skippedCount.asJson,
+        "ignored" -> sd.outcome.ignoredCount.asJson,
+        "durationMs" -> sd.durationMs.asJson
+      )
+      sd.outcome match {
+        case SuiteOutcome.Errored(message, throwable) =>
+          base.deepMerge(Json.obj("message" -> message.asJson, "throwable" -> throwable.asJson))
+        case _ => base
+      }
+    }
+    implicit val suiteDoneDecoder: Decoder[SuiteDone] = Decoder.instance { c =>
+      for {
+        suite <- c.downField("suite").as[String]
+        kind <- c.downField("outcome").as[String]
+        passed <- c.downField("passed").as[Int]
+        failed <- c.downField("failed").as[Int]
+        skipped <- c.downField("skipped").as[Int]
+        ignored <- c.downField("ignored").as[Int]
+        durationMs <- c.downField("durationMs").as[Long]
+        message <- c.downField("message").as[Option[String]]
+        throwable <- c.downField("throwable").as[Option[String]]
+      } yield SuiteDone(suite, SuiteOutcome.fromWire(kind, passed, failed, skipped, ignored, message, throwable), durationMs)
+    }
 
     implicit val logEncoder: Encoder[Log] = deriveEncoder
     implicit val logDecoder: Decoder[Log] = deriveDecoder

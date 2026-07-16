@@ -266,10 +266,13 @@ public class ForkedTestRunner {
       }
 
       if (tasks == null || tasks.length == 0) {
-        send(TestProtocol.encodeError("No tests found for class: " + className, null));
+        // No fingerprint produced a task: the loaded framework does not recognize this class as
+        // a suite. Not an empty suite (the framework never claimed it) — a framework mismatch.
         send(
-            TestProtocol.encodeSuiteDone(
-                className, 0, 1, 0, 0, System.currentTimeMillis() - startTime));
+            TestProtocol.encodeSuiteNoFrameworkMatched(
+                className,
+                System.currentTimeMillis() - startTime,
+                "No test framework recognized " + className + " as a suite"));
         return;
       }
 
@@ -350,9 +353,15 @@ public class ForkedTestRunner {
       capturedErr.flush();
 
       long durationMs = System.currentTimeMillis() - startTime;
-      send(
-          TestProtocol.encodeSuiteDone(
-              className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
+      int total = passed[0] + failed[0] + skipped[0] + ignored[0];
+      if (total == 0) {
+        // The framework claimed the class (a task ran) but no test fired an event: an empty suite.
+        send(TestProtocol.encodeSuiteEmpty(className, durationMs));
+      } else {
+        send(
+            TestProtocol.encodeSuiteExecuted(
+                className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
+      }
 
     } catch (InterruptedException e) {
       // Cancelled - report and re-throw to exit the run
@@ -360,33 +369,33 @@ public class ForkedTestRunner {
       throw new RuntimeException(e);
     } catch (SecurityException e) {
       if (e.getMessage() != null && e.getMessage().contains("System.exit")) {
-        // System.exit was blocked - report failure
         send(
-            TestProtocol.encodeSuiteDone(
-                className, 0, 1, 0, 0, System.currentTimeMillis() - startTime));
+            TestProtocol.encodeSuiteErrored(
+                className,
+                System.currentTimeMillis() - startTime,
+                "Test attempted a blocked System.exit",
+                null));
       } else {
         throw e;
       }
     } catch (Throwable e) {
-      // Must catch Throwable (not just Exception) because test frameworks may let
-      // Errors (e.g. AssertionError) escape from task.execute() in some edge cases.
-      // Without this, the forked JVM crashes without sending SuiteDone, causing
-      // the parent to report "0 passed, 0 failed" regardless of actual results.
-      send(
-          TestProtocol.encodeLog(
-              "error", "Error in runSuite: " + e.getClass().getName() + ": " + e.getMessage()));
+      // Must catch Throwable (not just Exception): a framework may let an Error (AssertionError,
+      // or a LinkageError propagated from executeTasks) escape. Report it as an errored suite —
+      // NOT SuiteExecuted with faked counts — so the outcome carries the real reason.
       send(TestProtocol.encodeLog("error", stackTraceToString(e)));
-      // Send SuiteDone with counts collected so far (from EventHandler, if any events arrived
-      // before the error). If the error happened before the EventHandler was called, counts
-      // will be 0/0 and the error message below provides the failure signal.
+      Throwable reported =
+          (e instanceof SuiteExecutionException && e.getCause() != null) ? e.getCause() : e;
       send(
-          TestProtocol.encodeSuiteDone(
+          TestProtocol.encodeSuiteErrored(
               className,
-              passed[0],
-              failed[0] + 1,
-              skipped[0],
-              ignored[0],
-              System.currentTimeMillis() - startTime));
+              System.currentTimeMillis() - startTime,
+              "Error running suite "
+                  + className
+                  + ": "
+                  + reported.getClass().getName()
+                  + ": "
+                  + reported.getMessage(),
+              stackTraceToString(reported)));
     }
   }
 

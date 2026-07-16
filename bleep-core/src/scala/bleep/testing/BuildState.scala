@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{ProcessExit, TestStatus}
+import bleep.bsp.protocol.{ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 
 /** Canonical state for build/test progress tracking.
@@ -249,30 +249,47 @@ object BuildStateReducer {
         totalTaskTimeMs = state.totalTaskTimeMs + durationMs
       )
 
-    case BuildEvent.SuiteFinished(project, suite, _, failed, _, _, _, _) =>
+    case BuildEvent.SuiteFinished(project, suite, outcome, _, _) =>
       val key = SuiteKey(project, suite)
       // Check if SuiteError already counted this suite (SuiteError can arrive before SuiteFinished)
       val alreadyCounted = state.failures.exists(f => f.project == project && f.suite == suite && f.category == FailureCategory.ProcessError)
-      // If suite reports failures but no individual TestFinished events created TestFailure entries,
-      // create a synthetic failure so the summary shows useful info instead of "detailed info was not captured"
       val existingFailuresForSuite = state.failures.count(f => f.project == project && f.suite == suite)
-      val syntheticFailures = if (failed > 0 && existingFailuresForSuite == 0) {
-        val output = state.pendingOutput.getOrElse(key, Nil)
-        List(
-          TestFailure(
-            project = project,
-            suite = suite,
-            test = TestName("(suite failed)"),
-            message = Some(s"Suite reported $failed failure(s) but no individual test results were captured"),
-            throwable = None,
-            output = output,
-            category = FailureCategory.ProcessError
+      // The outcome variant, not count arithmetic, says why (if) the suite failed. A failing
+      // outcome with no per-test TestFinished events (Empty / NoFrameworkMatched / Errored, or a
+      // suite-level failure whose individual events were lost) gets one synthetic failure so the
+      // summary shows a reason and count-based gates (toEither) see it.
+      val failureReason: Option[String] = outcome match {
+        case SuiteOutcome.Executed(_, failed, _, _) if failed > 0 =>
+          Some(s"Suite reported $failed failure(s) but no individual test results were captured")
+        case _: SuiteOutcome.Executed         => None
+        case SuiteOutcome.Empty               => Some(s"Suite ${suite.value} was discovered but executed 0 tests")
+        case SuiteOutcome.NoFrameworkMatched  => Some(s"No test framework/engine claimed ${suite.value}")
+        case SuiteOutcome.Errored(message, _) => Some(message)
+      }
+      val syntheticFailures = failureReason match {
+        case Some(msg) if existingFailuresForSuite == 0 =>
+          List(
+            TestFailure(
+              project = project,
+              suite = suite,
+              test = TestName("(suite failed)"),
+              message = Some(msg),
+              throwable = None,
+              output = state.pendingOutput.getOrElse(key, Nil),
+              category = FailureCategory.ProcessError
+            )
           )
-        )
-      } else Nil
+        case _ => Nil
+      }
+      val isFailure = outcome.isFailure
+      // For a failing suite with no per-test failures already counted, surface one failed test so
+      // count-based gates see it even when other suites in the run passed. Executed(failed>0) whose
+      // per-test events already incremented testsFailed is excluded via existingFailuresForSuite.
+      val addFailedTest = isFailure && !alreadyCounted && existingFailuresForSuite == 0
       state.copy(
         suitesCompleted = if (alreadyCounted) state.suitesCompleted else state.suitesCompleted + 1,
-        suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + (if (failed > 0) 1 else 0),
+        suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + (if (isFailure) 1 else 0),
+        testsFailed = if (addFailedTest) state.testsFailed + 1 else state.testsFailed,
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,

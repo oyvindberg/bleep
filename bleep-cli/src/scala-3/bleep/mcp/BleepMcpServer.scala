@@ -1245,15 +1245,21 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               prevFailed && !tf.status.isFailure
             }
 
-            // Stream if there are failures or diffs
-            if (e.failed > 0 || newFailures.nonEmpty || fixedTests.nonEmpty) {
+            // Stream if the suite failed (any variant) or there are diffs
+            val isFailure = e.outcome.isFailure
+            if (isFailure || newFailures.nonEmpty || fixedTests.nonEmpty) {
               val diffParts = List.newBuilder[String]
               fixedTests.foreach(t => diffParts += s"${t.test.value} fixed")
               newFailures.foreach(t => diffParts += s"${t.test.value} new failure")
               val details = diffParts.result()
-              val countsStr = s"${e.passed} passed, ${e.failed} failed"
+              val countsStr = e.outcome match {
+                case bleep.bsp.protocol.SuiteOutcome.Executed(passed, failed, _, _) => s"$passed passed, $failed failed"
+                case bleep.bsp.protocol.SuiteOutcome.Empty                          => "discovered but executed 0 tests"
+                case bleep.bsp.protocol.SuiteOutcome.NoFrameworkMatched             => "no test framework/engine claimed this suite"
+                case bleep.bsp.protocol.SuiteOutcome.Errored(message, _)            => s"errored: $message"
+              }
               val detailStr = if (details.nonEmpty) s" (${details.mkString(", ")})" else ""
-              val level = if (e.failed > 0) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
+              val level = if (isFailure) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
               streamNotification(context, level, s"${e.project.value} ${e.suite.value}: $countsStr$detailStr")
             } else IO.unit
           }

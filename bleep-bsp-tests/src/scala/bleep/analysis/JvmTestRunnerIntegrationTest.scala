@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.TaskDag
-import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import bleep.testing.TestProtocol
 import org.scalatest.funsuite.AnyFunSuite
@@ -95,10 +95,7 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val response = TestProtocol.TestResponse.SuiteDone(
         suite = "com.example.MySuite",
-        passed = 10,
-        failed = 2,
-        skipped = 1,
-        ignored = 0,
+        outcome = SuiteOutcome.Executed(10, 2, 1, 0),
         durationMs = 5432
       )
       val encoded = TestProtocol.encodeResponse(response)
@@ -106,6 +103,22 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
 
       decoded shouldBe Right(response)
       encoded should include("SuiteDone")
+    }
+  }
+
+  test("TestProtocol: SuiteDone round-trips every outcome variant") {
+    failAfter(quickTimeout) {
+      val outcomes = List(
+        SuiteOutcome.Executed(3, 1, 2, 0),
+        SuiteOutcome.Empty,
+        SuiteOutcome.NoFrameworkMatched,
+        SuiteOutcome.Errored("boom", Some("stack\ntrace"))
+      )
+      outcomes.foreach { o =>
+        val response = TestProtocol.TestResponse.SuiteDone(suite = "com.example.MySuite", outcome = o, durationMs = 1)
+        val decoded = TestProtocol.decodeResponse(TestProtocol.encodeResponse(response))
+        decoded shouldBe Right(response)
+      }
     }
   }
 
@@ -335,18 +348,12 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
       val event = TaskDag.DagEvent.SuiteFinished(
         project = CrossProjectName(ProjectName("my-project"), None),
         suite = SuiteName("MySuite"),
-        passed = 10,
-        failed = 2,
-        skipped = 1,
-        ignored = 0,
+        outcome = SuiteOutcome.Executed(10, 2, 1, 0),
         durationMs = 5000,
         timestamp = ts
       )
 
-      event.passed shouldBe 10
-      event.failed shouldBe 2
-      event.skipped shouldBe 1
-      event.ignored shouldBe 0
+      event.outcome shouldBe SuiteOutcome.Executed(10, 2, 1, 0)
       event.durationMs shouldBe 5000
     }
   }

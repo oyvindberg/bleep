@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.protocol.{OutputChannel, TestStatus}
+import bleep.bsp.protocol.{OutputChannel, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
@@ -29,7 +29,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
       BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.MySuite"), ts),
       BuildEvent.Output(cpn("proj"), sn("com.example.MySuite"), "error line 1", OutputChannel.Stderr, ts + 1),
       BuildEvent.Output(cpn("proj"), sn("com.example.MySuite"), "at com.example.MySuite.test(MySuite.scala:42)", OutputChannel.Stderr, ts + 2),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), passed = 0, failed = 2, skipped = 0, ignored = 0, durationMs = 100, ts + 3)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(0, 2, 0, 0), 100, ts + 3)
     )
 
     state.failures should have size 1
@@ -57,7 +57,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
         throwable = None,
         ts + 2
       ),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), passed = 0, failed = 1, skipped = 0, ignored = 0, durationMs = 100, ts + 3)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(0, 1, 0, 0), 100, ts + 3)
     )
 
     state.failures should have size 1
@@ -79,12 +79,54 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test3"), ts + 5),
       BuildEvent
         .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test3"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 6),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), passed = 3, failed = 0, skipped = 0, ignored = 0, durationMs = 100, ts + 7)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(3, 0, 0, 0), 100, ts + 7)
     )
 
     state.failures shouldBe empty
     state.suitesFailed shouldBe 0
     state.testsPassed shouldBe 3
+  }
+
+  test("SuiteFinished(Empty) — a discovered suite that ran nothing — is a failure") {
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.EmptySuite"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.EmptySuite"), SuiteOutcome.Empty, durationMs = 42, ts + 1)
+    )
+    state.suitesCompleted shouldBe 1
+    state.suitesFailed shouldBe 1
+    state.testsFailed shouldBe 1
+    state.failures should have size 1
+    state.failures.head.test shouldBe tn("(suite failed)")
+  }
+
+  test("SuiteFinished(NoFrameworkMatched) is a failure") {
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.JUnit4Suite"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.JUnit4Suite"), SuiteOutcome.NoFrameworkMatched, durationMs = 5, ts + 1)
+    )
+    state.suitesFailed shouldBe 1
+    state.testsFailed shouldBe 1
+    state.failures.head.message.exists(_.contains("framework")) shouldBe true
+  }
+
+  test("SuiteFinished(Errored) surfaces the error message as the failure") {
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.BrokenSuite"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.BrokenSuite"), SuiteOutcome.Errored("NoClassDefFoundError: Foo", None), durationMs = 9, ts + 1)
+    )
+    state.suitesFailed shouldBe 1
+    state.testsFailed shouldBe 1
+    state.failures.head.message shouldBe Some("NoClassDefFoundError: Foo")
+  }
+
+  test("SuiteFinished(Executed) with all passing tests is green") {
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.OkSuite"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.OkSuite"), SuiteOutcome.Executed(5, 0, 0, 0), durationMs = 10, ts + 1)
+    )
+    state.suitesFailed shouldBe 0
+    state.testsFailed shouldBe 0
+    state.failures shouldBe empty
   }
 
   test("SuiteFinished clears pending output for suite") {
@@ -100,7 +142,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     // After SuiteFinished, pending output should be cleared
     val stateAfterFinished = BuildStateReducer.reduce(
       stateWithOutput,
-      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), passed = 1, failed = 0, skipped = 0, ignored = 0, durationMs = 100, ts + 2)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(1, 0, 0, 0), 100, ts + 2)
     )
     stateAfterFinished.pendingOutput.contains(key) shouldBe false
   }
@@ -137,7 +179,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
       BuildEvent.SuiteStarted(cpn("proj"), sn("suite1"), ts),
       BuildEvent.TestStarted(cpn("proj"), sn("suite1"), tn("test1"), ts + 1),
       BuildEvent.TestFinished(cpn("proj"), sn("suite1"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("suite1"), passed = 1, failed = 0, skipped = 0, ignored = 0, durationMs = 50, ts + 3)
+      BuildEvent.SuiteFinished(cpn("proj"), sn("suite1"), SuiteOutcome.Executed(1, 0, 0, 0), 50, ts + 3)
     )
 
     // TestRunCompleted with authoritative counts that differ from accumulated
