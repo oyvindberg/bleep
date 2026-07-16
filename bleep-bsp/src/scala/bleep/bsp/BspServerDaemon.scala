@@ -3,7 +3,7 @@ package bleep.bsp
 import libdaemonjvm._
 import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
-import ryddig.{LogPatterns, Logger, Loggers}
+import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 import ryddig.jul.RyddigJulBridge
 
 import java.nio.file.{Files, Path, Paths}
@@ -93,8 +93,12 @@ object BspServerDaemon {
   }
 
   def run(config: DaemonConfig): Unit = {
-    // Create daemon-level logger that writes to stderr (ProcessBuilder redirects to socketDir/output)
-    val logger = Loggers.stderr(LogPatterns.logFile)
+    // Create daemon-level logger that writes to stderr (ProcessBuilder redirects to socketDir/output).
+    // Filter to Info+: this is a long-lived shared daemon and its `output` file only rotates at
+    // startup, so per-event debug tracing (every test event, every line of test stdout) otherwise
+    // grows it into the hundreds of MB over a multi-hour session. Info keeps compile/test lifecycle
+    // and all warnings/errors.
+    val logger = Loggers.stderr(LogPatterns.logFile).withMinLogLevel(LogLevel.info)
 
     // Install JUL bridge so library logging (e.g. lsp4j) goes through ryddig
     val rootJulLogger = java.util.logging.Logger.getLogger("")
