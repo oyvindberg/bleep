@@ -3483,9 +3483,9 @@ class MultiWorkspaceBspServer(
           .withContext("status", e.status.wireValue)
           .withContext("project", e.project.value)
           .withContext("durationMs", e.durationMs)
-          .warn("sendTestEvent: CompileFinished")
+          .debug("sendTestEvent: CompileFinished")
       case e: E.CompileStarted =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project.value).warn("sendTestEvent: CompileStarted")
+        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project.value).debug("sendTestEvent: CompileStarted")
       case e: E.TestFinished =>
         logger
           .withContext("n", n)
@@ -3494,7 +3494,7 @@ class MultiWorkspaceBspServer(
           .withContext("project", e.project.value)
           .withContext("suite", e.suite.value)
           .withContext("test", e.test.value)
-          .warn("sendTestEvent: TestFinished")
+          .debug("sendTestEvent: TestFinished")
       case e: E.SuiteFinished =>
         logger
           .withContext("n", n)
@@ -3504,7 +3504,7 @@ class MultiWorkspaceBspServer(
           .withContext("outcome", SuiteOutcome.tagOf(e.outcome))
           .withContext("passed", e.outcome.passedCount)
           .withContext("failed", e.outcome.failedCount)
-          .warn("sendTestEvent: SuiteFinished")
+          .debug("sendTestEvent: SuiteFinished")
       case e: E.SuiteError =>
         logger
           .withContext("n", n)
@@ -3512,14 +3512,14 @@ class MultiWorkspaceBspServer(
           .withContext("project", e.project.value)
           .withContext("suite", e.suite.value)
           .withContext("error", e.error)
-          .warn("sendTestEvent: SuiteError")
+          .debug("sendTestEvent: SuiteError")
       case e: E.SuiteCancelled =>
         logger
           .withContext("n", n)
           .withContext("taskId", taskId)
           .withContext("project", e.project.value)
           .withContext("suite", e.suite.value)
-          .warn("sendTestEvent: SuiteCancelled")
+          .debug("sendTestEvent: SuiteCancelled")
       case e: E.SuiteTimedOut =>
         logger
           .withContext("n", n)
@@ -3527,10 +3527,10 @@ class MultiWorkspaceBspServer(
           .withContext("project", e.project.value)
           .withContext("suite", e.suite.value)
           .withContext("timeoutMs", e.timeoutMs)
-          .warn("sendTestEvent: SuiteTimedOut")
-      case _: E.CompileProgress => () // too noisy
-      case _                    =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).warn("sendTestEvent")
+          .debug("sendTestEvent: SuiteTimedOut")
+      case _: E.CompileProgress | _: E.Output => () // too noisy (Output = every line of test stdout)
+      case _                                  =>
+        logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).debug("sendTestEvent")
     }
     sendEvent(originId, taskId, event)
   }
