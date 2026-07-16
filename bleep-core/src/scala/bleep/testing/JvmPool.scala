@@ -99,14 +99,15 @@ object JvmPool {
   def create(
       maxConcurrency: Int,
       jvmCommand: Path,
-      workingDirectory: Path
+      workingDirectory: Path,
+      serverWideForkLimit: java.util.concurrent.Semaphore
   ): Resource[IO, JvmPool] =
     Resource.make(
       for {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
-      } yield new JvmPoolImpl(semaphore, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory)
+      } yield new JvmPoolImpl(semaphore, serverWideForkLimit, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory)
     )(_.shutdown)
 
   /** Key for pooling JVMs */
@@ -267,6 +268,7 @@ object JvmPool {
 
   private class JvmPoolImpl(
       semaphore: Semaphore[IO],
+      serverWideForkLimit: java.util.concurrent.Semaphore,
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
       spawnFailures: TrieMap[JvmKey, Int],
@@ -283,17 +285,25 @@ object JvmPool {
     ): Resource[IO, TestJvm] = {
       val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
 
-      Resource
-        .make(
-          for {
-            _ <- semaphore.acquire
-            jvm <- getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory)
-          } yield (jvm, new TestJvmImpl(jvm): TestJvm)
-        ) { case (jvm, _) =>
-          // Return JVM to pool and release semaphore
-          release(jvm) >> semaphore.release
-        }
-        .map(_._2)
+      // Server-wide fork limit (shared across all clients) acquired OUTSIDE the per-pool semaphore,
+      // released last — so a permit is never held while another client waits on the pool. The
+      // separate Resource guarantees the permit is released even if getOrCreate/spawn fails.
+      val serverWidePermit: Resource[IO, Unit] =
+        Resource.make(IO.interruptible(serverWideForkLimit.acquire()))(_ => IO(serverWideForkLimit.release()))
+
+      serverWidePermit.flatMap { _ =>
+        Resource
+          .make(
+            for {
+              _ <- semaphore.acquire
+              jvm <- getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory)
+            } yield (jvm, new TestJvmImpl(jvm): TestJvm)
+          ) { case (jvm, _) =>
+            // Return JVM to pool and release semaphore
+            release(jvm) >> semaphore.release
+          }
+          .map(_._2)
+      }
     }
 
     private def getOrCreate(
@@ -389,15 +399,17 @@ object JvmPool {
       IO.interruptible {
         val line = jvm.stdout.readLine()
         if (line == null) {
-          // Process terminated - capture stderr to show actual error
+          // Process terminated before the Ready handshake. Capture the exit code and pid — with no
+          // stderr (a child SIGKILLed before writing leaves it empty) these are the only signal.
+          // Exit 137 = SIGKILL (OOM killer / fork storm), 1 = JVM startup failure, etc. Without them
+          // the failure is just "terminated before Ready (no stderr output)" — nothing to debug.
           Thread.sleep(100) // Give stderr a moment to be available
           val stderrOutput = jvm.readStderr()
-          val errorMsg = if (stderrOutput.nonEmpty) {
-            s"JVM process terminated before sending Ready. Stderr:\n$stderrOutput"
-          } else {
-            "JVM process terminated before sending Ready (no stderr output)"
-          }
-          throw new IOException(errorMsg)
+          val pid = jvm.process.pid()
+          val exited = jvm.process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+          val exitStr = if (exited) s"exit code ${jvm.process.exitValue()}" else "still alive after 2s (no exit)"
+          val stderrPart = if (stderrOutput.nonEmpty) s" Stderr:\n$stderrOutput" else " (no stderr output)"
+          throw new IOException(s"JVM process (pid=$pid) terminated before sending Ready — $exitStr.$stderrPart")
         }
         TestProtocol.decodeResponse(line) match {
           case Right(TestProtocol.TestResponse.Ready) => ()

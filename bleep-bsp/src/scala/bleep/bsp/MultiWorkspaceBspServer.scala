@@ -49,6 +49,7 @@ class MultiWorkspaceBspServer(
     out: OutputStream,
     logger: Logger,
     compileSemaphore: java.util.concurrent.Semaphore,
+    testForkSemaphore: java.util.concurrent.Semaphore,
     heapMonitor: HeapMonitor
 ) {
   import MultiWorkspaceBspServer.DebugLogging
@@ -1947,8 +1948,9 @@ class MultiWorkspaceBspServer(
         // Create kill signal from cancellation token
         killSignal <- Outcome.fromCancellationToken(cancellation)
 
-        // Create JVM pool for test execution
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
+        // Create JVM pool for test execution. The server-wide testForkSemaphore caps concurrent
+        // forks across ALL clients — the per-pool maxParallelism only bounds this one test run.
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, testForkSemaphore).use { jvmPool =>
           // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
           // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
