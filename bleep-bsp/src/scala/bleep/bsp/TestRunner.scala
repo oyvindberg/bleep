@@ -207,25 +207,44 @@ object TestRunner {
             .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}")) >> outcome.embedError.flatMap {
             result =>
               val durationMs = System.currentTimeMillis() - startTime
-              // Emit SuiteFinished with actual counts
-              now.flatMap { ts =>
-                emit(
-                  TaskDag.DagEvent.SuiteFinished(
-                    project,
-                    SuiteName(suiteName),
-                    result.passed,
-                    result.failed,
-                    result.skipped,
-                    0,
-                    durationMs,
-                    ts
-                  )
-                )
-              } >> IO.pure {
+              val ranNothing = result.passed + result.failed + result.skipped == 0
+              // A suite that was discovered and dispatched but executed nothing is never a real
+              // pass — it is the signature of a stale-analysis desync, a framework mismatch (e.g.
+              // JUnit 4 classes routed to JUnit Platform with no vintage engine), or a task that
+              // threw before running. Report it as a suite error, not a green SuiteFinished.
+              //
+              // In the zero-test case we deliberately skip the SuiteFinished event: the
+              // TaskResult.Failure below becomes a SuiteError on the client, which does its own
+              // suite-completion counting. Emitting SuiteFinished too would double-count the
+              // suite as completed.
+              val emitSuiteFinished =
+                if (ranNothing) IO.unit
+                else
+                  now.flatMap { ts =>
+                    emit(
+                      TaskDag.DagEvent.SuiteFinished(
+                        project,
+                        SuiteName(suiteName),
+                        result.passed,
+                        result.failed,
+                        result.skipped,
+                        0,
+                        durationMs,
+                        ts
+                      )
+                    )
+                  }
+
+              emitSuiteFinished >> IO.pure {
                 if (result.failed > 0) {
                   TaskDag.TaskResult.Failure(
                     error = s"${result.failed} test(s) failed",
                     diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
+                  )
+                } else if (ranNothing) {
+                  TaskDag.TaskResult.Failure(
+                    error = s"suite $suiteName was discovered but executed 0 tests",
+                    diagnostics = Nil
                   )
                 } else {
                   TaskDag.TaskResult.Success

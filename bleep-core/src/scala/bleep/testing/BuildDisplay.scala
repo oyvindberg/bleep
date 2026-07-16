@@ -106,6 +106,7 @@ case class BuildSummary(
       Left(new bleep.BleepException.Text(s"KSP processor resolution failed for $kspResolutionFailed project(s)"))
     else {
       val testProblems = testsFailed + testsTimedOut + testsCancelled
+      val testsObserved = testsPassed + testsFailed + testsSkipped + testsIgnored + testsTimedOut + testsCancelled
       if (testProblems > 0 || suitesCancelled > 0) {
         val parts = List.newBuilder[String]
         parts += s"$testsPassed passed"
@@ -114,7 +115,13 @@ case class BuildSummary(
         if (testsCancelled > 0) parts += s"$testsCancelled cancelled"
         if (suitesCancelled > 0) parts += s"$suitesCancelled suites cancelled"
         Left(new bleep.BleepException.Text(s"Tests failed: ${parts.result().mkString(", ")}"))
-      } else
+      } else if (suitesCompleted > 0 && testsObserved == 0)
+        // Suites ran to completion but not a single test of any status was observed. This is
+        // never a legitimate green build — it is the silent-zero signature (stale test
+        // discovery, a framework with no matching engine, a runner that exited 0 without
+        // executing). A `Suites: N, Tests: 0` result must not gate CI as success.
+        Left(new bleep.BleepException.Text(s"$suitesCompleted suite(s) completed but executed 0 tests"))
+      else
         Right(())
     }
 }
