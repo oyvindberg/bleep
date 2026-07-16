@@ -32,9 +32,18 @@ object InProcessBspServer {
           override def run(): Unit = {
             var exitCode: java.lang.Integer = 0
             try {
-              val semaphore = new java.util.concurrent.Semaphore(Runtime.getRuntime.availableProcessors(), /* fair = */ true)
+              val numCores = Runtime.getRuntime.availableProcessors()
+              val semaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
+              val testForkSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
               val server =
-                new MultiWorkspaceBspServer(serverIn, serverOut, logger, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
+                new MultiWorkspaceBspServer(
+                  serverIn,
+                  serverOut,
+                  logger,
+                  compileSemaphore = semaphore,
+                  testForkSemaphore = testForkSemaphore,
+                  heapMonitor = HeapMonitor.system
+                )
               server.run()
             } catch {
               case e: Throwable =>

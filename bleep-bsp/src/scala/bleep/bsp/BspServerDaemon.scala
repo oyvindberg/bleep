@@ -206,7 +206,12 @@ object BspServerDaemon {
     // contention, which is the wrong tradeoff for a mixed-traffic build server.
     val numCores = Runtime.getRuntime.availableProcessors()
     val compileSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-    logger.info(s"Compile semaphore: $numCores permits (based on available processors, fair)")
+    // Server-wide cap on concurrent forked test JVMs. Each client's test run creates its own
+    // JvmPool, so without a shared limit two clients testing at once fork 2× the per-pool budget —
+    // the fork storm behind "JVM process terminated before sending Ready" under multi-agent load.
+    // Sized like the compile semaphore; fair for the same mixed-traffic reason.
+    val testForkSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
+    logger.info(s"Compile + test-fork semaphores: $numCores permits each (based on available processors, fair)")
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
@@ -270,7 +275,8 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  compileSemaphore
+                  compileSemaphore,
+                  testForkSemaphore
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -285,7 +291,8 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      compileSemaphore
+                      compileSemaphore,
+                      testForkSemaphore
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
@@ -333,7 +340,8 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      compileSemaphore: java.util.concurrent.Semaphore
+      compileSemaphore: java.util.concurrent.Semaphore,
+      testForkSemaphore: java.util.concurrent.Semaphore
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -342,6 +350,7 @@ object BspServerDaemon {
         output,
         logger,
         compileSemaphore = compileSemaphore,
+        testForkSemaphore = testForkSemaphore,
         heapMonitor = HeapMonitor.system
       )
 

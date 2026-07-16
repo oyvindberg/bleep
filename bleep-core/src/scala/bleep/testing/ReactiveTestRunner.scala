@@ -73,60 +73,69 @@ object ReactiveTestRunner {
       options: Options
   ): IO[Result] =
 
-    JvmPool.create(options.maxParallelJvms, started.jvmCommand, started.buildPaths.buildDir).use { pool =>
-      for {
-        display <- BuildDisplay.create(options.quietMode, started.logger)
+    // Standalone (single-process) runner: the fork limit is just this run's parallelism, so a
+    // local semaphore with maxParallelJvms permits — no cross-client sharing to coordinate here.
+    JvmPool
+      .create(
+        options.maxParallelJvms,
+        started.jvmCommand,
+        started.buildPaths.buildDir,
+        new java.util.concurrent.Semaphore(options.maxParallelJvms, /* fair = */ true)
+      )
+      .use { pool =>
+        for {
+          display <- BuildDisplay.create(options.quietMode, started.logger)
 
-        // Build target lookup
-        buildTargetFor = (p: CrossProjectName) =>
-          new bsp4j.BuildTargetIdentifier(
-            started.projectPaths(p).targetDir.toUri.toASCIIString
+          // Build target lookup
+          buildTargetFor = (p: CrossProjectName) =>
+            new bsp4j.BuildTargetIdentifier(
+              started.projectPaths(p).targetDir.toUri.toASCIIString
+            )
+
+          // Discover all test suites
+          suites <- IO(
+            TestDiscovery.discoverAll(
+              server,
+              testProjects,
+              buildTargetFor
+            )
           )
 
-        // Discover all test suites
-        suites <- IO(
-          TestDiscovery.discoverAll(
-            server,
-            testProjects,
-            buildTargetFor
-          )
-        )
+          _ <- IO.delay(started.logger.info(s"Discovered ${suites.size} test suites in ${testProjects.size} projects"))
 
-        _ <- IO.delay(started.logger.info(s"Discovered ${suites.size} test suites in ${testProjects.size} projects"))
+          // Group suites by project for classpath sharing
+          suitesByProject = suites.groupBy(_.project)
 
-        // Group suites by project for classpath sharing
-        suitesByProject = suites.groupBy(_.project)
+          // Run all suites in parallel, bounded by JVM pool
+          result <- {
+            val runSuites = suitesByProject.toList.parTraverse { case (project, projectSuites) =>
+              runProjectSuites(
+                started = started,
+                project = project,
+                suites = projectSuites,
+                pool = pool,
+                display = display,
+                options = options
+              )
+            }
 
-        // Run all suites in parallel, bounded by JVM pool
-        result <- {
-          val runSuites = suitesByProject.toList.parTraverse { case (project, projectSuites) =>
-            runProjectSuites(
-              started = started,
-              project = project,
-              suites = projectSuites,
-              pool = pool,
-              display = display,
-              options = options
-            )
+            runSuites.flatMap { _ =>
+              for {
+                // ReactiveTestRunner is the legacy non-BSP path; it doesn't expose filter flags at this layer, so no FilterContext.
+                _ <- display.printSummary(None)
+                summary <- display.summary
+              } yield Result(
+                passed = summary.testsPassed,
+                failed = summary.testsFailed,
+                skipped = summary.testsSkipped,
+                ignored = summary.testsIgnored,
+                failedSuites = summary.failures.map(_.suite).distinct,
+                durationMs = summary.durationMs
+              )
+            }
           }
-
-          runSuites.flatMap { _ =>
-            for {
-              // ReactiveTestRunner is the legacy non-BSP path; it doesn't expose filter flags at this layer, so no FilterContext.
-              _ <- display.printSummary(None)
-              summary <- display.summary
-            } yield Result(
-              passed = summary.testsPassed,
-              failed = summary.testsFailed,
-              skipped = summary.testsSkipped,
-              ignored = summary.testsIgnored,
-              failedSuites = summary.failures.map(_.suite).distinct,
-              durationMs = summary.durationMs
-            )
-          }
-        }
-      } yield result
-    }
+        } yield result
+      }
 
   private def runProjectSuites(
       started: Started,
