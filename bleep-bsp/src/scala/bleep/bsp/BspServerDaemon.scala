@@ -347,8 +347,12 @@ object BspServerDaemon {
       logger.info("Client disconnected normally")
     } catch {
       case e: OutOfMemoryError =>
+        // -XX:+ExitOnOutOfMemoryError (BspRifleConfig) normally force-exits the JVM the instant an
+        // OOM is thrown, so we rarely reach here. If we do (e.g. that flag was overridden), exit
+        // explicitly: continuing after an OOM risks a server with poisoned static initializers that
+        // fails every subsequent compile. A rethrow alone does NOT exit — it only kills this thread.
         System.err.println(s"[FATAL] OutOfMemoryError in handleClient: ${e.getMessage}")
-        throw e // Let JVM handle OOM
+        Runtime.getRuntime.halt(1)
       case e: Throwable =>
         logger.error(s"Error handling client: ${e.getClass.getName}: ${e.getMessage}", e)
         System.err.println(s"[BSP] handleClient failed: ${e.getClass.getName}: ${e.getMessage}")

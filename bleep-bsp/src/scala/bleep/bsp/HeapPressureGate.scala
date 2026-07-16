@@ -10,6 +10,12 @@ object HeapPressureGate {
   /** Minimum scaling factor — even at 0% heap, wait at least this fraction of retryMs */
   val MinDelayFraction: Double = 0.10
 
+  /** Hard cap on how long this gate will stall a single compile. Past this the compile proceeds under pressure rather than looping forever: an unbounded stall
+    * wedges the whole build with no diagnostic, whereas proceeding risks at worst an OOM — which now exits cleanly (see -XX:+ExitOnOutOfMemoryError in
+    * BspRifleConfig) and is restarted, not bricked.
+    */
+  val MaxWaitMs: Long = 60000L
+
   /** Callback for when compilation waits for memory */
   trait Listener {
     def onWait(project: String, used: HeapMb, max: HeapMb, delayMs: Long, now: EpochMs): Unit
@@ -57,6 +63,10 @@ object HeapPressureGate {
             }
           } else if (waitStart.isDefined && usage.fraction < threshold) {
             // Already waited at least one cycle and heap is below threshold — proceed
+            val waitedFor = DurationMs(nowMs.value - waitStart.get.value)
+            IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
+          } else if (waitStart.exists(start => nowMs.value - start.value >= MaxWaitMs)) {
+            // Deadline reached while still under pressure — proceed anyway rather than loop forever.
             val waitedFor = DurationMs(nowMs.value - waitStart.get.value)
             IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
           } else {
