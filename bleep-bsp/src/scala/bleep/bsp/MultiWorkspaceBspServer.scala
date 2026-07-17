@@ -48,8 +48,7 @@ class MultiWorkspaceBspServer(
     in: InputStream,
     out: OutputStream,
     logger: Logger,
-    compileSemaphore: java.util.concurrent.Semaphore,
-    testForkSemaphore: java.util.concurrent.Semaphore,
+    machine: MachineResources,
     heapMonitor: HeapMonitor
 ) {
   import MultiWorkspaceBspServer.DebugLogging
@@ -1948,9 +1947,9 @@ class MultiWorkspaceBspServer(
         // Create kill signal from cancellation token
         killSignal <- Outcome.fromCancellationToken(cancellation)
 
-        // Create JVM pool for test execution. The server-wide testForkSemaphore caps concurrent
-        // forks across ALL clients — the per-pool maxParallelism only bounds this one test run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, testForkSemaphore).use { jvmPool =>
+        // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
+        // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine).use { jvmPool =>
           // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
           // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
@@ -2360,27 +2359,31 @@ class MultiWorkspaceBspServer(
             // completes via gatedCompile or waitForKill, the listener is always cleaned up. Replaces the prior `.start` + manual `.guarantee(_.cancel)` pattern.
             val cooperativeCancelFiber = taskKillSignal.get.flatMap(_ => IO(token.cancel())).background
 
-            // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-            val gatedCompile = IO
-              .interruptible(compileSemaphore.acquire())
-              .bracket { _ =>
-                IO(activeCompileCount.incrementAndGet()) >>
-                  waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                    val compileStartTime = System.currentTimeMillis()
-                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
-                        .guaranteeCase {
-                          case cats.effect.Outcome.Succeeded(resultIO) =>
-                            resultIO.flatMap { result =>
-                              val dur = System.currentTimeMillis() - compileStartTime
-                              val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                            }
-                          case _ =>
-                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                        }
-                  }
-              }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
+            // Reserve one core from the machine governor for this compile — the same governor test
+            // forks reserve against, so compiles and forks can't oversubscribe the CPU. A compile
+            // runs in the server heap (not a forked process), so it reserves no fork memory; server
+            // heap is staggered separately by waitForHeapPressure.
+            val gatedCompile =
+              machine.reserve(MachineResources.ResourceKind.Compile, s"compile $projectName", cpu = 1, memoryMb = 0L).use { _ =>
+                IO(activeCompileCount.incrementAndGet())
+                  .bracket { _ =>
+                    waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                      val compileStartTime = System.currentTimeMillis()
+                      IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                        compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
+                          .guaranteeCase {
+                            case cats.effect.Outcome.Succeeded(resultIO) =>
+                              resultIO.flatMap { result =>
+                                val dur = System.currentTimeMillis() - compileStartTime
+                                val ok = result == TaskDag.TaskResult.Success
+                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                              }
+                            case _ =>
+                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                          }
+                    }
+                  }(_ => IO(activeCompileCount.decrementAndGet(): Unit))
+              }
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
             cooperativeCancelFiber.surround(IO.race(gatedCompile, waitForKill).map(_.merge))

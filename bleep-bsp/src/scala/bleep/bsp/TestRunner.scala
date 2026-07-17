@@ -70,7 +70,7 @@ object TestRunner {
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
-    pool.acquire(classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
+    pool.acquire(suiteName, classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
       executeWithIdleTimeout(
         project = project,
         suiteName = suiteName,

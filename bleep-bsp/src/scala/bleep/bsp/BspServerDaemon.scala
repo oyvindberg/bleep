@@ -5,6 +5,7 @@ import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
 import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 import ryddig.jul.RyddigJulBridge
+import bleep.MachineResources
 
 import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.PosixFilePermissions
@@ -200,18 +201,46 @@ object BspServerDaemon {
     val connectionCounter = AtomicInteger(0)
     val activeClientThreads = ConcurrentHashMap.newKeySet[Thread]()
 
-    // Server-wide compile semaphore: limits total concurrent compilations across all connections.
-    // FIFO-fair so an IDE typing rapidly can't starve a parallel `bleep test` (or vice versa) —
-    // unfair semaphores give better throughput but allow indefinite waiting under sustained
-    // contention, which is the wrong tradeoff for a mixed-traffic build server.
+    // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
+    // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously
+    // gated by its own numCores semaphore) or, for forks, the RAM. CPU budget = cores; fork-memory
+    // budget = physical RAM minus the server's own heap minus an OS reserve. Overridable via
+    // BLEEP_FORK_MEMORY_BUDGET_MB (set by the client from bspServerConfig.testProcessesMaxTotalMemory).
     val numCores = Runtime.getRuntime.availableProcessors()
-    val compileSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-    // Server-wide cap on concurrent forked test JVMs. Each client's test run creates its own
-    // JvmPool, so without a shared limit two clients testing at once fork 2× the per-pool budget —
-    // the fork storm behind "JVM process terminated before sending Ready" under multi-agent load.
-    // Sized like the compile semaphore; fair for the same mixed-traffic reason.
-    val testForkSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-    logger.info(s"Compile + test-fork semaphores: $numCores permits each (based on available processors, fair)")
+    val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+    val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
+    val forkMemoryBudgetMb =
+      sys.env
+        .get("BLEEP_FORK_MEMORY_BUDGET_MB")
+        .flatMap(s => scala.util.Try(s.toLong).toOption)
+        .filter(_ > 0)
+        .getOrElse(MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb))
+    logger.info(
+      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB → fork-memory budget ${forkMemoryBudgetMb}MB"
+    )
+    val machine = MachineResources.create(
+      totalCpu = numCores,
+      totalMemoryMb = forkMemoryBudgetMb,
+      defaultForkMemoryMb = math.max(512L, physicalMb / 4),
+      logger = logger
+    )
+
+    // Background reporter: when work is queued waiting for resources, log the machine load
+    // periodically so a stalled build has a legible cause.
+    locally {
+      import cats.effect.unsafe.implicits.global
+      val reporter = new Thread("bleep-machine-reporter") {
+        override def run(): Unit =
+          try
+            while (!shutdownRequested.get()) {
+              Thread.sleep(15000)
+              if (machine.isContended.unsafeRunSync()) logger.info(machine.snapshot.unsafeRunSync().render)
+            }
+          catch { case _: InterruptedException => () }
+      }
+      reporter.setDaemon(true)
+      reporter.start()
+    }
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
@@ -275,8 +304,7 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  compileSemaphore,
-                  testForkSemaphore
+                  machine
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -291,8 +319,7 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      compileSemaphore,
-                      testForkSemaphore
+                      machine
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
@@ -340,8 +367,7 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      compileSemaphore: java.util.concurrent.Semaphore,
-      testForkSemaphore: java.util.concurrent.Semaphore
+      machine: MachineResources
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -349,8 +375,7 @@ object BspServerDaemon {
         input,
         output,
         logger,
-        compileSemaphore = compileSemaphore,
-        testForkSemaphore = testForkSemaphore,
+        machine = machine,
         heapMonitor = HeapMonitor.system
       )
 
