@@ -1325,23 +1325,29 @@ class MultiWorkspaceBspServer(
         setupIO.flatMap { case (ksp, decision, snap, stateFile) =>
           // Serialize KSP runs for the same cross-project across BSP server connections (e.g. a Normal-variant compile racing a BSP-variant compile of the same
           // project). The DAG already serializes within one build, but two builds for the same project share the daemon JVM + the shared sources dir.
+          val kspForkMemMb = s.config.bspServerConfigOrDefault.kspRunnerMaxMemory
+            .flatMap(MachineResources.parseMemoryMb)
+            .getOrElse(machine.defaultForkMemoryMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
-            bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, s.config.bspServerConfigOrDefault.kspRunnerMaxMemory, cancellation, logger).flatMap {
-              case bleep.analysis.KspRunner.RunResult.Success =>
-                // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
-                IO.blocking(KspIncrementalState.save(stateFile, snap)).as((TaskDag.TaskResult.Success: TaskDag.TaskResult, ksp.processorJars.size))
-              case bleep.analysis.KspRunner.RunResult.Cancelled =>
-                // KSP doesn't write atomically; a kill mid-emit can leave a half-written `.kt` in the shared sources tree that would poison the next kotlinc
-                // invocation. Wipe outputs + caches; the manifest wasn't saved either, so the next decide forces a clean FullRebuild.
-                IO.blocking {
-                  List(ksp.kotlinOutputDir, ksp.javaOutputDir, ksp.resourceOutputDir, ksp.classOutputDir, ksp.cachesDir).foreach { d =>
-                    if (Files.exists(d)) bleep.internal.FileUtils.deleteDirectory(d)
-                  }
-                }.as((TaskDag.TaskResult.Killed(KillReason.UserRequest): TaskDag.TaskResult, 0))
-              case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>
-                val short = if (msg.length > 4000) msg.substring(0, 4000) + "\n... [truncated]" else msg
-                IO.pure((TaskDag.TaskResult.Failure(s"KSP runner exited with code $ec\n$short", Nil): TaskDag.TaskResult, 0))
-            }
+            machine
+              .reserve(MachineResources.ResourceKind.KspFork, s"ksp ${cn.value}", cpu = 1, memoryMb = kspForkMemMb)
+              .use(_ => bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, s.config.bspServerConfigOrDefault.kspRunnerMaxMemory, cancellation, logger))
+              .flatMap {
+                case bleep.analysis.KspRunner.RunResult.Success =>
+                  // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
+                  IO.blocking(KspIncrementalState.save(stateFile, snap)).as((TaskDag.TaskResult.Success: TaskDag.TaskResult, ksp.processorJars.size))
+                case bleep.analysis.KspRunner.RunResult.Cancelled =>
+                  // KSP doesn't write atomically; a kill mid-emit can leave a half-written `.kt` in the shared sources tree that would poison the next kotlinc
+                  // invocation. Wipe outputs + caches; the manifest wasn't saved either, so the next decide forces a clean FullRebuild.
+                  IO.blocking {
+                    List(ksp.kotlinOutputDir, ksp.javaOutputDir, ksp.resourceOutputDir, ksp.classOutputDir, ksp.cachesDir).foreach { d =>
+                      if (Files.exists(d)) bleep.internal.FileUtils.deleteDirectory(d)
+                    }
+                  }.as((TaskDag.TaskResult.Killed(KillReason.UserRequest): TaskDag.TaskResult, 0))
+                case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>
+                  val short = if (msg.length > 4000) msg.substring(0, 4000) + "\n... [truncated]" else msg
+                  IO.pure((TaskDag.TaskResult.Failure(s"KSP runner exited with code $ec\n$short", Nil): TaskDag.TaskResult, 0))
+              }
           })
         }
       }
@@ -1370,16 +1376,22 @@ class MultiWorkspaceBspServer(
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
+    val forkMemMb = started.config.bspServerConfigOrDefault.sourcegenMaxMemory
+      .flatMap(MachineResources.parseMemoryMb)
+      .getOrElse(machine.defaultForkMemoryMb)
     (sgt, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
         case None         =>
-          SourceGenRunner
-            .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
-            .map {
-              case None        => TaskDag.TaskResult.Success
-              case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
-            }
+          // Sourcegen forks a JVM — reserve machine resources like any other fork.
+          machine.reserve(MachineResources.ResourceKind.SourcegenFork, s"sourcegen ${sgt.script.main}", cpu = 1, memoryMb = forkMemMb).use { _ =>
+            SourceGenRunner
+              .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
+              .map {
+                case None        => TaskDag.TaskResult.Success
+                case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
+              }
+          }
       }
   }
 
