@@ -115,18 +115,7 @@ object JvmPool {
   /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
     */
   private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
-    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o.stripPrefix("-Xmx") }.flatMap { raw =>
-      val (num, unit) = raw.span(c => c.isDigit)
-      scala.util.Try(num.toLong).toOption.map { n =>
-        unit.toLowerCase match {
-          case "g" | "gb" => n * 1024L
-          case "m" | "mb" => n
-          case "k" | "kb" => math.max(1L, n / 1024L)
-          case ""         => math.max(1L, n / (1024L * 1024L)) // bytes
-          case _          => n // unknown suffix: treat as MB, better than dropping
-        }
-      }
-    }
+    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
 
   /** Key for pooling JVMs */
   private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String)

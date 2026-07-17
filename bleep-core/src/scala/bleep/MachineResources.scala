@@ -20,9 +20,9 @@ import ryddig.Logger
   * Implemented purely on cats-effect: all state lives in a single [[Ref]]; a reservation that can't be granted immediately parks on a [[Deferred]] and is
   * completed by whoever frees the resources it needs. The park is `poll(gate.get)` under `Resource.makeFull` (whose `poll` is what keeps the wait cancelable —
   * plain `Resource.make` runs acquisition uncancelably and would hang a cancelled reservation), so cancelling the waiting IO (a cancelled test run, say)
-  * dequeues the reservation cleanly via `onCancel` — no thread blocking, no interruption. Grants are work-conserving and oldest-first: a cheap CPU-only
-  * compile is never stuck behind a large memory-hungry fork it doesn't compete with, but among requests that DO fit the oldest wins, so nothing starves. Every
-  * state is observable via [[snapshot]].
+  * dequeues the reservation cleanly via `onCancel` — no thread blocking, no interruption. Grants are work-conserving and oldest-first: a cheap CPU-only compile
+  * is never stuck behind a large memory-hungry fork it doesn't compete with, but among requests that DO fit the oldest wins, so nothing starves. Every state is
+  * observable via [[snapshot]].
   */
 final class MachineResources private (
     val totalCpu: Int,
@@ -209,6 +209,25 @@ object MachineResources {
     logger.info(s"[machine] resource governor: $cpu CPU core(s), ${mem}MB fork-memory budget, default fork weight ${defFork}MB")
     val state = Ref.unsafe[IO, St](St(freeCpu = cpu, freeMemoryMb = mem, nextId = 0L, active = Map.empty, waiting = Vector.empty))
     new MachineResources(cpu, mem, defFork, state, logger, longWaitWarnMs)
+  }
+
+  /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB. None if it can't be parsed. Used to weight a forked JVM by its
+    * configured max heap.
+    */
+  def parseMemoryMb(raw0: String): Option[Long] = {
+    val raw = raw0.trim.stripPrefix("-Xmx").trim
+    val (num, unit) = raw.span(c => c.isDigit)
+    if (num.isEmpty) None
+    else
+      scala.util.Try(num.toLong).toOption.map { n =>
+        unit.trim.toLowerCase match {
+          case "g" | "gb" => n * 1024L
+          case "m" | "mb" => n
+          case "k" | "kb" => math.max(1L, n / 1024L)
+          case ""         => math.max(1L, n / (1024L * 1024L)) // bytes
+          case _          => n // unknown suffix: treat as MB rather than dropping
+        }
+      }
   }
 
   /** Total physical RAM in MB, or `fallbackMb` if it can't be determined. */
