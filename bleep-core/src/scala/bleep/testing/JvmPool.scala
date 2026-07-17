@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.MachineResources
 import cats.effect._
 import cats.effect.std.{Queue, Semaphore}
 import fs2.Stream
@@ -30,6 +31,7 @@ trait JvmPool {
     * Returns a Resource that will release the JVM back to the pool when done.
     */
   def acquire(
+      label: String,
       classpath: List[Path],
       jvmOptions: List[String],
       runnerClass: String,
@@ -100,15 +102,31 @@ object JvmPool {
       maxConcurrency: Int,
       jvmCommand: Path,
       workingDirectory: Path,
-      serverWideForkLimit: java.util.concurrent.Semaphore
+      machine: MachineResources
   ): Resource[IO, JvmPool] =
     Resource.make(
       for {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
-      } yield new JvmPoolImpl(semaphore, serverWideForkLimit, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory)
+      } yield new JvmPoolImpl(semaphore, machine, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory)
     )(_.shutdown)
+
+  /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
+    */
+  private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
+    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o.stripPrefix("-Xmx") }.flatMap { raw =>
+      val (num, unit) = raw.span(c => c.isDigit)
+      scala.util.Try(num.toLong).toOption.map { n =>
+        unit.toLowerCase match {
+          case "g" | "gb" => n * 1024L
+          case "m" | "mb" => n
+          case "k" | "kb" => math.max(1L, n / 1024L)
+          case ""         => math.max(1L, n / (1024L * 1024L)) // bytes
+          case _          => n // unknown suffix: treat as MB, better than dropping
+        }
+      }
+    }
 
   /** Key for pooling JVMs */
   private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String)
@@ -268,7 +286,7 @@ object JvmPool {
 
   private class JvmPoolImpl(
       semaphore: Semaphore[IO],
-      serverWideForkLimit: java.util.concurrent.Semaphore,
+      machine: MachineResources,
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
       spawnFailures: TrieMap[JvmKey, Int],
@@ -277,6 +295,7 @@ object JvmPool {
   ) extends JvmPool {
 
     override def acquire(
+        label: String,
         classpath: List[Path],
         jvmOptions: List[String],
         runnerClass: String,
@@ -285,13 +304,15 @@ object JvmPool {
     ): Resource[IO, TestJvm] = {
       val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
 
-      // Server-wide fork limit (shared across all clients) acquired OUTSIDE the per-pool semaphore,
-      // released last — so a permit is never held while another client waits on the pool. The
-      // separate Resource guarantees the permit is released even if getOrCreate/spawn fails.
-      val serverWidePermit: Resource[IO, Unit] =
-        Resource.make(IO.interruptible(serverWideForkLimit.acquire()))(_ => IO(serverWideForkLimit.release()))
+      // Machine reservation (shared across all clients) acquired OUTSIDE the per-pool semaphore,
+      // released last — so cores/memory are never held while another client waits on the pool.
+      // Weight this fork by its -Xmx (or the machine's default fork weight if uncapped) so the sum
+      // of concurrent forks stays within the machine's fork-memory budget.
+      val forkMemoryMb = parseXmxMb(jvmOptions).getOrElse(machine.defaultForkMemoryMb)
+      val machineReservation =
+        machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = forkMemoryMb)
 
-      serverWidePermit.flatMap { _ =>
+      machineReservation.flatMap { _ =>
         Resource
           .make(
             for {

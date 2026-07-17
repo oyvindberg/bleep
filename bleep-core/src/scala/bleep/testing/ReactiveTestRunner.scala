@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.MachineResources
 import bleep.bsp.protocol.{OutputChannel, SuiteOutcome, TestStatus}
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
@@ -73,14 +74,22 @@ object ReactiveTestRunner {
       options: Options
   ): IO[Result] =
 
-    // Standalone (single-process) runner: the fork limit is just this run's parallelism, so a
-    // local semaphore with maxParallelJvms permits — no cross-client sharing to coordinate here.
+    // Standalone (single-process) runner: its own machine governor bounds forks to this run's
+    // parallelism (cores) and the machine's fork-memory budget — no cross-client sharing here.
     JvmPool
       .create(
         options.maxParallelJvms,
         started.jvmCommand,
-        started.buildPaths.buildDir,
-        new java.util.concurrent.Semaphore(options.maxParallelJvms, /* fair = */ true)
+        started.buildPaths.buildDir, {
+          val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+          val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
+          MachineResources.create(
+            totalCpu = options.maxParallelJvms,
+            totalMemoryMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb),
+            defaultForkMemoryMb = math.max(512L, physicalMb / 4),
+            logger = started.logger
+          )
+        }
       )
       .use { pool =>
         for {
@@ -157,7 +166,7 @@ object ReactiveTestRunner {
     // shared JVM. A failure in one suite (e.g. the forked JVM dying) only fails that suite; siblings keep running on their own JVMs. The pool reuses healthy
     // JVMs across suites (warm classloader, same classpath hash), drops dead ones in `release`.
     suites.parTraverse_ { suite =>
-      pool.acquire(classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
+      pool.acquire(suite.className, classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
         runSuite(
           projectName = project,
           suite = suite,
