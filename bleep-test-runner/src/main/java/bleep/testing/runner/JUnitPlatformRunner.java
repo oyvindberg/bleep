@@ -176,13 +176,16 @@ class JUnitPlatformRunner {
               }
             };
 
-        // Discover before executing. If no engine claims this class — the classic case is a
+        // Discover before executing. If NO engine claims this class at all — the classic case is a
         // JUnit 4 (@org.junit.Test) class routed here with junit-platform present but no
-        // junit-vintage-engine on the classpath — execute() silently runs nothing. Report it as
-        // NoFrameworkMatched, not a green pass.
+        // junit-vintage-engine — no engine contributes a root, and execute() silently runs nothing.
+        // Report NoFrameworkMatched, not a green pass.
+        //
+        // Test on getRoots() (engine descriptors), NOT countTestIdentifiers(isTest): dynamic
+        // frameworks like Kotest register their engine root here but report zero *test* identifiers
+        // until execution registers them, so an isTest count of 0 at discovery is a false negative.
         TestPlan plan = launcher.discover(request);
-        long discovered = plan.countTestIdentifiers(TestIdentifier::isTest);
-        if (discovered == 0) {
+        if (plan.getRoots().isEmpty()) {
           send(
               TestProtocol.encodeSuiteNoFrameworkMatched(
                   className,
@@ -204,6 +207,8 @@ class JUnitPlatformRunner {
       long durationMs = System.currentTimeMillis() - startTime;
       int total = passed[0] + failed[0] + skipped[0] + ignored[0];
       if (total == 0) {
+        // An engine claimed the class but ran no tests — an empty suite (or a container that
+        // registered nothing). Still not a pass.
         send(TestProtocol.encodeSuiteEmpty(className, durationMs));
       } else {
         send(
