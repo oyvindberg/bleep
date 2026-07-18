@@ -876,10 +876,18 @@ object TaskDag {
                 frames.foreach(f => lines += s"    at $f")
               }
               val diagMessage = lines.mkString("\n")
+              // A THROWN exception is infrastructure failure, not a logical one: TaskResult.Error, not
+              // Failure. Handlers return Failure explicitly for logical failures they already reported
+              // (compile diagnostics, `N test(s) failed` after a SuiteFinished). withRecovery only ever
+              // catches exceptions nothing reported — e.g. bleep-test-runner failing to resolve throws
+              // out of getTestClasspath BEFORE any suite runs. Mapping that to Failure made a
+              // TestSuiteTask swallow it (the handler assumes a preceding SuiteFinished conveyed it), so
+              // it surfaced only as an uncategorized "detailed info was not captured" count. As Error it
+              // becomes a SuiteError/CompileFinished(Error) carrying the actual message.
               IO.pure(
-                TaskResult.Failure(
-                  error = errorMsg,
-                  diagnostics = List(BleepBspProtocol.Diagnostic.error(diagMessage))
+                TaskResult.Error(
+                  error = diagMessage,
+                  processExit = ProcessExit.Unknown
                 )
               )
             }

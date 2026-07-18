@@ -658,6 +658,57 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     tags.indexOf("sourcegen:end") should be < tags.indexOf("compile:target")
   }
 
+  test("executor: a THROWN handler exception becomes TaskResult.Error (not Failure) so it is surfaced, not swallowed") {
+    // Regression for the phantom "detailed info was not captured" test failure: when
+    // bleep-test-runner fails to resolve, getTestClasspath THROWS before any suite runs. That
+    // exception must be reported as infrastructure Error (→ SuiteError with the message), not a
+    // logical Failure — a TestSuiteTask Failure is assumed to have already emitted SuiteFinished
+    // and gets no event, collapsing into an uncategorized problem count. withRecovery's catch is
+    // reached ONLY by thrown exceptions (handlers return Failure explicitly for logical failures),
+    // so every caught throwable is definitionally an Error.
+    val p = projectName("p")
+    val dag = TaskDag.buildCompileDag(
+      Set(p),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = SourcegenPlan.empty,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
+    )
+
+    val executor = TaskDag.executor(
+      Handlers(
+        compile = (_, _) => IO.raiseError(new RuntimeException("bleep-test-runner resolution returned no jars")),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+      )
+    )
+
+    val (finalDag, events) = (for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- eventQueue.offer(None)
+      drained <- drainQueue(eventQueue)
+    } yield (d, drained)).unsafeRunSync()
+
+    finalDag.errored should contain(TaskId.Compile(p))
+    finalDag.failed should not contain TaskId.Compile(p)
+
+    val finished = events.collect { case e: DagEvent.TaskFinished => e.result }
+    finished should have size 1
+    finished.head match {
+      case TaskResult.Error(msg, _) => msg should include("bleep-test-runner resolution returned no jars")
+      case other                    => fail(s"expected TaskResult.Error carrying the message, got $other")
+    }
+  }
+
   // ==========================================================================
   // SourcegenPlan tests
   // ==========================================================================
