@@ -204,17 +204,30 @@ object BspServerDaemon {
     // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
     // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously
     // gated by its own numCores semaphore) or, for forks, the RAM. CPU budget = cores; fork-memory
-    // budget = physical RAM minus the server's own heap minus an OS reserve. Overridable via
-    // BLEEP_FORK_MEMORY_BUDGET_MB (set by the client from bspServerConfig.testProcessesMaxTotalMemory).
+    // budget = physical RAM minus the server's own heap minus an OS reserve.
+    //
+    // BLEEP_FORK_MEMORY_BUDGET_MB overrides the derived budget. It is env-only on purpose: the
+    // daemon is shared by every workspace, so this is a property of the machine, not of any one
+    // build — there is deliberately no per-build config field feeding it. A malformed value is
+    // fatal rather than ignored: silently falling back to the derived budget would let someone
+    // think they had capped the machine when they hadn't.
     val numCores = Runtime.getRuntime.availableProcessors()
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
     val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
     val forkMemoryBudgetMb =
-      sys.env
-        .get("BLEEP_FORK_MEMORY_BUDGET_MB")
-        .flatMap(s => scala.util.Try(s.toLong).toOption)
-        .filter(_ > 0)
-        .getOrElse(MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb))
+      sys.env.get("BLEEP_FORK_MEMORY_BUDGET_MB").filter(_.trim.nonEmpty) match {
+        case None      => MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
+        case Some(raw) =>
+          val parsed =
+            try raw.trim.toLong
+            catch {
+              case _: NumberFormatException =>
+                throw new IllegalArgumentException(s"BLEEP_FORK_MEMORY_BUDGET_MB must be a positive number of megabytes, got '$raw'")
+            }
+          if (parsed <= 0) throw new IllegalArgumentException(s"BLEEP_FORK_MEMORY_BUDGET_MB must be positive, got '$raw'")
+          logger.info(s"Fork-memory budget overridden to ${parsed}MB by BLEEP_FORK_MEMORY_BUDGET_MB")
+          parsed
+      }
     logger.info(
       s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB → fork-memory budget ${forkMemoryBudgetMb}MB"
     )
@@ -222,7 +235,8 @@ object BspServerDaemon {
       totalCpu = numCores,
       totalMemoryMb = forkMemoryBudgetMb,
       defaultForkMemoryMb = math.max(512L, physicalMb / 4),
-      logger = logger
+      logger = logger,
+      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
     )
 
     // Background reporter: when work is queued waiting for resources, log the machine load

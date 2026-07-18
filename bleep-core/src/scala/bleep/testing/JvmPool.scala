@@ -293,26 +293,26 @@ object JvmPool {
     ): Resource[IO, TestJvm] = {
       val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
 
-      // Machine reservation (shared across all clients) acquired OUTSIDE the per-pool semaphore,
-      // released last — so cores/memory are never held while another client waits on the pool.
       // Weight this fork by its -Xmx (or the machine's default fork weight if uncapped) so the sum
       // of concurrent forks stays within the machine's fork-memory budget.
       val forkMemoryMb = parseXmxMb(jvmOptions).getOrElse(machine.defaultForkMemoryMb)
       val machineReservation =
         machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = forkMemoryMb)
 
-      machineReservation.flatMap { _ =>
-        Resource
-          .make(
-            for {
-              _ <- semaphore.acquire
-              jvm <- getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory)
-            } yield (jvm, new TestJvmImpl(jvm): TestJvm)
-          ) { case (jvm, _) =>
-            // Return JVM to pool and release semaphore
-            release(jvm) >> semaphore.release
-          }
-          .map(_._2)
+      // Order matters: the per-pool semaphore (a local counter bounding THIS run's parallelism) is
+      // taken FIRST, the machine reservation (shared with every other client) LAST — immediately
+      // before the JVM is created and released immediately after. Reserving first would hold a core
+      // and a fork's worth of the machine's memory budget while merely queueing for our own run's
+      // parallelism token, i.e. capacity withheld from other clients for work not yet running.
+      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
+        machineReservation.flatMap { _ =>
+          Resource
+            .make(getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
+              // Return JVM to pool; the semaphore + machine reservation are released by their own Resources.
+              case (jvm, _) => release(jvm)
+            }
+            .map(_._2)
+        }
       }
     }
 

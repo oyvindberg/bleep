@@ -196,12 +196,15 @@ object MachineResources {
     * @param longWaitWarnMs
     *   log at INFO (rather than DEBUG) when a reservation is finally granted after waiting at least this long.
     */
+  /** The wait after which a finally-granted reservation is logged at INFO rather than DEBUG. */
+  val DefaultLongWaitWarnMs: Long = 30000L
+
   def create(
       totalCpu: Int,
       totalMemoryMb: Long,
       defaultForkMemoryMb: Long,
       logger: Logger,
-      longWaitWarnMs: Long = 30000L
+      longWaitWarnMs: Long
   ): MachineResources = {
     val cpu = math.max(1, totalCpu)
     val mem = math.max(1L, totalMemoryMb)
@@ -211,33 +214,57 @@ object MachineResources {
     new MachineResources(cpu, mem, defFork, state, logger, longWaitWarnMs)
   }
 
-  /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB. None if it can't be parsed. Used to weight a forked JVM by its
-    * configured max heap.
+  /** Governor sized for the machine this JVM is running on: `totalCpu` cores, and a fork-memory budget of physical RAM minus this JVM's own max heap minus an
+    * OS reserve. The single place that derivation lives — callers that need to override a dimension (the daemon's `BLEEP_FORK_MEMORY_BUDGET_MB`) call
+    * [[create]] directly.
+    */
+  def forThisMachine(totalCpu: Int, logger: Logger): MachineResources = {
+    val ownHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+    val physicalMb = physicalMemoryMb(fallbackMb = ownHeapMb * 2)
+    create(
+      totalCpu = totalCpu,
+      totalMemoryMb = forkMemoryBudgetMb(physicalMb, ownHeapMb),
+      defaultForkMemoryMb = math.max(512L, physicalMb / 4),
+      logger = logger,
+      longWaitWarnMs = DefaultLongWaitWarnMs
+    )
+  }
+
+  /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB. Used to weight a forked JVM by its configured max heap.
+    *
+    * `None` means "no size stated here" — the caller then charges the default fork weight. It does NOT mean "unparseable": a string that looks like a size but
+    * isn't one we understand throws, because silently mis-weighting a fork is exactly how the budget stops bounding anything. An unknown suffix is the
+    * dangerous case — reading `2t` as 2MB under-counts a fork a millionfold, and the governor would happily admit hundreds of them.
     */
   def parseMemoryMb(raw0: String): Option[Long] = {
     val raw = raw0.trim.stripPrefix("-Xmx").trim
-    val (num, unit) = raw.span(c => c.isDigit)
-    if (num.isEmpty) None
-    else
-      scala.util.Try(num.toLong).toOption.map { n =>
-        unit.trim.toLowerCase match {
-          case "g" | "gb" => n * 1024L
-          case "m" | "mb" => n
-          case "k" | "kb" => math.max(1L, n / 1024L)
-          case ""         => math.max(1L, n / (1024L * 1024L)) // bytes
-          case _          => n // unknown suffix: treat as MB rather than dropping
-        }
-      }
+    if (raw.isEmpty) None
+    else {
+      val (num, unit) = raw.span(_.isDigit)
+      if (num.isEmpty) throw new IllegalArgumentException(s"cannot parse memory size '$raw0': expected digits, optionally suffixed with k/m/g")
+      val n =
+        try num.toLong
+        catch { case _: NumberFormatException => throw new IllegalArgumentException(s"cannot parse memory size '$raw0': '$num' is not a valid number") }
+      Some(unit.trim.toLowerCase match {
+        case "g" | "gb" => n * 1024L
+        case "m" | "mb" => n
+        case "k" | "kb" => math.max(1L, n / 1024L)
+        case ""         => math.max(1L, n / (1024L * 1024L)) // bare number is bytes, per -Xmx semantics
+        case other      => throw new IllegalArgumentException(s"cannot parse memory size '$raw0': unknown unit '$other' (expected k/m/g)")
+      })
+    }
   }
 
-  /** Total physical RAM in MB, or `fallbackMb` if it can't be determined. */
+  /** Total physical RAM in MB.
+    *
+    * `fallbackMb` covers the one genuinely-expected miss: a JVM whose OperatingSystemMXBean isn't the `com.sun` one that exposes total memory. An *exception*
+    * from the platform bean is not that case and is not swallowed — it would mean the budget is being computed from a number we never actually read.
+    */
   def physicalMemoryMb(fallbackMb: Long): Long =
-    try
-      java.lang.management.ManagementFactory.getOperatingSystemMXBean match {
-        case os: com.sun.management.OperatingSystemMXBean => os.getTotalMemorySize / (1024L * 1024L)
-        case _                                            => fallbackMb
-      }
-    catch { case _: Throwable => fallbackMb }
+    java.lang.management.ManagementFactory.getOperatingSystemMXBean match {
+      case os: com.sun.management.OperatingSystemMXBean => os.getTotalMemorySize / (1024L * 1024L)
+      case _                                            => fallbackMb
+    }
 
   /** Default fork-memory budget: physical RAM minus the server's own max heap minus an OS reserve (a tenth of RAM, at least 2GB). Forked JVMs draw from what's
     * left after the server and OS have their share — this is what keeps N forks from collectively swapping the machine to death.

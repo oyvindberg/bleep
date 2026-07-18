@@ -33,14 +33,7 @@ object InProcessBspServer {
             var exitCode: java.lang.Integer = 0
             try {
               val numCores = Runtime.getRuntime.availableProcessors()
-              val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-              val physicalMb = bleep.MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
-              val machine = bleep.MachineResources.create(
-                totalCpu = numCores,
-                totalMemoryMb = bleep.MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb),
-                defaultForkMemoryMb = math.max(512L, physicalMb / 4),
-                logger = logger
-              )
+              val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
               val server =
                 new MultiWorkspaceBspServer(
                   serverIn,

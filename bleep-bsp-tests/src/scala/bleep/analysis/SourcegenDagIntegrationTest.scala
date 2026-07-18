@@ -709,6 +709,56 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("executor: a THROWN sourcegen handler still emits SourcegenFinished carrying the error") {
+    // Companion to the TaskResult.Error regression above. These tasks report themselves via their
+    // own Started/Finished pair (the TaskFinished mapping deliberately emits no protocol event for
+    // them), so if recovery wrapped the whole for-comprehension a throw would skip the Finished
+    // emit entirely and the exception would reach the client as absolutely nothing.
+    val target = projectName("target")
+    val scriptsProject = projectName("scripts")
+    val s = script(scriptsProject, "gen.Tool")
+
+    val plan = SourcegenPlan(perProject = Map(target -> Set(s)), scriptProjectDeps = Map(s -> Set(scriptsProject)))
+    val dag = TaskDag.buildCompileDag(
+      Set(target),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty
+      )
+    )
+
+    val executor = TaskDag.executor(
+      Handlers(
+        compile = (_, _) => IO.pure(TaskResult.Success),
+        link = (_, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        sourcegen = (_, _) => IO.raiseError(new RuntimeException("generator blew up")),
+        annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
+        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+      )
+    )
+
+    val (finalDag, events) = (for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- eventQueue.offer(None)
+      drained <- drainQueue(eventQueue)
+    } yield (d, drained)).unsafeRunSync()
+
+    val finished = events.collect { case e: DagEvent.SourcegenFinished => e }
+    finished should have size 1
+    finished.head.success shouldBe false
+    finished.head.error.getOrElse("") should include("generator blew up")
+
+    finalDag.errored should contain(TaskId.Sourcegen(s))
+    finalDag.skipped should contain(TaskId.Compile(target))
+  }
+
   // ==========================================================================
   // SourcegenPlan tests
   // ==========================================================================

@@ -2698,8 +2698,8 @@ class MultiWorkspaceBspServer(
     *
     * Two parts:
     *
-    *   1. `bleep-test-runner` itself, versioned `${BLEEP_VERSION}`. Goes through `TemplatedVersions` so dev builds short-circuit to BleepDevDeps class dirs.
-    *      Workspace-specific (the buildDir is in the version), so always resolved fresh — but the BleepDevDeps path is in-process and fast.
+    *   1. `bleep-test-runner` itself — see [[fetchBleepTestRunnerOnly]] for how its version is chosen (`${BLEEP_VERSION}` for a `dev` build so it
+    *      short-circuits to BleepDevDeps class dirs, otherwise pinned to this server's version).
     *   2. Four hardcoded external test-framework deps (test-interface, jupiter-interface, junit-platform-launcher, junit-vintage-engine). These are stable
     *      across every workspace and every bleep version, so we cache them in a process-wide atomic — see
     *      `MultiWorkspaceBspServer.cachedExternalTestRunnerJars`. Without this, every inner-bleep `commands.test` re-runs Coursier for the same four deps;
@@ -2713,13 +2713,22 @@ class MultiWorkspaceBspServer(
     testRunnerJars ++ externalJars
   }
 
+  /** The forked runner speaks this server's `TestProtocol` over the fork's stdin/stdout, so it must be built from the same code as the server. Two ways to get
+    * there, and picking the wrong one breaks a different workflow:
+    *
+    *   - `$version: dev` (integration tests, `bleep --dev`): keep the `${BLEEP_VERSION}` template. `TemplatedVersions` rewrites it to `dev:<buildDir>`, which
+    *     `BleepDevDeps` short-circuits to the *live class dirs* — literally the code this server was built from, so the protocol matches by construction.
+    *     Pinning to `BleepVersion.current` here would bypass the short-circuit and resolve a published jar instead: it fails outright when nothing was
+    *     published at that version, and — worse — silently runs stale runner code when a same-versioned jar happens to be in ivy local.
+    *   - anything else: pin to the *server's* `BleepVersion.current`, NOT the build's `$version`. The two diverge exactly when a snapshot server serves a build
+    *     pinning an older release (bleep deliberately ignores the build's `$version` for a snapshot — see Main.scala), and the template would then resolve the
+    *     OLD released runner, whose `SuiteDone` this server can't decode.
+    */
   private def fetchBleepTestRunnerOnly(started: Started): List[Path] = {
-    // Pin the forked runner to the *server's* version (BleepVersion.current), NOT the build's
-    // `${BLEEP_VERSION}` template. The runner speaks this server's TestProtocol over the forked-JVM
-    // pipe, so it must match the server. They diverge exactly when a snapshot server serves a build
-    // that pins an older release (bleep ignores the build's $version for a snapshot — Main.scala):
-    // the template would resolve the OLD released runner, whose SuiteDone the new server can't read.
-    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", model.BleepVersion.current.value)
+    val version =
+      if (started.build.$version == model.BleepVersion.dev) model.Replacements.known.BleepVersion
+      else model.BleepVersion.current.value
+    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", version)
     val result = started.resolver.force(
       Set(testRunnerDep),
       model.VersionCombo.Jvm(model.VersionScala.Scala3),

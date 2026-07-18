@@ -1045,8 +1045,10 @@ object BuildDisplay {
         val previousDiags = previousRun.compileDiagnostics.getOrElse(cf.project, Nil)
         val diff = BuildDiff.diffCompile(cf.project, cf.status, cf.diagnostics, previousDiags, cf.durationMs)
         val line = BuildDiff.formatCompileDiff(diff)
-        // For failed compiles, also show the actual errors
-        if (cf.status == bleep.bsp.protocol.CompileStatus.Failed && cf.diagnostics.nonEmpty) {
+        // For failed compiles, also show the actual errors. `isFailure`, not `== Failed`: a compile
+        // that threw arrives as Error carrying the exception as its single diagnostic, and printing
+        // a bare ❌ with the cause withheld is precisely the "detail not captured" hole.
+        if (cf.status.isFailure && cf.diagnostics.nonEmpty) {
           val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
           val errorLines = errors.take(10).flatMap { d =>
             val text = d.rendered.getOrElse(d.message)

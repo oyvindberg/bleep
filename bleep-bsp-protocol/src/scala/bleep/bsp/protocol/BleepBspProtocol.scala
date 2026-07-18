@@ -538,8 +538,12 @@ object BleepBspProtocol {
 
     /** Version-tolerant, hand-written so a long-lived server and a newer client (or vice versa) keep talking across the addition of `outcome` (which replaced
       * the flat count fields). The wire carries BOTH: `outcome` (the ADT) and the flat `passed/failed/skipped/ignored` derived from it. A client that predates
-      * `outcome` reads the flat counts; a client that predates the flat counts reads `outcome`; and if `outcome` is absent (an older server that only sends
-      * counts) we reconstruct it via `fromCounts`. Adding a *required* protocol field is a breaking change — this keeps it non-breaking.
+      * `outcome` reads the flat counts; a client that predates the flat counts reads `outcome`. Adding a *required* protocol field is a breaking change — this
+      * keeps it non-breaking.
+      *
+      * Tolerance runs in BOTH directions, which is the whole point: `outcome` absent (an older peer sending only counts) AND `outcome` present but naming a
+      * variant this version doesn't know (a NEWER peer) both degrade via [[SuiteOutcome.degrade]] instead of failing the event. Without the second case, the
+      * day a variant is added every older client hits `DecodingFailure` again — the exact bug this codec exists to fix, one version later.
       */
     implicit val suiteFinishedCodec: Codec[SuiteFinished] = {
       val enc: Encoder[SuiteFinished] = Encoder.instance { sf =>
@@ -561,15 +565,17 @@ object BleepBspProtocol {
           suite <- c.downField("suite").as[SuiteName]
           durationMs <- c.downField("durationMs").as[Long]
           timestamp <- c.downField("timestamp").as[Long]
-          outcome <- c.downField("outcome").as[Option[SuiteOutcome]].flatMap {
-            case Some(o) => Right(o)
-            case None    =>
+          outcome <- c.downField("outcome").as[SuiteOutcome] match {
+            case Right(o) => Right(o)
+            case Left(_)  =>
+              // Absent, or a variant we can't read. Either way the flat counts are on the wire.
               for {
                 p <- c.getOrElse("passed")(0)
                 f <- c.getOrElse("failed")(0)
                 s <- c.getOrElse("skipped")(0)
                 i <- c.getOrElse("ignored")(0)
-              } yield SuiteOutcome.fromCounts(p, f, s, i)
+                tag <- c.downField("outcome").downField("kind").as[Option[String]].orElse(Right(None))
+              } yield SuiteOutcome.degrade(tag, p, f, s, i)
           }
         } yield SuiteFinished(project, suite, outcome, durationMs, timestamp)
       }

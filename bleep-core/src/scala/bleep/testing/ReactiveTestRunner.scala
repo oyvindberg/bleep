@@ -74,22 +74,16 @@ object ReactiveTestRunner {
       options: Options
   ): IO[Result] =
 
-    // Standalone (single-process) runner: its own machine governor bounds forks to this run's
-    // parallelism (cores) and the machine's fork-memory budget — no cross-client sharing here.
+    // Standalone (single-process) runner: no other client shares this process, so the governor
+    // exists here only to bound THIS run — its CPU dimension is the run's requested parallelism
+    // (not the machine's core count, unlike the daemon's governor), while the fork-memory budget is
+    // still the machine's, so a high --parallelism can't collectively exhaust RAM.
     JvmPool
       .create(
         options.maxParallelJvms,
         started.jvmCommand,
-        started.buildPaths.buildDir, {
-          val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-          val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
-          MachineResources.create(
-            totalCpu = options.maxParallelJvms,
-            totalMemoryMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb),
-            defaultForkMemoryMb = math.max(512L, physicalMb / 4),
-            logger = started.logger
-          )
-        }
+        started.buildPaths.buildDir,
+        MachineResources.forThisMachine(totalCpu = options.maxParallelJvms, logger = started.logger)
       )
       .use { pool =>
         for {
