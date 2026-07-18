@@ -2714,7 +2714,12 @@ class MultiWorkspaceBspServer(
   }
 
   private def fetchBleepTestRunnerOnly(started: Started): List[Path] = {
-    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", model.Replacements.known.BleepVersion)
+    // Pin the forked runner to the *server's* version (BleepVersion.current), NOT the build's
+    // `${BLEEP_VERSION}` template. The runner speaks this server's TestProtocol over the forked-JVM
+    // pipe, so it must match the server. They diverge exactly when a snapshot server serves a build
+    // that pins an older release (bleep ignores the build's $version for a snapshot — Main.scala):
+    // the template would resolve the OLD released runner, whose SuiteDone the new server can't read.
+    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", model.BleepVersion.current.value)
     val result = started.resolver.force(
       Set(testRunnerDep),
       model.VersionCombo.Jvm(model.VersionScala.Scala3),

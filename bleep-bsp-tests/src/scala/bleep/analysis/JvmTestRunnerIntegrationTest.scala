@@ -122,6 +122,23 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     }
   }
 
+  test("TestProtocol: SuiteDone decodes a legacy (pre-outcome) forked-runner message via counts") {
+    failAfter(quickTimeout) {
+      // Exactly what an older bleep-test-runner jar (version-skewed test classpath) emits: flat
+      // counts, no `outcome` field. Must decode (reconstructing outcome) instead of failing.
+      val legacyPassing = """{"type":"SuiteDone","data":{"suite":"com.example.MySuite","passed":3,"failed":1,"skipped":0,"ignored":0,"durationMs":5}}"""
+      TestProtocol.decodeResponse(legacyPassing) match {
+        case Right(sd: TestProtocol.TestResponse.SuiteDone) => sd.outcome shouldBe SuiteOutcome.Executed(3, 1, 0, 0)
+        case other                                          => fail(s"expected SuiteDone, got $other")
+      }
+      val legacyZero = """{"type":"SuiteDone","data":{"suite":"com.example.MySuite","passed":0,"failed":0,"skipped":0,"ignored":0,"durationMs":5}}"""
+      TestProtocol.decodeResponse(legacyZero) match {
+        case Right(sd: TestProtocol.TestResponse.SuiteDone) => sd.outcome shouldBe SuiteOutcome.Empty
+        case other                                          => fail(s"expected SuiteDone, got $other")
+      }
+    }
+  }
+
   test("TestProtocol: encodes and decodes Log response") {
     failAfter(quickTimeout) {
       val response = TestProtocol.TestResponse.Log(
