@@ -70,6 +70,44 @@ final class MachineResources private (
     } yield id
   }
 
+  /** Reserve for a lifetime that is NOT a lexical scope, returning the action that releases it.
+    *
+    * Needed for resources owned by something longer-lived than the caller — a pooled test JVM holds its memory from spawn until it is destroyed, which spans
+    * many suites and outlives whichever `acquire` happened to spawn it. That cannot be expressed as a `Resource`, so the holder stores this action and runs it
+    * when it destroys the process.
+    *
+    * The safety net a `Resource` would give you is gone: whoever takes this MUST run the release action, including on the failure paths, or the reservation
+    * leaks for the life of the server. [[JvmPool.shutdown]] is the backstop.
+    */
+  def reserveUntilReleased(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[IO[Unit]] =
+    reserve(kind, label, cpu, memoryMb).allocated.map { case (_, release) => release }
+
+  /** Reserve only if it fits RIGHT NOW; never queues. `Some(release)` when granted, `None` when it doesn't currently fit.
+    *
+    * The distinction from [[reserve]] matters when the caller has another way to free resources and wants to try that first rather than parking: the JVM pool
+    * responds to `None` by evicting an idle pooled JVM (whose memory it is itself holding) and retrying, which is what keeps the pool from deadlocking against
+    * its own cached processes.
+    */
+  def tryReserve(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Option[IO[Unit]]] = {
+    val cpuReq = math.max(0, math.min(cpu, totalCpu))
+    val memReq = math.max(0L, math.min(memoryMb, totalMemoryMb))
+    for {
+      now <- IO.realTime.map(_.toMillis)
+      maybeId <- state.modify { st =>
+        if (st.freeCpu >= cpuReq && st.freeMemoryMb >= memReq) {
+          val id = st.nextId
+          val next = st.copy(
+            nextId = id + 1,
+            freeCpu = st.freeCpu - cpuReq,
+            freeMemoryMb = st.freeMemoryMb - memReq,
+            active = st.active.updated(id, Reservation(id, kind, label, cpuReq, memReq, now))
+          )
+          (next, Some(id))
+        } else (st, None)
+      }
+    } yield maybeId.map(id => dispose(id))
+  }
+
   /** Release or cancel reservation `id`, then grant whoever was waiting on the freed resources. Idempotent, and handles both states: still-queued (drop from
     * the wait queue, nothing was held) and already-granted (return the resources).
     */
@@ -303,6 +341,9 @@ object MachineResources {
     */
   def forkMemoryBudgetMb(physicalMb: Long, serverHeapMb: Long): Long = {
     val reserve = math.max(4096L, physicalMb / 4)
-    math.max(1024L, physicalMb - serverHeapMb - reserve)
+    // The server is a JVM too, so subtract its FOOTPRINT rather than its bare -Xmx — exactly the
+    // correction `forkFootprintMb` applies to forks. Observed: an -Xmx8g daemon sits at ~8.9GB RSS,
+    // and counting it as 8GB quietly handed the difference to the fork budget.
+    math.max(1024L, physicalMb - forkFootprintMb(serverHeapMb) - reserve)
   }
 }

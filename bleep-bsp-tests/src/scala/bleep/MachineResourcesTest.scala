@@ -149,7 +149,7 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     // The exact numbers from the bug report, so a future change to either formula fails loudly here.
     MachineResources.defaultForkHeapMb(physicalMb) shouldBe 12288L
     oneFork shouldBe 15360L
-    budget shouldBe 28672L
+    budget shouldBe 26624L
 
     oneFork should be <= budget
     (2 * oneFork) should be > budget
@@ -175,6 +175,41 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
       _ <- clickhouse.join.timeout(5.seconds) // and it does run, once the first frees its memory
       end <- m.snapshot
     } yield end.usedMemoryMb shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("tryReserve grants what fits, refuses what doesn't, and never queues") {
+    val m = machine(cpu = 4, memMb = 4096)
+    val prog = for {
+      first <- m.tryReserve(TestFork, "fits", cpu = 1, memoryMb = 3072)
+      _ = first shouldBe defined
+      // Doesn't fit — and crucially returns immediately rather than parking, so the caller can go
+      // free memory by other means (the JVM pool evicts an idle process here).
+      second <- m.tryReserve(TestFork, "does-not-fit", cpu = 1, memoryMb = 3072).timeout(2.seconds)
+      _ = second shouldBe empty
+      waiting <- m.snapshot.map(_.waiting)
+      _ = waiting shouldBe empty // a refusal must not leave a waiter behind
+      _ <- first.get // release
+      third <- m.tryReserve(TestFork, "fits-now", cpu = 1, memoryMb = 3072)
+      _ = third shouldBe defined
+      _ <- third.get
+      end <- m.snapshot
+    } yield end.usedMemoryMb shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("reserveUntilReleased holds resources past the scope that took them, until the release action runs") {
+    // Process-lifetime semantics: a pooled test JVM keeps its memory reservation across suites, so
+    // the reservation cannot be a Resource scoped to whichever suite spawned the process.
+    val m = machine(cpu = 4, memMb = 4096)
+    val prog = for {
+      release <- m.reserveUntilReleased(TestFork, "pooled-jvm", cpu = 0, memoryMb = 2048)
+      afterScope <- m.snapshot
+      _ = afterScope.usedMemoryMb shouldBe 2048 // still held although nothing lexically owns it
+      _ = afterScope.usedCpu shouldBe 0 //  an idle pooled JVM costs RAM but no cores
+      _ <- release
+      afterRelease <- m.snapshot
+    } yield afterRelease.usedMemoryMb shouldBe 0
     prog.timeout(20.seconds).unsafeRunSync()
   }
 

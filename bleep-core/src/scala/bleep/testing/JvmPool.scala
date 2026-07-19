@@ -3,6 +3,7 @@ package bleep.testing
 import bleep.MachineResources
 import cats.effect._
 import cats.effect.std.{Queue, Semaphore}
+import cats.syntax.all._
 import fs2.Stream
 
 import java.io._
@@ -178,7 +179,12 @@ object JvmPool {
       val stdout: BufferedReader,
       val stderr: BufferedReader,
       val key: JvmKey,
-      val jvmCommand: Path
+      val jvmCommand: Path,
+      /** Returns this process's memory reservation to the machine governor. Held for the lifetime of the PROCESS, not of the suite that happened to spawn it: a
+        * JVM sitting idle in the pool is still resident and still costing the machine its whole footprint, so the reservation is only released when the process
+        * is actually destroyed. Must be run exactly where the process is killed — see `JvmPoolImpl.destroy`.
+        */
+      val releaseMemory: IO[Unit]
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
@@ -323,32 +329,76 @@ object JvmPool {
     ): Resource[IO, TestJvm] = {
       val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
 
-      // Weight this fork by what it actually costs the machine — its -Xmx PLUS the non-heap
-      // footprint every JVM carries (metaspace, code cache, thread stacks, direct buffers, GC
-      // bookkeeping) — so the sum of concurrent forks stays within the fork-memory budget. Charging
-      // bare -Xmx is what let two 12GB forks be admitted against a 36GB budget while really costing
-      // ~30GB resident. An uncapped fork falls back to the machine's default fork weight, which is
-      // already an estimate of a whole process rather than a heap.
-      val forkMemoryMb = parseXmxMb(jvmOptions).map(MachineResources.forkFootprintMb).getOrElse(machine.defaultForkMemoryMb)
-      val machineReservation =
-        machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = forkMemoryMb)
-
-      // Order matters: the per-pool semaphore (a local counter bounding THIS run's parallelism) is
-      // taken FIRST, the machine reservation (shared with every other client) LAST — immediately
-      // before the JVM is created and released immediately after. Reserving first would hold a core
-      // and a fork's worth of the machine's memory budget while merely queueing for our own run's
-      // parallelism token, i.e. capacity withheld from other clients for work not yet running.
+      // Only CPU is reserved here. The two dimensions have genuinely different lifetimes:
+      //
+      //   cpu    — the SUITE's, which is exactly this scope. A JVM idling in the pool between suites
+      //            burns no cores, so holding one for it would throttle the machine for nothing.
+      //   memory — the PROCESS's, which outlives this scope. An idle pooled JVM is still resident and
+      //            still costs its whole footprint, so its reservation is taken at spawn and returned
+      //            at destroy (see `spawnJvm` / `destroy`), not here. Tying memory to the suite is
+      //            what let the governor believe memory was free while live JVMs still held it.
+      //
+      // Order also matters: the per-pool semaphore (a local counter bounding THIS run's parallelism)
+      // is taken FIRST and the shared machine reservation second, so we never withhold machine-wide
+      // capacity while merely queueing for our own run's token.
       Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
-        machineReservation.flatMap { _ =>
+        machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = 0L).flatMap { _ =>
           Resource
             .make(getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
-              // Return JVM to pool; the semaphore + machine reservation are released by their own Resources.
+              // Return JVM to pool (or destroy it); the semaphore + cpu reservation are released by their own Resources.
               case (jvm, _) => release(jvm)
             }
             .map(_._2)
         }
       }
     }
+
+    /** What this fork costs the machine: its `-Xmx` plus the non-heap footprint every JVM carries (metaspace, code cache, thread stacks, direct buffers, GC
+      * bookkeeping). An uncapped fork falls back to the machine's default, which already accounts for HotSpot capping such a JVM at a quarter of RAM.
+      */
+    private def footprintOf(jvmOptions: List[String]): Long =
+      parseXmxMb(jvmOptions).map(MachineResources.forkFootprintMb).getOrElse(machine.defaultForkMemoryMb)
+
+    /** Destroy a JVM: kill the process, stop tracking it, and only then return its memory to the governor. Ordering matters — releasing first would let a
+      * waiter be granted memory this process has not actually surrendered yet.
+      */
+    private def destroy(jvm: ManagedJvm): IO[Unit] =
+      IO(jvm.kill()).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+
+    /** Kill one idle pooled JVM (any key) so its memory returns to the governor. `false` when the pool holds nothing idle.
+      *
+      * This is what stops the pool deadlocking against itself. Now that a JVM's memory reservation lasts as long as the process, a pool full of idle cached
+      * JVMs can hold the entire budget, and a spawn needing memory would otherwise wait on processes that nothing will destroy until shutdown. Faced with that,
+      * the pool gives up a cached JVM rather than the build.
+      */
+    private def evictOneIdle: IO[Boolean] =
+      pool.values.toList
+        .foldLeft(IO.pure(Option.empty[ManagedJvm])) { (acc, queue) =>
+          acc.flatMap {
+            case found @ Some(_) => IO.pure(found)
+            case None            => queue.tryTake
+          }
+        }
+        .flatMap {
+          case Some(idle) => destroy(idle).as(true)
+          case None       => IO.pure(false)
+        }
+
+    /** Reserve a new process's memory, trading cached JVMs for it before agreeing to wait.
+      *
+      * If it doesn't fit, evict an idle pooled JVM and retry — that memory is already ours, and a warm classloader is worth less than making progress. Only
+      * when nothing is left to evict do we park, and that wait terminates: at that point the budget is held by JVMs actively running suites, and when those
+      * finish `release` destroys rather than pools them, because the governor reports contention.
+      */
+    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[IO[Unit]] =
+      machine.tryReserve(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
+        case Some(release) => IO.pure(release)
+        case None          =>
+          evictOneIdle.flatMap {
+            case true  => reserveMemoryForSpawn(label, footprintMb)
+            case false => machine.reserveUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
+          }
+      }
 
     private def getOrCreate(
         key: JvmKey,
@@ -373,8 +423,10 @@ object JvmPool {
           case Some(existing) if existing.isAlive =>
             IO.pure(existing)
           case Some(dead) =>
-            // JVM died, remove from tracking and create new
-            allJvms.update(_ - dead) >> spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
+            // JVM died while idle in the pool. `destroy` (not just untracking) so its memory
+            // reservation goes back to the governor — otherwise a dead process's footprint would be
+            // charged for the rest of the server's life.
+            destroy(dead) >> spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
           case None =>
             spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
         }
@@ -397,46 +449,58 @@ object JvmPool {
           )
         )
       }
-      IO
-        .blocking {
-          val javaPath = jvmCommand
-          val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+      // Reserve this process's memory BEFORE starting it, and hand the release action to the
+      // ManagedJvm so it lives exactly as long as the process does. If anything between here and a
+      // healthy handshake fails, the reservation must be handed back — hence the bracketCase.
+      reserveMemoryForSpawn(s"jvm ${key.classpathHash}", footprintOf(jvmOptions)).bracketCase { releaseMemory =>
+        IO
+          .blocking {
+            val javaPath = jvmCommand
+            val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-          // On Windows, command-line length is limited to 32,767 characters.
-          // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-          val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+            // On Windows, command-line length is limited to 32,767 characters.
+            // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+            val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-          val cmd =
-            if (useEnvClasspath)
-              List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
-            else
-              List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+            val cmd =
+              if (useEnvClasspath)
+                List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+              else
+                List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-          val pb = new ProcessBuilder(cmd*)
-          pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-          pb.redirectErrorStream(false)
-          if (useEnvClasspath) {
-            pb.environment().put("CLASSPATH", cpString): Unit
+            val pb = new ProcessBuilder(cmd*)
+            pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
+            pb.redirectErrorStream(false)
+            if (useEnvClasspath) {
+              pb.environment().put("CLASSPATH", cpString): Unit
+            }
+            // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+            // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+            pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+            environment.foreach { case (k, v) => pb.environment().put(k, v) }
+
+            val process = pb.start()
+            val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
+            val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+            val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+            new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
           }
-          // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
-          // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
-          pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
-          environment.foreach { case (k, v) => pb.environment().put(k, v) }
-
-          val process = pb.start()
-          val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
-          val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-          val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-
-          new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand)
-        }
-        .flatTap(jvm => allJvms.update(_ + jvm))
-        .flatTap(jvm =>
-          waitForReady(jvm).onError { case _ =>
-            IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
-          }
-        )
-        .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
+          .flatTap(jvm => allJvms.update(_ + jvm))
+          .flatTap(jvm =>
+            waitForReady(jvm).onError { case _ =>
+              IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
+            }
+          )
+          .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
+      } {
+        // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
+        // On any failure — process never started, handshake failed, cancellation — nothing owns it,
+        // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
+        case (_, Outcome.Succeeded(_))           => IO.unit
+        case (releaseMemory, Outcome.Errored(_)) => releaseMemory
+        case (releaseMemory, Outcome.Canceled()) => releaseMemory
+      }
     }
 
     private def waitForReady(jvm: ManagedJvm): IO[Unit] =
@@ -485,29 +549,44 @@ object JvmPool {
             jvms.foreach(_.kill())
           }
           _ <- allJvms.set(Set.empty)
+          _ <- IO(pool.clear())
+          // Backstop for the whole scheme: every process-lifetime reservation is returned here, so a
+          // pool that is torn down can never leave the machine's memory budget permanently consumed —
+          // which matters because these reservations are held outside any Resource scope.
+          _ <- jvms.toList.traverse_(_.releaseMemory.attempt)
         } yield ()
       }
 
     override def size: IO[Int] =
       allJvms.get.map(_.size)
 
-    /** Return a JVM to the pool for reuse */
+    /** Return a JVM to the pool for reuse — or destroy it.
+      *
+      * Caching a JVM keeps its whole memory reservation held for a warm classloader we merely HOPE to reuse. That is a good trade on an idle machine and a bad
+      * one when something is queued for memory right now, so under contention we destroy instead of pooling. This is also half of the pool's liveness argument:
+      * a spawn that has run out of idle JVMs to evict parks on the governor, and the running suites it is waiting for hand their memory back here rather than
+      * squirreling it away in the pool.
+      */
     private def release(jvm: ManagedJvm): IO[Unit] =
       if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
-        for {
-          queue <- IO(
-            pool.getOrElseUpdate(
-              jvm.key, {
-                import cats.effect.unsafe.implicits.global
-                Queue.unbounded[IO, ManagedJvm].unsafeRunSync()
-              }
-            )
-          )
-          _ <- queue.offer(jvm)
-        } yield ()
+        machine.isContended.flatMap {
+          case true  => destroy(jvm)
+          case false =>
+            for {
+              queue <- IO(
+                pool.getOrElseUpdate(
+                  jvm.key, {
+                    import cats.effect.unsafe.implicits.global
+                    Queue.unbounded[IO, ManagedJvm].unsafeRunSync()
+                  }
+                )
+              )
+              _ <- queue.offer(jvm)
+            } yield ()
+        }
       } else {
-        // Dead or protocol-dirty JVM — kill and remove from tracking
-        IO(jvm.kill()).attempt >> allJvms.update(_ - jvm)
+        // Dead or protocol-dirty JVM — kill it and return its memory.
+        destroy(jvm)
       }
 
     private class TestJvmImpl(jvm: ManagedJvm) extends TestJvm {
