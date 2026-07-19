@@ -125,6 +125,53 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
+  test("a fork is charged more than its bare -Xmx (non-heap footprint)") {
+    // -Xmx bounds the heap; the process also commits metaspace, code cache, thread stacks, direct
+    // buffers and GC bookkeeping. Charging bare -Xmx under-counts every fork.
+    MachineResources.forkFootprintMb(12288) should be > 12288L
+    MachineResources.forkFootprintMb(12288) shouldBe 15360L
+    // Small heaps get a floor rather than a useless percentage.
+    MachineResources.forkFootprintMb(256) shouldBe 512L
+  }
+
+  test("the two-heaviest-corpus-suites case: two 12g forks serialize on a 48GB box, one still runs") {
+    // Regression for bug-report-testfork-jvm-died-dual-corpus-suites: on this exact machine the
+    // governor admitted both 12g forks (24576MB against a 36045MB budget) and the OS then SIGKILLed
+    // them. Two things were wrong — the budget assumed bleep owned everything but a tenth of RAM,
+    // and each fork was charged its bare heap. Both suites must not be concurrently admissible now,
+    // while either one alone still runs (they pass standalone and must keep doing so).
+    val physicalMb = 49152L // 48GB
+    val serverHeapMb = 8192L
+    val budget = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
+    val oneFork = MachineResources.forkFootprintMb(12288)
+
+    oneFork should be <= budget
+    (2 * oneFork) should be > budget
+
+    // And prove it through the governor itself, not just the arithmetic.
+    val m = MachineResources.create(
+      totalCpu = 18,
+      totalMemoryMb = budget,
+      defaultForkMemoryMb = oneFork,
+      logger = TypedLogger.DevNull,
+      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
+    )
+    val prog = for {
+      held <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      postgres <- m.reserve(TestFork, "PostgresCorpusDiffSuite", cpu = 1, memoryMb = oneFork).use(_ => held.release *> release.await).start
+      _ <- held.await
+      clickhouse <- m.reserve(TestFork, "ClickhouseCorpusDiffSuite", cpu = 1, memoryMb = oneFork).use(_ => IO.unit).start
+      concurrent <- clickhouse.join.as(true).timeoutTo(500.millis, IO.pure(false))
+      _ = concurrent shouldBe false // serialized, not admitted alongside
+      _ <- release.release
+      _ <- postgres.join
+      _ <- clickhouse.join.timeout(5.seconds) // and it does run, once the first frees its memory
+      end <- m.snapshot
+    } yield end.usedMemoryMb shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
   test("a request larger than the machine is clamped so it still eventually runs") {
     val m = machine(cpu = 2, memMb = 1024)
     val prog = m.reserve(TestFork, "greedy", cpu = 99, memoryMb = 1_000_000).use(_ => m.snapshot.map(_.usedCpu shouldBe 2))

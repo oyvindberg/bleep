@@ -117,6 +117,36 @@ object JvmPool {
   private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
     jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
 
+  private[testing] case class ExitDescription(summary: String, detail: Option[String])
+
+  /** Describe how a forked JVM died, for the message the user actually reads.
+    *
+    * On Unix a process terminated by a signal reports `128 + signal`, so 137 is SIGKILL and 139 SIGSEGV. SIGKILL matters most here: the JVM cannot log anything
+    * about its own SIGKILL, so without this the death is indistinguishable from a clean EOF — and SIGKILL on a big test fork almost always means the kernel
+    * reclaiming memory, which is exactly the hypothesis a user needs handed to them.
+    *
+    * Best-effort and non-blocking beyond a short grace period: EOF on stdout usually precedes the process table catching up by a few milliseconds.
+    */
+  private[testing] def describeExit(process: Process): ExitDescription = {
+    val exited = process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+    if (!exited) ExitDescription("EOF on stdout, process still alive", Some("The JVM closed stdout but has not exited — it may be wedged rather than dead."))
+    else
+      process.exitValue() match {
+        case 0   => ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
+        case 137 =>
+          ExitDescription(
+            "killed by SIGKILL (exit 137)",
+            Some(
+              "SIGKILL is sent by the OS, not by the JVM or by bleep — on a test fork this is almost always the kernel reclaiming memory under pressure. " +
+                "Lower this project's -Xmx, or lower the machine's fork-memory budget (BLEEP_FORK_MEMORY_BUDGET_MB) so fewer forks run at once."
+            )
+          )
+        case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
+        case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code)", None)
+        case code               => ExitDescription(s"exited with code $code", None)
+      }
+  }
+
   /** Key for pooling JVMs */
   private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String)
 
@@ -293,9 +323,13 @@ object JvmPool {
     ): Resource[IO, TestJvm] = {
       val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
 
-      // Weight this fork by its -Xmx (or the machine's default fork weight if uncapped) so the sum
-      // of concurrent forks stays within the machine's fork-memory budget.
-      val forkMemoryMb = parseXmxMb(jvmOptions).getOrElse(machine.defaultForkMemoryMb)
+      // Weight this fork by what it actually costs the machine — its -Xmx PLUS the non-heap
+      // footprint every JVM carries (metaspace, code cache, thread stacks, direct buffers, GC
+      // bookkeeping) — so the sum of concurrent forks stays within the fork-memory budget. Charging
+      // bare -Xmx is what let two 12GB forks be admitted against a 36GB budget while really costing
+      // ~30GB resident. An uncapped fork falls back to the machine's default fork weight, which is
+      // already an estimate of a whole process rather than a heap.
+      val forkMemoryMb = parseXmxMb(jvmOptions).map(MachineResources.forkFootprintMb).getOrElse(machine.defaultForkMemoryMb)
       val machineReservation =
         machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = forkMemoryMb)
 
@@ -524,8 +558,16 @@ object JvmPool {
               jvm.markDead()
               val pid = jvm.process.pid()
               val stderrTail = jvm.readStderr()
-              val details = if (stderrTail.nonEmpty) Some(s"stderr tail:\n$stderrTail") else None
-              TestProtocol.TestResponse.Error(s"Forked test JVM (pid=$pid) died unexpectedly (EOF on stdout)", details)
+              // Reap it and say HOW it died. "EOF on stdout" alone is undiagnosable — it looks the
+              // same whether the JVM exited, crashed, or was killed by the OS. The exit status
+              // distinguishes them, and an externally-signalled death (128+signal, so 137 = SIGKILL)
+              // is the fingerprint of the kernel reclaiming memory, which no in-process log can show.
+              val exitDescription = JvmPool.describeExit(jvm.process)
+              val details = List(exitDescription.detail, Option.when(stderrTail.nonEmpty)(s"stderr tail:\n$stderrTail")).flatten match {
+                case Nil   => None
+                case lines => Some(lines.mkString("\n"))
+              }
+              TestProtocol.TestResponse.Error(s"Forked test JVM (pid=$pid) died unexpectedly (${exitDescription.summary})", details)
             } else {
               TestProtocol.decodeResponse(line) match {
                 case Right(response) => response

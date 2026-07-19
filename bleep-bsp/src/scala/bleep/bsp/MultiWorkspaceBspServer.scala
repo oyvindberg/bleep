@@ -1327,6 +1327,7 @@ class MultiWorkspaceBspServer(
           // project). The DAG already serializes within one build, but two builds for the same project share the daemon JVM + the shared sources dir.
           val kspForkMemMb = s.config.bspServerConfigOrDefault.kspRunnerMaxMemory
             .flatMap(MachineResources.parseMemoryMb)
+            .map(MachineResources.forkFootprintMb)
             .getOrElse(machine.defaultForkMemoryMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
             machine
@@ -1378,6 +1379,7 @@ class MultiWorkspaceBspServer(
     }
     val forkMemMb = started.config.bspServerConfigOrDefault.sourcegenMaxMemory
       .flatMap(MachineResources.parseMemoryMb)
+      .map(MachineResources.forkFootprintMb)
       .getOrElse(machine.defaultForkMemoryMb)
     (sgt, killSignal) =>
       killSignal.tryGet.flatMap {

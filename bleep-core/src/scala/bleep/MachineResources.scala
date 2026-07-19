@@ -266,11 +266,28 @@ object MachineResources {
       case _                                            => fallbackMb
     }
 
-  /** Default fork-memory budget: physical RAM minus the server's own max heap minus an OS reserve (a tenth of RAM, at least 2GB). Forked JVMs draw from what's
-    * left after the server and OS have their share — this is what keeps N forks from collectively swapping the machine to death.
+  /** What a forked JVM asking for `-Xmx heapMb` actually costs the machine.
+    *
+    * `-Xmx` bounds the *heap*, not the process. On top of it a JVM commits metaspace, the code cache, a stack per thread, direct/mapped byte buffers, and the
+    * GC's own bookkeeping — for a large heap that is comfortably another 10-25%. Charging bare `-Xmx` therefore under-counts every fork, and the error
+    * compounds: two "12GB" forks admitted against a 36GB budget were really ~30GB resident, which is how they got killed by the OS while the governor still
+    * believed it had 11GB spare.
+    *
+    * Deliberately an over-estimate rather than an under-estimate: being wrong in this direction serializes a suite that could have run in parallel, while being
+    * wrong in the other direction kills it with SIGKILL and no diagnostic.
+    */
+  def forkFootprintMb(heapMb: Long): Long =
+    heapMb + math.max(256L, heapMb / 4)
+
+  /** Default fork-memory budget: physical RAM, minus the server's own max heap, minus a reserve for everything that is not bleep.
+    *
+    * The reserve is a quarter of RAM (at least 4GB) because a bleep-bsp daemon does not own the machine it runs on. The previous tenth-of-RAM covered the OS
+    * and nothing else, which is only true on a dedicated CI box; on the developer machine this actually runs on there is also an IDE, a browser, and several
+    * agent processes, so the headroom the governor thought it had did not exist. Set BLEEP_FORK_MEMORY_BUDGET_MB to override when bleep really does own the
+    * machine.
     */
   def forkMemoryBudgetMb(physicalMb: Long, serverHeapMb: Long): Long = {
-    val reserve = math.max(2048L, physicalMb / 10)
+    val reserve = math.max(4096L, physicalMb / 4)
     math.max(1024L, physicalMb - serverHeapMb - reserve)
   }
 }
