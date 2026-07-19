@@ -224,11 +224,26 @@ object MachineResources {
     create(
       totalCpu = totalCpu,
       totalMemoryMb = forkMemoryBudgetMb(physicalMb, ownHeapMb),
-      defaultForkMemoryMb = math.max(512L, physicalMb / 4),
+      defaultForkMemoryMb = defaultForkFootprintMb(physicalMb),
       logger = logger,
       longWaitWarnMs = DefaultLongWaitWarnMs
     )
   }
+
+  /** Default heap ceiling assumed for a forked JVM that states no `-Xmx`: a quarter of physical RAM, which is what HotSpot itself picks (`MaxRAMPercentage`
+    * defaults to 25). So this is not a policy bleep imposes — it is what the uncapped JVM is going to do.
+    */
+  def defaultForkHeapMb(physicalMb: Long): Long =
+    math.max(512L, physicalMb / 4)
+
+  /** What to charge a fork that states no `-Xmx`. Must be the *footprint* of that default heap, not the heap alone — an uncapped JVM is the case where
+    * under-counting hurts most, since nothing bounds it and it will take what it wants until the OS intervenes.
+    *
+    * Getting this wrong is what killed the two corpus suites: both forks were uncapped, each was charged the bare 12288MB quarter-of-RAM, two fitted inside the
+    * budget, and their real ~15GB-each footprints did not.
+    */
+  def defaultForkFootprintMb(physicalMb: Long): Long =
+    forkFootprintMb(defaultForkHeapMb(physicalMb))
 
   /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB. Used to weight a forked JVM by its configured max heap.
     *

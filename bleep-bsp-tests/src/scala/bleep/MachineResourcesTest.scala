@@ -134,16 +134,22 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     MachineResources.forkFootprintMb(256) shouldBe 512L
   }
 
-  test("the two-heaviest-corpus-suites case: two 12g forks serialize on a 48GB box, one still runs") {
-    // Regression for bug-report-testfork-jvm-died-dual-corpus-suites: on this exact machine the
-    // governor admitted both 12g forks (24576MB against a 36045MB budget) and the OS then SIGKILLed
-    // them. Two things were wrong — the budget assumed bleep owned everything but a tenth of RAM,
-    // and each fork was charged its bare heap. Both suites must not be concurrently admissible now,
-    // while either one alone still runs (they pass standalone and must keep doing so).
+  test("the two-heaviest-corpus-suites case: two UNCAPPED forks serialize on a 48GB box, one still runs") {
+    // Regression for bug-report-testfork-jvm-died-dual-corpus-suites. Both forks state no -Xmx, so
+    // HotSpot caps each at a quarter of RAM (12288MB here) and the governor charges the default
+    // weight. Originally that weight was the bare quarter-of-RAM and the budget reserved only a
+    // tenth of RAM for non-bleep processes, so 2 x 12288 fitted inside 36045MB — while the real
+    // footprints (~15GB each, heap plus metaspace/code cache/stacks/GC) did not, and the OS
+    // SIGKILLed them. Either suite alone passes and must keep passing.
     val physicalMb = 49152L // 48GB
     val serverHeapMb = 8192L
     val budget = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
-    val oneFork = MachineResources.forkFootprintMb(12288)
+    val oneFork = MachineResources.defaultForkFootprintMb(physicalMb)
+
+    // The exact numbers from the bug report, so a future change to either formula fails loudly here.
+    MachineResources.defaultForkHeapMb(physicalMb) shouldBe 12288L
+    oneFork shouldBe 15360L
+    budget shouldBe 28672L
 
     oneFork should be <= budget
     (2 * oneFork) should be > budget
