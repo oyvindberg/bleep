@@ -108,7 +108,7 @@ object JvmPool {
     Resource.make(
       for {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
-        startLimiter <- Semaphore[IO](MaxConcurrentStarts.toLong)
+        startLimiter <- Semaphore[IO](maxConcurrentStarts(maxConcurrency).toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
         // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
@@ -130,17 +130,17 @@ object JvmPool {
       )
     )(_.shutdown)
 
-  /** How many forks may be in the middle of STARTING at any one time.
+  /** How many forks may be in the middle of STARTING at any one time, as a function of how wide the run is allowed to go.
     *
     * Not a limit on how many run — that is the governor's job — but on how many may be between `spawn` and a healthy handshake. The two are different problems,
     * and this one is invisible to any budget: a JVM's memory arrives over the seconds AFTER it starts, as classes load, the classpath is paged in and the JIT
-    * warms. A burst of spawns is therefore a burst of demand that no measurement has seen yet and no reservation has sized correctly. Admitted together they
-    * climb together, and the kernel picks off whichever it likes — observed as ~35 forks in one contiguous block of pids, all SIGKILLed at once.
+    * warms. A burst of spawns is therefore a burst of demand that no measurement has seen yet. Staggering starts buys the feedback loop time to see a fork's
+    * real cost before the next admission is decided on it.
     *
-    * Staggering starts costs a little latency at the head of a run and buys the feedback loop the one thing it needs: time for a fork's real cost to become
-    * visible before the next admission is decided on it.
+    * A QUARTER of the run's parallelism, at least two. Deliberately proportional rather than a fixed number: a flat constant tuned on an 18-core machine would
+    * throttle a 64-core one and over-commit a 4-core one. So a wide run staggers in wider batches, a narrow run barely staggers at all.
     */
-  val MaxConcurrentStarts: Int = 3
+  private[testing] def maxConcurrentStarts(maxConcurrency: Int): Int = math.max(2, maxConcurrency / 4)
 
   /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
     */

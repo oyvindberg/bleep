@@ -425,6 +425,23 @@ object BuildSummary {
           }
         }
 
+        // If anything died of memory — an in-JVM OutOfMemoryError, or a process the OS killed under
+        // pressure — point at the one page that explains which knobs to turn. A user staring at "Java
+        // heap space" or "killed by SIGKILL" needs to know that per-fork -Xmx, parallelism and the
+        // machine budget are all adjustable, and how they trade off.
+        val memoryRelated =
+          (testFailures ++ processErrors ++ timeouts).exists { f =>
+            val text = (f.message.getOrElse("") + " " + f.output.mkString(" ")).toLowerCase
+            text.contains("outofmemory") || text.contains("heap space") || text.contains("sigkill") || text.contains("exit 137") ||
+            text.contains("terminated before sending ready")
+          }
+        if (memoryRelated) {
+          lines += s"${C.YELLOW}${C.BOLD}A process ran out of memory or was killed under memory pressure.${C.RESET}"
+          lines += "  Adjust per-fork heap, how many run at once, or the machine budget — and how they trade off:"
+          lines += s"  ${C.CYAN}https://bleep.build/docs/usage/resource-management${C.RESET}"
+          lines += ""
+        }
+
         // Fallback: if counters show problems but no categorized failures captured
         val categorizedCount = testFailures.size + timeouts.size + cancelledTests.size + processErrors.size + buildErrors.size
         if (categorizedCount == 0 && totalProblems > 0) {

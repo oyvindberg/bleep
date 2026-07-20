@@ -35,3 +35,15 @@ class ExitAttributionTest extends AnyFunSuite with Matchers {
     d.summary should not include "kernel reclaiming"
   }
 }
+
+/** The start-stagger scales with the run, rather than being a constant tuned on one machine. */
+class MaxConcurrentStartsTest extends AnyFunSuite with Matchers {
+
+  test("a quarter of parallelism, floored at two") {
+    JvmPool.maxConcurrentStarts(64) shouldBe 16 // a big CI box staggers in wide batches
+    JvmPool.maxConcurrentStarts(18) shouldBe 4
+    JvmPool.maxConcurrentStarts(8) shouldBe 2
+    JvmPool.maxConcurrentStarts(4) shouldBe 2 // a small laptop barely staggers
+    JvmPool.maxConcurrentStarts(1) shouldBe 2
+  }
+}

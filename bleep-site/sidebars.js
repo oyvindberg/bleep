@@ -242,6 +242,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Memory & parallelism",
+          id: "usage/resource-management",
+        },
+        {
+          type: "doc",
           label: "Cross-building",
           id: "guides/cross-building",
         },
