@@ -151,14 +151,6 @@ object JvmPool {
 
   /** Describe how a forked JVM died, for the message the user actually reads.
     *
-    * On Unix a process terminated by a signal reports `128 + signal`, so 137 is SIGKILL and 139 SIGSEGV. SIGKILL matters most here: the JVM cannot log anything
-    * about its own SIGKILL, so without this the death is indistinguishable from a clean EOF — and SIGKILL on a big test fork almost always means the kernel
-    * reclaiming memory, which is exactly the hypothesis a user needs handed to them.
-    *
-    * Best-effort and non-blocking beyond a short grace period: EOF on stdout usually precedes the process table catching up by a few milliseconds.
-    */
-  /** Describe how a forked JVM died, for the message the user actually reads.
-    *
     * `killedByUs` is checked FIRST and it is the whole point. `destroyForcibly` sends SIGKILL, so a fork bleep terminated reports exit 137 identically to one
     * the kernel terminated — and an earlier version of this reported every 137 as "the kernel reclaiming memory under pressure". That was wrong for every kill
     * bleep issued itself (start-timeout, pool eviction, contention, cancellation, shutdown), and confidently wrong: it sent a long investigation into the
