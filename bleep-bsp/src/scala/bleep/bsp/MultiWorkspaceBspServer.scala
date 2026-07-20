@@ -2379,7 +2379,7 @@ class MultiWorkspaceBspServer(
     */
   private def computeDependencyAnalyses(started: Started, projectDeps: Set[CrossProjectName]): Map[Path, Path] =
     projectDeps.flatMap { dep =>
-      val depOutputDir = java.nio.file.Paths.get(started.resolvedProject(dep).classesDir.toString)
+      val depOutputDir = started.projectPaths(dep).classes
       val depTargetDir = started.buildPaths.variantBuildDir(dep)
       val depAnalysisFile = depTargetDir.resolve(".zinc").resolve("analysis.zip")
       if (java.nio.file.Files.exists(depAnalysisFile)) Some(depOutputDir -> depAnalysisFile)
@@ -3722,7 +3722,7 @@ class MultiWorkspaceBspServer(
           case _                                 => Nil
         }
         val classpath = p.classpath.map(_.toUri.toString)
-        val classDir = p.classesDir.toUri.toString
+        val classDir = started.projectPaths(crossName).classes.toUri.toString
         ScalacOptionsItem(target = targetId, options = options, classpath = classpath, classDirectory = classDir)
       }).getOrElse(
         ScalacOptionsItem(target = targetId, options = List.empty, classpath = List.empty, classDirectory = "")
@@ -3743,7 +3743,7 @@ class MultiWorkspaceBspServer(
         val baseOptions = p.language.javaOptions
         val options = maybePlugin match {
           case Some(pluginPath) =>
-            val sdOpts = javaSemanticdbOptions(pluginPath, started.buildPaths.buildDir, p.classesDir)
+            val sdOpts = javaSemanticdbOptions(pluginPath, started.buildPaths.buildDir, started.projectPaths(crossName).classes)
             sdOpts ::: baseOptions
           case None => baseOptions
         }
@@ -3754,7 +3754,7 @@ class MultiWorkspaceBspServer(
             else pluginUri :: p.classpath.map(_.toUri.toString)
           case None => p.classpath.map(_.toUri.toString)
         }
-        val classDir = p.classesDir.toUri.toString
+        val classDir = started.projectPaths(crossName).classes.toUri.toString
         JavacOptionsItem(target = targetId, options = options, classpath = classpath, classDirectory = classDir)
       }).getOrElse(
         JavacOptionsItem(target = targetId, options = List.empty, classpath = List.empty, classDirectory = "")
@@ -3830,7 +3830,7 @@ class MultiWorkspaceBspServer(
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield {
-        val classesDir = resolved.forceGet.classesDir
+        val classesDir = started.projectPaths(crossName).classes
         List(
           OutputPathItem(
             uri = Uri(Paths.get(classesDir.toString).toUri),
@@ -3918,7 +3918,7 @@ class MultiWorkspaceBspServer(
         resolved <- started.resolvedProjects.get(crossName)
       } {
         BspMetrics.recordCleanCache(crossName.value)
-        val classesDir = Paths.get(resolved.forceGet.classesDir.toString)
+        val classesDir = started.projectPaths(crossName).classes
 
         // Take the same exclusive lock a compile takes. Deleting `classes` and `.zinc` unlocked
         // races a compile or test on another connection that is reading them right now.

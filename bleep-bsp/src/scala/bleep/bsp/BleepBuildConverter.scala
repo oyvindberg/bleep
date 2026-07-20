@@ -32,7 +32,12 @@ object BleepBuildConverter {
   ): ProjectConfig = {
     val sources = resolved.sources.map(p => Paths.get(p.toString)).toSet
     val classpath = resolved.classpath.map(p => Paths.get(p.toString)).toSeq
-    val outputDir = Paths.get(resolved.classesDir.toString)
+    // BuildPaths is the single authority for where a project's output lives. `resolved.classesDir`
+    // normally says the same thing — ResolveProjects fills it from BuildPaths — but it arrives over
+    // the wire from the client, while the analysis dir below, the compile lock, test discovery and
+    // the test classpath are all derived locally from BuildPaths. Deriving output from the other
+    // source would mean compiling into one directory and looking for the results in another.
+    val outputDir = started.projectPaths(crossName).classes
 
     // Get explicit configs from bleep model (if defined)
     val bleepProject = started.build.explodedProjects.get(crossName)
@@ -196,9 +201,7 @@ object BleepBuildConverter {
           val resolved =
             if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName) else started.build.explodedProjects.keys.find(_.name == depName)
           resolved.flatMap { cn =>
-            started.resolvedProjects.get(cn).flatMap { lazyResolved =>
-              scala.util.Try(lazyResolved.forceGet).toOption.map(_.classesDir.toString)
-            }
+            if (started.resolvedProjects.contains(cn)) Some(started.projectPaths(cn).classes.toString) else None
           }
         }.toList
       case None =>
