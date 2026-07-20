@@ -35,13 +35,21 @@ object SourceGenRunner {
     if (kept.isEmpty) None else Some(kept.mkString("\n"))
   }
 
-  /** On Unix a signal death is the whole story, and for a sourcegen fork it is usually the same story as everywhere else in this build: the OS reclaiming
-    * memory.
+  /** Describe a signal death WITHOUT claiming to know who sent it.
+    *
+    * This used to assert "sent by the OS, not by the script or by bleep ... almost always the kernel reclaiming memory under pressure". That was wrong, and
+    * confidently wrong: the actual killer was bleep's own daemon-wide `killAllChildProcesses`, reaping other clients' forks on any disconnect. A user measured
+    * the victim at a flat 160MB RSS with 8GB free while the message insisted it was memory pressure.
+    *
+    * SIGKILL is not attributable from the signal alone — bleep's own `destroyForcibly` and the kernel's OOM killer are indistinguishable at this level. So
+    * state what is known, list the candidates, and let the reader check rather than sending them somewhere specific on our guess.
     */
   private[bsp] def describeSignal(signal: Int): String =
     signal match {
       case 9 =>
-        "killed by SIGKILL — sent by the OS, not by the script or by bleep; on a forked JVM this is almost always the kernel reclaiming memory under pressure"
+        "killed by SIGKILL — something outside the script terminated it. SIGKILL carries no attribution, so the candidates are: the OS reclaiming memory " +
+          "(check the system log for a memory-pressure kill), another process killing it, or bleep itself. If the fork was small and the machine had memory " +
+          "free, it was not an OOM"
       case 11    => "killed by SIGSEGV — the JVM crashed; look for an hs_err_pid*.log"
       case other => s"killed by signal $other"
     }
