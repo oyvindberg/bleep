@@ -181,13 +181,18 @@ object ProjectDigest {
   private def hashFilesystem(md: MessageDigest, dir: Path): Unit = {
     val files = scala.util
       .Using(Files.walk(dir)) { stream =>
-        stream.toScala(List).filter(Files.isRegularFile(_)).sorted
+        stream.toScala(List).filter(Files.isRegularFile(_))
       }
       .getOrElse(Nil)
+      // Normalize to '/' so the digest matches git ls-tree's representation across OSes, and sort by that normalized string rather than by `Path`.
+      // `Path.compareTo` is case-insensitive on Windows and byte-wise on Unix, so sorting Paths fed the digest in a different order per OS — and in a
+      // different order than [[gitLsTree]], which sorts these very same strings. A digest that depends on the OS is not portable across machines, which is the
+      // whole point of it. Unix ordering is unchanged (comparing full paths that share a prefix is equivalent to comparing the relative parts), so only the
+      // previously-wrong Windows digests move.
+      .map(file => (dir.relativize(file).toString.replace('\\', '/'), file))
+      .sortBy { case (relPath, _) => relPath }
 
-    files.foreach { file =>
-      // Normalize to '/' so the digest matches git ls-tree's representation across OSes.
-      val relPath = dir.relativize(file).toString.replace('\\', '/')
+    files.foreach { case (relPath, file) =>
       val content = Files.readAllBytes(file)
       val blobHash = gitBlobHash(content)
       md.update(relPath.getBytes("UTF-8"))

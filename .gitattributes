@@ -1,0 +1,15 @@
+# Windows checkouts default to core.autocrlf=true, which rewrites LF to CRLF in the working tree. Bleep is a cross-platform build tool whose tests compare
+# generated text against literals and hash fixtures byte-for-byte, so a CRLF working tree silently changes results on Windows only. Normalize everything to LF
+# on every platform instead.
+#
+# Two concrete failures this fixes, both invisible until the Windows CI job stopped swallowing test failures:
+#   * BuildRewriteTest compared `yaml.encodeShortened` output (correctly LF) against `stripMargin` literals in a .scala source that git had given CRLF.
+#   * ChecksumTests hashes a .pom and compares against checked-in .sha1/.md5; with CRLF the pom hashed to 14b5269f… instead of c47391f7…
+* text=auto eol=lf
+
+# Fixtures whose bytes are the thing under test — never touch them at all.
+bleep-tests/src/resources/** -text
+
+# Batch files are the one place CRLF genuinely matters to the interpreter.
+*.bat text eol=crlf
+*.cmd text eol=crlf

@@ -33,10 +33,15 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     dir
   }
 
+  /** `Files.list` is wrapped in `Using` because the stream holds an open directory handle, and Windows refuses to delete a directory that anyone still has
+    * open. The read-only clear is for git: `git init` + `git commit` writes loose objects under `.git/objects` with the read-only attribute set, and on Windows
+    * `Files.delete` honours that and throws AccessDeniedException. POSIX only consults the parent directory's permissions, so this went unnoticed.
+    */
   private def deleteRecursively(path: Path): Unit =
     if (Files.exists(path)) {
       if (Files.isDirectory(path))
-        Files.list(path).toScala(List).foreach(deleteRecursively)
+        scala.util.Using(Files.list(path))(_.toScala(List)).get.foreach(deleteRecursively)
+      else path.toFile.setWritable(true).discard()
       Files.delete(path)
     }
 

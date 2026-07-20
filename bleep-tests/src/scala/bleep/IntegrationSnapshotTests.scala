@@ -3,7 +3,6 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.testing.{BloopConversions, GenBloopFiles, SnapshotTest}
 import bloop.config.Config
-import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.Assertion
 
@@ -15,6 +14,41 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 class IntegrationSnapshotTests extends SnapshotTest {
   absolutePaths.sortedValues.foreach(println)
   val userPaths = UserPaths.fromAppDirs
+
+  /** [[absolutePaths]] with the machine-specific side normalized to `/`, so filling a placeholder never introduces a backslash.
+    *
+    * `bloopFileStrings` holds whole bloop JSON documents as JSON strings, so a filled value is spliced into text that is itself parsed as JSON later. On
+    * Windows the raw `D:\a\bleep\bleep` turned `"directory": "<BLEEP_GIT>/..."` into `"directory": "D:\a\bleep\bleep/..."`, where `\a` and `\b` are not valid
+    * JSON escapes — jsoniter then failed with `expected '}' or ','`. Forward slashes are accepted everywhere: `Path.of("D:/a/b")` is a normal Windows path.
+    *
+    * No-op on Unix, where these values contain no backslashes to begin with. Only `fill` is affected; `templatize` still needs the platform's real spelling to
+    * match, though regenerating snapshots on Windows has a separate unfixed problem (`Replacements.Replacer.path` calls `Path.of` on a templated string).
+    */
+  private val fillPaths: model.Replacements =
+    model.Replacements.ofReplacements(absolutePaths.sortedValues.map { case (abs, placeholder) => (abs.replace('\\', '/'), placeholder) })
+
+  /** Substitute `<BLEEP_GIT>`-style placeholders into the parsed snapshot JSON, before it is decoded into [[sbtimport.ImportInputData]].
+    *
+    * `ImportInputData` decodes many fields to `java.nio.file.Path`, so decoding first and substituting afterwards only ever worked by accident: `<` is a legal
+    * filename character on Unix, so the intermediate `Path.of("<BLEEP_GIT>/...")` was nonsense but legal. Windows rejects `<` outright, so decoding threw
+    * InvalidPathException and every snapshot test failed before it could read its input at all.
+    *
+    * Done on the parsed AST rather than the raw text on purpose: splicing into the text would corrupt JSON string escapes. `contents` of a `GeneratedFile` is
+    * skipped to preserve the previous `replace(fill, rewriteGeneratedFiles = false)` semantics — those stay templatized on read.
+    */
+  private def fillPlaceholders(json: io.circe.Json): io.circe.Json = {
+    import io.circe.Json
+    def go(json: Json, fillStrings: Boolean): Json =
+      json.fold(
+        Json.Null,
+        Json.fromBoolean,
+        Json.fromJsonNumber,
+        str => if (fillStrings) Json.fromString(fillPaths.fill.string(str)) else json,
+        arr => Json.fromValues(arr.map(go(_, fillStrings))),
+        obj => Json.fromFields(obj.toIterable.map { case (k, v) => (fillPaths.fill.string(k), go(v, fillStrings && k != "contents")) })
+      )
+    go(json, fillStrings = true)
+  }
 
   // picked because it exists for apple arm64, and is old
   private val jvm8: model.Jvm = model.Jvm("liberica:8.0.452", None)
@@ -143,9 +177,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
         )
         inputData
       } else {
-        decode[sbtimport.ImportInputData](new String(FileUtils.readGzippedBytes(inputDataPath), StandardCharsets.UTF_8)) match {
+        val jsonText = new String(FileUtils.readGzippedBytes(inputDataPath), StandardCharsets.UTF_8)
+        io.circe.parser.parse(jsonText).flatMap(json => fillPlaceholders(json).as[sbtimport.ImportInputData]) match {
           case Left(circeError) => throw new BleepException.InvalidJson(inputDataPath, circeError)
-          case Right(inputData) => inputData.replace(absolutePaths.fill, rewriteGeneratedFiles = false)
+          case Right(inputData) => inputData
         }
       }
 

@@ -184,6 +184,17 @@ object runSbt {
     val b = Map.newBuilder[Path, List[String]]
     var i = 0
 
+    /** sbt writes the build's location as a `file:` URL, and inconsistently: `In file:/x/y/` for the root build but `In file:///x/y/` for sub-builds. This used
+      * to be `line.split(":").last`, which handed `///x/y/` straight to `Path.of`. Unix collapses the leading slashes, Windows reads `//` as the start of a UNC
+      * path and produced `\\x\y` (server `x`, share `y`) — a different key than the same build reached via the other spelling. Take everything after the marker
+      * (so a `C:` drive letter survives too) and collapse the leading slash run to one.
+      */
+    def parseInFilePath(line: String): String = {
+      val marker = "In file:"
+      val rest = line.substring(line.indexOf(marker) + marker.length).trim
+      if (rest.startsWith("/")) "/" + rest.dropWhile(_ == '/') else rest
+    }
+
     def commit() = {
       currentPath match {
         case Some(currentPath) => b += ((currentPath, projectNames.result()))
@@ -198,7 +209,7 @@ object runSbt {
       if (line.contains("In file:")) {
         commit()
         // store next build file found
-        currentPath = Some(Path.of(line.split(":").last.trim))
+        currentPath = Some(Path.of(parseInFilePath(line)))
       } else if (currentPath.isDefined) {
         line.split("\\s+") match {
           case Array(_, name) if !name.contains("**") => projectNames += name

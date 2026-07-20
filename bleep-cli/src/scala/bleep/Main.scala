@@ -906,6 +906,21 @@ object Main {
         }
     }
 
+  /** `NativeTerminal.setupAnsi()` in [[_main]] only reaches kernel32 when stdout is a real console, and no CI runner is one — GitHub Actions redirects stdout
+    * to a pipe. So the whole FFM path went untested on Windows, and we shipped native images with no `foreign` downcall metadata for kernel32: every Windows
+    * user crashed on their first command with MissingForeignRegistrationError (#601) while CI stayed green. Reach kernel32 unconditionally from `selftest`,
+    * which the Windows CI job does run, so the downcalls have to link.
+    *
+    * `getSize` rather than `setupAnsi` because it has no error path: it calls `GetStdHandle` (the exact downcall that crashed in #601) and
+    * `GetConsoleScreenBufferInfo`, discards the return code, and reads whatever the struct holds — off a pipe that is a harmless 0x0. `setupAnsi` would be the
+    * more faithful reproduction, but off a pipe `GetConsoleMode` fails and the error path runs into a bug in native-terminal 0.0.9.1: `FormatMessageW`'s
+    * descriptor is built with `FunctionDescriptor.of(C_INT, ...)` yet invoked as `invokeExact(...)V`, so `getLastErrorMessage` throws WrongMethodTypeException
+    * on any JVM. Real users have a real console, `GetConsoleMode` succeeds, and that path never runs — so it does not affect #601.
+    */
+  private def selftestWindowsKernel32(): Unit =
+    if (Properties.isWin)
+      println(s"kernel32 console size: ${io.github.alexarchambault.nativeterm.internal.WindowsTerm.getSize()}")
+
   def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
@@ -944,6 +959,7 @@ object Main {
         FileWatching(logger, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         // verify TerminalSizeCache initialization works (SIGWINCH doesn't exist on Windows)
         BspClientDisplayProgress(logger).discard()
+        selftestWindowsKernel32()
         println("OK")
         ExitCode.Success
 

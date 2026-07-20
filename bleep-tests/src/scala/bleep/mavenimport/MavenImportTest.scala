@@ -4,9 +4,17 @@ import bleep.model
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 
 class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
+
+  /** The POMs below hardcode a POSIX `/tmp/test-maven` build directory, but the tests that go on to call `buildFromMavenPom` relativize it against a real
+    * `Files.createTempDirectory` build dir. On Windows `Path.of("/tmp/test-maven").toAbsolutePath` is drive-relative and binds to the current drive (`D:` on
+    * CI) while the temp dir lives on `C:`, so `WindowsPath.relativize` rejects the pair with `'other' has different root`. Point the POM at the actual temp dir
+    * so both sides share a root on every OS. Forward slashes throughout — `Path.of("C:/x/y")` is fine on Windows, and it keeps the XML free of escapes.
+    */
+  private def pomIn(xml: String, tempDir: Path): String =
+    xml.replace("/tmp/test-maven", tempDir.toString.replace('\\', '/'))
 
   test("parse single-module effective POM") {
     val xml = """<?xml version="1.0" encoding="UTF-8"?>
@@ -195,7 +203,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     val tempDir = Files.createTempDirectory("test-maven")
     try {
-      Files.writeString(tempFile, xml)
+      Files.writeString(tempFile, pomIn(xml, tempDir))
       val mavenProjects = parsePom(tempFile)
 
       val build = buildFromMavenPom(
@@ -253,7 +261,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     val tempDir = Files.createTempDirectory("test-maven")
     try {
-      Files.writeString(tempFile, xml)
+      Files.writeString(tempFile, pomIn(xml, tempDir))
       val mavenProjects = parsePom(tempFile)
 
       val build = buildFromMavenPom(
@@ -317,7 +325,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     val tempDir = Files.createTempDirectory("test-maven")
     try {
-      Files.writeString(tempFile, xml)
+      Files.writeString(tempFile, pomIn(xml, tempDir))
       val mavenProjects = parsePom(tempFile)
 
       val build = buildFromMavenPom(
@@ -372,7 +380,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     val tempDir = Files.createTempDirectory("test-maven")
     try {
-      Files.writeString(tempFile, xml)
+      Files.writeString(tempFile, pomIn(xml, tempDir))
       val mavenProjects = parsePom(tempFile)
 
       val build = buildFromMavenPom(
