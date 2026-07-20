@@ -71,7 +71,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -128,7 +127,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -175,7 +173,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -228,7 +225,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -281,7 +277,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
           name = "kotlinproject",
           sources = Set(workspace.resolve("src")),
           classpath = kotlinLibraryClasspath("2.3.0"),
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = KotlinConfig(version = "2.3.0"),
           dependsOn = Set.empty,
           isTest = false
@@ -337,7 +332,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -402,7 +396,6 @@ class BspRunIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false

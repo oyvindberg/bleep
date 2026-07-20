@@ -30,7 +30,10 @@ object BspTestBuild {
       $version = model.BleepVersion.current,
       explodedProjects = projects,
       resolvers = model.JsonList.empty,
-      jvm = None,
+      // The server forces `Prebootstrapped.resolvedJvm`, which reads through this. Leaving it None
+      // means Jvm.system, and coursier reports "No system JVM found" in the test process. Naming the
+      // JVM this repo builds with costs nothing — it is already in the coursier cache.
+      jvm = Some(model.Jvm.graalvm),
       scripts = Map.empty,
       remoteCache = None
     )

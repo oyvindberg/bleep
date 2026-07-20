@@ -52,7 +52,6 @@ class BspDiagnosticResetIntegrationTest extends AnyFunSuite with Matchers with T
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -131,7 +130,6 @@ class BspDiagnosticResetIntegrationTest extends AnyFunSuite with Matchers with T
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -179,7 +177,6 @@ class BspDiagnosticResetIntegrationTest extends AnyFunSuite with Matchers with T
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
