@@ -80,7 +80,6 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
         val config = BspTestHarness.ProjectConfig.scala(
           name = "hugeproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           classpath = scalaLibraryClasspath("3.7.4"),
           isTest = false
@@ -115,7 +114,6 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
         val config = BspTestHarness.ProjectConfig.scala(
           name = "recompileproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           classpath = scalaLibraryClasspath("3.7.4"),
           isTest = false
@@ -166,7 +164,6 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
         val config = BspTestHarness.ProjectConfig.scala(
           name = "immediatecancel",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           classpath = scalaLibraryClasspath("3.7.4"),
           isTest = false

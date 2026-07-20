@@ -73,7 +73,6 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
           name = "testproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false

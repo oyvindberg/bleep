@@ -2,6 +2,7 @@ package bleep.analysis
 
 import bleep.bsp._
 import ch.epfl.scala.bsp._
+import ryddig.{LogPatterns, Loggers}
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
 import java.io.{PipedInputStream, PipedOutputStream}
@@ -56,7 +57,6 @@ object BspTestHarness {
       name: String,
       sources: Set[Path],
       classpath: List[Path],
-      outputDir: Path,
       languageConfig: LanguageConfig,
       dependsOn: Set[String],
       isTest: Boolean,
@@ -69,7 +69,6 @@ object BspTestHarness {
     def scala(
         name: String,
         sources: Set[Path],
-        outputDir: Path,
         scalaVersion: String,
         classpath: List[Path],
         isTest: Boolean
@@ -78,7 +77,6 @@ object BspTestHarness {
         name = name,
         sources = sources,
         classpath = classpath,
-        outputDir = outputDir,
         languageConfig = ScalaConfig(scalaVersion, Nil),
         dependsOn = Set.empty,
         isTest = isTest
@@ -88,7 +86,6 @@ object BspTestHarness {
     def scalaJs(
         name: String,
         sources: Set[Path],
-        outputDir: Path,
         scalaVersion: String,
         sjsVersion: String,
         classpath: List[Path],
@@ -98,7 +95,6 @@ object BspTestHarness {
         name = name,
         sources = sources,
         classpath = classpath,
-        outputDir = outputDir,
         languageConfig = ScalaConfig(scalaVersion, Nil),
         dependsOn = Set.empty,
         isTest = isTest,
@@ -109,7 +105,6 @@ object BspTestHarness {
     def scalaNative(
         name: String,
         sources: Set[Path],
-        outputDir: Path,
         scalaVersion: String,
         snVersion: String,
         classpath: List[Path],
@@ -119,7 +114,6 @@ object BspTestHarness {
         name = name,
         sources = sources,
         classpath = classpath,
-        outputDir = outputDir,
         languageConfig = ScalaConfig(scalaVersion, Nil),
         dependsOn = Set.empty,
         isTest = isTest,
@@ -202,31 +196,22 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     val serverToClient = new PipedOutputStream()
     val clientInput = new PipedInputStream(serverToClient, 65536)
 
-    // Start server in background thread
-    val server = new BspServer(serverInput, serverToClient, workspaceRoot, PlatformTestHelper.nodeBinary)
+    // The production server. It has no way to be handed build state directly — it compiles the
+    // build its client sends — so the configs are lowered into the same payload a real bleep
+    // client would send, and delivered through build/initialize below.
+    val server = new MultiWorkspaceBspServer(
+      serverInput,
+      serverToClient,
+      Loggers.stderr(LogPatterns.logFile),
+      machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
+      heapMonitor = HeapMonitor.system,
+      // One server per harness, so fresh daemon-scoped state is the right scope here.
+      kspMutexes = new KspMutexes,
+      buildCache = new BuildCache
+    )
 
-    // Configure build state if project configs provided
-    projectConfigs.foreach { configs =>
-      val buildLoader = server.getBuildLoader
-      val buildState = if (configs.size == 1) {
-        val cfg = configs.head
-        buildLoader.loadSimpleBuild(
-          projectName = cfg.name,
-          sources = cfg.sources,
-          classpath = cfg.classpath,
-          outputDir = cfg.outputDir,
-          languageConfig = cfg.languageConfig,
-          isTest = cfg.isTest,
-          platform = cfg.platform
-        )
-      } else {
-        val configTuples = configs.map { cfg =>
-          (cfg.name, cfg.sources, cfg.classpath, cfg.outputDir, cfg.languageConfig, cfg.dependsOn, cfg.isTest, cfg.platform)
-        }
-        buildLoader.loadBuild(configTuples)
-      }
-      server.setBuildState(buildState)
-    }
+    val buildPayload: Option[BspBuildData.Payload] =
+      projectConfigs.map(configs => BspTestBuild.payload(workspaceRoot, configs))
 
     val serverThread = new Thread(
       { () =>
@@ -242,7 +227,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     serverThread.setDaemon(true)
     serverThread.start()
 
-    val client = new BspClientImpl(clientInput, clientToServer)
+    val client = new BspClientImpl(clientInput, clientToServer, buildPayload)
 
     try f(client)
     finally {
@@ -260,7 +245,8 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
 
   private class BspClientImpl(
       in: PipedInputStream,
-      out: PipedOutputStream
+      out: PipedOutputStream,
+      buildPayload: Option[BspBuildData.Payload]
   ) extends BspClient {
 
     private val requestId = AtomicInteger(0)
@@ -560,8 +546,11 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
           languageIds = List("scala", "java", "kotlin"),
           jvmCompileClasspathReceiver = Some(true)
         ),
-        dataKind = None,
-        data = None
+        dataKind = buildPayload.map(_ => BspBuildData.DataKind),
+        data = buildPayload.map { payload =>
+          // Same shape a real client sends: nested under DataField so IDE settings can sit beside it.
+          RawJson(io.circe.Json.obj(BspBuildData.DataField -> io.circe.syntax.EncoderOps(payload).asJson).noSpaces.getBytes("UTF-8"))
+        }
       )
 
       val result = sendRequest[InitializeBuildParams, InitializeBuildResult]("build/initialize", params)

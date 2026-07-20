@@ -71,7 +71,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -118,7 +117,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -168,7 +166,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "javaproject",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(release = Some(11)),
           dependsOn = Set.empty,
           isTest = false
@@ -208,7 +205,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -251,7 +247,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -307,7 +302,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -348,7 +342,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "kotlinproject",
           sources = Set(workspace.resolve("src")),
           classpath = kotlinLibraryClasspath("2.3.0"),
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = KotlinConfig(version = "2.3.0"),
           dependsOn = Set.empty,
           isTest = false
@@ -389,7 +382,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "kotlinproject",
           sources = Set(workspace.resolve("src")),
           classpath = kotlinLibraryClasspath("2.3.0"),
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = KotlinConfig(version = "2.3.0"),
           dependsOn = Set.empty,
           isTest = false
@@ -431,7 +423,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -483,7 +474,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -528,7 +518,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scalaproject",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -581,7 +570,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "lib",
           sources = Set(workspace.resolve("lib/src")),
           classpath = scalaLibraryClasspath("3.3.3"),
-          outputDir = workspace.resolve("lib/target/classes"),
           languageConfig = ScalaConfig("3.3.3", Nil),
           dependsOn = Set.empty,
           isTest = false
@@ -592,7 +580,6 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           sources = Set(workspace.resolve("app/src")),
           // App needs lib's output on classpath to compile
           classpath = workspace.resolve("lib/target/classes") :: scalaLibraryClasspath("3.3.3"),
-          outputDir = workspace.resolve("app/target/classes"),
           languageConfig = ScalaConfig("3.3.3", Nil),
           dependsOn = Set("lib"),
           isTest = false

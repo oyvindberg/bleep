@@ -63,7 +63,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           name = "jvm-test-project",
           sources = Set(workspace.resolve("src")),
           classpath = classpath,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = ScalaConfig("3.7.4", Nil),
           dependsOn = Set.empty,
           isTest = true,
@@ -108,7 +107,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
         val config = BspTestHarness.ProjectConfig.scalaJs(
           name = "scalajs-test-project",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           sjsVersion = "1.16.0",
           classpath = classpath,
@@ -157,7 +155,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
         val config = BspTestHarness.ProjectConfig.scalaNative(
           name = "scalanative-test-project",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           snVersion = "0.5.6",
           classpath = classpath,
@@ -222,7 +219,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           name = "jvm-lib",
           sources = Set(jvmSrcDir),
           classpath = classpath,
-          outputDir = workspace.resolve("target/jvm/classes"),
           languageConfig = ScalaConfig("3.7.4", Nil),
           dependsOn = Set.empty,
           isTest = false,
@@ -233,7 +229,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           name = "js-lib",
           sources = Set(jsSrcDir),
           classpath = classpath,
-          outputDir = workspace.resolve("target/js/classes"),
           languageConfig = ScalaConfig("3.7.4", Nil),
           dependsOn = Set.empty,
           isTest = false,
@@ -275,7 +270,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
         val config = BspTestHarness.ProjectConfig.scala(
           name = "default-platform",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.7.4",
           classpath = classpath,
           isTest = false

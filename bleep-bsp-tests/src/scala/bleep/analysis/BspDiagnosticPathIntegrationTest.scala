@@ -92,7 +92,6 @@ class BspDiagnosticPathIntegrationTest extends AnyFunSuite with Matchers with Ti
           name = "java-diag-test",
           sources = Set(workspace.resolve("src")),
           classpath = Nil,
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = JavaConfig(),
           dependsOn = Set.empty,
           isTest = false
@@ -169,7 +168,6 @@ class BspDiagnosticPathIntegrationTest extends AnyFunSuite with Matchers with Ti
         val config = BspTestHarness.ProjectConfig.scala(
           name = "scala-diag-test",
           sources = Set(workspace.resolve("src")),
-          outputDir = workspace.resolve("target/classes"),
           scalaVersion = "3.3.3",
           classpath = scalaLibraryClasspath("3.3.3"),
           isTest = false
@@ -243,7 +241,6 @@ class BspDiagnosticPathIntegrationTest extends AnyFunSuite with Matchers with Ti
           name = "kotlin-diag-test",
           sources = Set(workspace.resolve("src")),
           classpath = kotlinLibraryClasspath("2.3.0"),
-          outputDir = workspace.resolve("target/classes"),
           languageConfig = KotlinConfig("2.3.0"),
           dependsOn = Set.empty,
           isTest = false
