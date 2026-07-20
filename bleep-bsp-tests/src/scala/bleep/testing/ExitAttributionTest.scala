@@ -1,0 +1,37 @@
+package bleep.testing
+
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
+
+/** Attribution of a forked JVM's death.
+  *
+  * Regression for a misdiagnosis that drove a long investigation in the wrong direction. `destroyForcibly` sends SIGKILL, so a fork bleep terminated reports
+  * exit 137 identically to one the kernel terminated — and reporting every 137 as "the kernel reclaiming memory under pressure" was confidently wrong for every
+  * kill bleep issued itself: start-timeout, pool eviction, contention, cancellation, shutdown. Checked afterwards against the OS log, which had recorded no
+  * memory kills at all during a run where 35 forks supposedly died of memory pressure.
+  */
+class ExitAttributionTest extends AnyFunSuite with Matchers {
+
+  private def deadProcess(): Process = {
+    val p = new ProcessBuilder("/bin/sh", "-c", "exit 0").start()
+    p.waitFor()
+    p
+  }
+
+  test("a kill bleep issued is reported as bleep's, with the reason, and never blamed on the OS") {
+    val d = JvmPool.describeExit(deadProcess(), killedByUs = Some("bleep: evicted from pool to free memory for a new fork"))
+    d.summary should include("terminated by bleep")
+    d.summary should include("evicted from pool")
+    d.summary should not include "SIGKILL"
+    d.detail.getOrElse("") should include("not the OS")
+  }
+
+  test("an unexplained death is described by its exit status, not by a guess at the cause") {
+    val d = JvmPool.describeExit(deadProcess(), killedByUs = None)
+    d.summary should include("exited 0")
+    d.summary should not include "terminated by bleep"
+    // The one case where blaming something external is sound must still invite verification rather
+    // than assert a cause — asserting it is what cost us a day.
+    d.summary should not include "kernel reclaiming"
+  }
+}

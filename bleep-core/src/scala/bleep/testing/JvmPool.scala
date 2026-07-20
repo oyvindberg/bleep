@@ -157,24 +157,40 @@ object JvmPool {
     *
     * Best-effort and non-blocking beyond a short grace period: EOF on stdout usually precedes the process table catching up by a few milliseconds.
     */
-  private[testing] def describeExit(process: Process): ExitDescription = {
+  /** Describe how a forked JVM died, for the message the user actually reads.
+    *
+    * `killedByUs` is checked FIRST and it is the whole point. `destroyForcibly` sends SIGKILL, so a fork bleep terminated reports exit 137 identically to one the
+    * kernel terminated — and an earlier version of this reported every 137 as "the kernel reclaiming memory under pressure". That was wrong for every kill bleep
+    * issued itself (start-timeout, pool eviction, contention, cancellation, shutdown), and confidently wrong: it sent a long investigation into the memory
+    * subsystem chasing failures bleep was causing. Verified afterwards against the OS's own log, which had recorded no memory kills at all during a run where 35
+    * forks "died of memory pressure".
+    *
+    * Only when nothing in bleep killed it is an external cause a sound conclusion, and even then it is offered as the likely explanation rather than asserted.
+    */
+  private[testing] def describeExit(process: Process, killedByUs: Option[String]): ExitDescription = {
     val exited = process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
-    if (!exited) ExitDescription("EOF on stdout, process still alive", Some("The JVM closed stdout but has not exited — it may be wedged rather than dead."))
-    else
-      process.exitValue() match {
-        case 0   => ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
-        case 137 =>
-          ExitDescription(
-            "killed by SIGKILL (exit 137)",
-            Some(
-              "SIGKILL is sent by the OS, not by the JVM or by bleep — on a test fork this is almost always the kernel reclaiming memory under pressure. " +
-                "Lower this project's test -Xmx so each fork asks for less; the server sizes how many run at once from what the machine can currently spare."
-            )
-          )
-        case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
-        case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code)", None)
-        case code               => ExitDescription(s"exited with code $code", None)
-      }
+    killedByUs match {
+      case Some(reason) =>
+        ExitDescription(s"terminated by bleep ($reason)", Some("This was not the OS: bleep terminated this process itself, for the reason above."))
+      case None =>
+        if (!exited)
+          ExitDescription("EOF on stdout, process still alive", Some("The JVM closed stdout but has not exited — it may be wedged rather than dead."))
+        else
+          process.exitValue() match {
+            case 0 => ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
+            case 137 =>
+              ExitDescription(
+                "killed by SIGKILL (exit 137), not by bleep",
+                Some(
+                  "Nothing in bleep terminated this process, so it was killed from outside — most likely the OS reclaiming memory. " +
+                    "Check the system log for memory-pressure kills before assuming so; if there are none, look for another external killer."
+                )
+              )
+            case 139                => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
+            case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code), not by bleep", None)
+            case code               => ExitDescription(s"exited with code $code", None)
+          }
+    }
   }
 
   /** Key for pooling JVMs */
@@ -307,7 +323,17 @@ object JvmPool {
       } catch { case NonFatal(_) => Nil }
     }
 
-    def kill(): Unit = {
+    /** Set when WE terminate this process, with why. `None` means nothing in bleep killed it, which is the only case where an external cause — the OS — is a
+      * sound conclusion.
+      *
+      * Without this the two are indistinguishable after the fact: `destroyForcibly` sends SIGKILL, so a fork we killed reports exit 137 exactly like one the
+      * kernel killed. Reporting all of them as OS memory pressure sent a long investigation into the memory subsystem for failures bleep was causing itself.
+      */
+    @volatile private var _killedByUs: Option[String] = None
+    def killedByUs: Option[String] = _killedByUs
+
+    def kill(reason: String): Unit = {
+      if (_killedByUs.isEmpty) _killedByUs = Some(reason)
       alive = false
       try
         stdin.close()
@@ -413,8 +439,8 @@ object JvmPool {
       * the measurement has to happen while the process still exists, and releasing before the kill would let a waiter be granted memory this process has not
       * actually surrendered yet.
       */
-    private def destroy(jvm: ManagedJvm): IO[Unit] =
-      observeCost(jvm).attempt >> IO(jvm.kill()).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+    private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
+      observeCost(jvm).attempt >> IO(jvm.kill(destroyReason)).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
 
     /** Record what this fork actually cost the machine, for the benefit of the next one of its kind.
       *
@@ -444,7 +470,7 @@ object JvmPool {
           }
         }
         .flatMap {
-          case Some(idle) => destroy(idle).as(true)
+          case Some(idle) => destroy(idle, "bleep: evicted from pool to free memory for a new fork").as(true)
           case None       => IO.pure(false)
         }
 
@@ -490,7 +516,7 @@ object JvmPool {
             // JVM died while idle in the pool. `destroy` (not just untracking) so its memory
             // reservation goes back to the governor — otherwise a dead process's footprint would be
             // charged for the rest of the server's life.
-            destroy(dead) >> spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
+            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
           case None =>
             spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
         }
@@ -592,7 +618,7 @@ object JvmPool {
           // print Ready never ran a line of test code, and with no stderr the exit status is the
           // only evidence there is. Saying "exit code 137" without naming SIGKILL left the most
           // common startup failure — the OS refusing to back a new JVM — looking like a bleep bug.
-          val exit = JvmPool.describeExit(jvm.process)
+          val exit = JvmPool.describeExit(jvm.process, jvm.killedByUs)
           val stderrPart = if (stderrOutput.nonEmpty) s" Stderr:\n$stderrOutput" else " (no stderr output)"
           val detailPart = exit.detail.fold("")(d => s" $d")
           throw new IOException(s"JVM process (pid=$pid) terminated before sending Ready — ${exit.summary}.$detailPart$stderrPart")
@@ -605,7 +631,10 @@ object JvmPool {
             throw new IOException(s"Failed to decode response: $err, line: $line")
         }
       }.timeout(30.seconds)
-        .onError { case _ => IO(jvm.kill()) }
+        // A slow start is not a dead JVM. Under load — 18 cores saturated, dozens of JVMs paging in a
+        // large classpath — reaching Ready can legitimately take a while, and killing at 30s turned
+        // "this machine is busy" into a SIGKILL we then blamed on the OS.
+        .onError { case _ => IO(jvm.kill("bleep: no Ready handshake within the startup timeout")) }
 
     override def shutdown: IO[Unit] =
       // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
@@ -624,7 +653,7 @@ object JvmPool {
           // Give them a moment to shutdown gracefully
           _ <- IO.sleep(500.millis)
           _ <- IO.blocking {
-            jvms.foreach(_.kill())
+            jvms.foreach(_.kill("bleep: pool shutdown"))
           }
           _ <- allJvms.set(Set.empty)
           _ <- IO(pool.clear())
@@ -648,7 +677,7 @@ object JvmPool {
     private def release(jvm: ManagedJvm): IO[Unit] =
       if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
         machine.isContended.flatMap {
-          case true  => destroy(jvm)
+          case true  => destroy(jvm, "bleep: not pooled because the machine is contended")
           case false =>
             for {
               queue <- IO(
@@ -664,7 +693,7 @@ object JvmPool {
         }
       } else {
         // Dead or protocol-dirty JVM — kill it and return its memory.
-        destroy(jvm)
+        destroy(jvm, "bleep: JVM unhealthy or protocol-dirty after its suite")
       }
 
     private class TestJvmImpl(jvm: ManagedJvm) extends TestJvm {
@@ -719,7 +748,7 @@ object JvmPool {
               // same whether the JVM exited, crashed, or was killed by the OS. The exit status
               // distinguishes them, and an externally-signalled death (128+signal, so 137 = SIGKILL)
               // is the fingerprint of the kernel reclaiming memory, which no in-process log can show.
-              val exitDescription = JvmPool.describeExit(jvm.process)
+              val exitDescription = JvmPool.describeExit(jvm.process, jvm.killedByUs)
               val details = List(exitDescription.detail, Option.when(stderrTail.nonEmpty)(s"stderr tail:\n$stderrTail")).flatten match {
                 case Nil   => None
                 case lines => Some(lines.mkString("\n"))
@@ -770,7 +799,7 @@ object JvmPool {
         IO(jvm.isAlive)
 
       override def kill: IO[Unit] =
-        IO(jvm.kill())
+        IO(jvm.kill("bleep: explicit kill (suite timeout or cancellation)"))
     }
   }
 }
