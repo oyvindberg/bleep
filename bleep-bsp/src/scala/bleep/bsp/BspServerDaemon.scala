@@ -5,7 +5,7 @@ import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
 import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 import ryddig.jul.RyddigJulBridge
-import bleep.MachineResources
+import bleep.{MachineMemory, MachineResources}
 
 import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.PosixFilePermissions
@@ -206,30 +206,23 @@ object BspServerDaemon {
     // gated by its own numCores semaphore) or, for forks, the RAM. CPU budget = cores; fork-memory
     // budget = physical RAM minus the server's own heap minus an OS reserve.
     //
-    // BLEEP_FORK_MEMORY_BUDGET_MB overrides the derived budget. It is env-only on purpose: the
-    // daemon is shared by every workspace, so this is a property of the machine, not of any one
-    // build — there is deliberately no per-build config field feeding it. A malformed value is
-    // fatal rather than ignored: silently falling back to the derived budget would let someone
-    // think they had capped the machine when they hadn't.
+    // There is deliberately NO separate user knob for the fork-memory budget. Users already control
+    // both dimensions of what forks cost, at the level each belongs to: `parallelism` /
+    // `parallelismRatio` in the user config bound how many forks run at once, and
+    // `testRunnerMaxMemory` (or a project's own jvmOptions) bounds how big each one is. A third
+    // machine-level number would overlap both and, because the daemon is shared and long-lived,
+    // could only have been delivered by environment — which the daemon inherits from whichever
+    // client happened to cold-start it and every later client silently reuses. A setting that
+    // usually does nothing is worse than no setting.
+    //
+    // The starting budget below is only a starting point; `retuneLoop` tracks what the machine can
+    // actually spare from there.
     val numCores = Runtime.getRuntime.availableProcessors()
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
     val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
-    val forkMemoryBudgetMb =
-      sys.env.get("BLEEP_FORK_MEMORY_BUDGET_MB").filter(_.trim.nonEmpty) match {
-        case None      => MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
-        case Some(raw) =>
-          val parsed =
-            try raw.trim.toLong
-            catch {
-              case _: NumberFormatException =>
-                throw new IllegalArgumentException(s"BLEEP_FORK_MEMORY_BUDGET_MB must be a positive number of megabytes, got '$raw'")
-            }
-          if (parsed <= 0) throw new IllegalArgumentException(s"BLEEP_FORK_MEMORY_BUDGET_MB must be positive, got '$raw'")
-          logger.info(s"Fork-memory budget overridden to ${parsed}MB by BLEEP_FORK_MEMORY_BUDGET_MB")
-          parsed
-      }
+    val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
     logger.info(
-      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB → fork-memory budget ${forkMemoryBudgetMb}MB"
+      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB"
     )
     val machine = MachineResources.create(
       totalCpu = numCores,
@@ -253,6 +246,34 @@ object BspServerDaemon {
       }
       reporter.setDaemon(true)
       reporter.start()
+    }
+
+    // Track what the machine can actually spare, for as long as the daemon lives.
+    //
+    // The figure computed above from physical RAM is a starting point and nothing more: the budget
+    // depends on everything else running on this machine, which changes underneath us. Left static it
+    // was wrong in both directions on a developer machine — too generous alongside an IDE, a browser
+    // and other agents, needlessly stingy once they closed. When the env override is set the operator
+    // has stated a figure, so we leave it alone.
+    //
+    // Caveat worth knowing about the env override: the daemon is shared and long-lived, and its
+    // identity (BspRifleConfig.hash) is bleepVersion:name:version:options — env is NOT part of it.
+    // A daemon inherits the environment of whichever client happened to COLD-START it, and every
+    // later client reuses it regardless of their own environment. So the pin is dependable where
+    // daemons are fresh (CI) and unreliable on a developer machine, where one has usually been up
+    // for hours. That is why it is logged: what is in force must be checkable, not assumed.
+    // Track what the machine can actually spare, for as long as the daemon lives. The figure above is
+    // derived from physical RAM alone, which is wrong the moment anything else is running — too
+    // generous alongside an IDE and a browser, needlessly stingy once they close.
+    locally {
+      import cats.effect.unsafe.implicits.global
+      val retuner = new Thread("bleep-machine-budget") {
+        override def run(): Unit =
+          try MachineResources.retuneLoop(machine, MachineMemory.system, logger).unsafeRunSync()
+          catch { case _: InterruptedException => () }
+      }
+      retuner.setDaemon(true)
+      retuner.start()
     }
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to

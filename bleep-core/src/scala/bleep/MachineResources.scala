@@ -4,6 +4,8 @@ import cats.effect.{Deferred, IO, Poll, Ref, Resource}
 import cats.syntax.all._
 import ryddig.Logger
 
+import scala.concurrent.duration._
+
 /** The finite resources of the machine this bleep-bsp server runs on — CPU cores and memory for forked processes — that every concurrent operation competes
   * for.
   *
@@ -26,7 +28,6 @@ import ryddig.Logger
   */
 final class MachineResources private (
     val totalCpu: Int,
-    val totalMemoryMb: Long,
     state: Ref[IO, MachineResources.St],
     logger: Logger,
     longWaitWarnMs: Long
@@ -44,13 +45,15 @@ final class MachineResources private (
 
   private def acquire(poll: Poll[IO], kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Long] = {
     val cpuReq = math.max(0, math.min(cpu, totalCpu))
-    val memReq = math.max(0L, math.min(memoryMb, totalMemoryMb))
     for {
       now <- IO.realTime.map(_.toMillis)
       gate <- Deferred[IO, Unit]
       // Enqueue + grant is a single atomic Ref update (uncancelable — makeFull masks it).
       result <- state.modify { st =>
         val id = st.nextId
+        // Clamp against the CURRENT total: it moves as the machine's spare capacity moves, so a
+        // request larger than the machine waits for the whole machine rather than never fitting.
+        val memReq = math.max(0L, math.min(memoryMb, st.totalMemoryMb))
         val queued = st.copy(nextId = id + 1, waiting = st.waiting :+ Waiter(id, kind, label, cpuReq, memReq, now, gate))
         val (next, granted) = grantEligible(queued)
         (next, (id, granted))
@@ -86,10 +89,10 @@ final class MachineResources private (
     */
   def tryReserve(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Option[IO[Unit]]] = {
     val cpuReq = math.max(0, math.min(cpu, totalCpu))
-    val memReq = math.max(0L, math.min(memoryMb, totalMemoryMb))
     for {
       now <- IO.realTime.map(_.toMillis)
       maybeId <- state.modify { st =>
+        val memReq = math.max(0L, math.min(memoryMb, st.totalMemoryMb))
         if (st.freeCpu >= cpuReq && st.freeMemoryMb >= memReq) {
           val id = st.nextId
           val next = st.copy(
@@ -143,8 +146,8 @@ final class MachineResources private (
       Snapshot(
         totalCpu = totalCpu,
         usedCpu = totalCpu - st.freeCpu,
-        totalMemoryMb = totalMemoryMb,
-        usedMemoryMb = totalMemoryMb - st.freeMemoryMb,
+        totalMemoryMb = st.totalMemoryMb,
+        usedMemoryMb = st.totalMemoryMb - st.freeMemoryMb,
         active = st.active.values.toList.sortBy(_.id).map(r => Entry(r.kind, r.label, r.cpu, r.memoryMb, now - r.sinceMs)),
         waiting = st.waiting.toList.map(w => Entry(w.kind, w.label, w.cpu, w.memoryMb, now - w.sinceMs))
       )
@@ -152,6 +155,31 @@ final class MachineResources private (
 
   /** True when work is queued waiting for resources — the signal worth logging periodically. */
   def isContended: IO[Boolean] = state.get.map(_.waiting.nonEmpty)
+
+  /** Retune the fork-memory budget to what the machine can currently afford, and wake anything that now fits.
+    *
+    * The budget is not a property of the hardware; it is a property of the hardware *and everything else running on it*, which changes while a build runs. A
+    * static figure derived from physical RAM was wrong in both directions on the machine this was developed against: too generous while an IDE, a browser and
+    * several agents were resident, and needlessly stingy once they were not.
+    *
+    * Raising it is what lets more forks in; lowering it does NOT evict anything already granted — a running fork keeps its reservation, we simply stop
+    * admitting until usage falls back under the new line. Reclaiming from live processes would mean killing suites that are doing nothing wrong.
+    */
+  def retuneMemoryBudget(newTotalMb: Long): IO[Unit] =
+    state
+      .modify { st =>
+        val next = math.max(1L, newTotalMb)
+        if (next == st.totalMemoryMb) (st, Nil)
+        else {
+          // Move free by the same delta as total, so what is currently reserved stays reserved.
+          val adjusted = st.copy(totalMemoryMb = next, freeMemoryMb = st.freeMemoryMb + (next - st.totalMemoryMb))
+          grantEligible(adjusted)
+        }
+      }
+      .flatMap(completeAll)
+
+  /** The budget currently in force. */
+  def memoryBudgetMb: IO[Long] = state.get.map(_.totalMemoryMb)
 }
 
 object MachineResources {
@@ -170,6 +198,7 @@ object MachineResources {
   /** All governor state, held in one Ref. */
   private case class St(
       freeCpu: Int,
+      totalMemoryMb: Long,
       freeMemoryMb: Long,
       nextId: Long,
       active: Map[Long, Reservation],
@@ -231,6 +260,46 @@ object MachineResources {
   /** The wait after which a finally-granted reservation is logged at INFO rather than DEBUG. */
   val DefaultLongWaitWarnMs: Long = 30000L
 
+  /** How often to ask the OS what it can currently spare. Cheap (one `vm_stat` / one `/proc` read) and the quantity it tracks — what else is running — moves on
+    * human timescales, so there is nothing to gain from sampling faster.
+    */
+  val BudgetRetuneInterval: FiniteDuration = 5.seconds
+
+  /** Never shrink the budget below this, however busy the machine looks. Something must always be able to run, or a loaded machine would deadlock the build
+    * rather than merely slow it.
+    */
+  def budgetFloorMb(physicalMb: Long): Long = math.max(2048L, physicalMb / 16)
+
+  /** Keep the fork-memory budget tracking what the machine can actually spare, for as long as this runs.
+    *
+    * Loops rather than computing once because the answer changes: an IDE starts, a VM shuts down, another agent runs a build. The governor's own current usage
+    * is fed back in, since the OS's "available" figure already accounts for the forks we are running — so the budget is "what we hold, plus what is left, minus
+    * slack" and self-corrects without us modelling any of the other processes.
+    *
+    * A platform that cannot answer leaves the budget exactly as configured, which is the behaviour that existed before this.
+    */
+  def retuneLoop(machine: MachineResources, memory: MachineMemory, logger: Logger): IO[Unit] = {
+    val physicalMb = physicalMemoryMb(fallbackMb = 4096)
+    val floor = budgetFloorMb(physicalMb)
+    val once =
+      IO.blocking(memory.availableForMoreMb).flatMap {
+        case None            => IO.unit
+        case Some(available) =>
+          for {
+            snap <- machine.snapshot
+            desired = MachineMemory.budgetFor(snap.usedMemoryMb, available, physicalMb, floor)
+            current <- machine.memoryBudgetMb
+            // Only log a real move, or the daemon log fills with noise from ordinary jitter.
+            _ <-
+              if (math.abs(desired - current) * 10 > current)
+                IO(logger.info(s"[machine] fork-memory budget ${current}MB -> ${desired}MB (holding ${snap.usedMemoryMb}MB, machine can spare ${available}MB)"))
+              else IO.unit
+            _ <- machine.retuneMemoryBudget(desired)
+          } yield ()
+      }
+    (once.attempt >> IO.sleep(BudgetRetuneInterval)).foreverM
+  }
+
   def create(
       totalCpu: Int,
       totalMemoryMb: Long,
@@ -240,13 +309,12 @@ object MachineResources {
     val cpu = math.max(1, totalCpu)
     val mem = math.max(1L, totalMemoryMb)
     logger.info(s"[machine] resource governor: $cpu CPU core(s), ${mem}MB fork-memory budget")
-    val state = Ref.unsafe[IO, St](St(freeCpu = cpu, freeMemoryMb = mem, nextId = 0L, active = Map.empty, waiting = Vector.empty))
-    new MachineResources(cpu, mem, state, logger, longWaitWarnMs)
+    val state = Ref.unsafe[IO, St](St(freeCpu = cpu, totalMemoryMb = mem, freeMemoryMb = mem, nextId = 0L, active = Map.empty, waiting = Vector.empty))
+    new MachineResources(cpu, state, logger, longWaitWarnMs)
   }
 
   /** Governor sized for the machine this JVM is running on: `totalCpu` cores, and a fork-memory budget of physical RAM minus this JVM's own max heap minus an
-    * OS reserve. The single place that derivation lives — callers that need to override a dimension (the daemon's `BLEEP_FORK_MEMORY_BUDGET_MB`) call
-    * [[create]] directly.
+    * OS reserve. The single place that derivation lives, and only a starting point — see [[retuneLoop]].
     */
   def forThisMachine(totalCpu: Int, logger: Logger): MachineResources = {
     val ownHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
@@ -344,7 +412,11 @@ object MachineResources {
     * dedicated CI box and was demonstrably wrong — the machine sat at 0.1GB free while the governor believed it had room.
     *
     * Being generous here costs little now that forks are capped: at the 2GB default the budget still admits ~10 concurrent forks against 18 cores, so CPU is
-    * very nearly the binding constraint anyway. Being stingy costs a SIGKILL. Set BLEEP_FORK_MEMORY_BUDGET_MB where bleep really does own the box.
+    * very nearly the binding constraint anyway. Being stingy costs a SIGKILL.
+    *
+    * This is only where the budget STARTS; [[retuneLoop]] then tracks what the machine can actually spare. There is deliberately no user knob for it: users
+    * already bound how many forks run (`parallelism`/`parallelismRatio`) and how big each one is (`testRunnerMaxMemory`, or a project's jvmOptions), which
+    * between them are the two things a fork-memory budget would be expressing.
     *
     * The server's FOOTPRINT is subtracted rather than its bare `-Xmx`, since it is a JVM too: an `-Xmx8g` daemon sits at ~8.9GB RSS, and counting it as 8GB
     * quietly handed the difference to the fork budget.

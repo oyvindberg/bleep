@@ -144,7 +144,7 @@ object JvmPool {
             "killed by SIGKILL (exit 137)",
             Some(
               "SIGKILL is sent by the OS, not by the JVM or by bleep — on a test fork this is almost always the kernel reclaiming memory under pressure. " +
-                "Lower this project's -Xmx, or lower the machine's fork-memory budget (BLEEP_FORK_MEMORY_BUDGET_MB) so fewer forks run at once."
+                "Lower this project's test -Xmx so each fork asks for less; the server sizes how many run at once from what the machine can currently spare."
             )
           )
         case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))

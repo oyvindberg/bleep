@@ -206,4 +206,77 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     val prog = m.reserve(TestFork, "greedy", cpu = 99, memoryMb = 1_000_000).use(_ => m.snapshot.map(_.usedCpu shouldBe 2))
     prog.timeout(5.seconds).unsafeRunSync()
   }
+
+  test("the budget tracks what the machine can spare, and admits more when it grows") {
+    // The point of making it dynamic: a budget derived once from physical RAM is wrong the moment
+    // anything else on the machine starts or stops.
+    val m = machine(cpu = 8, memMb = 2048)
+    val prog = for {
+      held <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      first <- m.reserve(TestFork, "a", cpu = 1, memoryMb = 2048).use(_ => held.release *> release.await).start
+      _ <- held.await
+      // Full: a second fork can't fit.
+      second <- m.reserve(TestFork, "b", cpu = 1, memoryMb = 2048).use(_ => IO.unit).start
+      early <- second.join.as(true).timeoutTo(300.millis, IO.pure(false))
+      _ = early shouldBe false
+      // The machine frees up (a browser closed, another build finished) — the waiter proceeds
+      // without anything being released.
+      _ <- m.retuneMemoryBudget(4096)
+      _ <- second.join.timeout(5.seconds)
+      _ <- release.release
+      _ <- first.join
+    } yield ()
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("shrinking the budget stops new admissions but never evicts a running fork") {
+    // Reclaiming from live processes would mean killing suites that are doing nothing wrong, so a
+    // shrink only closes the door; usage falls back under the line as forks finish naturally.
+    val m = machine(cpu = 8, memMb = 4096)
+    val prog = for {
+      held <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      running <- m.reserve(TestFork, "running", cpu = 1, memoryMb = 3072).use(_ => held.release *> release.await).start
+      _ <- held.await
+      _ <- m.retuneMemoryBudget(1024) // now less than what is already held
+      snap <- m.snapshot
+      _ = snap.usedMemoryMb shouldBe 3072 // still held, not clawed back
+      budget <- m.memoryBudgetMb
+      _ = budget shouldBe 1024
+      // Nothing new gets in while we are over the line.
+      blocked <- m.reserve(TestFork, "new", cpu = 1, memoryMb = 512).use(_ => IO.unit).start
+      early <- blocked.join.as(true).timeoutTo(300.millis, IO.pure(false))
+      _ = early shouldBe false
+      _ <- release.release
+      _ <- running.join
+      _ <- blocked.join.timeout(5.seconds) // admitted once the running fork finished
+    } yield ()
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("budgetFor is relative to what we already hold, so it self-corrects") {
+    // The OS's "available" figure already accounts for the forks we are running, so the total we may
+    // hold is what we hold now plus what is left, minus slack. No modelling of other processes.
+    val physical = 49152L
+    val slack = MachineMemory.slackMb(physical)
+    MachineMemory.budgetFor(currentlyUsedMb = 6000, availableForMoreMb = 10000, physicalMb = physical, floorMb = 1024) shouldBe (16000 - slack)
+    // A machine with nothing to spare collapses to the floor rather than to zero — something must
+    // always be able to run.
+    MachineMemory.budgetFor(currentlyUsedMb = 0, availableForMoreMb = 0, physicalMb = physical, floorMb = 1024) shouldBe 1024L
+  }
+
+  test("vm_stat output parses into the page counts the budget needs") {
+    val sample =
+      """Mach Virtual Memory Statistics: (page size of 16384 bytes)
+        |Pages free:                                4000.
+        |Pages wired down:                        349235.
+        |Anonymous pages:                        1314168.
+        |File-backed pages:                       468294.""".stripMargin
+    val parsed = MachineMemory.MacOs.parse(sample)
+    parsed("page size") shouldBe 16384L
+    parsed("Anonymous pages") shouldBe 1314168L
+    parsed("Pages wired down") shouldBe 349235L
+    parsed("File-backed pages") shouldBe 468294L // parsed, but deliberately NOT subtracted: clean and evictable
+  }
 }
