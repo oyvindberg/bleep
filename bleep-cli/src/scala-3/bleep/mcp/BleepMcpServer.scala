@@ -3,7 +3,7 @@ package bleep.mcp
 import bleep._
 import bleep.bsp.{BspRequestHelper, BspRifle, BspRifleConfig, BspServerBuilder, SetupBleepBsp}
 import bleep.bsp.protocol.BleepBspProtocol
-import bleep.bsp.protocol.{CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.bsp.protocol.{DiagnosticSeverity, TestStatus}
 import bleep.internal.BspClientDisplayProgress
 import bleep.testing.{BuildDiff, PreviousRunState, TestKey}
 import cats.effect._
@@ -1167,7 +1167,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               val startedEvents = events.collect { case e: E.CompileStarted => e }
               val finishedProjects = finished.map(_.project).toSet
               val inProgressEvents = startedEvents.filterNot(e => finishedProjects.contains(e.project))
-              val failed = finished.count(_.status == CompileStatus.Failed)
+              val failed = finished.count(_.status.isFailure)
               val suites = events.collect { case e: E.SuiteFinished => e }
 
               val parts = List.newBuilder[String]
@@ -1204,7 +1204,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           val previousDiags = previousState.compileDiagnostics.getOrElse(e.project, Nil)
           val hasPrevious = previousState.compileDiagnostics.contains(e.project)
 
-          if (e.status == CompileStatus.Failed) {
+          if (e.status.isFailure) {
             // Stream failures immediately — agent needs to know ASAP
             if (hasPrevious) {
               val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
@@ -1336,7 +1336,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       import BleepBspProtocol.{Event => E}
 
       val compileEvents = events.collect { case e: E.CompileFinished => e }
-      val failedProjects = compileEvents.filter(_.status == CompileStatus.Failed)
+      val failedProjects = compileEvents.filter(_.status.isFailure)
       val allDiagnostics = compileEvents.flatMap(_.diagnostics)
       val errorCount = allDiagnostics.count(_.severity == DiagnosticSeverity.Error)
       val warningCount = allDiagnostics.count(_.severity == DiagnosticSeverity.Warning)

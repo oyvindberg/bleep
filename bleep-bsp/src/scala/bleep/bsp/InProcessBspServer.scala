@@ -33,15 +33,13 @@ object InProcessBspServer {
             var exitCode: java.lang.Integer = 0
             try {
               val numCores = Runtime.getRuntime.availableProcessors()
-              val semaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-              val testForkSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
+              val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
               val server =
                 new MultiWorkspaceBspServer(
                   serverIn,
                   serverOut,
                   logger,
-                  compileSemaphore = semaphore,
-                  testForkSemaphore = testForkSemaphore,
+                  machine = machine,
                   heapMonitor = HeapMonitor.system
                 )
               server.run()

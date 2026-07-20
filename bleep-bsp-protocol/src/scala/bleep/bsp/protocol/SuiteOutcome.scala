@@ -66,7 +66,24 @@ object SuiteOutcome {
       case "empty"              => Empty
       case "noFrameworkMatched" => NoFrameworkMatched
       case "errored"            => Errored(message.getOrElse("suite errored"), throwable)
-      case other                => Errored(s"unknown suite outcome '$other'", None)
+      case other                => degrade(Some(other), passed, failed, skipped, ignored)
+    }
+
+  /** The single policy for a message whose `outcome` this version can't read — either absent (written by a bleep predating the ADT) or naming a variant added
+    * by a NEWER bleep. Both wire formats carry the flat counts alongside `outcome`, so those are the fallback: a suite that really ran 5 tests should report 5,
+    * not a fabricated failure.
+    *
+    * With no counts to fall back on, an unrecognized tag becomes [[Errored]] rather than [[Empty]] — an outcome we couldn't interpret must not be able to read
+    * as a quietly-passing or merely-empty suite. An *absent* tag with zero counts is different: that is genuinely how an old runner spelled "empty".
+    *
+    * This is the counterpart of adding a variant: the day one is added, older clients degrade instead of failing to decode the whole event.
+    */
+  def degrade(unknownTag: Option[String], passed: Int, failed: Int, skipped: Int, ignored: Int): SuiteOutcome =
+    unknownTag match {
+      case None      => fromCounts(passed, failed, skipped, ignored)
+      case Some(tag) =>
+        if (passed + failed + skipped + ignored > 0) fromCounts(passed, failed, skipped, ignored)
+        else Errored(s"unrecognized suite outcome '$tag' — produced by a newer bleep than this one, and no counts were sent to fall back on", None)
     }
 
   implicit val encoder: Encoder[SuiteOutcome] = Encoder.instance {

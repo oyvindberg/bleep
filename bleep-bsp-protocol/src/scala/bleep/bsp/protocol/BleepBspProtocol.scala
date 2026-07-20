@@ -535,7 +535,52 @@ object BleepBspProtocol {
     implicit val suiteStartedCodec: Codec[SuiteStarted] = deriveCodec
     implicit val testStartedCodec: Codec[TestStarted] = deriveCodec
     implicit val testFinishedCodec: Codec[TestFinished] = deriveCodec
-    implicit val suiteFinishedCodec: Codec[SuiteFinished] = deriveCodec
+
+    /** Version-tolerant, hand-written so a long-lived server and a newer client (or vice versa) keep talking across the addition of `outcome` (which replaced
+      * the flat count fields). The wire carries BOTH: `outcome` (the ADT) and the flat `passed/failed/skipped/ignored` derived from it. A client that predates
+      * `outcome` reads the flat counts; a client that predates the flat counts reads `outcome`. Adding a *required* protocol field is a breaking change — this
+      * keeps it non-breaking.
+      *
+      * Tolerance runs in BOTH directions, which is the whole point: `outcome` absent (an older peer sending only counts) AND `outcome` present but naming a
+      * variant this version doesn't know (a NEWER peer) both degrade via [[SuiteOutcome.degrade]] instead of failing the event. Without the second case, the
+      * day a variant is added every older client hits `DecodingFailure` again — the exact bug this codec exists to fix, one version later.
+      */
+    implicit val suiteFinishedCodec: Codec[SuiteFinished] = {
+      val enc: Encoder[SuiteFinished] = Encoder.instance { sf =>
+        Json.obj(
+          "project" -> sf.project.asJson,
+          "suite" -> sf.suite.asJson,
+          "outcome" -> sf.outcome.asJson,
+          "passed" -> sf.outcome.passedCount.asJson,
+          "failed" -> sf.outcome.failedCount.asJson,
+          "skipped" -> sf.outcome.skippedCount.asJson,
+          "ignored" -> sf.outcome.ignoredCount.asJson,
+          "durationMs" -> sf.durationMs.asJson,
+          "timestamp" -> sf.timestamp.asJson
+        )
+      }
+      val dec: Decoder[SuiteFinished] = Decoder.instance { c =>
+        for {
+          project <- c.downField("project").as[CrossProjectName]
+          suite <- c.downField("suite").as[SuiteName]
+          durationMs <- c.downField("durationMs").as[Long]
+          timestamp <- c.downField("timestamp").as[Long]
+          outcome <- c.downField("outcome").as[SuiteOutcome] match {
+            case Right(o) => Right(o)
+            case Left(_)  =>
+              // Absent, or a variant we can't read. Either way the flat counts are on the wire.
+              for {
+                p <- c.getOrElse("passed")(0)
+                f <- c.getOrElse("failed")(0)
+                s <- c.getOrElse("skipped")(0)
+                i <- c.getOrElse("ignored")(0)
+                tag <- c.downField("outcome").downField("kind").as[Option[String]].orElse(Right(None))
+              } yield SuiteOutcome.degrade(tag, p, f, s, i)
+          }
+        } yield SuiteFinished(project, suite, outcome, durationMs, timestamp)
+      }
+      Codec.from(dec, enc)
+    }
     implicit val suiteTimedOutCodec: Codec[SuiteTimedOut] = deriveCodec
     implicit val suiteErrorCodec: Codec[SuiteError] = deriveCodec
     implicit val suiteCancelledCodec: Codec[SuiteCancelled] = deriveCodec
