@@ -514,10 +514,15 @@ object JvmPool {
           Thread.sleep(100) // Give stderr a moment to be available
           val stderrOutput = jvm.readStderr()
           val pid = jvm.process.pid()
-          val exited = jvm.process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
-          val exitStr = if (exited) s"exit code ${jvm.process.exitValue()}" else "still alive after 2s (no exit)"
+          // Same reporting as a death mid-session (`describeExit`), so the two paths don't disagree
+          // about what 137 means. This one matters at least as much: a fork killed BEFORE it could
+          // print Ready never ran a line of test code, and with no stderr the exit status is the
+          // only evidence there is. Saying "exit code 137" without naming SIGKILL left the most
+          // common startup failure — the OS refusing to back a new JVM — looking like a bleep bug.
+          val exit = JvmPool.describeExit(jvm.process)
           val stderrPart = if (stderrOutput.nonEmpty) s" Stderr:\n$stderrOutput" else " (no stderr output)"
-          throw new IOException(s"JVM process (pid=$pid) terminated before sending Ready — $exitStr.$stderrPart")
+          val detailPart = exit.detail.fold("")(d => s" $d")
+          throw new IOException(s"JVM process (pid=$pid) terminated before sending Ready — ${exit.summary}.$detailPart$stderrPart")
         }
         TestProtocol.decodeResponse(line) match {
           case Right(TestProtocol.TestResponse.Ready) => ()
