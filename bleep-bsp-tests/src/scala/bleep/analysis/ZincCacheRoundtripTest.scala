@@ -89,11 +89,11 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
           info("First compile successful")
 
           // Step 2: Verify class file exists
-          val classFile = workspace.resolve("target/classes/Hello.class")
+          val classFile = BspTestBuild.classesDirFor(workspace, "testproject", isTest = false).resolve("Hello.class")
           Files.exists(classFile) shouldBe true
 
           // Step 3: Verify analysis exists
-          val analysisDir = workspace.resolve("target/classes/.zinc")
+          val analysisDir = BspTestBuild.classesDirFor(workspace, "testproject", isTest = false).getParent.resolve(".zinc")
           val analysisExists = Files.exists(analysisDir) ||
             // Analysis might be elsewhere — check target dir
             Files.walk(workspace.resolve("target")).toScala(List).exists(_.getFileName.toString == "analysis.zip")

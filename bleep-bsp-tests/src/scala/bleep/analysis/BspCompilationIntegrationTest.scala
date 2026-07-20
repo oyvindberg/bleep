@@ -90,7 +90,7 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           result.statusCode.value shouldBe 1 // StatusCode.Ok
 
           // Verify output class file exists
-          val classFile = workspace.resolve("target/classes/Hello.class")
+          val classFile = BspTestBuild.classesDirFor(workspace, "javaproject", isTest = false).resolve("Hello.class")
           Files.exists(classFile) shouldBe true
           info("Java compilation via BSP successful")
         }
@@ -223,7 +223,7 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           result.statusCode.value shouldBe 1
 
           // Verify output
-          val classDir = workspace.resolve("target/classes")
+          val classDir = BspTestBuild.classesDirFor(workspace, "scalaproject", isTest = false)
           Files.exists(classDir) shouldBe true
           info("Scala compilation via BSP successful")
         }
@@ -579,7 +579,7 @@ class BspCompilationIntegrationTest extends AnyFunSuite with Matchers with TimeL
           name = "app",
           sources = Set(workspace.resolve("app/src")),
           // App needs lib's output on classpath to compile
-          classpath = workspace.resolve("lib/target/classes") :: scalaLibraryClasspath("3.3.3"),
+          classpath = BspTestBuild.classesDirFor(workspace, "lib", isTest = false) :: scalaLibraryClasspath("3.3.3"),
           languageConfig = ScalaConfig("3.3.3", Nil),
           dependsOn = Set("lib"),
           isTest = false
