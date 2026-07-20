@@ -143,15 +143,27 @@ object TestProtocol {
     implicit val suiteDoneDecoder: Decoder[SuiteDone] = Decoder.instance { c =>
       for {
         suite <- c.downField("suite").as[String]
-        kind <- c.downField("outcome").as[String]
-        passed <- c.downField("passed").as[Int]
-        failed <- c.downField("failed").as[Int]
-        skipped <- c.downField("skipped").as[Int]
-        ignored <- c.downField("ignored").as[Int]
+        // `outcome` is optional: a forked test-runner jar that predates the SuiteOutcome ADT (a
+        // version-skewed test classpath — e.g. an older bleep-test-runner resolved from the build)
+        // emits only the flat counts. Reconstruct the outcome from them rather than failing to
+        // decode. This is the forked-runner analog of the version-tolerant BSP SuiteFinished codec.
+        kind <- c.downField("outcome").as[Option[String]]
+        passed <- c.getOrElse("passed")(0)
+        failed <- c.getOrElse("failed")(0)
+        skipped <- c.getOrElse("skipped")(0)
+        ignored <- c.getOrElse("ignored")(0)
         durationMs <- c.downField("durationMs").as[Long]
         message <- c.downField("message").as[Option[String]]
         throwable <- c.downField("throwable").as[Option[String]]
-      } yield SuiteDone(suite, SuiteOutcome.fromWire(kind, passed, failed, skipped, ignored, message, throwable), durationMs)
+      } yield {
+        // `fromWire` already routes a tag it doesn't recognise through the same `degrade` policy the
+        // BSP SuiteFinished codec uses, so both boundaries treat version skew identically.
+        val outcome = kind match {
+          case Some(k) => SuiteOutcome.fromWire(k, passed, failed, skipped, ignored, message, throwable)
+          case None    => SuiteOutcome.degrade(None, passed, failed, skipped, ignored)
+        }
+        SuiteDone(suite, outcome, durationMs)
+      }
     }
 
     implicit val logEncoder: Encoder[Log] = deriveEncoder

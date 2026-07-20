@@ -846,43 +846,54 @@ object TaskDag {
           } yield taskKill
         }
 
-        // Helper to convert ALL outcomes (success, error, killed) to TaskResult
-        // Uses fiber.join to get Outcome, then embed to convert back to IO with kill fallback
-        def withRecovery(taskName: String, taskKill: Deferred[IO, KillReason])(io: IO[TaskResult]): IO[TaskResult] =
+        /** Render a thrown exception as the TaskResult it semantically is.
+          *
+          * A THROWN exception is infrastructure failure, not a logical one: `TaskResult.Error`, not `Failure`. Handlers return `Failure` explicitly for logical
+          * failures they already reported (compile diagnostics, `N test(s) failed` after a SuiteFinished). What reaches here is only exceptions nothing
+          * reported — e.g. bleep-test-runner failing to resolve throws out of getTestClasspath BEFORE any suite runs. Mapping that to `Failure` made a
+          * TestSuiteTask swallow it (its event mapping assumes a preceding SuiteFinished conveyed it), so it surfaced only as an uncategorized "detailed info
+          * was not captured" count. As `Error` it becomes a SuiteError / CompileFinished(Error) carrying the actual message.
+          */
+        def errorResult(taskName: String, error: Throwable): TaskResult = {
+          val lines = new scala.collection.mutable.ArrayBuffer[String]()
+          lines += s"$taskName failed: ${error.getClass.getName}: ${error.getMessage}"
+          var cause = error.getCause
+          while (cause != null) {
+            lines += s"  Caused by: ${cause.getClass.getName}: ${cause.getMessage}"
+            cause = cause.getCause
+          }
+          val frames = error.getStackTrace.take(10)
+          if (frames.nonEmpty) {
+            lines += "  Stack trace:"
+            frames.foreach(f => lines += s"    at $f")
+          }
+          TaskResult.Error(error = lines.mkString("\n"), processExit = ProcessExit.Unknown)
+        }
+
+        /** Convert ALL outcomes (success, thrown error, cancellation) into a value, via `fiber.join` + `embed` with a kill fallback.
+          *
+          * Generic in the payload so tasks whose handler returns more than a TaskResult (annotation processors and KSP also return a discovered-jar count) get
+          * the same recovery instead of hand-rolling their own — `inject` says how to represent a recovered TaskResult in that payload.
+          */
+        def withRecoveryOf[A](taskName: String, taskKill: Deferred[IO, KillReason], inject: TaskResult => A)(io: IO[A]): IO[A] =
           io.start
             .flatMap(_.join)
             .flatMap { outcome =>
               outcome.embed(
                 onCancel = taskKill.tryGet.map {
-                  case Some(reason) => TaskResult.Killed(reason)
-                  case None         => TaskResult.Killed(KillReason.UserRequest) // Fallback
+                  case Some(reason) => inject(TaskResult.Killed(reason))
+                  case None         => inject(TaskResult.Killed(KillReason.UserRequest)) // Fallback
                 }
               )
             }
-            .handleErrorWith { error =>
-              val errorMsg = s"$taskName failed: ${error.getClass.getName}: ${error.getMessage}"
-              // Build a detailed diagnostic with cause chain and brief stack trace
-              val lines = new scala.collection.mutable.ArrayBuffer[String]()
-              lines += errorMsg
-              var cause = error.getCause
-              while (cause != null) {
-                lines += s"  Caused by: ${cause.getClass.getName}: ${cause.getMessage}"
-                cause = cause.getCause
-              }
-              // Include first few relevant stack frames (skip internal framework frames)
-              val frames = error.getStackTrace.take(10)
-              if (frames.nonEmpty) {
-                lines += "  Stack trace:"
-                frames.foreach(f => lines += s"    at $f")
-              }
-              val diagMessage = lines.mkString("\n")
-              IO.pure(
-                TaskResult.Failure(
-                  error = errorMsg,
-                  diagnostics = List(BleepBspProtocol.Diagnostic.error(diagMessage))
-                )
-              )
-            }
+            .handleErrorWith(error => IO.pure(inject(errorResult(taskName, error))))
+
+        def withRecovery(taskName: String, taskKill: Deferred[IO, KillReason])(io: IO[TaskResult]): IO[TaskResult] =
+          withRecoveryOf[TaskResult](taskName, taskKill, identity)(io)
+
+        /** For handlers returning `(TaskResult, Int)`: a recovered failure discovered nothing. */
+        def withRecoveryCounted(taskName: String, taskKill: Deferred[IO, KillReason])(io: IO[(TaskResult, Int)]): IO[(TaskResult, Int)] =
+          withRecoveryOf[(TaskResult, Int)](taskName, taskKill, r => (r, 0))(io)
 
         for {
           maybeKilled <- isKilled
@@ -946,46 +957,50 @@ object TaskDag {
                     // could pin the BSP fiber indefinitely and block server shutdown.
                     withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, taskKill))
 
+                  // These three emit their own Started/Finished pair, and the Finished carries the
+                  // error message. Recovery therefore wraps ONLY the handler call, with the emit
+                  // driven by the recovered result — if withRecovery wrapped the whole
+                  // for-comprehension instead, a thrown handler would skip straight past the
+                  // Finished emit and the exception would reach the client as nothing at all (the
+                  // TaskFinished mapping deliberately emits no protocol event for these tasks).
                   case sgt: SourcegenTask =>
-                    withRecovery(s"Sourcegen ${sgt.script.main}", taskKill) {
-                      for {
-                        sourcegenStartTs <- now
-                        forProjectsList = sgt.forProjects.toList.sortBy(_.value)
-                        _ <- emit(DagEvent.SourcegenStarted(sgt.script.project, sgt.script.main, forProjectsList, sourcegenStartTs))
-                        result <- handlers.sourcegen(sgt, taskKill)
-                        sourcegenEndTs <- now
-                        (success, errorMsg) = resultSummary(result)
-                        _ <- emit(
-                          DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, sourcegenEndTs - sourcegenStartTs, errorMsg, sourcegenEndTs)
-                        )
-                      } yield result
-                    }
+                    for {
+                      sourcegenStartTs <- now
+                      forProjectsList = sgt.forProjects.toList.sortBy(_.value)
+                      _ <- emit(DagEvent.SourcegenStarted(sgt.script.project, sgt.script.main, forProjectsList, sourcegenStartTs))
+                      result <- withRecovery(s"Sourcegen ${sgt.script.main}", taskKill)(handlers.sourcegen(sgt, taskKill))
+                      sourcegenEndTs <- now
+                      (success, errorMsg) = resultSummary(result)
+                      _ <- emit(
+                        DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, sourcegenEndTs - sourcegenStartTs, errorMsg, sourcegenEndTs)
+                      )
+                    } yield result
 
                   case apt: ResolveAnnotationProcessorsTask =>
-                    withRecovery(s"ResolveAnnotationProcessors ${apt.project.value}", taskKill) {
-                      for {
-                        apStartTs <- now
-                        _ <- emit(DagEvent.ResolveAnnotationProcessorsStarted(apt.project, apStartTs))
-                        (result, discoveredJarCount) <- handlers.annotationProcessor(apt, taskKill)
-                        apEndTs <- now
-                        (success, errorMsg) = resultSummary(result)
-                        _ <- emit(
-                          DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, apEndTs - apStartTs, errorMsg, discoveredJarCount, apEndTs)
-                        )
-                      } yield result
-                    }
+                    for {
+                      apStartTs <- now
+                      _ <- emit(DagEvent.ResolveAnnotationProcessorsStarted(apt.project, apStartTs))
+                      resultAndCount <- withRecoveryCounted(s"ResolveAnnotationProcessors ${apt.project.value}", taskKill)(
+                        handlers.annotationProcessor(apt, taskKill)
+                      )
+                      (result, discoveredJarCount) = resultAndCount
+                      apEndTs <- now
+                      (success, errorMsg) = resultSummary(result)
+                      _ <- emit(
+                        DagEvent.ResolveAnnotationProcessorsFinished(apt.project, success, apEndTs - apStartTs, errorMsg, discoveredJarCount, apEndTs)
+                      )
+                    } yield result
 
                   case kspt: RunSymbolProcessorsTask =>
-                    withRecovery(s"RunSymbolProcessors ${kspt.project.value}", taskKill) {
-                      for {
-                        kspStartTs <- now
-                        _ <- emit(DagEvent.RunSymbolProcessorsStarted(kspt.project, kspStartTs))
-                        (result, discoveredJarCount) <- handlers.symbolProcessor(kspt, taskKill)
-                        kspEndTs <- now
-                        (success, errorMsg) = resultSummary(result)
-                        _ <- emit(DagEvent.RunSymbolProcessorsFinished(kspt.project, success, kspEndTs - kspStartTs, errorMsg, discoveredJarCount, kspEndTs))
-                      } yield result
-                    }
+                    for {
+                      kspStartTs <- now
+                      _ <- emit(DagEvent.RunSymbolProcessorsStarted(kspt.project, kspStartTs))
+                      resultAndCount <- withRecoveryCounted(s"RunSymbolProcessors ${kspt.project.value}", taskKill)(handlers.symbolProcessor(kspt, taskKill))
+                      (result, discoveredJarCount) = resultAndCount
+                      kspEndTs <- now
+                      (success, errorMsg) = resultSummary(result)
+                      _ <- emit(DagEvent.RunSymbolProcessorsFinished(kspt.project, success, kspEndTs - kspStartTs, errorMsg, discoveredJarCount, kspEndTs))
+                    } yield result
                 }
               }
           }
