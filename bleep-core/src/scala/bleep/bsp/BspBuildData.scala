@@ -17,6 +17,14 @@ object BspBuildData {
   /** The dataKind value used in BSP initialize params */
   val DataKind = "bleep-build"
 
+  /** Key the payload sits under inside `InitializeBuildParams.data`.
+    *
+    * It is nested rather than being the whole `data` object because IDEs put their own settings there — Metals sends `semanticdbVersion` and
+    * `javaSemanticdbVersion`, which the server reads — and `bleep bsp` has to pass those through while adding the build. Flat merging happens to work today
+    * only because the key sets do not collide, which is luck rather than design.
+    */
+  val DataField = "bleepBuild"
+
   /** A resolved build, as sent to the server.
     *
     * @param variantName

@@ -28,14 +28,6 @@ object BuildId {
     BuildId(digest.map(b => f"${b & 0xff}%02x").mkString)
   }
 
-  /** Stand-in id for a build the server loaded from disk itself, because the client sent no payload.
-    *
-    * Such a build has no identity the client agreed to, so all we can say is "whatever was on disk when we last looked" — two disk loads of a changed
-    * `bleep.yaml` are indistinguishable under this id, exactly as they were before `BuildId` existed. Only `workspace/reload` evicts it. This disappears when
-    * every client ships a payload and the server-side load path is deleted.
-    */
-  val FromDisk: BuildId = BuildId("disk-loaded")
-
   implicit val encoder: Encoder[BuildId] = Encoder[String].contramap(_.value)
   implicit val decoder: Decoder[BuildId] = Decoder[String].map(BuildId.apply)
 }
