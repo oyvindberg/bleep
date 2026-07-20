@@ -63,12 +63,12 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           clientName = "bleep-mcp",
           clientVersion = model.BleepVersion.current.value,
           rootUri = started.buildPaths.buildDir.toUri.toString,
-          buildData = None,
+          buildData = Some(bleep.bsp.BspBuildData.Payload.from(started)),
           listening = lifecycle.listening
         )
       )
 
-      _ <- startBuildWatcher(client)
+      _ <- startBuildWatcher(client, lifecycle.server)
       watchJobs <- Resource.eval(Ref.of[IO, Map[JobId, WatchJob]](Map.empty))
       watchResults <- Resource.eval(Ref.of[IO, Map[JobId, WatchCycleResult]](Map.empty))
       buildHistory <- Resource.eval(Ref.of[IO, BuildHistory](BuildHistory.empty))
@@ -96,9 +96,12 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     }
 
   /** Watch bleep.yaml (and config/project selection) for changes and auto-reload the build. Sends a log notification to the MCP client when the build is
-    * reloaded.
+    * reloaded, and pushes the re-resolved build to the BSP daemon.
+    *
+    * That push matters: this session holds one BSP connection for its whole lifetime, so without it the daemon would keep compiling against the build we sent
+    * at initialize while every MCP tool reasoned about the reloaded one.
     */
-  private def startBuildWatcher(client: McpServer.Client[IO]): Resource[IO, Unit] =
+  private def startBuildWatcher(client: McpServer.Client[IO], bspServer: bleep.bsp.BuildServer): Resource[IO, Unit] =
     Resource
       .make(
         IO {
@@ -112,6 +115,9 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                 () // parsed JSON identical, no actual change
               case Right(Some(newStarted)) =>
                 startedRef.set(newStarted)
+                BspServerBuilder
+                  .sendBuildChanged(bspServer, bleep.bsp.BspBuildData.Payload.from(newStarted))
+                  .unsafeRunSync()(using cats.effect.unsafe.implicits.global)
                 val msg = s"Build reloaded (${changedFiles.mkString(", ")}). Project list and build model updated."
                 newStarted.logger.info(msg)
                 client.log(protocol.LoggingLevel.Info, None, msg).unsafeRunSync()(using cats.effect.unsafe.implicits.global)

@@ -46,6 +46,13 @@ object BleepBspProtocol {
   /** The dataKind used in BSP events */
   val DataKind: String = "bleep"
 
+  /** Notification (client -> server) carrying a freshly resolved build, as a `bleep.bsp.BspBuildData.Payload`.
+    *
+    * The client owns the build: it watches the build files and re-resolves when they change. Without this, `build/initialize` would be the only channel that
+    * can hand the server a build, and a long-lived client — an IDE session, an MCP session — would be stuck with whatever it sent when it connected.
+    */
+  val BuildChanged: String = "bleep/buildChanged"
+
   /** The dataKind used in BSP TestParams for test options */
   val TestOptionsDataKind: String = "bleep-test-options"
 

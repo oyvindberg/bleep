@@ -313,7 +313,9 @@ case class ReactiveBsp(
                 clientName = "bleep",
                 clientVersion = model.BleepVersion.current.value,
                 rootUri = started.buildPaths.buildDir.toUri.toString,
-                buildData = None,
+                // The client owns the build. Sending it means the daemon compiles exactly what we
+                // resolved, instead of loading and resolving a build of its own that may differ.
+                buildData = Some(bsp.BspBuildData.Payload.from(started)),
                 listening = lifecycle.listening
               )
 

@@ -15,4 +15,14 @@ trait BuildServer extends bsp4j.BuildServer with bsp4j.ScalaBuildServer with bsp
     */
   @org.eclipse.lsp4j.jsonrpc.services.JsonNotification("bleep/cancelBlockingWork")
   def cancelBlockingWork(): Unit
+
+  /** Hand the server a freshly resolved build, replacing the one sent at initialize.
+    *
+    * The client owns the build and watches its files; this is how a long-lived session (an IDE, an MCP server) keeps the daemon in step after an edit. The
+    * parameter is a `BspBuildData.Payload` as a Gson element so lsp4j passes the JSON through untouched — same reason `initializeSession` sets `data` that way.
+    *
+    * Method name must match `BleepBspProtocol.BuildChanged`; annotations need a literal.
+    */
+  @org.eclipse.lsp4j.jsonrpc.services.JsonNotification("bleep/buildChanged")
+  def buildChanged(payload: com.google.gson.JsonElement): Unit
 }

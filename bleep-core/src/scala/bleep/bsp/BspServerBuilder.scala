@@ -139,6 +139,17 @@ object BspServerBuilder {
       IO.blocking(server.onBuildInitialized()).as(result)
     }
   }
+
+  /** Push a re-resolved build to an already-initialized server.
+    *
+    * For long-lived sessions that outlive a build-file edit. Fire-and-forget: it is a notification, so a build the server rejects surfaces on the next request
+    * rather than here.
+    */
+  def sendBuildChanged(server: BuildServer, payload: BspBuildData.Payload): IO[Unit] =
+    IO.blocking {
+      val jsonElement = com.google.gson.JsonParser.parseString(BspBuildData.Payload.encode(payload))
+      server.buildChanged(jsonElement)
+    }
 }
 
 /** Holds the BuildServer proxy and its lifecycle resources. */

@@ -409,6 +409,10 @@ class MultiWorkspaceBspServer(
         handleReload()
         None
 
+      case BleepBspProtocol.BuildChanged =>
+        handleBuildChanged(params)
+        None
+
       case "buildTarget/sources" =>
         val p = parseParams[SourcesParams](params)
         Some(toRaw(handleSources(p)))
@@ -653,7 +657,8 @@ class MultiWorkspaceBspServer(
         dependencyModulesProvider = Some(true),
         resourcesProvider = Some(true),
         outputPathsProvider = Some(true),
-        buildTargetChangedProvider = Some(false),
+        // We emit buildTarget/didChange when a client hands us an updated build via bleep/buildChanged.
+        buildTargetChangedProvider = Some(true),
         jvmRunEnvironmentProvider = Some(true),
         jvmTestEnvironmentProvider = Some(true),
         cargoFeaturesProvider = None,
@@ -1040,6 +1045,62 @@ class MultiWorkspaceBspServer(
       "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
     )
     addExports ::: baseOptions
+  }
+
+  /** The client re-resolved its build and is handing us the new one.
+    *
+    * This is a notification, so there is nobody to return an error to: a failure is recorded in `buildLoadError`, which the next request will surface.
+    */
+  private def handleBuildChanged(params: Option[RawJson]): Unit = {
+    val payload = params match {
+      case None      => throw BspException(JsonRpcErrorCodes.InvalidParams, s"${BleepBspProtocol.BuildChanged} requires params")
+      case Some(raw) =>
+        circeDecode[BspBuildData.Payload](new String(raw.value, "UTF-8")) match {
+          case Right(p)  => p
+          case Left(err) => throw BspException(JsonRpcErrorCodes.InvalidParams, s"Could not parse ${BleepBspProtocol.BuildChanged}: ${err.getMessage}")
+        }
+    }
+
+    val ws = activeWorkspace.get().getOrElse(throw BspException(JsonRpcErrorCodes.ServerNotInitialized, "No active workspace"))
+
+    if (payload.buildId == activeBuildId.get() && activeStarted.get().isDefined) {
+      // The client watches coarsely — a touched build file that parses to the same build lands here.
+      debugLog(s"Ignoring ${BleepBspProtocol.BuildChanged}: build ${payload.buildId.short} is already active")
+    } else {
+      val variant = model.BuildVariant.fromName(payload.variantName)
+      providedBuild.set(Some(payload.build))
+      providedResolvedProjects.set(payload.resolvedProjects)
+      activeBuildId.set(payload.buildId)
+      activeVariant.set(variant)
+
+      createStartedFromExplodedBuild(ws, variant, payload.build, payload.buildId) match {
+        case Right(started) =>
+          activeStarted.set(Some(started.withLogger(logger)))
+          buildLoadError.set(None)
+          logger
+            .withContext("workspace", ws.toString)
+            .withContext("buildId", payload.buildId.short)
+            .withContext("projects", started.build.explodedProjects.size)
+            .info("Client sent an updated build")
+
+          // Tell the client every target may have changed. We do not diff against the previous
+          // build: a changed classpath or scalac option is just as significant as an added project,
+          // and the client re-queries what it cares about anyway.
+          val changes = started.build.explodedProjects.keys.toList.map { crossName =>
+            BuildTargetEvent(
+              target = buildTargetId(started.buildPaths, crossName),
+              kind = Some(BuildTargetEventKind.Changed),
+              dataKind = None,
+              data = None
+            )
+          }
+          sendNotification("buildTarget/didChange", DidChangeBuildTarget(changes = changes))
+
+        case Left(err) =>
+          buildLoadError.set(Some(err.getMessage))
+          logger.withContext("buildId", payload.buildId.short).error(s"Failed to adopt build sent by client: ${err.getMessage}", err)
+      }
+    }
   }
 
   private def handleReload(): Unit =
