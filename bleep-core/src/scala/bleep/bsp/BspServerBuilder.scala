@@ -130,9 +130,9 @@ object BspServerBuilder {
     // a Gson JsonElement so it serializes as a JSON object.
     buildData.foreach { data =>
       params.setDataKind(BspBuildData.DataKind)
-      val jsonStr = BspBuildData.Payload.encode(data)
-      val jsonElement = com.google.gson.JsonParser.parseString(jsonStr)
-      params.setData(jsonElement)
+      val wrapper = new com.google.gson.JsonObject
+      wrapper.add(BspBuildData.DataField, com.google.gson.JsonParser.parseString(BspBuildData.Payload.encode(data)))
+      params.setData(wrapper)
     }
 
     BspRequestHelper.callCancellable(server.buildInitialize(params), listening).flatMap { result =>
