@@ -281,6 +281,10 @@ object BspServerDaemon {
     // generated-sources directory, so serializing per project must span connections.
     val kspMutexes = new KspMutexes
 
+    // Resolved builds, cached for the daemon's lifetime rather than per connection, so a one-shot
+    // `bleep compile` no longer re-resolves the whole build on every invocation.
+    val buildCache = new BuildCache
+
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
     // stderr is captured by ProcessBuilder.redirectError(outputFile) so
@@ -347,7 +351,8 @@ object BspServerDaemon {
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
                   machine,
-                  kspMutexes
+                  kspMutexes,
+                  buildCache
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -363,7 +368,8 @@ object BspServerDaemon {
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
                       machine,
-                      kspMutexes
+                      kspMutexes,
+                      buildCache
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
@@ -412,7 +418,8 @@ object BspServerDaemon {
       output: java.io.OutputStream,
       logger: Logger,
       machine: MachineResources,
-      kspMutexes: KspMutexes
+      kspMutexes: KspMutexes,
+      buildCache: BuildCache
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -422,7 +429,8 @@ object BspServerDaemon {
         logger,
         machine = machine,
         heapMonitor = HeapMonitor.system,
-        kspMutexes = kspMutexes
+        kspMutexes = kspMutexes,
+        buildCache = buildCache
       )
 
       // Run server message loop
