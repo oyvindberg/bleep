@@ -22,6 +22,42 @@ import scala.collection.mutable
   */
 object SourceGenRunner {
 
+  /** Lines every JVM may print to stderr that say nothing about why a script failed.
+    *
+    * These appear on successful runs too. A script that emits them and then dies for an unrelated reason had its five-line `sun.misc.Unsafe` preamble reported
+    * as the crash, which is both useless and actively misleading — it reads like the cause.
+    */
+  private val JvmNoise: List[String] =
+    List("WARNING: ", "OpenJDK 64-Bit Server VM warning:", "Java HotSpot(TM) ", "Picked up JAVA_TOOL_OPTIONS", "Picked up _JAVA_OPTIONS")
+
+  private[bsp] def meaningfulStderr(stderr: String): Option[String] = {
+    val kept = stderr.linesIterator.filterNot(l => JvmNoise.exists(l.trim.startsWith)).map(_.stripTrailing).filter(_.nonEmpty).toList
+    if (kept.isEmpty) None else Some(kept.mkString("\n"))
+  }
+
+  /** On Unix a signal death is the whole story, and for a sourcegen fork it is usually the same story as everywhere else in this build: the OS reclaiming
+    * memory.
+    */
+  private[bsp] def describeSignal(signal: Int): String =
+    signal match {
+      case 9 =>
+        "killed by SIGKILL — sent by the OS, not by the script or by bleep; on a forked JVM this is almost always the kernel reclaiming memory under pressure"
+      case 11    => "killed by SIGSEGV — the JVM crashed; look for an hs_err_pid*.log"
+      case other => s"killed by signal $other"
+    }
+
+  /** How a failed sourcegen is reported.
+    *
+    * The *cause* leads — exit code or signal — because that is the one thing we always know and, for a signal death, the only thing that explains anything.
+    * stderr follows as clearly-labelled context with the JVM's routine preamble stripped, rather than being substituted for the cause. Previously stderr was
+    * preferred whenever it was non-empty, so a script that always prints warnings could never report why it actually died.
+    */
+  private[bsp] def failureMessage(scriptMain: String, cause: String, stderr: String): String =
+    meaningfulStderr(stderr) match {
+      case Some(detail) => s"Sourcegen $scriptMain failed: $cause\nstderr:\n$detail"
+      case None         => s"Sourcegen $scriptMain failed: $cause (no stderr beyond routine JVM warnings)"
+    }
+
   /** Listener for sourcegen progress events */
   trait SourceGenListener {
     def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit
@@ -423,8 +459,7 @@ object SourceGenRunner {
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
-              val errorDetail = if (stderr.nonEmpty) stderr else s"exit code $exitCode"
-              val error = s"Sourcegen ${script.main} failed: $errorDetail"
+              val error = SourceGenRunner.failureMessage(script.main, s"exit code $exitCode", stderr)
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
               Some(error)
@@ -435,8 +470,7 @@ object SourceGenRunner {
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
-              val errorDetail = if (stderr.nonEmpty) stderr else s"signal $signal"
-              val error = s"Sourcegen ${script.main} crashed: $errorDetail"
+              val error = SourceGenRunner.failureMessage(script.main, SourceGenRunner.describeSignal(signal), stderr)
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
               Some(error)

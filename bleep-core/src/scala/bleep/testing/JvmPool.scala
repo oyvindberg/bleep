@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.MachineResources
+import bleep.{MachineResources, ProcessMemory}
 import cats.effect._
 import cats.effect.std.{Queue, Semaphore}
 import cats.syntax.all._
@@ -110,14 +110,18 @@ object JvmPool {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
-      } yield new JvmPoolImpl(semaphore, machine, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory)
+        // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
+        // declared bound, which is what the pool did before any of this existed.
+        costs <-
+          if (ProcessMemory.system eq ProcessMemory.Unavailable) IO.pure(ForkCostModel.static)
+          else ForkCostModel.create
+      } yield new JvmPoolImpl(semaphore, machine, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory, costs, ProcessMemory.system)
     )(_.shutdown)
 
   /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
     */
   private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
     jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
-
 
   private[testing] case class ExitDescription(summary: String, detail: Option[String])
 
@@ -150,7 +154,13 @@ object JvmPool {
   }
 
   /** Key for pooling JVMs */
-  private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String)
+  private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String) {
+
+    /** Identity under which this kind of fork's observed cost is remembered. Same key means same classpath, same options, same environment — so what one of
+      * them cost is genuinely evidence about the next.
+      */
+    def costKey: String = s"$classpathHash-$optionsHash-$envHash-$cwdHash"
+  }
 
   private object JvmKey {
     def apply(classpath: List[Path], options: List[String], environment: Map[String, String], cwd: Option[Path]): JvmKey = {
@@ -317,7 +327,9 @@ object JvmPool {
       allJvms: Ref[IO, Set[ManagedJvm]],
       spawnFailures: TrieMap[JvmKey, Int],
       jvmCommand: Path,
-      workingDirectory: Path
+      workingDirectory: Path,
+      costs: ForkCostModel,
+      processMemory: ProcessMemory
   ) extends JvmPool {
 
     override def acquire(
@@ -358,22 +370,39 @@ object JvmPool {
       }
     }
 
-    /** What this fork costs the machine: the heap it is capped at, plus the non-heap footprint every JVM carries. `withHeapBound` guarantees an `-Xmx` is
-      * present by the time we get here, so there is no unbounded case left to estimate — the number the governor accounts for is a number the process is
-      * actually held to.
+    /** What to charge this fork: what forks of its kind have been measured to cost, falling back to the footprint implied by its heap bound until one has run.
+      *
+      * The bound is a ceiling, not a prediction. Charging it made the budget fill up at roughly a quarter of the machine's real capacity — measured median cost
+      * 610MB against 2560MB charged. `withHeapBound` guarantees an `-Xmx` is present by the time we get here, so the fallback is at least a bound the process
+      * is genuinely held to rather than a guess about an unbounded one.
       */
-    private def footprintOf(jvmOptions: List[String]): Long =
-      MachineResources.forkFootprintMb(
+    private def costOf(key: JvmKey, jvmOptions: List[String]): IO[Long] =
+      costs.estimateMb(
+        key.costKey,
         parseXmxMb(jvmOptions).getOrElse(
           throw new IllegalStateException(s"fork options reached the governor without a heap bound: ${jvmOptions.mkString(" ")}")
         )
       )
 
-    /** Destroy a JVM: kill the process, stop tracking it, and only then return its memory to the governor. Ordering matters — releasing first would let a
-      * waiter be granted memory this process has not actually surrendered yet.
+    /** Destroy a JVM: learn what it cost, kill the process, stop tracking it, and only then return its memory to the governor. Ordering matters twice over —
+      * the measurement has to happen while the process still exists, and releasing before the kill would let a waiter be granted memory this process has not
+      * actually surrendered yet.
       */
     private def destroy(jvm: ManagedJvm): IO[Unit] =
-      IO(jvm.kill()).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+      observeCost(jvm).attempt >> IO(jvm.kill()).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+
+    /** Record what this fork actually cost the machine, for the benefit of the next one of its kind.
+      *
+      * Prefers the platform's own high-water mark where it keeps one (macOS `phys_footprint_peak`), because a suite is as expensive as its worst moment and
+      * sampling would have to be lucky to catch it. Where there is no peak, the reading at destroy time is a floor on the truth — better than the
+      * `-Xmx`-derived guess it replaces, and it only ever revises the estimate upward.
+      */
+    private def observeCost(jvm: ManagedJvm): IO[Unit] =
+      IO.blocking(processMemory.peakFootprintMb(jvm.process.pid()).orElse(processMemory.footprintMb(jvm.process.pid())))
+        .flatMap {
+          case Some(mb) => costs.observe(jvm.key.costKey, mb)
+          case None     => IO.unit
+        }
 
     /** Kill one idle pooled JVM (any key) so its memory returns to the governor. `false` when the pool holds nothing idle.
       *
@@ -462,55 +491,57 @@ object JvmPool {
       // Reserve this process's memory BEFORE starting it, and hand the release action to the
       // ManagedJvm so it lives exactly as long as the process does. If anything between here and a
       // healthy handshake fails, the reservation must be handed back — hence the bracketCase.
-      reserveMemoryForSpawn(s"jvm ${key.classpathHash}", footprintOf(jvmOptions)).bracketCase { releaseMemory =>
-        IO
-          .blocking {
-            val javaPath = jvmCommand
-            val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+      costOf(key, jvmOptions)
+        .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
+        .bracketCase { releaseMemory =>
+          IO
+            .blocking {
+              val javaPath = jvmCommand
+              val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-            // On Windows, command-line length is limited to 32,767 characters.
-            // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-            val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+              // On Windows, command-line length is limited to 32,767 characters.
+              // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+              val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-            val cmd =
-              if (useEnvClasspath)
-                List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
-              else
-                List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+              val cmd =
+                if (useEnvClasspath)
+                  List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+                else
+                  List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-            val pb = new ProcessBuilder(cmd*)
-            pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-            pb.redirectErrorStream(false)
-            if (useEnvClasspath) {
-              pb.environment().put("CLASSPATH", cpString): Unit
+              val pb = new ProcessBuilder(cmd*)
+              pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
+              pb.redirectErrorStream(false)
+              if (useEnvClasspath) {
+                pb.environment().put("CLASSPATH", cpString): Unit
+              }
+              // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+              // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+              pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+              environment.foreach { case (k, v) => pb.environment().put(k, v) }
+
+              val process = pb.start()
+              val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
+              val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+              val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+              new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
             }
-            // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
-            // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
-            pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
-            environment.foreach { case (k, v) => pb.environment().put(k, v) }
-
-            val process = pb.start()
-            val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
-            val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-            val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-
-            new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
-          }
-          .flatTap(jvm => allJvms.update(_ + jvm))
-          .flatTap(jvm =>
-            waitForReady(jvm).onError { case _ =>
-              IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
-            }
-          )
-          .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
-      } {
-        // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
-        // On any failure — process never started, handshake failed, cancellation — nothing owns it,
-        // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
-        case (_, Outcome.Succeeded(_))           => IO.unit
-        case (releaseMemory, Outcome.Errored(_)) => releaseMemory
-        case (releaseMemory, Outcome.Canceled()) => releaseMemory
-      }
+            .flatTap(jvm => allJvms.update(_ + jvm))
+            .flatTap(jvm =>
+              waitForReady(jvm).onError { case _ =>
+                IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
+              }
+            )
+            .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
+        } {
+          // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
+          // On any failure — process never started, handshake failed, cancellation — nothing owns it,
+          // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
+          case (_, Outcome.Succeeded(_))           => IO.unit
+          case (releaseMemory, Outcome.Errored(_)) => releaseMemory
+          case (releaseMemory, Outcome.Canceled()) => releaseMemory
+        }
     }
 
     private def waitForReady(jvm: ManagedJvm): IO[Unit] =

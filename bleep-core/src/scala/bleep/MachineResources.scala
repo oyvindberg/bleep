@@ -262,8 +262,8 @@ object MachineResources {
   /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB.
     *
     * `None` means "no size stated here". It does NOT mean "unparseable": a string that looks like a size but isn't one we understand throws, because silently
-    * mis-weighting a fork is exactly how the budget stops bounding anything. An unknown suffix is the dangerous case — reading `2t` as 2MB under-counts a fork a
-    * millionfold, and the governor would happily admit hundreds of them.
+    * mis-weighting a fork is exactly how the budget stops bounding anything. An unknown suffix is the dangerous case — reading `2t` as 2MB under-counts a fork
+    * a millionfold, and the governor would happily admit hundreds of them.
     */
   def parseMemoryMb(raw0: String): Option[Long] = {
     val raw = raw0.trim.stripPrefix("-Xmx").trim
@@ -310,16 +310,16 @@ object MachineResources {
     */
   val DefaultForkHeapMb: Long = 2048L
 
-  /** The heap a fork will actually run with: what the build configured, else [[DefaultForkHeapMb]]. The single source of truth for both halves of the deal — what
-    * we tell the JVM it may use, and what we tell the governor it costs. Deriving those separately is how they drift apart.
+  /** The heap a fork will actually run with: what the build configured, else [[DefaultForkHeapMb]]. The single source of truth for both halves of the deal —
+    * what we tell the JVM it may use, and what we tell the governor it costs. Deriving those separately is how they drift apart.
     */
   def forkHeapMb(configured: Option[String]): Long =
     configured.flatMap(parseMemoryMb).getOrElse(DefaultForkHeapMb)
 
   /** The options a fork is actually started with: whatever the build asked for, plus [[DefaultForkHeapMb]] if it stated no `-Xmx`.
     *
-    * Returned rather than applied in place because for pooled forks these options are also the pool key — a JVM started with an imposed bound must not be handed
-    * to a caller who asked for a different one.
+    * Returned rather than applied in place because for pooled forks these options are also the pool key — a JVM started with an imposed bound must not be
+    * handed to a caller who asked for a different one.
     */
   def withHeapBound(jvmOptions: List[String]): List[String] =
     if (jvmOptions.exists(_.startsWith("-Xmx"))) jvmOptions
