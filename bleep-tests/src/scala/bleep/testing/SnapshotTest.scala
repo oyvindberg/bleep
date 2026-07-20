@@ -45,11 +45,13 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     while (!Files.isDirectory(from))
       from = from.getParent
 
-    gitWithRetry("git add", from, List("/usr/bin/env", "git", "add", in.toString), logger)
+    // plain `git`, not `/usr/bin/env git` — ProcessBuilder resolves it via PATH on every platform, whereas /usr/bin/env does not exist on Windows and made
+    // every snapshot test fail there with `CreateProcess error=2`.
+    gitWithRetry("git add", from, List("git", "add", in.toString), logger)
 
     if (Properties.isWin) succeed // let's deal with this later
     else if (isCi) {
-      gitWithRetry("git diff", from, List("/usr/bin/env", "git", "diff", "--exit-code", "HEAD", in.toString), logger)
+      gitWithRetry("git diff", from, List("git", "diff", "--exit-code", "HEAD", in.toString), logger)
       succeed
     } else succeed
   }

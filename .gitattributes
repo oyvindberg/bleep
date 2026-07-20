@@ -1,0 +1,6 @@
+# Windows checkouts default to core.autocrlf=true, which rewrites LF to CRLF for anything git considers text. Fixtures whose *bytes* are the thing under test
+# must be exempt, or they hash differently on Windows than everywhere else.
+#
+# ChecksumTests reads the .pom and compares its sha1/md5 against the checked-in .sha1/.md5 files. With CRLF conversion the pom hashes to
+# 14b5269f59a923be0cd8d0feb71d3b5fb6b4de43 instead of c47391f7adba596ba1600da80685d5bc9e63390b, and the expectation files themselves gain trailing \r.
+bleep-tests/src/resources/** -text
