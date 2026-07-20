@@ -152,19 +152,7 @@ case class ReactiveBsp(
       // build (with build.bleep::* deps removed and classpath overrides applied).
       // Without this, the BSP server loads the build from disk and tries to resolve
       // build.bleep::bleep-core:dev via Coursier, which fails in tests.
-      buildData = {
-        val classpathOverrides: Map[model.CrossProjectName, List[java.nio.file.Path]] =
-          started.resolvedProjects.map { case (crossName, lazyResolved) =>
-            crossName -> lazyResolved.forceGet.classpath
-          }
-        Some(
-          bsp.BspBuildData.Payload.of(
-            variantName = started.buildPaths.variant.name,
-            build = started.build.dropBuildFile,
-            classpathOverrides = classpathOverrides
-          )
-        )
-      }
+      buildData = Some(bsp.BspBuildData.Payload.from(started))
 
       _ <- connect(bspLogger).use { connection =>
         BspServerBuilder.create(connection, bspClient, None).use { lifecycle =>

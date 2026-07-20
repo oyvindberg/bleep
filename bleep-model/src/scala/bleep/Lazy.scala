@@ -28,6 +28,17 @@ sealed trait Lazy[T] {
 }
 
 object Lazy {
+
+  /** An already-computed value.
+    *
+    * For values that arrive ready-made and have nothing to defer — such as projects the BSP server received fully resolved from its client. Starts in `Done`,
+    * so `getIfEvaluated` correctly reports it as evaluated and no locking is involved.
+    */
+  def const[T](value: T): Lazy[T] = new Lazy[T] {
+    state = State.Done(value)
+    override def get: Option[T] = Some(value)
+  }
+
   def apply[T](compute: => T): Lazy[T] = new Lazy[T] {
     private val lock = new Object
 

@@ -1,8 +1,8 @@
 package bleep
 
 import bleep.internal.codecs._
-import io.circe.Encoder
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.nio.file.Path
 
@@ -28,6 +28,11 @@ case class ResolvedProject(
 
 object ResolvedProject {
   implicit val encodes: Encoder[ResolvedProject] = deriveEncoder
+
+  /** Decoder so a client can ship fully-resolved projects to the BSP server, which then compiles them without loading or resolving the build itself. Must stay
+    * in step with `encodes` above and with the discriminators used by the `Language`/`Platform` encoders.
+    */
+  implicit val decodes: Decoder[ResolvedProject] = deriveDecoder
 
   /** Language configuration - exactly one of Scala, Java, or Kotlin */
   sealed trait Language {
@@ -66,10 +71,21 @@ object ResolvedProject {
     implicit val encodesJava: Encoder[Java] = deriveEncoder
     implicit val encodesScala: Encoder[Scala] = deriveEncoder
     implicit val encodesKotlin: Encoder[Kotlin] = deriveEncoder
+    implicit val decodesJava: Decoder[Java] = deriveDecoder
+    implicit val decodesScala: Decoder[Scala] = deriveDecoder
+    implicit val decodesKotlin: Decoder[Kotlin] = deriveDecoder
     implicit val encodes: Encoder[Language] = Encoder.instance {
       case j: Java   => encodesJava(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("java")))
       case s: Scala  => encodesScala(s).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("scala")))
       case k: Kotlin => encodesKotlin(k).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("kotlin")))
+    }
+    implicit val decodes: Decoder[Language] = Decoder.instance { c =>
+      c.get[String]("type").flatMap {
+        case "java"   => decodesJava.tryDecode(c)
+        case "scala"  => decodesScala.tryDecode(c)
+        case "kotlin" => decodesKotlin.tryDecode(c)
+        case other    => Left(DecodingFailure(s"Unknown language type '$other'", c.history))
+      }
     }
   }
 
@@ -83,6 +99,7 @@ object ResolvedProject {
   )
   object CompileSetup {
     implicit val encodes: Encoder[CompileSetup] = deriveEncoder
+    implicit val decodes: Decoder[CompileSetup] = deriveDecoder
   }
 
   /** Platform configuration */
@@ -114,10 +131,21 @@ object ResolvedProject {
     implicit val encodesJvm: Encoder[Jvm] = deriveEncoder
     implicit val encodesJs: Encoder[Js] = deriveEncoder
     implicit val encodesNative: Encoder[Native] = deriveEncoder
+    implicit val decodesJvm: Decoder[Jvm] = deriveDecoder
+    implicit val decodesJs: Decoder[Js] = deriveDecoder
+    implicit val decodesNative: Decoder[Native] = deriveDecoder
     implicit val encodes: Encoder[Platform] = Encoder.instance {
       case j: Jvm    => encodesJvm(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("jvm")))
       case j: Js     => encodesJs(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("js")))
       case n: Native => encodesNative(n).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("native")))
+    }
+    implicit val decodes: Decoder[Platform] = Decoder.instance { c =>
+      c.get[String]("type").flatMap {
+        case "jvm"    => decodesJvm.tryDecode(c)
+        case "js"     => decodesJs.tryDecode(c)
+        case "native" => decodesNative.tryDecode(c)
+        case other    => Left(DecodingFailure(s"Unknown platform type '$other'", c.history))
+      }
     }
   }
 
@@ -127,6 +155,7 @@ object ResolvedProject {
   )
   object Resolution {
     implicit val encodes: Encoder[Resolution] = deriveEncoder
+    implicit val decodes: Decoder[Resolution] = deriveDecoder
   }
 
   case class ResolvedModule(
@@ -137,6 +166,7 @@ object ResolvedProject {
   )
   object ResolvedModule {
     implicit val encodes: Encoder[ResolvedModule] = deriveEncoder
+    implicit val decodes: Decoder[ResolvedModule] = deriveDecoder
   }
 
   case class ResolvedArtifact(
@@ -146,6 +176,7 @@ object ResolvedProject {
   )
   object ResolvedArtifact {
     implicit val encodes: Encoder[ResolvedArtifact] = deriveEncoder
+    implicit val decodes: Decoder[ResolvedArtifact] = deriveDecoder
   }
 
   /** Project tag for IDE integration */

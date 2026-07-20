@@ -28,6 +28,7 @@ import cats.syntax.all.*
 import ch.epfl.scala.bsp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import io.circe.parser.{decode => circeDecode}
+import io.circe.syntax.*
 import ryddig.Logger
 import scala.collection.immutable.SortedSet
 
@@ -78,8 +79,8 @@ class MultiWorkspaceBspServer(
   /** Parsed build data from initialize, if provided by bleep client */
   private val providedBuild = AtomicReference[Option[model.Build.Exploded]](None)
 
-  /** Classpath overrides from client (used by ReplaceBleepDependencies) */
-  private val providedClasspathOverrides = AtomicReference[Map[model.CrossProjectName, List[Path]]](Map.empty)
+  /** Fully resolved projects from the client. When present these are used as-is — no coursier, no re-resolution. */
+  private val providedResolvedProjects = AtomicReference[Map[model.CrossProjectName, ResolvedProject]](Map.empty)
 
   /** Active build rewrites (set during initialize, applied on build load/reload) */
   private val activeRewrites = AtomicReference[List[bleep.rewrites.BuildRewrite]](Nil)
@@ -528,7 +529,7 @@ class MultiWorkspaceBspServer(
                 circeDecode[BspBuildData.Payload](jsonStr) match {
                   case Right(payload) =>
                     debugLog(
-                      s"Received rewritten build from client (variant: ${payload.variantName}, classpathOverrides: ${payload.classpathOverrides.size} projects)"
+                      s"Received resolved build from client (variant: ${payload.variantName}, id: ${payload.buildId.short}, ${payload.resolvedProjects.size} projects)"
                     )
                     Some(payload)
                   case Left(err) =>
@@ -581,7 +582,7 @@ class MultiWorkspaceBspServer(
         if (isIdeClient) model.BuildVariant.BSP else model.BuildVariant.Normal
       )
     providedBuild.set(parsedPayload.map(_.build))
-    providedClasspathOverrides.set(parsedPayload.map(_.classpathOverrides).getOrElse(Map.empty))
+    providedResolvedProjects.set(parsedPayload.map(_.resolvedProjects).getOrElse(Map.empty))
 
     // Set up rewrites for IDE clients (SemanticDB support for goto-definition, find-references, etc.)
     val rewrites: List[bleep.rewrites.BuildRewrite] = if (isIdeClient) {
@@ -784,14 +785,19 @@ class MultiWorkspaceBspServer(
         started
       }
 
-  /** Create Started from a pre-exploded build (when passed via init data from bleep client). This allows the BSP server to use the exact same rewritten build
-    * that the client has, including any build rewrites like ReplaceBleepDependencies.
+  /** Build a `Started` purely from what the client sent — no `bleep.yaml`, no `bootstrap.from`, no coursier on the compile path.
     *
-    * Strategy:
-    *   1. Resolve projects normally using the provided Build.Exploded (which has build.bleep:* dependencies already removed by ReplaceBleepDependencies
-    *      rewrite)
-    *   2. Apply classpath overrides from the client (which contain the full resolved classpath including class directories that replace the build.bleep:*
-    *      dependencies)
+    * The client has already loaded the build, applied its rewrites, and resolved every project. Repeating any of that here would at best waste time and at
+    * worst produce a build that differs from the one the client believes it asked for, which is the whole failure mode this protocol exists to prevent.
+    *
+    * `Prebootstrapped` still wants a `BuildLoader.Existing`, and two things downstream read through it: `resolvedJvm` (which the compile path forces) and the
+    * `CoursierResolver` factory. Both are derived from a `model.BuildFile`. So we synthesize one from the exploded build — every field that matters
+    * (`$version`, `jvm`, `resolvers`, `scripts`, `remote-cache`) is carried on `Build.Exploded`; `projects`/`templates` are already expanded into
+    * `explodedProjects` and nothing reads them from here. Handing over an empty `Existing` instead would silently fall back to the system JVM and ignore the
+    * build's `jvm` setting.
+    *
+    * The resolver is still constructed, because `buildTarget/dependencySources` and `dependencyModules` resolve on demand — but nothing on the compile path
+    * touches it.
     */
   private def createStartedFromExplodedBuild(
       buildRoot: Path,
@@ -802,73 +808,66 @@ class MultiWorkspaceBspServer(
     buildCache
       .getOrLoad(buildRoot, variant, buildId, logger) {
         val userPaths = UserPaths.fromAppDirs
-        val buildLoader = BuildLoader.inDirectory(buildRoot)
-        val buildPaths = BuildPaths(buildRoot, buildLoader, variant)
-        val classpathOverrides = providedClasspathOverrides.get()
+        val resolvedFromClient = providedResolvedProjects.get()
+        val bleepYaml = buildRoot.resolve(BuildLoader.BuildFileName)
+
+        val syntheticBuildFile = model.BuildFile(
+          $schema = model.$schema,
+          $version = exploded.$version,
+          templates = model.JsonMap.empty,
+          scripts = model.JsonMap(exploded.scripts),
+          resolvers = exploded.resolvers,
+          projects = model.JsonMap.empty,
+          jvm = exploded.jvm,
+          `remote-cache` = exploded.remoteCache
+        )
+
+        // Round-tripped through JSON so `Existing`'s own derived members (json, wantedVersion,
+        // buildFile) all agree with each other and with what we pass to the resolver factory.
+        val existingBuild = BuildLoader.Existing(bleepYaml, Lazy(Right(syntheticBuildFile.asJson.noSpaces)))
+        val buildPaths = BuildPaths(buildRoot, bleepYaml, variant, Some(exploded.$version))
+
+        val missing = exploded.explodedProjects.keySet -- resolvedFromClient.keySet
 
         for {
+          _ <-
+            if (missing.isEmpty) Right(())
+            else
+              Left(
+                new BleepException.Text(
+                  s"Client sent a build for $buildRoot without resolved projects for ${missing.toList.map(_.value).sorted.mkString(", ")}. " +
+                    "The server does not resolve builds itself, so there is nothing to compile these from."
+                )
+              )
           bleepConfig <- BleepConfigOps.loadOrDefault(userPaths)
-          existingBuild <- buildLoader.existing
-          pre = Prebootstrapped(
+        } yield {
+          val pre = Prebootstrapped(
             logger = logger,
             userPaths = userPaths,
             buildPaths = buildPaths,
             existingBuild = existingBuild,
             ec = scala.concurrent.ExecutionContext.global
           )
-          // Use bootstrap.from but then replace the build with the provided exploded build
-          baseStarted <- bootstrap.from(
-            pre = pre,
-            resolveProjects = ResolveProjects.InMemory,
-            rewrites = Nil,
-            config = bleepConfig,
-            resolverFactory = CoursierResolver.Factory.default
-          )
-        } yield {
-          val resolver = baseStarted.resolver
+          val resolver = CoursierResolver.Factory.default(pre, bleepConfig, syntheticBuildFile)
 
-          // Resolve projects using the provided Build.Exploded.
-          // The build.bleep:* dependencies have already been removed by ReplaceBleepDependencies
-          // on the client side, so this should work without needing to resolve those deps.
-          val resolveResult = ResolveProjects.InMemory(pre, resolver, exploded)
-
-          // Apply classpath overrides if provided.
-          // The client sends the full resolved classpath for each project, which includes
-          // class directories that replace the build.bleep:* dependencies.
           val resolvedProjects: scala.collection.immutable.SortedMap[model.CrossProjectName, Lazy[ResolvedProject]] =
-            if (classpathOverrides.nonEmpty) {
-              debugLog(s"Applying classpath overrides from client for ${classpathOverrides.size} projects")
-              scala.collection.immutable.SortedMap.from(
-                resolveResult.projects.map { case (crossName, lazyResolved) =>
-                  classpathOverrides.get(crossName) match {
-                    case Some(overrideClasspath) =>
-                      // Replace the classpath with the one from the client
-                      crossName -> Lazy {
-                        val resolved = lazyResolved.forceGet
-                        resolved.copy(classpath = overrideClasspath)
-                      }
-                    case None =>
-                      // No override, keep as-is
-                      crossName -> lazyResolved
-                  }
-                }
-              )
-            } else {
-              resolveResult.projects
-            }
+            scala.collection.immutable.SortedMap.from(
+              resolvedFromClient.map { case (crossName, resolved) => crossName -> Lazy.const(resolved) }
+            )
 
           lazy val started: Started = Started(
             pre = pre,
             rewrites = Nil,
             build = exploded,
             resolvedProjects = resolvedProjects,
-            activeProjectsFromPath = baseStarted.activeProjectsFromPath,
+            // cwd == buildDir here, which is the case bootstrap.from also answers `None` for
+            activeProjectsFromPath = None,
             config = bleepConfig,
             resolver = resolver,
-            bleepExecutable = baseStarted.bleepExecutable,
+            bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false)),
             bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver),
-            jvmRunner = baseStarted.jvmRunner
-          )((_, _, _) => Right(started)) // Reload returns the same build
+            jvmRunner = JvmRunner.Forked
+          )((_, _, _) => Right(started)) // the client owns the build; reload is its call to make
           started
         }
       }
