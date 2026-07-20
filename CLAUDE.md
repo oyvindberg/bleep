@@ -220,22 +220,36 @@ bleep import  # Convert sbt build to bleep
    - Test with bleep commands
    - Changes automatically picked up by parent build
 
-5. **Testing Bleep-BSP Changes (Reactive Test Runner)**
+5. **Testing Bleep-BSP Changes End-to-End (local snapshot)**
 
-   When making changes to bleep-bsp or the reactive test runner, you need to publish locally first:
+   Most bleep-bsp work is covered by `bleep test bleep-bsp-tests` and `bleep test bleep-tests`,
+   which drive the server in-process. But the *deployed* path — a `bleep` binary talking to a
+   forked `bleep-bsp` daemon over a socket — only exercises published artifacts, so changes to
+   the client/server protocol, the daemon lifecycle, or `bleep bsp` (the IDE entry point) need a
+   local publish:
+
    ```bash
-   # Generate fresh version ID
+   # Regenerate BleepVersion.current and friends from the current git state
    bleep sourcegen
 
-   # Publish bleep-bsp, bleep-test-runner, and dependencies locally
-   bleep my-publish-local
+   # Publish to the local ivy2 cache (~/.ivy2/local). No args = all publishable projects.
+   bleep publish local-ivy
 
-   # Then test with the reactive test runner (uses bleep-bsp)
-   bleep test-bsp <test-project>
+   # See what would be published without writing anything
+   bleep publish local-ivy --dry-run
    ```
 
-   This is required because bleep-cli depends on bleep-bsp, and the reactive test runner
-   connects to bleep-bsp via BSP protocol to execute tests with the fancy TUI display.
+   `bleep publish-local` still works but is deprecated in favour of the above.
+
+   **Version invariant:** the client binary, the bleep-bsp server jars, and bleep-test-runner
+   must all be the *same* version. The client asks coursier for the server at the version baked
+   into it by `bleep sourcegen` (`model.BleepVersion.current`), so publishing with an explicit
+   `--version` changes only the coordinate the artifacts land under — not what the client will
+   look for. Let both default to the git-derived version and they line up; override one and you
+   get a client that silently fetches a stale server.
+
+   For an IDE (Metals / IntelliJ), there is no automated coverage at all: `bleep bsp` is only
+   exercised by a real editor session against a locally published snapshot.
 
 ## Important Design Decisions
 
