@@ -50,7 +50,8 @@ class MultiWorkspaceBspServer(
     logger: Logger,
     machine: MachineResources,
     heapMonitor: HeapMonitor,
-    kspMutexes: KspMutexes
+    kspMutexes: KspMutexes,
+    buildCache: BuildCache
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -96,8 +97,14 @@ class MultiWorkspaceBspServer(
   /** Resolved path to com.sourcegraph:semanticdb-javac JAR for Java semanticdb support (set during initialize for IDE clients) */
   private val javaSemanticdbPlugin = AtomicReference[Option[Path]](None)
 
-  /** Per-workspace loaded builds (using bleep-core's Started) */
-  private val loadedBuilds = ConcurrentHashMap[Path, Started]()
+  /** This connection's view of the active build: the daemon-cached `Started`, rebound to this connection's logger.
+    *
+    * The cache itself is shared across connections (see [[BuildCache]]); only the logger binding is per connection.
+    */
+  private val activeStarted = AtomicReference[Option[Started]](None)
+
+  /** The build id this connection asked for, so `workspace/reload` can reload the same one. */
+  private val activeBuildId = AtomicReference[BuildId](BuildId.FromDisk)
 
   /** Build load error (set during initialize if build fails to load) */
   private val buildLoadError = AtomicReference[Option[String]](None)
@@ -594,11 +601,15 @@ class MultiWorkspaceBspServer(
     activeWorkspace.set(Some(buildRoot))
     activeVariant.set(variant)
 
+    // A payload carries its own identity; a disk load has none we can pin down (see BuildId.FromDisk).
+    val buildId = parsedPayload.map(_.buildId).getOrElse(BuildId.FromDisk)
+    activeBuildId.set(buildId)
+
     // Load or use provided build
     val buildResult = providedBuild.get() match {
       case Some(exploded) =>
         // Use the provided build directly - no need to load from disk
-        createStartedFromExplodedBuild(buildRoot, variant, exploded)
+        createStartedFromExplodedBuild(buildRoot, variant, exploded, buildId)
       case None =>
         // Fallback: load from disk (for IDE clients that don't pass build data)
         loadBuild(buildRoot, variant)
@@ -606,6 +617,10 @@ class MultiWorkspaceBspServer(
 
     buildResult match {
       case Right(started) =>
+        // The cached Started is shared across connections and carries whichever logger loaded it.
+        // Rebind ours so this connection's log lines carry its own context. The Lazy resolved
+        // projects are shared by reference, so this keeps the resolution cache.
+        activeStarted.set(Some(started.withLogger(logger)))
         buildLoadError.set(None)
         logger
           .withContext("projects", started.build.explodedProjects.size)
@@ -738,12 +753,8 @@ class MultiWorkspaceBspServer(
   // ==========================================================================
 
   private def loadBuild(workspaceRoot: Path, variant: model.BuildVariant): Either[BleepException, Started] =
-    Option(loadedBuilds.get(workspaceRoot)) match {
-      case Some(existing) =>
-        // Always set buildDir — PlainVirtualFile needs it for marker-prefixed IDs
-        bleep.analysis.PlainVirtualFile.setBuildDir(existing.buildPaths.buildDir)
-        Right(existing)
-      case None =>
+    buildCache
+      .getOrLoad(workspaceRoot, variant, BuildId.FromDisk, logger) {
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(workspaceRoot)
         val buildPaths = BuildPaths(workspaceRoot, buildLoader, variant)
@@ -765,13 +776,13 @@ class MultiWorkspaceBspServer(
             config = bleepConfig,
             resolverFactory = CoursierResolver.Factory.default
           )
-        } yield {
-          loadedBuilds.put(workspaceRoot, started)
-          // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
-          bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
-          started
-        }
-    }
+        } yield started
+      }
+      .map { started =>
+        // Always set buildDir — PlainVirtualFile needs it for marker-prefixed IDs
+        bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
+        started
+      }
 
   /** Create Started from a pre-exploded build (when passed via init data from bleep client). This allows the BSP server to use the exact same rewritten build
     * that the client has, including any build rewrites like ReplaceBleepDependencies.
@@ -785,14 +796,11 @@ class MultiWorkspaceBspServer(
   private def createStartedFromExplodedBuild(
       buildRoot: Path,
       variant: model.BuildVariant,
-      exploded: model.Build.Exploded
+      exploded: model.Build.Exploded,
+      buildId: BuildId
   ): Either[BleepException, Started] =
-    // Check if already loaded
-    Option(loadedBuilds.get(buildRoot)) match {
-      case Some(existing) =>
-        bleep.analysis.PlainVirtualFile.setBuildDir(existing.buildPaths.buildDir)
-        Right(existing)
-      case None =>
+    buildCache
+      .getOrLoad(buildRoot, variant, buildId, logger) {
         val userPaths = UserPaths.fromAppDirs
         val buildLoader = BuildLoader.inDirectory(buildRoot)
         val buildPaths = BuildPaths(buildRoot, buildLoader, variant)
@@ -861,12 +869,14 @@ class MultiWorkspaceBspServer(
             bspServerClasspathSource = BspServerClasspathSource.FromCoursier(resolver),
             jvmRunner = baseStarted.jvmRunner
           )((_, _, _) => Right(started)) // Reload returns the same build
-          loadedBuilds.put(buildRoot, started)
-          // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
-          bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
           started
         }
-    }
+      }
+      .map { started =>
+        // Configure PlainVirtualFile with build dir for portable zinc analysis IDs
+        bleep.analysis.PlainVirtualFile.setBuildDir(started.buildPaths.buildDir)
+        started
+      }
 
   private def getActiveBuild: Either[String, Started] =
     activeWorkspace.get() match {
@@ -876,7 +886,7 @@ class MultiWorkspaceBspServer(
         buildLoadError.get() match {
           case Some(err) => Left(err)
           case None      =>
-            Option(loadedBuilds.get(ws)) match {
+            activeStarted.get() match {
               case Some(started) => Right(started)
               case None          => Left(s"Build not yet loaded for workspace $ws")
             }
@@ -1036,10 +1046,18 @@ class MultiWorkspaceBspServer(
   private def handleReload(): Unit =
     activeWorkspace.get().foreach { ws =>
       debugLog(s"Reloading workspace: $ws")
-      loadedBuilds.remove(ws)
-      BspMetrics.recordCacheEvict("loadedBuilds", ws.toString)
       val variant = activeVariant.get()
-      loadBuild(ws, variant): Unit
+      buildCache.evict(ws, variant)
+      BspMetrics.recordCacheEvict("buildCache", ws.toString)
+
+      // Reload through whichever path this connection initialized with. A connection driven by a
+      // client payload must not silently switch to the on-disk build — that is the client's build
+      // to change, and it identifies it with a BuildId we have no way to recompute from disk.
+      val reloaded = providedBuild.get() match {
+        case Some(exploded) => createStartedFromExplodedBuild(ws, variant, exploded, activeBuildId.get())
+        case None           => loadBuild(ws, variant)
+      }
+      reloaded.foreach(started => activeStarted.set(Some(started.withLogger(logger))))
     }
 
   private def handleSources(params: SourcesParams): SourcesResult = {

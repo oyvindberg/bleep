@@ -158,7 +158,7 @@ case class ReactiveBsp(
             crossName -> lazyResolved.forceGet.classpath
           }
         Some(
-          bsp.BspBuildData.Payload(
+          bsp.BspBuildData.Payload.of(
             variantName = started.buildPaths.variant.name,
             build = started.build.dropBuildFile,
             classpathOverrides = classpathOverrides

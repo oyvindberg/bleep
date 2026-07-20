@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.model
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.nio.file.Path
@@ -24,14 +24,26 @@ object BspBuildData {
     *   The fully exploded build model
     * @param classpathOverrides
     *   Additional classpath entries per project, used by ReplaceBleepDependencies to add bleep's own class directories to test builds that depend on bleep
+    * @param buildId
+    *   Content hash of the three fields above. Construct via [[Payload.of]] rather than passing this directly, so it cannot drift from what it identifies.
     */
   case class Payload(
       variantName: String,
       build: model.Build.Exploded,
-      classpathOverrides: Map[model.CrossProjectName, List[Path]]
+      classpathOverrides: Map[model.CrossProjectName, List[Path]],
+      buildId: BuildId
   )
 
   object Payload {
+
+    /** Build a payload, deriving its [[BuildId]] from its contents. */
+    def of(
+        variantName: String,
+        build: model.Build.Exploded,
+        classpathOverrides: Map[model.CrossProjectName, List[Path]]
+    ): Payload =
+      Payload(variantName, build, classpathOverrides, buildIdOf(variantName, build, classpathOverrides))
+
     // Path encoder/decoder
     private implicit val pathEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
     private implicit val pathDecoder: Decoder[Path] = Decoder[String].map(Path.of(_))
@@ -48,6 +60,22 @@ object BspBuildData {
     def encode(p: Payload): String = {
       import io.circe.syntax._
       p.asJson.noSpaces
+    }
+
+    /** Hash of everything a payload carries, excluding the id itself. */
+    private def buildIdOf(
+        variantName: String,
+        build: model.Build.Exploded,
+        classpathOverrides: Map[model.CrossProjectName, List[Path]]
+    ): BuildId = {
+      import io.circe.syntax._
+      BuildId.ofJson(
+        Json.obj(
+          "variantName" -> variantName.asJson,
+          "build" -> build.asJson,
+          "classpathOverrides" -> classpathOverrides.asJson
+        )
+      )
     }
   }
 }
