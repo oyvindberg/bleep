@@ -34,13 +34,15 @@ object InProcessBspServer {
             try {
               val numCores = Runtime.getRuntime.availableProcessors()
               val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
+              // One server per in-process run, so a fresh KspMutexes is the correct daemon scope here.
               val server =
                 new MultiWorkspaceBspServer(
                   serverIn,
                   serverOut,
                   logger,
                   machine = machine,
-                  heapMonitor = HeapMonitor.system
+                  heapMonitor = HeapMonitor.system,
+                  kspMutexes = new KspMutexes
                 )
               server.run()
             } catch {

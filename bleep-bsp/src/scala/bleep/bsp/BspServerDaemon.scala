@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import cats.effect.unsafe.implicits.global
 import libdaemonjvm._
 import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
@@ -276,6 +277,10 @@ object BspServerDaemon {
       retuner.start()
     }
 
+    // Daemon-wide, passed structurally into every connection: KSP writes to a variant-shared
+    // generated-sources directory, so serializing per project must span connections.
+    val kspMutexes = new KspMutexes
+
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
     // stderr is captured by ProcessBuilder.redirectError(outputFile) so
@@ -295,6 +300,9 @@ object BspServerDaemon {
       override def run(): Unit = {
         shutdownRequested.set(true)
         try BspMetrics.shutdown()
+        catch { case _: Exception => () }
+        // Process-global lock state. Released here, at daemon shutdown — never per connection.
+        try ProjectLock.releaseAllOnDaemonShutdown().unsafeRunSync()
         catch { case _: Exception => () }
         try bleep.internal.ChildProcessDiagnostics.dumpAll(System.err)
         catch { case _: Exception => () }
@@ -338,7 +346,8 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  machine
+                  machine,
+                  kspMutexes
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -353,7 +362,8 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      machine
+                      machine,
+                      kspMutexes
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
@@ -401,7 +411,8 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      machine: MachineResources
+      machine: MachineResources,
+      kspMutexes: KspMutexes
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -410,7 +421,8 @@ object BspServerDaemon {
         output,
         logger,
         machine = machine,
-        heapMonitor = HeapMonitor.system
+        heapMonitor = HeapMonitor.system,
+        kspMutexes = kspMutexes
       )
 
       // Run server message loop

@@ -38,19 +38,30 @@ object ProjectLock {
     var exclusiveLock: Option[LockInfo] = None
   }
 
-  private val states = new ConcurrentHashMap[CrossProjectName, ProjectState]()
+  /** Keyed by lock file path, NOT by project name.
+    *
+    * The cross-process lock lives at `<targetDir>/.bleep-lock`, which encodes workspace, build variant and project. Keying the within-JVM bookkeeping by
+    * `CrossProjectName` alone would make a `normal`-variant and a `bsp`-variant compile of the same project contend on one `ProjectState` even though they
+    * write disjoint directories and take disjoint file locks — the loser then retried until the 5 minute timeout. Since each `CrossProjectName` has exactly one
+    * `targetDir` (`ProjectPaths.classes` picks `classes` or `test-classes` from the project's own `isTestProject`), the lock file path is a faithful 1:1 key
+    * for (workspace, variant, project).
+    */
+  private val states = new ConcurrentHashMap[Path, ProjectState]()
 
-  /** Per-project fair lock. Fairness (FIFO) prevents an exclusive waiter from being starved by a continuous stream of shared acquirers — under sustained IDE
+  /** Per-lock-file fair lock. Fairness (FIFO) prevents an exclusive waiter from being starved by a continuous stream of shared acquirers — under sustained IDE
     * compile bursts mixed with `bleep test` runs, the previous JVM-monitor model gave no ordering guarantees and could leave an exclusive wait queued for the
     * full 5-minute timeout.
     */
-  private val locks = new ConcurrentHashMap[CrossProjectName, ReentrantLock]()
+  private val locks = new ConcurrentHashMap[Path, ReentrantLock]()
 
-  private def getLock(project: CrossProjectName): ReentrantLock =
-    locks.computeIfAbsent(project, _ => new ReentrantLock( /* fair = */ true))
+  private def lockFileFor(outputDir: Path): Path =
+    outputDir.getParent.resolve(".bleep-lock")
 
-  private def getState(project: CrossProjectName): ProjectState =
-    states.computeIfAbsent(project, _ => new ProjectState)
+  private def getLock(lockFile: Path): ReentrantLock =
+    locks.computeIfAbsent(lockFile, _ => new ReentrantLock( /* fair = */ true))
+
+  private def getState(lockFile: Path): ProjectState =
+    states.computeIfAbsent(lockFile, _ => new ProjectState)
 
   /** Acquire a lock for a project's read or write operations.
     *
@@ -73,17 +84,19 @@ object ProjectLock {
       mode: LockMode,
       timeout: scala.concurrent.duration.FiniteDuration,
       onContention: () => Unit
-  ): Resource[IO, Boolean] =
-    Resource.make(acquireLock(project, outputDir, mode, timeout, onContention))(_ => releaseLock(project, mode))
+  ): Resource[IO, Boolean] = {
+    val lockFile = lockFileFor(outputDir)
+    Resource.make(acquireLock(project, outputDir, lockFile, mode, timeout, onContention))(_ => releaseLock(lockFile, mode))
+  }
 
   private def acquireLock(
       project: CrossProjectName,
       outputDir: Path,
+      lockFile: Path,
       mode: LockMode,
       timeout: scala.concurrent.duration.FiniteDuration,
       onContention: () => Unit
   ): IO[Boolean] = {
-    val lockFile = outputDir.getParent.resolve(".bleep-lock")
     val retryDelay = scala.concurrent.duration.Duration(50, scala.concurrent.duration.MILLISECONDS)
     val maxAttempts = (timeout.toMillis / retryDelay.toMillis).toInt.max(1)
 
@@ -101,8 +114,8 @@ object ProjectLock {
           case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) => ()
         }
 
-        val lock = getLock(project)
-        val state = getState(project)
+        val lock = getLock(lockFile)
+        val state = getState(lockFile)
         lock.lock()
         try {
           mode match {
@@ -181,11 +194,11 @@ object ProjectLock {
     attempt(maxAttempts, false)
   }
 
-  private def releaseLock(project: CrossProjectName, mode: LockMode): IO[Unit] =
+  private def releaseLock(lockFile: Path, mode: LockMode): IO[Unit] =
     IO.blocking {
-      val state = states.get(project)
+      val state = states.get(lockFile)
       if (state != null) {
-        val lock = getLock(project)
+        val lock = getLock(lockFile)
         // Snapshot the LockInfo that needs closing under the lock; do the actual file-handle
         // closure outside the lock. Closing a FileChannel under load can trip slow paths
         // (Windows file system filters, NFS) we don't want to hold the per-project lock for.
@@ -236,12 +249,17 @@ object ProjectLock {
   class LockTimeoutException(project: CrossProjectName, timeout: scala.concurrent.duration.FiniteDuration)
       extends Exception(s"Timeout acquiring lock for ${project.value} after $timeout")
 
-  /** Cleanup all locks (called on shutdown) */
-  def releaseAll(): IO[Unit] =
+  /** Release every lock held by this JVM.
+    *
+    * DAEMON SHUTDOWN ONLY. This state is global to the process, shared by every BSP connection, so calling it from a per-connection finalizer would rip
+    * exclusive locks out from under compiles still running on other connections — they would carry on writing to a directory they no longer own. Normal release
+    * happens through the `Resource` returned by `acquire`, which runs on fiber cancellation too.
+    */
+  def releaseAllOnDaemonShutdown(): IO[Unit] =
     IO.blocking {
       import scala.jdk.CollectionConverters.*
-      states.keys().asScala.toList.foreach { project =>
-        Option(states.remove(project)).foreach { state =>
+      states.keys().asScala.toList.foreach { lockFile =>
+        Option(states.remove(lockFile)).foreach { state =>
           state.sharedFileLock.foreach(closeQuietly)
           state.exclusiveLock.foreach(closeQuietly)
         }

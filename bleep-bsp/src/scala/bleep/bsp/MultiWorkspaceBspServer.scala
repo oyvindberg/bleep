@@ -49,7 +49,8 @@ class MultiWorkspaceBspServer(
     out: OutputStream,
     logger: Logger,
     machine: MachineResources,
-    heapMonitor: HeapMonitor
+    heapMonitor: HeapMonitor,
+    kspMutexes: KspMutexes
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -82,20 +83,11 @@ class MultiWorkspaceBspServer(
   /** Active build rewrites (set during initialize, applied on build load/reload) */
   private val activeRewrites = AtomicReference[List[bleep.rewrites.BuildRewrite]](Nil)
 
-  /** Per-project mutexes serializing KSP runs across concurrent BSP connections (Normal + BSP variants share a daemon JVM and the shared-sources output dir).
-    * `cats.effect.std.Mutex` rather than `ReentrantLock` so acquire/release composes inside the IO chain.
-    */
-  private val kspProjectMutexes = new java.util.concurrent.ConcurrentHashMap[model.CrossProjectName, cats.effect.std.Mutex[IO]]()
-
+  /** Serializes KSP runs for a project across all connections in this daemon. See [[KspMutexes]]. */
   private def kspMutexFor(cn: model.CrossProjectName): IO[cats.effect.std.Mutex[IO]] =
-    Option(kspProjectMutexes.get(cn)) match {
-      case Some(m) => IO.pure(m)
-      case None    =>
-        cats.effect.std.Mutex[IO].flatMap { fresh =>
-          IO {
-            Option(kspProjectMutexes.putIfAbsent(cn, fresh)).getOrElse(fresh)
-          }
-        }
+    activeWorkspace.get() match {
+      case Some(ws) => kspMutexes.forProject(ws, cn)
+      case None     => IO.raiseError(BspException(JsonRpcErrorCodes.ServerNotInitialized, "KSP mutex requested before initialize set the active workspace"))
     }
 
   /** Whether the connected client is an IDE (Metals, IntelliJ) — set during initialize */
@@ -154,8 +146,12 @@ class MultiWorkspaceBspServer(
               fibers
             }.flatMap { fibers =>
               // Cancel all fibers and wait for them to complete (this ensures Resource finalizers run)
+              // Cancelling the fibers runs their Resource finalizers, which is what releases this
+              // connection's ProjectLocks. Do NOT call ProjectLock.releaseAllOnDaemonShutdown() here:
+              // that state is process-global, so one client disconnecting would release locks still
+              // held by compiles running on other connections.
               fibers.traverse_(_.cancel)
-            } >> ProjectLock.releaseAll()
+            }
         }
       )
     program.unsafeRunSync()
@@ -3867,17 +3863,35 @@ class MultiWorkspaceBspServer(
       } {
         BspMetrics.recordCleanCache(crossName.value)
         val classesDir = Paths.get(resolved.forceGet.classesDir.toString)
-        if (Files.exists(classesDir)) {
-          bleep.internal.FileUtils.deleteDirectory(classesDir)
-          cleaned = true
-        }
-        // Also clean analysis dir - same path structure as BuildPaths.targetDir
-        val targetDir = started.buildPaths.variantBuildDir(crossName)
-        val analysisDir = targetDir.resolve(".zinc")
-        if (Files.exists(analysisDir)) {
-          bleep.internal.FileUtils.deleteDirectory(analysisDir)
-          cleaned = true
-        }
+
+        // Take the same exclusive lock a compile takes. Deleting `classes` and `.zinc` unlocked
+        // races a compile or test on another connection that is reading them right now.
+        // (The unsafeRunSync is the existing pattern for sync handlers; it goes away in the
+        // handler-to-IO refactor along with all the others.)
+        ProjectLock
+          .acquire(
+            project = crossName,
+            outputDir = classesDir,
+            mode = ProjectLock.LockMode.Exclusive,
+            timeout = lockTimeout,
+            onContention = () => logger.info(s"Waiting for lock to clean ${crossName.value}")
+          )
+          .use { _ =>
+            IO.blocking {
+              if (Files.exists(classesDir)) {
+                bleep.internal.FileUtils.deleteDirectory(classesDir)
+                cleaned = true
+              }
+              // Also clean analysis dir - same path structure as BuildPaths.targetDir
+              val targetDir = started.buildPaths.variantBuildDir(crossName)
+              val analysisDir = targetDir.resolve(".zinc")
+              if (Files.exists(analysisDir)) {
+                bleep.internal.FileUtils.deleteDirectory(analysisDir)
+                cleaned = true
+              }
+            }
+          }
+          .unsafeRunSync()
       }
     }
     CleanCacheResult(message = if (cleaned) Some("Cache cleaned") else Some("Nothing to clean"), cleaned = cleaned)
