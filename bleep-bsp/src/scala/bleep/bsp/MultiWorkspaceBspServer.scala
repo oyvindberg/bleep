@@ -1325,14 +1325,15 @@ class MultiWorkspaceBspServer(
         setupIO.flatMap { case (ksp, decision, snap, stateFile) =>
           // Serialize KSP runs for the same cross-project across BSP server connections (e.g. a Normal-variant compile racing a BSP-variant compile of the same
           // project). The DAG already serializes within one build, but two builds for the same project share the daemon JVM + the shared sources dir.
-          val kspForkMemMb = s.config.bspServerConfigOrDefault.kspRunnerMaxMemory
-            .flatMap(MachineResources.parseMemoryMb)
-            .map(MachineResources.forkFootprintMb)
-            .getOrElse(machine.defaultForkMemoryMb)
+          // One number decides both what the fork may use and what it is charged, so the two can't
+          // drift. KspRunner only emits -Xmx when this is Some, so passing it explicitly is also what
+          // bounds the fork at all rather than letting HotSpot hand it a quarter of the machine.
+          val kspHeapMb = MachineResources.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
+          val kspForkMemMb = MachineResources.forkFootprintMb(kspHeapMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
             machine
               .reserve(MachineResources.ResourceKind.KspFork, s"ksp ${cn.value}", cpu = 1, memoryMb = kspForkMemMb)
-              .use(_ => bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, s.config.bspServerConfigOrDefault.kspRunnerMaxMemory, cancellation, logger))
+              .use(_ => bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger))
               .flatMap {
                 case bleep.analysis.KspRunner.RunResult.Success =>
                   // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
@@ -1377,10 +1378,7 @@ class MultiWorkspaceBspServer(
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
-    val forkMemMb = started.config.bspServerConfigOrDefault.sourcegenMaxMemory
-      .flatMap(MachineResources.parseMemoryMb)
-      .map(MachineResources.forkFootprintMb)
-      .getOrElse(machine.defaultForkMemoryMb)
+    val forkMemMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory))
     (sgt, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))

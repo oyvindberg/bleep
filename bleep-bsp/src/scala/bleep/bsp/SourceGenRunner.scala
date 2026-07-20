@@ -397,7 +397,9 @@ object SourceGenRunner {
       case Right(cp) =>
         val projectArgs = scriptToRun.forProjects.toList.flatMap(p => List("-p", p.value))
         val dirArgs = List("-d", started.buildPaths.buildDir.toString)
-        val jvmOptions = started.config.bspServerConfigOrDefault.sourcegenMaxMemory.map(m => s"-Xmx$m").toList
+        // Always bound the fork. An unstated -Xmx means HotSpot gives this script a quarter of the
+        // machine, which the governor has already reserved against on the assumption it does not.
+        val jvmOptions = List(s"-Xmx${bleep.MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory)}m")
         val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, jvmOptions, cp, script.main, dirArgs ++ projectArgs)
 
         val pb = new ProcessBuilder(cmd*)

@@ -74,16 +74,16 @@ object ReactiveTestRunner {
       options: Options
   ): IO[Result] =
 
-    // Standalone (single-process) runner: no other client shares this process, so the governor
-    // exists here only to bound THIS run — its CPU dimension is the run's requested parallelism
-    // (not the machine's core count, unlike the daemon's governor), while the fork-memory budget is
-    // still the machine's, so a high --parallelism can't collectively exhaust RAM.
+    // Standalone (single-process) runner. The governor describes the MACHINE — cores and fork-memory
+    // budget — exactly as it does in the daemon; `maxParallelJvms` is the user's cap on this one run
+    // and belongs on the pool's own semaphore, not smuggled in as the machine's core count. Whichever
+    // is lower ends up binding, which is the intent of both.
     JvmPool
       .create(
         options.maxParallelJvms,
         started.jvmCommand,
         started.buildPaths.buildDir,
-        MachineResources.forThisMachine(totalCpu = options.maxParallelJvms, logger = started.logger)
+        MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = started.logger)
       )
       .use { pool =>
         for {

@@ -17,7 +17,7 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
   import MachineResources.ResourceKind._
 
   private def machine(cpu: Int, memMb: Long): MachineResources =
-    MachineResources.create(totalCpu = cpu, totalMemoryMb = memMb, defaultForkMemoryMb = memMb, logger = TypedLogger.DevNull, longWaitWarnMs = 200L)
+    MachineResources.create(totalCpu = cpu, totalMemoryMb = memMb, logger = TypedLogger.DevNull, longWaitWarnMs = 200L)
 
   test("a reservation within budget is granted immediately and released") {
     val m = machine(cpu = 4, memMb = 8192)
@@ -125,57 +125,45 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
-  test("a fork is charged more than its bare -Xmx (non-heap footprint)") {
-    // -Xmx bounds the heap; the process also commits metaspace, code cache, thread stacks, direct
-    // buffers and GC bookkeeping. Charging bare -Xmx under-counts every fork.
-    MachineResources.forkFootprintMb(12288) should be > 12288L
-    MachineResources.forkFootprintMb(12288) shouldBe 15360L
-    // Small heaps get a floor rather than a useless percentage.
-    MachineResources.forkFootprintMb(256) shouldBe 512L
+  test("every fork is bounded: a build stating no -Xmx gets one imposed, and a stated one is left alone") {
+    // The whole point of the redesign. An unstated -Xmx is not "unlimited" — HotSpot hands the fork
+    // MaxRAMPercentage=25, a quarter of the machine, which is how ~18 forks came to request 216GB on
+    // a 48GB box. Containment is the bound, not the scheduling.
+    MachineResources.withHeapBound(Nil) shouldBe List(s"-Xmx${MachineResources.DefaultForkHeapMb}m")
+    MachineResources.withHeapBound(List("-XX:+UseZGC")) shouldBe List("-XX:+UseZGC", s"-Xmx${MachineResources.DefaultForkHeapMb}m")
+    // A build that stated its own bound keeps it, exactly.
+    MachineResources.withHeapBound(List("-Xmx12g")) shouldBe List("-Xmx12g")
+    MachineResources.DefaultForkHeapMb shouldBe 2048L
   }
 
-  test("the two-heaviest-corpus-suites case: two UNCAPPED forks serialize on a 48GB box, one still runs") {
-    // Regression for bug-report-testfork-jvm-died-dual-corpus-suites. Both forks state no -Xmx, so
-    // HotSpot caps each at a quarter of RAM (12288MB here) and the governor charges the default
-    // weight. Originally that weight was the bare quarter-of-RAM and the budget reserved only a
-    // tenth of RAM for non-bleep processes, so 2 x 12288 fitted inside 36045MB — while the real
-    // footprints (~15GB each, heap plus metaspace/code cache/stacks/GC) did not, and the OS
-    // SIGKILLed them. Either suite alone passes and must keep passing.
+  test("one number decides both what a fork may use and what it is charged") {
+    // If these were derived separately they would drift, and the governor would be accounting for a
+    // bound the process was never held to — which is what made the old accounting fiction.
+    MachineResources.forkHeapMb(None) shouldBe MachineResources.DefaultForkHeapMb
+    MachineResources.forkHeapMb(Some("12g")) shouldBe 12288L
+    // Charged the heap plus the non-heap the JVM also commits (metaspace, code cache, stacks, GC).
+    MachineResources.forkFootprintMb(2048) shouldBe 2560L
+    MachineResources.forkFootprintMb(256) shouldBe 512L // small heaps get a floor, not a useless percentage
+  }
+
+  test("at the 2GB default, CPU is very nearly the binding constraint on a 48GB box") {
+    // Regression for bug-report-testfork-jvm-died-dual-corpus-suites, but asserting the property that
+    // actually matters for large builds: the memory rail must not be what decides how wide the build
+    // runs. Previously two forks exhausted the budget; now ~10 fit against 18 cores.
     val physicalMb = 49152L // 48GB
     val serverHeapMb = 8192L
     val budget = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
-    val oneFork = MachineResources.defaultForkFootprintMb(physicalMb)
+    val defaultFork = MachineResources.forkFootprintMb(MachineResources.DefaultForkHeapMb)
 
-    // The exact numbers from the bug report, so a future change to either formula fails loudly here.
-    MachineResources.defaultForkHeapMb(physicalMb) shouldBe 12288L
-    oneFork shouldBe 15360L
     budget shouldBe 26624L
+    defaultFork shouldBe 2560L
+    (budget / defaultFork) shouldBe 10L
 
-    oneFork should be <= budget
-    (2 * oneFork) should be > budget
-
-    // And prove it through the governor itself, not just the arithmetic.
-    val m = MachineResources.create(
-      totalCpu = 18,
-      totalMemoryMb = budget,
-      defaultForkMemoryMb = oneFork,
-      logger = TypedLogger.DevNull,
-      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
-    )
-    val prog = for {
-      held <- CountDownLatch[IO](1)
-      release <- CountDownLatch[IO](1)
-      postgres <- m.reserve(TestFork, "PostgresCorpusDiffSuite", cpu = 1, memoryMb = oneFork).use(_ => held.release *> release.await).start
-      _ <- held.await
-      clickhouse <- m.reserve(TestFork, "ClickhouseCorpusDiffSuite", cpu = 1, memoryMb = oneFork).use(_ => IO.unit).start
-      concurrent <- clickhouse.join.as(true).timeoutTo(500.millis, IO.pure(false))
-      _ = concurrent shouldBe false // serialized, not admitted alongside
-      _ <- release.release
-      _ <- postgres.join
-      _ <- clickhouse.join.timeout(5.seconds) // and it does run, once the first frees its memory
-      end <- m.snapshot
-    } yield end.usedMemoryMb shouldBe 0
-    prog.timeout(20.seconds).unsafeRunSync()
+    // And a genuinely heavy fork that DECLARES 12g still can't pair up with another — two of those
+    // is the ~30GB that got SIGKILLed on this exact machine.
+    val heavyFork = MachineResources.forkFootprintMb(12288)
+    heavyFork should be <= budget
+    (2 * heavyFork) should be > budget
   }
 
   test("tryReserve grants what fits, refuses what doesn't, and never queues") {

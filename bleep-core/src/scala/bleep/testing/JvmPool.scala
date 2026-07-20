@@ -118,6 +118,7 @@ object JvmPool {
   private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
     jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
 
+
   private[testing] case class ExitDescription(summary: String, detail: Option[String])
 
   /** Describe how a forked JVM died, for the message the user actually reads.
@@ -327,7 +328,11 @@ object JvmPool {
         environment: Map[String, String],
         workingDirectory: Option[Path]
     ): Resource[IO, TestJvm] = {
-      val key = JvmKey(classpath, jvmOptions, environment, workingDirectory)
+      // Bound the fork before anything else looks at these options. Everything downstream — the pool
+      // key, the spawn, and what the governor is told this costs — must agree on the heap the JVM
+      // will actually run with, and that is only true if the bound is applied once, here.
+      val boundedOptions = MachineResources.withHeapBound(jvmOptions)
+      val key = JvmKey(classpath, boundedOptions, environment, workingDirectory)
 
       // Only CPU is reserved here. The two dimensions have genuinely different lifetimes:
       //
@@ -344,7 +349,7 @@ object JvmPool {
       Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
         machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = 0L).flatMap { _ =>
           Resource
-            .make(getOrCreate(key, classpath, jvmOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
+            .make(getOrCreate(key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
               // Return JVM to pool (or destroy it); the semaphore + cpu reservation are released by their own Resources.
               case (jvm, _) => release(jvm)
             }
@@ -353,11 +358,16 @@ object JvmPool {
       }
     }
 
-    /** What this fork costs the machine: its `-Xmx` plus the non-heap footprint every JVM carries (metaspace, code cache, thread stacks, direct buffers, GC
-      * bookkeeping). An uncapped fork falls back to the machine's default, which already accounts for HotSpot capping such a JVM at a quarter of RAM.
+    /** What this fork costs the machine: the heap it is capped at, plus the non-heap footprint every JVM carries. `withHeapBound` guarantees an `-Xmx` is
+      * present by the time we get here, so there is no unbounded case left to estimate — the number the governor accounts for is a number the process is
+      * actually held to.
       */
     private def footprintOf(jvmOptions: List[String]): Long =
-      parseXmxMb(jvmOptions).map(MachineResources.forkFootprintMb).getOrElse(machine.defaultForkMemoryMb)
+      MachineResources.forkFootprintMb(
+        parseXmxMb(jvmOptions).getOrElse(
+          throw new IllegalStateException(s"fork options reached the governor without a heap bound: ${jvmOptions.mkString(" ")}")
+        )
+      )
 
     /** Destroy a JVM: kill the process, stop tracking it, and only then return its memory to the governor. Ordering matters — releasing first would let a
       * waiter be granted memory this process has not actually surrendered yet.

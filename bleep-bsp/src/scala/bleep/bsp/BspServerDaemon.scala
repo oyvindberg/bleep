@@ -234,7 +234,6 @@ object BspServerDaemon {
     val machine = MachineResources.create(
       totalCpu = numCores,
       totalMemoryMb = forkMemoryBudgetMb,
-      defaultForkMemoryMb = MachineResources.defaultForkFootprintMb(physicalMb),
       logger = logger,
       longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
     )
