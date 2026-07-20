@@ -534,7 +534,7 @@ object Main {
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
             Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid))
           ),
-          Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local')") {
+          Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local-ivy')") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
               Opts.option[String]("version", "version you will publish"),
