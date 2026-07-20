@@ -906,6 +906,19 @@ object Main {
         }
     }
 
+  /** `NativeTerminal.setupAnsi()` in [[_main]] only reaches kernel32 when stdout is a real console, and no CI runner is one — GitHub Actions redirects stdout
+    * to a pipe. So the whole FFM path went untested on Windows, and we shipped native images with no `foreign` downcall metadata for kernel32: every Windows
+    * user crashed on their first command with MissingForeignRegistrationError (#601) while CI stayed green. Call the console path unconditionally from
+    * `selftest`, which the Windows CI job does run, so the downcalls have to link.
+    *
+    * Off a pipe `GetConsoleMode` fails — that is the expected outcome here, and the IOException it raises drags `GetLastError` + `FormatMessageW` in too, so
+    * one call exercises four of the six kernel32 downcalls. Only that specific failure is tolerated; an unregistered downcall is an Error and propagates.
+    */
+  private def selftestWindowsAnsi(): Unit =
+    if (Properties.isWin)
+      try println(s"kernel32 ANSI setup: ${io.github.alexarchambault.nativeterm.internal.WindowsTerm.setupAnsi()}")
+      catch { case e: java.io.IOException => println(s"kernel32 ANSI setup: linked, not a console ($e)") }
+
   def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
@@ -944,6 +957,7 @@ object Main {
         FileWatching(logger, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         // verify TerminalSizeCache initialization works (SIGWINCH doesn't exist on Windows)
         BspClientDisplayProgress(logger).discard()
+        selftestWindowsAnsi()
         println("OK")
         ExitCode.Success
 
