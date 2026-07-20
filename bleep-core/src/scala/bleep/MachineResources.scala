@@ -282,20 +282,29 @@ object MachineResources {
     val physicalMb = physicalMemoryMb(fallbackMb = 4096)
     val floor = budgetFloorMb(physicalMb)
     val once =
-      IO.blocking(memory.availableForMoreMb).flatMap {
-        case None            => IO.unit
-        case Some(available) =>
+      IO.blocking((memory.unreclaimableMb, ProcessMemory.ourTreeFootprintMb(ProcessHandle.current()))).flatMap {
+        // Both readings are required. Without our own footprint there is no way to tell our memory
+        // from everyone else's, and subtracting the wrong one is precisely what produced a 63GB
+        // budget on a 48GB machine — better to keep the static budget than retune on a number we
+        // cannot interpret.
+        case (Some(unreclaimable), Some(ours)) =>
           for {
-            snap <- machine.snapshot
-            desired = MachineMemory.budgetFor(snap.usedMemoryMb, available, physicalMb, floor)
+            desired <- IO.pure(MachineMemory.budgetFor(ours, unreclaimable, physicalMb, floor))
             current <- machine.memoryBudgetMb
+            snap <- machine.snapshot
             // Only log a real move, or the daemon log fills with noise from ordinary jitter.
             _ <-
               if (math.abs(desired - current) * 10 > current)
-                IO(logger.info(s"[machine] fork-memory budget ${current}MB -> ${desired}MB (holding ${snap.usedMemoryMb}MB, machine can spare ${available}MB)"))
+                IO(
+                  logger.info(
+                    s"[machine] fork-memory budget ${current}MB -> ${desired}MB " +
+                      s"(our tree ${ours}MB, others hold ${math.max(0L, unreclaimable - ours)}MB, reserved ${snap.usedMemoryMb}MB)"
+                  )
+                )
               else IO.unit
             _ <- machine.retuneMemoryBudget(desired)
           } yield ()
+        case _ => IO.unit
       }
     (once.attempt >> IO.sleep(BudgetRetuneInterval)).foreverM
   }

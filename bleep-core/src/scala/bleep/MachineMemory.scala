@@ -21,29 +21,29 @@ import scala.util.Properties
   */
 trait MachineMemory {
 
-  /** Additional MB the machine could hand out before it would have to swap. `None` when this platform can't say. */
-  def availableForMoreMb: Option[Long]
+  /** MB currently held in memory that cannot simply be dropped — anonymous plus wired, machine-wide, ours included. `None` when this platform can't say.
+    *
+    * Reported as a total rather than as "what's left" so the caller can subtract its OWN share (see [[budgetFor]]); a bare "available" figure cannot be
+    * corrected that way, and treating it as if it could is what made the budget run away.
+    */
+  def unreclaimableMb: Option[Long]
 }
 
 object MachineMemory {
 
   object Unavailable extends MachineMemory {
-    def availableForMoreMb: Option[Long] = None
+    def unreclaimableMb: Option[Long] = None
   }
 
   /** `vm_stat` reports page counts; anonymous + wired is what can't be dropped. */
   object MacOs extends MachineMemory {
-    def availableForMoreMb: Option[Long] =
+    def unreclaimableMb: Option[Long] =
       readVmStat().flatMap { stats =>
         for {
           pageSize <- stats.get("page size")
           anonymous <- stats.get("Anonymous pages")
           wired <- stats.get("Pages wired down")
-        } yield {
-          val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = 4096)
-          val unreclaimableMb = (anonymous + wired) * pageSize / (1024L * 1024L)
-          math.max(0L, physicalMb - unreclaimableMb)
-        }
+        } yield (anonymous + wired) * pageSize / (1024L * 1024L)
       }
 
     private[bleep] def parse(output: String): Map[String, Long] = {
@@ -66,19 +66,35 @@ object MachineMemory {
       } catch { case _: java.io.IOException => None }
   }
 
-  /** `MemAvailable` in `/proc/meminfo` — the kernel's own answer, already accounting for reclaimable cache. */
+  /** Derived from `MemAvailable`, the kernel's own estimate of what a new allocation could get without swapping. Expressed as its complement — total minus
+    * available — so it means the same thing as the macOS figure and can have our own share subtracted from it.
+    */
   object Linux extends MachineMemory {
-    def availableForMoreMb: Option[Long] =
+    def unreclaimableMb: Option[Long] =
+      readMeminfo().flatMap { info =>
+        for {
+          total <- info.get("MemTotal")
+          available <- info.get("MemAvailable")
+        } yield math.max(0L, (total - available) / 1024) // kB
+      }
+
+    private def readMeminfo(): Option[Map[String, Long]] =
       try {
         val path = java.nio.file.Path.of("/proc/meminfo")
         if (!java.nio.file.Files.exists(path)) None
         else
-          java.nio.file.Files
-            .readAllLines(path)
-            .toArray(Array.empty[String])
-            .collectFirst { case l if l.startsWith("MemAvailable:") => l }
-            .flatMap(_.split("\\s+").lift(1).flatMap(_.toLongOption))
-            .map(_ / 1024) // kB
+          Some(
+            java.nio.file.Files
+              .readAllLines(path)
+              .toArray(Array.empty[String])
+              .flatMap { line =>
+                line.split(":", 2) match {
+                  case Array(k, v) => v.trim.split("\\s+").headOption.flatMap(_.toLongOption).map(k.trim -> _)
+                  case _           => None
+                }
+              }
+              .toMap
+          )
       } catch { case _: java.io.IOException => None }
   }
 
@@ -92,12 +108,21 @@ object MachineMemory {
     */
   def slackMb(physicalMb: Long): Long = math.max(2048L, physicalMb / 16)
 
-  /** The fork-memory budget to run with, given what we are already holding.
+  /** The fork-memory budget: everything except what OTHER processes have made unreclaimable.
     *
-    * Expressed relative to current usage rather than as an absolute: the OS tells us what is still available, and whatever we already hold is by definition
-    * already accounted for in that figure. So the total we may hold is "what we hold now, plus what is left, minus slack" — which self-corrects as other
-    * processes come and go, without us having to model them.
+    * `ourFootprintMb` is what our own process tree currently costs, MEASURED (see [[ProcessMemory]]) — not what the governor has reserved. Subtracting it from
+    * the machine's unreclaimable total leaves what everything-that-isn't-bleep is holding, and the budget is whatever remains after that and slack.
+    *
+    * The subtraction is the entire point, and getting it wrong once produced a runaway. The previous formulation was relative — `holding + available - slack` —
+    * on the reasoning that the OS's "available" already accounts for forks we are running. It does not account for forks we have just ADMITTED: their
+    * reservation inflates `holding` immediately, while their memory only appears in `available` seconds later, so each admission raised the budget, which
+    * admitted more. Observed on a 48GB machine: 19GB -> 34GB -> 48GB -> 63GB while forks were being spawned, and 78GB at peak.
+    *
+    * Stated absolutely there is no such loop. As our forks materialize, `ourFootprintMb` and the machine's unreclaimable total rise together and cancel, so
+    * admitting work cannot manufacture evidence that there is room for more of it. Only genuine movement by other processes shifts the budget.
     */
-  def budgetFor(currentlyUsedMb: Long, availableForMoreMb: Long, physicalMb: Long, floorMb: Long): Long =
-    math.max(floorMb, currentlyUsedMb + availableForMoreMb - slackMb(physicalMb))
+  def budgetFor(ourFootprintMb: Long, machineUnreclaimableMb: Long, physicalMb: Long, floorMb: Long): Long = {
+    val heldByOthers = math.max(0L, machineUnreclaimableMb - ourFootprintMb)
+    math.max(floorMb, physicalMb - heldByOthers - slackMb(physicalMb))
+  }
 }

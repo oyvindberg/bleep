@@ -255,15 +255,40 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
-  test("budgetFor is relative to what we already hold, so it self-corrects") {
-    // The OS's "available" figure already accounts for the forks we are running, so the total we may
-    // hold is what we hold now plus what is left, minus slack. No modelling of other processes.
+  test("the budget cannot be inflated by our own admissions — regression for the runaway") {
+    // The bug this replaced: `budget = holding + available - slack`, on the reasoning that the OS's
+    // "available" already accounts for forks we run. It does not account for forks just ADMITTED —
+    // their reservation inflates `holding` at once while their memory appears in `available` seconds
+    // later — so every admission raised the budget, which admitted more. Observed on a 48GB machine:
+    // 19GB -> 34GB -> 48GB -> 63GB, and 78GB at peak.
     val physical = 49152L
     val slack = MachineMemory.slackMb(physical)
-    MachineMemory.budgetFor(currentlyUsedMb = 6000, availableForMoreMb = 10000, physicalMb = physical, floorMb = 1024) shouldBe (16000 - slack)
-    // A machine with nothing to spare collapses to the floor rather than to zero — something must
-    // always be able to run.
-    MachineMemory.budgetFor(currentlyUsedMb = 0, availableForMoreMb = 0, physicalMb = physical, floorMb = 1024) shouldBe 1024L
+
+    // As our forks materialize, our footprint and the machine's unreclaimable total rise TOGETHER.
+    // The budget must not move, because nothing about the rest of the machine changed.
+    val quiet = MachineMemory.budgetFor(ourFootprintMb = 4000, machineUnreclaimableMb = 20000, physicalMb = physical, floorMb = 1024)
+    val busy = MachineMemory.budgetFor(ourFootprintMb = 24000, machineUnreclaimableMb = 40000, physicalMb = physical, floorMb = 1024)
+    busy shouldBe quiet
+    quiet shouldBe (physical - 16000 - slack) // only the 16GB held by others is subtracted
+
+    // And it can never exceed the machine, which the old formula did by 30GB.
+    MachineMemory.budgetFor(ourFootprintMb = 40000, machineUnreclaimableMb = 40000, physicalMb = physical, floorMb = 1024) shouldBe (physical - slack)
+  }
+
+  test("only OTHER processes move the budget") {
+    val physical = 49152L
+    val slack = MachineMemory.slackMb(physical)
+    // Someone else starts a VM: 10GB less for us, all else equal.
+    val before = MachineMemory.budgetFor(ourFootprintMb = 8000, machineUnreclaimableMb = 20000, physicalMb = physical, floorMb = 1024)
+    val after = MachineMemory.budgetFor(ourFootprintMb = 8000, machineUnreclaimableMb = 30000, physicalMb = physical, floorMb = 1024)
+    (before - after) shouldBe 10000L
+    before shouldBe (physical - 12000 - slack)
+  }
+
+  test("a machine with nothing to spare collapses to the floor, never to zero") {
+    // Something must always be able to run, or a loaded machine deadlocks the build rather than
+    // merely slowing it.
+    MachineMemory.budgetFor(ourFootprintMb = 0, machineUnreclaimableMb = 49152, physicalMb = 49152, floorMb = 1024) shouldBe 1024L
   }
 
   test("vm_stat output parses into the page counts the budget needs") {

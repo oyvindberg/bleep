@@ -108,6 +108,7 @@ object JvmPool {
     Resource.make(
       for {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
+        startLimiter <- Semaphore[IO](MaxConcurrentStarts.toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
         // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
@@ -115,8 +116,31 @@ object JvmPool {
         costs <-
           if (ProcessMemory.system eq ProcessMemory.Unavailable) IO.pure(ForkCostModel.static)
           else ForkCostModel.create
-      } yield new JvmPoolImpl(semaphore, machine, pool, allJvms, new TrieMap[JvmKey, Int](), jvmCommand, workingDirectory, costs, ProcessMemory.system)
+      } yield new JvmPoolImpl(
+        semaphore,
+        startLimiter,
+        machine,
+        pool,
+        allJvms,
+        new TrieMap[JvmKey, Int](),
+        jvmCommand,
+        workingDirectory,
+        costs,
+        ProcessMemory.system
+      )
     )(_.shutdown)
+
+  /** How many forks may be in the middle of STARTING at any one time.
+    *
+    * Not a limit on how many run — that is the governor's job — but on how many may be between `spawn` and a healthy handshake. The two are different problems,
+    * and this one is invisible to any budget: a JVM's memory arrives over the seconds AFTER it starts, as classes load, the classpath is paged in and the JIT
+    * warms. A burst of spawns is therefore a burst of demand that no measurement has seen yet and no reservation has sized correctly. Admitted together they
+    * climb together, and the kernel picks off whichever it likes — observed as ~35 forks in one contiguous block of pids, all SIGKILLed at once.
+    *
+    * Staggering starts costs a little latency at the head of a run and buys the feedback loop the one thing it needs: time for a fork's real cost to become
+    * visible before the next admission is decided on it.
+    */
+  val MaxConcurrentStarts: Int = 3
 
   /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
     */
@@ -322,6 +346,7 @@ object JvmPool {
 
   private class JvmPoolImpl(
       semaphore: Semaphore[IO],
+      startLimiter: Semaphore[IO],
       machine: MachineResources,
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
@@ -491,57 +516,64 @@ object JvmPool {
       // Reserve this process's memory BEFORE starting it, and hand the release action to the
       // ManagedJvm so it lives exactly as long as the process does. If anything between here and a
       // healthy handshake fails, the reservation must be handed back — hence the bracketCase.
-      costOf(key, jvmOptions)
-        .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
-        .bracketCase { releaseMemory =>
-          IO
-            .blocking {
-              val javaPath = jvmCommand
-              val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+      //
+      // The whole spawn-through-handshake window is additionally held under `startLimiter`, so only
+      // MaxConcurrentStarts JVMs are ever climbing to their working set at the same time. See its
+      // docs: this is the demand no budget can see, because it does not exist yet at the moment the
+      // admission decision is made.
+      startLimiter.permit.use { _ =>
+        costOf(key, jvmOptions)
+          .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
+          .bracketCase { releaseMemory =>
+            IO
+              .blocking {
+                val javaPath = jvmCommand
+                val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-              // On Windows, command-line length is limited to 32,767 characters.
-              // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-              val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+                // On Windows, command-line length is limited to 32,767 characters.
+                // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+                val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-              val cmd =
-                if (useEnvClasspath)
-                  List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
-                else
-                  List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+                val cmd =
+                  if (useEnvClasspath)
+                    List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+                  else
+                    List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-              val pb = new ProcessBuilder(cmd*)
-              pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-              pb.redirectErrorStream(false)
-              if (useEnvClasspath) {
-                pb.environment().put("CLASSPATH", cpString): Unit
+                val pb = new ProcessBuilder(cmd*)
+                pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
+                pb.redirectErrorStream(false)
+                if (useEnvClasspath) {
+                  pb.environment().put("CLASSPATH", cpString): Unit
+                }
+                // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+                // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+                pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+                environment.foreach { case (k, v) => pb.environment().put(k, v) }
+
+                val process = pb.start()
+                val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
+                val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+                val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+                new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
               }
-              // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
-              // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
-              pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
-              environment.foreach { case (k, v) => pb.environment().put(k, v) }
-
-              val process = pb.start()
-              val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
-              val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-              val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-
-              new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
-            }
-            .flatTap(jvm => allJvms.update(_ + jvm))
-            .flatTap(jvm =>
-              waitForReady(jvm).onError { case _ =>
-                IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
-              }
-            )
-            .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
-        } {
-          // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
-          // On any failure — process never started, handshake failed, cancellation — nothing owns it,
-          // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
-          case (_, Outcome.Succeeded(_))           => IO.unit
-          case (releaseMemory, Outcome.Errored(_)) => releaseMemory
-          case (releaseMemory, Outcome.Canceled()) => releaseMemory
-        }
+              .flatTap(jvm => allJvms.update(_ + jvm))
+              .flatTap(jvm =>
+                waitForReady(jvm).onError { case _ =>
+                  IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
+                }
+              )
+              .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
+          } {
+            // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
+            // On any failure — process never started, handshake failed, cancellation — nothing owns it,
+            // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
+            case (_, Outcome.Succeeded(_))           => IO.unit
+            case (releaseMemory, Outcome.Errored(_)) => releaseMemory
+            case (releaseMemory, Outcome.Canceled()) => releaseMemory
+          }
+      }
     }
 
     private def waitForReady(jvm: ManagedJvm): IO[Unit] =
