@@ -700,29 +700,28 @@ class MultiWorkspaceBspServer(
     myOperationIds.remove(operationId): Unit
   }
 
-  /** Cancel all in-flight requests and kill child processes. */
+  /** Cancel this connection's in-flight requests.
+    *
+    * Scope is the point. `activeRequests` is per-connection, and cancelling those tokens propagates into the running IOs, whose `Resource` releases then
+    * `destroyForcibly` the processes THOSE requests started. That is precise and sufficient.
+    *
+    * There used to be a `killAllChildProcesses()` here as "belt and suspenders", walking `ProcessHandle.current().children()`. But `current()` is the DAEMON,
+    * which is shared by every workspace connected to it — so a cleanup path scoped to one connection reached across all of them and SIGKILLed other clients'
+    * perfectly healthy forks. One client disconnecting or sending `build/shutdown` killed another client's in-flight sourcegen and test JVMs.
+    *
+    * It was invisible because `destroyForcibly` here bypassed the kill-reason tracking, so the victim reported "killed by SIGKILL, not by bleep" and looked
+    * exactly like an OS memory kill. Measured on a fork that died this way: RSS flat at 160MB, 8GB free, memory pressure reporting 67% free — nothing to do
+    * with memory. Only forks living longer than a few seconds died, because that is how long another client needs to disconnect.
+    */
   private def cancelAllActiveRequests(): Unit = {
     val activeCount = activeRequests.size()
     if (activeCount > 0) {
       logger.withContext("count", activeCount).withContext("requests", activeRequests.keySet().asScala.mkString(", ")).warn("Cancelling all active requests")
     }
-    // Cancel all active request tokens (triggers cancellation flow in running IOs)
+    // Cancel this connection's request tokens (triggers cancellation flow in running IOs, which
+    // release their Resources and kill the processes they own).
     activeRequests.values().forEach(_.cancel())
-
-    // Kill any child processes of this JVM (belt and suspenders)
-    killAllChildProcesses()
   }
-
-  /** Kill all child processes of this JVM using ProcessHandle API */
-  private def killAllChildProcesses(): Unit =
-    try
-      ProcessHandle.current().children().forEach { child =>
-        try {
-          debugLog(s"Killing child process: ${child.pid()}")
-          child.destroyForcibly(): Unit
-        } catch { case _: Exception => }
-      }
-    catch { case _: Exception => }
 
   private def handleExit(): Unit = {
     // Don't exit the daemon - just close this connection
