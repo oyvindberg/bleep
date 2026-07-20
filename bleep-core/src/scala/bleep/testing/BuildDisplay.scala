@@ -425,6 +425,23 @@ object BuildSummary {
           }
         }
 
+        // If anything died of memory — an in-JVM OutOfMemoryError, or a process the OS killed under
+        // pressure — point at the one page that explains which knobs to turn. A user staring at "Java
+        // heap space" or "killed by SIGKILL" needs to know that per-fork -Xmx, parallelism and the
+        // machine budget are all adjustable, and how they trade off.
+        val memoryRelated =
+          (testFailures ++ processErrors ++ timeouts).exists { f =>
+            val text = (f.message.getOrElse("") + " " + f.output.mkString(" ")).toLowerCase
+            text.contains("outofmemory") || text.contains("heap space") || text.contains("sigkill") || text.contains("exit 137") ||
+            text.contains("terminated before sending ready")
+          }
+        if (memoryRelated) {
+          lines += s"${C.YELLOW}${C.BOLD}A process ran out of memory or was killed under memory pressure.${C.RESET}"
+          lines += "  Adjust per-fork heap, how many run at once, or the machine budget — and how they trade off:"
+          lines += s"  ${C.CYAN}https://bleep.build/docs/usage/resource-management${C.RESET}"
+          lines += ""
+        }
+
         // Fallback: if counters show problems but no categorized failures captured
         val categorizedCount = testFailures.size + timeouts.size + cancelledTests.size + processErrors.size + buildErrors.size
         if (categorizedCount == 0 && totalProblems > 0) {
@@ -894,14 +911,25 @@ object BuildDisplay {
     private def printCompileSummary: IO[Unit] =
       for {
         s <- summary
+        // A compile run also fails when what runs BEFORE the compiles fails — sourcegen, or
+        // annotation-processor / KSP resolution. Those make the dependent compiles `skipped`, not
+        // `failed`, so a summary counting only compile failures reported "0 failed, N skipped" for a
+        // run that did not succeed. Fold them in, so the header and counts tell the same story the
+        // exit code does. Reported for a failed sourcegen showing as `0 failed, 4 skipped`.
+        preCompileFailed = s.sourcegenFailed + s.apResolutionFailed + s.kspResolutionFailed
+        anyFailure = s.compileFailures.nonEmpty || s.linkFailures.nonEmpty || preCompileFailed > 0
         _ <- log("")
         _ <- log("=" * 60)
-        _ <- log("Build Summary")
+        _ <- log(if (anyFailure) "Build Summary — FAILED" else "Build Summary")
         _ <- log("=" * 60)
-        compiledCount = s.compileFailures.size + (if (s.compileFailures.isEmpty && s.durationMs > 0) 1 else 0)
         failedCount = s.compileFailures.size
         skippedCount = s.skippedProjects.size
         _ <- log(s"Projects: compiled, $failedCount failed, $skippedCount skipped")
+        _ <-
+          if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed — see the errors above and the BSP server log")
+          else IO.unit
+        _ <- if (s.apResolutionFailed > 0) log(s"Annotation processors: ${s.apResolutionFailed} project(s) failed to resolve") else IO.unit
+        _ <- if (s.kspResolutionFailed > 0) log(s"KSP: ${s.kspResolutionFailed} project(s) failed to resolve") else IO.unit
         wallTimeSeconds = s.durationMs / 1000.0
         _ <- log(f"Time:     ${wallTimeSeconds}%.1fs")
         _ <- if (s.compileFailures.nonEmpty) printCompileFailures(s.compileFailures) else IO.unit

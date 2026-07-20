@@ -1,0 +1,84 @@
+
+# Memory & Parallelism
+
+When a test, a source generator, or a compile runs out of memory — you see `Java heap space`, an `OutOfMemoryError`, or a process `killed by SIGKILL (exit 137)` — this page is what the build summary links you to. It explains every knob that governs how much memory a build uses and how many things run at once, and how they interact.
+
+## The short version
+
+A forked JVM (a test runner, a sourcegen script, a KSP processor) has **two** costs, and they are controlled separately:
+
+1. **How big each fork is** — its `-Xmx` heap ceiling. If a suite genuinely needs more memory than it is given, it fails with an in-JVM `OutOfMemoryError` naming the suite. **Fix: give that project more heap.**
+2. **How many forks run at once** — the parallelism. If too many run together, the machine runs out of real memory and the OS kills processes with `SIGKILL`. **Fix: lower parallelism, or lower per-fork heap so more fit.**
+
+bleep also measures what forks actually cost and sizes concurrency against what the machine can currently spare, so most of the time you never touch any of this. You reach for these knobs when a specific suite is heavier than the default, or when bleep is sharing the machine with something it can't see.
+
+## Per-fork heap
+
+Every forked JVM is given a default heap of **2 GB**. A fork that states no `-Xmx` is *not* unlimited — the JVM would otherwise take a quarter of the machine, and bleep starts one per core, so a default is essential.
+
+Raise it for a project whose tests need more:
+
+```yaml
+projects:
+  my-heavy-tests:
+    isTestProject: true
+    platform:
+      jvmOptions: -Xmx4g
+```
+
+The project's `platform.jvmOptions` are appended after the default, and the **last `-Xmx` wins**, so this overrides the 2 GB for just this project. This is the right fix when the failure is an in-JVM `OutOfMemoryError` / `Java heap space` — that suite is telling you, accurately, that 2 GB is not enough for it.
+
+The same applies to the other forked processes, set once for the whole build in your user config (`~/.config/bleep/config.yaml` or equivalent):
+
+| Setting | Forked process it sizes |
+| --- | --- |
+| `testRunnerMaxMemory` | test runner JVMs (all projects) |
+| `sourcegenMaxMemory` | sourcegen scripts |
+| `kspRunnerMaxMemory` | KSP (Kotlin symbol processing) runners |
+| `compileServerMaxMemory` | the compile server / BSP daemon's own `-Xmx` (this is *not* a fork; it's the long-lived server heap that Zinc compiles run inside) |
+
+A project-level `platform.jvmOptions` beats the global `testRunnerMaxMemory` for that project, so use the global for a build-wide baseline and the per-project override for the exceptions.
+
+## How many run at once
+
+Concurrency is controlled by the compile server's parallelism, in the same user config:
+
+| Setting | Meaning |
+| --- | --- |
+| `parallelism` | maximum number of concurrent operations (compiles + forks). Defaults to the number of cores. |
+| `parallelismRatio` | the same as a fraction of cores, e.g. `0.5` for half. Used when `parallelism` is unset. |
+
+Lowering parallelism is the direct fix when the machine is being *overwhelmed* — many forks killed by `SIGKILL` at once, rather than one suite failing with a clean `OutOfMemoryError`. Fewer forks run together, so peak memory drops.
+
+## The machine budget (automatic)
+
+You usually don't set this, but it explains why bleep sometimes runs fewer things than the raw numbers suggest.
+
+The compile server continuously measures how much of the machine's non-reclaimable memory is held by **other** processes (your IDE, a browser, another build) and sizes its own fork-memory budget as *what's left, minus a safety margin*. So:
+
+- If you open something memory-hungry mid-build, bleep stops admitting new forks until there's room, rather than pushing the machine into swap.
+- If nothing else is running, it uses more of the machine.
+
+This adapts on its own and needs no configuration. It also means a fork is charged its **measured** cost, not its `-Xmx` ceiling — a 2 GB-ceiling fork that only uses 600 MB is counted as 600 MB, so many more fit than the ceilings would suggest.
+
+## How the knobs trade off
+
+They are not independent — think of it as *peak memory ≈ per-fork heap × forks running at once*, bounded by what the machine can spare.
+
+- **Raising per-fork heap** lets a heavy suite pass, but each fork now costs more, so **fewer fit** at a given budget — effective parallelism drops.
+- **Raising parallelism** finishes the build faster, but only if each fork is small enough that they collectively fit. Past that point you get `SIGKILL`s instead of speed.
+- **Lowering per-fork heap** lets more run in parallel, but a suite that needed the headroom will `OutOfMemoryError`.
+
+The practical recipe:
+
+1. **A single suite fails with `Java heap space` / `OutOfMemoryError`.** That suite needs more heap. Give *that project* a larger `platform.jvmOptions: -Xmx…`. Don't lower parallelism — the rest of the build is fine.
+2. **Many forks are killed by `SIGKILL (exit 137)` at once, especially late in a big run.** The machine is over-subscribed. Lower `parallelism` (or `parallelismRatio`), or lower a too-generous per-fork heap so more fit.
+3. **A fork is killed before it even starts** (`terminated before sending Ready — killed by SIGKILL`). Same cause as (2): the machine had no room to back a new JVM. Same fixes.
+
+## Reading the diagnostic
+
+bleep distinguishes who did the killing, because it matters for the fix:
+
+- **`Java heap space` / `OutOfMemoryError`** — the fork hit *its own* `-Xmx` ceiling. Raise that project's heap (recipe 1).
+- **`killed by SIGKILL (exit 137), not by bleep`** — the *OS* killed it, almost always memory pressure. Reduce concurrent memory (recipe 2/3). Check your system log for a memory-pressure kill to confirm.
+- **`terminated by bleep (…reason…)`** — bleep itself killed it, and the reason is stated (a suite timeout, a cancellation, pool cleanup). Not a memory problem; read the reason.

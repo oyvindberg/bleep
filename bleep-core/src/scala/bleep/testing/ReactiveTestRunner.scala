@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.MachineResources
 import bleep.bsp.protocol.{OutputChannel, SuiteOutcome, TestStatus}
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
@@ -73,14 +74,16 @@ object ReactiveTestRunner {
       options: Options
   ): IO[Result] =
 
-    // Standalone (single-process) runner: the fork limit is just this run's parallelism, so a
-    // local semaphore with maxParallelJvms permits — no cross-client sharing to coordinate here.
+    // Standalone (single-process) runner. The governor describes the MACHINE — cores and fork-memory
+    // budget — exactly as it does in the daemon; `maxParallelJvms` is the user's cap on this one run
+    // and belongs on the pool's own semaphore, not smuggled in as the machine's core count. Whichever
+    // is lower ends up binding, which is the intent of both.
     JvmPool
       .create(
         options.maxParallelJvms,
         started.jvmCommand,
         started.buildPaths.buildDir,
-        new java.util.concurrent.Semaphore(options.maxParallelJvms, /* fair = */ true)
+        MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = started.logger)
       )
       .use { pool =>
         for {
@@ -157,7 +160,7 @@ object ReactiveTestRunner {
     // shared JVM. A failure in one suite (e.g. the forked JVM dying) only fails that suite; siblings keep running on their own JVMs. The pool reuses healthy
     // JVMs across suites (warm classloader, same classpath hash), drops dead ones in `release`.
     suites.parTraverse_ { suite =>
-      pool.acquire(classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
+      pool.acquire(suite.className, classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
         runSuite(
           projectName = project,
           suite = suite,

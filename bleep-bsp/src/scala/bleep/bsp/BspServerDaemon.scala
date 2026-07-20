@@ -5,6 +5,7 @@ import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
 import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 import ryddig.jul.RyddigJulBridge
+import bleep.{MachineMemory, MachineResources}
 
 import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.PosixFilePermissions
@@ -200,18 +201,80 @@ object BspServerDaemon {
     val connectionCounter = AtomicInteger(0)
     val activeClientThreads = ConcurrentHashMap.newKeySet[Thread]()
 
-    // Server-wide compile semaphore: limits total concurrent compilations across all connections.
-    // FIFO-fair so an IDE typing rapidly can't starve a parallel `bleep test` (or vice versa) —
-    // unfair semaphores give better throughput but allow indefinite waiting under sustained
-    // contention, which is the wrong tradeoff for a mixed-traffic build server.
+    // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
+    // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously
+    // gated by its own numCores semaphore) or, for forks, the RAM. CPU budget = cores; fork-memory
+    // budget = physical RAM minus the server's own heap minus an OS reserve.
+    //
+    // There is deliberately NO separate user knob for the fork-memory budget. Users already control
+    // both dimensions of what forks cost, at the level each belongs to: `parallelism` /
+    // `parallelismRatio` in the user config bound how many forks run at once, and
+    // `testRunnerMaxMemory` (or a project's own jvmOptions) bounds how big each one is. A third
+    // machine-level number would overlap both and, because the daemon is shared and long-lived,
+    // could only have been delivered by environment — which the daemon inherits from whichever
+    // client happened to cold-start it and every later client silently reuses. A setting that
+    // usually does nothing is worse than no setting.
+    //
+    // The starting budget below is only a starting point; `retuneLoop` tracks what the machine can
+    // actually spare from there.
     val numCores = Runtime.getRuntime.availableProcessors()
-    val compileSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-    // Server-wide cap on concurrent forked test JVMs. Each client's test run creates its own
-    // JvmPool, so without a shared limit two clients testing at once fork 2× the per-pool budget —
-    // the fork storm behind "JVM process terminated before sending Ready" under multi-agent load.
-    // Sized like the compile semaphore; fair for the same mixed-traffic reason.
-    val testForkSemaphore = new java.util.concurrent.Semaphore(numCores, /* fair = */ true)
-    logger.info(s"Compile + test-fork semaphores: $numCores permits each (based on available processors, fair)")
+    val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+    val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
+    val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
+    logger.info(
+      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB"
+    )
+    val machine = MachineResources.create(
+      totalCpu = numCores,
+      totalMemoryMb = forkMemoryBudgetMb,
+      logger = logger,
+      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
+    )
+
+    // Background reporter: when work is queued waiting for resources, log the machine load
+    // periodically so a stalled build has a legible cause.
+    locally {
+      import cats.effect.unsafe.implicits.global
+      val reporter = new Thread("bleep-machine-reporter") {
+        override def run(): Unit =
+          try
+            while (!shutdownRequested.get()) {
+              Thread.sleep(15000)
+              if (machine.isContended.unsafeRunSync()) logger.info(machine.snapshot.unsafeRunSync().render)
+            }
+          catch { case _: InterruptedException => () }
+      }
+      reporter.setDaemon(true)
+      reporter.start()
+    }
+
+    // Track what the machine can actually spare, for as long as the daemon lives.
+    //
+    // The figure computed above from physical RAM is a starting point and nothing more: the budget
+    // depends on everything else running on this machine, which changes underneath us. Left static it
+    // was wrong in both directions on a developer machine — too generous alongside an IDE, a browser
+    // and other agents, needlessly stingy once they closed. When the env override is set the operator
+    // has stated a figure, so we leave it alone.
+    //
+    // Caveat worth knowing about the env override: the daemon is shared and long-lived, and its
+    // identity (BspRifleConfig.hash) is bleepVersion:name:version:options — env is NOT part of it.
+    // A daemon inherits the environment of whichever client happened to COLD-START it, and every
+    // later client reuses it regardless of their own environment. So the pin is dependable where
+    // daemons are fresh (CI) and unreliable on a developer machine, where one has usually been up
+    // for hours. That is why it is logged: what is in force must be checkable, not assumed.
+    // Track what the machine can actually spare, for as long as the daemon lives. The figure above is
+    // derived from physical RAM alone, which is wrong the moment anything else is running — too
+    // generous alongside an IDE and a browser, needlessly stingy once they close.
+    locally {
+      import cats.effect.unsafe.implicits.global
+      val retuner = new Thread("bleep-machine-budget") {
+        override def run(): Unit =
+          try MachineResources.retuneLoop(machine, MachineMemory.system, logger).unsafeRunSync()
+          catch { case _: InterruptedException => () }
+      }
+      retuner.setDaemon(true)
+      retuner.start()
+    }
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
@@ -275,8 +338,7 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  compileSemaphore,
-                  testForkSemaphore
+                  machine
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -291,8 +353,7 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      compileSemaphore,
-                      testForkSemaphore
+                      machine
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
@@ -340,8 +401,7 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      compileSemaphore: java.util.concurrent.Semaphore,
-      testForkSemaphore: java.util.concurrent.Semaphore
+      machine: MachineResources
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -349,8 +409,7 @@ object BspServerDaemon {
         input,
         output,
         logger,
-        compileSemaphore = compileSemaphore,
-        testForkSemaphore = testForkSemaphore,
+        machine = machine,
         heapMonitor = HeapMonitor.system
       )
 

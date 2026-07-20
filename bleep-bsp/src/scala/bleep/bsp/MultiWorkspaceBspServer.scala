@@ -48,8 +48,7 @@ class MultiWorkspaceBspServer(
     in: InputStream,
     out: OutputStream,
     logger: Logger,
-    compileSemaphore: java.util.concurrent.Semaphore,
-    testForkSemaphore: java.util.concurrent.Semaphore,
+    machine: MachineResources,
     heapMonitor: HeapMonitor
 ) {
   import MultiWorkspaceBspServer.DebugLogging
@@ -1326,23 +1325,31 @@ class MultiWorkspaceBspServer(
         setupIO.flatMap { case (ksp, decision, snap, stateFile) =>
           // Serialize KSP runs for the same cross-project across BSP server connections (e.g. a Normal-variant compile racing a BSP-variant compile of the same
           // project). The DAG already serializes within one build, but two builds for the same project share the daemon JVM + the shared sources dir.
+          // One number decides both what the fork may use and what it is charged, so the two can't
+          // drift. KspRunner only emits -Xmx when this is Some, so passing it explicitly is also what
+          // bounds the fork at all rather than letting HotSpot hand it a quarter of the machine.
+          val kspHeapMb = MachineResources.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
+          val kspForkMemMb = MachineResources.forkFootprintMb(kspHeapMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
-            bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, s.config.bspServerConfigOrDefault.kspRunnerMaxMemory, cancellation, logger).flatMap {
-              case bleep.analysis.KspRunner.RunResult.Success =>
-                // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
-                IO.blocking(KspIncrementalState.save(stateFile, snap)).as((TaskDag.TaskResult.Success: TaskDag.TaskResult, ksp.processorJars.size))
-              case bleep.analysis.KspRunner.RunResult.Cancelled =>
-                // KSP doesn't write atomically; a kill mid-emit can leave a half-written `.kt` in the shared sources tree that would poison the next kotlinc
-                // invocation. Wipe outputs + caches; the manifest wasn't saved either, so the next decide forces a clean FullRebuild.
-                IO.blocking {
-                  List(ksp.kotlinOutputDir, ksp.javaOutputDir, ksp.resourceOutputDir, ksp.classOutputDir, ksp.cachesDir).foreach { d =>
-                    if (Files.exists(d)) bleep.internal.FileUtils.deleteDirectory(d)
-                  }
-                }.as((TaskDag.TaskResult.Killed(KillReason.UserRequest): TaskDag.TaskResult, 0))
-              case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>
-                val short = if (msg.length > 4000) msg.substring(0, 4000) + "\n... [truncated]" else msg
-                IO.pure((TaskDag.TaskResult.Failure(s"KSP runner exited with code $ec\n$short", Nil): TaskDag.TaskResult, 0))
-            }
+            machine
+              .reserve(MachineResources.ResourceKind.KspFork, s"ksp ${cn.value}", cpu = 1, memoryMb = kspForkMemMb)
+              .use(_ => bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger))
+              .flatMap {
+                case bleep.analysis.KspRunner.RunResult.Success =>
+                  // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
+                  IO.blocking(KspIncrementalState.save(stateFile, snap)).as((TaskDag.TaskResult.Success: TaskDag.TaskResult, ksp.processorJars.size))
+                case bleep.analysis.KspRunner.RunResult.Cancelled =>
+                  // KSP doesn't write atomically; a kill mid-emit can leave a half-written `.kt` in the shared sources tree that would poison the next kotlinc
+                  // invocation. Wipe outputs + caches; the manifest wasn't saved either, so the next decide forces a clean FullRebuild.
+                  IO.blocking {
+                    List(ksp.kotlinOutputDir, ksp.javaOutputDir, ksp.resourceOutputDir, ksp.classOutputDir, ksp.cachesDir).foreach { d =>
+                      if (Files.exists(d)) bleep.internal.FileUtils.deleteDirectory(d)
+                    }
+                  }.as((TaskDag.TaskResult.Killed(KillReason.UserRequest): TaskDag.TaskResult, 0))
+                case bleep.analysis.KspRunner.RunResult.Failure(ec, msg) =>
+                  val short = if (msg.length > 4000) msg.substring(0, 4000) + "\n... [truncated]" else msg
+                  IO.pure((TaskDag.TaskResult.Failure(s"KSP runner exited with code $ec\n$short", Nil): TaskDag.TaskResult, 0))
+              }
           })
         }
       }
@@ -1365,22 +1372,33 @@ class MultiWorkspaceBspServer(
       def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
         BspMetrics.recordSourcegenStart(scriptMain)
 
-      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit =
+      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit = {
         BspMetrics.recordSourcegenEnd(scriptMain, durationMs, success)
+        // Record a failure in the daemon's OWN log, not only as a client notification. `bspError`
+        // sends a BSP logMessage to whoever is connected and nothing more, so a failed sourcegen left
+        // no trace in the server log — the one place you look when a build fails intermittently and
+        // the client has moved on. Reported: grepping the server log for the failing script found
+        // zero hits.
+        if (!success) logger.warn(s"Sourcegen $scriptMain failed${error.fold("")(e => s": $e")}")
+      }
 
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
+    val forkMemMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory))
     (sgt, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
         case None         =>
-          SourceGenRunner
-            .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
-            .map {
-              case None        => TaskDag.TaskResult.Success
-              case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
-            }
+          // Sourcegen forks a JVM — reserve machine resources like any other fork.
+          machine.reserve(MachineResources.ResourceKind.SourcegenFork, s"sourcegen ${sgt.script.main}", cpu = 1, memoryMb = forkMemMb).use { _ =>
+            SourceGenRunner
+              .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
+              .map {
+                case None        => TaskDag.TaskResult.Success
+                case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
+              }
+          }
       }
   }
 
@@ -1948,9 +1966,9 @@ class MultiWorkspaceBspServer(
         // Create kill signal from cancellation token
         killSignal <- Outcome.fromCancellationToken(cancellation)
 
-        // Create JVM pool for test execution. The server-wide testForkSemaphore caps concurrent
-        // forks across ALL clients — the per-pool maxParallelism only bounds this one test run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, testForkSemaphore).use { jvmPool =>
+        // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
+        // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine).use { jvmPool =>
           // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
           // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
@@ -2360,27 +2378,31 @@ class MultiWorkspaceBspServer(
             // completes via gatedCompile or waitForKill, the listener is always cleaned up. Replaces the prior `.start` + manual `.guarantee(_.cancel)` pattern.
             val cooperativeCancelFiber = taskKillSignal.get.flatMap(_ => IO(token.cancel())).background
 
-            // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-            val gatedCompile = IO
-              .interruptible(compileSemaphore.acquire())
-              .bracket { _ =>
-                IO(activeCompileCount.incrementAndGet()) >>
-                  waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                    val compileStartTime = System.currentTimeMillis()
-                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
-                        .guaranteeCase {
-                          case cats.effect.Outcome.Succeeded(resultIO) =>
-                            resultIO.flatMap { result =>
-                              val dur = System.currentTimeMillis() - compileStartTime
-                              val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                            }
-                          case _ =>
-                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                        }
-                  }
-              }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
+            // Reserve one core from the machine governor for this compile — the same governor test
+            // forks reserve against, so compiles and forks can't oversubscribe the CPU. A compile
+            // runs in the server heap (not a forked process), so it reserves no fork memory; server
+            // heap is staggered separately by waitForHeapPressure.
+            val gatedCompile =
+              machine.reserve(MachineResources.ResourceKind.Compile, s"compile $projectName", cpu = 1, memoryMb = 0L).use { _ =>
+                IO(activeCompileCount.incrementAndGet())
+                  .bracket { _ =>
+                    waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                      val compileStartTime = System.currentTimeMillis()
+                      IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                        compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
+                          .guaranteeCase {
+                            case cats.effect.Outcome.Succeeded(resultIO) =>
+                              resultIO.flatMap { result =>
+                                val dur = System.currentTimeMillis() - compileStartTime
+                                val ok = result == TaskDag.TaskResult.Success
+                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                              }
+                            case _ =>
+                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                          }
+                    }
+                  }(_ => IO(activeCompileCount.decrementAndGet(): Unit))
+              }
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
             cooperativeCancelFiber.surround(IO.race(gatedCompile, waitForKill).map(_.merge))
