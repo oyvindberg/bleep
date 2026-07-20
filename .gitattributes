@@ -1,6 +1,15 @@
-# Windows checkouts default to core.autocrlf=true, which rewrites LF to CRLF for anything git considers text. Fixtures whose *bytes* are the thing under test
-# must be exempt, or they hash differently on Windows than everywhere else.
+# Windows checkouts default to core.autocrlf=true, which rewrites LF to CRLF in the working tree. Bleep is a cross-platform build tool whose tests compare
+# generated text against literals and hash fixtures byte-for-byte, so a CRLF working tree silently changes results on Windows only. Normalize everything to LF
+# on every platform instead.
 #
-# ChecksumTests reads the .pom and compares its sha1/md5 against the checked-in .sha1/.md5 files. With CRLF conversion the pom hashes to
-# 14b5269f59a923be0cd8d0feb71d3b5fb6b4de43 instead of c47391f7adba596ba1600da80685d5bc9e63390b, and the expectation files themselves gain trailing \r.
+# Two concrete failures this fixes, both invisible until the Windows CI job stopped swallowing test failures:
+#   * BuildRewriteTest compared `yaml.encodeShortened` output (correctly LF) against `stripMargin` literals in a .scala source that git had given CRLF.
+#   * ChecksumTests hashes a .pom and compares against checked-in .sha1/.md5; with CRLF the pom hashed to 14b5269f… instead of c47391f7…
+* text=auto eol=lf
+
+# Fixtures whose bytes are the thing under test — never touch them at all.
 bleep-tests/src/resources/** -text
+
+# Batch files are the one place CRLF genuinely matters to the interpreter.
+*.bat text eol=crlf
+*.cmd text eol=crlf
