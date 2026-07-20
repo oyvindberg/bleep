@@ -159,11 +159,11 @@ object JvmPool {
     */
   /** Describe how a forked JVM died, for the message the user actually reads.
     *
-    * `killedByUs` is checked FIRST and it is the whole point. `destroyForcibly` sends SIGKILL, so a fork bleep terminated reports exit 137 identically to one the
-    * kernel terminated — and an earlier version of this reported every 137 as "the kernel reclaiming memory under pressure". That was wrong for every kill bleep
-    * issued itself (start-timeout, pool eviction, contention, cancellation, shutdown), and confidently wrong: it sent a long investigation into the memory
-    * subsystem chasing failures bleep was causing. Verified afterwards against the OS's own log, which had recorded no memory kills at all during a run where 35
-    * forks "died of memory pressure".
+    * `killedByUs` is checked FIRST and it is the whole point. `destroyForcibly` sends SIGKILL, so a fork bleep terminated reports exit 137 identically to one
+    * the kernel terminated — and an earlier version of this reported every 137 as "the kernel reclaiming memory under pressure". That was wrong for every kill
+    * bleep issued itself (start-timeout, pool eviction, contention, cancellation, shutdown), and confidently wrong: it sent a long investigation into the
+    * memory subsystem chasing failures bleep was causing. Verified afterwards against the OS's own log, which had recorded no memory kills at all during a run
+    * where 35 forks "died of memory pressure".
     *
     * Only when nothing in bleep killed it is an external cause a sound conclusion, and even then it is offered as the likely explanation rather than asserted.
     */
@@ -177,7 +177,8 @@ object JvmPool {
           ExitDescription("EOF on stdout, process still alive", Some("The JVM closed stdout but has not exited — it may be wedged rather than dead."))
         else
           process.exitValue() match {
-            case 0 => ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
+            case 0 =>
+              ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
             case 137 =>
               ExitDescription(
                 "killed by SIGKILL (exit 137), not by bleep",
@@ -186,7 +187,7 @@ object JvmPool {
                     "Check the system log for memory-pressure kills before assuming so; if there are none, look for another external killer."
                 )
               )
-            case 139                => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
+            case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
             case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code), not by bleep", None)
             case code               => ExitDescription(s"exited with code $code", None)
           }

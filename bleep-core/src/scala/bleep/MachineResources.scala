@@ -93,7 +93,7 @@ final class MachineResources private (
       now <- IO.realTime.map(_.toMillis)
       maybeId <- state.modify { st =>
         val memReq = math.max(0L, math.min(memoryMb, st.totalMemoryMb))
-        if (st.freeCpu >= cpuReq && st.freeMemoryMb >= memReq) {
+        if (fits(cpuReq, memReq, st.freeCpu, st.freeMemoryMb)) {
           val id = st.nextId
           val next = st.copy(
             nextId = id + 1,
@@ -215,7 +215,7 @@ object MachineResources {
     val granted = List.newBuilder[Waiter]
     val stillWaiting = Vector.newBuilder[Waiter]
     st.waiting.foreach { w =>
-      if (freeCpu >= w.cpu && freeMem >= w.memoryMb) {
+      if (fits(w.cpu, w.memoryMb, freeCpu, freeMem)) {
         freeCpu -= w.cpu
         freeMem -= w.memoryMb
         active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, w.memoryMb, w.sinceMs))
@@ -224,6 +224,17 @@ object MachineResources {
     }
     (st.copy(freeCpu = freeCpu, freeMemoryMb = freeMem, active = active, waiting = stillWaiting.result()), granted.result())
   }
+
+  /** Does a request for `(cpu, mem)` fit given what is free?
+    *
+    * A request that consumes NOTHING of a dimension always fits along it, even when free has gone negative. Free memory does go negative — legitimately — when
+    * the dynamic budget is retuned below what is already reserved (the machine got busier while forks were mid-flight; we do not evict them, we just stop
+    * admitting more). Without this, a compile — which reserves a core but zero fork-memory — was refused because free memory was -5GB, so a fleet of idle
+    * pooled test JVMs holding memory could wedge every compile in the build behind an over-commit the compiles do not even contribute to. Observed exactly
+    * once: 18 compiles waiting 16 minutes on `mem 28160/23066MB`.
+    */
+  private def fits(cpu: Int, memoryMb: Long, freeCpu: Int, freeMemoryMb: Long): Boolean =
+    (cpu == 0 || freeCpu >= cpu) && (memoryMb == 0L || freeMemoryMb >= memoryMb)
 
   case class Entry(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long, ageMs: Long)
 

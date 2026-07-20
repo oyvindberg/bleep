@@ -304,4 +304,34 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     parsed("Pages wired down") shouldBe 349235L
     parsed("File-backed pages") shouldBe 468294L // parsed, but deliberately NOT subtracted: clean and evictable
   }
+
+  test("a zero-memory reservation is never blocked by an over-committed budget — the compile-deadlock regression") {
+    // A compile reserves a core and ZERO fork-memory. When the dynamic budget is retuned below what
+    // is already reserved (11 idle pooled test forks held 28GB while the budget dropped to 23GB),
+    // free memory goes negative — and `freeMem >= 0` is false, so every compile in the build wedged
+    // behind an over-commit it does not even contribute to. Observed: 18 compiles waiting 16 minutes.
+    val m = machine(cpu = 18, memMb = 26624)
+    val prog = for {
+      // Fill memory, then shrink the budget under it so free memory is negative — exactly the state
+      // the snapshot showed.
+      hold <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      forks <- (1 to 8).toList.parTraverse(i => m.reserve(TestFork, s"fork$i", cpu = 0, memoryMb = 2560).use(_ => hold.release *> release.await).start)
+      _ <- hold.await
+      _ <- m.retuneMemoryBudget(15000) // below the ~20GB now reserved
+      s1 <- m.snapshot
+      _ = (s1.totalMemoryMb - s1.usedMemoryMb) should be < 0L // free memory is genuinely negative
+      // A compile (cpu=1, mem=0) must still be admitted immediately.
+      compile <- m.reserve(Compile, "compile ast", cpu = 1, memoryMb = 0).use(_ => IO.unit).start
+      _ <- compile.join.timeout(5.seconds)
+      // ...while a NEW memory-consuming fork correctly still waits.
+      newFork <- m.reserve(TestFork, "new", cpu = 0, memoryMb = 2560).use(_ => IO.unit).start
+      blocked <- newFork.join.as(true).timeoutTo(300.millis, IO.pure(false))
+      _ = blocked shouldBe false
+      _ <- release.release
+      _ <- forks.traverse(_.join)
+      _ <- newFork.join.timeout(5.seconds)
+    } yield ()
+    prog.timeout(30.seconds).unsafeRunSync()
+  }
 }
