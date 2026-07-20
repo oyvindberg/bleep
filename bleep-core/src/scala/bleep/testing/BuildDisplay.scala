@@ -911,14 +911,25 @@ object BuildDisplay {
     private def printCompileSummary: IO[Unit] =
       for {
         s <- summary
+        // A compile run also fails when what runs BEFORE the compiles fails — sourcegen, or
+        // annotation-processor / KSP resolution. Those make the dependent compiles `skipped`, not
+        // `failed`, so a summary counting only compile failures reported "0 failed, N skipped" for a
+        // run that did not succeed. Fold them in, so the header and counts tell the same story the
+        // exit code does. Reported for a failed sourcegen showing as `0 failed, 4 skipped`.
+        preCompileFailed = s.sourcegenFailed + s.apResolutionFailed + s.kspResolutionFailed
+        anyFailure = s.compileFailures.nonEmpty || s.linkFailures.nonEmpty || preCompileFailed > 0
         _ <- log("")
         _ <- log("=" * 60)
-        _ <- log("Build Summary")
+        _ <- log(if (anyFailure) "Build Summary — FAILED" else "Build Summary")
         _ <- log("=" * 60)
-        compiledCount = s.compileFailures.size + (if (s.compileFailures.isEmpty && s.durationMs > 0) 1 else 0)
         failedCount = s.compileFailures.size
         skippedCount = s.skippedProjects.size
         _ <- log(s"Projects: compiled, $failedCount failed, $skippedCount skipped")
+        _ <-
+          if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed — see the errors above and the BSP server log")
+          else IO.unit
+        _ <- if (s.apResolutionFailed > 0) log(s"Annotation processors: ${s.apResolutionFailed} project(s) failed to resolve") else IO.unit
+        _ <- if (s.kspResolutionFailed > 0) log(s"KSP: ${s.kspResolutionFailed} project(s) failed to resolve") else IO.unit
         wallTimeSeconds = s.durationMs / 1000.0
         _ <- log(f"Time:     ${wallTimeSeconds}%.1fs")
         _ <- if (s.compileFailures.nonEmpty) printCompileFailures(s.compileFailures) else IO.unit

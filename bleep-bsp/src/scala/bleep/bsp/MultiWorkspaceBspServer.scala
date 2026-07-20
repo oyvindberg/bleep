@@ -1372,8 +1372,15 @@ class MultiWorkspaceBspServer(
       def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
         BspMetrics.recordSourcegenStart(scriptMain)
 
-      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit =
+      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit = {
         BspMetrics.recordSourcegenEnd(scriptMain, durationMs, success)
+        // Record a failure in the daemon's OWN log, not only as a client notification. `bspError`
+        // sends a BSP logMessage to whoever is connected and nothing more, so a failed sourcegen left
+        // no trace in the server log — the one place you look when a build fails intermittently and
+        // the client has moved on. Reported: grepping the server log for the failing script found
+        // zero hits.
+        if (!success) logger.warn(s"Sourcegen $scriptMain failed${error.fold("")(e => s": $e")}")
+      }
 
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
