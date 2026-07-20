@@ -45,6 +45,20 @@ object BspTestBuild {
     )
   }
 
+  /** Where a named project's classes land, matching what the server derives for it.
+    *
+    * Tests need this both to assert on compiler output and to put a dependency's classes on a dependent's classpath. Neither can hardcode a path any more: the
+    * location is derived from BuildPaths, not chosen.
+    */
+  def classesDirFor(workspaceRoot: Path, projectName: String, isTest: Boolean): Path =
+    BuildPaths(
+      cwd = workspaceRoot,
+      bleepYamlFile = workspaceRoot.resolve(bleep.BuildLoader.BuildFileName),
+      variant = model.BuildVariant.Normal,
+      wantedBleepVersion = Some(model.BleepVersion.current)
+    ).variantBuildDir(model.CrossProjectName(model.ProjectName(projectName), crossId = None))
+      .resolve(if (isTest) "test-classes" else "classes")
+
   /** Where a project's classes land, matching what the server derives for the same project. */
   def classesDir(workspaceRoot: Path, config: BspTestHarness.ProjectConfig): Path = {
     val buildPaths = BuildPaths(
