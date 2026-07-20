@@ -474,10 +474,8 @@ class MultiWorkspaceBspServer(
         Some(toRaw(handleScalaTestClasses(p)))
 
       case "buildTarget/run" =>
-        throw BspException(
-          JsonRpcErrorCodes.MethodNotFound,
-          "buildTarget/run is not supported by bleep-bsp"
-        )
+        val p = parseParams[RunParams](params)
+        Some(toRaw(handleRun(p, cancellation)))
 
       case "buildTarget/test" =>
         val p = parseParams[TestParams](params)
@@ -1027,6 +1025,88 @@ class MultiWorkspaceBspServer(
     *
     * This is a notification, so there is nobody to return an error to: a failure is recorded in `buildLoadError`, which the next request will surface.
     */
+  /** Run a main class for a target.
+    *
+    * The user's program is a separate OS process, forked from the daemon — the same thing already done for the forked test runner. Its output cannot go to our
+    * own stdout: for a connection over the daemon socket there is nowhere useful for it to land, and for the IDE it has to arrive as protocol messages. So both
+    * streams are captured and republished as `build/logMessage`, which is what BSP provides for this and what Bloop does.
+    *
+    * The child gets no stdin. BSP has no channel for feeding input to a running program — Bloop has the same hole, and the accepted answers are a debug session
+    * or the client's own terminal. A program that reads stdin therefore sees EOF rather than blocking forever.
+    *
+    * Compilation is the caller's business: `bleep run` compiles through this server and then forks locally, and an IDE issues its own compile first.
+    */
+  private def handleRun(params: RunParams, cancellation: CancellationToken): RunResult = {
+    val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
+    val crossName = crossNameFromTargetId(started, params.target)
+      .getOrElse(throw BspException(JsonRpcErrorCodes.InvalidParams, s"Unknown target: ${params.target.uri.value}"))
+
+    val scalaMainClass: Option[ScalaMainClass] =
+      params.dataKind match {
+        case Some("scala-main-class") =>
+          params.data.map(raw => readFromArray[ScalaMainClass](raw.value)(using ScalaMainClass.codec))
+        case _ => None
+      }
+
+    val mainClass = scalaMainClass
+      .map(_.className)
+      .orElse(started.build.explodedProjects.get(crossName).flatMap(_.platform).flatMap(_.mainClass))
+      .getOrElse(throw BspException(JsonRpcErrorCodes.InvalidParams, s"No main class for ${crossName.value}"))
+
+    val resolved = started.resolvedProject(crossName)
+    val classpath = started.projectPaths(crossName).classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+    val jvmOptions = scalaMainClass.map(_.jvmOptions).getOrElse(Nil)
+    // Bloop reads program arguments only from the ScalaMainClass payload and spends `arguments` on
+    // compile flags; we accept either, since the field is named for this. Clients commonly send both
+    // (our own test client does), so prefer the payload rather than concatenating and running the
+    // program with every argument twice.
+    val programArgs = scalaMainClass.map(_.arguments).filter(_.nonEmpty).orElse(params.arguments).getOrElse(Nil)
+
+    val command =
+      started.jvmCommand.toString ::
+        jvmOptions ::: List("-cp", classpath.map(_.toString).mkString(java.io.File.pathSeparator), mainClass) ::: programArgs
+
+    val builder = new ProcessBuilder(command.asJava)
+    builder.directory(started.buildPaths.buildDir.toFile)
+    builder.redirectErrorStream(true)
+    builder.redirectInput(ProcessBuilder.Redirect.from(new java.io.File(if (scala.util.Properties.isWin) "NUL" else "/dev/null")))
+    scalaMainClass.foreach(_.environmentVariables.getOrElse(Nil).foreach { entry =>
+      val idx = entry.indexOf('=')
+      if (idx > 0) builder.environment().put(entry.substring(0, idx), entry.substring(idx + 1)): Unit
+    })
+
+    val process = builder.start()
+
+    // Cancellation escalates rather than going straight to SIGKILL, so a program with a shutdown
+    // hook gets a chance to run it.
+    cancellation.onCancel { () =>
+      process.destroy()
+      if (!process.waitFor(200, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+        process.destroyForcibly()
+        process.waitFor(200, java.util.concurrent.TimeUnit.MILLISECONDS): Unit
+      }
+    }
+
+    val reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream, java.nio.charset.StandardCharsets.UTF_8))
+    try {
+      var line = reader.readLine()
+      while (line != null) {
+        sendLogMessage(line, MessageType.Log)
+        line = reader.readLine()
+      }
+    } finally
+      try reader.close()
+      catch { case _: Exception => () }
+
+    val exitCode = process.waitFor()
+    val status =
+      if (cancellation.isCancelled) StatusCode.Cancelled
+      else if (exitCode == 0) StatusCode.Ok
+      else StatusCode.Error
+
+    RunResult(originId = params.originId, statusCode = status)
+  }
+
   private def handleBuildChanged(params: Option[RawJson]): Unit = {
     val payload = params match {
       case None      => throw BspException(JsonRpcErrorCodes.InvalidParams, s"${BleepBspProtocol.BuildChanged} requires params")
