@@ -558,7 +558,13 @@ object Main {
             }
           },
           Opts.subcommand("publish", "publish artifacts to a named resolver, local-ivy, or sonatype") {
-            val dynVerFallback: () => String = () => new bleep.plugin.dynver.DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile).version
+            // `dynverSonatypeSnapshots = true` to match the two other places that derive a version from git:
+            // `GenerateResources` (which bakes `BleepVersion.current` into the client) and `PublishSonatype`.
+            // Without it a snapshot publishes as `1.0.0-M10+46-abc1234` while the client it was built alongside
+            // asks coursier for `1.0.0-M10+46-abc1234-SNAPSHOT` — so `bleep publish local-ivy` produced jars no
+            // client would ever resolve, silently leaving the previously released server in play.
+            val dynVerFallback: () => String =
+              () => new bleep.plugin.dynver.DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true).version
 
             def publishOpts(target: commands.Publish.Target): Opts[BleepBuildCommand] =
               (
