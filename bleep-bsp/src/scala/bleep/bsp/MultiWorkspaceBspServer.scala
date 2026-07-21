@@ -33,7 +33,6 @@ import ryddig.Logger
 import scala.collection.immutable.SortedSet
 
 import scala.concurrent.duration.*
-import scala.util.{Failure, Success, Try}
 
 import java.io.{InputStream, OutputStream}
 import java.nio.file.{Files, Path, Paths}
@@ -199,7 +198,7 @@ class MultiWorkspaceBspServer(
 
     if (isNotification || immediatelyHandled.contains(request.method)) {
       // Handle immediately in the main loop
-      IO.blocking(handleRequestSync(request))
+      handleRequest(request)
     } else {
       // Spawn in background fiber
       spawnRequest(request)
@@ -215,7 +214,7 @@ class MultiWorkspaceBspServer(
     Deferred[IO, Unit].flatMap { registered =>
       val handler: IO[Unit] =
         registered.get >>
-          IO.interruptible(handleRequestSync(request))
+          handleRequest(request)
             .onError { err =>
               IO.delay(logger.withContext("request", requestId).error(s"Request handler failed: ${err.getClass.getName}: ${err.getMessage}", err))
             }
@@ -227,8 +226,13 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Handle a request synchronously (called from fiber or main loop) */
-  private def handleRequestSync(request: JsonRpcRequest): Unit = {
+  /** Handle one request and send exactly one response.
+    *
+    * `dispatch(...).attempt` is what guarantees exactly-one-response: success sends the result, failure sends an error, and there is no path that sends both or
+    * neither. The `activeRequests` entry is removed in a `guarantee` so it goes away even if the fiber is cancelled — the one case that reaches neither branch,
+    * and deliberately sends nothing, because a cancelled request must produce no response.
+    */
+  private def handleRequest(request: JsonRpcRequest): IO[Unit] = IO.defer {
     val cancellationToken = request.id match {
       case Some(id) =>
         val token = CancellationToken.create()
@@ -238,48 +242,29 @@ class MultiWorkspaceBspServer(
         CancellationToken.never
     }
 
-    try {
-      val result = dispatch(request.method, request.params, cancellationToken)
+    dispatch(request.method, request.params, cancellationToken).attempt
+      .flatMap {
+        case Right(result) =>
+          request.id match {
+            case Some(id) => IO(transport.sendResponse(JsonRpcResponse(jsonrpc = "2.0", id = id, result = result, error = None)))
+            case None     => IO.unit
+          }
 
-      request.id match {
-        case Some(id) =>
-          activeRequests.remove(id.key)
-          val response = JsonRpcResponse(
-            jsonrpc = "2.0",
-            id = id,
-            result = result,
-            error = None
-          )
-          transport.sendResponse(response)
-        case None =>
-          ()
+        case Left(e: OutOfMemoryDuringRequest) =>
+          IO(handleOutOfMemory(request))
+
+        case Left(e: BspException) =>
+          IO(request.id.foreach(id => trySendResponse(id, None, Some(JsonRpcError(e.code, e.getMessage, None)))))
+
+        case Left(e) =>
+          val msg = Option(e.getMessage).getOrElse(e.getClass.getName)
+          IO {
+            System.err.println(s"[BSP] Error handling ${request.method}: $msg")
+            e.printStackTrace(System.err)
+            request.id.foreach(id => trySendResponse(id, None, Some(JsonRpcError(JsonRpcErrorCodes.InternalError, msg, None))))
+          }
       }
-    } catch {
-      case _: InterruptedException =>
-        // Fiber was cancelled (client disconnected). Re-set interrupt flag so CE detects it,
-        // clean up the request token, and return — no error response needed since the client is gone.
-        Thread.currentThread().interrupt()
-        request.id.foreach(id => activeRequests.remove(id.key))
-      case oom: OutOfMemoryError =>
-        handleOutOfMemory(request)
-      case e: BspException =>
-        request.id.foreach { id =>
-          activeRequests.remove(id.key)
-          trySendResponse(id, None, Some(JsonRpcError(e.code, e.getMessage, None)))
-        }
-      case e: Exception =>
-        val msg = Option(e.getMessage).getOrElse(e.getClass.getName)
-        System.err.println(s"[BSP] Error handling ${request.method}: $msg")
-        e.printStackTrace(System.err)
-        request.id.foreach { id =>
-          activeRequests.remove(id.key)
-          trySendResponse(
-            id,
-            None,
-            Some(JsonRpcError(JsonRpcErrorCodes.InternalError, msg, None))
-          )
-        }
-    }
+      .guarantee(IO(request.id.foreach(id => activeRequests.remove(id.key))).void)
   }
 
   /** Try to send a JSON-RPC response. If the transport is dead (broken pipe), log and move on.
@@ -368,8 +353,13 @@ class MultiWorkspaceBspServer(
     }.start()
   }
 
-  /** Dispatch a method call to the appropriate handler */
-  private def dispatch(method: String, params: Option[RawJson], cancellation: CancellationToken): Option[RawJson] = {
+  /** Dispatch a method call to the appropriate handler.
+    *
+    * Compile, test and run return their `IO` directly so cancellation reaches them as CE cancellation rather than a thread interrupt; the rest are still
+    * synchronous and get wrapped in `IO.blocking`. The guards run inside the returned `IO` so a rejection surfaces as a failed `IO` — same error response as
+    * before, no exception escaping the call.
+    */
+  private def dispatch(method: String, params: Option[RawJson], cancellation: CancellationToken): IO[Option[RawJson]] = IO.defer {
     logger.withContext("method", method).withContext("thread", Thread.currentThread().getName).warn("dispatch")
     if !initialized.get() && method != "build/initialize" then
       throw BspException(
@@ -389,120 +379,120 @@ class MultiWorkspaceBspServer(
       }
     }
 
+    dispatchMethod(method, params, cancellation)
+  }
+
+  private def dispatchMethod(method: String, params: Option[RawJson], cancellation: CancellationToken): IO[Option[RawJson]] = {
+
+    /** A handler that is still synchronous: run it on the blocking pool and wrap its result.
+      *
+      * The try/catch is not decoration. CE3 treats `OutOfMemoryError` as fatal: it bypasses `attempt` and takes the runtime down, so the client would never
+      * hear why. Catching it here, on the thread that threw it, and rethrowing it as an ordinary exception keeps the pre-IO behaviour where `handleRequest`
+      * answers the client and then shuts the server down.
+      */
+    def sync(result: => Option[RawJson]): IO[Option[RawJson]] =
+      IO.blocking {
+        try result
+        catch { case oom: OutOfMemoryError => throw new OutOfMemoryDuringRequest(oom) }
+      }
+
     method match {
       case "build/initialize" =>
-        val p = parseParams[InitializeBuildParams](params)
-        Some(toRaw(handleInitialize(p)))
+        sync(Some(toRaw(handleInitialize(parseParams[InitializeBuildParams](params)))))
 
       case "build/initialized" =>
-        handleInitialized()
-        None
+        sync { handleInitialized(); None }
 
       case "build/shutdown" =>
-        handleShutdown()
-        None
+        sync { handleShutdown(); None }
 
       case "build/exit" =>
-        handleExit()
-        None
+        sync { handleExit(); None }
 
       case "workspace/buildTargets" =>
-        Some(toRaw(handleBuildTargets()))
+        sync(Some(toRaw(handleBuildTargets())))
 
       case "workspace/reload" =>
-        handleReload()
-        None
+        sync { handleReload(); None }
 
       case BleepBspProtocol.BuildChanged =>
-        handleBuildChanged(params)
-        None
+        sync { handleBuildChanged(params); None }
 
       case "buildTarget/sources" =>
-        val p = parseParams[SourcesParams](params)
-        Some(toRaw(handleSources(p)))
+        sync(Some(toRaw(handleSources(parseParams[SourcesParams](params)))))
 
       case "buildTarget/dependencySources" =>
-        val p = parseParams[DependencySourcesParams](params)
-        Some(toRaw(handleDependencySources(p)))
+        sync(Some(toRaw(handleDependencySources(parseParams[DependencySourcesParams](params)))))
 
+      // The three long-running operations. They return IO directly, so a $/cancelRequest cancels
+      // the fiber rather than interrupting a thread parked inside unsafeRunSync.
       case "buildTarget/compile" =>
-        val p = parseParams[CompileParams](params)
-        Some(toRaw(handleCompile(p, cancellation)))
-
-      case "buildTarget/scalacOptions" =>
-        val p = parseParams[ScalacOptionsParams](params)
-        Some(toRaw(handleScalacOptions(p)))
-
-      case "buildTarget/javacOptions" =>
-        val p = parseParams[JavacOptionsParams](params)
-        Some(toRaw(handleJavacOptions(p)))
-
-      case "buildTarget/jvmRunEnvironment" =>
-        val p = parseParams[JvmRunEnvironmentParams](params)
-        Some(toRaw(handleJvmRunEnvironment(p)))
-
-      case "buildTarget/jvmTestEnvironment" =>
-        val p = parseParams[JvmTestEnvironmentParams](params)
-        Some(toRaw(handleJvmTestEnvironment(p)))
-
-      case "buildTarget/resources" =>
-        val p = parseParams[ResourcesParams](params)
-        Some(toRaw(handleResources(p)))
-
-      case "buildTarget/outputPaths" =>
-        val p = parseParams[OutputPathsParams](params)
-        Some(toRaw(handleOutputPaths(p)))
-
-      case "buildTarget/inverseSources" =>
-        val p = parseParams[InverseSourcesParams](params)
-        Some(toRaw(handleInverseSources(p)))
-
-      case "buildTarget/dependencyModules" =>
-        val p = parseParams[DependencyModulesParams](params)
-        Some(toRaw(handleDependencyModules(p)))
-
-      case "buildTarget/jvmCompileClasspath" =>
-        val p = parseParams[JvmCompileClasspathParams](params)
-        Some(toRaw(handleJvmCompileClasspath(p)))
-
-      case "buildTarget/cleanCache" =>
-        val p = parseParams[CleanCacheParams](params)
-        Some(toRaw(handleCleanCache(p)))
-
-      case "buildTarget/scalaMainClasses" =>
-        val p = parseParams[ScalaMainClassesParams](params)
-        Some(toRaw(handleScalaMainClasses(p)))
-
-      case "buildTarget/scalaTestClasses" =>
-        val p = parseParams[ScalaTestClassesParams](params)
-        Some(toRaw(handleScalaTestClasses(p)))
-
-      case "buildTarget/run" =>
-        val p = parseParams[RunParams](params)
-        Some(toRaw(handleRun(p, cancellation)))
+        handleCompile(parseParams[CompileParams](params), cancellation).map(r => Some(toRaw(r)))
 
       case "buildTarget/test" =>
-        val p = parseParams[TestParams](params)
-        Some(toRaw(handleTest(p, cancellation)))
+        handleTest(parseParams[TestParams](params), cancellation).map(r => Some(toRaw(r)))
+
+      case "buildTarget/run" =>
+        sync(Some(toRaw(handleRun(parseParams[RunParams](params), cancellation))))
+
+      case "buildTarget/scalacOptions" =>
+        sync(Some(toRaw(handleScalacOptions(parseParams[ScalacOptionsParams](params)))))
+
+      case "buildTarget/javacOptions" =>
+        sync(Some(toRaw(handleJavacOptions(parseParams[JavacOptionsParams](params)))))
+
+      case "buildTarget/jvmRunEnvironment" =>
+        sync(Some(toRaw(handleJvmRunEnvironment(parseParams[JvmRunEnvironmentParams](params)))))
+
+      case "buildTarget/jvmTestEnvironment" =>
+        sync(Some(toRaw(handleJvmTestEnvironment(parseParams[JvmTestEnvironmentParams](params)))))
+
+      case "buildTarget/resources" =>
+        sync(Some(toRaw(handleResources(parseParams[ResourcesParams](params)))))
+
+      case "buildTarget/outputPaths" =>
+        sync(Some(toRaw(handleOutputPaths(parseParams[OutputPathsParams](params)))))
+
+      case "buildTarget/inverseSources" =>
+        sync(Some(toRaw(handleInverseSources(parseParams[InverseSourcesParams](params)))))
+
+      case "buildTarget/dependencyModules" =>
+        sync(Some(toRaw(handleDependencyModules(parseParams[DependencyModulesParams](params)))))
+
+      case "buildTarget/jvmCompileClasspath" =>
+        sync(Some(toRaw(handleJvmCompileClasspath(parseParams[JvmCompileClasspathParams](params)))))
+
+      case "buildTarget/cleanCache" =>
+        sync(Some(toRaw(handleCleanCache(parseParams[CleanCacheParams](params)))))
+
+      case "buildTarget/scalaMainClasses" =>
+        sync(Some(toRaw(handleScalaMainClasses(parseParams[ScalaMainClassesParams](params)))))
+
+      case "buildTarget/scalaTestClasses" =>
+        sync(Some(toRaw(handleScalaTestClasses(parseParams[ScalaTestClassesParams](params)))))
 
       case "$/cancelRequest" =>
         // Client may send $/cancelRequest with empty params {} when the
         // CompletableFuture is cancelled after the connection is closing.
         // Tolerate missing id — connection cleanup handles cancellation.
-        try {
-          val p = parseParams[CancelRequestParams](params)
-          handleCancelRequest(p)
-        } catch { case _: Exception => () }
-        None
+        sync {
+          try handleCancelRequest(parseParams[CancelRequestParams](params))
+          catch { case _: Exception => () }
+          None
+        }
 
       case "bleep/cancelBlockingWork" =>
-        activeWorkspace.get().foreach(SharedWorkspaceState.cancelAll)
-        None
+        sync {
+          activeWorkspace.get().foreach(SharedWorkspaceState.cancelAll)
+          None
+        }
 
       case _ =>
-        throw BspException(
-          JsonRpcErrorCodes.MethodNotFound,
-          s"Method not found: $method"
+        IO.raiseError(
+          BspException(
+            JsonRpcErrorCodes.MethodNotFound,
+            s"Method not found: $method"
+          )
         )
     }
   }
@@ -1537,7 +1527,7 @@ class MultiWorkspaceBspServer(
       }
   }
 
-  private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
+  private def handleCompile(params: CompileParams, cancellation: CancellationToken): IO[CompileResult] = IO.defer {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
     // Per-operation tracker over the connection-wide memory — see the comment on `diagnosticMemory`.
@@ -1559,7 +1549,7 @@ class MultiWorkspaceBspServer(
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId)
-    try {
+    IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
       val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
@@ -1665,227 +1655,224 @@ class MultiWorkspaceBspServer(
       }
 
       // Validate link options if --link was specified
-      if (isLink) {
-        val platformsPresent = platforms.values.collect {
-          case _: TaskDag.LinkPlatform.KotlinJs     => "Kotlin/JS"
-          case _: TaskDag.LinkPlatform.ScalaJs      => "Scala.js"
-          case _: TaskDag.LinkPlatform.KotlinNative => "Kotlin/Native"
-          case _: TaskDag.LinkPlatform.ScalaNative  => "Scala Native"
-        }.toSet
+      val linkValidationErrors = if (isLink) validateLinkOptions(linkOpts, platforms) else Nil
 
-        val validationErrors = List.newBuilder[String]
-
-        if (platformsPresent.isEmpty) {
-          validationErrors += "No linkable projects found (only JVM projects can be compiled without linking)"
-        }
-
-        if (linkOpts.sourceMaps.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
-          validationErrors += s"--source-maps/--no-source-maps only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
-        }
-        if (linkOpts.minify.isDefined && !platformsPresent.contains("Scala.js")) {
-          validationErrors += s"--minify/--no-minify only applies to Scala.js, but linking: ${platformsPresent.mkString(", ")}"
-        }
-        if (linkOpts.moduleKind.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
-          validationErrors += s"--module-kind only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
-        }
-        if (linkOpts.lto.isDefined && !platformsPresent.contains("Scala Native")) {
-          validationErrors += s"--lto only applies to Scala Native, but linking: ${platformsPresent.mkString(", ")}"
-        }
-        if (linkOpts.optimize.isDefined && platformsPresent.isEmpty) {
-          validationErrors += s"--optimize/--no-optimize only applies to non-JVM platforms, but no linkable projects found"
-        }
-        if (linkOpts.debugInfo.isDefined && !platformsPresent.exists(p => p == "Scala Native" || p == "Kotlin/Native")) {
-          validationErrors += s"--debug-info/--no-debug-info only applies to native platforms (Scala Native, Kotlin/Native), but linking: ${platformsPresent.mkString(", ")}"
-        }
-
-        val errors = validationErrors.result()
-        if (errors.nonEmpty) {
-          errors.foreach(bspError)
-          return CompileResult(
-            originId = params.originId,
-            statusCode = StatusCode.Error,
-            dataKind = None,
-            data = None
-          )
-        }
-      }
-
-      // Build the appropriate DAG based on mode
-      val buildMode = if (isLink) {
-        BleepBspProtocol.BuildMode.Link(isRelease)
+      if (linkValidationErrors.nonEmpty) {
+        linkValidationErrors.foreach(bspError)
+        IO.pure(CompileResult(originId = params.originId, statusCode = StatusCode.Error, dataKind = None, data = None))
       } else {
-        BleepBspProtocol.BuildMode.Compile
-      }
-      val apPlan = buildAnnotationProcessorPlan(started, projectsToCompile)
-      val kspPlan = buildSymbolProcessorPlan(started, projectsToCompile)
-      val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan, kspPlan)
-      val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
-      debugLog(
-        s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size})"
-      )
 
-      val startTime = System.currentTimeMillis()
-      BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
-
-      // Per-build map populated by the AP DAG handler and read by the compile handler.
-      // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories are called synchronously here, before the IO program starts.
-      // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
-      val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
-
-      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
-      val sourcegenHandler = makeSourcegenHandler(started, params.originId)
-
-      // Create link handler
-      val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = { (linkTask, taskKillSignal) =>
-        val projectPaths = started.projectPaths(linkTask.project)
-        val project = started.build.explodedProjects(linkTask.project)
-        val resolved = started.resolvedProject(linkTask.project)
-        val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
-        val linkLogger = createLinkLogger()
-        val outputDir = projectPaths.targetDir.resolve("link-output")
-        LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
-      }
-
-      // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
-      val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
-        (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
-
-      val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-        (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
-
-      val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
-      val kspHandler = makeSymbolProcessorHandler(started, params.originId)
-
-      // Create executor
-      val executor = TaskDag.executor(
-        TaskDag.Handlers(
-          compile = compileHandler,
-          link = linkHandler,
-          discover = discoverHandler,
-          test = testHandler,
-          sourcegen = sourcegenHandler,
-          annotationProcessor = apHandler,
-          symbolProcessor = kspHandler
-        )
-      )
-
-      // Create trace recorder (noop if not enabled)
-      val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
-
-      val ioProgram = for {
-        eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
-        killSignal <- Outcome.fromCancellationToken(cancellation)
-
-        // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
-        consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
-        eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder).compile.drain.handleErrorWith { e =>
-          // Capture consumer error for later inspection
-          IO(logger.withContext("error", e.getMessage).error("Compile event consumer error")) >>
-            consumerErrorRef.set(Some(e))
-        }.start
-
-        // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
-        dag <- executor
-          .execute(initialDag, maxParallelism, eventQueue, killSignal)
-          .flatTap(_ => eventQueue.offer(None) >> eventConsumerFiber.joinWithNever)
-          .guarantee(eventQueue.offer(None).attempt >> eventConsumerFiber.cancel)
-
-        // Log consumer errors but don't fail the build — compilation results are still valid
-        // even if progress notifications couldn't be sent (e.g., client disconnected mid-build)
-        consumerError <- consumerErrorRef.get
-        _ <- consumerError match {
-          case Some(e) =>
-            IO(logger.withContext("error", e.getMessage).warn("Event consumer failed (build results still valid)"))
-          case None => IO.unit
+        // Build the appropriate DAG based on mode
+        val buildMode = if (isLink) {
+          BleepBspProtocol.BuildMode.Link(isRelease)
+        } else {
+          BleepBspProtocol.BuildMode.Compile
         }
-      } yield dag
+        val apPlan = buildAnnotationProcessorPlan(started, projectsToCompile)
+        val kspPlan = buildSymbolProcessorPlan(started, projectsToCompile)
+        val buildCtx = TaskDag.BuildContext(allProjectDeps, platforms, sourcegenPlan, apPlan, kspPlan)
+        val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
+        debugLog(
+          s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size})"
+        )
 
-      val ioResult = Try(ioProgram.unsafeRunSync())
+        val startTime = System.currentTimeMillis()
+        BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      // Write trace file if flamegraph is enabled
-      if (linkOpts.flamegraph) {
-        val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
-        traceRecorder.writeTrace(tracePath).unsafeRunSync()
-      }
+        // Per-build map populated by the AP DAG handler and read by the compile handler.
+        // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories are called synchronously here, before the IO program starts.
+        // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
+        val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-      // Clear stale diagnostics for files that had errors last cycle but not this one
-      clearStaleDiagnostics(diagnosticTracker)
+        val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
+        val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
-      ioResult match {
-        case Success(dag) =>
-          val durationMs = System.currentTimeMillis() - startTime
-          val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
-          BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
-          val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
-          val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
-          val compileCompleted = compileTasks.count(dag.completed.contains)
-          val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-          val linkCompleted = linkTasks.count(dag.completed.contains)
-          val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-          // Count how many links were actually executed vs up-to-date
-          val linksUpToDate = dag.linkResults.values.count {
-            case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
-            case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
-            case _                                                  => false
-          }
-          val linksActuallyLinked = linkCompleted - linksUpToDate
+        // Create link handler
+        val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = { (linkTask, taskKillSignal) =>
+          val projectPaths = started.projectPaths(linkTask.project)
+          val project = started.build.explodedProjects(linkTask.project)
+          val resolved = started.resolvedProject(linkTask.project)
+          val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+          val linkLogger = createLinkLogger()
+          val outputDir = projectPaths.targetDir.resolve("link-output")
+          LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+        }
 
-          if (cancellation.isCancelled) {
-            bspWarn(s"Compilation cancelled (${durationMs}ms)")
-            CompileResult(
-              originId = params.originId,
-              statusCode = StatusCode.Cancelled,
-              dataKind = None,
-              data = None
-            )
-          } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
-            val failedIds = (dag.failed ++ dag.errored).mkString(", ")
-            bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
-            debugLog(s"Failed tasks: $failedIds")
-            CompileResult(
-              originId = params.originId,
-              statusCode = StatusCode.Error,
-              dataKind = None,
-              data = None
-            )
-          } else {
-            val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
-              s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
-            } else if (linksUpToDate > 0) {
-              s"$linksUpToDate up-to-date"
-            } else if (linksActuallyLinked > 0) {
-              s"$linksActuallyLinked linked"
-            } else if (linkCompleted > 0) {
-              s"$linkCompleted linked"
-            } else {
-              ""
-            }
-            val fullSummary = if (linkSummary.nonEmpty) {
-              s"$compileCompleted compiled, $linkSummary"
-            } else {
-              s"$compileCompleted compiled"
-            }
-            bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
-            CompileResult(
-              originId = params.originId,
-              statusCode = StatusCode.Ok,
-              dataKind = None,
-              data = None
-            )
-          }
+        // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
+        val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
+          (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
-        case Failure(ex) =>
-          val durationMs = System.currentTimeMillis() - startTime
-          BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
-          bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
-          CompileResult(
-            originId = params.originId,
-            statusCode = StatusCode.Error,
-            dataKind = None,
-            data = None
+        val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+          (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
+
+        val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
+        val kspHandler = makeSymbolProcessorHandler(started, params.originId)
+
+        // Create executor
+        val executor = TaskDag.executor(
+          TaskDag.Handlers(
+            compile = compileHandler,
+            link = linkHandler,
+            discover = discoverHandler,
+            test = testHandler,
+            sourcegen = sourcegenHandler,
+            annotationProcessor = apHandler,
+            symbolProcessor = kspHandler
           )
+        )
+
+        def ioProgram(traceRecorder: TraceRecorder) = for {
+          eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
+          killSignal <- Outcome.fromCancellationToken(cancellation)
+
+          // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
+          consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
+          eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder).compile.drain.handleErrorWith { e =>
+            // Capture consumer error for later inspection
+            IO(logger.withContext("error", e.getMessage).error("Compile event consumer error")) >>
+              consumerErrorRef.set(Some(e))
+          }.start
+
+          // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
+          dag <- executor
+            .execute(initialDag, maxParallelism, eventQueue, killSignal)
+            .flatTap(_ => eventQueue.offer(None) >> eventConsumerFiber.joinWithNever)
+            .guarantee(eventQueue.offer(None).attempt >> eventConsumerFiber.cancel)
+
+          // Log consumer errors but don't fail the build — compilation results are still valid
+          // even if progress notifications couldn't be sent (e.g., client disconnected mid-build)
+          consumerError <- consumerErrorRef.get
+          _ <- consumerError match {
+            case Some(e) =>
+              IO(logger.withContext("error", e.getMessage).warn("Event consumer failed (build results still valid)"))
+            case None => IO.unit
+          }
+        } yield dag
+
+        for {
+          // Create trace recorder (noop if not enabled)
+          traceRecorder <- if (linkOpts.flamegraph) TraceRecorder.create else IO.pure(TraceRecorder.noop)
+          ioResult <- ioProgram(traceRecorder).attempt
+
+          // Write trace file if flamegraph is enabled
+          _ <-
+            if (linkOpts.flamegraph) traceRecorder.writeTrace(started.buildPaths.dotBleepDir.resolve("trace.json"))
+            else IO.unit
+
+          // Clear stale diagnostics for files that had errors last cycle but not this one
+          _ <- IO(clearStaleDiagnostics(diagnosticTracker))
+
+          result <- IO(ioResult match {
+            case Right(dag) =>
+              val durationMs = System.currentTimeMillis() - startTime
+              val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
+              BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
+              val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
+              val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
+              val compileCompleted = compileTasks.count(dag.completed.contains)
+              val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+              val linkCompleted = linkTasks.count(dag.completed.contains)
+              val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+              // Count how many links were actually executed vs up-to-date
+              val linksUpToDate = dag.linkResults.values.count {
+                case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
+                case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
+                case _                                                  => false
+              }
+              val linksActuallyLinked = linkCompleted - linksUpToDate
+
+              if (cancellation.isCancelled) {
+                bspWarn(s"Compilation cancelled (${durationMs}ms)")
+                CompileResult(
+                  originId = params.originId,
+                  statusCode = StatusCode.Cancelled,
+                  dataKind = None,
+                  data = None
+                )
+              } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
+                val failedIds = (dag.failed ++ dag.errored).mkString(", ")
+                bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
+                debugLog(s"Failed tasks: $failedIds")
+                CompileResult(
+                  originId = params.originId,
+                  statusCode = StatusCode.Error,
+                  dataKind = None,
+                  data = None
+                )
+              } else {
+                val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
+                  s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
+                } else if (linksUpToDate > 0) {
+                  s"$linksUpToDate up-to-date"
+                } else if (linksActuallyLinked > 0) {
+                  s"$linksActuallyLinked linked"
+                } else if (linkCompleted > 0) {
+                  s"$linkCompleted linked"
+                } else {
+                  ""
+                }
+                val fullSummary = if (linkSummary.nonEmpty) {
+                  s"$compileCompleted compiled, $linkSummary"
+                } else {
+                  s"$compileCompleted compiled"
+                }
+                bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
+                CompileResult(
+                  originId = params.originId,
+                  statusCode = StatusCode.Ok,
+                  dataKind = None,
+                  data = None
+                )
+              }
+
+            case Left(ex) =>
+              val durationMs = System.currentTimeMillis() - startTime
+              BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
+              bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
+              CompileResult(
+                originId = params.originId,
+                statusCode = StatusCode.Error,
+                dataKind = None,
+                data = None
+              )
+          })
+        } yield result
       }
-    } finally unregisterOperation(workspace, taskId)
+    }.guarantee(IO(unregisterOperation(workspace, taskId)))
+  }
+
+  /** Check `--link` options against the platforms actually being linked. Returns one message per misuse, empty if the request is coherent. */
+  private def validateLinkOptions(linkOpts: ParsedLinkOptions, platforms: Map[CrossProjectName, TaskDag.LinkPlatform]): List[String] = {
+    // Jvm is not a link target, so it doesn't count as a platform present for linking.
+    val present: Set[TaskDag.LinkPlatform] = platforms.values.toSet - TaskDag.LinkPlatform.Jvm
+    val linking = present.map(_.name.wireValue).mkString(", ")
+
+    val validationErrors = List.newBuilder[String]
+
+    if (present.isEmpty) {
+      validationErrors += "No linkable projects found (only JVM projects can be compiled without linking)"
+    }
+
+    if (linkOpts.sourceMaps.isDefined && !present.exists(_.isJs)) {
+      validationErrors += s"--source-maps/--no-source-maps only applies to JS platforms (Scala.js, Kotlin/JS), but linking: $linking"
+    }
+    if (linkOpts.minify.isDefined && !present.exists(_.name == LinkPlatformName.ScalaJs)) {
+      validationErrors += s"--minify/--no-minify only applies to Scala.js, but linking: $linking"
+    }
+    if (linkOpts.moduleKind.isDefined && !present.exists(_.isJs)) {
+      validationErrors += s"--module-kind only applies to JS platforms (Scala.js, Kotlin/JS), but linking: $linking"
+    }
+    if (linkOpts.lto.isDefined && !present.exists(_.name == LinkPlatformName.ScalaNative)) {
+      validationErrors += s"--lto only applies to Scala Native, but linking: $linking"
+    }
+    if (linkOpts.optimize.isDefined && present.isEmpty) {
+      validationErrors += s"--optimize/--no-optimize only applies to non-JVM platforms, but no linkable projects found"
+    }
+    if (linkOpts.debugInfo.isDefined && !present.exists(_.isNative)) {
+      validationErrors += s"--debug-info/--no-debug-info only applies to native platforms (Scala Native, Kotlin/Native), but linking: $linking"
+    }
+
+    validationErrors.result()
   }
 
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
@@ -1956,7 +1943,7 @@ class MultiWorkspaceBspServer(
     * This implements a unified compile+discover+test pipeline using TaskDag. Tests start running as soon as their dependencies compile, providing maximum
     * parallelism.
     */
-  private def handleTest(params: TestParams, cancellation: CancellationToken): TestResult = {
+  private def handleTest(params: TestParams, cancellation: CancellationToken): IO[TestResult] = IO.defer {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
     // Per-operation diagnostic tracker — keeps test-pipeline compiles' diagnostic state isolated
@@ -1972,7 +1959,7 @@ class MultiWorkspaceBspServer(
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId)
-    try {
+    IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
       val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
@@ -2083,12 +2070,9 @@ class MultiWorkspaceBspServer(
         debugLog(s"Test filter --exclude: ${testOptions.exclude.mkString(", ")}")
       }
 
-      // Create trace recorder (noop if not enabled)
-      val traceRecorder = if (testOptions.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
-
       val startTime = System.currentTimeMillis()
 
-      val ioProgram = for {
+      def ioProgram(traceRecorder: TraceRecorder) = for {
         eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
         totalSuitesRef <- Ref.of[IO, Int](0)
         totalPassedRef <- Ref.of[IO, Int](0)
@@ -2345,116 +2329,120 @@ class MultiWorkspaceBspServer(
         suites <- totalSuitesRef.get
       } yield (testResult, passed, failed, skipped, ignored, suites)
 
-      logger.withContext("projects", testProjects.map(_.value).mkString(", ")).warn("handleTest: starting ioProgram")
-      val ioResult = Try(ioProgram.unsafeRunSync())
-      logger.withContext("sendEventCounter", sendEventCounter.get()).warn("handleTest: ioProgram returned")
+      for {
+        // Create trace recorder (noop if not enabled)
+        traceRecorder <- if (testOptions.flamegraph) TraceRecorder.create else IO.pure(TraceRecorder.noop)
 
-      // Write trace file if flamegraph is enabled
-      if (testOptions.flamegraph) {
-        val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
-        traceRecorder.writeTrace(tracePath).unsafeRunSync()
-      }
+        _ <- IO(logger.withContext("projects", testProjects.map(_.value).mkString(", ")).warn("handleTest: starting ioProgram"))
+        ioResult <- ioProgram(traceRecorder).attempt
+        _ <- IO(logger.withContext("sendEventCounter", sendEventCounter.get()).warn("handleTest: ioProgram returned"))
 
-      // The test pipeline compiles too, so it owes the client the same stale-diagnostic clearing a plain compile does
-      clearStaleDiagnostics(diagnosticTracker)
+        // Write trace file if flamegraph is enabled
+        _ <-
+          if (testOptions.flamegraph) traceRecorder.writeTrace(started.buildPaths.dotBleepDir.resolve("trace.json"))
+          else IO.unit
 
-      ioResult match {
-        case Success((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
-          // Send TestRunFinished event
-          val durationMs = System.currentTimeMillis() - startTime
-          val timestamp = System.currentTimeMillis()
-          sendTestEvent(
-            params.originId,
-            "test-run",
-            BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp)
-          )
+        // The test pipeline compiles too, so it owes the client the same stale-diagnostic clearing a plain compile does
+        _ <- IO(clearStaleDiagnostics(diagnosticTracker))
 
-          // Determine final status
-          val statusCode =
-            if (cancellation.isCancelled) StatusCode.Cancelled
-            else if (result.failed.nonEmpty) StatusCode.Error
-            else StatusCode.Ok
-
-          // Compute suite-level counts from DAG result
-          val suiteTaskIds = result.tasks.collect { case (id, _: TaskDag.TestSuiteTask) => id }.toSet
-          val suitesCompleted = suiteTaskIds.count(id => result.completed.contains(id) || result.failed.contains(id) || result.timedOut.contains(id))
-          val suitesFailed = suiteTaskIds.count(id => result.failed.contains(id) || result.errored.contains(id))
-          val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
-
-          bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
-
-          // Include authoritative test results in TestResult.data for reliable delivery
-          val runResult = BleepBspProtocol.TestRunResult(
-            totalPassed = totalPassed,
-            totalFailed = totalFailed,
-            totalSkipped = totalSkipped,
-            totalIgnored = totalIgnored,
-            suitesTotal = totalSuites,
-            suitesCompleted = suitesCompleted,
-            suitesFailed = suitesFailed,
-            suitesCancelled = suitesCancelled,
-            durationMs = durationMs
-          )
-
-          TestResult(
-            originId = params.originId,
-            statusCode = statusCode,
-            dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
-            data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(runResult).getBytes("UTF-8")))
-          )
-
-        case Failure(ex) =>
-          val durationMs = System.currentTimeMillis() - startTime
-          val timestamp = System.currentTimeMillis()
-          System.err.println(s"[BSP] Test execution failed: ${ex.getMessage}")
-          ex.printStackTrace(System.err)
-
-          // Try to notify the client about the failure.
-          // If the connection is dead (which may have caused the failure), these sends will
-          // fail - that's fine, we just return the error TestResult.
-          try {
-            sendTestEvent(
-              params.originId,
-              "error",
-              BleepBspProtocol.Event.Error(
-                message = s"Test execution failed: ${ex.getMessage}",
-                details = Some(ex.getStackTrace.take(10).mkString("\n")),
-                timestamp = timestamp
-              )
-            )
+        testResult <- IO(ioResult match {
+          case Right((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
+            // Send TestRunFinished event
+            val durationMs = System.currentTimeMillis() - startTime
+            val timestamp = System.currentTimeMillis()
             sendTestEvent(
               params.originId,
               "test-run",
-              BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp)
+              BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp)
             )
-          } catch {
-            case _: java.io.IOException =>
-              System.err.println("[BSP] Client disconnected, cannot send test failure notification")
-            case e: Exception =>
-              System.err.println(s"[BSP] Failed to send test failure notification: ${e.getMessage}")
-          }
 
-          // Include zero-valued authoritative result even on failure
-          val failRunResult = BleepBspProtocol.TestRunResult(
-            totalPassed = 0,
-            totalFailed = 0,
-            totalSkipped = 0,
-            totalIgnored = 0,
-            suitesTotal = 0,
-            suitesCompleted = 0,
-            suitesFailed = 0,
-            suitesCancelled = 0,
-            durationMs = durationMs
-          )
+            // Determine final status
+            val statusCode =
+              if (cancellation.isCancelled) StatusCode.Cancelled
+              else if (result.failed.nonEmpty) StatusCode.Error
+              else StatusCode.Ok
 
-          TestResult(
-            originId = params.originId,
-            statusCode = StatusCode.Error,
-            dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
-            data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
-          )
-      }
-    } finally unregisterOperation(workspace, taskId)
+            // Compute suite-level counts from DAG result
+            val suiteTaskIds = result.tasks.collect { case (id, _: TaskDag.TestSuiteTask) => id }.toSet
+            val suitesCompleted = suiteTaskIds.count(id => result.completed.contains(id) || result.failed.contains(id) || result.timedOut.contains(id))
+            val suitesFailed = suiteTaskIds.count(id => result.failed.contains(id) || result.errored.contains(id))
+            val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
+
+            bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
+
+            // Include authoritative test results in TestResult.data for reliable delivery
+            val runResult = BleepBspProtocol.TestRunResult(
+              totalPassed = totalPassed,
+              totalFailed = totalFailed,
+              totalSkipped = totalSkipped,
+              totalIgnored = totalIgnored,
+              suitesTotal = totalSuites,
+              suitesCompleted = suitesCompleted,
+              suitesFailed = suitesFailed,
+              suitesCancelled = suitesCancelled,
+              durationMs = durationMs
+            )
+
+            TestResult(
+              originId = params.originId,
+              statusCode = statusCode,
+              dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
+              data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(runResult).getBytes("UTF-8")))
+            )
+
+          case Left(ex) =>
+            val durationMs = System.currentTimeMillis() - startTime
+            val timestamp = System.currentTimeMillis()
+            System.err.println(s"[BSP] Test execution failed: ${ex.getMessage}")
+            ex.printStackTrace(System.err)
+
+            // Try to notify the client about the failure.
+            // If the connection is dead (which may have caused the failure), these sends will
+            // fail - that's fine, we just return the error TestResult.
+            try {
+              sendTestEvent(
+                params.originId,
+                "error",
+                BleepBspProtocol.Event.Error(
+                  message = s"Test execution failed: ${ex.getMessage}",
+                  details = Some(ex.getStackTrace.take(10).mkString("\n")),
+                  timestamp = timestamp
+                )
+              )
+              sendTestEvent(
+                params.originId,
+                "test-run",
+                BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp)
+              )
+            } catch {
+              case _: java.io.IOException =>
+                System.err.println("[BSP] Client disconnected, cannot send test failure notification")
+              case e: Exception =>
+                System.err.println(s"[BSP] Failed to send test failure notification: ${e.getMessage}")
+            }
+
+            // Include zero-valued authoritative result even on failure
+            val failRunResult = BleepBspProtocol.TestRunResult(
+              totalPassed = 0,
+              totalFailed = 0,
+              totalSkipped = 0,
+              totalIgnored = 0,
+              suitesTotal = 0,
+              suitesCompleted = 0,
+              suitesFailed = 0,
+              suitesCancelled = 0,
+              durationMs = durationMs
+            )
+
+            TestResult(
+              originId = params.originId,
+              statusCode = StatusCode.Error,
+              dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
+              data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
+            )
+        })
+      } yield testResult
+    }.guarantee(IO(unregisterOperation(workspace, taskId)))
   }
 
   /** Compute dependency analysis file paths for a project's compile-time dependencies.
@@ -4119,6 +4107,11 @@ class MultiWorkspaceBspServer(
   /** Error logging via BSP protocol */
   private def bspError(message: String): Unit =
     sendLogMessage(message, MessageType.Error)
+
+  /** An `OutOfMemoryError` from a request handler, rewrapped so it can travel as an ordinary (non-fatal) error through `IO` and reach the response path. See
+    * the `sync` helper in `dispatchMethod`.
+    */
+  private class OutOfMemoryDuringRequest(cause: OutOfMemoryError) extends RuntimeException(cause)
 }
 
 object MultiWorkspaceBspServer {
