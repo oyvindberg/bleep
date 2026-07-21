@@ -341,6 +341,12 @@ class JsonRpcTransport(
       case ReadResult.ParseError(error) =>
         System.err.println(s"[BSP] Parse error: $error")
         None
+      // An idle timeout is how a connection whose client died without saying build/exit gets reaped
+      // (see bspReadTimeoutMinutes). It ends the connection like any other read failure, but it is
+      // routine, so report it as such rather than as an error with a stack trace.
+      case ReadResult.IoError(_: java.net.SocketTimeoutException) =>
+        System.err.println("[BSP] Closing connection: no message from client within the read timeout (bspReadTimeoutMinutes)")
+        None
       case ReadResult.IoError(cause) =>
         System.err.println(s"[BSP] IO error: ${cause.getMessage}")
         cause.printStackTrace(System.err)
