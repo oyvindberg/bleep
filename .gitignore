@@ -17,4 +17,8 @@ sbt-build
 bleep-cli.sh
 test-project
 reports
+# TestNG writes its HTML report to ./test-output relative to the working directory, and
+# ForkedTestRunnerFrameworkTest really does run TestNG (that is the thing under test), so a
+# full `bleep test` leaves it in the repo root.
+/test-output
 .claude/
