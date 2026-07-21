@@ -173,10 +173,11 @@ object JvmPool {
               ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
             case 137 =>
               ExitDescription(
-                "killed by SIGKILL (exit 137), not by bleep",
+                "killed by SIGKILL (exit 137)",
                 Some(
-                  "Nothing in bleep terminated this process, so it was killed from outside — most likely the OS reclaiming memory. " +
-                    "Check the system log for memory-pressure kills before assuming so; if there are none, look for another external killer."
+                  "Nothing that records a reason terminated this process. SIGKILL carries no attribution, so this is not proof the OS did it — bleep's own " +
+                    "untracked kill paths look identical. Candidates: the OS reclaiming memory (check the system log for a memory-pressure kill), another " +
+                    "process, or bleep. If this JVM was small and the machine had memory free, it was not an OOM."
                 )
               )
             case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
