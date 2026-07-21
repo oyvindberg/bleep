@@ -117,16 +117,38 @@ big stacks, generated-fixture tests with large classpaths).
 
 ## Where this lives on disk
 
-All of these commands write to `~/.config/bleep/config.yaml`. The
-file is yours to read and edit by hand if you'd rather:
+All of these commands write to a `config.yaml` whose location depends on
+your OS. Ask bleep where it is rather than guessing:
+
+```bash
+bleep config file
+```
+
+The file is yours to read and edit by hand if you'd rather:
 
 ```yaml
-bspServer:
+compileServerMode:
+  mode: shared              # or: new-each-invocation
+bspServerConfig:
   compileServerMaxMemory: 4g
   heapPressureThreshold: 0.85
   testRunnerMaxMemory: 2g
-  mode: shared        # or: newEachInvocation
+  bspReadTimeoutMinutes: 30
 ```
+
+Note the key is `bspServerConfig`; that `compileServerMode` sits at the
+top level rather than inside it; and that its value is an object with a
+`mode` field, not a bare string. Unknown keys are ignored silently, so a
+misspelt one looks like it worked and changes nothing &mdash; if a
+hand-edit seems to have no effect, check the spelling first.
+
+`bspReadTimeoutMinutes` is how long the server waits for the next message
+from a client before dropping the connection, so a client that dies
+without saying goodbye doesn't pin a server thread forever. It is a
+per-read idle timeout, not a session limit: a long compile keeps the
+socket quiet but the clock resets the moment the client speaks again, so
+it can never interrupt a running build. Default 30; set `0` to wait
+forever.
 
 ## See also
 
