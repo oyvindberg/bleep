@@ -160,32 +160,41 @@ object TaskDag {
   }
 
   /** Platform for linking non-JVM targets. */
-  sealed trait LinkPlatform
+  sealed trait LinkPlatform {
+
+    /** Which platform this links for. Carry this rather than re-deriving it by matching on the case class at each use site — and never render it to a string to
+      * compare it back.
+      */
+    def name: LinkPlatformName
+
+    def isJs: Boolean = name == LinkPlatformName.ScalaJs || name == LinkPlatformName.KotlinJs
+    def isNative: Boolean = name == LinkPlatformName.ScalaNative || name == LinkPlatformName.KotlinNative
+  }
   object LinkPlatform {
     case class ScalaJs(
         version: String,
         scalaVersion: String,
         config: bleep.analysis.ScalaJsLinkConfig
-    ) extends LinkPlatform
+    ) extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.ScalaJs }
 
     case class ScalaNative(
         version: String,
         scalaVersion: String,
         config: bleep.analysis.ScalaNativeLinkConfig
-    ) extends LinkPlatform
+    ) extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.ScalaNative }
 
     case class KotlinJs(
         version: String,
         config: KotlinJsConfig
-    ) extends LinkPlatform
+    ) extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.KotlinJs }
 
     case class KotlinNative(
         version: String,
         config: KotlinNativeConfig
-    ) extends LinkPlatform
+    ) extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.KotlinNative }
 
     /** JVM platform - linking is a no-op */
-    case object Jvm extends LinkPlatform
+    case object Jvm extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.Jvm }
   }
 
   /** Kotlin/JS configuration */
@@ -913,14 +922,7 @@ object TaskDag {
                     withRecovery(s"Link ${lt.project.value}", taskKill) {
                       for {
                         linkStartTs <- now
-                        platformName = lt.platform match {
-                          case _: LinkPlatform.ScalaJs      => LinkPlatformName.ScalaJs
-                          case _: LinkPlatform.ScalaNative  => LinkPlatformName.ScalaNative
-                          case _: LinkPlatform.KotlinJs     => LinkPlatformName.KotlinJs
-                          case _: LinkPlatform.KotlinNative => LinkPlatformName.KotlinNative
-                          case LinkPlatform.Jvm             => LinkPlatformName.Jvm
-                        }
-                        _ <- emit(DagEvent.LinkStarted(lt.project, platformName, linkStartTs))
+                        _ <- emit(DagEvent.LinkStarted(lt.project, lt.platform.name, linkStartTs))
                         (result, linkResult) <- handlers.link(lt, taskKill)
                         linkEndTs <- now
                         _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs))
