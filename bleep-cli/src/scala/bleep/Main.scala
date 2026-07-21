@@ -732,6 +732,20 @@ object Main {
             ),
             Opts.subcommand[BleepCommand]("heap-pressure-threshold-clear", "remove heap pressure threshold setting (use default: 0.80)")(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = None))).map(_ => ()))
+            ),
+            Opts.subcommand[BleepCommand](
+              "read-timeout",
+              "set minutes the server waits for a client's next message before dropping the connection, 0 to wait forever (default: 30)"
+            )(
+              Opts.argument[Int]("minutes").map { minutes => () =>
+                if (minutes < 0) throw new BleepException.Text(s"read-timeout must be >= 0 (0 waits forever), got $minutes")
+                BleepConfigOps
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(bspReadTimeoutMinutes = Some(minutes))))
+                  .map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand]("read-timeout-clear", "remove read timeout setting (use default: 30 minutes)")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(bspReadTimeoutMinutes = None))).map(_ => ()))
             )
           ).foldK
         ),
