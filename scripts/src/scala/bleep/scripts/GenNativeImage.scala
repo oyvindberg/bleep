@@ -1,7 +1,9 @@
 package bleep
 package scripts
 
+import bleep.internal.FileUtils
 import bleep.plugin.nativeimage.NativeImagePlugin
+import sbtnativeimage.graal.DirCache
 
 import java.io.File
 import java.nio.file.{Files, Path}
@@ -116,7 +118,14 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
       }
       .getOrElse(sys.error("no mainClass on bleep-cli — cannot emit native-image launcher"))
 
-    val classpath = plugin.fixScala3(fixedClasspath(project))
+    // Rewrite into a directory under the project's target rather than the JVM temp dir. The whole
+    // point of this path is that the launcher runs after this process exits, and TempCache deletes
+    // everything it created on exit — so a temp-backed classpath is guaranteed to be half-missing by
+    // the time native-image reads it, and it reports that as a main class it cannot find.
+    val cpCache = plugin.targetNativeImageInternal / "classpath"
+    FileUtils.deleteDirectory(cpCache)
+    Files.createDirectories(cpCache)
+    val classpath = plugin.fixScala3(fixedClasspath(project), DirCache(os.Path(cpCache)))
     val manifestJar = plugin.targetNativeImageInternal / "manifest.jar"
     Files.createDirectories(manifestJar.getParent)
     writeManifestJar(manifestJar, classpath)
