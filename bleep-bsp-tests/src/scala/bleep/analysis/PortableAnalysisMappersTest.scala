@@ -77,8 +77,9 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
       buildDir =>
         val randomPath = Path.of("/some/random/path/foo.jar")
       val vf = PlainVirtualFile(randomPath, buildDir)
-      // Should be absolute, no marker prefix
-      vf.id() should startWith("/")
+      // Should be absolute, no marker prefix. Asked of the path rather than of the string: a Windows absolute path starts with a drive letter, so the id is
+      // `D:/some/random/path/foo.jar` and a literal startsWith("/") only ever described Unix.
+      Path.of(vf.id()).isAbsolute shouldBe true
       vf.id() should not contain "${BASE}"
       vf.id() should not contain "${LIB}"
     }

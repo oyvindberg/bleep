@@ -268,12 +268,16 @@ jobs:
           CI: true
         # Slow ITs run in the `build` job — see the non-windows test step for rationale.
         #
+        # Tests `jvm3`, same as every other arch in this matrix. This used to test only `bleep-tests`, so `bleep-bsp-tests` — the compiler, BSP, process and
+        # linker machinery, i.e. the most platform-sensitive half of the suite — had never once run on Windows. That is 177 tests here against 742 everywhere
+        # else. Windows is not a second-class arch; see the banner at the top of this job.
+        #
         # `shell: pwsh` with an explicit $LASTEXITCODE check after every command. This used to be `shell: cmd`, where a multi-line `run:` reports only the LAST
         # command's exit code — so `bleep test` failing was silently discarded and only `selftest` decided the step. That hid 42 real Windows test failures
         # across every green run of this job.
         shell: pwsh
         run: |
-          .\${{ matrix.file_name }} --dev test --no-color bleep-tests --exclude-tag slow
+          .\${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::bleep test failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
           .\${{ matrix.file_name }} selftest
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::bleep selftest failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
