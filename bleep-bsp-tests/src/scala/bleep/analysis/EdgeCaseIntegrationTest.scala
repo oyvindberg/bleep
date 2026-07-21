@@ -28,8 +28,13 @@ import scala.concurrent.duration._
   */
 class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
 
-  // Timeouts for different test categories
-  val quickTimeout = Span(5, Seconds) // Tests that should complete almost instantly
+  // Timeouts for different test categories.
+  //
+  // `quickTimeout` was 5s, which was never true to its name: most of these tests spawn `node` or a native binary, and process startup on a loaded CI runner is
+  // not instant. "Scala.js: handles uncaught exception in test" flaked on both macos-15-intel and windows-latest at 5s while passing everywhere else — a
+  // timeout tuned on a developer machine, failing whichever runner happened to be busiest. These are guards against a genuine hang, so they only need to be far
+  // below the suite-level idle timeout, not tight.
+  val quickTimeout = Span(30, Seconds) // Tests that should complete without hanging
   val mediumTimeout = Span(10, Seconds) // Tests with moderate work
   val cancellationTimeout = Span(5, Seconds) // Tests that rely on cancellation (should be fast)
 
@@ -477,8 +482,10 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield res).attempt.unsafeRunSync()
 
-        // Should handle (either by auto-setting exec or failing gracefully)
-        result.isRight shouldBe true
+        // The contract is that the problem is reported rather than swallowed into a pass — same formulation as the missing-binary test above. Unix reaches
+        // that via Right(unsuccessful): the runner sets the exec bit, runs the file, and it fails. Windows has no exec bit, so the file is executable by
+        // permission but is not a valid executable image, CreateProcess rejects it, and the failure arrives as Left. Both report; neither passes.
+        result.isLeft || result.exists(r => !r.isSuccess) shouldBe true
       } finally deleteRecursively(tempDir)
     }
   }

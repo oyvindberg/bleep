@@ -12,8 +12,12 @@ import org.scalatest.matchers.should.Matchers
   */
 class ExitAttributionTest extends AnyFunSuite with Matchers {
 
+  /** Any already-exited process will do — these tests are about how a death is *described*, not about what died. `/bin/sh` does not exist on Windows, so
+    * hardcoding it made the whole suite fail there with `CreateProcess error=2`.
+    */
   private def deadProcess(): Process = {
-    val p = new ProcessBuilder("/bin/sh", "-c", "exit 0").start()
+    val cmd = if (scala.util.Properties.isWin) List("cmd", "/c", "exit 0") else List("/bin/sh", "-c", "exit 0")
+    val p = new ProcessBuilder(cmd*).start()
     p.waitFor()
     p
   }

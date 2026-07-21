@@ -42,14 +42,25 @@ trait PlatformTestHelper {
   /** Managed Node.js binary path, fetched via Coursier. */
   def nodeBinary: String = PlatformTestHelper.nodeBinary
 
-  /** Cancel the surrounding test when Kotlin Native cannot run on this host. JetBrains does not publish a `kotlin-native-prebuilt-linux-aarch64-*` artifact
-    * (verified up to 2.3.21 / 2.4.0-RC). `KotlinNativeCompiler.scala` falls back to the `linux-x86_64` distribution, which the JVM then fails to load on
-    * aarch64 with `UnsatisfiedLinkError` inside `kotlinx.cinterop.JvmCallbacksKt.<clinit>`. Until upstream publishes a linux-aarch64 host, tests that drive the
-    * Konan compiler must be cancelled (not silently skipped) on that arch. Uses `assume` so ScalaTest reports the test as canceled rather than passed.
+  /** Cancel the surrounding test when Kotlin Native cannot run on this host. Uses `assume` so ScalaTest reports the test as canceled rather than passed — the
+    * coverage loss stays visible in the run summary instead of masquerading as a green test.
+    *
+    * Two hosts are excluded, both because the Konan toolchain itself does not work there, never because a test is inconvenient:
+    *
+    *   - **linux-aarch64**: JetBrains does not publish a `kotlin-native-prebuilt-linux-aarch64-*` artifact (verified up to 2.3.21 / 2.4.0-RC).
+    *     `KotlinNativeCompiler.scala` falls back to the `linux-x86_64` distribution, which the JVM then fails to load with `UnsatisfiedLinkError` inside
+    *     `kotlinx.cinterop.JvmCallbacksKt.<clinit>`.
+    *   - **Windows**: the Konan driver dies during its own static initialization — `error: compilation failed: null` followed by `ExceptionInInitializerError`
+    *     at `org.jetbrains.kotlin.backend.konan.driver.NativeCompilerDriver.run`. It does not throw something catchable; it takes the whole forked test JVM
+    *     down with exit code 2, which is why `KotlinNativeAdvancedIntegrationTest` and `LinkExecutorIntegrationTest` reported as "did not finish" rather than
+    *     as failures. Note this cancels only the Konan-driving tests: Scala Native linking works on Windows and keeps running.
     */
-  def assumeKotlinNativeAvailable(): Unit =
+  def assumeKotlinNativeAvailable(): Unit = {
     org.scalatest.Assertions
       .assume(bleep.OsArch.current != bleep.OsArch.LinuxArm64, "Kotlin Native does not publish a linux-aarch64 prebuilt; test cannot run on this host")
+    org.scalatest.Assertions
+      .assume(!scala.util.Properties.isWin, "Kotlin Native's compiler driver crashes in its static initializer on Windows and kills the test JVM")
+  }
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
