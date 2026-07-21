@@ -62,11 +62,6 @@ class MultiWorkspaceBspServer(
   /** Track active compile count so heap pressure back-pressure can skip stalling when we're the only compile. */
   private val activeCompileCount = new java.util.concurrent.atomic.AtomicInteger(0)
 
-  /** Pre-allocated emergency memory that gets released during OOM to allow sending error response. Not "read" in code — just held until handleOutOfMemory nulls
-    * it to let the GC reclaim 1MB.
-    */
-  @scala.annotation.nowarn("msg=mutated but not read")
-  @volatile private var emergencyMemory: Array[Byte] = new Array[Byte](1024 * 1024)
   private val clientCapabilities = AtomicReference[Option[BuildClientCapabilities]](None)
 
   /** The active workspace for this connection (set during initialize) */
@@ -250,9 +245,6 @@ class MultiWorkspaceBspServer(
             case None     => IO.unit
           }
 
-        case Left(e: OutOfMemoryDuringRequest) =>
-          IO(handleOutOfMemory(request))
-
         case Left(e: BspException) =>
           IO(request.id.foreach(id => trySendResponse(id, None, Some(JsonRpcError(e.code, e.getMessage, None)))))
 
@@ -280,78 +272,6 @@ class MultiWorkspaceBspServer(
       case e: Exception =>
         logger.withContext("error", e.getMessage).error("Failed to send response", e)
     }
-
-  /** Handle OutOfMemoryError by sending an error response and requesting shutdown.
-    *
-    * Releases emergency memory to ensure we have enough heap to send the error response, then waits briefly before requesting shutdown.
-    */
-  private def handleOutOfMemory(request: JsonRpcRequest): Unit = {
-    // Release emergency memory to allow sending error response
-    emergencyMemory = null
-    System.gc() // Hint to GC to reclaim the emergency memory
-
-    val errorMessage = "BSP server ran out of memory. Server will shutdown."
-
-    // Try to send error response
-    try {
-      request.id.foreach { id =>
-        activeRequests.remove(id.key)
-        val response = JsonRpcResponse(
-          jsonrpc = "2.0",
-          id = id,
-          result = None,
-          error = Some(
-            JsonRpcError(
-              JsonRpcErrorCodes.InternalError,
-              errorMessage,
-              None
-            )
-          )
-        )
-        transport.sendResponse(response)
-      }
-
-      // Also send a build/showMessage notification to inform the client
-      try {
-        val showMessageParams = ShowMessageParams(
-          `type` = MessageType.Error,
-          task = None,
-          originId = None,
-          message = errorMessage
-        )
-        val notification = JsonRpcNotification(
-          jsonrpc = "2.0",
-          method = "build/showMessage",
-          params = Some(toRaw(showMessageParams))
-        )
-        transport.sendNotification(notification)
-      } catch {
-        case _: Throwable => () // Best effort
-      }
-    } catch {
-      case _: Throwable =>
-        // If we can't even send the error, just log and continue to shutdown
-        System.err.println(s"OOM: Failed to send error response: $errorMessage")
-    }
-
-    // Wait briefly to let the message be sent
-    try Thread.sleep(50)
-    catch { case _: InterruptedException => () }
-
-    // Request shutdown - this will cause the message loop to exit
-    shutdownRequested.set(true)
-
-    // Also exit the JVM since OOM is a fatal condition
-    // Use a separate thread to allow this method to return
-    new Thread("oom-shutdown") {
-      override def run(): Unit = {
-        try Thread.sleep(100)
-        catch { case _: InterruptedException => () }
-        System.err.println("BSP server exiting due to OutOfMemoryError")
-        System.exit(1)
-      }
-    }.start()
-  }
 
   /** Dispatch a method call to the appropriate handler.
     *
@@ -384,17 +304,8 @@ class MultiWorkspaceBspServer(
 
   private def dispatchMethod(method: String, params: Option[RawJson], cancellation: CancellationToken): IO[Option[RawJson]] = {
 
-    /** A handler that is still synchronous: run it on the blocking pool and wrap its result.
-      *
-      * The try/catch is not decoration. CE3 treats `OutOfMemoryError` as fatal: it bypasses `attempt` and takes the runtime down, so the client would never
-      * hear why. Catching it here, on the thread that threw it, and rethrowing it as an ordinary exception keeps the pre-IO behaviour where `handleRequest`
-      * answers the client and then shuts the server down.
-      */
-    def sync(result: => Option[RawJson]): IO[Option[RawJson]] =
-      IO.blocking {
-        try result
-        catch { case oom: OutOfMemoryError => throw new OutOfMemoryDuringRequest(oom) }
-      }
+    /** A handler that is still synchronous: run it on the blocking pool and wrap its result. */
+    def sync(result: => Option[RawJson]): IO[Option[RawJson]] = IO.blocking(result)
 
     method match {
       case "build/initialize" =>
@@ -4107,11 +4018,6 @@ class MultiWorkspaceBspServer(
   /** Error logging via BSP protocol */
   private def bspError(message: String): Unit =
     sendLogMessage(message, MessageType.Error)
-
-  /** An `OutOfMemoryError` from a request handler, rewrapped so it can travel as an ordinary (non-fatal) error through `IO` and reach the response path. See
-    * the `sync` helper in `dispatchMethod`.
-    */
-  private class OutOfMemoryDuringRequest(cause: OutOfMemoryError) extends RuntimeException(cause)
 }
 
 object MultiWorkspaceBspServer {
