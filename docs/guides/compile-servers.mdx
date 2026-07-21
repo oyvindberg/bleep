@@ -100,6 +100,24 @@ nudge this up to 0.90 or so.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 
+### Idle read timeout
+
+```bash
+bleep config compile-server read-timeout 30
+bleep config compile-server read-timeout 0        # wait forever
+bleep config compile-server read-timeout-clear    # back to default 30
+```
+
+How long the server waits for a client's next message before dropping
+the connection, so a client that dies without saying goodbye doesn't pin
+a server thread for the rest of the day.
+
+This is a per-read idle timeout, not a session limit. A long compile
+keeps the socket quiet, but the clock resets the moment the client speaks
+again &mdash; so it can never interrupt a running build.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
 ### Test-runner heap
 
 The test runner is a separate forked JVM. It doesn't share
@@ -141,14 +159,6 @@ top level rather than inside it; and that its value is an object with a
 `mode` field, not a bare string. Unknown keys are ignored silently, so a
 misspelt one looks like it worked and changes nothing &mdash; if a
 hand-edit seems to have no effect, check the spelling first.
-
-`bspReadTimeoutMinutes` is how long the server waits for the next message
-from a client before dropping the connection, so a client that dies
-without saying goodbye doesn't pin a server thread forever. It is a
-per-read idle timeout, not a session limit: a long compile keeps the
-socket quiet but the clock resets the moment the client speaks again, so
-it can never interrupt a running build. Default 30; set `0` to wait
-forever.
 
 ## See also
 
