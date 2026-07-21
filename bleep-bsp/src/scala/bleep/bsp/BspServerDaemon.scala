@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import bleep.{bleepExceptionOps, BleepConfigOps, UserPaths}
 import cats.effect.unsafe.implicits.global
 import libdaemonjvm._
 import libdaemonjvm.internal.{LockProcess, SocketHandler}
@@ -324,6 +325,19 @@ object BspServerDaemon {
             val connId = connectionCounter.incrementAndGet()
             logger.info(s"Client #$connId connected")
             BspMetrics.recordConnectionOpen(connId)
+
+            // Idle read timeout, so a client that dies without sending build/exit doesn't leave a
+            // thread blocked on read() for the daemon's lifetime. Read fresh per connection so a
+            // config change takes effect on the next connect rather than needing a daemon restart.
+            // This is per read: a long compile keeps the socket idle but ends the moment the client
+            // sends its next message, so it never counts against a running build.
+            val readTimeoutMillis = BleepConfigOps
+              .loadOrDefault(UserPaths.fromAppDirs)
+              .orThrow
+              .bspServerConfigOrDefault
+              .effectiveBspReadTimeoutMillis
+            clientSocket.setSoTimeout(readTimeoutMillis)
+            logger.debug(s"Client #$connId read timeout: ${if (readTimeoutMillis == 0) "none" else s"${readTimeoutMillis}ms"}")
 
             if (config.singleConnection) {
               // Single connection mode: handle inline and shutdown after

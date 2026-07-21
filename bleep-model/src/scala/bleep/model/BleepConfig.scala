@@ -48,7 +48,12 @@ case class BspServerConfig(
     /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory. When other compilations are running and heap exceeds this threshold, the
       * server delays starting new compilations until memory is freed. Default: 0.80
       */
-    heapPressureThreshold: Option[Double]
+    heapPressureThreshold: Option[Double],
+    /** Idle timeout on a client connection in minutes: how long the server waits for the next message before dropping the connection. This is per read, not per
+      * session, so a long compile does not count against it — the client is silent, but so is the socket only until the next request arrives. Set to 0 to wait
+      * forever. Default: 30
+      */
+    bspReadTimeoutMinutes: Option[Int]
 ) {
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
@@ -62,6 +67,13 @@ case class BspServerConfig(
 
   def effectiveHeapPressureThreshold: Double =
     heapPressureThreshold.getOrElse(BspServerConfig.DefaultHeapPressureThreshold)
+
+  /** Idle read timeout in milliseconds, in the form `Socket.setSoTimeout` wants: 0 means wait forever. */
+  def effectiveBspReadTimeoutMillis: Int = {
+    val minutes = bspReadTimeoutMinutes.getOrElse(BspServerConfig.DefaultBspReadTimeoutMinutes)
+    if (minutes < 0) sys.error(s"bspReadTimeoutMinutes must be >= 0 (0 disables the timeout), got $minutes")
+    minutes * 60 * 1000
+  }
 }
 
 object BspServerConfig {
@@ -69,6 +81,10 @@ object BspServerConfig {
   // (typically a cold mac CI runner downloading the Konan prebuilt) needs more, override via `~/.config/bleep/config.yaml` rather than relaxing the default.
   val DefaultTestIdleTimeoutMinutes: Int = 2
   val DefaultHeapPressureThreshold: Double = 0.80
+
+  // Generous enough that an editor left open over lunch keeps its connection, short enough that connections orphaned by a crashed client (which never sends
+  // build/exit, so the socket read would otherwise block forever) get reaped the same day.
+  val DefaultBspReadTimeoutMinutes: Int = 30
 
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
@@ -78,7 +94,8 @@ object BspServerConfig {
     sourcegenMaxMemory = None,
     kspRunnerMaxMemory = None,
     compileServerMaxMemory = None,
-    heapPressureThreshold = None
+    heapPressureThreshold = None,
+    bspReadTimeoutMinutes = None
   )
 
   implicit val decoder: Decoder[BspServerConfig] = deriveDecoder
