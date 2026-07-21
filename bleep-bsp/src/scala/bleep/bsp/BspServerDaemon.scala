@@ -35,14 +35,8 @@ object BspServerDaemon {
 
   private val ServerAlreadyRunningExitCode = 222
 
-  /** Registered workspaces that this server handles */
-  private val workspaces = ConcurrentHashMap[Path, WorkspaceState]()
-
-  /** State for a registered workspace */
-  case class WorkspaceState(
-      root: Path,
-      buildState: Option[BuildState]
-  )
+  /** Registered workspaces that this server handles. The build itself is not kept here — clients own it and ship it per connection (see [[BuildCache]]). */
+  private val workspaces = ConcurrentHashMap.newKeySet[Path]()
 
   case class DaemonConfig(
       socketDir: Path,
@@ -69,7 +63,7 @@ object BspServerDaemon {
     */
   def registerWorkspace(workspaceRoot: Path): Unit = {
     val normalized = workspaceRoot.toAbsolutePath.normalize()
-    workspaces.putIfAbsent(normalized, WorkspaceState(normalized, None)): Unit
+    workspaces.add(normalized): Unit
   }
 
   /** Unregister a workspace from the server. */
@@ -80,19 +74,7 @@ object BspServerDaemon {
 
   /** Get all registered workspaces */
   def getWorkspaces: Seq[Path] =
-    workspaces.keys().asScala.toSeq
-
-  /** Update build state for a workspace */
-  def updateBuildState(workspaceRoot: Path, state: BuildState): Unit = {
-    val normalized = workspaceRoot.toAbsolutePath.normalize()
-    workspaces.computeIfPresent(normalized, (_, ws) => ws.copy(buildState = Some(state))): Unit
-  }
-
-  /** Get workspace state */
-  def getWorkspaceState(workspaceRoot: Path): Option[WorkspaceState] = {
-    val normalized = workspaceRoot.toAbsolutePath.normalize()
-    Option(workspaces.get(normalized))
-  }
+    workspaces.asScala.toSeq
 
   def run(config: DaemonConfig): Unit = {
     // Create daemon-level logger that writes to stderr (ProcessBuilder redirects to socketDir/output).
