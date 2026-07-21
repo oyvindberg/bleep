@@ -87,6 +87,11 @@ object ZincBridge {
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
 
+  /** Cached ECJ jars per ECJ version. Same reason as [[bridgeCache]]: without this, every compile of an ECJ project runs a fresh coursier resolution, because
+    * the compilers (and with them the ECJ classloader) are built per compile.
+    */
+  private val ecjJarCache = new java.util.concurrent.ConcurrentHashMap[String, Seq[Path]]()
+
   /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime,
     * analysis). The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry
     * is discarded and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects
@@ -818,7 +823,7 @@ object ZincBridge {
       progressListener: ProgressListener
   ): xsbti.compile.JavaTools = {
     // Resolve ECJ jar
-    val ecjJars = resolveEcj(ecjVersion)
+    val ecjJars = getEcjJars(ecjVersion)
     val ecjClassLoader = new java.net.URLClassLoader(
       ecjJars.map(_.toUri.toURL).toArray,
       getClass.getClassLoader
@@ -839,6 +844,9 @@ object ZincBridge {
       def javadoc(): xsbti.compile.Javadoc = standardJavaTools.javadoc()
     }
   }
+
+  private def getEcjJars(version: String): Seq[Path] =
+    ecjJarCache.computeIfAbsent(version, resolveEcj)
 
   /** Resolve ECJ jars from Maven */
   private def resolveEcj(version: String): Seq[Path] = {
@@ -1389,9 +1397,11 @@ private class EcjCompiler(
           // Thread is being abandoned: register it so we have visibility (jstack name shows
           // the counter; the registry lets ChildProcessDiagnostics surface a count). The
           // thread itself stays alive — ECJ will continue writing class files to disk and
-          // pinning its in-memory symbol tables until it self-completes. TODO: per-compile
-          // ECJ classloader so abandoning the thread also lets GC reclaim ECJ's symbol table
-          // memory.
+          // pinning its in-memory symbol tables until it self-completes. That memory is
+          // reclaimable once it does: the ECJ classloader is built per compile (see
+          // createEcjTools, called from createCompilers per compileOnce) and is reachable only
+          // from this thread's stack, so nothing outlives the thread. What we cannot do is
+          // hurry it along — see the no-interrupt rule above.
           ZincBridge.abandonedEcjThreads.add(compileThread): Unit
           System.err.println(
             s"[ZincBridge] WARNING: ECJ thread '$threadName' did not exit within 30s after cancellation (now ${ZincBridge.abandonedEcjThreads.size} abandoned threads)"
