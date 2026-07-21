@@ -63,12 +63,7 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
     sb.toString
   }
 
-  // Disabled pending fix in bsp/Zinc cancel-result mapping. The other two tests in this suite cover (a) zinc state cleaned after cancel and (b) pre-cancel
-  // (immediate) → Cancelled. What this test exercises is mid-compile cancel returning Cancelled status. On CI the result flakes between Ok and Cancelled
-  // because Zinc can return a "0 classes compiled" success that out-races the cancel signal — we then report Ok instead of Cancelled. A robust fix is to
-  // remember whether cancel was requested in the BSP server and override Zinc's reported status when so. Tracked as TODO; ignore here so the PR isn't gated
-  // on the deeper fix.
-  ignore("BSP: cancel compilation of huge source produces Cancelled status") {
+  test("BSP: cancel compilation of huge source produces Cancelled status") {
     failAfter(longTimeout) {
       val workspace = createTempWorkspace("bsp-cancel-huge-")
       try {
@@ -151,9 +146,7 @@ class BspCancellationIntegrationTest extends AnyFunSuite with Matchers with Time
     }
   }
 
-  // Same race as the ignored "cancel compilation of huge source produces Cancelled status" test: cancel can lose to a Zinc-returns-Ok-with-0-classes outcome
-  // and the bsp server reports Ok instead of Cancelled. Real bug in the bsp cancel→result mapping; tracked alongside the huge-source variant.
-  ignore("BSP: immediate cancel (before compilation starts) produces Cancelled status") {
+  test("BSP: immediate cancel (before compilation starts) produces Cancelled status") {
     failAfter(longTimeout) {
       val workspace = createTempWorkspace("bsp-cancel-immediate-")
       try {

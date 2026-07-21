@@ -231,8 +231,18 @@ class MultiWorkspaceBspServer(
     val cancellationToken = request.id match {
       case Some(id) =>
         val token = CancellationToken.create()
-        activeRequests.put(id.key, token)
-        token
+        // `compute` rather than `put`, because a $/cancelRequest for this id may already have run:
+        // it is handled inline on the reader thread while this runs on the request's own fiber, so
+        // the cancel genuinely can arrive first. When it does it leaves a cancelled token behind,
+        // and we adopt its state instead of overwriting it. Overwriting is how a cancel used to get
+        // dropped, leaving the client with Ok for a build it had cancelled.
+        activeRequests.compute(
+          id.key,
+          (_, alreadyCancelled) => {
+            if (alreadyCancelled != null && alreadyCancelled.isCancelled) token.cancel()
+            token
+          }
+        )
       case None =>
         CancellationToken.never
     }
@@ -660,9 +670,26 @@ class MultiWorkspaceBspServer(
       case Left(s)  => s
       case Right(i) => i.toString
     }
-    val token = Option(activeRequests.remove(idStr))
-    logger.withContext("id", idStr).withContext("tokenPresent", token.isDefined.toString).warn("Received cancelRequest")
-    token.foreach(_.cancel())
+    // Cancel the request's token if it has registered, and leave a cancelled token behind if it
+    // hasn't — `handleRequest` adopts that state when it registers, so a cancel that beats its own
+    // request is honoured rather than lost. The entry is removed by `handleRequest`'s guarantee once
+    // the request runs; an id that never arrives leaves one token behind, which is why this is keyed
+    // by request id rather than accumulating a separate set.
+    var wasRegistered = false
+    activeRequests.compute(
+      idStr,
+      (_, existing) =>
+        if (existing != null) {
+          wasRegistered = true
+          existing.cancel()
+          existing
+        } else {
+          val preCancelled = CancellationToken.create()
+          preCancelled.cancel()
+          preCancelled
+        }
+    )
+    logger.withContext("id", idStr).withContext("tokenPresent", wasRegistered.toString).warn("Received cancelRequest")
   }
 
   // ==========================================================================
