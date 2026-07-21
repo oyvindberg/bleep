@@ -1,37 +1,59 @@
 package bleep.bsp
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters.*
 
-/** Tracks BSP diagnostic state across compilation cycles to implement the reset protocol.
+/** What diagnostics the client currently has on screen, per build target — for the lifetime of a connection.
+  *
+  * Diagnostics in BSP are stateful on the client side: once we publish an error for a file it stays in the user's editor until we publish an empty
+  * `reset = true` for that same file. So the knowledge of "what needs clearing" spans compilations, and cannot live in the per-operation
+  * [[BspDiagnosticTracker]] — the compile that fixes an error is a *different* operation from the one that reported it. Without this, an error you have already
+  * fixed stays on screen in Metals (issue #526).
+  *
+  * Bloop solves the same problem the same way, keeping `previouslyFailedCompilations` per client and splicing it into each request.
+  *
+  * Keyed by target so one project's compile never clears another's diagnostics.
+  */
+class BspDiagnosticMemory {
+  private val docsByTarget = ConcurrentHashMap[String, Set[String]]()
+
+  /** Documents currently carrying diagnostics for `targetUri`. */
+  def docsFor(targetUri: String): Set[String] =
+    docsByTarget.getOrDefault(targetUri, Set.empty)
+
+  /** Replace what we remember about `targetUri`, now that a compile of it has published everything it is going to. */
+  def replace(targetUri: String, docUris: Set[String]): Unit =
+    if (docUris.isEmpty) docsByTarget.remove(targetUri): Unit
+    else docsByTarget.put(targetUri, docUris): Unit
+}
+
+/** Tracks BSP diagnostic state within one build operation to implement the reset protocol.
   *
   * The BSP spec requires servers to manage diagnostic lifecycle:
   *   - First diagnostic per (document, target) in a cycle: `reset = true` (clears old diagnostics)
   *   - Subsequent diagnostics for the same pair: `reset = false` (appends)
-  *   - After compilation: files that had errors last cycle but not this one need empty `reset = true` to clear stale diagnostics
-  *
-  * Without this, clients like Metals show "sticky" errors that persist after being fixed (issue #526).
-  *
-  * Thread-safe: diagnostic listeners from concurrent project compilations within the same cycle can call `recordDiagnostic` safely.
+  *   - After compilation: files that had diagnostics before but not now need an empty `reset = true` to clear the stale ones
   *
   * Lifetime: ONE tracker per build operation. Don't share a tracker across concurrent operations — `handleCompile` and `handleTest` running side-by-side each
-  * need their own. Sharing causes `startCycle` from one to wipe the other's in-flight state.
+  * need their own, or one wipes the other's in-flight state. The state that *must* outlive the operation lives in the shared [[BspDiagnosticMemory]] instead.
+  *
+  * Thread-safe: diagnostic listeners from concurrent project compilations within the same operation can call `recordDiagnostic` safely.
   */
-class BspDiagnosticTracker {
+class BspDiagnosticTracker(memory: BspDiagnosticMemory) {
 
-  /** Key for tracking: (document URI string, target URI string) */
-  private type FileTarget = (String, String)
+  /** Documents this cycle has published diagnostics for, per target uri. */
+  private val current = ConcurrentHashMap[String, ConcurrentHashMap.KeySetView[String, java.lang.Boolean]]()
 
-  /** Atomic swap-on-startCycle. The "current cycle" set is held inside this ref so a `startCycle` rotates the entire set in one CAS, instead of two non-atomic
-    * ops (snapshot, clear) that allowed concurrent `recordDiagnostic` callers to land in the "old" set after the snapshot and get wiped by the clear.
+  private def docsOf(targetUri: String): ConcurrentHashMap.KeySetView[String, java.lang.Boolean] =
+    current.computeIfAbsent(targetUri, _ => ConcurrentHashMap.newKeySet[String]())
+
+  /** Announce that `targetUri` is about to be compiled, so this cycle takes responsibility for clearing its stale diagnostics.
     *
-    * `previousFiles` is captured by the rotation, also atomically.
+    * Needed separately from `recordDiagnostic` because the interesting case is a target that compiles *clean*: it publishes nothing, yet its previous errors
+    * are exactly the ones to clear. Targets that are not compiled at all (up-to-date, noop) must not be announced — their diagnostics still stand.
     */
-  private val currentRef: AtomicReference[ConcurrentHashMap.KeySetView[FileTarget, java.lang.Boolean]] =
-    new AtomicReference(ConcurrentHashMap.newKeySet())
-
-  @volatile private var previousFiles: Set[FileTarget] = Set.empty
+  def beginTarget(targetUri: String): Unit =
+    docsOf(targetUri): Unit
 
   /** Record a diagnostic being published. Returns the `reset` value to use.
     *
@@ -40,18 +62,16 @@ class BspDiagnosticTracker {
     *   append).
     */
   def recordDiagnostic(docUri: String, targetUri: String): Boolean =
-    currentRef.get().add((docUri, targetUri)) // ConcurrentHashMap.KeySetView.add returns true if newly added
+    docsOf(targetUri).add(docUri) // ConcurrentHashMap.KeySetView.add returns true if newly added
 
-  /** Prepare for a new compilation cycle. Moves current cycle's files to "previous" for clearing detection. Must be called before compilation begins. */
-  def startCycle(): Unit = {
-    val fresh = ConcurrentHashMap.newKeySet[FileTarget]()
-    val prior = currentRef.getAndSet(fresh)
-    previousFiles = prior.asScala.toSet
-  }
-
-  /** Get (docUri, targetUri) pairs that had diagnostics last cycle but not this one. These need empty diagnostics with `reset = true` to clear stale errors in
-    * the client.
+  /** End the cycle: hand back the (docUri, targetUri) pairs that carried diagnostics before but don't now — these need empty `reset = true` notifications — and
+    * commit this cycle's state as the new memory.
     */
-  def filesToClear(): Set[FileTarget] =
-    previousFiles -- currentRef.get().asScala.toSet
+  def finishCycle(): Set[(String, String)] =
+    current.asScala.toMap.flatMap { case (targetUri, docsView) =>
+      val docs = docsView.asScala.toSet
+      val stale = memory.docsFor(targetUri) -- docs
+      memory.replace(targetUri, docs)
+      stale.map(docUri => (docUri, targetUri))
+    }.toSet
 }
