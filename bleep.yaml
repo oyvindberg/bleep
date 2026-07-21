@@ -342,9 +342,9 @@ projects:
       slow:
       - "**IT"
   scripts:
-    dependsOn:
-    - bleep-plugin-native-image
-    - bleep-plugin-scalafix
+    dependencies:
+    - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}
+    - build.bleep::bleep-plugin-scalafix:${BLEEP_VERSION}
     extends:
     - template-common
     - template-scala-3
