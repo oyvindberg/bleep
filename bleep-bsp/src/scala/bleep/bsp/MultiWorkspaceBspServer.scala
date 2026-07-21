@@ -122,9 +122,13 @@ class MultiWorkspaceBspServer(
   /** Operation IDs registered by this connection (for cleanup on disconnect) */
   private val myOperationIds = ConcurrentHashMap.newKeySet[String]()
 
-  // Diagnostic trackers are scoped per build operation (handleCompile / handleTest) — created
-  // at the top of those methods, threaded through compileProject. Sharing one tracker across
-  // concurrent operations would let one `startCycle` wipe another's in-flight diagnostic state.
+  /** What diagnostics this connection's client currently has on screen.
+    *
+    * Trackers are scoped per build operation (handleCompile / handleTest) — sharing one across concurrent operations would let one wipe the other's in-flight
+    * state — but the memory of what was already published has to outlive the operation, since the compile that clears an error is a different operation from
+    * the one that reported it.
+    */
+  private val diagnosticMemory = new BspDiagnosticMemory
 
   /** Run the server message loop with concurrent request handling.
     *
@@ -1536,9 +1540,8 @@ class MultiWorkspaceBspServer(
   private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
-    // Per-operation tracker — see field-level comment on diagnosticTracker for why we don't share.
-    val diagnosticTracker = new BspDiagnosticTracker
-    diagnosticTracker.startCycle()
+    // Per-operation tracker over the connection-wide memory — see the comment on `diagnosticMemory`.
+    val diagnosticTracker = new BspDiagnosticTracker(diagnosticMemory)
 
     // Parse link options from arguments
     val args = params.arguments.getOrElse(List.empty)
@@ -1957,9 +1960,8 @@ class MultiWorkspaceBspServer(
     val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
 
     // Per-operation diagnostic tracker — keeps test-pipeline compiles' diagnostic state isolated
-    // from any concurrent handleCompile, which otherwise race on startCycle.
-    val diagnosticTracker = new BspDiagnosticTracker
-    diagnosticTracker.startCycle()
+    // from any concurrent handleCompile, which would otherwise race on it.
+    val diagnosticTracker = new BspDiagnosticTracker(diagnosticMemory)
 
     val testProjects = params.targets.flatMap { targetId =>
       crossNameFromTargetId(started, targetId)
@@ -2353,6 +2355,9 @@ class MultiWorkspaceBspServer(
         traceRecorder.writeTrace(tracePath).unsafeRunSync()
       }
 
+      // The test pipeline compiles too, so it owes the client the same stale-diagnostic clearing a plain compile does
+      clearStaleDiagnostics(diagnosticTracker)
+
       ioResult match {
         case Success((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
           // Send TestRunFinished event
@@ -2557,6 +2562,10 @@ class MultiWorkspaceBspServer(
   ): IO[TaskDag.TaskResult] = {
     val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
     val compiler = ProjectCompiler.forLanguage(config.language)
+
+    // We're actually compiling this target, so this cycle owns its diagnostics — including the case where it compiles clean and publishes nothing, which is
+    // precisely when the previous cycle's errors need clearing.
+    diagnosticTracker.beginTarget(buildTargetId(started.buildPaths, project).uri.value)
 
     val diagnosticListener = new DiagnosticListener {
       def onDiagnostic(error: CompilerError): Unit = {
@@ -3728,9 +3737,9 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Send empty diagnostics with reset=true for files that had errors in the previous compilation but are now clean. */
+  /** End a diagnostic cycle: send empty diagnostics with reset=true for files that had errors in a previous compilation but are now clean. */
   private def clearStaleDiagnostics(diagnosticTracker: BspDiagnosticTracker): Unit =
-    diagnosticTracker.filesToClear().foreach { case (docUri, targetUri) =>
+    diagnosticTracker.finishCycle().foreach { case (docUri, targetUri) =>
       val publishParams = PublishDiagnosticsParams(
         textDocument = TextDocumentIdentifier(Uri(java.net.URI.create(docUri))),
         buildTarget = BuildTargetIdentifier(uri = Uri(java.net.URI.create(targetUri))),
