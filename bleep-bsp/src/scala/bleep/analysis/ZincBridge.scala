@@ -1081,9 +1081,10 @@ object ZincBridge {
         }
       }
     }
+    val fileConverter = PortableAnalysisMappers.fileConverter(config.buildDir)
     val externalHooks = new DefaultExternalHooks(
       Optional.of[ExternalHooks.Lookup](cycleGuard),
-      Optional.empty[ClassFileManager]()
+      Optional.of[ClassFileManager](new TastyReaper(fileConverter))
     )
     val incOptions = IncOptions.of().withExternalHooks(externalHooks)
 
@@ -1111,7 +1112,7 @@ object ZincBridge {
       sourcePositionMapper,
       CompileOrder.JavaThenScala,
       Optional.empty[Path](), // temporaryClassesDir
-      Optional.of[xsbti.FileConverter](PortableAnalysisMappers.fileConverter(config.buildDir)),
+      Optional.of[xsbti.FileConverter](fileConverter),
       Optional.empty[xsbti.compile.analysis.ReadStamps](),
       Optional.empty[xsbti.compile.Output]()
     )
@@ -1278,6 +1279,62 @@ object ZincBridge {
   *
   * Uses ECJ's batch Main with a CompilationProgress bridge (generated via ASM at runtime) to get per-file progress and native cancellation support.
   */
+/** Deletes the `.tasty` that Scala 3 emits beside a `.class`, whenever Zinc deletes that `.class`.
+  *
+  * Zinc tracks `.class` files as the products of a source and deletes them when the source is removed or invalidated, but it does not track the sibling
+  * `.tasty`. For Scala 2 that was harmless. For Scala 3 it is not: `.tasty` is what the compiler reads off the classpath to recover symbol definitions, so an
+  * orphaned one keeps answering for a class whose source is gone.
+  *
+  * The damage shows up when a source moves between projects — a routine refactor, and exactly what a `git checkout` across such a commit does to a warm build.
+  * The old project keeps serving the old API from its orphaned `.tasty` while the new project compiles the real one, and since the owning project's own output
+  * comes first on its classpath, dependents compile against the stale definition. The error names members that "do not exist" on a class you are looking at,
+  * which sends you hunting through your own diff. Nothing but `bleep clean` clears it, and nothing warns you.
+  *
+  * Registered as the supplementary `ClassFileManager` in `DefaultExternalHooks`, so it sees the same deletions Zinc performs without replacing Zinc's own
+  * bookkeeping.
+  */
+private class TastyReaper(converter: xsbti.FileConverter) extends ClassFileManager {
+
+  override def delete(classes: Array[VirtualFile]): Unit =
+    classes.foreach { vf =>
+      // Products carry marker-prefixed ids (`${BASE}/...`) so analysis stays portable for the
+      // remote cache, so ask the converter rather than reading `id()` as a path.
+      val classFile = converter.toPath(vf)
+      val name = classFile.getFileName.toString
+      if (name.endsWith(".class")) {
+        // Nested and synthetic classes (`Foo$Bar.class`, `Foo$.class`) have no `.tasty` of their
+        // own — only the top-level `Foo.class` does — so most of these resolve to a file that
+        // isn't there. deleteIfExists makes that a no-op rather than a special case.
+        val tasty = classFile.resolveSibling(name.stripSuffix(".class") + ".tasty")
+        try Files.deleteIfExists(tasty): Unit
+        catch {
+          case e: java.io.IOException =>
+            // Leaving a stale .tasty is the bug this class exists to prevent, so say so rather
+            // than swallowing it. Not fatal: the compile itself is still valid.
+            System.err.println(s"[ZincBridge] WARNING: could not delete orphaned $tasty: ${e.getMessage}")
+        }
+      }
+    }
+
+  override def generated(classes: Array[VirtualFile]): Unit = ()
+  override def complete(success: Boolean): Unit = ()
+
+  // Deprecated java.io.File overloads, still abstract on the interface. Zinc calls the VirtualFile
+  // ones; these exist only to satisfy the interface.
+  @deprecated("Use the VirtualFile overload", "")
+  override def delete(classes: Array[java.io.File]): Unit =
+    classes.foreach { f =>
+      val name = f.getName
+      if (name.endsWith(".class")) {
+        try Files.deleteIfExists(f.toPath.resolveSibling(name.stripSuffix(".class") + ".tasty")): Unit
+        catch { case e: java.io.IOException => System.err.println(s"[ZincBridge] WARNING: could not delete orphaned .tasty for $f: ${e.getMessage}") }
+      }
+    }
+
+  @deprecated("Use the VirtualFile overload", "")
+  override def generated(classes: Array[java.io.File]): Unit = ()
+}
+
 private class EcjCompiler(
     ecjClassLoader: ClassLoader,
     cancellationToken: CancellationToken,
