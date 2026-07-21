@@ -610,16 +610,6 @@ object LinkExecutor {
       def error(message: String): Unit = System.err.println(s"[error] $message")
     }
 
-    /** Create a logger that sends output to BSP */
-    def forBsp(server: BspServer): LinkLogger = new LinkLogger {
-      import ch.epfl.scala.bsp.MessageType
-      def trace(message: String): Unit = () // Don't flood BSP with trace
-      def debug(message: String): Unit = () // Don't flood BSP with debug
-      def info(message: String): Unit = server.sendLogMessage(message, MessageType.Info)
-      def warn(message: String): Unit = server.sendLogMessage(message, MessageType.Warning)
-      def error(message: String): Unit = server.sendLogMessage(message, MessageType.Error)
-    }
-
     /** Adapt a LinkLogger to ScalaJsToolchain.Logger (by-name parameters). */
     def toScalaJsLogger(logger: LinkLogger): ScalaJsToolchain.Logger = new ScalaJsToolchain.Logger {
       def trace(message: => String): Unit = logger.trace(message)
