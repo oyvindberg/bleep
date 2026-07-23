@@ -717,7 +717,10 @@ object Main {
                 BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = Some(size)))).map(_ => ())
               }
             ),
-            Opts.subcommand[BleepCommand]("max-memory-clear", "remove compile server max heap setting (use JVM default)")(
+            Opts.subcommand[BleepCommand](
+              "max-memory-clear",
+              "remove compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)"
+            )(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
             ),
             Opts.subcommand[BleepCommand](

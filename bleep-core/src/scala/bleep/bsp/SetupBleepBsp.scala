@@ -38,14 +38,17 @@ object SetupBleepBsp {
       logger: Logger,
       extraServerClasspath: Seq[Path]
   ): Either[BleepException, BspRifleConfig] = {
-    val extraJavaOpts = config.bspServerConfigOrDefault.compileServerMaxMemory.map(m => s"-Xmx$m").toList
+    val maxHeapOpt = config.bspServerConfigOrDefault.compileServerMaxMemory match {
+      case Some(m) => s"-Xmx$m"
+      case None    => BspRifleConfig.defaultMaxHeapOpt
+    }
     val majorVersion = BspRifleConfig.jvmMajorVersion(resolvedJvm.jvm.name)
     val versionOpts = BspRifleConfig.jdkVersionOpts(majorVersion)
-    val javaOpts = BspRifleConfig.defaultJavaOpts ++ versionOpts ++ extraJavaOpts
+    val javaOpts = BspRifleConfig.defaultJavaOpts ++ Seq(maxHeapOpt) ++ versionOpts
     // Include extra classpath JAR filenames in the JVM key so the hash differs
     // when semanticdb-javac is present, giving a dedicated server instance
     val extraCpOpts = extraServerClasspath.map(p => s"--extra-cp=${p.getFileName}").toList
-    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, versionOpts.toList ++ extraJavaOpts ++ extraCpOpts)
+    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, maxHeapOpt :: versionOpts.toList ++ extraCpOpts)
 
     for {
       serverClasspath <- resolveServerClasspath(resolver, userPaths, logger)

@@ -77,7 +77,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           jobs.values.toList.traverse_(_.cancel)
         }
       )
-    } yield new BleepMcpSession(client, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
+    } yield new BleepMcpSession(client, bspConfig, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
 
   private def setupBspConfig(): Either[BleepException, BspRifleConfig] =
     started.bspServerClasspathSource match {
@@ -133,6 +133,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
   private class BleepMcpSession(
       _client: McpServer.Client[IO],
+      bspConfig: BspRifleConfig,
       bspServer: bleep.bsp.BuildServer,
       bspListening: java.util.concurrent.Future[Void],
       eventRoutes: ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]],
@@ -590,6 +591,17 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         }.toArray
       }
 
+    /** The session holds one BSP connection for its whole lifetime, so a failed tool call is the only place the agent ever sees why the server died. If the
+      * server log records an OutOfMemoryError death, append that explanation (with the fix) to the failure.
+      */
+    private def diagnoseOomOnFailure[A](io: IO[A]): IO[A] =
+      io.handleErrorWith { e =>
+        BspRifle.oomCrashExplanation(bspConfig).flatMap {
+          case Some(oom) => IO.raiseError(new BleepException.Cause(e, s"${e.getMessage}. $oom"))
+          case None      => IO.raiseError(e)
+        }
+      }
+
     /** Execute a compile via BSP on the persistent connection. Reports progress heartbeat every 30s, returns compact summary. */
     private def executeBspOperation(
         projectNames: List[String],
@@ -620,7 +632,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         // Heartbeat fiber: report progress every 30s
         heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
 
-        _ <- {
+        _ <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
           BspRequestHelper
             .callCancellable(
@@ -677,7 +689,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
         heartbeatFiber <- heartbeat(collectedEvents, done, "test", context).start
 
-        _ <- {
+        _ <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
           BspRequestHelper
             .callCancellable(
@@ -773,7 +785,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback()))
           consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
 
-          _ <- {
+          _ <- diagnoseOomOnFailure {
             val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
             mode match {
               case BleepBspProtocol.BuildMode.Test =>
@@ -951,7 +963,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       }
 
       for {
-        result <- {
+        result <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
           BspRequestHelper.callCancellable(
             bspServer.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
@@ -1073,14 +1085,16 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         targetProjects: Array[model.CrossProjectName]
     ): IO[Unit] = {
       val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-      BspRequestHelper
-        .callCancellable(
-          {
-            val params = new bsp4j.CompileParams(targets)
-            bspServer.buildTargetCompile(params)
-          },
-          bspListening
-        )
+      diagnoseOomOnFailure(
+        BspRequestHelper
+          .callCancellable(
+            {
+              val params = new bsp4j.CompileParams(targets)
+              bspServer.buildTargetCompile(params)
+            },
+            bspListening
+          )
+      )
         .flatMap { result =>
           IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
             new BleepException.Text(s"Compilation failed with status ${result.getStatusCode}")

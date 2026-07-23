@@ -1,6 +1,7 @@
 package bleep.bsp
 
 import cats.effect.IO
+import ryddig.Logger
 
 import java.net.{ConnectException, InetSocketAddress, Socket, StandardProtocolFamily}
 import java.nio.channels.SocketChannel
@@ -19,6 +20,46 @@ object BspServerOperations {
   /** Exit code indicating server is already running */
   val ServerAlreadyRunningExitCode: Int = 222
 
+  /** The line HotSpot prints (via VM tty output) right before -XX:+ExitOnOutOfMemoryError kills the VM. -XX:+DisplayVMOutputToStderr routes it into the socket
+    * dir's `output` log, making it the durable evidence that a server died of OOM — no heap dump required.
+    */
+  val OomMarker = "Terminating due to java.lang.OutOfMemoryError"
+
+  def containsOomMarker(log: Path): Boolean =
+    // lossy decode: the log interleaves subprocess output that need not be valid UTF-8, and a diagnosis helper must not throw over it
+    Files.exists(log) && new String(Files.readAllBytes(log), java.nio.charset.StandardCharsets.UTF_8).contains(OomMarker)
+
+  /** Heap dumps written by older bleep versions, which ran the server with -XX:+HeapDumpOnOutOfMemoryError. They land in the server's working directory (the
+    * socket dir) as `java_pid<pid>.hprof`. Current servers don't write dumps; these are legacy litter to clean up.
+    */
+  def listHeapDumps(socketDir: Path): List[Path] =
+    if (Files.isDirectory(socketDir)) {
+      val stream = Files.list(socketDir)
+      try
+        stream
+          .iterator()
+          .asScala
+          .filter { p =>
+            val name = p.getFileName.toString
+            name.startsWith("java_pid") && name.endsWith(".hprof")
+          }
+          .toList
+      finally stream.close()
+    } else Nil
+
+  /** A hint to append to connect/startup failure messages when the server log shows an OutOfMemoryError death.
+    *
+    * By the time these failures surface, startServer has rotated `output` to `output.prev`, so the crashed generation's log may be under either name — check
+    * both and say which one carried the evidence.
+    */
+  def oomHint(socketDir: Path): String =
+    List("output", "output.prev").map(socketDir.resolve).find(containsOomMarker) match {
+      case None      => ""
+      case Some(log) =>
+        s"""\nNote: $log contains "$OomMarker" — the server ran out of heap.""" +
+          " Raise the cap with: bleep config compile-server max-memory <size>"
+    }
+
   // ==========================================================================
   // Process Management
   // ==========================================================================
@@ -27,10 +68,20 @@ object BspServerOperations {
     *
     * The server is started as a daemon process with stdout/stderr redirected to an output file for later inspection.
     */
-  def startServer(config: BspRifleConfig): IO[Process] = IO
+  def startServer(config: BspRifleConfig, logger: Logger): IO[Process] = IO
     .blocking {
       val socketDir = config.address.socketDir
       ensureDirectoryExists(socketDir)
+
+      // Multi-GB heap dumps left behind by older bleep versions (whose servers ran with
+      // -XX:+HeapDumpOnOutOfMemoryError) accumulate one per crash until the disk fills.
+      // Current servers don't write dumps — OOM death is diagnosed from the output log
+      // (OomMarker) — so anything found here is litter.
+      listHeapDumps(socketDir).foreach { dump =>
+        val sizeMb = Files.size(dump) / (1024L * 1024L)
+        Files.delete(dump)
+        logger.warn(s"Deleted legacy OutOfMemoryError heap dump $dump (${sizeMb}MB)")
+      }
 
       val outputFile = socketDir.resolve("output")
       // Preserve previous server's output for debugging, then start fresh
@@ -219,7 +270,7 @@ object BspServerOperations {
                   s"server output:\n$outputContent"
                 ).mkString("\n  ")
                 new RuntimeException(
-                  s"BSP server failed to start within ${config.startCheckTimeout}\n  $details"
+                  s"BSP server failed to start within ${config.startCheckTimeout}\n  $details${oomHint(config.address.socketDir)}"
                 )
               }.flatMap(IO.raiseError)
             } else {
@@ -253,7 +304,7 @@ object BspServerOperations {
             if (now.toMillis >= deadline) {
               IO.raiseError(
                 new RuntimeException(
-                  s"Failed to connect to BSP server within ${config.connectionTimeout}: ${ex.getClass.getSimpleName}: ${ex.getMessage}"
+                  s"Failed to connect to BSP server within ${config.connectionTimeout}: ${ex.getClass.getSimpleName}: ${ex.getMessage}${oomHint(config.address.socketDir)}"
                 )
               )
             } else {

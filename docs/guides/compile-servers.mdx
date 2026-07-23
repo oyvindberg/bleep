@@ -71,13 +71,21 @@ or generated-code-heavy builds may need more.
 ```bash
 bleep config compile-server max-memory 4g
 bleep config compile-server max-memory 2048m
-bleep config compile-server max-memory-clear   # back to JVM default
+bleep config compile-server max-memory-clear   # back to bleep's default
 ```
 
-Sets the `-Xmx` for the compile server JVM(s) bleep starts. Reach
-for this when you're hitting `OutOfMemoryError` during compile, or
-when you have plenty of RAM and want to give the compiler room to
-breathe.
+Sets the `-Xmx` for the compile server JVM(s) bleep starts. The
+default is a quarter of physical RAM, clamped to between 4g and
+16g. Reach for this when you're hitting `OutOfMemoryError` during
+compile, or when you have plenty of RAM and want to give the
+compiler room to breathe.
+
+When the server does die of `OutOfMemoryError`, it exits
+immediately — no heap dump or core file is written. The client
+that was connected (or the next bleep invocation) detects the OOM
+from the server log and reports it together with the configured
+cap and the command to raise it. Heap dumps left behind by older
+bleep versions are deleted automatically at server start.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 

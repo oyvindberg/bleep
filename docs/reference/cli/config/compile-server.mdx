@@ -18,7 +18,7 @@ bleep config compile-server <subcommand>
 
 ## `bleep config compile-server auto-shutdown-disable`
 
-<p>leave compile servers running between bleep invocations. This gets much better performance at the cost of memory</p>
+<p>leave compile servers running between bleep invocations. this gets much better performance at the cost of memory</p>
 
 ## `bleep config compile-server auto-shutdown-enable`
 
@@ -46,7 +46,7 @@ bleep config compile-server max-memory <size>
 
 ## `bleep config compile-server max-memory-clear`
 
-<p>remove compile server max heap setting (use JVM default)</p>
+<p>remove compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)</p>
 
 ## `bleep config compile-server heap-pressure-threshold`
 
@@ -67,4 +67,24 @@ bleep config compile-server heap-pressure-threshold <threshold>
 ## `bleep config compile-server heap-pressure-threshold-clear`
 
 <p>remove heap pressure threshold setting (use default: 0.80)</p>
+
+## `bleep config compile-server read-timeout`
+
+<p>set minutes the server waits for a client's next message before dropping the connection, 0 to wait forever (default: 30)</p>
+
+### Synopsis
+
+```bash
+bleep config compile-server read-timeout <minutes>
+```
+
+### Arguments
+
+| Argument | Type |
+|----------|------|
+| `minutes` | one |
+
+## `bleep config compile-server read-timeout-clear`
+
+<p>remove read timeout setting (use default: 30 minutes)</p>
 

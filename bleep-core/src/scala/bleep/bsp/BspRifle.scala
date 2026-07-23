@@ -86,7 +86,8 @@ object BspRifle {
                     BspServerOperations.waitForServer(config)
                 case false =>
                   // Zombie: PID file exists but process is dead
-                  IO(logger.info(s"BSP server pid=$pid is dead, cleaning up and starting fresh")) >>
+                  warnIfDiedOfOom(config, pid, logger) >>
+                    IO(logger.info(s"BSP server pid=$pid is dead, cleaning up and starting fresh")) >>
                     BspServerOperations.cleanup(socketDir) >>
                     startAndWait(config, logger)
               }
@@ -106,11 +107,40 @@ object BspRifle {
     } yield ()
   }
 
+  /** If the server's `output` log records the VM's OOM termination line, it died (or is right now dying) of OutOfMemoryError. -XX:+DisplayVMOutputToStderr
+    * routes that line into the log the moment the VM starts terminating, so the client connected when it happened can diagnose it — in CI there is no next run
+    * to notice. The `output` file always belongs to the server generation the caller was dealing with; it must be read before cleanup/forceStop/startServer,
+    * which delete or rotate it.
+    */
+  def oomCrashExplanation(config: BspRifleConfig): IO[Option[String]] = IO.blocking {
+    val log = config.address.socketDir.resolve("output")
+    if (BspServerOperations.containsOomMarker(log)) {
+      val cap = config.javaOpts.filter(_.startsWith("-Xmx")).lastOption.getOrElse("<unset>")
+      val suggestion = bleep.MachineResources.parseMemoryMb(cap) match {
+        case Some(mb) =>
+          val doubled = mb * 2
+          if (doubled % 1024 == 0) s"${doubled / 1024}g" else s"${doubled}m"
+        case None => "8g"
+      }
+      Some(
+        s"BSP server died of OutOfMemoryError with heap capped at $cap (see $log)." +
+          s" If this recurs, raise the cap with: bleep config compile-server max-memory $suggestion"
+      )
+    } else None
+  }
+
+  /** A dead server whose log records the OOM termination line died of OutOfMemoryError — say so, with the fix, instead of a bare "dead, restarting". */
+  private def warnIfDiedOfOom(config: BspRifleConfig, pid: Long, logger: Logger): IO[Unit] =
+    oomCrashExplanation(config).flatMap {
+      case Some(msg) => IO(logger.warn(s"$msg (dead server pid=$pid)"))
+      case None      => IO.unit
+    }
+
   /** Start a new server and wait for it to be ready. */
   def startAndWait(config: BspRifleConfig, logger: Logger): IO[Unit] =
     for {
       _ <- IO(logger.info("Waiting for BSP server to be ready"))
-      process <- startServer(config)
+      process <- startServer(config, logger)
       // Check if process exited immediately (e.g., exit code 222 = already running)
       exitedImmediately <- IO.blocking(process.isAlive).map(!_)
       _ <-
@@ -143,8 +173,8 @@ object BspRifle {
     * @return
     *   The server process (for monitoring, not for direct interaction)
     */
-  def startServer(config: BspRifleConfig): IO[Process] =
-    BspServerOperations.startServer(config)
+  def startServer(config: BspRifleConfig, logger: Logger): IO[Process] =
+    BspServerOperations.startServer(config, logger)
 
   /** Connect to a running server with retry on transient failures.
     *
