@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Compile servers | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/guides/compile-servers/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Compile servers | Bleep"><meta data-rh="true" name="description" content="Bleep ships its own BSP server (bleep-bsp) that drives the Zinc"><meta data-rh="true" property="og:description" content="Bleep ships its own BSP server (bleep-bsp) that drives the Zinc"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/guides/compile-servers/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/guides/compile-servers/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/guides/compile-servers/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Compile servers","item":"https://bleep.build/docs/guides/compile-servers"}]}</script><link rel="stylesheet" href="/assets/css/styles.833866ae.css">
-<script src="/assets/js/runtime~main.1c80c688.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.c2f1494c.js" defer="defer"></script>
 <script src="/assets/js/main.00a37e16.js" defer="defer"></script>
 </head>
 <body>
@@ -50,13 +50,20 @@ need to reclaim memory before doing something else heavy.</p>
 class metadata in memory. The defaults work for most repos; large
 or generated-code-heavy builds may need more.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="compile-server-heap">Compile-server heap<a href="#compile-server-heap" class="hash-link" aria-label="Direct link to Compile-server heap" title="Direct link to Compile-server heap" translate="no">​</a></h3>
-<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory 4g</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory 2048m</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory-clear   </span><span class="token comment" style="color:#999988;font-style:italic"># back to JVM default</span><br></div></code></pre></div></div>
-<p>Sets the <code>-Xmx</code> for the compile server JVM(s) bleep starts. Reach
-for this when you&#x27;re hitting <code>OutOfMemoryError</code> during compile, or
-when you have plenty of RAM and want to give the compiler room to
-breathe.</p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory 4g</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory 2048m</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server max-memory-clear   </span><span class="token comment" style="color:#999988;font-style:italic"># back to bleep&#x27;s default</span><br></div></code></pre></div></div>
+<p>Sets the <code>-Xmx</code> for the compile server JVM(s) bleep starts. The
+default is a quarter of physical RAM, clamped to between 4g and
+16g. Reach for this when you&#x27;re hitting <code>OutOfMemoryError</code> during
+compile, or when you have plenty of RAM and want to give the
+compiler room to breathe.</p>
+<p>When the server does die of <code>OutOfMemoryError</code>, it exits
+immediately — no heap dump or core file is written. The client
+that was connected (or the next bleep invocation) detects the OOM
+from the server log and reports it together with the configured
+cap and the command to raise it. Heap dumps left behind by older
+bleep versions are deleted automatically at server start.</p>
 <p><a class="" href="/docs/reference/cli/config/compile-server/">Reference →</a></p>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="heap-pressure-throttle">Heap-pressure throttle<a href="#heap-pressure-throttle" class="hash-link" aria-label="Direct link to Heap-pressure throttle" title="Direct link to Heap-pressure throttle" translate="no"> ​</a></h3>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="heap-pressure-throttle">Heap-pressure throttle<a href="#heap-pressure-throttle" class="hash-link" aria-label="Direct link to Heap-pressure throttle" title="Direct link to Heap-pressure throttle" translate="no">​</a></h3>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server heap-pressure-threshold </span><span class="token number" style="color:#36acaa">0.85</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">bleep config compile-server heap-pressure-threshold-clear   </span><span class="token comment" style="color:#999988;font-style:italic"># back to default 0.80</span><br></div></code></pre></div></div>
 <p>When the compile server&#x27;s heap usage crosses this fraction, new
 compile requests <strong>wait</strong> for memory to free up before starting.
