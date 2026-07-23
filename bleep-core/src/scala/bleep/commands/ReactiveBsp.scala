@@ -376,16 +376,35 @@ case class ReactiveBsp(
         }
 
       // Retry once if the server crashed (e.g. after `bleep clean` deleted class files).
-      // Kill the dead server, start a fresh one, and reconnect.
+      // Kill the dead server, start a fresh one, and reconnect. Diagnose OOM death from the
+      // server log BEFORE forceStop deletes it — in CI there is no next run to notice, so
+      // this run must be the one that says why the server died.
       bspOperation = attemptBspOperation.flatMap {
         case ReactiveBsp.BspAttemptResult.Success       => IO.unit
         case ReactiveBsp.BspAttemptResult.ServerCrashed =>
-          IO(bspLogger.warn("BSP server crashed, restarting and retrying...")) >>
-            IO(diagLog("[RETRY] Server crashed, killing stale server and retrying")) >>
-            display.reset >> // Reset display state to avoid double-counting events from crashed attempt
-            BspRifle.forceStop(config) >>
-            BspRifle.ensureRunning(config, bspLogger) >>
-            attemptBspOperation.void
+          BspRifle.oomCrashExplanation(config).flatMap { oomFirst =>
+            (oomFirst match {
+              case Some(msg) => IO(bspLogger.warn(msg)) >> IO(bspLogger.warn("Restarting BSP server and retrying..."))
+              case None      => IO(bspLogger.warn("BSP server crashed, restarting and retrying..."))
+            }) >>
+              IO(diagLog("[RETRY] Server crashed, killing stale server and retrying")) >>
+              display.reset >> // Reset display state to avoid double-counting events from crashed attempt
+              BspRifle.forceStop(config) >>
+              BspRifle.ensureRunning(config, bspLogger) >>
+              attemptBspOperation.flatMap {
+                case ReactiveBsp.BspAttemptResult.Success       => IO.unit
+                case ReactiveBsp.BspAttemptResult.ServerCrashed =>
+                  // Two crashes in a row is systematic, not transient — fail the command instead
+                  // of looping (or worse, reporting a summary from a half-run build).
+                  BspRifle.oomCrashExplanation(config).flatMap { oomSecond =>
+                    val msg = oomSecond.orElse(oomFirst) match {
+                      case Some(oom) => s"BSP server crashed twice. $oom"
+                      case None      => s"BSP server crashed twice (no OutOfMemoryError recorded; see server log: ${BspRifle.getOutputFile(config)})"
+                    }
+                    IO.raiseError(new BleepException.Text(msg))
+                  }
+              }
+          }
       }
 
       // Race BSP operation with user quit - pressing 'q' cancels BSP immediately
@@ -393,7 +412,14 @@ case class ReactiveBsp(
       bspError <- raceResult match {
         case Left(err) =>
           IO(diagLog(s"[ERROR] BSP operation failed: ${err.getClass.getName}: ${err.getMessage}")) >>
-            IO(started.logger.error(s"BSP operation failed: ${err.getMessage}")).as(Some(err))
+            IO(started.logger.error(s"BSP operation failed: ${err.getMessage}")) >>
+            // e.g. an error racing the server's OOM death: the connection may not have closed
+            // yet so ServerCrashed never fired, but the server log already names the cause
+            BspRifle.oomCrashExplanation(config).flatMap {
+              case Some(oom) => IO(started.logger.error(oom))
+              case None      => IO.unit
+            } >>
+            IO.pure(Some(err))
         case Right(_) => IO.pure(None)
       }
 

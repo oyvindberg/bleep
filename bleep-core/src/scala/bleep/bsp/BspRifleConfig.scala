@@ -65,17 +65,36 @@ object BspRifleConfig {
     case class Tcp(host: String, port: Int, socketDir: Path) extends Address
   }
 
-  /** Default JVM options for BSP server */
+  /** Default max heap for the BSP server: a quarter of physical RAM, clamped to [4g, 16g].
+    *
+    * The old fixed 4g cap OOM-killed the server repeatedly on large builds under concurrent clients, even on machines with plenty of RAM. Machine-dependent but
+    * deterministic per machine, so it is safe to include in the JvmKey hash. Overridable via `bleep config compile-server max-memory`.
+    */
+  val defaultMaxHeapMb: Long = {
+    val physicalMb = bleep.MachineResources.physicalMemoryMb(fallbackMb = 16 * 1024L)
+    math.min(16 * 1024L, math.max(4 * 1024L, physicalMb / 4))
+  }
+
+  def defaultMaxHeapOpt: String = s"-Xmx${defaultMaxHeapMb}m"
+
+  /** Default JVM options for BSP server. Does NOT include -Xmx: the heap cap comes from user config or [[defaultMaxHeapOpt]] (see SetupBleepBsp). */
   val defaultJavaOpts: Seq[String] = Seq(
     "-Xss4m",
-    "-Xmx4g",
     "-XX:ReservedCodeCacheSize=512m",
     "-XX:+UseZGC",
     "-XX:+ZGenerational",
     "-XX:ZUncommitDelay=30",
     "-XX:ZCollectionInterval=5",
     "-XX:+UseStringDeduplication",
-    "-XX:+HeapDumpOnOutOfMemoryError",
+    // No OS core file on a hard VM crash: multi-GB, one per crash, and nothing ever reads them.
+    "-XX:-CreateCoredumpOnCrash",
+    // Route VM tty output to stderr, which startServer captures into the socket dir's `output`
+    // log (stdout is discarded). Notably this captures "Terminating due to
+    // java.lang.OutOfMemoryError" from ExitOnOutOfMemoryError below — the marker clients use to
+    // diagnose OOM death (BspServerOperations.OomMarker). We deliberately do NOT
+    // -XX:+HeapDumpOnOutOfMemoryError: dumps are ~heap-sized, accumulate one per crash, and
+    // freeze the JVM for minutes mid-write, during which clients hang on a dead-but-alive server.
+    "-XX:+DisplayVMOutputToStderr",
     // Die immediately on OOM instead of limping on. A worker-thread OOM otherwise poisons
     // static initializers (e.g. sbt.nio.file.FileTreeView$ fails init once, then throws
     // NoClassDefFoundError forever), silently bricking all further compiles for the server's
@@ -120,7 +139,7 @@ object BspRifleConfig {
       address = Address.DomainSocket(socketPath),
       jvmKey = jvmKey,
       javaPath = javaPath,
-      javaOpts = defaultJavaOpts,
+      javaOpts = defaultJavaOpts :+ defaultMaxHeapOpt,
       serverMainClass = serverMainClass,
       serverClasspath = serverClasspath,
       workingDir = workingDir,

@@ -35,6 +35,8 @@ bleep test <project name...> [flags]
 | `--test-arg <string>` (repeatable) | arguments passed to test framework |
 | `--only, -o <string>` (repeatable) | Test only a subset of test suite class names. Class name can be fully qualified to disambiguate |
 | `--exclude, -x <string>` (repeatable) | Exclude specific test suite class names. Class name can be fully qualified to disambiguate. Takes precedence over --only |
+| `--only-tag <tag>` (repeatable) | Run only tests tagged with these names (declared in `testTags` per project). Multiple are OR-combined. |
+| `--exclude-tag <tag>` (repeatable) | Exclude tests tagged with these names. Takes precedence over --only-tag. |
 | `--flamegraph` | generate execution trace (open in chrome://tracing or ui.perfetto.dev) |
 | `--cancel` | cancel any running build before starting |
 | `--junit-report <string>` | write JUnit XML reports to this directory |
