@@ -29,6 +29,14 @@ object BspServerClasspathSource {
   */
 object SetupBleepBsp {
 
+  /** semanticdb-javac is always on the server classpath, at this version unless an IDE requests another one at BSP initialize.
+    *
+    * Always-on matters for daemon sharing: the server classpath is part of the JVM key, so if only IDE clients carried the jar, an IDE session and a CLI/MCP
+    * session at the same bleep version would each spawn their own daemon. Keep this pinned to the version current Metals requests, so the common case — IDE and
+    * CLI against the same workspace — converges on one daemon.
+    */
+  val DefaultJavaSemanticdbVersion: String = "0.11.2"
+
   def apply(
       compileServerMode: model.CompileServerMode,
       config: model.BleepConfig,
@@ -36,7 +44,7 @@ object SetupBleepBsp {
       userPaths: UserPaths,
       resolver: CoursierResolver,
       logger: Logger,
-      extraServerClasspath: Seq[Path]
+      javaSemanticdbVersion: String
   ): Either[BleepException, BspRifleConfig] = {
     val maxHeapOpt = config.bspServerConfigOrDefault.compileServerMaxMemory match {
       case Some(m) => s"-Xmx$m"
@@ -45,13 +53,14 @@ object SetupBleepBsp {
     val majorVersion = BspRifleConfig.jvmMajorVersion(resolvedJvm.jvm.name)
     val versionOpts = BspRifleConfig.jdkVersionOpts(majorVersion)
     val javaOpts = BspRifleConfig.defaultJavaOpts ++ Seq(maxHeapOpt) ++ versionOpts
-    // Include extra classpath JAR filenames in the JVM key so the hash differs
-    // when semanticdb-javac is present, giving a dedicated server instance
-    val extraCpOpts = extraServerClasspath.map(p => s"--extra-cp=${p.getFileName}").toList
-    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, maxHeapOpt :: versionOpts.toList ++ extraCpOpts)
+    // The semanticdb-javac version is part of the JVM key: all clients at the default share one
+    // daemon, and an IDE that explicitly requests a different version gets a dedicated instance.
+    val semanticdbOpt = s"--semanticdb-javac=$javaSemanticdbVersion"
+    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, maxHeapOpt :: versionOpts.toList ++ List(semanticdbOpt))
 
     for {
       serverClasspath <- resolveServerClasspath(resolver, userPaths, logger)
+      semanticdbJavacClasspath <- resolveSemanticdbJavac(resolver, userPaths, logger, javaSemanticdbVersion)
     } yield {
       val socketDir = socketDirectory(logger, userPaths, jvmKey, compileServerMode)
       val socketPath = socketDir.resolve("socket")
@@ -68,7 +77,7 @@ object SetupBleepBsp {
         javaPath = resolvedJvm.javaBin,
         javaOpts = javaOpts,
         serverMainClass = "bleep.bsp.BspServerDaemon",
-        serverClasspath = serverClasspath ++ extraServerClasspath,
+        serverClasspath = serverClasspath ++ semanticdbJavacClasspath,
         workingDir = socketDir,
         startCheckPeriod = 10.millis,
         startCheckTimeout = 1.minute,
@@ -149,6 +158,50 @@ object SetupBleepBsp {
           case Right(resolved) =>
             val paths = resolved.jarFiles.map(_.toPath)
             logger.info(s"Resolved BSP server classpath: ${paths.size} jars")
+            Try {
+              Files.createDirectories(cacheFile.getParent)
+              Files.writeString(cacheFile, paths.map(_.toString).mkString(java.io.File.pathSeparator))
+            }: Unit
+            Right(paths)
+        }
+    }
+  }
+
+  /** Resolve semanticdb-javac for the server classpath, cached like the server classpath itself. Cache key is the semanticdb version, which is independent of
+    * the bleep version.
+    */
+  private def resolveSemanticdbJavac(resolver: CoursierResolver, userPaths: UserPaths, logger: Logger, version: String): Either[BleepException, Seq[Path]] = {
+    val cacheFile = userPaths.cacheDir.resolve(s"semanticdb-javac-classpath-$version.txt")
+    val cachedClasspath = Try {
+      if (Files.exists(cacheFile)) {
+        val paths = Files
+          .readString(cacheFile)
+          .split(java.io.File.pathSeparator)
+          .filter(_.nonEmpty)
+          .map(Paths.get(_))
+          .toSeq
+        if (paths.nonEmpty && paths.forall(Files.exists(_))) Some(paths) else None
+      } else None
+    }.toOption.flatten
+
+    cachedClasspath match {
+      case Some(paths) => Right(paths)
+      case None        =>
+        val dep = model.Dep.Java("com.sourcegraph", "semanticdb-javac", version)
+        logger.info(s"Resolving semanticdb-javac:$version for BSP server classpath")
+
+        resolver
+          .updatedParams(_.copy(downloadSources = false))
+          .resolve(
+            Set(dep),
+            model.VersionCombo.Java,
+            libraryVersionSchemes = scala.collection.immutable.SortedSet.empty[model.LibraryVersionScheme],
+            model.IgnoreEvictionErrors.No
+          ) match {
+          case Left(err) =>
+            Left(new BleepException.ResolveError(err, s"installing semanticdb-javac:$version"))
+          case Right(resolved) =>
+            val paths = resolved.jarFiles.map(_.toPath)
             Try {
               Files.createDirectories(cacheFile.getParent)
               Files.writeString(cacheFile, paths.map(_.toString).mkString(java.io.File.pathSeparator))

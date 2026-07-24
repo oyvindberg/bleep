@@ -89,7 +89,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           userPaths = started.pre.userPaths,
           resolver = resolver,
           logger = started.logger,
-          extraServerClasspath = Seq.empty
+          javaSemanticdbVersion = bsp.SetupBleepBsp.DefaultJavaSemanticdbVersion
         )
       case _: bsp.BspServerClasspathSource.InProcess =>
         Left(new BleepException.Text("MCP server does not support in-process BSP mode"))

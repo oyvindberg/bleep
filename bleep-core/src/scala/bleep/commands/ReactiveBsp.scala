@@ -118,7 +118,7 @@ case class ReactiveBsp(
           userPaths = started.pre.userPaths,
           resolver = resolver,
           logger = started.logger,
-          extraServerClasspath = Seq.empty
+          javaSemanticdbVersion = bsp.SetupBleepBsp.DefaultJavaSemanticdbVersion
         ) match {
           case Left(err) =>
             Left(err)
