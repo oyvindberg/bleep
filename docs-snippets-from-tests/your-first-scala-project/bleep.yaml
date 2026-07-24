@@ -8,7 +8,7 @@ projects:
     platform:
       mainClass: com.example.helloMain
   myapp-test:
-    dependencies: org.scalameta::munit:1.0.0
+    dependencies: org.scalameta::munit:1.3.4
     dependsOn: myapp
     extends: template-common
     isTestProject: true
@@ -19,4 +19,4 @@ templates:
     scala:
       options: -encoding utf8 -feature -unchecked
       strict: true
-      version: 3.8.3
+      version: 3.8.4
