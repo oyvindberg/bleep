@@ -22,7 +22,7 @@ case class VersionScalaNative(scalaNativeVersion: String) {
 
 object VersionScalaNative {
   val org = Organization("org.scala-native")
-  val ScalaNative05 = VersionScalaNative("0.5.6")
+  val ScalaNative05 = VersionScalaNative(Versions.ScalaNative05)
 
   implicit val decodesScalaNativeVersion: Decoder[VersionScalaNative] = Decoder[String].map(VersionScalaNative.apply)
   implicit val encodesScalaNativeVersion: Encoder[VersionScalaNative] = Encoder[String].contramap(_.scalaNativeVersion)

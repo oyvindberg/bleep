@@ -348,7 +348,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
   */
 object JavacProjectCompiler extends ProjectCompiler {
   // Use Scala 3.8.3 to match bleep-bsp (from template-scala-3)
-  private val zincScalaVersion = "3.8.3"
+  private val zincScalaVersion = bleep.model.Versions.ZincScala
 
   def supports(language: ProjectLanguage): Boolean = language match {
     case _: ProjectLanguage.JavaOnly => true

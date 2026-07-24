@@ -137,7 +137,7 @@ object BuildCreateNew {
         dependsOn = model.JsonSet(model.ProjectName(name)),
         isTestProject = Some(true),
         platform = Some(jvmPlatform(None)),
-        dependencies = model.JsonSet(model.Dep.Java("org.junit.jupiter", "junit-jupiter", "5.10.1"))
+        dependencies = model.JsonSet(model.Dep.Java("org.junit.jupiter", "junit-jupiter", model.Versions.JunitJupiter))
       )
       val mainSrc =
         s"""package $mainPkg;
@@ -202,8 +202,8 @@ object BuildCreateNew {
         kotlin = Some(kotlin),
         platform = Some(jvmPlatform(None)),
         dependencies = model.JsonSet(
-          model.Dep.Java("io.kotest", "kotest-runner-junit5-jvm", "5.8.0"),
-          model.Dep.Java("org.junit.jupiter", "junit-jupiter", "5.10.1")
+          model.Dep.Java("io.kotest", "kotest-runner-junit5-jvm", model.Versions.Kotest),
+          model.Dep.Java("org.junit.jupiter", "junit-jupiter", model.Versions.JunitJupiter)
         )
       )
       val mainSrc =
@@ -284,7 +284,7 @@ object BuildCreateNew {
       val testProj = mainProj.copy(
         dependsOn = model.JsonSet(model.ProjectName(name)),
         isTestProject = Some(true),
-        dependencies = model.JsonSet(model.Dep.Scala("org.scalameta", "munit", "1.0.0")),
+        dependencies = model.JsonSet(model.Dep.Scala("org.scalameta", "munit", model.Versions.Munit)),
         platform = Some(platformFor(mainPlatform, None))
       )
 
