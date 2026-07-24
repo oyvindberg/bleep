@@ -61,7 +61,7 @@ object VersionKotlin {
 
   implicit val ordering: Ordering[VersionKotlin] = Ordering.by(_.kotlinVersion)
 
-  val Kotlin2 = VersionKotlin("2.0.0")
-  val Kotlin21 = VersionKotlin("2.1.0")
-  val Kotlin23 = VersionKotlin("2.3.0")
+  val Kotlin2 = VersionKotlin(Versions.Kotlin2)
+  val Kotlin21 = VersionKotlin(Versions.Kotlin21)
+  val Kotlin23 = VersionKotlin(Versions.Kotlin23)
 }

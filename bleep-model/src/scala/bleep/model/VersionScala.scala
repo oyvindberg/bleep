@@ -58,7 +58,7 @@ object VersionScala {
 
   implicit val ordering: Ordering[VersionScala] = Ordering.by(_.scalaVersion)
 
-  val Scala212 = VersionScala("2.12.21")
-  val Scala213 = VersionScala("2.13.16")
-  val Scala3 = VersionScala("3.8.3")
+  val Scala212 = VersionScala(Versions.Scala212)
+  val Scala213 = VersionScala(Versions.Scala213)
+  val Scala3 = VersionScala(Versions.Scala3)
 }

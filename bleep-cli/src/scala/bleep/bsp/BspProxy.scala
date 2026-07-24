@@ -26,7 +26,7 @@ object BspProxy {
     */
   private val KnownIdeClients = Set("Metals", "IntelliJ", "IntelliJ-BSP")
 
-  private val DefaultSemanticDbVersion = "4.15.2"
+  private val DefaultSemanticDbVersion = model.Versions.SemanticdbScalac
 
   def run(pre: Prebootstrapped): ExitCode = {
     val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow

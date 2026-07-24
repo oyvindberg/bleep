@@ -45,8 +45,8 @@ object buildFromMavenPom {
   // Scala test libs (scalatest, munit, etc.) already implement sbt test-interface.
   // JUnit Jupiter requires an external adapter; JUnit 4 needs junit-interface.
   private val testAdapterDeps: Map[String, model.Dep] = Map(
-    "com.github.sbt.junit.JupiterFramework" -> model.Dep.Java("net.aichler", "jupiter-interface", "0.11.1"),
-    "com.novocode.junit.JUnitFramework" -> model.Dep.Java("com.github.sbt", "junit-interface", "0.13.3")
+    "com.github.sbt.junit.JupiterFramework" -> model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
+    "com.novocode.junit.JUnitFramework" -> model.Dep.Java("com.github.sbt", "junit-interface", model.Versions.JunitInterface)
   )
 
   // Repos that are default and shouldn't be included

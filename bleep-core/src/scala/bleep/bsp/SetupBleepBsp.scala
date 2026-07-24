@@ -35,7 +35,7 @@ object SetupBleepBsp {
     * session at the same bleep version would each spawn their own daemon. Keep this pinned to the version current Metals requests, so the common case — IDE and
     * CLI against the same workspace — converges on one daemon.
     */
-  val DefaultJavaSemanticdbVersion: String = "0.11.2"
+  val DefaultJavaSemanticdbVersion: String = model.Versions.SemanticdbJavac
 
   def apply(
       compileServerMode: model.CompileServerMode,

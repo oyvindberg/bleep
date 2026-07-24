@@ -6,7 +6,7 @@ import java.net.URI
 import java.nio.file.Path
 
 object constants {
-  val Node = "24.16.0"
+  val Node = model.Versions.Node
   private val ivyLocalUri =
     URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)
 

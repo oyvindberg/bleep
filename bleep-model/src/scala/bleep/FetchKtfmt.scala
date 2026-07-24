@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
 object FetchKtfmt {
-  val DefaultVersion = "0.62"
+  val DefaultVersion = model.Versions.Ktfmt
 
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
     val fileCache = BleepFileCache().withLogger(cacheLogger)
