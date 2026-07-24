@@ -872,9 +872,9 @@ object ZincBridge {
       // scala3-sbt-bridge is a Java artifact, not a Scala artifact (no _3 suffix)
       s"org.scala-lang:scala3-sbt-bridge:$scalaVersion"
     } else if (scalaVersion.startsWith("2.13")) {
-      s"org.scala-sbt::compiler-bridge:1.10.4"
+      s"org.scala-sbt::compiler-bridge:${bleep.model.Versions.CompilerBridge}"
     } else if (scalaVersion.startsWith("2.12")) {
-      s"org.scala-sbt::compiler-bridge:1.10.4"
+      s"org.scala-sbt::compiler-bridge:${bleep.model.Versions.CompilerBridge}"
     } else {
       throw new IllegalArgumentException(s"Unsupported Scala version: $scalaVersion")
     }

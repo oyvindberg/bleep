@@ -506,7 +506,7 @@ class MultiWorkspaceBspServer(
 
     // Set up rewrites for IDE clients (SemanticDB support for goto-definition, find-references, etc.)
     val rewrites: List[bleep.rewrites.BuildRewrite] = if (isIdeClient) {
-      val sdVersion = semanticDbVersionFromIde.getOrElse("4.15.2")
+      val sdVersion = semanticDbVersionFromIde.getOrElse(model.Versions.SemanticdbScalac)
       logger.info(s"IDE client '${params.displayName}' detected, applying semanticDb rewrite with version $sdVersion")
       List(new bleep.rewrites.semanticDb(sdVersion))
     } else Nil
@@ -514,7 +514,7 @@ class MultiWorkspaceBspServer(
 
     // Resolve Java semanticdb plugin for IDE clients
     if (isIdeClient) {
-      val javaSDVersion = javaSemanticDbVersionFromIde.getOrElse("0.10.0")
+      val javaSDVersion = javaSemanticDbVersionFromIde.getOrElse(model.Versions.SemanticdbJavac)
       logger.info(s"Resolving Java semanticdb plugin: com.sourcegraph:semanticdb-javac:$javaSDVersion")
       resolveJavaSemanticdbPlugin(javaSDVersion)
     }
@@ -4054,10 +4054,10 @@ object MultiWorkspaceBspServer {
 
   /** Hardcoded external test-framework dependencies that bleep-test-runner needs at runtime — same versions for every workspace and every bleep version. */
   private val externalTestRunnerDeps: SortedSet[model.Dep] = SortedSet[model.Dep](
-    model.Dep.Java("org.scala-sbt", "test-interface", "1.0"),
-    model.Dep.Java("net.aichler", "jupiter-interface", "0.11.1"),
-    model.Dep.Java("org.junit.platform", "junit-platform-launcher", "1.9.1"),
-    model.Dep.Java("org.junit.vintage", "junit-vintage-engine", "5.9.1")
+    model.Dep.Java("org.scala-sbt", "test-interface", model.Versions.TestInterface),
+    model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
+    model.Dep.Java("org.junit.platform", "junit-platform-launcher", model.Versions.JunitPlatformLauncher),
+    model.Dep.Java("org.junit.vintage", "junit-vintage-engine", model.Versions.JunitVintageEngine)
   )
 
   /** Per-resolver memoization of the [[externalTestRunnerDeps]] resolution.

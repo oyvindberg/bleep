@@ -23,5 +23,5 @@ object VersionEcj {
   implicit val ordering: Ordering[VersionEcj] = Ordering.by(_.version)
 
   /** Recent stable ECJ version */
-  val Default = VersionEcj("3.44.0")
+  val Default = VersionEcj(Versions.Ecj)
 }

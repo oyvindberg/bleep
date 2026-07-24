@@ -64,7 +64,7 @@ object KotlinJsCompilerConfig {
 
   /** Default configuration. */
   val Default: KotlinJsCompilerConfig = KotlinJsCompilerConfig(
-    kotlinVersion = "2.3.0",
+    kotlinVersion = bleep.model.Versions.Kotlin23,
     moduleKind = ModuleKind.CommonJS,
     moduleName = "main",
     outputMode = OutputMode.JsExecutable,

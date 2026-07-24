@@ -22,7 +22,7 @@ object Fmt {
   /** Scala formatting support via scalafmt */
   object ScalaFmt {
     val defaultConfig: String =
-      """version=3.11.1
+      s"""version=${model.Versions.Scalafmt}
         |maxColumn = 160
         |runner.dialect = scala213
         |""".stripMargin

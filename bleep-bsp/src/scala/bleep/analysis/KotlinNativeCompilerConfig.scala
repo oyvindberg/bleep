@@ -89,7 +89,7 @@ object KotlinNativeCompilerConfig {
 
   /** Default configuration. */
   val Default: KotlinNativeCompilerConfig = KotlinNativeCompilerConfig(
-    kotlinVersion = "2.3.0",
+    kotlinVersion = bleep.model.Versions.Kotlin23,
     target = Target.hostTarget,
     outputKind = OutputKind.Executable,
     debuggable = true,
