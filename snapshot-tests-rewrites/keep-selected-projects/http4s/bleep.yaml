@@ -617,7 +617,7 @@ projects:
     platform:
       name: jvm
     scala:
-      version: 3.8.3
+      version: 3.8.4
 templates:
   template-common:
     ignoreEvictionErrors: no
@@ -664,7 +664,7 @@ templates:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
-      jsNodeVersion: 24.16.0
+      jsNodeVersion: 24.18.0
       jsVersion: 1.16.0
       name: js
   template-jvm:

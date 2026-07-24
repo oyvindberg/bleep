@@ -72,7 +72,7 @@ class KotlinJsIntegrationTest extends AnyFunSuite with Matchers {
 
   test("KotlinJsCompilerConfig: default configuration") {
     val config = KotlinJsCompilerConfig.Default
-    config.kotlinVersion shouldBe "2.3.0"
+    config.kotlinVersion shouldBe bleep.model.Versions.Kotlin23
     config.moduleKind shouldBe KotlinJsCompilerConfig.ModuleKind.CommonJS
     config.outputMode shouldBe KotlinJsCompilerConfig.OutputMode.JsExecutable
     config.sourceMap shouldBe true

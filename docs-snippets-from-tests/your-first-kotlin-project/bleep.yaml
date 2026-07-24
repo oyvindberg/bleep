@@ -8,9 +8,7 @@ projects:
     platform:
       mainClass: com.example.MainKt
   myapp-test:
-    dependencies:
-    - io.kotest:kotest-runner-junit5-jvm:5.8.0
-    - org.junit.jupiter:junit-jupiter:5.10.1
+    dependencies: io.kotest:kotest-runner-junit5-jvm:6.2.3
     dependsOn: myapp
     extends: template-common
     isTestProject: true
@@ -18,6 +16,6 @@ templates:
   template-common:
     kotlin:
       jvmTarget: '25'
-      version: 2.3.0
+      version: 2.3.21
     platform:
       name: jvm

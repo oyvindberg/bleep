@@ -6,7 +6,7 @@ projects:
   myapp:
     kotlin:
       jvmTarget: "25"
-      version: 2.3.0
+      version: 2.3.21
     platform:
       name: jvm
       mainClass: com.example.MainKt
@@ -18,6 +18,6 @@ projects:
       - build.bleep:bleepscript:${BLEEP_VERSION}
     kotlin:
       jvmTarget: "25"
-      version: 2.3.0
+      version: 2.3.21
     platform:
       name: jvm

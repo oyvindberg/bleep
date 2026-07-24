@@ -16,9 +16,9 @@ templates:
     cross:
       jvm213:
         scala:
-          version: 2.13.16
+          version: 2.13.18
       jvm3:
         scala:
-          version: 3.8.3
+          version: 3.8.4
     platform:
       name: jvm
