@@ -30,7 +30,7 @@ object BspQuery {
             userPaths = started.pre.userPaths,
             resolver = resolver,
             logger = started.logger,
-            extraServerClasspath = Seq.empty
+            javaSemanticdbVersion = bsp.SetupBleepBsp.DefaultJavaSemanticdbVersion
           ) match {
             case Left(err)     => return Left(err)
             case Right(config) => (BspRifle.ensureRunningAndConnect(config, started.logger), config.traceFile)

@@ -5,7 +5,6 @@ import cats.effect.unsafe.implicits.global
 import io.circe.Json
 
 import java.io.{ByteArrayOutputStream, InputStream}
-import java.nio.file.Path
 
 /** `bleep bsp` — what an IDE launches, per the `.bsp/bleep.json` descriptor.
   *
@@ -74,7 +73,7 @@ object BspProxy {
       userPaths = pre.userPaths,
       resolver = started.resolver,
       logger = pre.logger,
-      extraServerClasspath = resolveExtraClasspath(javaSemanticdbVersion, pre.logger)
+      javaSemanticdbVersion = javaSemanticdbVersion.getOrElse(SetupBleepBsp.DefaultJavaSemanticdbVersion)
     ).orThrow
 
     val program = BspRifle.ensureRunningAndConnect(bspConfig, pre.logger).use { connection =>
@@ -232,17 +231,4 @@ object BspProxy {
     else new String(bytes, "US-ASCII")
   }
 
-  /** Resolve semanticdb-javac for the BSP server classpath, when the IDE asked for Java semanticDB. */
-  private def resolveExtraClasspath(javaSemanticdbVersion: Option[String], logger: ryddig.Logger): Seq[Path] =
-    javaSemanticdbVersion match {
-      case Some(version) =>
-        logger.info(s"Resolving semanticdb-javac $version for BSP server classpath")
-        import coursier._
-        val dep = Dependency(Module(Organization("com.sourcegraph"), ModuleName("semanticdb-javac")), version)
-        val jars = Fetch().addDependencies(dep).run().map(_.toPath).toSeq
-        logger.info(s"Resolved ${jars.size} JARs for semanticdb-javac")
-        jars
-      case None =>
-        Seq.empty
-    }
 }
