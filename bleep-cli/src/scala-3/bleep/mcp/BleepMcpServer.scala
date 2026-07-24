@@ -10,7 +10,7 @@ import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
 import ch.epfl.scala.bsp4j
-import ch.linkyard.mcp.server.{CallContext, McpServer, ResourceTemplate, ToolFunction}
+import ch.linkyard.mcp.server.{CallContext, McpError, McpServer, ResourceTemplate, ToolFunction}
 import ch.linkyard.mcp.protocol
 import io.circe.Json
 
@@ -50,25 +50,13 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         )
       })
 
-      // Create persistent BSP connection for the MCP session lifetime
-      _ <- Resource.eval(BspRifle.ensureRunning(bspConfig, started.logger))
-      connection <- BspRifle.connectWithRetry(bspConfig, started.logger)
+      // BSP connection for the MCP session, with automatic reconnect when the daemon goes away
       eventRoutes = new ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]]()
       diagnosticRoutes = new ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit]()
       sharedClient = new SharedMcpBspClient(eventRoutes, diagnosticRoutes, started.logger)
-      lifecycle <- BspServerBuilder.create(connection, sharedClient)
-      _ <- Resource.eval(
-        BspServerBuilder.initializeSession(
-          server = lifecycle.server,
-          clientName = "bleep-mcp",
-          clientVersion = model.BleepVersion.current.value,
-          rootUri = started.buildPaths.buildDir.toUri.toString,
-          buildData = Some(bleep.bsp.BspBuildData.Payload.from(started)),
-          listening = lifecycle.listening
-        )
-      )
+      bspConnection <- BspConnectionManager.resource(bspConfig, sharedClient, () => started)
 
-      _ <- startBuildWatcher(client, lifecycle.server)
+      _ <- startBuildWatcher(client, bspConnection)
       watchJobs <- Resource.eval(Ref.of[IO, Map[JobId, WatchJob]](Map.empty))
       watchResults <- Resource.eval(Ref.of[IO, Map[JobId, WatchCycleResult]](Map.empty))
       buildHistory <- Resource.eval(Ref.of[IO, BuildHistory](BuildHistory.empty))
@@ -77,7 +65,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           jobs.values.toList.traverse_(_.cancel)
         }
       )
-    } yield new BleepMcpSession(client, bspConfig, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
+    } yield new BleepMcpSession(client, bspConfig, bspConnection, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
 
   private def setupBspConfig(): Either[BleepException, BspRifleConfig] =
     started.bspServerClasspathSource match {
@@ -101,7 +89,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     * That push matters: this session holds one BSP connection for its whole lifetime, so without it the daemon would keep compiling against the build we sent
     * at initialize while every MCP tool reasoned about the reloaded one.
     */
-  private def startBuildWatcher(client: McpServer.Client[IO], bspServer: bleep.bsp.BuildServer): Resource[IO, Unit] =
+  private def startBuildWatcher(client: McpServer.Client[IO], bspConnection: BspConnectionManager): Resource[IO, Unit] =
     Resource
       .make(
         IO {
@@ -115,8 +103,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                 () // parsed JSON identical, no actual change
               case Right(Some(newStarted)) =>
                 startedRef.set(newStarted)
-                BspServerBuilder
-                  .sendBuildChanged(bspServer, bleep.bsp.BspBuildData.Payload.from(newStarted))
+                bspConnection
+                  .withServer((bspServer, _) => BspServerBuilder.sendBuildChanged(bspServer, bleep.bsp.BspBuildData.Payload.from(newStarted)))
                   .unsafeRunSync()(using cats.effect.unsafe.implicits.global)
                 val msg = s"Build reloaded (${changedFiles.mkString(", ")}). Project list and build model updated."
                 newStarted.logger.info(msg)
@@ -134,8 +122,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
   private class BleepMcpSession(
       _client: McpServer.Client[IO],
       bspConfig: BspRifleConfig,
-      bspServer: bleep.bsp.BuildServer,
-      bspListening: java.util.concurrent.Future[Void],
+      bspConnection: BspConnectionManager,
       eventRoutes: ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]],
       diagnosticRoutes: ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit],
       watchJobs: Ref[IO, Map[JobId, WatchJob]],
@@ -238,7 +225,44 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     // Tools
     // ========================================================================
 
-    private def compileTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
+    /** Build a text tool whose failures surface as MCP tool errors — an `isError` result carrying the message and cause chain — instead of the transport
+      * layer's bare `-32603 Internal error` (which carries no diagnostics at all). The full stack trace goes to the MCP server log.
+      */
+    private def textTool[A: com.melvinlow.json.schema.JsonSchemaEncoder: io.circe.Decoder](
+        info: ToolFunction.Info,
+        f: (A, CallContext[IO]) => IO[String],
+        meta: Option[io.circe.JsonObject]
+    ): ToolFunction[IO] =
+      ToolFunction.text[IO, A](
+        info,
+        (a, context) =>
+          f(a, context).handleErrorWith {
+            case e: ToolFunction.ToolError      => IO.raiseError(e)
+            case e: McpError.McpErrorException  => IO.raiseError(e)
+            case scala.util.control.NonFatal(e) =>
+              IO(started.logger.error(s"${info.name} failed", e)) >>
+                IO.raiseError(
+                  ToolFunction.ToolError(
+                    List(protocol.Content.Text(s"${info.name} failed: ${describeFailure(e)}", None, protocol.Meta.empty)),
+                    protocol.Meta.empty
+                  )
+                )
+            case e => IO.raiseError(e)
+          },
+        meta
+      )
+
+    /** Message plus cause chain — the useful message (e.g. "BSP server connection lost") is often nested inside an ExecutionException. */
+    private def describeFailure(e: Throwable): String =
+      Iterator
+        .iterate(e)(_.getCause)
+        .takeWhile(_ != null)
+        .take(5)
+        .map(t => Option(t.getMessage).filter(_.nonEmpty).getOrElse(t.getClass.getSimpleName))
+        .distinct
+        .mkString("; caused by: ")
+
+    private def compileTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
         "bleep.compile",
         Some("Compile"),
@@ -252,7 +276,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def testTool: ToolFunction[IO] = ToolFunction.text[IO, TestArgs](
+    private def testTool: ToolFunction[IO] = textTool[TestArgs](
       ToolFunction.Info(
         "bleep.test",
         Some("Test"),
@@ -266,7 +290,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def testSuitesTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
+    private def testSuitesTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
         "bleep.test.suites",
         Some("Test Suites"),
@@ -280,7 +304,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def sourcegenTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
+    private def sourcegenTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
         "bleep.sourcegen",
         Some("Source Generate"),
@@ -310,7 +334,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def fmtTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
+    private def fmtTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
         "bleep.fmt",
         Some("Format"),
@@ -333,7 +357,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def cleanTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
+    private def cleanTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
         "bleep.clean",
         Some("Clean"),
@@ -361,7 +385,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def watchTool: ToolFunction[IO] = ToolFunction.text[IO, WatchArgs](
+    private def watchTool: ToolFunction[IO] = textTool[WatchArgs](
       ToolFunction.Info(
         "bleep.watch",
         Some("Watch"),
@@ -381,7 +405,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def syncTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def syncTool: ToolFunction[IO] = textTool[NoArgs](
       ToolFunction.Info(
         "bleep.sync",
         Some("Sync"),
@@ -412,7 +436,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def watchStopTool: ToolFunction[IO] = ToolFunction.text[IO, JobIdArgs](
+    private def watchStopTool: ToolFunction[IO] = textTool[JobIdArgs](
       ToolFunction.Info(
         "bleep.watch.stop",
         Some("Stop Watch"),
@@ -424,7 +448,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def buildTool: ToolFunction[IO] = ToolFunction.text[IO, BuildArgs](
+    private def buildTool: ToolFunction[IO] = textTool[BuildArgs](
       ToolFunction.Info(
         "bleep.build.effective",
         Some("Effective Build Config"),
@@ -438,7 +462,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def buildResolvedTool: ToolFunction[IO] = ToolFunction.text[IO, BuildArgs](
+    private def buildResolvedTool: ToolFunction[IO] = textTool[BuildArgs](
       ToolFunction.Info(
         "bleep.build.resolved",
         Some("Resolved Build Config"),
@@ -452,7 +476,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def projectsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def projectsTool: ToolFunction[IO] = textTool[NoArgs](
       ToolFunction.Info(
         "bleep.projects",
         Some("List Projects"),
@@ -464,7 +488,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def programsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def programsTool: ToolFunction[IO] = textTool[NoArgs](
       ToolFunction.Info(
         "bleep.programs",
         Some("List Programs"),
@@ -476,7 +500,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def scriptsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def scriptsTool: ToolFunction[IO] = textTool[NoArgs](
       ToolFunction.Info(
         "bleep.scripts",
         Some("List Scripts"),
@@ -488,7 +512,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def runTool: ToolFunction[IO] = ToolFunction.text[IO, RunArgs](
+    private def runTool: ToolFunction[IO] = textTool[RunArgs](
       ToolFunction.Info(
         "bleep.run",
         Some("Run"),
@@ -505,7 +529,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def statusTool: ToolFunction[IO] = ToolFunction.text[IO, StatusArgs](
+    private def statusTool: ToolFunction[IO] = textTool[StatusArgs](
       ToolFunction.Info(
         "bleep.status",
         Some("Build Status"),
@@ -533,7 +557,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       None
     )
 
-    private def restartTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def restartTool: ToolFunction[IO] = textTool[NoArgs](
       ToolFunction.Info(
         "bleep.restart",
         Some("Restart"),
@@ -591,8 +615,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         }.toArray
       }
 
-    /** The session holds one BSP connection for its whole lifetime, so a failed tool call is the only place the agent ever sees why the server died. If the
-      * server log records an OutOfMemoryError death, append that explanation (with the fix) to the failure.
+    /** A failed tool call is the only place the agent ever sees why the server died — the next call reconnects to a fresh server. If the server log records an
+      * OutOfMemoryError death, append that explanation (with the fix) to the failure.
       */
     private def diagnoseOomOnFailure[A](io: IO[A]): IO[A] =
       io.handleErrorWith { e =>
@@ -634,8 +658,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
         _ <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-          BspRequestHelper
-            .callCancellable(
+          bspConnection.withServer { (bspServer, bspListening) =>
+            BspRequestHelper.callCancellable(
               {
                 val params = new bsp4j.CompileParams(targets)
                 params.setOriginId(originId)
@@ -643,7 +667,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               },
               bspListening
             )
-            .void
+          }.void
         }.guarantee(
           IO.delay(eventRoutes.remove(originId)) >>
             IO.delay(diagnosticRoutes.remove(originId)) >>
@@ -691,18 +715,20 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
         _ <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-          BspRequestHelper
-            .callCancellable(
-              {
-                val params = new bsp4j.TestParams(targets)
-                params.setOriginId(originId)
-                val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false)
-                params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
-                params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
-                bspServer.buildTargetTest(params)
-              },
-              bspListening
-            )
+          bspConnection
+            .withServer { (bspServer, bspListening) =>
+              BspRequestHelper.callCancellable(
+                {
+                  val params = new bsp4j.TestParams(targets)
+                  params.setOriginId(originId)
+                  val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false)
+                  params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
+                  params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+                  bspServer.buildTargetTest(params)
+                },
+                bspListening
+              )
+            }
             .flatMap { result =>
               // Extract TestRunResult from response
               IO {
@@ -789,8 +815,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
             val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
             mode match {
               case BleepBspProtocol.BuildMode.Test =>
-                BspRequestHelper
-                  .callCancellable(
+                bspConnection.withServer { (bspServer, bspListening) =>
+                  BspRequestHelper.callCancellable(
                     {
                       val params = new bsp4j.TestParams(targets)
                       params.setOriginId(originId)
@@ -801,10 +827,10 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                     },
                     bspListening
                   )
-                  .void
+                }.void
               case _ =>
-                BspRequestHelper
-                  .callCancellable(
+                bspConnection.withServer { (bspServer, bspListening) =>
+                  BspRequestHelper.callCancellable(
                     {
                       val params = new bsp4j.CompileParams(targets)
                       params.setOriginId(originId)
@@ -812,7 +838,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                     },
                     bspListening
                   )
-                  .void
+                }.void
             }
           }.guarantee(
             IO.delay(eventRoutes.remove(originId)) >>
@@ -965,10 +991,12 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       for {
         result <- diagnoseOomOnFailure {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-          BspRequestHelper.callCancellable(
-            bspServer.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
-            bspListening
-          )
+          bspConnection.withServer { (bspServer, bspListening) =>
+            BspRequestHelper.callCancellable(
+              bspServer.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
+              bspListening
+            )
+          }
         }
       } yield {
         val items = result.getItems.asScala.toList.flatMap { item =>
@@ -1085,16 +1113,17 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         targetProjects: Array[model.CrossProjectName]
     ): IO[Unit] = {
       val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-      diagnoseOomOnFailure(
-        BspRequestHelper
-          .callCancellable(
+      diagnoseOomOnFailure {
+        bspConnection.withServer { (bspServer, bspListening) =>
+          BspRequestHelper.callCancellable(
             {
               val params = new bsp4j.CompileParams(targets)
               bspServer.buildTargetCompile(params)
             },
             bspListening
           )
-      )
+        }
+      }
         .flatMap { result =>
           IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
             new BleepException.Text(s"Compilation failed with status ${result.getStatusCode}")
