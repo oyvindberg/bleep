@@ -201,9 +201,10 @@ object BuildCreateNew {
         isTestProject = Some(true),
         kotlin = Some(kotlin),
         platform = Some(jvmPlatform(None)),
+        // kotest only — the generated test uses FunSpec/shouldBe, and kotest brings its own junit-platform. Adding junit-jupiter here would drag in a
+        // different junit-platform line and junit hard-fails when the launcher and engine jars disagree.
         dependencies = model.JsonSet(
-          model.Dep.Java("io.kotest", "kotest-runner-junit5-jvm", model.Versions.Kotest),
-          model.Dep.Java("org.junit.jupiter", "junit-jupiter", model.Versions.JunitJupiter)
+          model.Dep.Java("io.kotest", "kotest-runner-junit5-jvm", model.Versions.Kotest)
         )
       )
       val mainSrc =

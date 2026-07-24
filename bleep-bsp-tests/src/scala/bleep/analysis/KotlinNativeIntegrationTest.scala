@@ -71,7 +71,7 @@ class KotlinNativeIntegrationTest extends AnyFunSuite with Matchers {
 
   test("KotlinNativeCompilerConfig: default configuration") {
     val config = KotlinNativeCompilerConfig.Default
-    config.kotlinVersion shouldBe "2.3.0"
+    config.kotlinVersion shouldBe bleep.model.Versions.Kotlin23
     config.outputKind shouldBe KotlinNativeCompilerConfig.OutputKind.Executable
     config.debuggable shouldBe true
     config.optimized shouldBe false

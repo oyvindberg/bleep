@@ -2761,7 +2761,7 @@ class MultiWorkspaceBspServer(
 
     val testRunnerClasses = testRunnerFromBuild match {
       case Some(path) => List(path)
-      case None       => fetchTestRunnerViaCoursier(started)
+      case None       => fetchTestRunnerViaCoursier(started, dependencyClasspath)
     }
 
     (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
@@ -2773,13 +2773,14 @@ class MultiWorkspaceBspServer(
     *
     *   1. `bleep-test-runner` itself — see [[fetchBleepTestRunnerOnly]] for how its version is chosen (`${BLEEP_VERSION}` for a `dev` build so it
     *      short-circuits to BleepDevDeps class dirs, otherwise pinned to this server's version).
-    *   2. Four hardcoded external test-framework deps (test-interface, jupiter-interface, junit-platform-launcher, junit-vintage-engine). These are stable
-    *      across every workspace and every bleep version, so we cache them in a process-wide atomic — see
-    *      `MultiWorkspaceBspServer.cachedExternalTestRunnerJars`. Without this, every inner-bleep `commands.test` re-runs Coursier for the same four deps;
+    *   2. Four external test-framework deps (test-interface, jupiter-interface, junit-platform-launcher, junit-vintage-engine). The junit pair is resolved at
+    *      the junit-platform version already on the project's classpath when there is one — modern junit hard-fails on any version skew between the launcher
+    *      and engine jars ("OutputDirectoryCreator not available") — and at bleep's default otherwise. Cached per (resolver, platform version) — see
+    *      `MultiWorkspaceBspServer.cachedExternalTestRunnerJars`. Without the cache, every inner-bleep `commands.test` re-runs Coursier for the same four deps;
     *      under CI's contention that's enough to trip the suite-idle timeout in #580.
     */
-  private def fetchTestRunnerViaCoursier(started: Started): List[Path] = {
-    val externalJars = MultiWorkspaceBspServer.fetchExternalTestRunnerDeps(started)
+  private def fetchTestRunnerViaCoursier(started: Started, dependencyClasspath: List[Path]): List[Path] = {
+    val externalJars = MultiWorkspaceBspServer.fetchExternalTestRunnerDeps(started, dependencyClasspath)
     val testRunnerJars = fetchBleepTestRunnerOnly(started)
     if (testRunnerJars.isEmpty)
       throw new RuntimeException("bleep-test-runner resolution returned no jars")
@@ -4052,32 +4053,58 @@ object MultiWorkspaceBspServer {
   /** Enable debug logging to stderr (for development only) */
   val DebugLogging: Boolean = sys.env.get("BLEEP_BSP_DEBUG").contains("true")
 
-  /** Hardcoded external test-framework dependencies that bleep-test-runner needs at runtime — same versions for every workspace and every bleep version. */
-  private val externalTestRunnerDeps: SortedSet[model.Dep] = SortedSet[model.Dep](
-    model.Dep.Java("org.scala-sbt", "test-interface", model.Versions.TestInterface),
-    model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
-    model.Dep.Java("org.junit.platform", "junit-platform-launcher", model.Versions.JunitPlatformLauncher),
-    model.Dep.Java("org.junit.vintage", "junit-vintage-engine", model.Versions.JunitVintageEngine)
-  )
-
-  /** Per-resolver memoization of the [[externalTestRunnerDeps]] resolution.
+  /** External test-framework dependencies that bleep-test-runner needs at runtime.
     *
-    * The four deps don't change across workspaces or bleep versions, so resolving them once per resolver instance avoids re-running Coursier on every
-    * inner-bleep `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]] (a fresh [[MultiWorkspaceBspServer]] per `commands.test`
-    * call) re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's enough to trip the 120 s suite-idle timeout in #580.
+    * The junit-platform launcher and vintage engine are version-sensitive: junit hard-fails when the launcher and the engine jars on the classpath disagree
+    * ("OutputDirectoryCreator not available … unaligned versions"), in both directions. So when the project's own classpath already carries a junit-platform
+    * (any project using junit-jupiter or kotest does), the injected pair is resolved at THAT version; only a project with no junit-platform at all gets bleep's
+    * defaults, which are then internally consistent by construction.
+    */
+  private def externalTestRunnerDeps(junitPlatformVersion: Option[String]): SortedSet[model.Dep] = {
+    val launcherVersion = junitPlatformVersion.getOrElse(model.Versions.JunitPlatformLauncher)
+    // junit-platform 1.x pairs with jupiter/vintage 5.x at the same minor.patch; from junit 6 the version lines are unified.
+    val engineVersion = junitPlatformVersion match {
+      case Some(v) if v.startsWith("1.") => "5" + v.stripPrefix("1")
+      case Some(v)                       => v
+      case None                          => model.Versions.JunitVintageEngine
+    }
+    SortedSet[model.Dep](
+      model.Dep.Java("org.scala-sbt", "test-interface", model.Versions.TestInterface),
+      model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
+      // jupiter-interface drags in a stale junit-jupiter-engine (5.9.1) transitively; pinning the engine here makes coursier evict it to the aligned
+      // version, otherwise it NoSuchMethodErrors against the matched junit-platform-commons during discovery.
+      model.Dep.Java("org.junit.jupiter", "junit-jupiter-engine", engineVersion),
+      model.Dep.Java("org.junit.platform", "junit-platform-launcher", launcherVersion),
+      model.Dep.Java("org.junit.vintage", "junit-vintage-engine", engineVersion)
+    )
+  }
+
+  private val JunitPlatformEngineJar = "junit-platform-engine-(\\d[\\w.\\-]*)\\.jar".r
+
+  /** The junit-platform version already on the project's test classpath, detected from the engine jar's filename. */
+  private def detectJunitPlatformVersion(classpath: List[Path]): Option[String] =
+    classpath.iterator.map(_.getFileName.toString).collectFirst { case JunitPlatformEngineJar(version) => version }
+
+  /** Per-(resolver, junit-platform version) memoization of the [[externalTestRunnerDeps]] resolution.
+    *
+    * Resolving once per key avoids re-running Coursier on every inner-bleep `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]]
+    * (a fresh [[MultiWorkspaceBspServer]] per `commands.test` call) re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's
+    * enough to trip the 120 s suite-idle timeout in #580.
     *
     * Keyed by resolver-instance identity (not process-wide) so two BSP servers configured with different resolver settings — different mirrors, repositories,
     * credentials — don't share jars resolved against the wrong config. Same resolver instance reused across calls within a server still hits the cache.
     */
-  private val cachedExternalTestRunnerJars: java.util.concurrent.ConcurrentHashMap[CoursierResolver, List[Path]] =
-    new java.util.concurrent.ConcurrentHashMap[CoursierResolver, List[Path]]()
+  private val cachedExternalTestRunnerJars: java.util.concurrent.ConcurrentHashMap[(CoursierResolver, Option[String]), List[Path]] =
+    new java.util.concurrent.ConcurrentHashMap[(CoursierResolver, Option[String]), List[Path]]()
 
-  private def fetchExternalTestRunnerDeps(started: Started): List[Path] = {
+  private def fetchExternalTestRunnerDeps(started: Started, dependencyClasspath: List[Path]): List[Path] = {
     val resolver = started.resolver
-    val cached = cachedExternalTestRunnerJars.get(resolver)
+    val junitPlatformVersion = detectJunitPlatformVersion(dependencyClasspath)
+    val key = (resolver, junitPlatformVersion)
+    val cached = cachedExternalTestRunnerJars.get(key)
     if (cached != null) return cached
     val result = resolver.force(
-      externalTestRunnerDeps,
+      externalTestRunnerDeps(junitPlatformVersion),
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
       libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
       context = "resolving bleep-test-runner external deps",
@@ -4085,7 +4112,7 @@ object MultiWorkspaceBspServer {
     )
     // putIfAbsent: identical resolver from two threads is harmless (Coursier's disk cache handles
     // concurrent downloads, and the jars resolved against the same config are identical).
-    val existing = cachedExternalTestRunnerJars.putIfAbsent(resolver, result.jars)
+    val existing = cachedExternalTestRunnerJars.putIfAbsent(key, result.jars)
     if (existing != null) existing else result.jars
   }
 }

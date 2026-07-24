@@ -8,7 +8,7 @@ class ScalafmtTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("Fmt.ScalaFmt.getVersion parses Fmt.ScalaFmt.defaultConfig") {
     val actual = Fmt.ScalaFmt.getVersion(Fmt.ScalaFmt.defaultConfig)
-    val expected = Some("3.11.1")
+    val expected = Some(model.Versions.Scalafmt)
     assert(actual === expected)
   }
 

@@ -5,7 +5,7 @@ jvm:
 projects:
   app:
     kotlin:
-      version: 2.3.0
+      version: 2.3.21
     cross:
       jvm:
         kotlin:
