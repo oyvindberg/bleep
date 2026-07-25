@@ -1129,6 +1129,32 @@ object Main {
         }
     }
 
+  /** Scripts receive their trailing arguments verbatim, including tokens that start with `--`.
+    *
+    * decline's `Opts.arguments` rejects anything that looks like an option (`--clients` becomes "Unexpected option: --clients"), so before parsing we insert
+    * decline's `--` end-of-options separator right after the script name. decline then treats every following token as a positional argument and hands the raw
+    * list to the script's `run(started, commands, args)`.
+    *
+    * Only applied when the invocation actually targets a script (`bleep <script> ...` or `bleep run <script> ...`), so every built-in subcommand keeps its
+    * normal flag parsing. A `--` the user typed themselves is left untouched (`PreBootstrapOpts` already forwards it), so there is never a double insertion.
+    * The script's own `--watch`/`-w` flag, when present, must come immediately after the script name; it is kept in front of the inserted separator so watch
+    * mode still works, while everything after it is forwarded to the script raw.
+    */
+  private[bleep] def insertScriptArgSeparator(restArgs: List[String], scriptNames: Set[String]): List[String] = {
+    def withSeparator(scriptName: String, rest: List[String]): List[String] = {
+      val (leadingWatchFlags, scriptArgs) = rest.span(arg => arg == "--watch" || arg == "-w")
+      (scriptName :: leadingWatchFlags) ::: ("--" :: scriptArgs)
+    }
+
+    if (restArgs.contains("--")) restArgs
+    else
+      restArgs match {
+        case scriptName :: rest if scriptNames.contains(scriptName)          => withSeparator(scriptName, rest)
+        case "run" :: scriptName :: rest if scriptNames.contains(scriptName) => "run" :: withSeparator(scriptName, rest)
+        case other                                                           => other
+      }
+  }
+
   /** Parse a build command with decline, create the real logger from LoggingOpts, replay stored bootstrap messages, then run. */
   private def runBuildCommand(
       opts: Opts[BleepBuildCommand],
@@ -1138,8 +1164,9 @@ object Main {
       config: model.BleepConfig,
       buildPaths: BuildPaths,
       started: Started
-  ): ExitCode =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
+  ): ExitCode = {
+    val parseArgs = insertScriptArgSeparator(restArgs, started.build.scripts.keys.map(_.value).toSet)
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(parseArgs, sys.env) match {
       case Left(help) =>
         help.errors match {
           case List() =>
@@ -1175,6 +1202,7 @@ object Main {
           }
         }
     }
+  }
 
   /** Check if restArgs request machine-readable output (json or raw), logs should go to stderr. */
   private def hasMachineOutput(restArgs: List[String]): Boolean =
