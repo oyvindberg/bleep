@@ -172,7 +172,7 @@ object BspStress extends BleepScript("BspStress") {
     } yield ()
 
     try program.unsafeRunSync()
-    finally cleanup(stressDir, readPid(), logger)
+    finally cleanup(stressDir, stats.distinctPids.asScala.toSet ++ readPid(), logger)
 
     report(stats, logger)
     if (stats.bricks.get() > 0 || stats.successes.get() == 0) {
@@ -201,11 +201,16 @@ object BspStress extends BleepScript("BspStress") {
     }
   }
 
-  private def cleanup(stressDir: Path, survivingPid: Option[Long], logger: ryddig.Logger): Unit = {
-    survivingPid.foreach { pid =>
+  private def cleanup(stressDir: Path, spawnedPids: Set[Long], logger: ryddig.Logger): Unit = {
+    // Kill EVERY daemon this run ever spawned, not just the last pid file — the herd leaves losers retrying the lock for tens of seconds, and a chaos-killed
+    // generation's replacements pile up. Then a pkill backstop catches any whose cmdline still points at our socket dir.
+    spawnedPids.foreach { pid =>
       try new ProcessBuilder("kill", "-9", pid.toString).start().waitFor()
       catch { case _: Throwable => () }
     }
+    try new ProcessBuilder("pkill", "-9", "-f", stressDir.getFileName.toString).start().waitFor()
+    catch { case _: Throwable => () }
+    logger.info(s"Killed ${spawnedPids.size} spawned daemon(s) + pkill backstop for ${stressDir.getFileName}")
     try Files.walk(stressDir).iterator().asScala.toList.reverse.foreach(p => Files.deleteIfExists(p): Unit)
     catch { case e: Throwable => logger.warn(s"Could not fully delete $stressDir: ${e.getMessage}") }
   }

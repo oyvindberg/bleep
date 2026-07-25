@@ -89,14 +89,19 @@ object BspRifle {
     // belonged to a spawner that crashed before its daemon came up, and is stolen.
     val spawnLock = socketDir.resolve(".spawn-lock")
     val tryAcquireSpawnLock: IO[Boolean] = IO.blocking {
-      try { Files.createFile(spawnLock); true }
+      // Atomic create is the acquire. Under churn the lock and even the socket dir come and go, so every filesystem call here can race a concurrent
+      // delete/recreate — treat "vanished" as "free, try again" and never let a NoSuchFile escape as a spawn failure (that was the 502 in the stress harness).
+      try { Files.createDirectories(socketDir); Files.createFile(spawnLock); true }
       catch {
         case _: java.nio.file.FileAlreadyExistsException =>
-          val ageMs = System.currentTimeMillis() - Files.getLastModifiedTime(spawnLock).toMillis
-          if (ageMs > config.startCheckTimeout.toMillis)
+          val stale =
+            try System.currentTimeMillis() - Files.getLastModifiedTime(spawnLock).toMillis > config.startCheckTimeout.toMillis
+            catch { case _: java.nio.file.NoSuchFileException => true } // released between create-fail and here → free
+          if (stale)
             try { Files.deleteIfExists(spawnLock); Files.createFile(spawnLock); true }
             catch { case _: Throwable => false }
           else false
+        case _: java.nio.file.NoSuchFileException => false // dir mid-churn; the caller re-checks and retries
       }
     }
     val releaseSpawnLock: IO[Unit] = IO.blocking(Files.deleteIfExists(spawnLock)).void
