@@ -20,6 +20,14 @@ import java.nio.file.{Files, Path}
   */
 object BspRifle {
 
+  /** Per-socket-dir JVM-wide permit, the same-process half of spawn election (see [[ensureRunning]]). POSIX file locks do not exclude threads within one
+    * process, so when several fibers/threads in ONE JVM race to spawn — the stress harness, and the MCP server driving concurrent operations — this keeps them
+    * to a single spawner. A Semaphore, not a ReentrantLock: cats-effect runs a Resource's acquire and release on different pool threads, and a ReentrantLock
+    * may only be unlocked by the thread that locked it (unlock from another thread throws IllegalMonitorStateException, leaving it held forever). A semaphore
+    * permit is not thread-owned. Keyed by absolute path; entries are never removed (one tiny permit per socket dir the process ever touches).
+    */
+  private val jvmSpawnLocks = new java.util.concurrent.ConcurrentHashMap[Path, java.util.concurrent.Semaphore]()
+
   /** Check if a BSP server is currently running and accepting connections. */
   def check(config: BspRifleConfig): IO[Boolean] =
     BspServerOperations.check(config.address)
@@ -42,69 +50,109 @@ object BspRifle {
       )
       .flatMap { case (conn, maybePid) => connectionToBspConnection(conn, maybePid) }
 
-  /** Ensure a server is running, then connect to it.
+  /** Ensure a daemon is reachable, then open a connection to it.
     *
-    * This is the main entry point for clients. It will:
-    *   1. Check if a server is already running
-    *   2. Clean up any zombie servers
-    *   3. Start a new server if needed
-    *   4. Wait for the server to be ready
-    *   5. Connect and return the connection
-    *
-    * The returned Resource will close the connection when released, but will NOT stop the server (it may be used by other clients).
+    * The main entry point for clients: [[ensureRunning]] guarantees a daemon is accepting on this socket (connect-or-spawn), then [[connectWithRetry]] opens
+    * the real connection. The returned Resource closes the connection when released but does NOT stop the server — it is shared with other clients.
     */
   def ensureRunningAndConnect(config: BspRifleConfig, logger: Logger): Resource[IO, BspConnection] =
     Resource.eval(ensureRunning(config, logger)) >> connectWithRetry(config, logger)
 
-  /** Ensure a server is running, starting one if necessary.
+  /** Ensure a daemon is reachable on this socket, spawning one if not.
     *
-    * In shared mode, reuses an existing server if one is already running. In ephemeral mode (dieWithParent), always starts a fresh server.
+    * Connect-or-spawn: the socket is the single source of truth. A successful connect proves a daemon owns this socket and is accepting — reuse it. Only a
+    * connect *refusal* (no socket file, or a stale one with nothing listening) means there is no daemon, and that is the sole trigger to spawn. This is
+    * deliberately load-blind: connecting to a bound unix socket completes at the kernel level regardless of how busy the daemon is (its accept loop runs on a
+    * thread that never touches compile work), so a busy server is never mistaken for a missing one, and we never spawn a redundant daemon against it. It also
+    * replaces the old pid-file/zombie reasoning entirely: a live pid whose daemon does not answer is no longer "reuse forever", and file-level cleanup of stale
+    * sockets/locks is the incoming daemon's own job (libdaemonjvm's lock protocol), not ours to second-guess.
     *
-    * Handles zombie detection and cleanup automatically.
+    * Spawning is race-tolerant rather than race-free: several clients may spawn at once, libdaemonjvm's lock lets exactly one win, and the losers exit
+    * [[BspServerOperations.ServerAlreadyRunningExitCode]] while everyone connects to the winner. Any other immediate exit is a real startup failure and is
+    * surfaced with the server log. Readiness after a spawn is a connect probe ([[BspServerOperations.waitForServer]]), immune to how the log is rotated.
     */
   def ensureRunning(config: BspRifleConfig, logger: Logger): IO[Unit] = {
     val socketDir = config.address.socketDir
     val mode = if (config.dieWithParent) "ephemeral" else "shared"
-    for {
-      _ <- IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)"))
 
-      _ <-
-        if (config.dieWithParent) {
-          // Ephemeral mode: each invocation gets its own server (unique socket dir via UUID in JvmKey)
-          BspServerOperations.forceKillAndCleanup(socketDir) >>
-            startAndWait(config, logger)
-        } else {
-          // Shared mode: reuse existing server if alive, otherwise start fresh
-          val pidFile = socketDir.resolve("pid")
-          BspServerOperations.readPid(pidFile).flatMap {
-            case Some(pid) =>
-              BspServerOperations.isProcessAlive(pid).flatMap {
-                case true =>
-                  // Server is already running — but it might still be starting up
-                  // (PID file is written before socket is created). Wait for readiness.
-                  IO(logger.info(s"BSP server already running (pid=$pid), reusing")) >>
-                    BspServerOperations.waitForServer(config)
-                case false =>
-                  // Zombie: PID file exists but process is dead
-                  warnIfDiedOfOom(config, pid, logger) >>
-                    IO(logger.info(s"BSP server pid=$pid is dead, cleaning up and starting fresh")) >>
-                    BspServerOperations.cleanup(socketDir) >>
-                    startAndWait(config, logger)
-              }
-            case None =>
-              // No PID file — check for zombie lock file
-              BspServerOperations.detectZombie(socketDir).flatMap {
-                case true =>
-                  IO(logger.info("Detected zombie BSP server state, cleaning up")) >>
-                    BspServerOperations.cleanupZombie(socketDir) >>
-                    startAndWait(config, logger)
-                case false =>
-                  // No server running at all — start fresh
-                  startAndWait(config, logger)
+    // Launch a daemon. Tolerate the lock-race loser (it exits ServerAlreadyRunning); surface any real startup failure.
+    def spawn: IO[Unit] =
+      oomCrashExplanation(config).flatMap(_.fold(IO.unit)(msg => IO(logger.warn(msg)))) >>
+        startServer(config, logger).flatMap { process =>
+          IO.blocking(process.isAlive).flatMap {
+            case true  => IO.unit // came up; readiness is checked by the caller via waitForServer
+            case false =>
+              IO.blocking(process.exitValue()).flatMap {
+                case BspServerOperations.ServerAlreadyRunningExitCode => IO.unit // another client won the race — fine, we connect to theirs
+                case code                                             =>
+                  IO(logger.error(s"BSP server exited immediately with code $code (server log: ${getOutputFile(config)})")) >>
+                    IO.raiseError(new RuntimeException(s"BSP server exited immediately with code $code"))
               }
           }
         }
-    } yield ()
+
+    // Elect a single spawner so a swarm hitting a cold daemon forks ONE server JVM, not one per client — the fork storm that can swamp the machine and starve
+    // the build server everyone shares. Two layers, because the two kinds of contention need different primitives:
+    //   - a JVM-wide Semaphore permit per socket dir, for concurrent fibers/threads WITHIN this process (the harness, the MCP server). POSIX file locks do NOT
+    //     exclude same-process threads, so a file lock alone is not enough here;
+    //   - a FileChannel advisory lock on `.spawn-lock`, for separate client PROCESSES — the real case, one `bleep` invocation each (verified: of 30 concurrent
+    //     processes exactly one acquires). It releases automatically on channel close or process death, so there is no stale-lock timeout and no delete race.
+    // Whoever holds both is the spawner; everyone else waits for that daemon via the connect probe. libdaemonjvm's lock remains the correctness backstop.
+    val jvmPermit = jvmSpawnLocks.computeIfAbsent(socketDir.toAbsolutePath, _ => new java.util.concurrent.Semaphore(1))
+    val spawnLockPath = socketDir.resolve(".spawn-lock")
+
+    val spawnRole: Resource[IO, Boolean] =
+      Resource
+        .make(IO.blocking {
+          if (!jvmPermit.tryAcquire()) (Option.empty[java.nio.channels.FileChannel], false) // another fiber/thread here is spawning
+          else {
+            Files.createDirectories(socketDir)
+            val ch = java.nio.channels.FileChannel.open(spawnLockPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE)
+            val gotFile =
+              try ch.tryLock() != null // null → another process holds it
+              catch { case _: java.nio.channels.OverlappingFileLockException => false }
+            if (gotFile) (Some(ch), true)
+            else {
+              try ch.close()
+              catch { case _: Throwable => () }
+              jvmPermit.release() // a different process is spawning; give the permit back
+              (Option.empty[java.nio.channels.FileChannel], false)
+            }
+          }
+        }) { case (chOpt, amSpawner) =>
+          IO.blocking {
+            chOpt.foreach(ch =>
+              try ch.close()
+              catch { case _: Throwable => () }
+            )
+            if (amSpawner) jvmPermit.release()
+          }
+        }
+        .map(_._2)
+
+    val spawnAndWait: IO[Unit] =
+      spawnRole.use { amSpawner =>
+        val ensureUp =
+          if (amSpawner)
+            // We hold both locks. Re-check — a previous spawner's daemon may have bound between our check and here.
+            BspServerOperations.check(config.address).flatMap {
+              case true  => IO.unit
+              case false => spawn
+            }
+          else IO.unit // someone else is spawning; just wait for their daemon
+        ensureUp >> BspServerOperations.waitForServer(config)
+      } >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
+
+    IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
+      if (config.dieWithParent)
+        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse, no swarm to elect from.
+        BspServerOperations.forceKillAndCleanup(socketDir) >> spawn >> BspServerOperations.waitForServer(config)
+      else
+        BspServerOperations.check(config.address).flatMap {
+          case true  => IO(logger.info("BSP server already running, reusing"))
+          case false => spawnAndWait
+        }
+    }
   }
 
   /** If the server's `output` log records the VM's OOM termination line, it died (or is right now dying) of OutOfMemoryError. -XX:+DisplayVMOutputToStderr
@@ -128,43 +176,6 @@ object BspRifle {
       )
     } else None
   }
-
-  /** A dead server whose log records the OOM termination line died of OutOfMemoryError — say so, with the fix, instead of a bare "dead, restarting". */
-  private def warnIfDiedOfOom(config: BspRifleConfig, pid: Long, logger: Logger): IO[Unit] =
-    oomCrashExplanation(config).flatMap {
-      case Some(msg) => IO(logger.warn(s"$msg (dead server pid=$pid)"))
-      case None      => IO.unit
-    }
-
-  /** Start a new server and wait for it to be ready. */
-  def startAndWait(config: BspRifleConfig, logger: Logger): IO[Unit] =
-    for {
-      _ <- IO(logger.info("Waiting for BSP server to be ready"))
-      process <- startServer(config, logger)
-      // Check if process exited immediately (e.g., exit code 222 = already running)
-      exitedImmediately <- IO.blocking(process.isAlive).map(!_)
-      _ <-
-        if (exitedImmediately) {
-          IO.blocking(process.exitValue()).flatMap { code =>
-            if (code == BspServerOperations.ServerAlreadyRunningExitCode) {
-              // Another server started between our check and start - that's fine
-              IO(logger.info("BSP server already running, reusing"))
-            } else {
-              val outputFile = getOutputFile(config)
-              IO(logger.error(s"BSP server exited immediately with code $code (server log: $outputFile)")) >>
-                IO.raiseError(
-                  new RuntimeException(
-                    s"BSP server exited immediately with code $code"
-                  )
-                )
-            }
-          }
-        } else {
-          BspServerOperations.waitForServer(config).flatMap { _ =>
-            IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
-          }
-        }
-    } yield ()
 
   /** Start a new BSP server process.
     *

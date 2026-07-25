@@ -53,7 +53,13 @@ case class BspServerConfig(
       * session, so a long compile does not count against it — the client is silent, but so is the socket only until the next request arrives. Set to 0 to wait
       * forever. Default: 30
       */
-    bspReadTimeoutMinutes: Option[Int]
+    bspReadTimeoutMinutes: Option[Int],
+    /** How long the shared compile server stays alive with no connected client before shutting itself down, in minutes. Bounds the daemon proliferation that
+      * otherwise accumulates across worktrees, JVM bumps, and client redeploys — an abandoned server reaps itself instead of lingering for days. The clock
+      * counts only fully-idle time: it resets whenever a client is connected, so a server mid-compile or serving an editor is never reaped. Set to 0 to disable
+      * (stay alive forever). Default: 60
+      */
+    compileServerIdleTimeoutMinutes: Option[Int]
 ) {
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
@@ -74,6 +80,13 @@ case class BspServerConfig(
     if (minutes < 0) sys.error(s"bspReadTimeoutMinutes must be >= 0 (0 disables the timeout), got $minutes")
     minutes * 60 * 1000
   }
+
+  /** How long a fully-idle server waits before self-shutdown, in milliseconds. 0 means never. */
+  def effectiveCompileServerIdleTimeoutMillis: Long = {
+    val minutes = compileServerIdleTimeoutMinutes.getOrElse(BspServerConfig.DefaultCompileServerIdleTimeoutMinutes)
+    if (minutes < 0) sys.error(s"compileServerIdleTimeoutMinutes must be >= 0 (0 disables idle shutdown), got $minutes")
+    minutes.toLong * 60L * 1000L
+  }
 }
 
 object BspServerConfig {
@@ -86,6 +99,11 @@ object BspServerConfig {
   // build/exit, so the socket read would otherwise block forever) get reaped the same day.
   val DefaultBspReadTimeoutMinutes: Int = 30
 
+  // An hour of no connected client is well past any editor's think-time or a paused CLI session, but short enough that daemons abandoned by closed worktrees,
+  // JVM bumps, or client redeploys reap themselves within the day instead of piling up. The clock only counts fully-idle time (resets while any client is
+  // connected), so this never interrupts a compile or a live editor.
+  val DefaultCompileServerIdleTimeoutMinutes: Int = 60
+
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
     parallelismRatio = None,
@@ -95,7 +113,8 @@ object BspServerConfig {
     kspRunnerMaxMemory = None,
     compileServerMaxMemory = None,
     heapPressureThreshold = None,
-    bspReadTimeoutMinutes = None
+    bspReadTimeoutMinutes = None,
+    compileServerIdleTimeoutMinutes = None
   )
 
   implicit val decoder: Decoder[BspServerConfig] = deriveDecoder
