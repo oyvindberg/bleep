@@ -55,6 +55,9 @@ object BspStress extends BleepScript("BspStress") {
     val maxLatencyMs = new AtomicLong(0)
     val failuresByKind = new ConcurrentHashMap[String, AtomicLong]()
     val distinctPids = ConcurrentHashMap.newKeySet[Long]()
+    // Peak number of spawned daemons ALIVE at the same instant. This is the fork-storm signal — distinctPids counts pid-file churn over the whole run (every
+    // spawn attempt, winners and short-lived losers), which vastly overcounts; a healthy run keeps peakConcurrent at 1–2 even while distinctPids climbs.
+    val peakConcurrent = new AtomicLong(0)
 
     def recordSuccess(latencyMs: Long): Unit = {
       successes.incrementAndGet(); sumLatencyMs.addAndGet(latencyMs)
@@ -143,6 +146,13 @@ object BspStress extends BleepScript("BspStress") {
         else oneAttempt >> IO.sleep(5.millis) >> clientLoop(deadlineMs)
       }
 
+    // Track the peak count of simultaneously-alive spawned daemons — the honest fork-storm signal (see Stats.peakConcurrent).
+    def sampler(deadlineMs: Long): IO[Unit] =
+      IO.sleep(250.millis) >> IO {
+        val alive = stats.distinctPids.asScala.count(pid => ProcessHandle.of(pid).isPresent)
+        stats.peakConcurrent.accumulateAndGet(alive.toLong, math.max): Unit
+      } >> IO.realTime.flatMap(now => if (now.toMillis >= deadlineMs) IO.unit else sampler(deadlineMs))
+
     def chaosLoop(deadlineMs: Long): IO[Unit] =
       IO.sleep(a.killEveryMs.millis) >> IO.realTime.flatMap { now =>
         if (now.toMillis >= deadlineMs) IO.unit
@@ -167,8 +177,10 @@ object BspStress extends BleepScript("BspStress") {
       deadlineMs = startMs + a.durationSec * 1000L
       clients = List.fill(a.clients)(clientLoop(deadlineMs))
       chaosFiber <- chaosLoop(deadlineMs).start
+      samplerFiber <- sampler(deadlineMs).start
       _ <- clients.parSequence_
       _ <- chaosFiber.join.attempt
+      _ <- samplerFiber.join.attempt
     } yield ()
 
     try program.unsafeRunSync()
@@ -221,7 +233,10 @@ object BspStress extends BleepScript("BspStress") {
     val meanMs = if (ok == 0) 0 else stats.sumLatencyMs.get() / ok
     logger.info("──────── BSP stress report ────────")
     logger.info(s"attempts=$att  successes=$ok (${if (att == 0) 0 else ok * 100 / att}%)  mean=${meanMs}ms  max=${stats.maxLatencyMs.get()}ms")
-    logger.info(s"daemon kills=${stats.kills.get()}  distinct daemon pids seen=${stats.distinctPids.size()} (want > 1: proves respawn was exercised)")
+    logger.info(
+      s"daemon kills=${stats.kills.get()}  PEAK concurrent daemons=${stats.peakConcurrent.get()} (want ~1-2: proves NO fork storm)  distinct pids seen=${stats.distinctPids
+          .size()} (cumulative pid-file churn, not live count)"
+    )
     if (stats.failuresByKind.isEmpty) logger.info("failures: none")
     else {
       logger.info("failures by kind:")
