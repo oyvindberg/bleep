@@ -932,8 +932,7 @@ object CompilerResolver {
           finally in.close()
           try Files.move(tmp, archive, StandardCopyOption.ATOMIC_MOVE): Unit
           catch { case _: AtomicMoveNotSupportedException => Files.move(tmp, archive, StandardCopyOption.REPLACE_EXISTING): Unit }
-        } finally
-          Files.deleteIfExists(tmp): Unit
+        } finally Files.deleteIfExists(tmp): Unit
       }
       // Extract
       val pb = new ProcessBuilder("tar", "xf", archive.toString)
