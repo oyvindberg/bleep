@@ -42,16 +42,10 @@ object BspRifle {
       )
       .flatMap { case (conn, maybePid) => connectionToBspConnection(conn, maybePid) }
 
-  /** Ensure a server is running, then connect to it.
+  /** Ensure a daemon is reachable, then open a connection to it.
     *
-    * This is the main entry point for clients. It will:
-    *   1. Check if a server is already running
-    *   2. Clean up any zombie servers
-    *   3. Start a new server if needed
-    *   4. Wait for the server to be ready
-    *   5. Connect and return the connection
-    *
-    * The returned Resource will close the connection when released, but will NOT stop the server (it may be used by other clients).
+    * The main entry point for clients: [[ensureRunning]] guarantees a daemon is accepting on this socket (connect-or-spawn), then [[connectWithRetry]] opens the
+    * real connection. The returned Resource closes the connection when released but does NOT stop the server — it is shared with other clients.
     */
   def ensureRunningAndConnect(config: BspRifleConfig, logger: Logger): Resource[IO, BspConnection] =
     Resource.eval(ensureRunning(config, logger)) >> connectWithRetry(config, logger)
