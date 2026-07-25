@@ -44,8 +44,8 @@ object BspRifle {
 
   /** Ensure a daemon is reachable, then open a connection to it.
     *
-    * The main entry point for clients: [[ensureRunning]] guarantees a daemon is accepting on this socket (connect-or-spawn), then [[connectWithRetry]] opens the
-    * real connection. The returned Resource closes the connection when released but does NOT stop the server — it is shared with other clients.
+    * The main entry point for clients: [[ensureRunning]] guarantees a daemon is accepting on this socket (connect-or-spawn), then [[connectWithRetry]] opens
+    * the real connection. The returned Resource closes the connection when released but does NOT stop the server — it is shared with other clients.
     */
   def ensureRunningAndConnect(config: BspRifleConfig, logger: Logger): Resource[IO, BspConnection] =
     Resource.eval(ensureRunning(config, logger)) >> connectWithRetry(config, logger)
@@ -83,17 +83,50 @@ object BspRifle {
           }
         }
 
-    val spawnAndWait: IO[Unit] =
-      spawn >> BspServerOperations.waitForServer(config) >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
+    // Serialize spawns so a swarm of clients hitting a cold daemon launches ONE server JVM, not one per client. libdaemonjvm's lock already guarantees a single
+    // winner for correctness, but without this every racer still forks a full JVM that immediately exits ServerAlreadyRunning — a fork storm under load. The
+    // client that atomically creates `.spawn-lock` becomes the spawner; the rest poll until the winner's daemon answers. A lock older than the startup timeout
+    // belonged to a spawner that crashed before its daemon came up, and is stolen.
+    val spawnLock = socketDir.resolve(".spawn-lock")
+    val tryAcquireSpawnLock: IO[Boolean] = IO.blocking {
+      try { Files.createFile(spawnLock); true }
+      catch {
+        case _: java.nio.file.FileAlreadyExistsException =>
+          val ageMs = System.currentTimeMillis() - Files.getLastModifiedTime(spawnLock).toMillis
+          if (ageMs > config.startCheckTimeout.toMillis)
+            try { Files.deleteIfExists(spawnLock); Files.createFile(spawnLock); true }
+            catch { case _: Throwable => false }
+          else false
+      }
+    }
+    val releaseSpawnLock: IO[Unit] = IO.blocking(Files.deleteIfExists(spawnLock)).void
+
+    // Reach a running daemon, spawning at most one. Re-check connect on every pass, so the moment the winner's daemon binds, everyone else simply connects.
+    def coordinatedEnsure(deadlineMs: Long): IO[Unit] =
+      BspServerOperations.check(config.address).flatMap {
+        case true  => IO.unit
+        case false =>
+          tryAcquireSpawnLock.flatMap {
+            case true  => (spawn >> BspServerOperations.waitForServer(config)).guarantee(releaseSpawnLock)
+            case false =>
+              IO.realTime.flatMap { now =>
+                if (now.toMillis >= deadlineMs)
+                  spawn >> BspServerOperations.waitForServer(config) // coordination gave up (crashed spawner); fall back to spawning
+                else IO.sleep(config.startCheckPeriod) >> coordinatedEnsure(deadlineMs)
+              }
+          }
+      }
 
     IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
       if (config.dieWithParent)
-        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse.
-        BspServerOperations.forceKillAndCleanup(socketDir) >> spawnAndWait
+        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse, no swarm to coordinate.
+        BspServerOperations.forceKillAndCleanup(socketDir) >> spawn >> BspServerOperations.waitForServer(config)
       else
         BspServerOperations.check(config.address).flatMap {
           case true  => IO(logger.info("BSP server already running, reusing"))
-          case false => spawnAndWait
+          case false =>
+            IO.realTime.flatMap(now => coordinatedEnsure(now.toMillis + config.startCheckTimeout.toMillis)) >>
+              IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
         }
     }
   }
