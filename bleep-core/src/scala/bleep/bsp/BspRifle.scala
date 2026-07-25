@@ -93,7 +93,7 @@ object BspRifle {
 
     // Elect a single spawner so a swarm hitting a cold daemon forks ONE server JVM, not one per client — the fork storm that can swamp the machine and starve
     // the build server everyone shares. Two layers, because the two kinds of contention need different primitives:
-    //   - a JVM-wide ReentrantLock per socket dir, for concurrent fibers/threads WITHIN this process (the harness, the MCP server). POSIX file locks do NOT
+    //   - a JVM-wide Semaphore permit per socket dir, for concurrent fibers/threads WITHIN this process (the harness, the MCP server). POSIX file locks do NOT
     //     exclude same-process threads, so a file lock alone is not enough here;
     //   - a FileChannel advisory lock on `.spawn-lock`, for separate client PROCESSES — the real case, one `bleep` invocation each (verified: of 30 concurrent
     //     processes exactly one acquires). It releases automatically on channel close or process death, so there is no stale-lock timeout and no delete race.
