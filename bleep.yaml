@@ -384,6 +384,9 @@ scripts:
   linkify-cli-mentions:
     main: bleep.scripts.dev.LinkifyCliMentions
     project: scripts-dev
+  bsp-stress:
+    main: bleep.scripts.dev.BspStress
+    project: scripts-dev
   generate-docs:
     main: bleep.scripts.GenDocumentation
     project: scripts
