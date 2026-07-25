@@ -20,11 +20,13 @@ import java.nio.file.{Files, Path}
   */
 object BspRifle {
 
-  /** Per-socket-dir JVM-wide lock, the same-process half of spawn election (see [[ensureRunning]]). POSIX file locks do not exclude threads within one process,
-    * so when several fibers/threads in ONE JVM race to spawn — the stress harness, and the MCP server driving concurrent operations — this is what keeps them
-    * to a single spawner. Keyed by absolute path; entries are never removed (one tiny lock per socket dir the process ever touches).
+  /** Per-socket-dir JVM-wide permit, the same-process half of spawn election (see [[ensureRunning]]). POSIX file locks do not exclude threads within one
+    * process, so when several fibers/threads in ONE JVM race to spawn — the stress harness, and the MCP server driving concurrent operations — this keeps them
+    * to a single spawner. A Semaphore, not a ReentrantLock: cats-effect runs a Resource's acquire and release on different pool threads, and a ReentrantLock
+    * may only be unlocked by the thread that locked it (unlock from another thread throws IllegalMonitorStateException, leaving it held forever). A semaphore
+    * permit is not thread-owned. Keyed by absolute path; entries are never removed (one tiny permit per socket dir the process ever touches).
     */
-  private val jvmSpawnLocks = new java.util.concurrent.ConcurrentHashMap[Path, java.util.concurrent.locks.ReentrantLock]()
+  private val jvmSpawnLocks = new java.util.concurrent.ConcurrentHashMap[Path, java.util.concurrent.Semaphore]()
 
   /** Check if a BSP server is currently running and accepting connections. */
   def check(config: BspRifleConfig): IO[Boolean] =
@@ -96,13 +98,13 @@ object BspRifle {
     //   - a FileChannel advisory lock on `.spawn-lock`, for separate client PROCESSES — the real case, one `bleep` invocation each (verified: of 30 concurrent
     //     processes exactly one acquires). It releases automatically on channel close or process death, so there is no stale-lock timeout and no delete race.
     // Whoever holds both is the spawner; everyone else waits for that daemon via the connect probe. libdaemonjvm's lock remains the correctness backstop.
-    val jvmLock = jvmSpawnLocks.computeIfAbsent(socketDir.toAbsolutePath, _ => new java.util.concurrent.locks.ReentrantLock())
+    val jvmPermit = jvmSpawnLocks.computeIfAbsent(socketDir.toAbsolutePath, _ => new java.util.concurrent.Semaphore(1))
     val spawnLockPath = socketDir.resolve(".spawn-lock")
 
     val spawnRole: Resource[IO, Boolean] =
       Resource
         .make(IO.blocking {
-          if (!jvmLock.tryLock()) (Option.empty[java.nio.channels.FileChannel], false) // another fiber/thread here is spawning
+          if (!jvmPermit.tryAcquire()) (Option.empty[java.nio.channels.FileChannel], false) // another fiber/thread here is spawning
           else {
             Files.createDirectories(socketDir)
             val ch = java.nio.channels.FileChannel.open(spawnLockPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE)
@@ -113,7 +115,7 @@ object BspRifle {
             else {
               try ch.close()
               catch { case _: Throwable => () }
-              jvmLock.unlock() // a different process is spawning; give the JVM lock back
+              jvmPermit.release() // a different process is spawning; give the permit back
               (Option.empty[java.nio.channels.FileChannel], false)
             }
           }
@@ -123,7 +125,7 @@ object BspRifle {
               try ch.close()
               catch { case _: Throwable => () }
             )
-            if (amSpawner) jvmLock.unlock()
+            if (amSpawner) jvmPermit.release()
           }
         }
         .map(_._2)
