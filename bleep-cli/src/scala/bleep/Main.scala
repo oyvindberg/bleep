@@ -749,6 +749,20 @@ object Main {
             ),
             Opts.subcommand[BleepCommand]("read-timeout-clear", "remove read timeout setting (use default: 30 minutes)")(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(bspReadTimeoutMinutes = None))).map(_ => ()))
+            ),
+            Opts.subcommand[BleepCommand](
+              "idle-timeout",
+              "set minutes the server stays alive with no connected client before shutting itself down, 0 to stay alive forever (default: 60)"
+            )(
+              Opts.argument[Int]("minutes").map { minutes => () =>
+                if (minutes < 0) throw new BleepException.Text(s"idle-timeout must be >= 0 (0 stays alive forever), got $minutes")
+                BleepConfigOps
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerIdleTimeoutMinutes = Some(minutes))))
+                  .map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand]("idle-timeout-clear", "remove idle timeout setting (use default: 60 minutes)")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerIdleTimeoutMinutes = None))).map(_ => ()))
             )
           ).foldK
         ),
