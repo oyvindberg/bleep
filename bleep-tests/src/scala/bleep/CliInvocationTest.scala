@@ -40,6 +40,34 @@ class CliInvocationTest extends AnyFunSuite {
     )
   }
 
+  private val scriptNames = Set("myscript", "native-image")
+
+  test("script invocation forwards plain trailing args unchanged") {
+    assert(Main.insertScriptArgSeparator(List("myscript", "foo", "bar"), scriptNames) == List("myscript", "--", "foo", "bar"))
+  }
+
+  test("script invocation forwards `--`-prefixed args verbatim") {
+    assert(Main.insertScriptArgSeparator(List("myscript", "--clients", "20"), scriptNames) == List("myscript", "--", "--clients", "20"))
+  }
+
+  test("a leading `--watch`/`-w` stays a bleep flag, the rest is forwarded raw") {
+    assert(Main.insertScriptArgSeparator(List("myscript", "--watch", "--clients", "20"), scriptNames) == List("myscript", "--watch", "--", "--clients", "20"))
+    assert(Main.insertScriptArgSeparator(List("myscript", "-w"), scriptNames) == List("myscript", "-w", "--"))
+  }
+
+  test("a user-supplied `--` separator is left untouched (no double insertion)") {
+    assert(Main.insertScriptArgSeparator(List("myscript", "--", "--watch"), scriptNames) == List("myscript", "--", "--watch"))
+  }
+
+  test("`run <script>` also forwards `--`-prefixed args verbatim") {
+    assert(Main.insertScriptArgSeparator(List("run", "myscript", "--clients", "20"), scriptNames) == List("run", "myscript", "--", "--clients", "20"))
+  }
+
+  test("built-in subcommands are not rewritten") {
+    assert(Main.insertScriptArgSeparator(List("compile", "--watch", "myproject"), scriptNames) == List("compile", "--watch", "myproject"))
+    assert(Main.insertScriptArgSeparator(List("run", "myproject", "--foo"), scriptNames) == List("run", "myproject", "--foo"))
+  }
+
   def callMainSlurpingStdIo(arguments: Array[String]): IoBuffer = {
     val systemOut = System.out
     val systemErr = System.err
