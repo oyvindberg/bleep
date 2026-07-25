@@ -129,6 +129,9 @@ object BspStress extends BleepScript("BspStress") {
               conn.output.write(body)
               conn.output.flush()
               readFramedReply(conn.input)
+              // Hold the session briefly, as a real client does actual work between connect and disconnect. Without this the loop degenerates into a reconnect
+              // firehose (thousands/s) that no single daemon's accept backlog survives — which masks, rather than tests, the spawn behaviour.
+              Thread.sleep(75)
             }
           }
           .timeout((a.connectTimeoutSec + 30).seconds)
@@ -143,7 +146,7 @@ object BspStress extends BleepScript("BspStress") {
     def clientLoop(deadlineMs: Long): IO[Unit] =
       IO.realTime.flatMap { now =>
         if (now.toMillis >= deadlineMs) IO.unit
-        else oneAttempt >> IO.sleep(5.millis) >> clientLoop(deadlineMs)
+        else oneAttempt >> IO.sleep(100.millis) >> clientLoop(deadlineMs)
       }
 
     // Track the peak count of simultaneously-alive spawned daemons — the honest fork-storm signal (see Stats.peakConcurrent).
