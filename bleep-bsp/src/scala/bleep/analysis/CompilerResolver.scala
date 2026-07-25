@@ -2,7 +2,7 @@ package bleep.analysis
 
 import java.lang.invoke.{MethodHandles, MethodType}
 import java.net.URLClassLoader
-import java.nio.file.{Files, Path}
+import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, StandardCopyOption}
 import java.util.concurrent.ConcurrentHashMap
 
 import bleep.model.{Dep, VersionCombo, VersionKotlin, VersionScala, VersionScalaJs, VersionScalaNative}
@@ -900,10 +900,14 @@ object CompilerResolver {
     val platform = (os, arch) match {
       case (o, "aarch64") if o.contains("mac")   => "macos-aarch64"
       case (o, _) if o.contains("mac")           => "macos-x86_64"
+      case (o, _) if o.contains("win")           => "windows-x86_64"
       case (o, "aarch64") if o.contains("linux") => "linux-x86_64" // K/N doesn't have linux-aarch64 prebuilt
       case (o, _) if o.contains("linux")         => "linux-x86_64"
       case _                                     => "linux-x86_64"
     }
+    // JetBrains publishes the windows prebuilt as .zip, everything else as .tar.gz. Plain `tar xf` extracts both: windows' tar.exe is bsdtar, which
+    // auto-detects zip, and GNU tar auto-detects gzip.
+    val archiveExt = if (platform == "windows-x86_64") "zip" else "tar.gz"
 
     val distDir = konanDir.resolve(s"kotlin-native-prebuilt-$platform-$kotlinVersion")
     if (Files.isDirectory(distDir)) {
@@ -911,23 +915,38 @@ object CompilerResolver {
     } else {
       // Download and extract the prebuilt distribution
       Files.createDirectories(konanDir)
-      val tarGz = konanDir.resolve(s"kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz")
-      if (!Files.exists(tarGz)) {
+      val archive = konanDir.resolve(s"kotlin-native-prebuilt-$kotlinVersion-$platform.$archiveExt")
+      if (!Files.exists(archive)) {
         val url =
-          s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/kotlin-native-prebuilt-$kotlinVersion-$platform.tar.gz"
+          s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/kotlin-native-prebuilt-$kotlinVersion-$platform.$archiveExt"
         val conn = java.net.URI.create(url).toURL.openConnection()
-        val in = conn.getInputStream
-        try Files.copy(in, tarGz): Unit
-        finally in.close()
+        // Without timeouts a stalled download hangs the whole build until the CI job cap kills it. Read timeout is per-read stall, not whole-download.
+        conn.setConnectTimeout(30_000)
+        conn.setReadTimeout(120_000)
+        // Download to a temp file and move into place only when complete: the archive is cached by its final name, so a truncated download left there
+        // would fail extraction on every subsequent run on this machine.
+        val tmp = Files.createTempFile(konanDir, s".kotlin-native-prebuilt-$kotlinVersion-$platform", s".$archiveExt.tmp")
+        try {
+          val in = conn.getInputStream
+          try Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING): Unit
+          finally in.close()
+          try Files.move(tmp, archive, StandardCopyOption.ATOMIC_MOVE): Unit
+          catch { case _: AtomicMoveNotSupportedException => Files.move(tmp, archive, StandardCopyOption.REPLACE_EXISTING): Unit }
+        } finally
+          Files.deleteIfExists(tmp): Unit
       }
       // Extract
-      val pb = new ProcessBuilder("tar", "xzf", tarGz.toString)
+      val pb = new ProcessBuilder("tar", "xf", archive.toString)
         .directory(konanDir.toFile)
         .redirectErrorStream(true)
       val proc = pb.start()
       proc.getInputStream.transferTo(java.io.OutputStream.nullOutputStream())
       val exitCode = proc.waitFor()
-      if (exitCode != 0) throw new RuntimeException(s"Failed to extract Kotlin/Native distribution: exit code $exitCode")
+      if (exitCode != 0) {
+        // A corrupt archive (e.g. cached by an older bleep that downloaded without the temp-file dance) would otherwise fail here forever.
+        Files.deleteIfExists(archive): Unit
+        throw new RuntimeException(s"Failed to extract Kotlin/Native distribution (exit code $exitCode); deleted $archive so the next run re-downloads")
+      }
       if (!Files.isDirectory(distDir)) throw new RuntimeException(s"Kotlin/Native distribution not found after extraction at $distDir")
       distDir
     }
