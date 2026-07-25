@@ -635,12 +635,12 @@ object Main {
               commands.Fmt(check, projects)
             }
           },
-          Opts.subcommand("remote-cache", "push and pull compiled classes to/from a remote S3-compatible cache")(
+          Opts.subcommand("remote-cache", "push and pull compiled classes to/from a build cache (S3-compatible service or local directory)")(
             List(
-              Opts.subcommand("pull", "pull cached compiled classes from remote cache")(
+              Opts.subcommand("pull", "pull cached compiled classes from the cache")(
                 projectNames.map(names => commands.RemoteCache.Pull(names))
               ),
-              Opts.subcommand("push", "push compiled classes to remote cache")(
+              Opts.subcommand("push", "push compiled classes to the cache")(
                 (projectNames, Opts.flag("force", "overwrite existing cache entries").orFalse).mapN(commands.RemoteCache.Push.apply)
               )
             ).foldK
