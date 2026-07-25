@@ -26,23 +26,22 @@ import scala.jdk.CollectionConverters.*
   *   - respawn coverage: distinct daemon pids seen > 1, proving the kill/respawn path actually exercised.
   *   - churn failures (broken pipe / stream closed when the daemon is killed mid-use) are expected and only informational.
   *
-  * Run: `bleep publish local-ivy` first (the harness forks the real bleep-bsp at `BleepVersion.current`), then `bleep bsp-stress [--clients N] [--duration-sec
-  * S] [--kill-every-ms K] [--connect-timeout-sec T]`.
+  * Run: `bleep publish local-ivy` first (the harness forks the real bleep-bsp at `BleepVersion.current`), then `bleep bsp-stress [clients] [durationSec]
+  * [killEveryMs] [connectTimeoutSec]` (positional, since bleep's script parser rejects `--`-flags). Defaults: 500 15s(30) 2000 20.
   */
 object BspStress extends BleepScript("BspStress") {
 
   private final case class Args(clients: Int, durationSec: Int, killEveryMs: Int, connectTimeoutSec: Int)
 
+  // Positional, because bleep's script arg parser rejects anything starting with `--`:
+  //   bleep bsp-stress [clients] [durationSec] [killEveryMs] [connectTimeoutSec]
   private def parseArgs(args: List[String]): Args = {
-    val m = args
-      .sliding(2, 2)
-      .collect { case List(k, v) if k.startsWith("--") => k -> v }
-      .toMap
+    def at(i: Int, default: Int): Int = args.lift(i).flatMap(_.toIntOption).getOrElse(default)
     Args(
-      clients = m.get("--clients").map(_.toInt).getOrElse(500),
-      durationSec = m.get("--duration-sec").map(_.toInt).getOrElse(30),
-      killEveryMs = m.get("--kill-every-ms").map(_.toInt).getOrElse(2000),
-      connectTimeoutSec = m.get("--connect-timeout-sec").map(_.toInt).getOrElse(20)
+      clients = at(0, 500),
+      durationSec = at(1, 30),
+      killEveryMs = at(2, 2000),
+      connectTimeoutSec = at(3, 20)
     )
   }
 
