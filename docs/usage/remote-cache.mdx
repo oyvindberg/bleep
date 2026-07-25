@@ -1,10 +1,10 @@
 ---
-title: Remote build cache
+title: Build cache
 ---
 
-# Remote build cache
+# Build cache
 
-Bleep can cache compiled classes in S3 (or any S3-compatible storage like MinIO, Cloudflare R2) so CI pipelines skip compilation for unchanged projects.
+Bleep can cache compiled classes in S3 (or any S3-compatible storage like MinIO, Cloudflare R2) so CI pipelines skip compilation for unchanged projects, or in a local directory so multiple checkouts and git worktrees on one machine share compiled state.
 
 ## Setup
 
@@ -104,6 +104,25 @@ build:
     - bleep remote-cache pull
     - bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | xargs bleep compile
     - bleep remote-cache push
+```
+
+## Local directory cache
+
+Point the cache at a directory instead of a bucket:
+
+```yaml
+remote-cache:
+  uri: file:///Users/me/.cache/my-project-bleep-cache
+```
+
+No credentials or region are needed. Cache entries land at `<dir>/<project>/<digest>.tar.gz`, written atomically so concurrent pushes from different checkouts are safe.
+
+This is built for git worktrees: because cache keys are content digests and the shipped zinc analysis is path-portable, a freshly created worktree can `bleep remote-cache pull` and skip compiling everything its sibling already built:
+
+```bash
+git worktree add ../feature-x
+cd ../feature-x
+bleep remote-cache pull   # restores classes + analysis for all unchanged projects
 ```
 
 ## S3-compatible services

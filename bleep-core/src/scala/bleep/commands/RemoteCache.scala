@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Executors, Future as JFuture}
 import scala.jdk.StreamConverters.*
 
-/** Remote build cache: pull pre-compiled classes from S3, push after building.
+/** Build cache: pull pre-compiled classes from a cache backend, push after building. Backends: S3-compatible services and local directories (see
+  * [[CacheStore]]).
   *
   * Cache entries are per-project tar.gz archives keyed by content digest. The digest captures project config, source content, resource content, and transitive
   * dependency digests.
@@ -34,11 +35,13 @@ object RemoteCache {
       val cacheConfig = started.build.remoteCache
       cacheConfig match {
         case None =>
-          Left(new BleepException.Text("No remote-cache configured in bleep.yaml. Add:\n  remote-cache:\n    uri: s3://bucket/prefix\n    region: us-east-1"))
+          Left(
+            new BleepException.Text(
+              "No remote-cache configured in bleep.yaml. Add:\n  remote-cache:\n    uri: s3://bucket/prefix\n    region: us-east-1\nor for a local directory (shared between checkouts/worktrees on this machine):\n  remote-cache:\n    uri: file:///path/to/cache"
+            )
+          )
         case Some(config) =>
-          val credentials = resolveCredentials(started)
-          val client = S3Client.fromConfig(started.logger, config, credentials)
-          val prefix = S3Client.keyPrefix(config)
+          val (client, prefix) = storeFor(started, config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPull = if (projects.nonEmpty) projects.toSet else digests.keySet
@@ -102,9 +105,7 @@ object RemoteCache {
         case None =>
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml"))
         case Some(config) =>
-          val credentials = resolveCredentials(started)
-          val client = S3Client.fromConfig(started.logger, config, credentials)
-          val prefix = S3Client.keyPrefix(config)
+          val (client, prefix) = storeFor(started, config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPush = if (projects.nonEmpty) projects.toSet else digests.keySet
@@ -176,6 +177,17 @@ object RemoteCache {
       }
     }
   }
+
+  /** Select the cache backend from the configured uri scheme.
+    *
+    * `file://` is a directory on the local filesystem — no credentials, the uri path is the cache root and the key prefix is empty. Anything else goes through
+    * [[S3Client]] (s3:// or an S3-compatible HTTP endpoint) and requires credentials.
+    */
+  private def storeFor(started: Started, config: model.RemoteCacheConfig): (CacheStore, String) =
+    config.uri.getScheme match {
+      case "file" => (LocalDirStore.fromUri(started.logger, config.uri), "")
+      case _      => (S3Client.fromConfig(started.logger, config, resolveCredentials(started)), S3Client.keyPrefix(config))
+    }
 
   private def cacheKey(prefix: String, crossName: model.CrossProjectName, digest: String): String = {
     val projectKey = crossName.value.replace('/', '-')

@@ -22,7 +22,7 @@ class S3Client(
     endpoint: URI,
     accessKeyId: String,
     secretAccessKey: String
-) {
+) extends CacheStore {
   private val httpClient: HttpClient = HttpClient.newBuilder().build()
   private val service = "s3"
 
