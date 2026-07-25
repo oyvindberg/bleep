@@ -83,45 +83,17 @@ object BspRifle {
           }
         }
 
-    // Elect a single spawner so a swarm hitting a cold daemon forks ONE server JVM instead of one per client — the fork storm that swamps the machine (and,
-    // with it, the build server everyone shares) rather than merely wasting a few JVMs. The election is an OS advisory lock via FileChannel.tryLock: unlike a
-    // create/delete lock file it releases automatically when the channel closes or the process dies, so there is no stale-lock timeout, no delete race, and
-    // nothing to leak when a spawn is cancelled. It serializes both across fibers in one JVM (a second holder throws OverlappingFileLockException) and across
-    // separate client processes (tryLock returns null). Whoever wins spawns; everyone else waits for that daemon. The daemon-side fast-exit (a loser that finds
-    // a live winner exits at once) remains the backstop for the rare racer that slips through.
-    val spawnLockPath = socketDir.resolve(".spawn-lock")
-    val spawnRole: Resource[IO, Boolean] =
-      Resource
-        .make(IO.blocking {
-          Files.createDirectories(socketDir)
-          val ch = java.nio.channels.FileChannel.open(spawnLockPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE)
-          val amSpawner =
-            try ch.tryLock() != null // null → another process holds it
-            catch { case _: java.nio.channels.OverlappingFileLockException => false } // another fiber in this JVM holds it
-          (ch, amSpawner)
-        }) { case (ch, _) =>
-          IO.blocking(try ch.close()
-          catch { case _: Throwable => () })
-        } // close releases the lock
-        .map(_._2)
-
+    // No client-side spawn coordination. Under a swarm several clients may each spawn a daemon; libdaemonjvm's lock elects one winner and the losers exit
+    // ServerAlreadyRunning. That cold-start fork storm is a pre-existing property (it predates this work) and preventing it well is unfinished — an attempt to
+    // elect a single spawner via FileChannel.tryLock did not hold up under the stress harness (see scripts-dev BspStress), so it was removed rather than shipped
+    // half-working. What this file does guarantee is the part that mattered: connect-or-spawn readiness, so a healthy daemon is never mistaken for a missing one.
     val spawnAndWait: IO[Unit] =
-      spawnRole.use { amSpawner =>
-        val ensureUp =
-          if (amSpawner)
-            // We're the elected spawner. Re-check first — a previous winner's daemon may have come up between our check and acquiring the lock.
-            BspServerOperations.check(config.address).flatMap {
-              case true  => IO.unit
-              case false => spawn
-            }
-          else IO.unit // someone else is spawning; just wait for their daemon
-        ensureUp >> BspServerOperations.waitForServer(config)
-      } >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
+      spawn >> BspServerOperations.waitForServer(config) >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
 
     IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
       if (config.dieWithParent)
-        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse, no swarm to elect from.
-        BspServerOperations.forceKillAndCleanup(socketDir) >> spawn >> BspServerOperations.waitForServer(config)
+        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse.
+        BspServerOperations.forceKillAndCleanup(socketDir) >> spawnAndWait
       else
         BspServerOperations.check(config.address).flatMap {
           case true  => IO(logger.info("BSP server already running, reusing"))
