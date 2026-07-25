@@ -56,55 +56,52 @@ object BspRifle {
   def ensureRunningAndConnect(config: BspRifleConfig, logger: Logger): Resource[IO, BspConnection] =
     Resource.eval(ensureRunning(config, logger)) >> connectWithRetry(config, logger)
 
-  /** Ensure a server is running, starting one if necessary.
+  /** Ensure a daemon is reachable on this socket, spawning one if not.
     *
-    * In shared mode, reuses an existing server if one is already running. In ephemeral mode (dieWithParent), always starts a fresh server.
+    * Connect-or-spawn: the socket is the single source of truth. A successful connect proves a daemon owns this socket and is accepting — reuse it. Only a
+    * connect *refusal* (no socket file, or a stale one with nothing listening) means there is no daemon, and that is the sole trigger to spawn. This is
+    * deliberately load-blind: connecting to a bound unix socket completes at the kernel level regardless of how busy the daemon is (its accept loop runs on a
+    * thread that never touches compile work), so a busy server is never mistaken for a missing one, and we never spawn a redundant daemon against it. It also
+    * replaces the old pid-file/zombie reasoning entirely: a live pid whose daemon does not answer is no longer "reuse forever", and file-level cleanup of stale
+    * sockets/locks is the incoming daemon's own job (libdaemonjvm's lock protocol), not ours to second-guess.
     *
-    * Handles zombie detection and cleanup automatically.
+    * Spawning is race-tolerant rather than race-free: several clients may spawn at once, libdaemonjvm's lock lets exactly one win, and the losers exit
+    * [[BspServerOperations.ServerAlreadyRunningExitCode]] while everyone connects to the winner. Any other immediate exit is a real startup failure and is
+    * surfaced with the server log. Readiness after a spawn is a connect probe ([[BspServerOperations.waitForServer]]), immune to how the log is rotated.
     */
   def ensureRunning(config: BspRifleConfig, logger: Logger): IO[Unit] = {
     val socketDir = config.address.socketDir
     val mode = if (config.dieWithParent) "ephemeral" else "shared"
-    for {
-      _ <- IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)"))
 
-      _ <-
-        if (config.dieWithParent) {
-          // Ephemeral mode: each invocation gets its own server (unique socket dir via UUID in JvmKey)
-          BspServerOperations.forceKillAndCleanup(socketDir) >>
-            startAndWait(config, logger)
-        } else {
-          // Shared mode: reuse existing server if alive, otherwise start fresh
-          val pidFile = socketDir.resolve("pid")
-          BspServerOperations.readPid(pidFile).flatMap {
-            case Some(pid) =>
-              BspServerOperations.isProcessAlive(pid).flatMap {
-                case true =>
-                  // Server is already running — but it might still be starting up
-                  // (PID file is written before socket is created). Wait for readiness.
-                  IO(logger.info(s"BSP server already running (pid=$pid), reusing")) >>
-                    BspServerOperations.waitForServer(config)
-                case false =>
-                  // Zombie: PID file exists but process is dead
-                  warnIfDiedOfOom(config, pid, logger) >>
-                    IO(logger.info(s"BSP server pid=$pid is dead, cleaning up and starting fresh")) >>
-                    BspServerOperations.cleanup(socketDir) >>
-                    startAndWait(config, logger)
-              }
-            case None =>
-              // No PID file — check for zombie lock file
-              BspServerOperations.detectZombie(socketDir).flatMap {
-                case true =>
-                  IO(logger.info("Detected zombie BSP server state, cleaning up")) >>
-                    BspServerOperations.cleanupZombie(socketDir) >>
-                    startAndWait(config, logger)
-                case false =>
-                  // No server running at all — start fresh
-                  startAndWait(config, logger)
+    // Launch a daemon. Tolerate the lock-race loser (it exits ServerAlreadyRunning); surface any real startup failure.
+    def spawn: IO[Unit] =
+      oomCrashExplanation(config).flatMap(_.fold(IO.unit)(msg => IO(logger.warn(msg)))) >>
+        startServer(config, logger).flatMap { process =>
+          IO.blocking(process.isAlive).flatMap {
+            case true  => IO.unit // came up; readiness is checked by the caller via waitForServer
+            case false =>
+              IO.blocking(process.exitValue()).flatMap {
+                case BspServerOperations.ServerAlreadyRunningExitCode => IO.unit // another client won the race — fine, we connect to theirs
+                case code                                             =>
+                  IO(logger.error(s"BSP server exited immediately with code $code (server log: ${getOutputFile(config)})")) >>
+                    IO.raiseError(new RuntimeException(s"BSP server exited immediately with code $code"))
               }
           }
         }
-    } yield ()
+
+    val spawnAndWait: IO[Unit] =
+      spawn >> BspServerOperations.waitForServer(config) >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
+
+    IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
+      if (config.dieWithParent)
+        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse.
+        BspServerOperations.forceKillAndCleanup(socketDir) >> spawnAndWait
+      else
+        BspServerOperations.check(config.address).flatMap {
+          case true  => IO(logger.info("BSP server already running, reusing"))
+          case false => spawnAndWait
+        }
+    }
   }
 
   /** If the server's `output` log records the VM's OOM termination line, it died (or is right now dying) of OutOfMemoryError. -XX:+DisplayVMOutputToStderr
@@ -128,43 +125,6 @@ object BspRifle {
       )
     } else None
   }
-
-  /** A dead server whose log records the OOM termination line died of OutOfMemoryError — say so, with the fix, instead of a bare "dead, restarting". */
-  private def warnIfDiedOfOom(config: BspRifleConfig, pid: Long, logger: Logger): IO[Unit] =
-    oomCrashExplanation(config).flatMap {
-      case Some(msg) => IO(logger.warn(s"$msg (dead server pid=$pid)"))
-      case None      => IO.unit
-    }
-
-  /** Start a new server and wait for it to be ready. */
-  def startAndWait(config: BspRifleConfig, logger: Logger): IO[Unit] =
-    for {
-      _ <- IO(logger.info("Waiting for BSP server to be ready"))
-      process <- startServer(config, logger)
-      // Check if process exited immediately (e.g., exit code 222 = already running)
-      exitedImmediately <- IO.blocking(process.isAlive).map(!_)
-      _ <-
-        if (exitedImmediately) {
-          IO.blocking(process.exitValue()).flatMap { code =>
-            if (code == BspServerOperations.ServerAlreadyRunningExitCode) {
-              // Another server started between our check and start - that's fine
-              IO(logger.info("BSP server already running, reusing"))
-            } else {
-              val outputFile = getOutputFile(config)
-              IO(logger.error(s"BSP server exited immediately with code $code (server log: $outputFile)")) >>
-                IO.raiseError(
-                  new RuntimeException(
-                    s"BSP server exited immediately with code $code"
-                  )
-                )
-            }
-          }
-        } else {
-          BspServerOperations.waitForServer(config).flatMap { _ =>
-            IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
-          }
-        }
-    } yield ()
 
   /** Start a new BSP server process.
     *
