@@ -226,10 +226,17 @@ object BspServerOperations {
   // Retry Logic
   // ==========================================================================
 
-  /** Wait for server to become ready with polling.
+  /** Wait for the server to become ready by connecting to its socket.
     *
-    * Polls by checking if the socket file exists and the server output contains "listening". We don't try to connect because that causes the server to wait for
-    * JSON-RPC messages, which blocks if the checking client just connects and disconnects.
+    * Readiness is a successful connect (opened, then immediately closed), NOT a substring in the `output` log. The previous log-grep approach — wait until
+    * `output` contains "listening" — bricked healthy daemons: [[startServer]] rotates `output` to `output.prev` on every start attempt, so when a second
+    * client's daemon-start attempt loses the lock race and exits, it has already moved the live daemon's "listening" line out of `output`. From then on the
+    * grep never matched and every client timed out with "failed to start" against a daemon that was in fact accepting connections. A connect probe reflects
+    * what the client actually needs — can I reach the server — and cannot be fooled by log rotation.
+    *
+    * The old comment warned that connecting "causes the server to wait for JSON-RPC messages". It does not: the daemon handles a connect-then-close as an
+    * immediate EOF on a short-lived per-connection thread (bounded further by its read timeout). Polling stops on the first success, so this is at most a
+    * couple of throwaway connects during startup.
     */
   def waitForServer(config: BspRifleConfig): IO[Unit] = {
     val socketFile = config.address match {
@@ -238,14 +245,11 @@ object BspServerOperations {
     }
     val outputFile = config.address.socketDir.resolve("output")
 
-    def isReady: IO[Boolean] = IO.blocking {
-      // Check both socket file exists AND server has logged "listening"
-      Files.exists(socketFile) && {
-        if (Files.exists(outputFile)) {
-          Files.readString(outputFile).contains("listening")
-        } else false
+    def isReady: IO[Boolean] =
+      openConnection(config.address).attempt.flatMap {
+        case Right(conn) => IO.blocking(conn.close()).attempt.as(true)
+        case Left(_)     => IO.pure(false)
       }
-    }
 
     def poll(deadline: Long): IO[Unit] =
       isReady.flatMap {
