@@ -131,23 +131,35 @@ object BspServerDaemon {
           System.exit(ServerAlreadyRunningExitCode)
 
         case Left(err: LockError.RecoverableError) =>
-          if (remainingAttempts > 0) {
-            // Check if the lock is held by a dead process (stale lock from crash/kill -9).
-            // If so, clean up immediately instead of waiting the full retry period.
-            if (isLockStale(lockFiles.pidFile, logger)) {
-              logger.warn(s"Detected stale lock (holding process is dead), cleaning up")
-              Files.deleteIfExists(lockFiles.pidFile)
-              Files.deleteIfExists(lockFiles.lockFile)
-              Files.deleteIfExists(lockFiles.socketPaths.path)
-              loop(remainingAttempts - 1)
-            } else {
-              logger.warn(s"Caught $err, trying again in $retryPeriod")
-              Thread.sleep(retryPeriod.toMillis)
-              loop(remainingAttempts - 1)
-            }
-          } else {
-            logger.error(s"Recoverable lock error after max attempts: $err")
-            System.exit(1)
+          lockHolder(lockFiles.pidFile) match {
+            case LockHolder.Alive =>
+              // A healthy server already owns this socket. Exit immediately instead of retrying — a losing daemon that lingered here for the full 10×3s retry
+              // budget was the fork-storm leak: under a swarm every redundant spawn sat retrying for ~30s. The client's connect probe waits for the live server,
+              // so exiting now is exactly ServerAlreadyRunning.
+              logger.info(s"Another live BSP server owns ${config.socketDir} — exiting so the client uses it")
+              System.exit(ServerAlreadyRunningExitCode)
+            case LockHolder.Dead =>
+              // Stale lock from a crashed/kill -9'd holder — clean up and retry to become the server ourselves.
+              if (remainingAttempts > 0) {
+                logger.warn(s"Detected stale lock (holding process is dead), cleaning up")
+                Files.deleteIfExists(lockFiles.pidFile)
+                Files.deleteIfExists(lockFiles.lockFile)
+                Files.deleteIfExists(lockFiles.socketPaths.path)
+                loop(remainingAttempts - 1)
+              } else {
+                logger.error(s"Recoverable lock error after max attempts: $err")
+                System.exit(1)
+              }
+            case LockHolder.Unknown =>
+              // Lock held but no readable pid yet — a winner mid-startup. Brief retry so we settle into reuse once it writes its pid.
+              if (remainingAttempts > 0) {
+                logger.warn(s"Caught $err, trying again in $retryPeriod")
+                Thread.sleep(retryPeriod.toMillis)
+                loop(remainingAttempts - 1)
+              } else {
+                logger.error(s"Recoverable lock error after max attempts: $err")
+                System.exit(1)
+              }
           }
 
         case Left(err: LockError.FatalError) =>
@@ -163,22 +175,18 @@ object BspServerDaemon {
     loop(maxAttempts)
   }
 
-  /** Check if a lock is stale by reading the PID file and verifying the process is alive. */
-  private def isLockStale(pidFile: Path, logger: Logger): Boolean =
+  /** Who holds the lock, as far as the pid file can tell. */
+  private enum LockHolder { case Alive, Dead, Unknown }
+
+  /** Classify the lock holder from its pid file: a live process (reuse it), a dead one (stale lock to clean), or indeterminate (no readable pid — likely a
+    * winner mid-startup that has not written its pid yet).
+    */
+  private def lockHolder(pidFile: Path): LockHolder =
     try
-      if (Files.exists(pidFile)) {
-        val pid = Files.readString(pidFile).trim.toLong
-        val alive = ProcessHandle.of(pid).isPresent
-        if (!alive) logger.info(s"Process $pid from PID file is dead")
-        !alive
-      } else {
-        false
-      }
-    catch {
-      case e: Exception =>
-        logger.debug(s"Could not check PID file: ${e.getMessage}")
-        false
-    }
+      if (Files.exists(pidFile))
+        if (ProcessHandle.of(Files.readString(pidFile).trim.toLong).isPresent) LockHolder.Alive else LockHolder.Dead
+      else LockHolder.Unknown
+    catch { case _: Exception => LockHolder.Unknown }
 
   private def runWithLock(config: DaemonConfig, socketPaths: SocketPaths, logger: Logger): Unit = {
     val shutdownRequested = AtomicBoolean(false)

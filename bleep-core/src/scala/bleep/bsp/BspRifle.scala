@@ -83,55 +83,20 @@ object BspRifle {
           }
         }
 
-    // Serialize spawns so a swarm of clients hitting a cold daemon launches ONE server JVM, not one per client. libdaemonjvm's lock already guarantees a single
-    // winner for correctness, but without this every racer still forks a full JVM that immediately exits ServerAlreadyRunning — a fork storm under load. The
-    // client that atomically creates `.spawn-lock` becomes the spawner; the rest poll until the winner's daemon answers. A lock older than the startup timeout
-    // belonged to a spawner that crashed before its daemon came up, and is stolen.
-    val spawnLock = socketDir.resolve(".spawn-lock")
-    val tryAcquireSpawnLock: IO[Boolean] = IO.blocking {
-      // Atomic create is the acquire. Under churn the lock and even the socket dir come and go, so every filesystem call here can race a concurrent
-      // delete/recreate — treat "vanished" as "free, try again" and never let a NoSuchFile escape as a spawn failure (that was the 502 in the stress harness).
-      try { Files.createDirectories(socketDir); Files.createFile(spawnLock); true }
-      catch {
-        case _: java.nio.file.FileAlreadyExistsException =>
-          val stale =
-            try System.currentTimeMillis() - Files.getLastModifiedTime(spawnLock).toMillis > config.startCheckTimeout.toMillis
-            catch { case _: java.nio.file.NoSuchFileException => true } // released between create-fail and here → free
-          if (stale)
-            try { Files.deleteIfExists(spawnLock); Files.createFile(spawnLock); true }
-            catch { case _: Throwable => false }
-          else false
-        case _: java.nio.file.NoSuchFileException => false // dir mid-churn; the caller re-checks and retries
-      }
-    }
-    val releaseSpawnLock: IO[Unit] = IO.blocking(Files.deleteIfExists(spawnLock)).void
+    val spawnAndWait: IO[Unit] =
+      spawn >> BspServerOperations.waitForServer(config) >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
 
-    // Reach a running daemon, spawning at most one. Re-check connect on every pass, so the moment the winner's daemon binds, everyone else simply connects.
-    def coordinatedEnsure(deadlineMs: Long): IO[Unit] =
-      BspServerOperations.check(config.address).flatMap {
-        case true  => IO.unit
-        case false =>
-          tryAcquireSpawnLock.flatMap {
-            case true  => (spawn >> BspServerOperations.waitForServer(config)).guarantee(releaseSpawnLock)
-            case false =>
-              IO.realTime.flatMap { now =>
-                if (now.toMillis >= deadlineMs)
-                  spawn >> BspServerOperations.waitForServer(config) // coordination gave up (crashed spawner); fall back to spawning
-                else IO.sleep(config.startCheckPeriod) >> coordinatedEnsure(deadlineMs)
-              }
-          }
-      }
-
+    // No client-side spawn coordination: under a swarm, several clients may each spawn a daemon, but libdaemonjvm's lock elects one winner and every loser now
+    // exits immediately (BspServerDaemon detects the live winner and returns ServerAlreadyRunning instead of retrying for ~30s). So a cold-start race is a brief
+    // flurry of short-lived JVMs rather than a pile of lingering ones — no second lock, and nothing to leak.
     IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
       if (config.dieWithParent)
-        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse, no swarm to coordinate.
-        BspServerOperations.forceKillAndCleanup(socketDir) >> spawn >> BspServerOperations.waitForServer(config)
+        // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse.
+        BspServerOperations.forceKillAndCleanup(socketDir) >> spawnAndWait
       else
         BspServerOperations.check(config.address).flatMap {
           case true  => IO(logger.info("BSP server already running, reusing"))
-          case false =>
-            IO.realTime.flatMap(now => coordinatedEnsure(now.toMillis + config.startCheckTimeout.toMillis)) >>
-              IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
+          case false => spawnAndWait
         }
     }
   }
