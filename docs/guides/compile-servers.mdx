@@ -60,6 +60,33 @@ need to reclaim memory before doing something else heavy.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 
+## Idle self-shutdown
+
+A shared server that hasn't served a client for a while shuts
+itself down, so servers left behind by closed worktrees, JVM
+bumps, or upgraded bleep binaries don't pile up and hold memory
+indefinitely. The default is one hour.
+
+```bash
+bleep config compile-server idle-timeout 120   # minutes
+bleep config compile-server idle-timeout 0      # never self-shut-down
+bleep config compile-server idle-timeout-clear  # back to default 60
+```
+
+The clock measures **fully-idle** time only: it resets whenever a
+client connects and stays reset for as long as any client is
+connected. So a long compile, or an editor left open over lunch,
+keeps the server alive — the timeout only fires once nothing has
+been connected for the whole window. When it does fire, the server
+releases its lock and removes its socket files, so the next `bleep`
+command in that workspace just starts a fresh one.
+
+This is different from the [idle read timeout](#idle-read-timeout)
+below: that drops a single stuck *connection*; this retires the
+whole *server* once it has been unused for long enough.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
 ## Memory
 
 The compile server holds Zinc analysis, compiler state, and live
