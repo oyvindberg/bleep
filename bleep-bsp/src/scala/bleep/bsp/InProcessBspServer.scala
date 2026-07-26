@@ -33,7 +33,14 @@ object InProcessBspServer {
             var exitCode: java.lang.Integer = 0
             try {
               val numCores = Runtime.getRuntime.availableProcessors()
-              val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
+              // The built-in default rather than the developer's `~/.config/bleep` — this path is
+              // test-only, and a test whose concurrency depends on whoever is running it is a test
+              // that reproduces differently on every machine.
+              val machine = bleep.MachineResources.forThisMachine(
+                totalCpu = numCores,
+                maxConcurrentCompiles = bleep.model.BspServerConfig.default.effectiveMaxConcurrentCompiles,
+                logger = logger
+              )
               // One server per in-process run, so fresh daemon-scoped state is correct here.
               val server =
                 new MultiWorkspaceBspServer(
@@ -43,7 +50,7 @@ object InProcessBspServer {
                   machine = machine,
                   heapMonitor = HeapMonitor.system,
                   kspMutexes = new KspMutexes,
-                  buildCache = new BuildCache
+                  buildCache = new BuildCache(bleep.model.BspServerConfig.default.effectiveMaxCachedWorkspaces)
                 )
               server.run()
             } catch {

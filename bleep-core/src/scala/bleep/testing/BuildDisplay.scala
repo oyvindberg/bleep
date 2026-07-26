@@ -924,7 +924,7 @@ object BuildDisplay {
         _ <- log("=" * 60)
         failedCount = s.compileFailures.size
         skippedCount = s.skippedProjects.size
-        _ <- log(s"Projects: compiled, $failedCount failed, $skippedCount skipped")
+        _ <- log(s"Projects: ${s.compilesCompleted} compiled, $failedCount failed, $skippedCount skipped")
         _ <-
           if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed — see the errors above and the BSP server log")
           else IO.unit

@@ -208,32 +208,22 @@ object BspServerDaemon {
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
     val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
     val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
+    // Read once, here, rather than per connection: these two bound resources that span every client
+    // on this daemon, and a per-connection reading would let the newest client's config silently
+    // redefine a ceiling the others are already running under. The cost is that changing either
+    // takes effect on the next server start — `bleep config compile-server stop-all` to apply now.
+    val daemonConfig = BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault
+    val maxConcurrentCompiles = daemonConfig.effectiveMaxConcurrentCompiles
     logger.info(
-      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB"
+      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB, max $maxConcurrentCompiles concurrent compile(s)"
     )
     val machine = MachineResources.create(
       totalCpu = numCores,
       totalMemoryMb = forkMemoryBudgetMb,
+      maxConcurrentCompiles = maxConcurrentCompiles,
       logger = logger,
       longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
     )
-
-    // Background reporter: when work is queued waiting for resources, log the machine load
-    // periodically so a stalled build has a legible cause.
-    locally {
-      import cats.effect.unsafe.implicits.global
-      val reporter = new Thread("bleep-machine-reporter") {
-        override def run(): Unit =
-          try
-            while (!shutdownRequested.get()) {
-              Thread.sleep(15000)
-              if (machine.isContended.unsafeRunSync()) logger.info(machine.snapshot.unsafeRunSync().render)
-            }
-          catch { case _: InterruptedException => () }
-      }
-      reporter.setDaemon(true)
-      reporter.start()
-    }
 
     // Track what the machine can actually spare, for as long as the daemon lives.
     //
@@ -267,9 +257,46 @@ object BspServerDaemon {
     // generated-sources directory, so serializing per project must span connections.
     val kspMutexes = new KspMutexes
 
-    // Resolved builds, cached for the daemon's lifetime rather than per connection, so a one-shot
-    // `bleep compile` no longer re-resolves the whole build on every invocation.
-    val buildCache = new BuildCache
+    // Resolved builds, cached across connections rather than per connection, so a one-shot
+    // `bleep compile` no longer re-resolves the whole build on every invocation — but bounded, so a
+    // daemon that has served a dozen worktrees is not still holding all twelve.
+    val buildCache = new BuildCache(daemonConfig.effectiveMaxCachedWorkspaces)
+
+    // Background reporter. Two jobs, one thread:
+    //
+    //   - log the machine load when work is queued, so a stalled build has a legible cause;
+    //   - record governor and cache state to metrics EVERY cycle, contended or not.
+    //
+    // The unconditional half is the point. Both quantities this records — how many compiles the
+    // governor was admitting, and how many workspaces' builds were resident — are the ones you want
+    // a history of when a heap event lands, and a history with gaps in the uncontended stretches is
+    // exactly the history that cannot tell you when the floor started climbing.
+    locally {
+      import cats.effect.unsafe.implicits.global
+      val reporter = new Thread("bleep-machine-reporter") {
+        override def run(): Unit =
+          try
+            while (!shutdownRequested.get()) {
+              Thread.sleep(15000)
+              val snapshot = machine.snapshot.unsafeRunSync()
+              if (snapshot.waiting.nonEmpty) logger.info(snapshot.render)
+              BspMetrics.recordMachine(
+                usedCpu = snapshot.usedCpu,
+                totalCpu = snapshot.totalCpu,
+                usedMemoryMb = snapshot.usedMemoryMb,
+                totalMemoryMb = snapshot.totalMemoryMb,
+                activeCompiles = snapshot.activeCompiles,
+                maxCompiles = snapshot.maxCompiles,
+                running = snapshot.active.size,
+                waiting = snapshot.waiting.size
+              )
+              BspMetrics.recordWorkspaceState(buildCache.cachedWorkspaces, buildCache.bound)
+            }
+          catch { case _: InterruptedException => () }
+      }
+      reporter.setDaemon(true)
+      reporter.start()
+    }
 
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.

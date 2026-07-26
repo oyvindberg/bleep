@@ -116,6 +116,55 @@ bleep versions are deleted automatically at server start.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 
+### Concurrent compiles
+
+```bash
+bleep config compile-server max-concurrent-compiles 4
+bleep config compile-server max-concurrent-compiles-clear   # back to default: half the cores
+```
+
+Caps how many compiles run at once **across every workspace and
+every connected client** on one server. This is not the same knob
+as build parallelism: that bounds a single compile run, and a
+shared server routinely has a dozen worktrees connected at once,
+each independently entitled to the whole machine.
+
+Cores are a poor proxy for what a compile costs, because a compile
+allocates into the *server's* heap — so on an 18-core machine, one
+core per compile meant eighteen concurrent compiles feeding a
+single 12g heap. If you see `OutOfMemoryError` on a server shared
+by several worktrees, lower this before raising `max-memory`.
+
+Test forks are deliberately not affected: they run out of process
+and are already governed by their own measured memory budget.
+
+### Cached workspaces
+
+```bash
+bleep config compile-server max-cached-workspaces 2
+bleep config compile-server max-cached-workspaces-clear   # back to default 4
+```
+
+The server keeps resolved builds in memory so repeated
+invocations don't re-resolve from scratch. Each one is
+substantial — exploded model, resolved classpaths, and the Zinc
+analysis hanging off it — so the cache is bounded, and the least
+recently used *idle* workspace is evicted once it's full. A
+workspace with work in flight is never evicted, so a busy server
+may briefly hold more than the bound.
+
+Lower this on a machine where one server serves many worktrees and
+the heap floor creeps up over a long session; raise it if you
+bounce between several builds and notice repeated build-load
+pauses. Evictions are logged, so a sudden cold load has a
+traceable cause.
+
+Both settings are read when the server **starts**. After changing
+either, run `bleep config compile-server stop-all` to apply it
+now.
+
+[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+
 ### Heap-pressure throttle
 
 ```bash

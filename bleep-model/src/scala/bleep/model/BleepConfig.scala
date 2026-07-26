@@ -59,7 +59,23 @@ case class BspServerConfig(
       * counts only fully-idle time: it resets whenever a client is connected, so a server mid-compile or serving an editor is never reaped. Set to 0 to disable
       * (stay alive forever). Default: 60
       */
-    compileServerIdleTimeoutMinutes: Option[Int]
+    compileServerIdleTimeoutMinutes: Option[Int],
+    /** Ceiling on compiles running at once across the WHOLE daemon — every workspace, every connected client — as opposed to [[parallelism]], which bounds a
+      * single compile run. The distinction is the whole point: one server routinely serves a dozen worktrees at once, and a per-run cap lets each of them
+      * independently claim every core. Observed in the field at 14 connections over 11 worktrees, 18 compiles in flight, heap pegged at its ceiling.
+      *
+      * Default: half the cores, which leaves room for the JVM's own GC and compiler threads and for the test forks a build starts alongside. None = default.
+      */
+    maxConcurrentCompiles: Option[Int],
+    /** How many workspaces' resolved builds [[bleep.bsp.BuildCache]] keeps before evicting the least recently used idle one.
+      *
+      * A resolved build is not small — exploded model, resolved classpaths, the Zinc analysis reachable from it — and the cache used to hold every workspace
+      * the daemon had ever seen for its whole lifetime. Measured on a daemon serving 11 worktrees: the post-GC floor climbed monotonically from 3.5GB to 8.2GB
+      * of a 12GB heap over 45 minutes, at which point compiles OOM'd at a concurrency of three. Bounding the cache bounds that floor.
+      *
+      * Only idle workspaces are evicted, so this is a cache size, not a limit on how many workspaces a daemon can serve. Default: 4. None = default.
+      */
+    maxCachedWorkspaces: Option[Int]
 ) {
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
@@ -79,6 +95,21 @@ case class BspServerConfig(
     val minutes = bspReadTimeoutMinutes.getOrElse(BspServerConfig.DefaultBspReadTimeoutMinutes)
     if (minutes < 0) sys.error(s"bspReadTimeoutMinutes must be >= 0 (0 disables the timeout), got $minutes")
     minutes * 60 * 1000
+  }
+
+  /** Daemon-wide ceiling on concurrent compiles. Always >= 1: a cap of zero would deadlock every build. */
+  def effectiveMaxConcurrentCompiles: Int = {
+    val cores = Runtime.getRuntime.availableProcessors
+    val n = maxConcurrentCompiles.getOrElse(math.max(1, (cores * BspServerConfig.DefaultCompileConcurrencyRatio).toInt))
+    if (n < 1) sys.error(s"maxConcurrentCompiles must be >= 1, got $n")
+    n
+  }
+
+  /** How many workspaces' builds the daemon caches. Always >= 1: the workspace being compiled has to stay cached while it compiles. */
+  def effectiveMaxCachedWorkspaces: Int = {
+    val n = maxCachedWorkspaces.getOrElse(BspServerConfig.DefaultMaxCachedWorkspaces)
+    if (n < 1) sys.error(s"maxCachedWorkspaces must be >= 1, got $n")
+    n
   }
 
   /** How long a fully-idle server waits before self-shutdown, in milliseconds. 0 means never. */
@@ -104,6 +135,15 @@ object BspServerConfig {
   // connected), so this never interrupts a compile or a live editor.
   val DefaultCompileServerIdleTimeoutMinutes: Int = 60
 
+  // Half the cores. A compile is not a CPU-bound loop that owns its core — it allocates hard, and the heap it allocates into is shared with every other
+  // workspace on the daemon. Leaving half the cores unclaimed by compiles leaves them for GC, the JVM's own compiler threads, and the test forks a build runs
+  // alongside. Raise it with `bleep config compile-server max-concurrent-compiles` on a machine with heap to spare.
+  val DefaultCompileConcurrencyRatio: Double = 0.5
+
+  // Four builds is enough that an editor plus a couple of CLI worktrees all stay warm, and few enough that the retained floor stays a fraction of the heap
+  // rather than most of it. Evicted entries are reloaded on next use, so this trades a cold build load for headroom.
+  val DefaultMaxCachedWorkspaces: Int = 4
+
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
     parallelismRatio = None,
@@ -114,7 +154,9 @@ object BspServerConfig {
     compileServerMaxMemory = None,
     heapPressureThreshold = None,
     bspReadTimeoutMinutes = None,
-    compileServerIdleTimeoutMinutes = None
+    compileServerIdleTimeoutMinutes = None,
+    maxConcurrentCompiles = None,
+    maxCachedWorkspaces = None
   )
 
   implicit val decoder: Decoder[BspServerConfig] = deriveDecoder

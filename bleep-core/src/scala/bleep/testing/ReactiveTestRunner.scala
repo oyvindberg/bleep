@@ -83,7 +83,11 @@ object ReactiveTestRunner {
         options.maxParallelJvms,
         started.jvmCommand,
         started.buildPaths.buildDir,
-        MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = started.logger)
+        MachineResources.forThisMachine(
+          totalCpu = Runtime.getRuntime.availableProcessors(),
+          maxConcurrentCompiles = started.config.bspServerConfigOrDefault.effectiveMaxConcurrentCompiles,
+          logger = started.logger
+        )
       )
       .use { pool =>
         for {

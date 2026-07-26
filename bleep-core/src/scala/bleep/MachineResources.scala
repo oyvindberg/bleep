@@ -28,6 +28,7 @@ import scala.concurrent.duration._
   */
 final class MachineResources private (
     val totalCpu: Int,
+    val maxConcurrentCompiles: Int,
     state: Ref[IO, MachineResources.St],
     logger: Logger,
     longWaitWarnMs: Long
@@ -93,7 +94,7 @@ final class MachineResources private (
       now <- IO.realTime.map(_.toMillis)
       maybeId <- state.modify { st =>
         val memReq = math.max(0L, math.min(memoryMb, st.totalMemoryMb))
-        if (fits(cpuReq, memReq, st.freeCpu, st.freeMemoryMb)) {
+        if (fits(kind, cpuReq, memReq, st.freeCpu, st.freeMemoryMb, st.activeCompiles, st.maxCompiles)) {
           val id = st.nextId
           val next = st.copy(
             nextId = id + 1,
@@ -148,6 +149,8 @@ final class MachineResources private (
         usedCpu = totalCpu - st.freeCpu,
         totalMemoryMb = st.totalMemoryMb,
         usedMemoryMb = st.totalMemoryMb - st.freeMemoryMb,
+        activeCompiles = st.activeCompiles,
+        maxCompiles = st.maxCompiles,
         active = st.active.values.toList.sortBy(_.id).map(r => Entry(r.kind, r.label, r.cpu, r.memoryMb, now - r.sinceMs)),
         waiting = st.waiting.toList.map(w => Entry(w.kind, w.label, w.cpu, w.memoryMb, now - w.sinceMs))
       )
@@ -155,6 +158,14 @@ final class MachineResources private (
 
   /** True when work is queued waiting for resources — the signal worth logging periodically. */
   def isContended: IO[Boolean] = state.get.map(_.waiting.nonEmpty)
+
+  /** Compiles holding a reservation right now, across every client on this server.
+    *
+    * [[bleep.bsp.HeapPressureGate]] needs this and not a per-connection tally: it decides whether to stagger by asking "is anything else compiling", and the
+    * heap it is protecting is shared by every workspace the daemon serves. Asked per connection, a dozen clients each running a single compile all answer "I'm
+    * the only one" and every one of them skips the stagger — which is the state the server was in at 17 concurrent compiles.
+    */
+  def activeCompiles: IO[Int] = state.get.map(_.activeCompiles)
 
   /** Retune the fork-memory budget to what the machine can currently afford, and wake anything that now fits.
     *
@@ -200,10 +211,17 @@ object MachineResources {
       freeCpu: Int,
       totalMemoryMb: Long,
       freeMemoryMb: Long,
+      maxCompiles: Int,
       nextId: Long,
       active: Map[Long, Reservation],
       waiting: Vector[Waiter]
-  )
+  ) {
+
+    /** Compiles currently holding a reservation. Derived rather than stored: one counter that must be kept in step with `active` across grant, release and
+      * cancel is one counter that will eventually disagree with it, and `active` is small.
+      */
+    def activeCompiles: Int = active.values.count(_.kind == ResourceKind.Compile)
+  }
 
   /** Grant every currently-fitting waiter, oldest first (work-conserving: a waiter that doesn't fit is skipped rather than head-of-line-blocking). Pure:
     * returns the updated state and the waiters that were granted (whose gates the caller then completes).
@@ -212,12 +230,17 @@ object MachineResources {
     var freeCpu = st.freeCpu
     var freeMem = st.freeMemoryMb
     var active = st.active
+    // Counted once up front and kept in step as we grant, so a batch of compile waiters woken by a
+    // single release fills the remaining slots and no more — recomputing from `active` per waiter
+    // would be correct too, just quadratic for no reason.
+    var activeCompiles = st.activeCompiles
     val granted = List.newBuilder[Waiter]
     val stillWaiting = Vector.newBuilder[Waiter]
     st.waiting.foreach { w =>
-      if (fits(w.cpu, w.memoryMb, freeCpu, freeMem)) {
+      if (fits(w.kind, w.cpu, w.memoryMb, freeCpu, freeMem, activeCompiles, st.maxCompiles)) {
         freeCpu -= w.cpu
         freeMem -= w.memoryMb
+        if (w.kind == ResourceKind.Compile) activeCompiles += 1
         active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, w.memoryMb, w.sinceMs))
         granted += w
       } else stillWaiting += w
@@ -232,9 +255,16 @@ object MachineResources {
     * admitting more). Without this, a compile — which reserves a core but zero fork-memory — was refused because free memory was -5GB, so a fleet of idle
     * pooled test JVMs holding memory could wedge every compile in the build behind an over-commit the compiles do not even contribute to. Observed exactly
     * once: 18 compiles waiting 16 minutes on `mem 28160/23066MB`.
+    *
+    * Compiles carry a third constraint, a straight count. Cores are the wrong proxy for what a compile costs, because a compile's scarce resource is the
+    * SERVER'S OWN HEAP — which it reserves nothing of here (`memoryMb = 0`, since that dimension budgets forked processes). One core per compile therefore let
+    * an 18-core machine run 18 concurrent compiles into a single 12GB heap, across as many workspaces as happened to be connected. See
+    * [[bleep.model.BspServerConfig.maxConcurrentCompiles]].
     */
-  private def fits(cpu: Int, memoryMb: Long, freeCpu: Int, freeMemoryMb: Long): Boolean =
-    (cpu == 0 || freeCpu >= cpu) && (memoryMb == 0L || freeMemoryMb >= memoryMb)
+  private def fits(kind: ResourceKind, cpu: Int, memoryMb: Long, freeCpu: Int, freeMemoryMb: Long, activeCompiles: Int, maxCompiles: Int): Boolean =
+    (cpu == 0 || freeCpu >= cpu) &&
+      (memoryMb == 0L || freeMemoryMb >= memoryMb) &&
+      (kind != ResourceKind.Compile || activeCompiles < maxCompiles)
 
   case class Entry(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long, ageMs: Long)
 
@@ -243,6 +273,8 @@ object MachineResources {
       usedCpu: Int,
       totalMemoryMb: Long,
       usedMemoryMb: Long,
+      activeCompiles: Int,
+      maxCompiles: Int,
       active: List[Entry],
       waiting: List[Entry]
   ) {
@@ -250,7 +282,9 @@ object MachineResources {
     /** Multi-line human-readable rendering for the server log. */
     def render: String = {
       val sb = new StringBuilder
-      sb.append(f"machine: cpu $usedCpu%d/$totalCpu%d, mem $usedMemoryMb%d/$totalMemoryMb%dMB, running ${active.size}%d, waiting ${waiting.size}%d")
+      sb.append(
+        f"machine: cpu $usedCpu%d/$totalCpu%d, mem $usedMemoryMb%d/$totalMemoryMb%dMB, compiles $activeCompiles%d/$maxCompiles%d, running ${active.size}%d, waiting ${waiting.size}%d"
+      )
       def line(prefix: String, e: Entry): Unit =
         sb.append(f"\n  $prefix%-8s ${e.kind}%-14s cpu=${e.cpu}%d mem=${e.memoryMb}%dMB age=${e.ageMs / 1000}%ds  ${e.label}")
       active.foreach(line("running", _))
@@ -323,25 +357,30 @@ object MachineResources {
   def create(
       totalCpu: Int,
       totalMemoryMb: Long,
+      maxConcurrentCompiles: Int,
       logger: Logger,
       longWaitWarnMs: Long
   ): MachineResources = {
     val cpu = math.max(1, totalCpu)
     val mem = math.max(1L, totalMemoryMb)
-    logger.info(s"[machine] resource governor: $cpu CPU core(s), ${mem}MB fork-memory budget")
-    val state = Ref.unsafe[IO, St](St(freeCpu = cpu, totalMemoryMb = mem, freeMemoryMb = mem, nextId = 0L, active = Map.empty, waiting = Vector.empty))
-    new MachineResources(cpu, state, logger, longWaitWarnMs)
+    val compiles = math.max(1, maxConcurrentCompiles)
+    logger.info(s"[machine] resource governor: $cpu CPU core(s), ${mem}MB fork-memory budget, $compiles concurrent compile(s)")
+    val state = Ref.unsafe[IO, St](
+      St(freeCpu = cpu, totalMemoryMb = mem, freeMemoryMb = mem, maxCompiles = compiles, nextId = 0L, active = Map.empty, waiting = Vector.empty)
+    )
+    new MachineResources(cpu, compiles, state, logger, longWaitWarnMs)
   }
 
   /** Governor sized for the machine this JVM is running on: `totalCpu` cores, and a fork-memory budget of physical RAM minus this JVM's own max heap minus an
     * OS reserve. The single place that derivation lives, and only a starting point — see [[retuneLoop]].
     */
-  def forThisMachine(totalCpu: Int, logger: Logger): MachineResources = {
+  def forThisMachine(totalCpu: Int, maxConcurrentCompiles: Int, logger: Logger): MachineResources = {
     val ownHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
     val physicalMb = physicalMemoryMb(fallbackMb = ownHeapMb * 2)
     create(
       totalCpu = totalCpu,
       totalMemoryMb = forkMemoryBudgetMb(physicalMb, ownHeapMb),
+      maxConcurrentCompiles = maxConcurrentCompiles,
       logger = logger,
       longWaitWarnMs = DefaultLongWaitWarnMs
     )

@@ -59,9 +59,6 @@ class MultiWorkspaceBspServer(
   private val initialized = AtomicBoolean(false)
   private val shutdownRequested = AtomicBoolean(false)
 
-  /** Track active compile count so heap pressure back-pressure can skip stalling when we're the only compile. */
-  private val activeCompileCount = new java.util.concurrent.atomic.AtomicInteger(0)
-
   private val clientCapabilities = AtomicReference[Option[BuildClientCapabilities]](None)
 
   /** The active workspace for this connection (set during initialize) */
@@ -1850,7 +1847,7 @@ class MultiWorkspaceBspServer(
   ): IO[Unit] =
     HeapPressureGate.waitForHeapPressure(
       heapMonitor = heapMonitor,
-      activeCompileCount = activeCompileCount,
+      activeCompiles = machine.activeCompiles,
       threshold = threshold,
       retryMs = HeapPressureGate.DefaultRetryMs,
       projectName = projectName,
@@ -2446,24 +2443,25 @@ class MultiWorkspaceBspServer(
             // heap is staggered separately by waitForHeapPressure.
             val gatedCompile =
               machine.reserve(MachineResources.ResourceKind.Compile, s"compile $projectName", cpu = 1, memoryMb = 0L).use { _ =>
-                IO(activeCompileCount.incrementAndGet())
-                  .bracket { _ =>
-                    waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                      val compileStartTime = System.currentTimeMillis()
-                      IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                        compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
-                          .guaranteeCase {
-                            case cats.effect.Outcome.Succeeded(resultIO) =>
-                              resultIO.flatMap { result =>
-                                val dur = System.currentTimeMillis() - compileStartTime
-                                val ok = result == TaskDag.TaskResult.Success
-                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                              }
-                            case _ =>
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                // The reservation IS the count of compiles in flight — held for exactly this scope,
+                // across every connection, and readable via `machine.activeCompiles`. The connection-
+                // local tally that used to be maintained here counted only this client's compiles,
+                // which is not the quantity anything wants to know.
+                waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                  val compileStartTime = System.currentTimeMillis()
+                  IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                    compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
+                      .guaranteeCase {
+                        case cats.effect.Outcome.Succeeded(resultIO) =>
+                          resultIO.flatMap { result =>
+                            val dur = System.currentTimeMillis() - compileStartTime
+                            val ok = result == TaskDag.TaskResult.Success
+                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
                           }
-                    }
-                  }(_ => IO(activeCompileCount.decrementAndGet(): Unit))
+                        case _ =>
+                          IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                      }
+                }
               }
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 

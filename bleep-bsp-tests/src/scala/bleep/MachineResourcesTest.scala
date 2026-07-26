@@ -17,7 +17,110 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
   import MachineResources.ResourceKind._
 
   private def machine(cpu: Int, memMb: Long): MachineResources =
-    MachineResources.create(totalCpu = cpu, totalMemoryMb = memMb, logger = TypedLogger.DevNull, longWaitWarnMs = 200L)
+    machine(cpu, memMb, maxCompiles = cpu)
+
+  /** `maxCompiles = cpu` in the common helper keeps every pre-existing test measuring what it was written to measure — CPU and memory admission — rather than
+    * silently also measuring the compile ceiling. Tests that are about the ceiling pass their own.
+    */
+  private def machine(cpu: Int, memMb: Long, maxCompiles: Int): MachineResources =
+    MachineResources.create(
+      totalCpu = cpu,
+      totalMemoryMb = memMb,
+      maxConcurrentCompiles = maxCompiles,
+      logger = TypedLogger.DevNull,
+      longWaitWarnMs = 200L
+    )
+
+  test("compiles are capped daemon-wide, independently of how many cores are free") {
+    // The shape that pegged a 12GB heap: plenty of cores, so CPU admission lets everything through,
+    // and every compile reserves zero fork-memory, so that dimension never says no either. Without a
+    // count of its own, 18 cores meant 18 concurrent compiles into one heap.
+    val m = machine(cpu = 8, memMb = 8192, maxCompiles = 2)
+    val prog = for {
+      running <- CountDownLatch[IO](2)
+      release <- CountDownLatch[IO](1)
+      held <- List("c1", "c2").parTraverse(n => m.reserve(Compile, n, cpu = 1, memoryMb = 0L).use(_ => running.release *> release.await).start)
+      _ <- running.await
+      // A third compile does not fit, though six cores are idle.
+      third <- m.reserve(Compile, "c3", cpu = 1, memoryMb = 0L).use(_ => IO.unit).start
+      _ <- IO.sleep(200.millis)
+      blocked <- m.snapshot
+      _ <- IO {
+        blocked.activeCompiles shouldBe 2
+        blocked.maxCompiles shouldBe 2
+        blocked.usedCpu shouldBe 2 // six cores free, and still nothing more is admitted
+        blocked.waiting.map(_.label) shouldBe List("c3")
+      }
+      _ <- release.release
+      _ <- held.traverse_(_.join)
+      _ <- third.join
+      after <- m.snapshot
+    } yield {
+      after.activeCompiles shouldBe 0
+      after.waiting shouldBe empty
+    }
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("the compile cap does not apply to forks: they are bounded by cores and fork memory, which already account for them") {
+    // Test forks reserve measured RSS against the fork-memory budget and a core each; a compile
+    // reserves neither, which is why only compiles need a count. Capping forks here would double-
+    // charge them.
+    val m = machine(cpu = 8, memMb = 8192, maxCompiles = 1)
+    val prog = for {
+      running <- CountDownLatch[IO](3)
+      release <- CountDownLatch[IO](1)
+      held <- List("f1", "f2", "f3").parTraverse(n => m.reserve(TestFork, n, cpu = 1, memoryMb = 512).use(_ => running.release *> release.await).start)
+      _ <- running.await
+      s <- m.snapshot
+      _ <- IO {
+        s.active.map(_.label).sorted shouldBe List("f1", "f2", "f3")
+        s.activeCompiles shouldBe 0
+        s.waiting shouldBe empty
+      }
+      _ <- release.release
+      _ <- held.traverse_(_.join)
+    } yield ()
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("a released compile hands its slot to the longest-waiting compile") {
+    val m = machine(cpu = 8, memMb = 8192, maxCompiles = 1)
+    val prog = for {
+      running <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      first <- m.reserve(Compile, "first", cpu = 1, memoryMb = 0L).use(_ => running.release *> release.await).start
+      _ <- running.await
+      secondRan <- CountDownLatch[IO](1)
+      second <- m.reserve(Compile, "second", cpu = 1, memoryMb = 0L).use(_ => secondRan.release).start
+      _ <- IO.sleep(100.millis)
+      queued <- m.snapshot
+      _ <- IO(queued.waiting.map(_.label) shouldBe List("second"))
+      _ <- release.release
+      _ <- first.join
+      _ <- secondRan.await // completes only once the slot is handed over
+      _ <- second.join
+    } yield ()
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("activeCompiles is what the heap gate reads, and counts every client's compiles") {
+    // Per connection this figure was always 1 for a client running a single compile, so a dozen
+    // such clients each concluded they were alone and skipped the stagger entirely.
+    val m = machine(cpu = 8, memMb = 8192, maxCompiles = 4)
+    val prog = for {
+      running <- CountDownLatch[IO](3)
+      release <- CountDownLatch[IO](1)
+      held <- List("a", "b", "c").parTraverse(n => m.reserve(Compile, n, cpu = 1, memoryMb = 0L).use(_ => running.release *> release.await).start)
+      _ <- running.await
+      n <- m.activeCompiles
+      _ <- IO(n shouldBe 3)
+      _ <- release.release
+      _ <- held.traverse_(_.join)
+      afterCount <- m.activeCompiles
+    } yield afterCount shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
 
   test("a reservation within budget is granted immediately and released") {
     val m = machine(cpu = 4, memMb = 8192)
