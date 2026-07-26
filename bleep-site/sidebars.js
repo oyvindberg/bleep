@@ -247,6 +247,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Environment variables",
+          id: "usage/environment-variables",
+        },
+        {
+          type: "doc",
           label: "Cross-building",
           id: "guides/cross-building",
         },

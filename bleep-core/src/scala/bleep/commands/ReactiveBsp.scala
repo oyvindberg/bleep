@@ -40,7 +40,12 @@ case class ReactiveBsp(
     linkOptions: Option[LinkOptions],
     flamegraph: Boolean,
     cancel: Boolean,
-    junitReportDir: Option[Path]
+    junitReportDir: Option[Path],
+    /** Environment forwarded to forked test processes, in [[BuildMode.Test]] only. Normally `BleepBspProtocol.ClientEnv.current()`; a field rather than a
+      * `sys.env` read at the send site so tests can inject values that are provably not in the running JVM's own environment — the only way to prove the value
+      * travelled over BSP rather than being inherited by the fork.
+      */
+    clientEnv: Map[String, String]
 ) extends BleepBuildCommand {
 
   /** Persists across watch cycles for per-project diff (only used in DiffWatch mode) */
@@ -605,7 +610,10 @@ case class ReactiveBsp(
         BspRequestHelper
           .callCancellable {
             val params = new bsp4j.TestParams(targets.asJava)
-            val testOptions = BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, includeTags, excludeTags, flamegraph)
+            // Forward this shell's environment so `FOO=bar bleep test` reaches the tests. The daemon that forks them is shared
+            // and long-lived, so its own env is not ours; the values ride along with the request instead. See BleepBspProtocol.ClientEnv.
+            val testOptions =
+              BleepBspProtocol.TestOptions(jvmOptions, testArgs, only, exclude, includeTags, excludeTags, flamegraph, clientEnv)
             params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
             params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
             server.buildTargetTest(params)
@@ -960,7 +968,8 @@ object ReactiveBsp {
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = None
+    junitReportDir = None,
+    clientEnv = Map.empty
   )
 
   /** Create test-bsp command */
@@ -976,7 +985,8 @@ object ReactiveBsp {
       excludeTags: List[String],
       flamegraph: Boolean,
       cancel: Boolean,
-      junitReportDir: Option[Path]
+      junitReportDir: Option[Path],
+      clientEnv: Map[String, String]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -991,7 +1001,8 @@ object ReactiveBsp {
     linkOptions = None,
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = junitReportDir
+    junitReportDir = junitReportDir,
+    clientEnv = clientEnv
   )
 
   /** Create link-bsp command */
@@ -1016,6 +1027,7 @@ object ReactiveBsp {
     linkOptions = Some(options),
     flamegraph = flamegraph,
     cancel = cancel,
-    junitReportDir = None
+    junitReportDir = None,
+    clientEnv = Map.empty
   )
 }

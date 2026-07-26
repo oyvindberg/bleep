@@ -416,7 +416,8 @@ object Main {
                 excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
                 flamegraph = flamegraph,
                 cancel = cancel,
-                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_))
+                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
               )
             }
           ),

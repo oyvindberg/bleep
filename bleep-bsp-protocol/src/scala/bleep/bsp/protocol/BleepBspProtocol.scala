@@ -95,6 +95,11 @@ object BleepBspProtocol {
 
   /** Options passed via TestParams.data field. `only` / `exclude` are regex matches against the FQDN of discovered suites; `includeTags` / `excludeTags` are
     * tag names that the BSP server resolves against each project's `testTags` manifest after discovery.
+    *
+    * `env` is the invoking client's environment (see [[ClientEnv]]). The BSP daemon is long-lived and shared across workspaces and clients, so its own
+    * `System.getenv` is whichever shell happened to cold-start it — useless as a source of per-run env. Carrying the env on the request instead means the
+    * daemon never mutates its own process environment: the values are applied as an overlay on the forked test process only, which is both race-free under
+    * concurrent requests and incapable of leaking one workspace's secrets into another's test run.
     */
   case class TestOptions(
       jvmOptions: List[String],
@@ -103,18 +108,75 @@ object BleepBspProtocol {
       exclude: List[String],
       includeTags: List[String],
       excludeTags: List[String],
-      flamegraph: Boolean = false
+      flamegraph: Boolean,
+      env: Map[String, String]
   )
 
   object TestOptions {
-    val empty: TestOptions = TestOptions(Nil, Nil, Nil, Nil, Nil, Nil, false)
+    val empty: TestOptions = TestOptions(Nil, Nil, Nil, Nil, Nil, Nil, false, Map.empty)
 
-    implicit val codec: Codec[TestOptions] = deriveCodec
+    /** Hand-written and absent-tolerant, for the same reason as [[Event.suiteFinishedCodec]]: a long-lived daemon and a client from a different bleep version
+      * talk to each other routinely, and `deriveCodec` does not fill in case-class defaults for missing fields. With a derived decoder, the day `env` was added
+      * every older client's request would fail to decode — and the failure path in `handleTest` degrades to `TestOptions.empty`, silently dropping that run's
+      * `--only`, `--exclude` and `--jvm-opt` rather than erroring. Every field therefore reads through `getOrElse`, so adding the next one stays non-breaking.
+      */
+    implicit val codec: Codec[TestOptions] = {
+      val enc: Encoder[TestOptions] = Encoder.instance { o =>
+        Json.obj(
+          "jvmOptions" -> o.jvmOptions.asJson,
+          "testArgs" -> o.testArgs.asJson,
+          "only" -> o.only.asJson,
+          "exclude" -> o.exclude.asJson,
+          "includeTags" -> o.includeTags.asJson,
+          "excludeTags" -> o.excludeTags.asJson,
+          "flamegraph" -> o.flamegraph.asJson,
+          "env" -> o.env.asJson
+        )
+      }
+      val dec: Decoder[TestOptions] = Decoder.instance { c =>
+        for {
+          jvmOptions <- c.getOrElse[List[String]]("jvmOptions")(Nil)
+          testArgs <- c.getOrElse[List[String]]("testArgs")(Nil)
+          only <- c.getOrElse[List[String]]("only")(Nil)
+          exclude <- c.getOrElse[List[String]]("exclude")(Nil)
+          includeTags <- c.getOrElse[List[String]]("includeTags")(Nil)
+          excludeTags <- c.getOrElse[List[String]]("excludeTags")(Nil)
+          flamegraph <- c.getOrElse[Boolean]("flamegraph")(false)
+          env <- c.getOrElse[Map[String, String]]("env")(Map.empty)
+        } yield TestOptions(jvmOptions, testArgs, only, exclude, includeTags, excludeTags, flamegraph, env)
+      }
+      Codec.from(dec, enc)
+    }
 
     def encode(options: TestOptions): String = options.asJson.noSpaces
 
     def decode(json: String): Either[io.circe.Error, TestOptions] =
       io.circe.parser.decode[TestOptions](json)
+  }
+
+  /** Capture of the invoking client's environment, for forwarding to forked test/run processes.
+    *
+    * `bleep test` runs its tests in a process forked by the BSP daemon, not by the CLI, so without this the tests see the daemon's environment — the one from
+    * whichever shell cold-started it, possibly days ago in a different directory. `FOO=bar bleep test` had no way to reach a test.
+    */
+  object ClientEnv {
+
+    /** Variables deliberately not forwarded, because the forked process's own launcher owns them and a forwarded copy would corrupt it.
+      *
+      *   - `CLASSPATH`: `JvmPool` uses this as the long-classpath channel on Windows (command lines cap at 32767 chars). The forwarded value is applied after
+      *     the pool sets it, so it would silently replace the test classpath with the client shell's.
+      *   - `PWD` / `OLDPWD` / `_`: shell bookkeeping describing the client's cwd, which is not the forked process's cwd (that is set per-project via
+      *     `ProcessBuilder.directory`). Forwarding them hands subprocesses a path that disagrees with `getcwd`.
+      *
+      * Notably NOT denied: `PATH` and `JAVA_HOME`. Tests that shell out should find the same tools the developer would.
+      */
+    val denied: Set[String] = Set("CLASSPATH", "PWD", "OLDPWD", "_")
+
+    def capture(raw: Map[String, String]): Map[String, String] =
+      raw.filterNot { case (k, _) => denied.contains(k) }
+
+    /** The current process's environment, filtered. Call this on the client, never on the daemon. */
+    def current(): Map[String, String] = capture(sys.env)
   }
 
   // ==========================================================================

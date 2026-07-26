@@ -22,6 +22,17 @@ case class Run(
     if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, Array(project)))(runOnce)
     else runOnce(started)
 
+  /** Environment for the program we are about to fork.
+    *
+    * `bleep run` forks from the CLI process itself, so `sys.env` is already the user's shell — the problem `bleep test` has (forking from a shared daemon whose
+    * env belongs to whoever started it) does not arise here. What was missing is the build's own `platform.jvmEnvironment`, which the test path has always
+    * applied and every run path silently dropped. Same precedence as tests: the build's declaration outranks the ambient shell.
+    */
+  private def runEnv(started: Started): List[(String, String)] = {
+    val projectEnv = started.build.explodedProjects(project).platform.map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
+    (sys.env ++ projectEnv).toList
+  }
+
   private def runOnce(started: Started): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
@@ -98,7 +109,7 @@ case class Run(
       jvmOptions = jvmRunCommand.scala3CompatOptions ++ jvmOptions,
       mainClass = main,
       args = args,
-      env = sys.env.toList,
+      env = runEnv(started),
       logger = started.logger,
       raw = raw
     )
@@ -129,7 +140,7 @@ case class Run(
         logger = started.logger,
         out = outMode,
         in = inMode,
-        env = sys.env.toList
+        env = runEnv(started)
       ).discard()
       Right(())
     }
@@ -161,7 +172,7 @@ case class Run(
           logger = started.logger,
           out = outMode,
           in = inMode,
-          env = sys.env.toList
+          env = runEnv(started)
         ).discard()
         Right(())
     }

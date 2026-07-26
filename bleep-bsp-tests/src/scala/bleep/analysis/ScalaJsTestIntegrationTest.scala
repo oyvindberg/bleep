@@ -192,6 +192,59 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(tempDir)
   }
 
+  /** Env forwarding is not JVM-only: `bleep test` hands the same environment to every platform, so a test reading a var must see it under Node too. The mock
+    * reports pass/fail purely from `process.env`, and the same script is run twice — with the var and without — so a runner that silently ignored its `env`
+    * argument would fail the first case rather than passing both.
+    */
+  private def envProbeJs(varName: String, expected: String): String =
+    s"""
+       |const actual = process.env['$varName'];
+       |console.log('##scalajs-test##suite-started|EnvSuite');
+       |console.log('##scalajs-test##test-started|EnvSuite|env');
+       |if (actual === '$expected') {
+       |  console.log('##scalajs-test##test-finished|EnvSuite|env|passed|1|');
+       |  console.log('##scalajs-test##suite-finished|EnvSuite|1|0|0');
+       |} else {
+       |  console.log('##scalajs-test##test-finished|EnvSuite|env|failed|1|got ' + actual);
+       |  console.log('##scalajs-test##suite-finished|EnvSuite|0|1|0');
+       |}
+       |process.exit(0);
+       |""".stripMargin
+
+  private def runEnvProbe(env: Map[String, String]): TestRunnerTypes.TestResult = {
+    val tempDir = createTempDir("scalajs-env")
+    try {
+      val jsFile = tempDir.resolve("test-runner.js")
+      Files.writeString(jsFile, envProbeJs("BLEEP_JS_ENV_PROBE", "from-client"))
+      (for {
+        killSignal <- Outcome.neverKillSignal
+        res <- ScalaJsTestRunner.runTests(
+          jsFile,
+          ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+          List(TestRunnerTypes.TestSuite("EnvSuite", "EnvSuite")),
+          new RecordingEventHandler(),
+          ScalaJsTestRunner.NodeEnvironment.Node,
+          PlatformTestHelper.nodeBinary,
+          env,
+          killSignal
+        )
+      } yield res).unsafeRunSync()
+    } finally deleteRecursively(tempDir)
+  }
+
+  test("runTests: forwards env vars to the node process") {
+    assert(sys.env.get("BLEEP_JS_ENV_PROBE").isEmpty, "probe var must not be set in this JVM or the test proves nothing")
+    val result = runEnvProbe(Map("BLEEP_JS_ENV_PROBE" -> "from-client"))
+    result.passed shouldBe 1
+    result.failed shouldBe 0
+  }
+
+  test("runTests: the env probe genuinely fails without the var (control)") {
+    val result = runEnvProbe(Map.empty)
+    result.passed shouldBe 0
+    result.failed shouldBe 1
+  }
+
   test("runTests: with failing test") {
 
     val tempDir = createTempDir("scalajs-test-runner")

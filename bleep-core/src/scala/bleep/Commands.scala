@@ -50,7 +50,8 @@ class Commands(started: Started) {
         excludeTags = excludeTags.map(_.toList).getOrElse(Nil),
         flamegraph = false,
         cancel = false,
-        junitReportDir = None
+        junitReportDir = None,
+        clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
       )
     )
 

@@ -1,0 +1,85 @@
+---
+title: Environment variables
+---
+
+Tests and programs started by bleep run in forked processes. This page describes what environment those processes see, and how to control it.
+
+## Your shell environment reaches your tests
+
+```bash
+DATABASE_URL=postgres://localhost/test bleep test mytests
+```
+
+The variable is visible to the test:
+
+```scala
+class DbTest extends AnyFunSuite {
+  test("connects") {
+    val url = sys.env("DATABASE_URL")  // postgres://localhost/test
+  }
+}
+```
+
+This is worth spelling out because it is not free. `bleep test` does not fork your tests itself — it asks a **shared, long-lived BSP daemon** to do it, and that daemon was started by whichever shell happened to launch it first, possibly days ago in another directory. Its own environment is therefore not yours. Bleep sends your environment along with the test request, and the daemon applies it to the forked test process only. Nothing mutates the daemon's own environment, so two workspaces running tests at the same time cannot see each other's variables.
+
+The same environment is applied on **every platform** — JVM, Scala.js, Scala Native, Kotlin/JS and Kotlin/Native — so a test that reads a variable behaves the same wherever it runs.
+
+### Variables that are not forwarded
+
+Four names are deliberately dropped, because the forked process's launcher owns them and a forwarded copy would corrupt it:
+
+| Variable | Why |
+| --- | --- |
+| `CLASSPATH` | Bleep uses this to pass long classpaths on Windows. A forwarded value would replace your test classpath. |
+| `PWD`, `OLDPWD`, `_` | Shell bookkeeping describing *your* directory, not the forked process's, which is set per project. |
+
+`PATH` and `JAVA_HOME` *are* forwarded — a test that shells out should find the same tools you would.
+
+## Declaring variables in the build
+
+For values that belong to the build rather than to whoever happens to run it, use `platform.jvmEnvironment`:
+
+```yaml
+projects:
+  mytests:
+    isTestProject: true
+    platform:
+      name: jvm
+      jvmEnvironment:
+        TZ: UTC
+        AWS_REGION: eu-north-1
+```
+
+Despite the name, this applies on every platform, not only the JVM.
+
+### Precedence
+
+From weakest to strongest:
+
+1. `NO_COLOR=1`, which bleep sets by default so test output is plain text
+2. your shell environment
+3. `platform.jvmEnvironment`
+
+**The build wins over your shell**, which is the opposite of what you might expect. It is deliberate: your environment is forwarded wholesale, so if the ambient value won, a stray `AWS_REGION` in someone's shell profile would silently override a region the build states on purpose — and the resulting failure would reproduce on exactly one machine. A variable the build does not mention is forwarded untouched, which is the common case.
+
+To override a build-declared variable, change it in `bleep.yaml`.
+
+Templates merge `jvmEnvironment` like other set-valued fields: a project's own entries win over those it inherits.
+
+## `bleep run`
+
+`bleep run` forks from the CLI process directly, so your shell environment is already there. It also applies `platform.jvmEnvironment`, with the same precedence as tests:
+
+```yaml
+projects:
+  myapp:
+    platform:
+      name: jvm
+      mainClass: com.example.Main
+      jvmEnvironment:
+        LOG_LEVEL: debug
+```
+
+## Colors in test output
+
+Bleep sets `NO_COLOR=1` for forked test processes so output captured in CI logs is plain text rather than ANSI-decorated. Set `NO_COLOR` yourself, or declare it in `jvmEnvironment`, to override.
