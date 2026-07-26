@@ -721,7 +721,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                 {
                   val params = new bsp4j.TestParams(targets)
                   params.setOriginId(originId)
-                  val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false)
+                  val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false, BleepBspProtocol.ClientEnv.current())
                   params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                   params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                   bspServer.buildTargetTest(params)
@@ -820,7 +820,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                     {
                       val params = new bsp4j.TestParams(targets)
                       params.setOriginId(originId)
-                      val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false)
+                      val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false, BleepBspProtocol.ClientEnv.current())
                       params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                       params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                       bspServer.buildTargetTest(params)

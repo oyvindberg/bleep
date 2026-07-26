@@ -1002,10 +1002,19 @@ class MultiWorkspaceBspServer(
     builder.directory(started.buildPaths.buildDir.toFile)
     builder.redirectErrorStream(true)
     builder.redirectInput(ProcessBuilder.Redirect.from(new java.io.File(if (scala.util.Properties.isWin) "NUL" else "/dev/null")))
-    scalaMainClass.foreach(_.environmentVariables.getOrElse(Nil).foreach { entry =>
-      val idx = entry.indexOf('=')
-      if (idx > 0) builder.environment().put(entry.substring(0, idx), entry.substring(idx + 1)): Unit
-    })
+    // Weakest first, matching computeTestEnvironment: the daemon's inherited env is the base, then the build's declaration, then the two channels through
+    // which a client states env explicitly for this one run. `params.environmentVariables` is the standard BSP field and was previously ignored outright.
+    val projectEnv = started.build.explodedProjects.get(crossName).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
+    val requestEnv = params.environmentVariables.getOrElse(Map.empty)
+    val mainClassEnv = scalaMainClass
+      .flatMap(_.environmentVariables)
+      .getOrElse(Nil)
+      .flatMap { entry =>
+        val idx = entry.indexOf('=')
+        if (idx > 0) Some(entry.substring(0, idx) -> entry.substring(idx + 1)) else None
+      }
+      .toMap
+    (projectEnv ++ requestEnv ++ mainClassEnv).foreach { case (k, v) => builder.environment().put(k, v): Unit }
 
     val process = builder.start()
 
@@ -2007,6 +2016,10 @@ class MultiWorkspaceBspServer(
       if (testOptions.exclude.nonEmpty) {
         debugLog(s"Test filter --exclude: ${testOptions.exclude.mkString(", ")}")
       }
+      // Names only — the values are the client's shell environment and routinely hold credentials.
+      if (testOptions.env.nonEmpty) {
+        debugLog(s"Client env forwarded (${testOptions.env.size}): ${testOptions.env.keys.toList.sorted.mkString(", ")}")
+      }
 
       val startTime = System.currentTimeMillis()
 
@@ -2114,18 +2127,20 @@ class MultiWorkspaceBspServer(
               val projectPlatform = project.platform.flatMap(_.name)
               val isKotlin = project.kotlin.flatMap(_.version).isDefined
 
+              // Same env on every platform: a test that reads a var should not care whether it runs on the JVM, Node or a native binary.
+              val testEnv = computeTestEnvironment(started, testTask.project, testOptions.env)
+
               (projectPlatform, isKotlin) match {
                 case (Some(model.PlatformId.Js), true) =>
-                  runKotlinJsTestSuite(started, testTask, eventQueue, taskKillSignal)
+                  runKotlinJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Js), false) =>
-                  runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                  runScalaJsTestSuite(started, testTask, classpath, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), true) =>
-                  runKotlinNativeTestSuite(started, testTask, eventQueue, taskKillSignal)
+                  runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), false) =>
-                  runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+                  runScalaNativeTestSuite(started, testTask, classpath, testEnv, eventQueue, taskKillSignal)
                 case _ =>
                   // JVM (default) - use JvmPool
-                  val testEnv = computeTestEnvironment(started, testTask.project)
                   val projectDir =
                     started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
                   // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
@@ -2813,15 +2828,27 @@ class MultiWorkspaceBspServer(
     result.jars
   }
 
-  /** Get environment variables for a test JVM from the model. */
-  /** Env vars passed to every forked test-runner JVM. We always inject `NO_COLOR=1` (the no-color.org standard, honored by ScalaTest 3.2.16+, JUnit, JUnit 5,
-    * sbt, gradle, and many others) so test framework output captured in CI logs / dashboards is plain text instead of ANSI-decorated. Devs running tests in an
-    * interactive terminal see plain ScalaTest output too, which is barely distinguishable from the colored variant anyway and avoids the per-CI fix-up loop. A
-    * project-supplied `platform.jvmEnvironment` of NO_COLOR overrides this default (Map.++ right-bias).
+  /** Env vars passed to every forked test process, on every platform (JVM, Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
+    *
+    * Three layers, weakest first:
+    *
+    *   1. `NO_COLOR=1` — the no-color.org standard, honored by ScalaTest 3.2.16+, JUnit, JUnit 5, sbt, gradle and many others, so test output captured in CI
+    *      logs / dashboards is plain text instead of ANSI-decorated. Devs in an interactive terminal see plain ScalaTest output too, barely distinguishable
+    *      from the colored variant and worth avoiding the per-CI fix-up loop for.
+    *   2. `requestEnv` — the invoking client's shell environment, forwarded on the BSP request (see `BleepBspProtocol.ClientEnv`). This is what makes
+    *      `FOO=bar bleep test` work; the daemon's own environment belongs to whichever shell cold-started it and is never consulted for this.
+    *   3. `platform.jvmEnvironment` — the build's own declaration.
+    *
+    * Build config deliberately outranks the ambient shell rather than the other way round. The client env is a bulk dump of whatever happened to be exported,
+    * so letting it win would mean a stray `AWS_REGION` in someone's profile silently overriding a region the build states on purpose — a failure that only
+    * reproduces on one machine. A var the build does not mention is still forwarded untouched, which is the case the feature exists for.
+    *
+    * This is an overlay on the forked child, applied per request. The daemon never mutates its own environment, so concurrent test runs from different
+    * workspaces cannot observe each other's values.
     */
-  private def computeTestEnvironment(started: Started, project: CrossProjectName): Map[String, String] = {
+  private def computeTestEnvironment(started: Started, project: CrossProjectName, requestEnv: Map[String, String]): Map[String, String] = {
     val projectEnv = started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
-    Map("NO_COLOR" -> "1") ++ projectEnv
+    Map("NO_COLOR" -> "1") ++ requestEnv ++ projectEnv
   }
 
   /** Create a TestEventHandler that offers events to the DAG queue via a Dispatcher.
@@ -2860,6 +2887,7 @@ class MultiWorkspaceBspServer(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
+      testEnv: Map[String, String],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -2895,7 +2923,7 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaJsTestRunner
-              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, Map.empty, killSignal)
+              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, testEnv, killSignal)
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs
@@ -2929,6 +2957,7 @@ class MultiWorkspaceBspServer(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
+      testEnv: Map[String, String],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -2978,7 +3007,7 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaNativeTestRunner
-              .runTestsViaAdapter(binary, suites, framework, eventHandler, Map.empty, snVersion.scalaNativeVersion, killSignal)
+              .runTestsViaAdapter(binary, suites, framework, eventHandler, testEnv, snVersion.scalaNativeVersion, killSignal)
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs
@@ -3045,6 +3074,7 @@ class MultiWorkspaceBspServer(
   private def runKotlinJsTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
+      testEnv: Map[String, String],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3077,7 +3107,7 @@ class MultiWorkspaceBspServer(
           Dispatcher.sequential[IO].use { dispatcher =>
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
-            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, nodeBinary, Map.empty, killSignal).flatMap { result =>
+            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, nodeBinary, testEnv, killSignal).flatMap { result =>
               val endTs = System.currentTimeMillis()
               val durationMs = endTs - startTs
               eventQueue
@@ -3104,6 +3134,7 @@ class MultiWorkspaceBspServer(
   private def runKotlinNativeTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
+      testEnv: Map[String, String],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3148,7 +3179,7 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             // Run all tests in the binary - passing an empty list means no filter
             // This is safer than trying to match synthetic suite names to actual test classes
-            KotlinTestRunner.Native.runTests(binary, List.empty, eventHandler, Map.empty, started.buildPaths.cwd, killSignal).flatMap { result =>
+            KotlinTestRunner.Native.runTests(binary, List.empty, eventHandler, testEnv, started.buildPaths.cwd, killSignal).flatMap { result =>
               val endTs = System.currentTimeMillis()
               val durationMs = endTs - startTs
               eventQueue
