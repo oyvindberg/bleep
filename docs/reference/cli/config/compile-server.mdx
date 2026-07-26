@@ -88,3 +88,23 @@ bleep config compile-server read-timeout <minutes>
 
 <p>remove read timeout setting (use default: 30 minutes)</p>
 
+## `bleep config compile-server idle-timeout`
+
+<p>set minutes the server stays alive with no connected client before shutting itself down, 0 to stay alive forever (default: 60)</p>
+
+### Synopsis
+
+```bash
+bleep config compile-server idle-timeout <minutes>
+```
+
+### Arguments
+
+| Argument | Type |
+|----------|------|
+| `minutes` | one |
+
+## `bleep config compile-server idle-timeout-clear`
+
+<p>remove idle timeout setting (use default: 60 minutes)</p>
+
