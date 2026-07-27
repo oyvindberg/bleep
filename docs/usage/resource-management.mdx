@@ -21,9 +21,11 @@ A forked JVM (a test runner, a sourcegen script, a KSP processor) then has **two
 
 bleep also measures what forks actually cost and sizes concurrency against what the machine can currently spare, so most of the time you never touch any of this. You reach for these knobs when a specific suite is heavier than the default, or when bleep is sharing the machine with something it can't see.
 
-<Callout type="info">
+:::info Version
+
 The machine-wide accounting described on this page arrived after `1.0.0-M10`. On M10 and earlier, concurrency is a plain count of permits with **no memory dimension** — so on a small machine you must set `parallelism` yourself, because nothing will do it for you.
-</Callout>
+
+:::
 
 ## Per-fork heap
 
