@@ -75,7 +75,9 @@ Sourcegen scripts and KSP runners are sized in user config, since they are bleep
 
 ## How many run at once
 
-One knob: **`parallelism`** — how many operations bleep may run at once. It defaults to one per core and covers everything the build scheduler runs: compiles, links, test suites, sourcegen scripts, annotation-processor and KSP resolution. It also sizes the pool of forked test JVMs.
+One knob: **`parallelism`** — how many operations bleep may run at once on this machine. It defaults to one per core and covers everything the build scheduler runs: compiles, links, test suites, sourcegen scripts, annotation-processor and KSP resolution. It also sizes the pool of forked test JVMs.
+
+It is a property of the *machine*, not of a run: the compile server is shared between every client and every workspace on it, so this is the total across all of them, not a limit each one gets separately.
 
 ```bash
 bleep config compile-server parallelism 2
@@ -129,16 +131,20 @@ Two rules of thumb for CI:
 1. **Size the server first.** It is long-lived and shared; the forks divide what's left.
 2. **Set `parallelism` explicitly.** A CI runner's core count is not a good guide to its memory, and the default is one fork per core.
 
-## The machine budget (automatic)
+## What decides when something starts
 
-You usually don't set this, but it explains why bleep sometimes runs fewer things than the raw numbers suggest.
+You never configure this, but it explains why bleep sometimes runs fewer things than the raw numbers suggest — and why it never runs *more*.
 
-The compile server continuously measures how much of the machine's non-reclaimable memory is held by **other** processes (your IDE, a browser, another build) and sizes its own fork-memory budget as *what's left, minus a safety margin*. So:
+There is one place that decides. The build scheduler holds every task whose dependencies are met, sorts them so the ones unblocking the most other work come first, and asks the machine whether each fits right now. Anything that fits starts; anything that doesn't stays queued and is asked again the moment a running task finishes, which is exactly when resources come back. So the order you'd want is the order you get, even when the machine is full.
 
-- If you open something memory-hungry mid-build, bleep stops admitting new forks until there's room, rather than pushing the machine into swap.
-- If nothing else is running, it uses more of the machine.
+"Fits" is two questions:
 
-This adapts on its own and needs no configuration. It also means a fork is charged its **measured** cost, not its `-Xmx` ceiling — a 2 GB-ceiling fork that only uses 600 MB is counted as 600 MB, so many more fit than the ceilings would suggest.
+- **A slot.** `parallelism` is how many things may run at once, so this is simply whether one is free.
+- **Room for a fork.** Only work that starts a *process* asks this: test runners, sourcegen scripts, KSP, and the linkers for Scala.js, Scala Native, Kotlin/JS and Kotlin/Native. Compiles run inside the server and take a slot but no fork memory.
+
+The fork-memory budget is not a fixed number. The server continuously measures how much of the machine's non-reclaimable memory is held by **other** processes — your IDE, a browser, another build — and sizes the budget as what's left, minus a safety margin. Open something memory-hungry mid-build and bleep stops admitting new forks until there is room, rather than pushing the machine into swap; close it and bleep uses more.
+
+A fork is also charged its **measured** cost rather than its `-Xmx` ceiling: a 2 GB-ceiling fork that only ever uses 600 MB is counted as 600 MB, so many more fit than the ceilings would suggest.
 
 ## How the knobs trade off
 
