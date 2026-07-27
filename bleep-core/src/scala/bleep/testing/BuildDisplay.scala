@@ -28,6 +28,9 @@ trait BuildDisplay {
   /** Reset display state (e.g., before retry after server crash) */
   def reset: IO[Unit]
 
+  /** Record that the compile server died, so the summary says the run did not complete rather than reading as clean next to a failure message. */
+  def markServerCrashed: IO[Unit]
+
   /** Print final summary. Pass a [[FilterContext]] when test filters are active so the summary can show which filters ran and what they pruned. */
   def printSummary(filterContext: Option[FilterContext]): IO[Unit]
 }
@@ -87,12 +90,18 @@ case class BuildSummary(
     durationMs: Long,
     totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
     wasCancelled: Boolean,
+    /** The compile server died mid-run. The compiles that completed really did complete, so the counts stay honest — but the run did not finish, and a summary
+      * that reads as clean while the command fails is a summary the reader has to reconcile against the error below it.
+      */
+    serverCrashed: Boolean,
     filterContext: Option[FilterContext]
 ) {
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
   def toEither: Either[bleep.BleepException, Unit] =
-    if (wasCancelled || compilesCancelled > 0)
+    if (serverCrashed)
+      Left(new bleep.BleepException.Text("Build did not complete: the compile server crashed"))
+    else if (wasCancelled || compilesCancelled > 0)
       Left(new bleep.BleepException.Text("Build cancelled by user"))
     else if (compileFailures.nonEmpty)
       Left(new bleep.BleepException.Text(s"Build failed: ${compileFailures.size} project(s) failed to compile"))
@@ -137,7 +146,8 @@ object BuildSummary {
     // Anything other than passed/skipped/ignored means failure
     val totalProblems = summary.testsFailed + summary.testsTimedOut + summary.testsCancelled
     val hasFailures =
-      summary.sourcegenFailed > 0 || summary.compileFailures.nonEmpty || summary.linkFailures.nonEmpty || totalProblems > 0 || summary.suitesCancelled > 0
+      summary.sourcegenFailed > 0 || summary.compileFailures.nonEmpty || summary.linkFailures.nonEmpty || totalProblems > 0 || summary.suitesCancelled > 0 ||
+        summary.serverCrashed
     val wasCancelled = summary.wasCancelled || summary.compilesCancelled > 0
     val statusColor = if (hasFailures) C.RED else if (wasCancelled) C.YELLOW else C.GREEN
     val statusIcon = if (hasFailures) "x" else if (wasCancelled) "!" else "✓"
@@ -512,6 +522,7 @@ object BuildSummary {
     durationMs = 0L,
     totalTaskTimeMs = 0L,
     wasCancelled = false,
+    serverCrashed = false,
     filterContext = None
   )
 }
@@ -605,6 +616,8 @@ object BuildDisplay {
       mode: BuildMode,
       upToDateProjects: Ref[IO, Set[CrossProjectName]]
   ) extends BuildDisplay {
+
+    override def markServerCrashed: IO[Unit] = state.update(_.copy(serverCrashed = true))
 
     override def reset: IO[Unit] = state.set(BuildState.empty) >> IO {
       activePhase.clear()
@@ -917,7 +930,7 @@ object BuildDisplay {
         // run that did not succeed. Fold them in, so the header and counts tell the same story the
         // exit code does. Reported for a failed sourcegen showing as `0 failed, 4 skipped`.
         preCompileFailed = s.sourcegenFailed + s.apResolutionFailed + s.kspResolutionFailed
-        anyFailure = s.compileFailures.nonEmpty || s.linkFailures.nonEmpty || preCompileFailed > 0
+        anyFailure = s.compileFailures.nonEmpty || s.linkFailures.nonEmpty || preCompileFailed > 0 || s.serverCrashed
         _ <- log("")
         _ <- log("=" * 60)
         _ <- log(if (anyFailure) "Build Summary — FAILED" else "Build Summary")
@@ -925,6 +938,10 @@ object BuildDisplay {
         failedCount = s.compileFailures.size
         skippedCount = s.skippedProjects.size
         _ <- log(s"Projects: ${s.compilesCompleted} compiled, $failedCount failed, $skippedCount skipped")
+        _ <-
+          if (s.serverCrashed)
+            log("Server:   crashed mid-run — the counts above are what finished before it died, not the whole build")
+          else IO.unit
         _ <-
           if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed — see the errors above and the BSP server log")
           else IO.unit
@@ -1050,6 +1067,8 @@ object BuildDisplay {
       previousRun: PreviousRunState,
       currentTestResults: Ref[IO, List[BuildEvent.TestFinished]]
   ) extends BuildDisplay {
+
+    override def markServerCrashed: IO[Unit] = state.update(_.copy(serverCrashed = true))
 
     override def reset: IO[Unit] = state.set(BuildState.empty) >> currentTestResults.set(Nil)
 
@@ -1177,6 +1196,8 @@ object BuildDisplay {
       state: Ref[IO, BuildState],
       startTime: Long
   ) extends BuildDisplay {
+
+    override def markServerCrashed: IO[Unit] = state.update(_.copy(serverCrashed = true))
 
     override def reset: IO[Unit] = state.set(BuildState.empty)
 

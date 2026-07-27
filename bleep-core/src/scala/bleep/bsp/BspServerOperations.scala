@@ -5,7 +5,7 @@ import ryddig.Logger
 
 import java.net.{ConnectException, InetSocketAddress, Socket, StandardProtocolFamily}
 import java.nio.channels.SocketChannel
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import java.nio.file.attribute.PosixFilePermissions
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
@@ -49,11 +49,11 @@ object BspServerOperations {
 
   /** A hint to append to connect/startup failure messages when the server log shows an OutOfMemoryError death.
     *
-    * By the time these failures surface, startServer has rotated `output` to `output.prev`, so the crashed generation's log may be under either name — check
-    * both and say which one carried the evidence.
+    * By the time these failures surface, startServer has rotated the logs, so the crashed generation may be under `output` or any kept generation — check them
+    * all and say which one carried the evidence.
     */
   def oomHint(socketDir: Path): String =
-    List("output", "output.prev").map(socketDir.resolve).find(containsOomMarker) match {
+    ("output" :: (1 to OutputGenerationsKept).map(n => s"output.$n").toList).map(socketDir.resolve).find(containsOomMarker) match {
       case None      => ""
       case Some(log) =>
         s"""\nNote: $log contains "$OomMarker" — the server ran out of heap.""" +
@@ -84,12 +84,8 @@ object BspServerOperations {
       }
 
       val outputFile = socketDir.resolve("output")
-      // Preserve previous server's output for debugging, then start fresh
-      val prevOutputFile = socketDir.resolve("output.prev")
-      Files.deleteIfExists(prevOutputFile)
-      if (Files.exists(outputFile)) {
-        Files.move(outputFile, prevOutputFile): Unit
-      }
+      rotateOutput(socketDir)
+      pruneStaleSocketDirs(socketDir, logger)
 
       val command = buildServerCommand(config)
 
@@ -408,14 +404,138 @@ object BspServerOperations {
     ProcessHandle.of(pid).isPresent
   }
 
-  /** Cleanup socket directory (lock, pid, socket, output files) */
+  /** Cleanup socket directory: remove the runtime state, KEEP the log.
+    *
+    * `output` used to be deleted here, which meant a crash destroyed its own evidence: the client's crash handler calls `forceStop` before restarting, so by
+    * the time anyone read the log it was gone. Only the OOM marker survived, having been grepped out beforehand — so a crash that was NOT an OutOfMemoryError
+    * (a hard VM exit, a killed process) left nothing at all to look at. Reported from the field exactly that way: "crashed twice ... no OutOfMemoryError
+    * recorded", with the log already replaced by the next boot's.
+    *
+    * The log is rotated at the next spawn instead, which is where the generations are bounded.
+    */
   def cleanup(socketDir: Path): IO[Unit] = IO.blocking {
-    val filesToDelete = Seq("lock", "pid", "socket", "output")
+    val filesToDelete = Seq("lock", "pid", "socket")
     filesToDelete.foreach { name =>
       try Files.deleteIfExists(socketDir.resolve(name))
       catch { case _: Exception => () }
     }
   }
+
+  /** How many previous server logs to keep beside the live one.
+    *
+    * Two, not one. The client retries a crashed server once before giving up, so a systematic crash produces `crash -> restart -> crash` and TWO rotations in
+    * seconds. With a single `output.prev` the second rotation overwrites the first crash's log with the second boot's — and the second boot is the short,
+    * uninformative one. Two generations mean the original crash survives the retry that was supposed to help diagnose it.
+    *
+    * Not more than two, because these accumulate per socket directory and every bleep version mints a new one (the version is part of the JVM key).
+    */
+  val OutputGenerationsKept: Int = 2
+
+  /** Total bytes of retained logs allowed in one socket directory.
+    *
+    * Bounds the generations, not the live file: a running server holds `output` open through an OS-level redirect, so nothing outside it can rotate or truncate
+    * that file mid-boot. What CAN be bounded is history, and that is what accumulates — a day of ordinary use is under a megabyte at the default log level, but
+    * a daemon run with `BLEEP_BSP_DEBUG` traces every event and grows without limit.
+    *
+    * When the kept generations exceed this, the oldest are dropped until they fit. So the guarantee is "a socket directory costs at most this much history",
+    * which is the number that matters when there is one directory per bleep version per JVM.
+    */
+  val MaxRetainedLogBytes: Long = 32L * 1024 * 1024
+
+  /** A socket directory whose daemon is gone and which nothing has touched for this long is litter.
+    *
+    * They accumulate silently: the JVM key includes the bleep version, so every snapshot install mints a fresh directory and abandons the previous one, each
+    * holding a log, its generations, and up to 200MB of metrics. Two weeks is well past the point where an old version's logs are of any use, and far enough
+    * out that a machine used intermittently never loses a directory it was still going to use.
+    */
+  val StaleSocketDirMaxAgeDays: Long = 14
+
+  /** Shift `output` -> `output.1` -> `output.2`, dropping what falls off the end.
+    *
+    * Called at spawn, when nothing holds the file open.
+    */
+  private def rotateOutput(socketDir: Path): Unit =
+    try {
+      val live = socketDir.resolve("output")
+      // Nothing to rotate on the very first boot, and nothing gained by shifting an empty file.
+      if (Files.exists(live) && Files.size(live) == 0L) Files.deleteIfExists(live): Unit
+      // Retire the oldest first, then shift each generation down, so no rename overwrites a file we
+      // still want. Going in reverse is what makes this safe without temporary names.
+      Files.deleteIfExists(socketDir.resolve(s"output.$OutputGenerationsKept")): Unit
+      (OutputGenerationsKept - 1 to 1 by -1).foreach { n =>
+        val from = socketDir.resolve(s"output.$n")
+        if (Files.exists(from)) Files.move(from, socketDir.resolve(s"output.${n + 1}"), StandardCopyOption.REPLACE_EXISTING): Unit
+      }
+      if (Files.exists(live)) Files.move(live, socketDir.resolve("output.1"), StandardCopyOption.REPLACE_EXISTING): Unit
+      // Legacy name from when there was exactly one generation; drop it so the directory does not
+      // keep a file nothing writes or reads any more.
+      Files.deleteIfExists(socketDir.resolve("output.prev")): Unit
+      enforceLogBudget(socketDir)
+    } catch { case _: Exception => () }
+
+  /** Drop the oldest generations until the retained logs fit [[MaxRetainedLogBytes]]. */
+  private def enforceLogBudget(socketDir: Path): Unit = {
+    val generations = (1 to OutputGenerationsKept).map(n => socketDir.resolve(s"output.$n")).filter(Files.exists(_))
+    var total = generations.map(Files.size).sum
+    // Oldest first — the highest generation number is the furthest back.
+    generations.reverse.foreach { p =>
+      if (total > MaxRetainedLogBytes) {
+        total -= Files.size(p)
+        Files.deleteIfExists(p): Unit
+      }
+    }
+  }
+
+  /** Delete sibling socket directories whose daemon is gone and which nothing has touched recently.
+    *
+    * Run at spawn, because that is when a new directory is being added and the previous version's is being orphaned — the moment the tail grows is the right
+    * moment to trim it. A directory is only removed when its recorded pid is dead (or absent) AND every file in it is older than the cutoff, so a daemon that
+    * is merely idle, or one being started concurrently, is never touched.
+    */
+  private def pruneStaleSocketDirs(currentSocketDir: Path, logger: Logger): Unit =
+    try {
+      val parent = currentSocketDir.getParent
+      val cutoff = System.currentTimeMillis() - StaleSocketDirMaxAgeDays * 24L * 60L * 60L * 1000L
+      val stream = Files.list(parent)
+      val siblings =
+        try stream.iterator().asScala.filter(Files.isDirectory(_)).filterNot(_.equals(currentSocketDir)).toList
+        finally stream.close()
+
+      siblings.foreach { dir =>
+        val alive =
+          try Files.exists(dir.resolve("pid")) && ProcessHandle.of(Files.readString(dir.resolve("pid")).trim.toLong).isPresent
+          catch { case _: Exception => false }
+        if (!alive) {
+          val newest =
+            try {
+              val s2 = Files.list(dir)
+              try s2.iterator().asScala.map(Files.getLastModifiedTime(_).toMillis).maxOption.getOrElse(0L)
+              finally s2.close()
+            } catch { case _: Exception => Long.MaxValue } // unreadable: leave it alone
+          if (newest < cutoff) {
+            val freed = directorySizeBytes(dir)
+            deleteRecursively(dir)
+            logger.info(s"Removed stale compile-server directory $dir (no live server, untouched for ${StaleSocketDirMaxAgeDays}+ days, ${freed / 1024}KB)")
+          }
+        }
+      }
+    } catch { case _: Exception => () }
+
+  private def directorySizeBytes(dir: Path): Long =
+    try {
+      val stream = Files.walk(dir)
+      try stream.iterator().asScala.filter(Files.isRegularFile(_)).map(Files.size).sum
+      finally stream.close()
+    } catch { case _: Exception => 0L }
+
+  private def deleteRecursively(dir: Path): Unit =
+    try {
+      val stream = Files.walk(dir)
+      val paths =
+        try stream.iterator().asScala.toList
+        finally stream.close()
+      paths.reverse.foreach(p => Files.deleteIfExists(p): Unit)
+    } catch { case _: Exception => () }
 
   /** Ensure a directory exists with proper permissions */
   private def ensureDirectoryExists(dir: Path): Unit =
