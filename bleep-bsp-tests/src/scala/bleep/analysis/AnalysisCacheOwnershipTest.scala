@@ -3,13 +3,12 @@ package bleep.analysis
 import bleep.model
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import ryddig.TypedLogger
 import xsbti.compile.CompileAnalysis
 import xsbti.compile.analysis.{ReadCompilations, ReadSourceInfos, ReadStamps}
 
 import java.nio.file.{Files, Path}
 
-/** Analyses belong to a workspace, and the consequences of that: they are partitioned by it, budgeted by it, and dropped with it.
+/** Analyses belong to a workspace, and the consequences of that: they are partitioned by it and dropped with it.
   *
   * The point of the ownership is not tidiness. An unowned global pool could neither say which build was holding the heap nor free it when that build was
   * evicted — so a `BuildCache` eviction freed the resolved build (hundreds of MB) and left its analyses (gigabytes) behind.
@@ -34,13 +33,13 @@ class AnalysisCacheOwnershipTest extends AnyFunSuite with Matchers {
     f
   }
 
-  private def cache(budgetBytes: Long, maxIdleMs: Long) = new AnalysisCache(budgetBytes, maxIdleMs)
+  private def cache(): AnalysisCache = new AnalysisCache
 
   test("analyses are partitioned by workspace: one workspace cannot see another's") {
-    val c = cache(budgetBytes = 1024 * 1024, maxIdleMs = 60000)
+    val c = cache()
     val f = analysisFile(64)
     val mtime = Files.getLastModifiedTime(f).toMillis
-    c.put(key("alpha"), f, mtime, StubAnalysis)
+    c.put(key("alpha"), f, mtime, StubAnalysis): Unit
 
     c.get(key("alpha"), f, mtime) shouldBe defined
     // Same analysis FILE, different workspace. Nothing is shared across workspaces on disk, and
@@ -49,23 +48,23 @@ class AnalysisCacheOwnershipTest extends AnyFunSuite with Matchers {
   }
 
   test("a changed file on disk invalidates the entry rather than serving a stale analysis") {
-    val c = cache(budgetBytes = 1024 * 1024, maxIdleMs = 60000)
+    val c = cache()
     val f = analysisFile(64)
     val mtime = Files.getLastModifiedTime(f).toMillis
-    c.put(key("alpha"), f, mtime, StubAnalysis)
+    c.put(key("alpha"), f, mtime, StubAnalysis): Unit
 
     c.get(key("alpha"), f, mtime) shouldBe defined
     c.get(key("alpha"), f, mtime + 1) shouldBe empty // e.g. after `remote-cache pull`
   }
 
   test("evicting a workspace frees only its own analyses, and reports what it freed") {
-    val c = cache(budgetBytes = 1024 * 1024, maxIdleMs = 60000)
+    val c = cache()
     val a1 = analysisFile(100)
     val a2 = analysisFile(200)
     val b1 = analysisFile(400)
-    c.put(key("alpha"), a1, Files.getLastModifiedTime(a1).toMillis, StubAnalysis)
-    c.put(key("alpha"), a2, Files.getLastModifiedTime(a2).toMillis, StubAnalysis)
-    c.put(key("beta"), b1, Files.getLastModifiedTime(b1).toMillis, StubAnalysis)
+    c.put(key("alpha"), a1, Files.getLastModifiedTime(a1).toMillis, StubAnalysis): Unit
+    c.put(key("alpha"), a2, Files.getLastModifiedTime(a2).toMillis, StubAnalysis): Unit
+    c.put(key("beta"), b1, Files.getLastModifiedTime(b1).toMillis, StubAnalysis): Unit
 
     val freed = c.evictWorkspace(key("alpha"))
     freed.entries shouldBe 2
@@ -76,44 +75,16 @@ class AnalysisCacheOwnershipTest extends AnyFunSuite with Matchers {
   }
 
   test("evicting a workspace that holds nothing is a no-op, not an error") {
-    val c = cache(budgetBytes = 1024, maxIdleMs = 60000)
+    val c = cache()
     c.evictWorkspace(key("never-seen")) shouldBe AnalysisCache.Freed(0, 0L)
   }
 
-  test("the budget is per workspace, so a greedy workspace cannot evict a quiet one") {
-    // Budget of 500 bytes each. Alpha blows through its own; beta holds one small entry and keeps it.
-    val c = cache(budgetBytes = 500, maxIdleMs = 60000)
-    val small = analysisFile(50)
-    c.put(key("beta"), small, Files.getLastModifiedTime(small).toMillis, StubAnalysis)
-    val big = List.fill(4)(analysisFile(400))
-    big.foreach(f => c.put(key("alpha"), f, Files.getLastModifiedTime(f).toMillis, StubAnalysis))
-
-    val stats = c.sweep(System.currentTimeMillis(), TypedLogger.DevNull)
-
-    val beta = stats.perWorkspace.find(_.key == key("beta")).getOrElse(fail("beta should still be held"))
-    beta.entries shouldBe 1
-    val alpha = stats.perWorkspace.find(_.key == key("alpha")).getOrElse(fail("alpha should still hold something"))
-    alpha.fileBytes should be <= 500L
-  }
-
-  test("a sweep drops entries idle past the cutoff and forgets the workspace once it is empty") {
-    val c = cache(budgetBytes = 1024 * 1024, maxIdleMs = 0) // everything is instantly stale
-    val f = analysisFile(64)
-    c.put(key("alpha"), f, Files.getLastModifiedTime(f).toMillis, StubAnalysis)
-
-    val stats = c.sweep(System.currentTimeMillis() + 1000, TypedLogger.DevNull)
-    stats.entries shouldBe 0
-    // The bucket goes too — an empty map per workspace ever served is small, but it is still a leak,
-    // and it would have telemetry report workspaces that hold nothing.
-    stats.perWorkspace shouldBe empty
-  }
-
   test("stats total across workspaces and are ordered by what they hold") {
-    val c = cache(budgetBytes = 1024 * 1024, maxIdleMs = 60000)
+    val c = cache()
     val small = analysisFile(10)
     val large = analysisFile(900)
-    c.put(key("small-ws"), small, Files.getLastModifiedTime(small).toMillis, StubAnalysis)
-    c.put(key("large-ws"), large, Files.getLastModifiedTime(large).toMillis, StubAnalysis)
+    c.put(key("small-ws"), small, Files.getLastModifiedTime(small).toMillis, StubAnalysis): Unit
+    c.put(key("large-ws"), large, Files.getLastModifiedTime(large).toMillis, StubAnalysis): Unit
 
     val stats = c.stats
     stats.entries shouldBe 2

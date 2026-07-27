@@ -1,48 +1,123 @@
 package bleep.analysis
 
 import bleep.model
-import ryddig.Logger
+import xsbti.api.AnalyzedClass
 import xsbti.compile.CompileAnalysis
 
+import java.lang.ref.{ReferenceQueue, WeakReference}
 import java.nio.file.{Files, Path}
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicLong, LongAdder}
 import scala.jdk.CollectionConverters.*
 
-/** Zinc analyses read while compiling, held per workspace and bounded per workspace.
+/** Zinc analyses read while compiling, owned by the workspace they belong to and shared structurally between workspaces.
   *
-  * ==Why this is bounded at all==
+  * ==Retention==
   *
-  * This was a global, unbounded map of soft references, on the theory that GC would reclaim it when the heap got tight. Measured on a live server, it does not.
-  * A class histogram of a daemon sitting at 7.2GB live set showed ~4.5GB in `xsbti.api.*` — 31.7M `NameHash` (1.0GB), 31.1M `Id` (498MB), 839K retained
-  * `AnalyzedClass` — and a forced full GC moved the live set by 68MB. Soft references are not cleared until the collector is nearly out of room, and until then
-  * they are indistinguishable from live data: they occupy the heap, they count as live set, and they crowd out the very compiles this cache exists to speed up.
+  * An analysis lives exactly as long as its workspace's entry in [[bleep.bsp.BuildCache]]. There is no second retention policy: no size budget, no idle
+  * timeout, no sweep. An earlier version had all three, on the assumption that holding one workspace's analyses was expensive enough to need its own eviction
+  * schedule. Interning removes that assumption — see below — so the cache is now a plain index whose lifetime is the workspace's.
   *
-  * ==Why it is per workspace==
+  * ==Why interning==
   *
-  * Analysis files live at `.bleep/projects/<project>/builds/<variant>/.zinc/analysis.zip` — inside a workspace, partitioned by variant. So a
-  * [[bleep.model.WorkspaceKey]] does not merely label these entries, it partitions them exactly, and nothing is shared across workspaces to lose by splitting
-  * them up. Two things follow, both of which the previous global pool got wrong:
+  * A class histogram of a live daemon at 7.2GB live set found ~4.5GB in `xsbti.api.*`: 31.7M `NameHash` (1.0GB), 31.1M `Id` (498MB), 7.4M `PathComponent[]`
+  * (428MB), 839K `AnalyzedClass`, 839K `NameHash[]` (267MB). A forced full GC moved the live set by 68MB, so it was retained, not garbage.
   *
-  *   - '''Attribution.''' The retained cost of a workspace is a number this can report, rather than something to be inferred afterwards from a heap histogram
-  *     and a linear fit.
-  *   - '''Isolation.''' A monorepo churning through 166 analyses can no longer evict a small workspace's entire working set. Each gets its own budget.
+  * `AnalyzedClass` is 1:1 with `NameHash[]` and owns the lazy `Companions` tree containing all of the above, so interning that one type shares everything
+  * beneath it. Measured against real builds: 2.06x sharing within one dlab workspace, 2.96x within bleep's own, and — the control — a second copy of an
+  * identical workspace adds exactly zero distinct instances. Divergent branches share little; a freshly forked worktree shares everything.
   *
-  * ==Why eviction is safe==
+  * ==Why the key omits compilationTimestamp==
   *
-  * Read-through: a miss re-reads from disk, costing about one disk read. A compile in flight holds its own strong references to the analyses it loaded, so
-  * dropping an entry never pulls the ground from under running work — it only means the next reader re-reads.
+  * Zinc 1.12 read it in exactly one place, as a fast-path gate that falls back to a full structural diff when it differs; zinc 2 removed the read entirely. Two
+  * worktrees that compiled the same code independently get different timestamps, and including it cost 156,691 extra retained instances across six measured
+  * worktrees against 94 within a single one. `ConsistentAnalysisFormat(reproducible = true)`, now in use, normalises them anyway.
+  *
+  * ==Safety of merging==
+  *
+  * A false merge needs two classes with the same name, apiHash, extraHash and nameHashes but different APIs — the state in which zinc's own invalidation is
+  * already broken, since those hashes are what it compares. So this adds no failure mode zinc does not already have.
   */
-class AnalysisCache(budgetBytesPerWorkspace: Long, maxIdleMs: Long) {
+class AnalysisCache {
 
   private case class Entry(mtime: Long, analysis: CompileAnalysis, fileBytes: Long, lastUsedMs: AtomicLong)
 
   private val byWorkspace = new ConcurrentHashMap[model.WorkspaceKey, ConcurrentHashMap[Path, Entry]]()
 
+  /** The interner: an index, not a cache.
+    *
+    * Values are weakly referenced, so an interned `AnalyzedClass` lives exactly as long as some loaded analysis still points at it. Nothing here retains
+    * anything; dropping a workspace drops its analyses, and whatever they alone held becomes collectable. Stale keys are expunged through the queue on each
+    * intern, so the map does not accumulate tombstones for classes nobody references any more.
+    */
+  private val interned = new ConcurrentHashMap[String, InternRef]()
+  private val internQueue = new ReferenceQueue[AnalyzedClass]()
+  private val internHits = new LongAdder()
+  private val internMisses = new LongAdder()
+
+  private final class InternRef(val key: String, value: AnalyzedClass) extends WeakReference[AnalyzedClass](value, internQueue)
+
+  private def expungeStaleInterned(): Unit = {
+    var ref = internQueue.poll()
+    while (ref != null) {
+      ref match {
+        case ir: InternRef => interned.remove(ir.key, ir): Unit
+        case _             => ()
+      }
+      ref = internQueue.poll()
+    }
+  }
+
+  /** The shared instance for this `AnalyzedClass` — `ac` itself if it is the first of its content seen. */
+  private def internOne(ac: AnalyzedClass): AnalyzedClass = {
+    val key = AnalysisCache.internKey(ac)
+    var result: AnalyzedClass = null
+    while (result == null) {
+      val existing = interned.get(key)
+      val alive = if (existing == null) null else existing.get()
+      if (alive != null) {
+        internHits.increment()
+        result = alive
+      } else {
+        val fresh = new InternRef(key, ac)
+        val won =
+          if (existing == null) interned.putIfAbsent(key, fresh) == null
+          else interned.replace(key, existing, fresh)
+        if (won) {
+          internMisses.increment()
+          result = ac
+        }
+        // lost the race — loop and take whatever the winner installed
+      }
+    }
+    result
+  }
+
+  /** Rebuild an analysis so its `AnalyzedClass` values are the shared instances.
+    *
+    * Only `apis` is substituted. Stamps and relations are keyed by `VirtualFileRef`s whose ids are already workspace-neutral (`${BASE}/…`), but their spines
+    * are per-analysis maps that would have to be rebuilt wholesale for a much smaller return; `apis` is where the measured bytes are.
+    *
+    * The un-interned original becomes garbage as soon as the caller drops it, which is why this returns a new analysis rather than mutating.
+    */
+  private def internAnalysis(analysis: CompileAnalysis): CompileAnalysis =
+    analysis match {
+      case a: sbt.internal.inc.Analysis =>
+        expungeStaleInterned()
+        val apis = a.apis
+        val internal = apis.internal.map { case (name, ac) => (name, internOne(ac)) }
+        val external = apis.external.map { case (name, ac) => (name, internOne(ac)) }
+        a.copy(a.stamps, sbt.internal.inc.APIs(internal, external), a.relations, a.infos, a.compilations)
+      // Any other implementation is left alone rather than guessed at: interning is an optimisation,
+      // and an analysis we cannot rebuild faithfully is one we should hand back untouched.
+      case other => other
+    }
+
   private def bucket(key: model.WorkspaceKey): ConcurrentHashMap[Path, Entry] =
     byWorkspace.computeIfAbsent(key, _ => new ConcurrentHashMap[Path, Entry]())
 
-  /** The cached analysis for `analysisFile`, if one is held and the file has not changed underneath it.
+  /** The cached analysis for `analysisFile`, if held and the file has not changed underneath it.
     *
     * The mtime check is what makes a `remote-cache pull` (or any other out-of-band rewrite) safe: a changed file invalidates the entry rather than serving
     * something that no longer describes what is on disk.
@@ -55,21 +130,24 @@ class AnalysisCache(budgetBytesPerWorkspace: Long, maxIdleMs: Long) {
       case _ => None
     }
 
-  def put(key: model.WorkspaceKey, analysisFile: Path, mtime: Long, analysis: CompileAnalysis): Unit = {
+  /** Intern and store, returning the instance to use. Callers must use the RETURN value, not what they passed in — that is the whole point. */
+  def put(key: model.WorkspaceKey, analysisFile: Path, mtime: Long, analysis: CompileAnalysis): CompileAnalysis = {
+    val shared = internAnalysis(analysis)
     val bytes =
       try Files.size(analysisFile)
       catch { case _: Exception => 0L }
-    bucket(key).put(analysisFile, Entry(mtime, analysis, bytes, new AtomicLong(System.currentTimeMillis()))): Unit
+    bucket(key).put(analysisFile, Entry(mtime, shared, bytes, new AtomicLong(System.currentTimeMillis()))): Unit
+    shared
   }
 
-  /** Forget one analysis — used when the file on disk is deleted or found corrupt, so the next read starts from whatever is actually there. */
+  /** Forget one analysis — used when the file on disk is deleted or found corrupt, so the next read starts from what is actually there. */
   def invalidate(key: model.WorkspaceKey, analysisFile: Path): Unit =
     Option(byWorkspace.get(key)).foreach(_.remove(analysisFile): Unit)
 
   /** Drop everything held for one workspace, returning what was freed.
     *
-    * Called when that workspace's build is evicted from `BuildCache`: if nothing wants the build, nothing wants its analyses, and this is where the memory
-    * actually is — the resolved build is hundreds of MB, its analyses are gigabytes.
+    * Called when that workspace's build leaves `BuildCache`. Interned classes it shared with other workspaces stay alive through those; ones only it referenced
+    * become collectable, and their keys leave the interner via the reference queue on the next intern.
     */
   def evictWorkspace(key: model.WorkspaceKey): AnalysisCache.Freed =
     Option(byWorkspace.remove(key)) match {
@@ -77,34 +155,7 @@ class AnalysisCache(budgetBytesPerWorkspace: Long, maxIdleMs: Long) {
       case None    => AnalysisCache.Freed(0, 0L)
     }
 
-  /** Drop expired and over-budget entries, workspace by workspace.
-    *
-    * Swept periodically rather than on every write so that a build loading twenty analyses in a burst is not made to walk the cache twenty times, and so the
-    * largest retainer in the server heap is one legible periodic event rather than a side effect of whichever compile happened to finish last.
-    */
-  def sweep(nowMs: Long, logger: Logger): AnalysisCache.Stats = {
-    byWorkspace.entrySet().iterator().asScala.foreach { e =>
-      val key = e.getKey
-      val b = e.getValue
-      val present = b.entrySet().iterator().asScala.map(x => (x.getKey, x.getValue.lastUsedMs.get(), x.getValue.fileBytes)).toVector
-      val doomed = AnalysisCache.selectEvictions(present, nowMs, maxIdleMs, budgetBytesPerWorkspace)
-      if (doomed.nonEmpty) {
-        doomed.foreach(p => b.remove(p): Unit)
-        logger
-          .withContext("workspace", key.short)
-          .withContext("evicted", doomed.size)
-          .withContext("remaining", b.size())
-          .debug("Evicted Zinc analyses to bound retained heap; they will be re-read on next use")
-      }
-      // A workspace with nothing left keeps no bucket: an empty map per workspace ever seen is a
-      // small leak, but it is still a leak, and it would make `stats` report workspaces that hold
-      // nothing.
-      if (b.isEmpty) byWorkspace.remove(key, b): Unit
-    }
-    stats
-  }
-
-  /** What is held right now, per workspace, for telemetry. */
+  /** What is held right now, for telemetry. Purely observational — nothing here drives eviction. */
   def stats: AnalysisCache.Stats = {
     val per = byWorkspace
       .entrySet()
@@ -116,76 +167,57 @@ class AnalysisCache(budgetBytesPerWorkspace: Long, maxIdleMs: Long) {
       }
       .toList
       .sortBy(-_.fileBytes)
-    AnalysisCache.Stats(per)
+    AnalysisCache.Stats(per, internedClasses = interned.size(), internHits = internHits.sum(), internMisses = internMisses.sum())
   }
 }
 
 object AnalysisCache {
 
-  /** The cache bound to the one workspace a given compile is allowed to touch.
+  /** The cache bound to the one workspace a given compile may touch.
     *
-    * Every call inside a compile needs both the cache and the key, and passing them separately means every call site is an opportunity to pass the wrong key —
-    * which would silently charge one workspace's analyses to another and, worse, serve them across workspaces. Binding them once, where the workspace is known,
-    * makes that unrepresentable.
+    * Every call inside a compile needs both the cache and the key, and passing them separately makes every call site an opportunity to pass the wrong one —
+    * which would charge one workspace's analyses to another and, worse, serve them across workspaces. Binding them once, where the workspace is known, makes
+    * that unrepresentable.
     */
   case class Ref(cache: AnalysisCache, workspace: model.WorkspaceKey) {
     def get(analysisFile: Path, currentMtime: Long): Option[CompileAnalysis] = cache.get(workspace, analysisFile, currentMtime)
-    def put(analysisFile: Path, mtime: Long, analysis: CompileAnalysis): Unit = cache.put(workspace, analysisFile, mtime, analysis)
+    def put(analysisFile: Path, mtime: Long, analysis: CompileAnalysis): CompileAnalysis = cache.put(workspace, analysisFile, mtime, analysis)
     def invalidate(analysisFile: Path): Unit = cache.invalidate(workspace, analysisFile)
   }
 
-  /** A cache for a compilation that belongs to no workspace — a standalone single-file compile, or a DAG built outside a BSP session.
-    *
-    * It gets its own instance, so whatever it holds dies with the call rather than accumulating on a daemon that will never sweep it. The alternative — letting
-    * these share the daemon's cache under some placeholder key — would put entries in a bucket nothing owns and nothing evicts, which is precisely the shape of
-    * the leak this class exists to remove.
+  /** A cache for a compilation belonging to no workspace — a standalone single-file compile, or a DAG built outside a BSP session. It gets its own instance, so
+    * whatever it holds dies with the call instead of accumulating in a bucket nothing owns.
     */
   def standalone(buildDir: Path): Ref =
-    Ref(new AnalysisCache(DefaultBudgetBytesPerWorkspace, DefaultMaxIdleMs), model.WorkspaceKey(buildDir, model.BuildVariant.Normal))
+    Ref(new AnalysisCache, model.WorkspaceKey(buildDir, model.BuildVariant.Normal))
 
   case class Freed(entries: Int, fileBytes: Long)
   case class WorkspaceStats(key: model.WorkspaceKey, entries: Int, fileBytes: Long)
-  case class Stats(perWorkspace: List[WorkspaceStats]) {
+  case class Stats(perWorkspace: List[WorkspaceStats], internedClasses: Int, internHits: Long, internMisses: Long) {
     def entries: Int = perWorkspace.map(_.entries).sum
     def fileBytes: Long = perWorkspace.map(_.fileBytes).sum
+
+    /** How many `AnalyzedClass` instances the daemon would be holding without interning, per instance it actually holds. 1.0 means nothing was shared. */
+    def sharingFactor: Double = if (internedClasses == 0) 0.0 else (internHits + internMisses).toDouble / internedClasses
   }
 
-  /** Budget per workspace, measured in the on-disk bytes of the analysis files read.
+  /** Content key for an `AnalyzedClass`: everything it carries except `compilationTimestamp`.
     *
-    * On-disk size is a proxy for retained heap, and a deliberately coarse one: measured against a real build, 113MB of analysis files (166 files, one
-    * workspace) inflated to roughly 4.5GB of live objects — call it 6-7x, since the files are compressed and the in-memory form is an object graph. So this
-    * budget is worth something like 1.5GB of heap per workspace, which holds a busy workspace's whole working set and change.
-    *
-    * Sized by measurement rather than taste, and worth re-measuring if that ratio moves: the `analysis_cache` metrics event records entries and bytes per
-    * workspace, and a class histogram gives the heap side.
+    * `nameHashes` is digested rather than held, and sorted first because zinc does not promise an order.
     */
-  val DefaultBudgetBytesPerWorkspace: Long = 256L * 1024 * 1024
-
-  /** Drop an analysis untouched for this long. A build loads a given dependency's analysis many times within seconds; across builds minutes apart, re-reading
-    * costs a fraction of a second and saves gigabytes. This is the bound that actually matches what the cache is for — sharing within one build.
-    */
-  val DefaultMaxIdleMs: Long = 120000L
-
-  /** Which entries to drop: everything idle past `maxIdleMs`, then least-recently-used until the summed file size is within `budgetBytes`.
-    *
-    * Pure, so the policy can be tested without a Zinc analysis to hand.
-    */
-  private[analysis] def selectEvictions(
-      present: Vector[(Path, Long, Long)],
-      nowMs: Long,
-      maxIdleMs: Long,
-      budgetBytes: Long
-  ): Vector[Path] = {
-    val (expired, fresh) = present.partition { case (_, lastUsed, _) => nowMs - lastUsed > maxIdleMs }
-    val doomed = Vector.newBuilder[Path]
-    doomed ++= expired.map(_._1)
-    var total = fresh.map(_._3).sum
-    if (total > budgetBytes) {
-      // Oldest first: the entry least likely to be wanted by whatever is compiling now.
-      fresh.sortBy { case (_, lastUsed, _) => lastUsed }.foreach { case (path, _, bytes) =>
-        if (total > budgetBytes) { doomed += path; total -= bytes }
-      }
+  private[analysis] def internKey(ac: AnalyzedClass): String = {
+    val md = MessageDigest.getInstance("SHA-256")
+    def int(i: Int): Unit = md.update(java.nio.ByteBuffer.allocate(4).putInt(i).array())
+    md.update(ac.name().getBytes("UTF-8"))
+    int(ac.apiHash())
+    int(ac.extraHash())
+    md.update(if (ac.hasMacro()) Array[Byte](1) else Array[Byte](0))
+    md.update(ac.provenance().getBytes("UTF-8"))
+    ac.nameHashes().sortBy(nh => (nh.name(), nh.scope().ordinal())).foreach { nh =>
+      md.update(nh.name().getBytes("UTF-8"))
+      int(nh.scope().ordinal())
+      int(nh.hash())
     }
-    doomed.result()
+    md.digest().map("%02x".format(_)).mkString
   }
 }

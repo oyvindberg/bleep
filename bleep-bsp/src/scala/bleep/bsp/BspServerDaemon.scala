@@ -263,10 +263,7 @@ object BspServerDaemon {
     // Zinc analyses, held per workspace and bounded per workspace. Constructed here and handed to
     // BuildCache, so that dropping a build also drops the analyses read while compiling it — which
     // is where the memory actually is. See BuildCache.dropAll for why the cascade runs one way only.
-    val analysisCache = new bleep.analysis.AnalysisCache(
-      budgetBytesPerWorkspace = bleep.analysis.AnalysisCache.DefaultBudgetBytesPerWorkspace,
-      maxIdleMs = bleep.analysis.AnalysisCache.DefaultMaxIdleMs
-    )
+    val analysisCache = new bleep.analysis.AnalysisCache
     val buildCache = new BuildCache(daemonConfig.effectiveMaxCachedWorkspaces, analysisCache)
 
     // Background reporter. Two jobs, one thread:
@@ -298,10 +295,7 @@ object BspServerDaemon {
                 waiting = snapshot.waiting.size
               )
               BspMetrics.recordWorkspaceState(buildCache.cachedWorkspaces, buildCache.bound)
-              // Swept here rather than on every cache write: a build loading twenty analyses in a
-              // burst should not walk the cache twenty times, and one periodic sweep makes the
-              // largest retainer in the heap a legible time series instead of a side effect.
-              BspMetrics.recordAnalysisCache(analysisCache.sweep(System.currentTimeMillis(), logger))
+              BspMetrics.recordAnalysisCache(analysisCache.stats)
             }
           catch { case _: InterruptedException => () }
       }

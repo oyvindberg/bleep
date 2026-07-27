@@ -199,10 +199,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     // The production server. It has no way to be handed build state directly — it compiles the
     // build its client sends — so the configs are lowered into the same payload a real bleep
     // client would send, and delivered through build/initialize below.
-    val harnessAnalysisCache = new bleep.analysis.AnalysisCache(
-      budgetBytesPerWorkspace = bleep.analysis.AnalysisCache.DefaultBudgetBytesPerWorkspace,
-      maxIdleMs = bleep.analysis.AnalysisCache.DefaultMaxIdleMs
-    )
+    val harnessAnalysisCache = new bleep.analysis.AnalysisCache
     val server = new MultiWorkspaceBspServer(
       serverInput,
       serverToClient,

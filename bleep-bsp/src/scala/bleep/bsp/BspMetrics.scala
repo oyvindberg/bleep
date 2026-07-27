@@ -256,16 +256,16 @@ object BspMetrics {
     * the live set is climbing.
     */
   def recordAnalysisCache(stats: bleep.analysis.AnalysisCache.Stats): Unit = {
-    // Broken out per workspace, because the total alone is what the old telemetry gave and it left
-    // the actual question — which build is holding the heap — to be reconstructed afterwards from a
-    // class histogram and a linear fit.
+    // Per workspace, because the total alone was what the old telemetry gave and it left the actual
+    // question — which build is holding the heap — to be reconstructed from a class histogram.
     val perWorkspace = stats.perWorkspace
       .map(w =>
         s"""{"workspace":"${esc(w.key.workspace.toString)}","variant":"${esc(w.key.variant.toString)}","entries":${w.entries},"file_bytes":${w.fileBytes}}"""
       )
       .mkString("[", ",", "]")
     writeEvent(
-      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"per_workspace":$perWorkspace}"""
+      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"sharing_factor":${String
+          .format(Locale.US, "%.2f", stats.sharingFactor: java.lang.Double)},"per_workspace":$perWorkspace}"""
     )
   }
 
