@@ -204,19 +204,25 @@ object BspServerDaemon {
     //
     // The starting budget below is only a starting point; `retuneLoop` tracks what the machine can
     // actually spare from there.
-    val numCores = Runtime.getRuntime.availableProcessors()
-    val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-    val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
-    val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
     // Read once, here, rather than per connection: this bounds state that spans every client on
     // this daemon, and a per-connection reading would let the newest client's config silently
     // redefine it for the others.
     val daemonConfig = BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault
+
+    // `parallelism`, not the raw core count: it defaults to one per core, but when it is set it is a
+    // statement about how much of THIS MACHINE bleep may use, and the governor is what enforces that
+    // across clients. Reading cores here instead meant a user who asked for 2 got 2 per run and 2 per
+    // pool — but the governor still admitted up to one-per-core across every connected client.
+    val maxConcurrentOperations = daemonConfig.effectiveParallelism
+    val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+    val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
+    val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
     logger.info(
-      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB"
+      s"Machine: ${Runtime.getRuntime.availableProcessors()} cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> " +
+        s"parallelism $maxConcurrentOperations, initial fork-memory budget ${forkMemoryBudgetMb}MB"
     )
     val machine = MachineResources.create(
-      totalCpu = numCores,
+      totalCpu = maxConcurrentOperations,
       totalMemoryMb = forkMemoryBudgetMb,
       logger = logger,
       longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs

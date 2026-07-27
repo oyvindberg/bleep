@@ -93,9 +93,9 @@ object ZincBridge {
 
   /** Threads each analysis read/write may use.
     *
-    * Zinc defaults this to `availableProcessors()`, which assumes one build at a time. This daemon runs up to `maxConcurrentCompiles` compiles at once, each
-    * loading several dependency analyses, so the default would multiply out to hundreds of threads competing for the same disk — the oversubscription the
-    * machine governor exists to prevent. Analysis I/O is not the bottleneck a compile waits on; four is enough to overlap decompression with parsing.
+    * Zinc defaults this to `availableProcessors()`, which assumes one build at a time. This daemon runs up to `parallelism` operations at once, each loading
+    * several dependency analyses, so the default would multiply out to hundreds of threads competing for the same disk — the oversubscription the machine
+    * governor exists to prevent. Analysis I/O is not the bottleneck a compile waits on; four is enough to overlap decompression with parsing.
     */
   private val AnalysisIoParallelism: Int = 4
 

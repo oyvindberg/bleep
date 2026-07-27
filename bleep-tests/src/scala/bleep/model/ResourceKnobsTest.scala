@@ -13,8 +13,17 @@ class ResourceKnobsTest extends AnyFunSuite with Matchers {
 
   private val cores = Runtime.getRuntime.availableProcessors
 
-  test("parallelism defaults to one per core") {
+  test("parallelism defaults to one per core — cores are the default, not a second limit") {
     BspServerConfig.default.effectiveParallelism shouldBe cores
+  }
+
+  test("an explicit parallelism replaces the core count everywhere it matters") {
+    // The governor's CPU axis is sized from this, not from availableProcessors. Reading cores there
+    // instead meant `parallelism = 2` bounded each run and each JVM pool at 2 while the governor
+    // still admitted one-per-core across every connected client — so a user who asked for two got two
+    // per client and many in total.
+    BspServerConfig.default.copy(parallelism = Some(2)).effectiveParallelism shouldBe 2
+    BspServerConfig.default.copy(parallelism = Some(64)).effectiveParallelism shouldBe 64
   }
 
   test("compiles are not capped separately from everything else") {
