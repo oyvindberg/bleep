@@ -68,9 +68,26 @@ object BspMetrics {
 
   private def readThreadAllocation(): ThreadAllocation = {
     val t = Thread.currentThread()
-    val bytes = threadBeanForAllocation.map(_.getThreadAllocatedBytes(t.threadId())).getOrElse(-1L)
-    ThreadAllocation(t.threadId(), bytes, System.currentTimeMillis())
+    ThreadAllocation(t.threadId(), threadAllocatedBytes(), System.currentTimeMillis())
   }
+
+  /** Cumulative bytes allocated by the CALLING thread, or -1 where the JVM does not report it.
+    *
+    * Public because the only place a compile is reliably pinned to one thread is inside ZincBridge's `IO.interruptible` block, so that is where the two
+    * readings have to be taken. See [[recordCompileAllocation]].
+    */
+  def threadAllocatedBytes(): Long =
+    threadBeanForAllocation.map(_.getThreadAllocatedBytes(Thread.currentThread().threadId())).getOrElse(-1L)
+
+  /** Bytes a single compile allocated, measured across the blocking section that does the work.
+    *
+    * Churn, not retention: a compile that allocates 40GB and keeps none of it is a very different problem from one that keeps 4GB, and the two are
+    * indistinguishable in a heap-usage graph. This is the number that says which module actually needs the headroom.
+    */
+  def recordCompileAllocation(project: String, allocatedBytes: Long, durationMs: Long): Unit =
+    writeEvent(
+      s"""{"type":"compile_allocation","ts":${now()},"project":"${esc(project)}","allocated_mb":${allocatedBytes / (1024 * 1024)},"duration_ms":$durationMs}"""
+    )
 
   // OOM tracking
   private val OomThreshold = 0.95
@@ -194,20 +211,13 @@ object BspMetrics {
 
   def recordCompileEnd(project: String, workspace: String, durationMs: Long, success: Boolean): Unit = {
     val current = concurrentCompiles.decrementAndGet()
-    val started = Option(inFlightCompiles.remove(inFlightKey(project, workspace)))
-    // Attributed allocation, when this is the thread that opened the reading. Churn, not retention:
-    // a compile that allocates 40GB and keeps none of it is a very different problem from one that
-    // keeps 4GB, and the pair of them look identical in a heap-usage graph.
-    val allocatedJson = (started, threadBeanForAllocation) match {
-      case (Some(begin), Some(tb)) if begin.threadId == Thread.currentThread().threadId() && begin.bytes >= 0 =>
-        val delta = tb.getThreadAllocatedBytes(begin.threadId) - begin.bytes
-        s""","allocated_mb":${delta / (1024 * 1024)}"""
-      case _ => ""
-    }
+    inFlightCompiles.remove(inFlightKey(project, workspace)): Unit
+    // No allocation figure here on purpose — see recordCompileAllocation, which is emitted from
+    // inside the compile's own blocking section where the thread is stable.
     writeEvent(
       s"""{"type":"compile_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(
           workspace
-        )}","duration_ms":$durationMs,"success":$success,"concurrent":$current$allocatedJson}"""
+        )}","duration_ms":$durationMs,"success":$success,"concurrent":$current}"""
     )
   }
 
@@ -240,6 +250,14 @@ object BspMetrics {
   ): Unit =
     writeEvent(
       s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"active_compiles":$activeCompiles,"max_compiles":$maxCompiles,"running":$running,"waiting":$waiting}"""
+    )
+
+  /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
+    * the live set is climbing.
+    */
+  def recordAnalysisCache(entries: Int, fileBytes: Long, evicted: Int): Unit =
+    writeEvent(
+      s"""{"type":"analysis_cache","ts":${now()},"entries":$entries,"file_bytes":$fileBytes,"evicted":$evicted}"""
     )
 
   /** Which workspaces the daemon is holding resolved builds for. The retained-heap floor tracks this number, so recording it is what makes the floor

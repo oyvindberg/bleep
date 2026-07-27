@@ -291,6 +291,19 @@ object BspServerDaemon {
                 waiting = snapshot.waiting.size
               )
               BspMetrics.recordWorkspaceState(buildCache.cachedWorkspaces, buildCache.bound)
+              // Swept here rather than on every cache write: a build loading twenty analyses in a
+              // burst should not walk the cache twenty times, and one periodic sweep makes the
+              // largest retainer in the heap a legible time series instead of a side effect.
+              val analysisStats = bleep.analysis.ZincBridge.sweepAnalysisCache(
+                nowMs = System.currentTimeMillis(),
+                maxIdleMs = bleep.analysis.ZincBridge.AnalysisCacheMaxIdleMs,
+                budgetBytes = bleep.analysis.ZincBridge.AnalysisCacheBudgetBytes
+              )
+              BspMetrics.recordAnalysisCache(analysisStats.entries, analysisStats.fileBytes, analysisStats.evicted)
+              if (analysisStats.evicted > 0)
+                logger.debug(
+                  s"[analysis-cache] evicted ${analysisStats.evicted}, holding ${analysisStats.entries} entries / ${analysisStats.fileBytes / (1024 * 1024)}MB of files"
+                )
             }
           catch { case _: InterruptedException => () }
       }

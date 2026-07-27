@@ -3,7 +3,6 @@ package bleep.analysis
 import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import java.io.{File, IOException}
-import java.lang.ref.SoftReference
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
 import java.util.Optional
 import scala.jdk.CollectionConverters.*
@@ -92,12 +91,90 @@ object ZincBridge {
     */
   private val ecjJarCache = new java.util.concurrent.ConcurrentHashMap[String, Seq[Path]]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime,
-    * analysis). The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry
-    * is discarded and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects
-    * within the same build, while allowing GC to reclaim them when heap is tight.
+  /** Cache for dependency analyses, bounded by the on-disk size of what it holds. Key: analysis file path.
+    *
+    * The mtime is checked before returning an entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale entry is discarded and the
+    * file re-read. The point is to avoid re-reading analysis files when the same dependency is loaded by several projects '''within the same build'''.
+    *
+    * This used to be unbounded and softly referenced, on the theory that GC would reclaim it when heap got tight. Measured on a live server: it does not. A
+    * class histogram of a daemon at 7.2GB live showed ~4.5GB in `xsbti.api.*` — 31.7M `NameHash` (1.0GB), 31.1M `Id` (498MB), 839K retained `AnalyzedClass` —
+    * and a forced full GC moved the live set by 68MB. Softly-reachable objects are not cleared until the collector is nearly out of room, and until then they
+    * are indistinguishable from live data: they occupy the heap, they are counted as live, and they crowd out the compiles this cache exists to speed up.
+    *
+    * So it is bounded explicitly instead. Entries are strongly held, evicted oldest-first once the summed size of the FILES they were read from exceeds
+    * [[AnalysisCacheBudgetBytes]], and dropped entirely once untouched for [[AnalysisCacheMaxIdleMs]] — which is what actually matches the "same build" scope
+    * above. Eviction is safe at any moment: this is a read-through cache, a miss just re-reads from disk, and a compile in flight holds its own strong
+    * references to the analyses it loaded.
     */
-  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[(Long, CompileAnalysis)]]()
+  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, CachedAnalysis]()
+
+  private case class CachedAnalysis(mtime: Long, analysis: CompileAnalysis, fileBytes: Long, lastUsedMs: java.util.concurrent.atomic.AtomicLong)
+
+  /** Budget for the analysis cache, measured in the on-disk bytes of the files it has read.
+    *
+    * On-disk size is a proxy for retained heap, and a deliberately conservative one: measured against a real build, 113MB of analysis files (166 files, one
+    * workspace) inflated to roughly 4.5GB of live objects — call it 6-7x, since the files are compressed and the in-memory form is an object graph. So this
+    * budget is worth something like 1.5GB of heap, which holds a busy workspace's whole working set and change.
+    *
+    * Sized by measurement rather than taste, and worth re-measuring if the ratio moves: the `analysis_cache` metrics event records entries and bytes, and a
+    * class histogram gives the heap side.
+    */
+  val AnalysisCacheBudgetBytes: Long = 256L * 1024 * 1024
+
+  /** Drop an analysis untouched for this long. A build loads a given dependency's analysis many times within seconds; across builds minutes apart, re-reading
+    * costs a fraction of a second and saves gigabytes.
+    */
+  val AnalysisCacheMaxIdleMs: Long = 120000L
+
+  private def cacheAnalysis(analysisFile: Path, mtime: Long, analysis: CompileAnalysis): Unit = {
+    val bytes =
+      try Files.size(analysisFile)
+      catch { case _: Exception => 0L }
+    analysisCache.put(analysisFile, CachedAnalysis(mtime, analysis, bytes, new java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis()))): Unit
+  }
+
+  /** What the analysis cache is holding, for telemetry. */
+  case class AnalysisCacheStats(entries: Int, fileBytes: Long, evicted: Int)
+
+  /** Drop expired and over-budget entries. Called periodically by the daemon rather than on every put, so that a build loading twenty analyses in a burst is
+    * not made to walk the cache twenty times, and so the sweep is one legible periodic event rather than a side effect of whichever compile happened to be
+    * last.
+    */
+  def sweepAnalysisCache(nowMs: Long, maxIdleMs: Long, budgetBytes: Long): AnalysisCacheStats = {
+    val present = analysisCache
+      .entrySet()
+      .iterator()
+      .asScala
+      .map(e => (e.getKey, e.getValue.lastUsedMs.get(), e.getValue.fileBytes))
+      .toVector
+    val doomed = selectAnalysisEvictions(present, nowMs, maxIdleMs, budgetBytes)
+    doomed.foreach(k => analysisCache.remove(k): Unit)
+    val remaining = analysisCache.values().iterator().asScala.map(_.fileBytes).sum
+    AnalysisCacheStats(entries = analysisCache.size(), fileBytes = remaining, evicted = doomed.size)
+  }
+
+  /** Which analysis entries to drop: everything idle past `maxIdleMs`, then least-recently-used until the summed file size is within `budgetBytes`.
+    *
+    * Pure, so the policy can be tested without a Zinc analysis to hand.
+    */
+  private[analysis] def selectAnalysisEvictions(
+      present: Vector[(Path, Long, Long)],
+      nowMs: Long,
+      maxIdleMs: Long,
+      budgetBytes: Long
+  ): Vector[Path] = {
+    val (expired, fresh) = present.partition { case (_, lastUsed, _) => nowMs - lastUsed > maxIdleMs }
+    val doomed = Vector.newBuilder[Path]
+    doomed ++= expired.map(_._1)
+    var total = fresh.map(_._3).sum
+    if (total > budgetBytes) {
+      // Oldest first: the entry least likely to be wanted by whatever is compiling now.
+      fresh.sortBy { case (_, lastUsed, _) => lastUsed }.foreach { case (path, _, bytes) =>
+        if (total > budgetBytes) { doomed += path; total -= bytes }
+      }
+    }
+    doomed.result()
+  }
 
   /** Create ReadWriteMappers for portable zinc analysis.
     *
@@ -230,7 +307,19 @@ object ZincBridge {
     if (sources.isEmpty) {
       ProjectCompileSuccess(config.outputDir, Set.empty, Some(analysisFile))
     } else {
-      compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile)
+      // Allocation is measured HERE, around the body of the `IO.interruptible`, because
+      // `getThreadAllocatedBytes` is per thread and this block is the one place a compile is
+      // pinned to one. Measured at the BSP layer instead — around the IO rather than inside it —
+      // the fiber had usually moved between start and end, and attribution succeeded for 1% of
+      // 34k compiles, all of them the trivial ones that never yielded.
+      val begin = bleep.bsp.BspMetrics.threadAllocatedBytes()
+      val startMs = System.currentTimeMillis()
+      val result =
+        compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile)
+      val end = bleep.bsp.BspMetrics.threadAllocatedBytes()
+      if (begin >= 0 && end >= begin)
+        bleep.bsp.BspMetrics.recordCompileAllocation(config.name, end - begin, System.currentTimeMillis() - startMs)
+      result
     }
   }
 
@@ -933,10 +1022,12 @@ object ZincBridge {
       if (Files.exists(analysisFile)) {
         val currentMtime = Files.getLastModifiedTime(analysisFile).toMillis
         val cached = {
-          val ref = analysisCache.get(analysisFile)
-          val entry = if (ref != null) ref.get() else null
+          val entry = analysisCache.get(analysisFile)
           // Invalidate if file changed on disk (e.g. after remote-cache pull)
-          if (entry != null && entry._1 == currentMtime) entry._2 else null
+          if (entry != null && entry.mtime == currentMtime) {
+            entry.lastUsedMs.set(System.currentTimeMillis())
+            entry.analysis
+          } else null
         }
         if (cached != null) {
           Some(classDir -> cached)
@@ -945,7 +1036,7 @@ object ZincBridge {
             val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
             store.get().toScala.map { contents =>
               val analysis = contents.getAnalysis
-              analysisCache.put(analysisFile, new SoftReference((currentMtime, analysis)))
+              cacheAnalysis(analysisFile, currentMtime, analysis)
               classDir -> analysis
             }
           } catch {
@@ -1212,9 +1303,9 @@ object ZincBridge {
       val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile, analysisMappers(analysisFile))
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-      // Update soft reference cache so dependents see the fresh analysis
+      // Update the cache so dependents see the fresh analysis
       val mtime = Files.getLastModifiedTime(analysisFile).toMillis
-      analysisCache.put(analysisFile, new SoftReference((mtime, analysis))): Unit
+      cacheAnalysis(analysisFile, mtime, analysis)
     } catch {
       case e: Exception =>
         try Files.deleteIfExists(tempFile)
