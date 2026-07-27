@@ -261,6 +261,20 @@ object ResolveProjects {
         case other => sys.error(s"unexpected: $other")
       }
 
+    /** Version schemes from this project AND from everything it depends on.
+      *
+      * A scheme travels with the library it is a claim about. `inherited` above pulls a dependency's libraries into this project's resolution, so this project
+      * faces that dependency's conflicts — and must therefore be allowed to inherit the dependency's judgement about them too. Without this, a project that
+      * resolves cleanly makes every consumer fail on a conflict it did not introduce and cannot see, and the fix is to repeat the same scheme in every
+      * consumer.
+      *
+      * Templates still contribute through `explodedProject`, so a scheme can be stated either way: on the project that pulls the library, or on a template for
+      * a whole family of projects.
+      */
+    val libraryVersionSchemes: SortedSet[model.LibraryVersionScheme] =
+      explodedProject.libraryVersionSchemes.values ++
+        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.libraryVersionSchemes.values }
+
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromPlatform =
         versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
@@ -277,7 +291,7 @@ object ResolveProjects {
       val normal = resolver.force(
         deps,
         versionCombo,
-        explodedProject.libraryVersionSchemes.values,
+        libraryVersionSchemes,
         crossName.value,
         explodedProject.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
       )
@@ -294,7 +308,7 @@ object ResolveProjects {
           resolver.force(
             deps,
             versionCombo,
-            explodedProject.libraryVersionSchemes.values,
+            libraryVersionSchemes,
             crossName.value,
             explodedProject.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
           )
@@ -451,7 +465,7 @@ object ResolveProjects {
               model.Options.Opt.Flag(
                 s"${constants.ScalaPluginPrefix}:" +
                   resolver
-                    .force(Set(dep), versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value, model.IgnoreEvictionErrors.No)
+                    .force(Set(dep), versionCombo, libraryVersionSchemes, crossName.value, model.IgnoreEvictionErrors.No)
                     .fullDetailedArtifacts
                     .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
                     .filterNot(resolvedScalaCompiler.toSet)

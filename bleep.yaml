@@ -421,12 +421,11 @@ templates:
     # Its POM declares early-semver, so the eviction fails the build by default. The compatibility
     # argument: diffing the two jars shows 2.0.4 is purely additive over 1.10.7 — 150 classes, zero
     # public or protected members removed, two added (HashedVirtualFileRef, BasicHashedVirtualFileRef).
-    # The Scala 3 bridge compiled against 1.10.7 links fine against it.
     #
-    # On the TEMPLATE, not on bleep-bsp: schemes are read off the *exploded* project, so they arrive
-    # through `extends` and never through `dependsOn`. Declaring it on bleep-bsp alone left
-    # bleep-bsp-tests and bleep-tests — which depend on it and so have zinc on their classpath —
-    # still failing, which is exactly what CI caught.
+    # On the TEMPLATE rather than on bleep-bsp, which is the project that actually pulls zinc, because
+    # THIS build must stay resolvable by the PREVIOUS bleep release: CI bootstraps with it, and it
+    # predates schemes travelling along `dependsOn`. Once a release carries that, this can move to
+    # bleep-bsp alone.
     libraryVersionSchemes: org.scala-sbt:compiler-interface:always
     java:
       options: -proc:none
