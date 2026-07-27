@@ -45,7 +45,7 @@ A project-level `platform.jvmOptions` beats the global `testRunnerMaxMemory` for
 
 ## How many run at once
 
-One knob: **`parallelism`** — how many operations bleep may run at once, compiles and forks together. It defaults to one per core, and everything else is derived from it (the daemon-wide compile ceiling is half of it, because a compile's scarce resource is the server's shared heap rather than a core).
+One knob: **`parallelism`** — how many operations bleep may run at once. It defaults to one per core and covers everything the build scheduler runs: compiles, links, test suites, sourcegen scripts, annotation-processor and KSP resolution. It also sizes the pool of forked test JVMs.
 
 ```bash
 bleep config compile-server parallelism 2

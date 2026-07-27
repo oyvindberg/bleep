@@ -116,21 +116,21 @@ bleep versions are deleted automatically at server start.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 
-### Concurrent compiles
+### How much runs at once
 
-Compiles are bounded by **`parallelism`**, the one concurrency knob — see
+Compiles, links, tests and sourcegen all draw from one budget:
+**`parallelism`** — see
 [Memory & Parallelism](/docs/usage/resource-management#how-many-run-at-once).
-The daemon-wide compile ceiling is half of it, because a compile's scarce
-resource is the server's shared heap rather than a core: it allocates into
-a heap every workspace on the daemon shares, so cores are the wrong proxy
-for what it costs. On an 18-core machine, one compile per core drove 18
-concurrent compiles into a single 12 GB heap until it died.
 
-Test forks are not affected — they run out of process and are governed by
-the fork-memory budget instead.
+There is deliberately no separate cap for compiles. One existed briefly and
+was removed: holding capacity back for test forks that might not exist is a
+static partition inside an otherwise work-conserving governor, so a
+compile-only run left half the machine idle. Heap pressure is answered by
+watching the live heap and staggering starts, which responds to what is
+actually happening rather than guessing from a count.
 
 ```bash
-bleep config compile-server parallelism 4      # 4 operations at once, so 2 compiles
+bleep config compile-server parallelism 4
 ```
 
 ### Cached builds

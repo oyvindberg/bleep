@@ -13,17 +13,16 @@ class ResourceKnobsTest extends AnyFunSuite with Matchers {
 
   private val cores = Runtime.getRuntime.availableProcessors
 
-  test("parallelism defaults to one per core, and the compile ceiling to half of that") {
-    val c = BspServerConfig.default
-    c.effectiveParallelism shouldBe cores
-    c.effectiveMaxConcurrentCompiles shouldBe math.max(1, cores / 2)
+  test("parallelism defaults to one per core") {
+    BspServerConfig.default.effectiveParallelism shouldBe cores
   }
 
-  test("the compile ceiling follows parallelism, so there is one number to reason about") {
-    BspServerConfig.default.copy(parallelism = Some(8)).effectiveMaxConcurrentCompiles shouldBe 4
-    BspServerConfig.default.copy(parallelism = Some(2)).effectiveMaxConcurrentCompiles shouldBe 1
-    // Never zero: a ceiling of zero would deadlock every build.
-    BspServerConfig.default.copy(parallelism = Some(1)).effectiveMaxConcurrentCompiles shouldBe 1
+  test("compiles are not capped separately from everything else") {
+    // A fixed compile ceiling used to sit inside the governor, holding capacity back for test forks
+    // that may not exist — a static partition in a work-conserving system, so a compile-only run left
+    // half the machine idle. Heap pressure is answered by HeapPressureGate against the live heap.
+    BspServerConfig.getClass.getDeclaredMethods.map(_.getName) should not contain "effectiveMaxConcurrentCompiles"
+    classOf[BspServerConfig].getDeclaredFields.map(_.getName) should not contain "maxConcurrentCompiles"
   }
 
   test("parallelismRatio expresses the same thing as a fraction of cores") {

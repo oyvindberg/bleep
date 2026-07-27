@@ -208,19 +208,16 @@ object BspServerDaemon {
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
     val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
     val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
-    // Read once, here, rather than per connection: these two bound resources that span every client
-    // on this daemon, and a per-connection reading would let the newest client's config silently
-    // redefine a ceiling the others are already running under. The cost is that changing either
-    // takes effect on the next server start — `bleep config compile-server stop-all` to apply now.
+    // Read once, here, rather than per connection: this bounds state that spans every client on
+    // this daemon, and a per-connection reading would let the newest client's config silently
+    // redefine it for the others.
     val daemonConfig = BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault
-    val maxConcurrentCompiles = daemonConfig.effectiveMaxConcurrentCompiles
     logger.info(
-      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB, max $maxConcurrentCompiles concurrent compile(s)"
+      s"Machine: $numCores cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> initial fork-memory budget ${forkMemoryBudgetMb}MB"
     )
     val machine = MachineResources.create(
       totalCpu = numCores,
       totalMemoryMb = forkMemoryBudgetMb,
-      maxConcurrentCompiles = maxConcurrentCompiles,
       logger = logger,
       longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
     )
@@ -290,7 +287,6 @@ object BspServerDaemon {
                 usedMemoryMb = snapshot.usedMemoryMb,
                 totalMemoryMb = snapshot.totalMemoryMb,
                 activeCompiles = snapshot.activeCompiles,
-                maxCompiles = snapshot.maxCompiles,
                 running = snapshot.active.size,
                 waiting = snapshot.waiting.size
               )

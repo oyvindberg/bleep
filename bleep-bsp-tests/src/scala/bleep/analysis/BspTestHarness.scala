@@ -204,11 +204,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       serverInput,
       serverToClient,
       Loggers.stderr(LogPatterns.logFile),
-      machine = bleep.MachineResources.forThisMachine(
-        totalCpu = Runtime.getRuntime.availableProcessors(),
-        maxConcurrentCompiles = bleep.model.BspServerConfig.default.effectiveMaxConcurrentCompiles,
-        logger = Loggers.stderr(LogPatterns.logFile)
-      ),
+      machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
       heapMonitor = HeapMonitor.system,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,

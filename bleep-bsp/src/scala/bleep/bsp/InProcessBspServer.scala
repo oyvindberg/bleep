@@ -33,14 +33,7 @@ object InProcessBspServer {
             var exitCode: java.lang.Integer = 0
             try {
               val numCores = Runtime.getRuntime.availableProcessors()
-              // The built-in default rather than the developer's `~/.config/bleep` — this path is
-              // test-only, and a test whose concurrency depends on whoever is running it is a test
-              // that reproduces differently on every machine.
-              val machine = bleep.MachineResources.forThisMachine(
-                totalCpu = numCores,
-                maxConcurrentCompiles = bleep.model.BspServerConfig.default.effectiveMaxConcurrentCompiles,
-                logger = logger
-              )
+              val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
               val inProcessAnalysisCache = new bleep.analysis.AnalysisCache
               // One server per in-process run, so fresh daemon-scoped state is correct here.
               val server =

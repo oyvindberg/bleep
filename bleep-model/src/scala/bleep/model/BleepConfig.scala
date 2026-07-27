@@ -82,17 +82,6 @@ case class BspServerConfig(
       .getOrElse(cores)
   }
 
-  /** Ceiling on compiles running at once across the WHOLE daemon — every workspace, every connected client.
-    *
-    * Derived from [[parallelism]] rather than configured separately, so there is one number to reason about. Half, because a compile's scarce resource is the
-    * server's own heap, not a core: it reserves no fork memory and allocates into a heap shared with every other workspace on the daemon. Measured in the
-    * field, one core per compile let an 18-core machine drive 18 concurrent compiles into a single 12GB heap until it died.
-    *
-    * Raising `parallelism` raises this with it, which is the intended relationship — it is one question about how much of the machine bleep may use.
-    */
-  def effectiveMaxConcurrentCompiles: Int =
-    math.max(1, effectiveParallelism / 2)
-
   def effectiveTestIdleTimeoutMinutes: Int =
     testIdleTimeoutMinutes.getOrElse(BspServerConfig.DefaultTestIdleTimeoutMinutes)
 
