@@ -259,7 +259,7 @@ object MachineResources {
     * Compiles carry a third constraint, a straight count. Cores are the wrong proxy for what a compile costs, because a compile's scarce resource is the
     * SERVER'S OWN HEAP — which it reserves nothing of here (`memoryMb = 0`, since that dimension budgets forked processes). One core per compile therefore let
     * an 18-core machine run 18 concurrent compiles into a single 12GB heap, across as many workspaces as happened to be connected. See
-    * [[bleep.model.BspServerConfig.maxConcurrentCompiles]].
+    * [[bleep.model.BspServerConfig.effectiveMaxConcurrentCompiles]], which is derived from `parallelism`.
     */
   private def fits(kind: ResourceKind, cpu: Int, memoryMb: Long, freeCpu: Int, freeMemoryMb: Long, activeCompiles: Int, maxCompiles: Int): Boolean =
     (cpu == 0 || freeCpu >= cpu) &&

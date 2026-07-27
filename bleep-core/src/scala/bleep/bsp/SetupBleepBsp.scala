@@ -121,6 +121,24 @@ object SetupBleepBsp {
   private def classpathCacheFile(userPaths: UserPaths): Path =
     userPaths.cacheDir.resolve(s"bleep-bsp-classpath-${model.BleepVersion.current.value}.txt")
 
+  /** What bleep already knows about its own server's dependency graph, applied when resolving it.
+    *
+    * zinc 2 brings `compiler-interface` 2.0.4, which evicts the 1.10.7 that `scala3-compiler` depends on. That POM declares `early-semver`, so the eviction is
+    * an error by default and bleep cannot install its own server. The two are in fact compatible — 2.0.4 is purely additive over 1.10.7: 150 classes, zero
+    * public or protected members removed — which is the same argument `bleep.yaml` makes for building bleep-bsp in the first place. A version scheme is
+    * declared per project and does not travel with the published artifact, so the client has to state it too.
+    *
+    * A scheme rather than `IgnoreEvictionErrors.Yes`: this is a claim about one library, and every other eviction in the server classpath should still be an
+    * error, because that classpath is bleep's own and a surprise there is a bug.
+    */
+  private val ServerClasspathVersionSchemes: scala.collection.immutable.SortedSet[model.LibraryVersionScheme] =
+    scala.collection.immutable.SortedSet(
+      model.LibraryVersionScheme(
+        model.LibraryVersionScheme.VersionScheme.Always,
+        model.Dep.Java("org.scala-sbt", "compiler-interface", "always")
+      )
+    )
+
   private def resolveServerClasspath(resolver: CoursierResolver, userPaths: UserPaths, logger: Logger): Either[BleepException, Seq[Path]] = {
     val cacheFile = classpathCacheFile(userPaths)
     val cachedClasspath = Try {
@@ -150,7 +168,7 @@ object SetupBleepBsp {
           .resolve(
             Set(dep),
             versionCombo,
-            libraryVersionSchemes = scala.collection.immutable.SortedSet.empty[model.LibraryVersionScheme],
+            libraryVersionSchemes = ServerClasspathVersionSchemes,
             model.IgnoreEvictionErrors.No
           ) match {
           case Left(err) =>

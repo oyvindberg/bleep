@@ -48,14 +48,14 @@ bleep config compile-server max-memory <size>
 
 <p>remove compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)</p>
 
-## `bleep config compile-server max-concurrent-compiles`
+## `bleep config compile-server parallelism`
 
-<p>set how many compiles may run at once across ALL workspaces on this server (default: half the cores)</p>
+<p>set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)</p>
 
 ### Synopsis
 
 ```bash
-bleep config compile-server max-concurrent-compiles <n>
+bleep config compile-server parallelism <n>
 ```
 
 ### Arguments
@@ -64,49 +64,9 @@ bleep config compile-server max-concurrent-compiles <n>
 |----------|------|
 | `n` | one |
 
-## `bleep config compile-server max-concurrent-compiles-clear`
+## `bleep config compile-server parallelism-clear`
 
-<p>remove the concurrent-compile limit (back to default: half the cores)</p>
-
-## `bleep config compile-server max-cached-workspaces`
-
-<p>set how many workspaces' resolved builds the server keeps in memory (default: 4)</p>
-
-### Synopsis
-
-```bash
-bleep config compile-server max-cached-workspaces <n>
-```
-
-### Arguments
-
-| Argument | Type |
-|----------|------|
-| `n` | one |
-
-## `bleep config compile-server max-cached-workspaces-clear`
-
-<p>remove the cached-workspace limit (back to default: 4)</p>
-
-## `bleep config compile-server heap-pressure-threshold`
-
-<p>set heap usage fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)</p>
-
-### Synopsis
-
-```bash
-bleep config compile-server heap-pressure-threshold <threshold>
-```
-
-### Arguments
-
-| Argument | Type |
-|----------|------|
-| `threshold` | one |
-
-## `bleep config compile-server heap-pressure-threshold-clear`
-
-<p>remove heap pressure threshold setting (use default: 0.80)</p>
+<p>remove the parallelism setting (back to default: one per core)</p>
 
 ## `bleep config compile-server read-timeout`
 

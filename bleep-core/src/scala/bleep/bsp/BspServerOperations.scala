@@ -108,6 +108,17 @@ object BspServerOperations {
       // `ProjectDigest` (via scala.sys.process), and everything else without per-site plumbing. Use `putIfAbsent` so a developer who sets `NO_COLOR=` empty in
       // their shell or wants color in some specific case still wins.
       pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+      // Whatever bleep-specific variables the SPAWNING client happened to have, the daemon must not
+      // silently inherit. `pb.environment()` starts as a copy of this process's environment, so a
+      // `BLEEP_FOO=… bleep compile` becomes permanent state on a server that then serves every other
+      // client and every fork it starts — the first invocation of the day quietly configures the
+      // machine. Observed exactly that: one `BLEEP_PARALLELISM=3 bleep compile` pinned the value into
+      // a shared daemon, and unrelated test forks inherited it minutes later.
+      //
+      // Anything the daemon should know is passed deliberately — on the command line, or in the
+      // config it reads for itself. Non-bleep variables (PATH, HOME, JAVA_HOME, proxy settings) are
+      // left alone: those describe the machine, which the daemon genuinely shares.
+      pb.environment().keySet().removeIf(k => k.startsWith("BLEEP_") && k != "BLEEP_BSP_DEBUG")
       // Redirect stderr (where our logger writes) to the output file.
       // Discard stdout — libraries (Bloop, Zinc) dump massive
       // amounts of data to stdout which would bloat the log to tens of GB.

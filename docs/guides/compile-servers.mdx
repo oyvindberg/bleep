@@ -118,71 +118,31 @@ bleep versions are deleted automatically at server start.
 
 ### Concurrent compiles
 
-```bash
-bleep config compile-server max-concurrent-compiles 4
-bleep config compile-server max-concurrent-compiles-clear   # back to default: half the cores
-```
+Compiles are bounded by **`parallelism`**, the one concurrency knob — see
+[Memory & Parallelism](/docs/usage/resource-management#how-many-run-at-once).
+The daemon-wide compile ceiling is half of it, because a compile's scarce
+resource is the server's shared heap rather than a core: it allocates into
+a heap every workspace on the daemon shares, so cores are the wrong proxy
+for what it costs. On an 18-core machine, one compile per core drove 18
+concurrent compiles into a single 12 GB heap until it died.
 
-Caps how many compiles run at once **across every workspace and
-every connected client** on one server. This is not the same knob
-as build parallelism: that bounds a single compile run, and a
-shared server routinely has a dozen worktrees connected at once,
-each independently entitled to the whole machine.
-
-Cores are a poor proxy for what a compile costs, because a compile
-allocates into the *server's* heap — so on an 18-core machine, one
-core per compile meant eighteen concurrent compiles feeding a
-single 12g heap. If you see `OutOfMemoryError` on a server shared
-by several worktrees, lower this before raising `max-memory`.
-
-Test forks are deliberately not affected: they run out of process
-and are already governed by their own measured memory budget.
-
-### Cached workspaces
+Test forks are not affected — they run out of process and are governed by
+the fork-memory budget instead.
 
 ```bash
-bleep config compile-server max-cached-workspaces 2
-bleep config compile-server max-cached-workspaces-clear   # back to default 4
+bleep config compile-server parallelism 4      # 4 operations at once, so 2 compiles
 ```
 
-The server keeps resolved builds in memory so repeated
-invocations don't re-resolve from scratch. Each one is
-substantial — exploded model, resolved classpaths, and the Zinc
-analysis hanging off it — so the cache is bounded, and the least
-recently used *idle* workspace is evicted once it's full. A
-workspace with work in flight is never evicted, so a busy server
-may briefly hold more than the bound.
+### Cached builds
 
-Lower this on a machine where one server serves many worktrees and
-the heap floor creeps up over a long session; raise it if you
-bounce between several builds and notice repeated build-load
-pauses. Evictions are logged, so a sudden cold load has a
-traceable cause.
+The server keeps resolved builds in memory so repeated invocations don't
+re-resolve from scratch, and drops the least recently used *idle* one when
+it needs room. The Zinc analyses read while compiling a workspace are held
+with it and dropped with it.
 
-Both settings are read when the server **starts**. After changing
-either, run `bleep config compile-server stop-all` to apply it
-now.
-
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
-
-### Heap-pressure throttle
-
-```bash
-bleep config compile-server heap-pressure-threshold 0.85
-bleep config compile-server heap-pressure-threshold-clear   # back to default 0.80
-```
-
-When the compile server's heap usage crosses this fraction, new
-compile requests **wait** for memory to free up before starting.
-Useful when you're running multiple parallel compiles (e.g.
-several editors open against the same shared server) and don't
-want one runaway to OOM the whole server.
-
-The default of 0.80 is conservative. If you've already raised
-`max-memory` and the throttle is still kicking in too eagerly,
-nudge this up to 0.90 or so.
-
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+There is no knob: analyses are structurally shared between workspaces, so
+holding several costs far less than it looks, and the bound is a number
+nobody has a basis to tune. Evictions are logged if you want to see them.
 
 ### Idle read timeout
 
@@ -233,7 +193,7 @@ compileServerMode:
   mode: shared              # or: new-each-invocation
 bspServerConfig:
   compileServerMaxMemory: 4g
-  heapPressureThreshold: 0.85
+  parallelism: 4
   testRunnerMaxMemory: 2g
   bspReadTimeoutMinutes: 30
 ```

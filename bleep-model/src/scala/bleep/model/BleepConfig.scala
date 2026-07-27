@@ -29,9 +29,14 @@ object BleepConfig {
 
 /** BSP server configuration - applies to compile and test operations */
 case class BspServerConfig(
-    /** Maximum parallelism. If None, uses parallelismRatio or defaults to all cores */
+    /** How many operations bleep may run at once on this machine — compiles, test forks, sourcegen. The single concurrency knob; everything else is derived
+      * from it. Defaults to all cores.
+      *
+      * Machine-wide, not per invocation: the compile server is shared, reads this once at startup, and passes it to every fork. A per-client override would
+      * mean whichever client happened to spawn the daemon silently configured it for everyone else.
+      */
     parallelism: Option[Int],
-    /** Parallelism as ratio of available cores (e.g., 0.5 = half). Used if parallelism is None */
+    /** The same as a fraction of cores, e.g. `0.5` for half. Used when [[parallelism]] is unset. */
     parallelismRatio: Option[Double],
     /** Idle timeout for test suites in minutes — resets each time a test completes */
     testIdleTimeoutMinutes: Option[Int],
@@ -60,13 +65,6 @@ case class BspServerConfig(
       * (stay alive forever). Default: 60
       */
     compileServerIdleTimeoutMinutes: Option[Int],
-    /** Ceiling on compiles running at once across the WHOLE daemon — every workspace, every connected client — as opposed to [[parallelism]], which bounds a
-      * single compile run. The distinction is the whole point: one server routinely serves a dozen worktrees at once, and a per-run cap lets each of them
-      * independently claim every core. Observed in the field at 14 connections over 11 worktrees, 18 compiles in flight, heap pegged at its ceiling.
-      *
-      * Default: half the cores, which leaves room for the JVM's own GC and compiler threads and for the test forks a build starts alongside. None = default.
-      */
-    maxConcurrentCompiles: Option[Int],
     /** How many workspaces' resolved builds [[bleep.bsp.BuildCache]] keeps before evicting the least recently used idle one.
       *
       * A resolved build is not small — exploded model, resolved classpaths, the Zinc analysis reachable from it — and the cache used to hold every workspace
@@ -84,6 +82,17 @@ case class BspServerConfig(
       .getOrElse(cores)
   }
 
+  /** Ceiling on compiles running at once across the WHOLE daemon — every workspace, every connected client.
+    *
+    * Derived from [[parallelism]] rather than configured separately, so there is one number to reason about. Half, because a compile's scarce resource is the
+    * server's own heap, not a core: it reserves no fork memory and allocates into a heap shared with every other workspace on the daemon. Measured in the
+    * field, one core per compile let an 18-core machine drive 18 concurrent compiles into a single 12GB heap until it died.
+    *
+    * Raising `parallelism` raises this with it, which is the intended relationship — it is one question about how much of the machine bleep may use.
+    */
+  def effectiveMaxConcurrentCompiles: Int =
+    math.max(1, effectiveParallelism / 2)
+
   def effectiveTestIdleTimeoutMinutes: Int =
     testIdleTimeoutMinutes.getOrElse(BspServerConfig.DefaultTestIdleTimeoutMinutes)
 
@@ -95,14 +104,6 @@ case class BspServerConfig(
     val minutes = bspReadTimeoutMinutes.getOrElse(BspServerConfig.DefaultBspReadTimeoutMinutes)
     if (minutes < 0) sys.error(s"bspReadTimeoutMinutes must be >= 0 (0 disables the timeout), got $minutes")
     minutes * 60 * 1000
-  }
-
-  /** Daemon-wide ceiling on concurrent compiles. Always >= 1: a cap of zero would deadlock every build. */
-  def effectiveMaxConcurrentCompiles: Int = {
-    val cores = Runtime.getRuntime.availableProcessors
-    val n = maxConcurrentCompiles.getOrElse(math.max(1, (cores * BspServerConfig.DefaultCompileConcurrencyRatio).toInt))
-    if (n < 1) sys.error(s"maxConcurrentCompiles must be >= 1, got $n")
-    n
   }
 
   /** How many workspaces' builds the daemon caches. Always >= 1: the workspace being compiled has to stay cached while it compiles. */
@@ -135,11 +136,6 @@ object BspServerConfig {
   // connected), so this never interrupts a compile or a live editor.
   val DefaultCompileServerIdleTimeoutMinutes: Int = 60
 
-  // Half the cores. A compile is not a CPU-bound loop that owns its core — it allocates hard, and the heap it allocates into is shared with every other
-  // workspace on the daemon. Leaving half the cores unclaimed by compiles leaves them for GC, the JVM's own compiler threads, and the test forks a build runs
-  // alongside. Raise it with `bleep config compile-server max-concurrent-compiles` on a machine with heap to spare.
-  val DefaultCompileConcurrencyRatio: Double = 0.5
-
   // Four builds is enough that an editor plus a couple of CLI worktrees all stay warm, and few enough that the retained floor stays a fraction of the heap
   // rather than most of it. Evicted entries are reloaded on next use, so this trades a cold build load for headroom.
   val DefaultMaxCachedWorkspaces: Int = 4
@@ -155,7 +151,6 @@ object BspServerConfig {
     heapPressureThreshold = None,
     bspReadTimeoutMinutes = None,
     compileServerIdleTimeoutMinutes = None,
-    maxConcurrentCompiles = None,
     maxCachedWorkspaces = None
   )
 

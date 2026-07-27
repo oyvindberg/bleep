@@ -724,51 +724,23 @@ object Main {
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
             ),
             Opts.subcommand[BleepCommand](
-              "max-concurrent-compiles",
-              "set how many compiles may run at once across ALL workspaces on this server (default: half the cores)"
+              "parallelism",
+              "set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)"
             )(
               Opts.argument[Int]("n").map { n => () =>
-                if (n < 1) throw new BleepException.Text(s"max-concurrent-compiles must be >= 1, got $n")
+                if (n < 1) throw new BleepException.Text(s"parallelism must be >= 1, got $n")
                 BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxConcurrentCompiles = Some(n))))
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = Some(n))))
                   .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
               }
             ),
             Opts.subcommand[BleepCommand](
-              "max-concurrent-compiles-clear",
-              "remove the concurrent-compile limit (back to default: half the cores)"
+              "parallelism-clear",
+              "remove the parallelism setting (back to default: one per core)"
             )(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxConcurrentCompiles = None))).map(_ => ()))
-            ),
-            Opts.subcommand[BleepCommand](
-              "max-cached-workspaces",
-              "set how many workspaces' resolved builds the server keeps in memory (default: 4)"
-            )(
-              Opts.argument[Int]("n").map { n => () =>
-                if (n < 1) throw new BleepException.Text(s"max-cached-workspaces must be >= 1, got $n")
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = Some(n))))
-                  .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
-              }
-            ),
-            Opts.subcommand[BleepCommand](
-              "max-cached-workspaces-clear",
-              "remove the cached-workspace limit (back to default: 4)"
-            )(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = None))).map(_ => ()))
-            ),
-            Opts.subcommand[BleepCommand](
-              "heap-pressure-threshold",
-              "set heap usage fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)"
-            )(
-              Opts.argument[Double]("threshold").map { threshold => () =>
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = Some(threshold))))
-                  .map(_ => ())
-              }
-            ),
-            Opts.subcommand[BleepCommand]("heap-pressure-threshold-clear", "remove heap pressure threshold setting (use default: 0.80)")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = None))).map(_ => ()))
+              Opts(() =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = None, parallelismRatio = None))).map(_ => ())
+              )
             ),
             Opts.subcommand[BleepCommand](
               "read-timeout",

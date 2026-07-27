@@ -12,6 +12,10 @@ A forked JVM (a test runner, a sourcegen script, a KSP processor) has **two** co
 
 bleep also measures what forks actually cost and sizes concurrency against what the machine can currently spare, so most of the time you never touch any of this. You reach for these knobs when a specific suite is heavier than the default, or when bleep is sharing the machine with something it can't see.
 
+<Callout type="info">
+The machine-wide accounting described on this page arrived after `1.0.0-M10`. On M10 and earlier, concurrency is a plain count of permits with **no memory dimension** — so on a small machine you must set `parallelism` yourself, because nothing will do it for you.
+</Callout>
+
 ## Per-fork heap
 
 Every forked JVM is given a default heap of **2 GB**. A fork that states no `-Xmx` is *not* unlimited — the JVM would otherwise take a quarter of the machine, and bleep starts one per core, so a default is essential.
@@ -41,14 +45,59 @@ A project-level `platform.jvmOptions` beats the global `testRunnerMaxMemory` for
 
 ## How many run at once
 
-Concurrency is controlled by the compile server's parallelism, in the same user config:
+One knob: **`parallelism`** — how many operations bleep may run at once, compiles and forks together. It defaults to one per core, and everything else is derived from it (the daemon-wide compile ceiling is half of it, because a compile's scarce resource is the server's shared heap rather than a core).
 
-| Setting | Meaning |
-| --- | --- |
-| `parallelism` | maximum number of concurrent operations (compiles + forks). Defaults to the number of cores. |
-| `parallelismRatio` | the same as a fraction of cores, e.g. `0.5` for half. Used when `parallelism` is unset. |
+```bash
+bleep config compile-server parallelism 2
+bleep config compile-server parallelism-clear   # back to one per core
+```
+
+`parallelismRatio` expresses the same thing as a fraction of cores (`0.5` for half) if you prefer that in a config file shared across machines of different sizes.
 
 Lowering parallelism is the direct fix when the machine is being *overwhelmed* — many forks killed by `SIGKILL` at once, rather than one suite failing with a clean `OutOfMemoryError`. Fewer forks run together, so peak memory drops.
+
+### Setting it for a CI job
+
+There is deliberately **no environment variable** for this, and no per-invocation flag. The compile server is shared: it reads `parallelism` once at startup and passes it to every fork it spawns, so a per-client override would mean whichever client happened to start the daemon silently configured it for everyone else — including runs that had no opinion. The same goes for the server's own heap, which is part of the key that decides *which* daemon you get: two different values would quietly give you two daemons.
+
+A CI job is one machine, so configure the machine, as a step before you build:
+
+```yaml
+- name: Configure bleep for this runner
+  run: |
+    bleep config compile-server parallelism 2
+    bleep config compile-server max-memory 4g
+
+- name: Test
+  run: bleep test
+```
+
+That writes the same user config a developer would keep, which is what a fresh runner wants: it has no standing preferences, so state them once and let every later invocation agree.
+
+## Small machines and CI
+
+The compile server's heap and the test forks' heaps come out of **one pot**, and a quarter of RAM is held back for everything that isn't bleep. It is worth doing the arithmetic once, because the failure mode is forks being killed at startup rather than anything that names memory.
+
+For a fork to be admitted, its heap must fit in:
+
+```
+budget = RAM − (server heap × 1.25) − max(4 GB, RAM/4)
+```
+
+On a typical 16 GB CI runner, that quarter-of-RAM reserve and the server's own footprint dominate:
+
+| server heap | reserve | fork budget | what fits |
+| --- | --- | --- | --- |
+| 8 GB | 4 GB | **2 GB** | one small fork, serialised |
+| 4 GB | 4 GB | **7 GB** | one 6 GB fork, or two 3 GB forks |
+| 2 GB | 4 GB | **9.5 GB** | three 3 GB forks |
+
+The trap is asking for a big compile server *and* big forks on a small box: an 8 GB server on 16 GB leaves 2 GB for everything else, so every fork queues behind every other fork and the job takes far longer than the numbers suggest. On a 16 GB runner, a 4 GB server is usually the better trade.
+
+Two rules of thumb for CI:
+
+1. **Size the server first.** It is long-lived and shared; the forks divide what's left.
+2. **Set `parallelism` explicitly.** A CI runner's core count is not a good guide to its memory, and the default is one fork per core.
 
 ## The machine budget (automatic)
 
