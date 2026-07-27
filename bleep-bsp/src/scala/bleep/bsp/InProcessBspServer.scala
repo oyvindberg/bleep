@@ -41,6 +41,10 @@ object InProcessBspServer {
                 maxConcurrentCompiles = bleep.model.BspServerConfig.default.effectiveMaxConcurrentCompiles,
                 logger = logger
               )
+              val inProcessAnalysisCache = new bleep.analysis.AnalysisCache(
+                budgetBytesPerWorkspace = bleep.analysis.AnalysisCache.DefaultBudgetBytesPerWorkspace,
+                maxIdleMs = bleep.analysis.AnalysisCache.DefaultMaxIdleMs
+              )
               // One server per in-process run, so fresh daemon-scoped state is correct here.
               val server =
                 new MultiWorkspaceBspServer(
@@ -50,7 +54,8 @@ object InProcessBspServer {
                   machine = machine,
                   heapMonitor = HeapMonitor.system,
                   kspMutexes = new KspMutexes,
-                  buildCache = new BuildCache(bleep.model.BspServerConfig.default.effectiveMaxCachedWorkspaces)
+                  buildCache = new BuildCache(bleep.model.BspServerConfig.default.effectiveMaxCachedWorkspaces, inProcessAnalysisCache),
+                  analysisCache = inProcessAnalysisCache
                 )
               server.run()
             } catch {

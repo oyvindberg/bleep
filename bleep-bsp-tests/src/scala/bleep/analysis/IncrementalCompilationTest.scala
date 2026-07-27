@@ -205,7 +205,9 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
           diagnosticListener = listener,
           cancellationToken = CancellationToken.never,
           dependencyAnalyses = Map.empty,
-          progressListener = ProgressListener.noop
+          progressListener = ProgressListener.noop,
+          ecjVersion = None,
+          analyses = AnalysisCache.standalone(config.buildDir)
         )
         .unsafeRunSync()
 
@@ -265,7 +267,9 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
           diagnosticListener = listener1,
           cancellationToken = CancellationToken.never,
           dependencyAnalyses = Map.empty,
-          progressListener = ProgressListener.noop
+          progressListener = ProgressListener.noop,
+          ecjVersion = None,
+          analyses = AnalysisCache.standalone(config.buildDir)
         )
         .unsafeRunSync()
 
@@ -287,7 +291,9 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
           diagnosticListener = listener2,
           cancellationToken = CancellationToken.never,
           dependencyAnalyses = Map.empty,
-          progressListener = ProgressListener.noop
+          progressListener = ProgressListener.noop,
+          ecjVersion = None,
+          analyses = AnalysisCache.standalone(config.buildDir)
         )
         .unsafeRunSync()
 

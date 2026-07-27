@@ -255,10 +255,19 @@ object BspMetrics {
   /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
     * the live set is climbing.
     */
-  def recordAnalysisCache(entries: Int, fileBytes: Long, evicted: Int): Unit =
+  def recordAnalysisCache(stats: bleep.analysis.AnalysisCache.Stats): Unit = {
+    // Broken out per workspace, because the total alone is what the old telemetry gave and it left
+    // the actual question — which build is holding the heap — to be reconstructed afterwards from a
+    // class histogram and a linear fit.
+    val perWorkspace = stats.perWorkspace
+      .map(w =>
+        s"""{"workspace":"${esc(w.key.workspace.toString)}","variant":"${esc(w.key.variant.toString)}","entries":${w.entries},"file_bytes":${w.fileBytes}}"""
+      )
+      .mkString("[", ",", "]")
     writeEvent(
-      s"""{"type":"analysis_cache","ts":${now()},"entries":$entries,"file_bytes":$fileBytes,"evicted":$evicted}"""
+      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"per_workspace":$perWorkspace}"""
     )
+  }
 
   /** Which workspaces the daemon is holding resolved builds for. The retained-heap floor tracks this number, so recording it is what makes the floor
     * attributable instead of merely visible.

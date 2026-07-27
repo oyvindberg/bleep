@@ -27,12 +27,11 @@ import scala.jdk.CollectionConverters.*
   *   it back. Measured on a daemon serving 11 worktrees: the post-GC floor climbed from 3.5GB to 8.2GB of a 12GB heap over 45 minutes, after which compiles
   *   OOM'd at a concurrency of three. Bounding the cache bounds that floor.
   */
-class BuildCache(maxWorkspaces: Int) {
+class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache) {
 
-  private case class Key(workspace: Path, variant: model.BuildVariant)
   private case class Entry(buildId: BuildId, started: Started, lastUsedMs: AtomicLong)
 
-  private val entries = new ConcurrentHashMap[Key, Entry]()
+  private val entries = new ConcurrentHashMap[model.WorkspaceKey, Entry]()
 
   /** One monitor per key, so loading a build for one workspace does not block another. Deliberately not `entries.synchronized` or `entries.compute`: the load
     * can take seconds, and both of those would serialize unrelated workspaces.
@@ -42,7 +41,7 @@ class BuildCache(maxWorkspaces: Int) {
     * handler-to-IO refactor exists to remove. Blocking here is safe in the meantime: this runs on the blocking pool, the load underneath it is blocking work
     * (coursier) either way, and nothing inside the monitor touches `IO` or re-enters this cache. Revisit together with that refactor.
     */
-  private val loadLocks = new ConcurrentHashMap[Key, AnyRef]()
+  private val loadLocks = new ConcurrentHashMap[model.WorkspaceKey, AnyRef]()
 
   /** Look up the build for this workspace+variant, loading it if absent or if the client means a different one.
     *
@@ -59,7 +58,7 @@ class BuildCache(maxWorkspaces: Int) {
       buildId: BuildId,
       logger: Logger
   )(load: => Either[BleepException, Started]): Either[BleepException, Started] = {
-    val key = Key(workspace, variant)
+    val key = model.WorkspaceKey(workspace, variant)
 
     loadLocks.computeIfAbsent(key, _ => new AnyRef).synchronized {
       Option(entries.get(key)) match {
@@ -89,7 +88,20 @@ class BuildCache(maxWorkspaces: Int) {
 
   /** Drop the entry for a workspace+variant, so the next `getOrLoad` reloads. Used by `workspace/reload`. */
   def evict(workspace: Path, variant: model.BuildVariant): Unit =
-    entries.remove(Key(workspace, variant)): Unit
+    dropAll(model.WorkspaceKey(workspace, variant)): Unit
+
+  /** Drop a build AND the Zinc analyses read while compiling it.
+    *
+    * The cascade runs in this direction only. If nothing wants the build, nothing wants its analyses either, and the analyses are where the memory actually is
+    * — a resolved build is hundreds of MB, its analyses are gigabytes; evicting the build alone frees the small half and keeps the large one.
+    *
+    * The reverse cascade would be wrong, because the costs invert. Re-resolving a build costs seconds of coursier work; re-reading an analysis costs about one
+    * disk read. So analyses are shed eagerly on their own schedule (idle timeout, per-workspace budget) without ever disturbing the build they belong to.
+    */
+  private def dropAll(key: model.WorkspaceKey): bleep.analysis.AnalysisCache.Freed = {
+    entries.remove(key): Unit
+    analysisCache.evictWorkspace(key)
+  }
 
   /** The workspaces currently held, for telemetry. Distinct: one workspace can hold several variants, but the interesting quantity is how many builds' worth of
     * state is resident.
@@ -112,7 +124,7 @@ class BuildCache(maxWorkspaces: Int) {
     * Synchronized on `entries` rather than on the per-key load locks: this pass touches every key, it holds no I/O, and taking the per-key lock of a workspace
     * we are about to drop would invert the lock order that `getOrLoad` establishes.
     */
-  private def evictDownToBound(keep: Key, logger: Logger): Unit =
+  private def evictDownToBound(keep: model.WorkspaceKey, logger: Logger): Unit =
     entries.synchronized {
       val present = entries.entrySet().iterator().asScala.map(e => (e.getKey, e.getValue.lastUsedMs.get())).toVector
       val doomed = BuildCache.selectEvictions(
@@ -122,13 +134,15 @@ class BuildCache(maxWorkspaces: Int) {
         isBusy = key => SharedWorkspaceState.getActiveOperations(key.workspace).nonEmpty
       )
       doomed.foreach { case (key, lastUsedMs) =>
-        entries.remove(key): Unit
+        val freed = dropAll(key)
         logger
           .withContext("workspace", key.workspace.toString)
           .withContext("variant", key.variant.toString)
           .withContext("idleSeconds", (System.currentTimeMillis() - lastUsedMs) / 1000)
           .withContext("cacheSize", entries.size())
           .withContext("maxWorkspaces", maxWorkspaces)
+          .withContext("analysesFreed", freed.entries)
+          .withContext("analysisMbFreed", freed.fileBytes / (1024 * 1024))
           .info("Evicting a cached build to bound retained heap; it will be reloaded on next use")
         BspMetrics.recordCacheEvict("buildCache", key.workspace.toString)
       }

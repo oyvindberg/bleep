@@ -1506,7 +1506,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
           DiagnosticListener.noop,
           CancellationToken.never,
           Map.empty,
-          ProgressListener.noop
+          ProgressListener.noop,
+          AnalysisCache.standalone(config.buildDir)
         )
         .unsafeRunSync()
 

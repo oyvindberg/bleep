@@ -37,6 +37,11 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
   lazy val dotBleepDir: Path = buildDir / ".bleep"
 
+  /** What a compile server keys its per-build state by. Derived in one place so that everything caching against a build — the resolved `Started`, the Zinc
+    * analyses read while compiling it — agrees on what "the same build" means, and dropping one can drop the other.
+    */
+  lazy val workspaceKey: model.WorkspaceKey = model.WorkspaceKey(buildDir, variant)
+
   // === workspace-level paths (project-agnostic) ===
 
   /** `<workspace>/.bleep/projects/`. Holds one subdirectory per cross-built project. */

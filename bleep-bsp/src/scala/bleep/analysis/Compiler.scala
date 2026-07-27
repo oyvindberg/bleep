@@ -374,7 +374,10 @@ object Compiler {
               listener,
               cancellation,
               Map.empty, // No dependency analyses
-              progressListener
+              progressListener,
+              // Standalone compile: no workspace, no analysis persistence, so the cache lives and
+              // dies with this call rather than lingering on a daemon.
+              AnalysisCache.standalone(projectConfig.buildDir)
             )
             .unsafeRunSync()
 

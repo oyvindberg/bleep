@@ -144,7 +144,9 @@ trait PlatformTestHelper {
         DiagnosticListener.noop,
         CancellationToken.never,
         Map.empty,
-        ProgressListener.noop
+        ProgressListener.noop,
+        None,
+        AnalysisCache.standalone(config.buildDir)
       )
       .unsafeRunSync()
 
@@ -213,7 +215,9 @@ trait PlatformTestHelper {
         DiagnosticListener.noop,
         CancellationToken.never,
         Map.empty,
-        ProgressListener.noop
+        ProgressListener.noop,
+        None,
+        AnalysisCache.standalone(config.buildDir)
       )
       .unsafeRunSync()
 

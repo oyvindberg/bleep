@@ -51,7 +51,8 @@ class MultiWorkspaceBspServer(
     machine: MachineResources,
     heapMonitor: HeapMonitor,
     kspMutexes: KspMutexes,
-    buildCache: BuildCache
+    buildCache: BuildCache,
+    analysisCache: bleep.analysis.AnalysisCache
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -2661,7 +2662,16 @@ class MultiWorkspaceBspServer(
 
     locksResource
       .use { _ =>
-        compiler.compile(config, diagnosticListener, cancellation, dependencyAnalyses, progressListener)
+        compiler.compile(
+          config,
+          diagnosticListener,
+          cancellation,
+          dependencyAnalyses,
+          progressListener,
+          // Bound to THIS build, so a compile can only ever read or charge analyses belonging to
+          // the workspace it is compiling.
+          bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey)
+        )
       }
       .map {
         case _ if cancellation.isCancelled =>

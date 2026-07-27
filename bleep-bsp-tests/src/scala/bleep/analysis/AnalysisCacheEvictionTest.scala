@@ -16,8 +16,8 @@ class AnalysisCacheEvictionTest extends AnyFunSuite with Matchers {
   private def p(s: String): Path = Paths.get(s)
 
   private def evict(entries: Vector[(String, Long, Long)], nowMs: Long, maxIdleMs: Long, budgetMb: Long): Vector[String] =
-    ZincBridge
-      .selectAnalysisEvictions(entries.map { case (k, used, mb) => (p(k), used, mb * MB) }, nowMs, maxIdleMs, budgetMb * MB)
+    AnalysisCache
+      .selectEvictions(entries.map { case (k, used, mb) => (p(k), used, mb * MB) }, nowMs, maxIdleMs, budgetMb * MB)
       .map(_.toString)
 
   test("a cache within budget and recently used keeps everything") {
@@ -59,7 +59,7 @@ class AnalysisCacheEvictionTest extends AnyFunSuite with Matchers {
     // Calibration, recorded so a future change to either constant is a deliberate one: a real
     // workspace measured 166 analysis files totalling 113MB on disk, which inflated to ~4.5GB of
     // live objects — so the 256MB budget is worth something like 1.5GB of heap.
-    ZincBridge.AnalysisCacheBudgetBytes shouldBe 256L * MB
-    ZincBridge.AnalysisCacheMaxIdleMs shouldBe 120000L
+    AnalysisCache.DefaultBudgetBytesPerWorkspace shouldBe 256L * MB
+    AnalysisCache.DefaultMaxIdleMs shouldBe 120000L
   }
 }
