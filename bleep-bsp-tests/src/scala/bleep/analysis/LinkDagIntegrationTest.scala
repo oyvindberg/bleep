@@ -20,6 +20,10 @@ import org.scalatest.matchers.should.Matchers
   */
 class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
+  /** A machine for tests: enough CPU for the parallelism a case asks for, ample fork memory so admission never turns on it. */
+  private def testMachine(cpu: Int): bleep.MachineResources =
+    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
+
   /** Helper to create CrossProjectName from a simple string. */
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
@@ -264,7 +268,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val result = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
+      finalDag <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
 
     linkCalled shouldBe true
@@ -309,7 +313,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val events = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       allEvents <- drainQueue(eventQueue)
     } yield allEvents).unsafeRunSync()
 
@@ -354,7 +358,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val result = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
+      finalDag <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
 
     result.failed should contain(TaskId.Link(project))

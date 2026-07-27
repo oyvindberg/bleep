@@ -1446,13 +1446,14 @@ class MultiWorkspaceBspServer(
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
-    val forkMemMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory))
     (sgt, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
         case None         =>
           // Sourcegen forks a JVM — reserve machine resources like any other fork.
-          machine.reserve(MachineResources.ResourceKind.SourcegenFork, s"sourcegen ${sgt.script.main}", cpu = 1, memoryMb = forkMemMb).use { _ =>
+          // No reservation here: the DAG admitted this task against its declared cost before starting
+          // it, so reserving again would charge the machine twice for one fork.
+          IO.unit.flatMap { _ =>
             SourceGenRunner
               .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
               .map {
@@ -1490,8 +1491,13 @@ class MultiWorkspaceBspServer(
       val userPaths = UserPaths.fromAppDirs
       val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
       val serverConfig = freshConfig.bspServerConfigOrDefault
-      val maxParallelism = serverConfig.effectiveParallelism
-      debugLog(s"BSP config: parallelism=$maxParallelism")
+      // Sizes are resolved here, once, so a task can declare the same heap the fork is started with.
+      val forkHeaps = TaskDag.ForkHeaps(
+        sourcegenMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.sourcegenMaxMemory)),
+        kspMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
+        linkMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(None))
+      )
+      debugLog(s"BSP config: parallelism=${serverConfig.effectiveParallelism}")
 
       // Include transitive dependencies
       val allProjects = BleepBuildConverter.transitiveDependencies(projectsToCompile, started)
@@ -1671,7 +1677,7 @@ class MultiWorkspaceBspServer(
 
           // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
           dag <- executor
-            .execute(initialDag, maxParallelism, eventQueue, killSignal)
+            .execute(initialDag, machine, forkHeaps, eventQueue, killSignal)
             .flatTap(_ => eventQueue.offer(None) >> eventConsumerFiber.joinWithNever)
             .guarantee(eventQueue.offer(None).attempt >> eventConsumerFiber.cancel)
 
@@ -1901,6 +1907,11 @@ class MultiWorkspaceBspServer(
       val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
       val serverConfig = freshConfig.bspServerConfigOrDefault
       val maxParallelism = serverConfig.effectiveParallelism
+      val forkHeaps = TaskDag.ForkHeaps(
+        sourcegenMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.sourcegenMaxMemory)),
+        kspMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
+        linkMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(None))
+      )
 
       // Sourcegen plan — scripts for test projects and their transitive deps.
       val allTestAndDeps = BleepBuildConverter.transitiveDependencies(testProjects, started)
@@ -2203,7 +2214,7 @@ class MultiWorkspaceBspServer(
 
             // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
             dag <- executor
-              .execute(initialDag, maxParallelism, eventQueue, killSignal)
+              .execute(initialDag, machine, forkHeaps, eventQueue, killSignal)
               .flatMap { result =>
                 IO {
                   val total = result.tasks.size
@@ -2443,7 +2454,8 @@ class MultiWorkspaceBspServer(
             // runs in the server heap (not a forked process), so it reserves no fork memory; server
             // heap is staggered separately by waitForHeapPressure.
             val gatedCompile =
-              machine.reserve(MachineResources.ResourceKind.Compile, s"compile $projectName", cpu = 1, memoryMb = 0L).use { _ =>
+              // Admitted by the DAG before this ran — see TaskDag.admit.
+              IO.unit.flatMap { _ =>
                 // The reservation IS the count of compiles in flight — held for exactly this scope,
                 // across every connection, and readable via `machine.activeCompiles`. The connection-
                 // local tally that used to be maintained here counted only this client's compiles,

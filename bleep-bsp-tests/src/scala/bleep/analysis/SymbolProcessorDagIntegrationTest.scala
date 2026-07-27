@@ -30,6 +30,10 @@ import scala.jdk.CollectionConverters.*
   */
 class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
 
+  /** A machine for tests: enough CPU for the parallelism a case asks for, ample fork memory so admission never turns on it. */
+  private def testMachine(cpu: Int): bleep.MachineResources =
+    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
+
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
 
@@ -111,7 +115,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
         symbolProcessor = (kspt, _) => IO { timeline.add(s"ksp:${kspt.project.value}"); (TaskResult.Success, 2) }
       )
       executor = TaskDag.executor(handlers)
-      _ <- executor.execute(dag, maxParallelism = 4, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
     } yield ()
 
     program.unsafeRunSync()
@@ -143,7 +147,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
         symbolProcessor = (_, _) => IO((TaskResult.Failure("simulated KSP misconfig", Nil), 0))
       )
       executor = TaskDag.executor(handlers)
-      finalDag <- executor.execute(dag, maxParallelism = 4, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
+      finalDag <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
     } yield finalDag
 
     val finalDag = program.unsafeRunSync()

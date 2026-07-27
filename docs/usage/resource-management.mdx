@@ -5,7 +5,16 @@ When a test, a source generator, or a compile runs out of memory — you see `Ja
 
 ## The short version
 
-A forked JVM (a test runner, a sourcegen script, a KSP processor) has **two** costs, and they are controlled separately:
+Two questions, and they belong to different owners:
+
+| question | who decides | where |
+| --- | --- | --- |
+| how much memory does *this code* need? | the build | `platform.jvmOptions` in `bleep.yaml` — per project, and it sizes **forks** |
+| how much of *this machine* may bleep use? | whoever owns the machine | user config: `parallelism`, `compileServerMaxMemory` |
+
+That split is deliberate. A repo cannot know whether it is running on a 16 GB CI container or a 64 GB workstation, and a machine cannot know which of your suites is heavy.
+
+A forked JVM (a test runner, a sourcegen script, a KSP processor) then has **two** costs, and they are controlled separately:
 
 1. **How big each fork is** — its `-Xmx` heap ceiling. If a suite genuinely needs more memory than it is given, it fails with an in-JVM `OutOfMemoryError` naming the suite. **Fix: give that project more heap.**
 2. **How many forks run at once** — the parallelism. If too many run together, the machine runs out of real memory and the OS kills processes with `SIGKILL`. **Fix: lower parallelism, or lower per-fork heap so more fit.**
@@ -20,7 +29,9 @@ The machine-wide accounting described on this page arrived after `1.0.0-M10`. On
 
 Every forked JVM is given a default heap of **2 GB**. A fork that states no `-Xmx` is *not* unlimited — the JVM would otherwise take a quarter of the machine, and bleep starts one per core, so a default is essential.
 
-Raise it for a project whose tests need more:
+### The build sizes forks, and only forks
+
+`bleep.yaml` has exactly one resource control, and it is per project:
 
 ```yaml
 projects:
@@ -30,18 +41,37 @@ projects:
       jvmOptions: -Xmx4g
 ```
 
-The project's `platform.jvmOptions` are appended after the default, and the **last `-Xmx` wins**, so this overrides the 2 GB for just this project. This is the right fix when the failure is an in-JVM `OutOfMemoryError` / `Java heap space` — that suite is telling you, accurately, that 2 GB is not enough for it.
+This is the right and only place for a build to say "this code needs more memory", because that is a property of the code, not of the machine it happens to run on. Everything else about resources — how many things run at once, how big the compile server is — belongs to whoever owns the machine, and lives in user config.
 
-The same applies to the other forked processes, set once for the whole build in your user config (`~/.config/bleep/config.yaml` or equivalent):
+**It applies to forked processes.** `platform.jvmOptions` reaches:
 
-| Setting | Forked process it sizes |
+- **forked test JVMs** for that project, and
+- **`bleep run`**, unless `jvmRuntimeOptions` is also set, in which case that wins for `run` only.
+
+**It does not affect compilation.** Your code is compiled *inside* the long-lived compile server, in its heap — not in a JVM started for your project. So raising `jvmOptions` will not help a compile that runs out of memory, and lowering it will not make compilation lighter. The compile server's own heap is `compileServerMaxMemory`, in user config.
+
+If that distinction bites, the symptom tells you which side you are on: an `OutOfMemoryError` naming one of *your* test suites is the fork, and `jvmOptions` is the fix; an `OutOfMemoryError` in the build summary with the server dying is the server, and `compileServerMaxMemory` is the fix.
+
+### Precedence for a test fork
+
+Three sources are concatenated, and **the last `-Xmx` wins**:
+
+1. `testRunnerMaxMemory` from user config — the build-wide baseline
+2. the project's `platform.jvmOptions` — the per-project exception
+3. `--jvm-opt` on the command line — this run only
+
+So a global baseline can be set once, a heavy project can override it, and a one-off investigation can override both without editing anything.
+
+### The other forked processes
+
+Sourcegen scripts and KSP runners are sized in user config, since they are bleep's own tooling rather than your code:
+
+| Setting | Sizes |
 | --- | --- |
 | `testRunnerMaxMemory` | test runner JVMs (all projects) |
 | `sourcegenMaxMemory` | sourcegen scripts |
 | `kspRunnerMaxMemory` | KSP (Kotlin symbol processing) runners |
-| `compileServerMaxMemory` | the compile server / BSP daemon's own `-Xmx` (this is *not* a fork; it's the long-lived server heap that Zinc compiles run inside) |
-
-A project-level `platform.jvmOptions` beats the global `testRunnerMaxMemory` for that project, so use the global for a build-wide baseline and the per-project override for the exceptions.
+| `compileServerMaxMemory` | the compile server itself — **not** a fork; the long-lived heap your compiles run inside |
 
 ## How many run at once
 

@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
@@ -84,6 +85,36 @@ object TaskDag {
     def dependencies: Set[TaskId]
   }
 
+  /** A task's claim on the machine. `cpu` is in cores; `memoryMb` is off-heap memory for a forked process. */
+  case class Cost(kind: MachineResources.ResourceKind, cpu: Int, memoryMb: Long)
+
+  /** What running `task` costs, given what this machine gives each kind of fork.
+    *
+    * A function rather than a field on the task: cost is a property of (what kind of work this is, how this machine is configured), not of the task's identity.
+    * Putting it on the case class would also make two otherwise-identical tasks unequal because a config value differed.
+    *
+    * Admission is done with this by the scheduler loop, in priority order, instead of inside each task's body. Reserving inside meant the loop dispatched blind
+    * and the governor queued FIFO — so the DAG's dependents-first ordering stopped mattering the moment anything had to wait.
+    */
+  def costOf(task: Task, forkHeaps: ForkHeaps): Cost =
+    task match {
+      // In-server work: a core, and no fork memory. Compile heap is watched separately by HeapPressureGate.
+      case _: CompileTask                     => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      case _: DiscoverTask                    => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      case _: ResolveAnnotationProcessorsTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      // Forks: charged the heap they are started with plus the non-heap a JVM also commits.
+      case _: SourcegenTask           => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.sourcegenMb)
+      case _: RunSymbolProcessorsTask => Cost(MachineResources.ResourceKind.KspFork, cpu = 1, memoryMb = forkHeaps.kspMb)
+      // Scala.js, Scala Native, Kotlin/JS and Kotlin/Native each fork a linker (and node, for JS).
+      // These reserved nothing at all until now — counted as one task while being a whole JVM plus a
+      // toolchain, which is the accounting hole the governor exists to close.
+      case _: LinkTask => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.linkMb)
+      // A core, but no fork memory HERE: acquiring a JVM may reuse a warm one (free) or spawn one
+      // (measured RSS), and only the pool knows which. It holds that reservation itself, for a
+      // lifetime this task does not share — one JVM serves many suites.
+      case _: TestSuiteTask => Cost(MachineResources.ResourceKind.TestFork, cpu = 1, memoryMb = 0L)
+    }
+
   /** Compile a project.
     *
     * `dependencies` is supplied directly (rather than derived) so the DAG builder can combine project-level compile deps with sourcegen deps (SourcegenTask
@@ -127,6 +158,7 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.ResolveAnnotationProcessors(project)
     val dependencies: Set[TaskId] = Set.empty
+    // Coursier resolution and jar scanning, in the server. I/O-bound rather than CPU-bound, but it
   }
 
   /** Run KSP for a project. Resolves the KSP standalone-runner classpath + user processors, then forks a JVM running `KSPJvmMain` which processes the project's
@@ -157,6 +189,8 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.Link(project)
     val dependencies: Set[TaskId] = Set(TaskId.Compile(project))
+    // Scala.js, Scala Native, Kotlin/JS and Kotlin/Native all fork a linker (and node, for JS). Those
+    // forks reserved nothing until now — counted as one task while actually being a whole JVM plus a
   }
 
   /** Platform for linking non-JVM targets. */
@@ -236,6 +270,9 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.Test(project, suiteName)
     val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
+    // A core, but no fork memory declared here: acquiring a JVM from the pool may reuse a warm one
+    // (free) or spawn a new one (measured RSS), and only the pool knows which. It holds that
+    // reservation itself, from spawn until the process is destroyed — a lifetime this task does not
   }
 
   /** Result of task execution.
@@ -576,6 +613,18 @@ object TaskDag {
       apPlan: AnnotationProcessorPlan,
       kspPlan: SymbolProcessorPlan
   )
+
+  /** What each kind of forked JVM is charged: its heap plus the non-heap a JVM also commits (metaspace, code cache, stacks, GC structures). Resolved from
+    * config once when the DAG is built, so the number a task declares is the number the fork is actually started with.
+    */
+  case class ForkHeaps(sourcegenMb: Long, kspMb: Long, linkMb: Long)
+  object ForkHeaps {
+
+    /** What bleep gives a fork that states no `-Xmx` of its own. */
+    private val defaultFootprint: Long = MachineResources.forkFootprintMb(MachineResources.DefaultForkHeapMb)
+    val default: ForkHeaps = ForkHeaps(sourcegenMb = defaultFootprint, kspMb = defaultFootprint, linkMb = defaultFootprint)
+  }
+
   object BuildContext {
     val empty: BuildContext = BuildContext(
       allProjectDeps = Map.empty,
@@ -777,8 +826,9 @@ object TaskDag {
       *
       * @param dag
       *   The DAG to execute
-      * @param maxParallelism
-      *   Maximum concurrent tasks
+      * @param machine
+      *   The machine's resources. Admission happens against this, in priority order, so how much runs at once is what the machine can currently afford rather
+      *   than a number carried alongside it.
       * @param eventQueue
       *   Queue for emitting events
       * @param killSignal
@@ -788,7 +838,8 @@ object TaskDag {
       */
     def execute(
         dag: Dag,
-        maxParallelism: Int,
+        machine: MachineResources,
+        forkHeaps: ForkHeaps,
         eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag]
@@ -813,11 +864,44 @@ object TaskDag {
 
     override def execute(
         initialDag: Dag,
-        maxParallelism: Int,
+        machine: MachineResources,
+        forkHeaps: ForkHeaps,
         eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag] = {
       def now: IO[Long] = IO.realTime.map(_.toMillis)
+
+      /** Take as many of `candidates` as the machine can currently afford, in the order given.
+        *
+        * `tryReserve` rather than `reserve`: a scheduler with a priority order wants "does this fit now", not "queue me". Anything refused stays ready and gets
+        * another chance on the next wakeup, which fires whenever a task completes — precisely when resources free.
+        *
+        * `idle` is the forward-progress guarantee. With nothing running, nothing will ever complete to wake this loop, so a task that does not fit would hang
+        * the build rather than merely wait. When the machine is idle the first candidate is admitted by blocking reservation instead, which clamps its request
+        * to the machine's totals — so a task larger than the whole machine waits for the whole machine and then runs, rather than never running.
+        */
+      def admit(candidates: List[Task], idle: Boolean): IO[List[(Task, IO[Unit])]] =
+        candidates match {
+          case Nil           => IO.pure(Nil)
+          case first :: rest =>
+            val firstCost = costOf(first, forkHeaps)
+            val firstAdmission: IO[Option[(Task, IO[Unit])]] =
+              if (idle)
+                machine
+                  .reserveUntilReleased(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb)
+                  .map(release => Some((first, release)))
+              else
+                machine.tryReserve(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb).map(_.map(release => (first, release)))
+
+            firstAdmission.flatMap { headResult =>
+              rest
+                .traverse { task =>
+                  val c = costOf(task, forkHeaps)
+                  machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
+                }
+                .map(tail => (headResult :: tail).flatten)
+            }
+        }
 
       def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
@@ -1086,17 +1170,22 @@ object TaskDag {
                 // Get ready tasks (not already running), prioritized by dependents count
                 readyTasks = dag.ready.filterNot(t => running.contains(t.id))
                 depCounts = dag.dependentsCount
-                availableSlots = maxParallelism - running.size
-                tasksToStart = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0)).take(availableSlots)
-                // Start tasks. The guarantee fires both runningRef cleanup and a wakeup; the
-                // wakeup is `tryOffer` so concurrent completions coalesce on the bounded(1) queue.
-                _ <- tasksToStart.toList.parTraverse_ { task =>
+                // Most-unblocking first. Admission then happens HERE, against the machine, instead of
+                // inside each task — so the ordering survives contention. Dispatching first and
+                // reserving inside meant everything queued FIFO in the governor and this sort was
+                // decoration.
+                prioritized = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0))
+                admitted <- admit(prioritized, idle = running.isEmpty)
+                // Start tasks. The guarantee releases the reservation, cleans up runningRef and wakes
+                // the loop — and the wakeup is what re-runs admission, so a completion is exactly when
+                // the next task gets its chance.
+                _ <- admitted.parTraverse_ { case (task, release) =>
                   runningRef.update(_ + task.id) >>
                     supervisor
                       .supervise(
                         executeTask(task, dagRef, taskKillSignals)
                           .guarantee(
-                            runningRef.update(_ - task.id) >> wakeup.tryOffer(()).void
+                            release >> runningRef.update(_ - task.id) >> wakeup.tryOffer(()).void
                           )
                       )
                       .void

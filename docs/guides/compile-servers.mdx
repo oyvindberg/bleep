@@ -164,8 +164,13 @@ again &mdash; so it can never interrupt a running build.
 
 ### Test-runner heap
 
-The test runner is a separate forked JVM. It doesn't share
-heap with the compile server. Tune it independently:
+The test runner is a separate forked JVM. It does **not** share heap with
+the compile server, and neither does anything else your build forks — your
+code is compiled inside the server, but run inside a fork. A project that
+needs more memory for its tests says so in `bleep.yaml` with
+`platform.jvmOptions`; this setting is the build-wide default underneath
+that. See
+[Memory & Parallelism](/docs/usage/resource-management#per-fork-heap).
 
 ```bash
 bleep config test-runner max-memory 2g
