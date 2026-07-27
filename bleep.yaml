@@ -298,12 +298,6 @@ projects:
     - org.scala-sbt::zinc:2.0.4
     - for3Use213: true
       module: ch.epfl.scala::libdaemon:0.0.12
-    # zinc 2.x pulls compiler-interface 2.0.4, evicting the 1.10.7 that scala3-compiler asks for.
-    # Its POM declares early-semver, so the eviction is an error by default. The compatibility
-    # argument: diffing the two jars shows 2.0.4 is purely additive over 1.10.7 — 150 classes, zero
-    # public or protected members removed, two added (HashedVirtualFileRef, BasicHashedVirtualFileRef).
-    # The Scala 3 bridge compiled against 1.10.7 links fine against it.
-    libraryVersionSchemes: org.scala-sbt:compiler-interface:always
     dependsOn:
     - bleep-model
     - bleep-core
@@ -423,6 +417,17 @@ scripts:
     project: scripts-java
 templates:
   template-common:
+    # zinc 2.x pulls compiler-interface 2.0.4, evicting the 1.10.7 that scala3-compiler asks for.
+    # Its POM declares early-semver, so the eviction fails the build by default. The compatibility
+    # argument: diffing the two jars shows 2.0.4 is purely additive over 1.10.7 — 150 classes, zero
+    # public or protected members removed, two added (HashedVirtualFileRef, BasicHashedVirtualFileRef).
+    # The Scala 3 bridge compiled against 1.10.7 links fine against it.
+    #
+    # On the TEMPLATE, not on bleep-bsp: schemes are read off the *exploded* project, so they arrive
+    # through `extends` and never through `dependsOn`. Declaring it on bleep-bsp alone left
+    # bleep-bsp-tests and bleep-tests — which depend on it and so have zinc on their classpath —
+    # still failing, which is exactly what CI caught.
+    libraryVersionSchemes: org.scala-sbt:compiler-interface:always
     java:
       options: -proc:none
     platform:

@@ -81,9 +81,15 @@ binary-compatible", you say so once with a library version
 scheme, and bleep stops complaining about every eviction that
 involves that library.
 
-Schemes are declared per project and inherited by every transitive
-consumer. Bleep ships exactly the five scheme names sbt uses, with
-identical semantics, because the underlying check
+Schemes are declared per project and reach it through `extends`, the
+same way dependencies and everything else in a template do. They are
+**not** inherited along `dependsOn`: a scheme set on a library project
+does not cover the projects that depend on it, so if two projects both
+resolve the conflicting library, both need the scheme &mdash; put it on a
+template they share.
+
+Bleep ships exactly the five scheme names sbt uses, with identical
+semantics, because the underlying check
 (`bleep.nosbt.librarymanagement.EvictionError`) is the sbt code,
 liberated.
 
