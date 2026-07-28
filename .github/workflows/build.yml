@@ -65,6 +65,36 @@ jobs:
           CI: true
         run: ./bleep-cli.sh --dev test
 
+      # Always, including on failure and timeout — a run that went wrong is the one whose telemetry
+      # is worth having. CI is also the only environment with a realistic shape: 4 cores and 16GB,
+      # where memory bounds actually bind. A developer machine cannot reproduce that.
+      - name: Summarise compile-server telemetry
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          dirs=(~/.cache/bleep/socket/*/)
+          if [ ${#dirs[@]} -eq 0 ]; then echo "no compile-server socket dirs — nothing to summarise"; exit 0; fi
+          mkdir -p bsp-diagnostics
+          for d in "${dirs[@]}"; do
+            name=$(basename "$d")
+            mkdir -p "bsp-diagnostics/$name"
+            for f in "$d"metrics.jsonl "$d"output "$d"output.1 "$d"output.2; do
+              [ -f "$f" ] && cp "$f" "bsp-diagnostics/$name/"
+            done
+          done
+          python3 .github/scripts/summarise-bsp-metrics.py bsp-diagnostics
+
+      - name: Upload compile-server telemetry
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bsp-diagnostics
+          path: bsp-diagnostics
+          retention-days: 14
+          if-no-files-found: ignore
+
   yaml-ls-check:
     runs-on: ubuntu-latest
     steps:
