@@ -148,6 +148,7 @@ final class MachineResources private (
         usedCpu = totalCpu - st.freeCpu,
         totalMemoryMb = st.totalMemoryMb,
         usedMemoryMb = st.totalMemoryMb - st.freeMemoryMb,
+        activeCompiles = st.activeCompiles,
         active = st.active.values.toList.sortBy(_.id).map(r => Entry(r.kind, r.label, r.cpu, r.memoryMb, now - r.sinceMs)),
         waiting = st.waiting.toList.map(w => Entry(w.kind, w.label, w.cpu, w.memoryMb, now - w.sinceMs))
       )
@@ -155,6 +156,14 @@ final class MachineResources private (
 
   /** True when work is queued waiting for resources — the signal worth logging periodically. */
   def isContended: IO[Boolean] = state.get.map(_.waiting.nonEmpty)
+
+  /** Compiles holding a reservation right now, across every client on this server.
+    *
+    * [[bleep.bsp.HeapPressureGate]] needs this and not a per-connection tally: it decides whether to stagger by asking "is anything else compiling", and the
+    * heap it is protecting is shared by every workspace the daemon serves. Asked per connection, a dozen clients each running a single compile all answer "I'm
+    * the only one" and every one of them skips the stagger — which is the state the server was in at 17 concurrent compiles.
+    */
+  def activeCompiles: IO[Int] = state.get.map(_.activeCompiles)
 
   /** Retune the fork-memory budget to what the machine can currently afford, and wake anything that now fits.
     *
@@ -203,7 +212,13 @@ object MachineResources {
       nextId: Long,
       active: Map[Long, Reservation],
       waiting: Vector[Waiter]
-  )
+  ) {
+
+    /** Compiles currently holding a reservation. Derived rather than stored: one counter that must be kept in step with `active` across grant, release and
+      * cancel is one counter that will eventually disagree with it, and `active` is small.
+      */
+    def activeCompiles: Int = active.values.count(_.kind == ResourceKind.Compile)
+  }
 
   /** Grant every currently-fitting waiter, oldest first (work-conserving: a waiter that doesn't fit is skipped rather than head-of-line-blocking). Pure:
     * returns the updated state and the waiters that were granted (whose gates the caller then completes).
@@ -232,6 +247,11 @@ object MachineResources {
     * admitting more). Without this, a compile — which reserves a core but zero fork-memory — was refused because free memory was -5GB, so a fleet of idle
     * pooled test JVMs holding memory could wedge every compile in the build behind an over-commit the compiles do not even contribute to. Observed exactly
     * once: 18 compiles waiting 16 minutes on `mem 28160/23066MB`.
+    *
+    * Compiles are admitted on CPU alone, deliberately. They briefly had a count ceiling of their own, on the reasoning that their scarce resource is the
+    * server's heap rather than a core — but a fixed fraction is a static partition inside an otherwise work-conserving governor: it holds capacity back for
+    * test forks that may not exist, so a compile-only run leaves half the machine idle. Heap pressure is answered by [[bleep.bsp.HeapPressureGate]], which
+    * staggers starts against the live heap instead of guessing from a count.
     */
   private def fits(cpu: Int, memoryMb: Long, freeCpu: Int, freeMemoryMb: Long): Boolean =
     (cpu == 0 || freeCpu >= cpu) && (memoryMb == 0L || freeMemoryMb >= memoryMb)
@@ -243,6 +263,7 @@ object MachineResources {
       usedCpu: Int,
       totalMemoryMb: Long,
       usedMemoryMb: Long,
+      activeCompiles: Int,
       active: List[Entry],
       waiting: List[Entry]
   ) {
@@ -250,7 +271,9 @@ object MachineResources {
     /** Multi-line human-readable rendering for the server log. */
     def render: String = {
       val sb = new StringBuilder
-      sb.append(f"machine: cpu $usedCpu%d/$totalCpu%d, mem $usedMemoryMb%d/$totalMemoryMb%dMB, running ${active.size}%d, waiting ${waiting.size}%d")
+      sb.append(
+        f"machine: cpu $usedCpu%d/$totalCpu%d, mem $usedMemoryMb%d/$totalMemoryMb%dMB, compiles $activeCompiles%d, running ${active.size}%d, waiting ${waiting.size}%d"
+      )
       def line(prefix: String, e: Entry): Unit =
         sb.append(f"\n  $prefix%-8s ${e.kind}%-14s cpu=${e.cpu}%d mem=${e.memoryMb}%dMB age=${e.ageMs / 1000}%ds  ${e.label}")
       active.foreach(line("running", _))

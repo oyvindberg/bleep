@@ -19,6 +19,24 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
   private def machine(cpu: Int, memMb: Long): MachineResources =
     MachineResources.create(totalCpu = cpu, totalMemoryMb = memMb, logger = TypedLogger.DevNull, longWaitWarnMs = 200L)
 
+  test("activeCompiles is what the heap gate reads, and counts every client's compiles") {
+    // Per connection this figure was always 1 for a client running a single compile, so a dozen
+    // such clients each concluded they were alone and skipped the stagger entirely.
+    val m = machine(cpu = 8, memMb = 8192)
+    val prog = for {
+      running <- CountDownLatch[IO](3)
+      release <- CountDownLatch[IO](1)
+      held <- List("a", "b", "c").parTraverse(n => m.reserve(Compile, n, cpu = 1, memoryMb = 0L).use(_ => running.release *> release.await).start)
+      _ <- running.await
+      n <- m.activeCompiles
+      _ <- IO(n shouldBe 3)
+      _ <- release.release
+      _ <- held.traverse_(_.join)
+      afterCount <- m.activeCompiles
+    } yield afterCount shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
   test("a reservation within budget is granted immediately and released") {
     val m = machine(cpu = 4, memMb = 8192)
     val prog = for {

@@ -116,24 +116,33 @@ bleep versions are deleted automatically at server start.
 
 [Reference &rarr;](/docs/reference/cli/config/compile-server/)
 
-### Heap-pressure throttle
+### How much runs at once
+
+Compiles, links, tests and sourcegen all draw from one budget:
+**`parallelism`** — see
+[Memory & Parallelism](/docs/usage/resource-management#how-many-run-at-once).
+
+There is deliberately no separate cap for compiles. One existed briefly and
+was removed: holding capacity back for test forks that might not exist is a
+static partition inside an otherwise work-conserving governor, so a
+compile-only run left half the machine idle. Heap pressure is answered by
+watching the live heap and staggering starts, which responds to what is
+actually happening rather than guessing from a count.
 
 ```bash
-bleep config compile-server heap-pressure-threshold 0.85
-bleep config compile-server heap-pressure-threshold-clear   # back to default 0.80
+bleep config compile-server parallelism 4
 ```
 
-When the compile server's heap usage crosses this fraction, new
-compile requests **wait** for memory to free up before starting.
-Useful when you're running multiple parallel compiles (e.g.
-several editors open against the same shared server) and don't
-want one runaway to OOM the whole server.
+### Cached builds
 
-The default of 0.80 is conservative. If you've already raised
-`max-memory` and the throttle is still kicking in too eagerly,
-nudge this up to 0.90 or so.
+The server keeps resolved builds in memory so repeated invocations don't
+re-resolve from scratch, and drops the least recently used *idle* one when
+it needs room. The Zinc analyses read while compiling a workspace are held
+with it and dropped with it.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+There is no knob: analyses are structurally shared between workspaces, so
+holding several costs far less than it looks, and the bound is a number
+nobody has a basis to tune. Evictions are logged if you want to see them.
 
 ### Idle read timeout
 
@@ -155,8 +164,13 @@ again &mdash; so it can never interrupt a running build.
 
 ### Test-runner heap
 
-The test runner is a separate forked JVM. It doesn't share
-heap with the compile server. Tune it independently:
+The test runner is a separate forked JVM. It does **not** share heap with
+the compile server, and neither does anything else your build forks — your
+code is compiled inside the server, but run inside a fork. A project that
+needs more memory for its tests says so in `bleep.yaml` with
+`platform.jvmOptions`; this setting is the build-wide default underneath
+that. See
+[Memory & Parallelism](/docs/usage/resource-management#per-fork-heap).
 
 ```bash
 bleep config test-runner max-memory 2g
@@ -184,7 +198,7 @@ compileServerMode:
   mode: shared              # or: new-each-invocation
 bspServerConfig:
   compileServerMaxMemory: 4g
-  heapPressureThreshold: 0.85
+  parallelism: 4
   testRunnerMaxMemory: 2g
   bspReadTimeoutMinutes: 30
 ```

@@ -44,7 +44,11 @@ case class BuildState(
     compileFailures: List[ProjectCompileFailure],
     skippedProjects: List[SkippedProject],
     pendingOutput: Map[SuiteKey, List[String]],
-    totalTaskTimeMs: Long
+    totalTaskTimeMs: Long,
+    /** The compile server died mid-run. Not a compile failure — the compiles that finished really did finish — but the run did not complete, so a summary that
+      * looked clean while the command failed left the reader to reconcile two blocks that seemed to disagree.
+      */
+    serverCrashed: Boolean
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
@@ -91,6 +95,7 @@ case class BuildState(
       durationMs = durationMs,
       totalTaskTimeMs = totalTaskTimeMs,
       wasCancelled = wasCancelled,
+      serverCrashed = serverCrashed,
       filterContext = None
     )
   }
@@ -133,7 +138,8 @@ object BuildState {
     compileFailures = Nil,
     skippedProjects = Nil,
     pendingOutput = Map.empty,
-    totalTaskTimeMs = 0
+    totalTaskTimeMs = 0,
+    serverCrashed = false
   )
 }
 

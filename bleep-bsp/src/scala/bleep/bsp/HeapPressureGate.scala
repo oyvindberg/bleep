@@ -40,7 +40,7 @@ object HeapPressureGate {
     */
   def waitForHeapPressure(
       heapMonitor: HeapMonitor,
-      activeCompileCount: java.util.concurrent.atomic.AtomicInteger,
+      activeCompiles: IO[Int],
       threshold: Double,
       retryMs: DurationMs,
       projectName: String,
@@ -50,7 +50,10 @@ object HeapPressureGate {
       for {
         usage <- IO(heapMonitor.heapUsage())
         nowMs <- clock.realTime.map(d => EpochMs(d.toMillis))
-        othersCompiling = activeCompileCount.get() > 1
+        // Daemon-wide, not per connection. See MachineResources.activeCompiles for why that
+        // distinction is the difference between this gate working and this gate never firing.
+        compiling <- activeCompiles
+        othersCompiling = compiling > 1
         result <-
           if (!othersCompiling) {
             // We're the only active compilation — proceed immediately

@@ -1,0 +1,6 @@
+report: /Users/oyvind/pr/bleep/worktrees/problems/dedup-report.txt
+30 analysis files, 3.3 MB on disk, across 1 root(s)
+14 file(s) could not be read
+AnalyzedClass total=4716  distinct(no timestamp)=2184  →  2.16x sharing
+AnalyzedClass total=4716  distinct(with timestamp)=2184  →  2.16x sharing
+cost of keeping timestamp in the key: 0 extra retained instances

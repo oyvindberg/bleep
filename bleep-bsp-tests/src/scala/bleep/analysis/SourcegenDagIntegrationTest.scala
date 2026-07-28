@@ -32,6 +32,10 @@ import scala.jdk.CollectionConverters.*
   */
 class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
+  /** A machine for tests: enough CPU for the parallelism a case asks for, ample fork memory so admission never turns on it. */
+  private def testMachine(cpu: Int): bleep.MachineResources =
+    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
+
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
 
@@ -306,7 +310,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     val events = order.asScala.toList
@@ -355,7 +359,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     sourcegenCalled.get() shouldBe false
@@ -404,7 +408,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe false
@@ -452,7 +456,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe true
@@ -498,7 +502,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val events = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield drained).unsafeRunSync()
@@ -550,7 +554,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val events = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield drained).unsafeRunSync()
@@ -601,7 +605,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Deferred[IO, KillReason]
       _ <- (IO.sleep(scala.concurrent.duration.DurationInt(50).millis) >> killSignal.complete(KillReason.UserRequest)).start
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe false
@@ -650,7 +654,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, 4, eventQueue, killSignal)
+      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     val tags = timeline.asScala.toList.map(_._1)
@@ -693,7 +697,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val (finalDag, events) = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield (d, drained)).unsafeRunSync()
@@ -745,7 +749,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val (finalDag, events) = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, 4, eventQueue, killSignal)
+      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield (d, drained)).unsafeRunSync()

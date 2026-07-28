@@ -261,7 +261,7 @@ object ParallelProjectCompiler {
 
           // Compile with appropriate compiler, passing dependency analyses
           val compiler = ProjectCompiler.forLanguage(config.language)
-          compiler.compile(config, diagnosticListener, cancellationToken, depAnalyses, ProgressListener.noop)
+          compiler.compile(config, diagnosticListener, cancellationToken, depAnalyses, ProgressListener.noop, AnalysisCache.standalone(config.buildDir))
         }
       }
     } yield result

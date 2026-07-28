@@ -401,13 +401,16 @@ case class ReactiveBsp(
                 case ReactiveBsp.BspAttemptResult.ServerCrashed =>
                   // Two crashes in a row is systematic, not transient — fail the command instead
                   // of looping (or worse, reporting a summary from a half-run build).
-                  BspRifle.oomCrashExplanation(config).flatMap { oomSecond =>
-                    val msg = oomSecond.orElse(oomFirst) match {
-                      case Some(oom) => s"BSP server crashed twice. $oom"
-                      case None      => s"BSP server crashed twice (no OutOfMemoryError recorded; see server log: ${BspRifle.getOutputFile(config)})"
+                  // The run did not complete. Say so in the summary too, so a reader is not left
+                  // reconciling a clean-looking block against the failure printed under it.
+                  display.markServerCrashed >>
+                    BspRifle.oomCrashExplanation(config).flatMap { oomSecond =>
+                      val msg = oomSecond.orElse(oomFirst) match {
+                        case Some(oom) => s"BSP server crashed twice. $oom"
+                        case None      => s"BSP server crashed twice (no OutOfMemoryError recorded; see server log: ${BspRifle.getOutputFile(config)})"
+                      }
+                      IO.raiseError(new BleepException.Text(msg))
                     }
-                    IO.raiseError(new BleepException.Text(msg))
-                  }
               }
           }
       }

@@ -39,6 +39,9 @@ trait ProjectCompiler {
     *   analysis files from dependent projects (keyed by output dir)
     * @param progressListener
     *   receives compilation progress updates
+    * @param analyses
+    *   the Zinc analysis cache, already bound to the workspace being compiled. Only the Zinc-backed compilers read it; the Kotlin ones keep their own
+    *   incremental state and ignore it.
     * @return
     *   compilation result (success or failure with errors)
     */
@@ -47,7 +50,8 @@ trait ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult]
 
   /** Check if this compiler can handle the given language mode */
@@ -84,11 +88,12 @@ object ZincProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] =
     config.language match {
       case sl: ProjectLanguage.ScalaJava =>
-        ZincBridge.compile(config, sl, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener)
+        ZincBridge.compile(config, sl, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion = None, analyses = analyses)
       case other =>
         IO.raiseError(new IllegalArgumentException(s"ZincProjectCompiler cannot compile $other"))
     }
@@ -111,7 +116,8 @@ object KotlinProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] =
     // Kotlin compiler doesn't have progress callbacks - ignore progressListener
     config.language match {
@@ -360,7 +366,8 @@ object JavacProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] =
     config.language match {
       case javaLang: ProjectLanguage.JavaOnly =>
@@ -380,7 +387,8 @@ object JavacProjectCompiler extends ProjectCompiler {
           cancellationToken,
           dependencyAnalyses,
           progressListener,
-          ecjVersion = javaLang.ecjVersion
+          ecjVersion = javaLang.ecjVersion,
+          analyses = analyses
         )
       case other =>
         IO.raiseError(new IllegalArgumentException(s"JavacProjectCompiler cannot compile $other"))
@@ -402,7 +410,8 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] =
     config.language match {
       case kt: ProjectLanguage.KotlinJs =>
@@ -605,7 +614,8 @@ object KotlinNativeProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
-      progressListener: ProgressListener
+      progressListener: ProgressListener,
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] =
     config.language match {
       case kt: ProjectLanguage.KotlinNative =>

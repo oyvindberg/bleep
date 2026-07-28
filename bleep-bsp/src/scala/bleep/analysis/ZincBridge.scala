@@ -3,7 +3,6 @@ package bleep.analysis
 import bleep.bsp.protocol.KillReason
 import cats.effect.IO
 import java.io.{File, IOException}
-import java.lang.ref.SoftReference
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
 import java.util.Optional
 import scala.jdk.CollectionConverters.*
@@ -92,12 +91,29 @@ object ZincBridge {
     */
   private val ecjJarCache = new java.util.concurrent.ConcurrentHashMap[String, Seq[Path]]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to (mtime,
-    * analysis). The mtime is checked before returning a cached entry — if the file on disk has changed (e.g. after `remote-cache pull`), the stale cache entry
-    * is discarded and the file is re-read. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects
-    * within the same build, while allowing GC to reclaim them when heap is tight.
+  /** Threads each analysis read/write may use.
+    *
+    * Zinc defaults this to `availableProcessors()`, which assumes one build at a time. This daemon runs up to `parallelism` operations at once, each loading
+    * several dependency analyses, so the default would multiply out to hundreds of threads competing for the same disk — the oversubscription the machine
+    * governor exists to prevent. Analysis I/O is not the bottleneck a compile waits on; four is enough to overlap decompression with parsing.
     */
-  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[(Long, CompileAnalysis)]]()
+  private val AnalysisIoParallelism: Int = 4
+
+  /** The analysis store, in zinc 2's consistent format.
+    *
+    * `reproducible = true` (zinc's own default) writes byte-identical files for identical inputs, normalising the timestamps that would otherwise make two
+    * worktrees' analyses differ despite describing the same code. That is what makes content-level dedup possible at all — see [[AnalysisCache]].
+    *
+    * `file` and `analysisFile` differ on the write path, which serialises to a temp file and renames; the mappers must still be built from the real
+    * destination, since they relativise against its build directory.
+    */
+  private def analysisStore(file: Path, analysisFile: Path): xsbti.compile.AnalysisStore =
+    sbt.internal.inc.consistent.ConsistentFileAnalysisStore.binary(
+      file.toFile,
+      analysisMappers(analysisFile),
+      reproducible = true,
+      parallelism = AnalysisIoParallelism
+    )
 
   /** Create ReadWriteMappers for portable zinc analysis.
     *
@@ -217,7 +233,8 @@ object ZincBridge {
       cancellationToken: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
-      ecjVersion: Option[String] = None
+      ecjVersion: Option[String],
+      analyses: AnalysisCache.Ref
   ): IO[ProjectCompileResult] = IO.interruptible {
     debug(s"[ZincBridge] compile() called for ${config.name}")
     Files.createDirectories(config.outputDir)
@@ -230,7 +247,19 @@ object ZincBridge {
     if (sources.isEmpty) {
       ProjectCompileSuccess(config.outputDir, Set.empty, Some(analysisFile))
     } else {
-      compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile)
+      // Allocation is measured HERE, around the body of the `IO.interruptible`, because
+      // `getThreadAllocatedBytes` is per thread and this block is the one place a compile is
+      // pinned to one. Measured at the BSP layer instead — around the IO rather than inside it —
+      // the fiber had usually moved between start and end, and attribution succeeded for 1% of
+      // 34k compiles, all of them the trivial ones that never yielded.
+      val begin = bleep.bsp.BspMetrics.threadAllocatedBytes()
+      val startMs = System.currentTimeMillis()
+      val result =
+        compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile, analyses)
+      val end = bleep.bsp.BspMetrics.threadAllocatedBytes()
+      if (begin >= 0 && end >= begin)
+        bleep.bsp.BspMetrics.recordCompileAllocation(config.name, end - begin, System.currentTimeMillis() - startMs)
+      result
     }
   }
 
@@ -460,7 +489,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
       ecjVersion: Option[String],
-      analysisFile: Path
+      analysisFile: Path,
+      analyses: AnalysisCache.Ref
   ): ProjectCompileResult = {
     // Fast path: check noop manifest BEFORE any Zinc work (loading analysis,
     // creating compilers, hashing files). This skips ~5s of FarmHash I/O per
@@ -526,7 +556,8 @@ object ZincBridge {
       dependencyAnalyses,
       progressListener,
       cancellationToken,
-      diagnosticListener
+      diagnosticListener,
+      analyses
     )
 
     val compiler = incrementalCompiler
@@ -591,7 +622,7 @@ object ZincBridge {
       if (result.hasModified || !hasPrevAnalysis) {
         diagnosticListener.onCompilePhase(config.name, CompilePhase.SavingAnalysis)
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
-        saveAnalysis(analysisFile, result.analysis, result.setup)
+        saveAnalysis(analysisFile, result.analysis, result.setup, analyses)
         checkCaseInsensitiveCollisions(result.analysis, config.name, diagnosticListener)
         checkAnalysisPortability(result.analysis, analysisFile)
       }
@@ -607,7 +638,7 @@ object ZincBridge {
         // Corrupt analysis — wipe and signal clean rebuild needed
         System.err.println(s"[ZincBridge] ${config.name}: corrupt analysis detected (${e.getMessage}), deleting for clean rebuild")
         Files.deleteIfExists(analysisFile)
-        analysisCache.remove(analysisFile)
+        analyses.invalidate(analysisFile)
         noopManifestCache.remove(analysisFile)
         if (Files.exists(config.outputDir)) {
           bleep.internal.FileUtils.deleteDirectory(config.outputDir)
@@ -635,7 +666,7 @@ object ZincBridge {
         // analysisFile so the next compile doesn't observe stale state, and surface a structured
         // failure with the underlying exception named so the user sees something actionable instead
         // of a raw Zinc stack trace via BSP.
-        analysisCache.remove(analysisFile)
+        analyses.invalidate(analysisFile)
         noopManifestCache.remove(analysisFile)
         val rendered = {
           val sw = new java.io.StringWriter
@@ -915,7 +946,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
       cancellationToken: CancellationToken,
-      diagnosticListener: DiagnosticListener
+      diagnosticListener: DiagnosticListener,
+      analyses: AnalysisCache.Ref
   ): Inputs = {
     val outputDir = config.outputDir
     // Include output directory in classpath for incremental Java compilation.
@@ -926,31 +958,26 @@ object ZincBridge {
     val scalacOptions = language.scalaOptions.toArray
     val javacOptions = language.javaOptions.toArray
 
-    // Load analyses from dependency projects for proper incremental compilation.
-    // Uses a global SoftReference cache to avoid re-reading from disk when the same
-    // dependency is referenced by multiple projects in the same build.
+    // Load analyses from dependency projects for proper incremental compilation. The cache spares
+    // us re-reading the same file when several projects in one build depend on it; a miss just
+    // reads from disk, so eviction is never a correctness question.
     val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
       if (Files.exists(analysisFile)) {
         val currentMtime = Files.getLastModifiedTime(analysisFile).toMillis
-        val cached = {
-          val ref = analysisCache.get(analysisFile)
-          val entry = if (ref != null) ref.get() else null
-          // Invalidate if file changed on disk (e.g. after remote-cache pull)
-          if (entry != null && entry._1 == currentMtime) entry._2 else null
-        }
-        if (cached != null) {
-          Some(classDir -> cached)
-        } else {
-          try {
-            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
-            store.get().toScala.map { contents =>
-              val analysis = contents.getAnalysis
-              analysisCache.put(analysisFile, new SoftReference((currentMtime, analysis)))
-              classDir -> analysis
+        analyses.get(analysisFile, currentMtime) match {
+          case Some(cached) => Some(classDir -> cached)
+          case None         =>
+            try {
+              val store = analysisStore(analysisFile, analysisFile)
+              store.get().toScala.map { contents =>
+                // The interned instance, not the freshly deserialized one: `put` shares structure
+                // with what other workspaces already loaded, and the original becomes garbage here.
+                val analysis = analyses.put(analysisFile, currentMtime, contents.getAnalysis)
+                classDir -> analysis
+              }
+            } catch {
+              case _: Exception => None
             }
-          } catch {
-            case _: Exception => None
-          }
         }
       } else None
     }
@@ -1151,7 +1178,7 @@ object ZincBridge {
     debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
     if (Files.exists(analysisFile)) {
       try {
-        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile, analysisMappers(analysisFile))
+        val store = analysisStore(analysisFile, analysisFile)
         val contents = store.get()
         if (contents.isPresent) {
           val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]
@@ -1199,7 +1226,7 @@ object ZincBridge {
     }
   }
 
-  private def saveAnalysis(analysisFile: Path, analysis: CompileAnalysis, setup: MiniSetup): Unit = {
+  private def saveAnalysis(analysisFile: Path, analysis: CompileAnalysis, setup: MiniSetup, analyses: AnalysisCache.Ref): Unit = {
     // Write to a temp file first, then atomic rename.
     // This prevents corrupted analysis.zip when compilation is cancelled mid-write.
     val tempFile = analysisFile.resolveSibling(analysisFile.getFileName.toString + ".tmp")
@@ -1209,12 +1236,14 @@ object ZincBridge {
         val sample = cpHashes.take(3).map(fh => s"${fh.file}:${fh.hash}").mkString(", ")
         debug(s"[ZincBridge] Saving with classpath hashes: $sample")
       }
-      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile, analysisMappers(analysisFile))
+      val store = analysisStore(tempFile, analysisFile)
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-      // Update soft reference cache so dependents see the fresh analysis
+      // Update the cache so dependents see the fresh analysis. The interned instance is discarded
+      // here — this analysis is already written to disk and the caller holds its own reference; the
+      // point is to seed the cache so the next reader shares structure instead of re-deserializing.
       val mtime = Files.getLastModifiedTime(analysisFile).toMillis
-      analysisCache.put(analysisFile, new SoftReference((mtime, analysis))): Unit
+      analyses.put(analysisFile, mtime, analysis): Unit
     } catch {
       case e: Exception =>
         try Files.deleteIfExists(tempFile)
@@ -1954,6 +1983,22 @@ private[bleep] class PlainVirtualFile private (val path: Path, virtualId: String
     } else {
       0L
     }
+
+  /** Added to `xsbti.VirtualFile` in zinc 2 (via `HashedVirtualFileRef`), together with [[contentHashStr]].
+    *
+    * Zinc 2's own `MappedVirtualFile` is `Files.size(path)` with no existence guard; this keeps the guard the surrounding code already applies to
+    * [[contentHash]], because bleep hands zinc virtual files for outputs that may not exist yet.
+    */
+  def sizeBytes(): Long =
+    if (Files.exists(path)) Files.size(path) else 0L
+
+  /** SHA-256 of the content, matching zinc 2's `MappedVirtualFile.contentHashStr` (`HashUtil.sha256HashStr(input)`) rather than inventing a rendering of
+    * [[contentHash]] — the two are different hashes and zinc compares these strings against ones it produced itself.
+    */
+  def contentHashStr(): String =
+    if (Files.exists(path)) sbt.internal.inc.HashUtil.sha256HashStr(input())
+    else sbt.internal.inc.HashUtil.sha256HashStr(new java.io.ByteArrayInputStream(Array.emptyByteArray))
+
   def input(): java.io.InputStream = Files.newInputStream(path)
   def toPath(): Path = path
 }

@@ -41,6 +41,54 @@ object BspMetrics {
   private val concurrentCompiles = AtomicInteger(0)
   private val activeConnections = AtomicInteger(0)
 
+  /** What is compiling right now, so a heap event can name it instead of merely counting it.
+    *
+    * A count answers "how loaded was the server"; only the names answer "loaded with what, from which workspace" — which is the question you have when the heap
+    * is at its ceiling. Reconstructing this after the fact means replaying every start/end pair in the file and hoping none were dropped.
+    *
+    * Keyed by workspace+project, valued by the allocation reading taken at start (see [[ThreadAllocation]]).
+    */
+  private val inFlightCompiles = new java.util.concurrent.ConcurrentHashMap[String, ThreadAllocation]()
+
+  /** A thread's cumulative allocation at a point in time, for attributing bytes to whatever ran in between.
+    *
+    * `getThreadAllocatedBytes` is per THREAD, and a cats-effect fiber may finish on a different thread than it started on. So the reading records which thread
+    * it came from, and the delta is only reported when the same thread closes it out — an unattributable compile reports nothing rather than a number that
+    * silently means something else.
+    */
+  private case class ThreadAllocation(threadId: Long, bytes: Long, startedMs: Long)
+
+  private val threadBeanForAllocation: Option[com.sun.management.ThreadMXBean] =
+    ManagementFactory.getThreadMXBean match {
+      case tb: com.sun.management.ThreadMXBean if tb.isThreadAllocatedMemorySupported =>
+        tb.setThreadAllocatedMemoryEnabled(true)
+        Some(tb)
+      case _ => None
+    }
+
+  private def readThreadAllocation(): ThreadAllocation = {
+    val t = Thread.currentThread()
+    ThreadAllocation(t.threadId(), threadAllocatedBytes(), System.currentTimeMillis())
+  }
+
+  /** Cumulative bytes allocated by the CALLING thread, or -1 where the JVM does not report it.
+    *
+    * Public because the only place a compile is reliably pinned to one thread is inside ZincBridge's `IO.interruptible` block, so that is where the two
+    * readings have to be taken. See [[recordCompileAllocation]].
+    */
+  def threadAllocatedBytes(): Long =
+    threadBeanForAllocation.map(_.getThreadAllocatedBytes(Thread.currentThread().threadId())).getOrElse(-1L)
+
+  /** Bytes a single compile allocated, measured across the blocking section that does the work.
+    *
+    * Churn, not retention: a compile that allocates 40GB and keeps none of it is a very different problem from one that keeps 4GB, and the two are
+    * indistinguishable in a heap-usage graph. This is the number that says which module actually needs the headroom.
+    */
+  def recordCompileAllocation(project: String, allocatedBytes: Long, durationMs: Long): Unit =
+    writeEvent(
+      s"""{"type":"compile_allocation","ts":${now()},"project":"${esc(project)}","allocated_mb":${allocatedBytes / (1024 * 1024)},"duration_ms":$durationMs}"""
+    )
+
   // OOM tracking
   private val OomThreshold = 0.95
   @volatile private var oomPressureStarted = false
@@ -157,17 +205,78 @@ object BspMetrics {
   def recordCompileStart(project: String, workspace: String): Unit = {
     val current = concurrentCompiles.incrementAndGet()
     updateMax(maxConcurrentCompiles, current)
+    inFlightCompiles.put(inFlightKey(project, workspace), readThreadAllocation()): Unit
     writeEvent(s"""{"type":"compile_start","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","concurrent":$current}""")
   }
 
   def recordCompileEnd(project: String, workspace: String, durationMs: Long, success: Boolean): Unit = {
     val current = concurrentCompiles.decrementAndGet()
+    inFlightCompiles.remove(inFlightKey(project, workspace)): Unit
+    // No allocation figure here on purpose — see recordCompileAllocation, which is emitted from
+    // inside the compile's own blocking section where the thread is stable.
     writeEvent(
       s"""{"type":"compile_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(
           workspace
         )}","duration_ms":$durationMs,"success":$success,"concurrent":$current}"""
     )
   }
+
+  private def inFlightKey(project: String, workspace: String): String = s"$workspace::$project"
+
+  /** The in-flight compiles as a JSON array, newest last. Attached to heap events so they name what was running. */
+  private def inFlightJson(): String = {
+    val now = System.currentTimeMillis()
+    inFlightCompiles
+      .entrySet()
+      .asScala
+      .toVector
+      .sortBy(_.getValue.startedMs)
+      .map(e => s"""{"key":"${esc(e.getKey)}","age_ms":${now - e.getValue.startedMs}}""")
+      .mkString("[", ",", "]")
+  }
+
+  /** Machine-governor state: what the daemon-wide resource governor is admitting and what is queued behind it. Emitted periodically by the daemon's reporter,
+    * which is the only thing holding the governor.
+    */
+  def recordMachine(
+      usedCpu: Int,
+      totalCpu: Int,
+      usedMemoryMb: Long,
+      totalMemoryMb: Long,
+      activeCompiles: Int,
+      running: Int,
+      waiting: Int
+  ): Unit =
+    writeEvent(
+      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
+    )
+
+  /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
+    * the live set is climbing.
+    */
+  def recordAnalysisCache(stats: bleep.analysis.AnalysisCache.Stats): Unit = {
+    // Per workspace, because the total alone was what the old telemetry gave and it left the actual
+    // question — which build is holding the heap — to be reconstructed from a class histogram.
+    val perWorkspace = stats.perWorkspace
+      .map(w =>
+        s"""{"workspace":"${esc(w.key.workspace.toString)}","variant":"${esc(w.key.variant.toString)}","entries":${w.entries},"file_bytes":${w.fileBytes}}"""
+      )
+      .mkString("[", ",", "]")
+    writeEvent(
+      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"sharing_factor":${String
+          .format(Locale.US, "%.2f", stats.sharingFactor: java.lang.Double)},"per_workspace":$perWorkspace}"""
+    )
+  }
+
+  /** Which workspaces the daemon is holding resolved builds for. The retained-heap floor tracks this number, so recording it is what makes the floor
+    * attributable instead of merely visible.
+    */
+  def recordWorkspaceState(cached: List[String], maxCached: Int): Unit =
+    writeEvent(
+      s"""{"type":"workspace_state","ts":${now()},"cached_count":${cached.size},"max_cached":$maxCached,"cached":${cached
+          .map(w => s""""${esc(w)}"""")
+          .mkString("[", ",", "]")}}"""
+    )
 
   def recordBuildStart(workspace: String, projectCount: Int): Unit =
     writeEvent(s"""{"type":"build_start","ts":${now()},"workspace":"${esc(workspace)}","projects":$projectCount}""")
@@ -225,6 +334,21 @@ object BspMetrics {
 
   // --------------- JVM sampling ---------------
 
+  /** The live set: heap still occupied immediately AFTER the last collection of each heap pool, which is the number that says whether the server is retaining
+    * or merely churning.
+    *
+    * `heap_used_mb` cannot answer that. Sampled at an arbitrary moment it includes whatever garbage has accumulated since the last GC, so a healthy server
+    * churning hard and a server whose floor is creeping up towards its ceiling produce the same sawtooth. Deriving the floor by taking minima over a window (as
+    * one has to do without this) needs a long window and still only approximates it.
+    *
+    * `-1` when the JVM does not report collection usage for its heap pools, which is a real answer, not a zero to be averaged in.
+    */
+  private def liveSetMb(): Long = {
+    val pools = ManagementFactory.getMemoryPoolMXBeans.asScala.filter(_.getType == java.lang.management.MemoryType.HEAP)
+    val usages = pools.flatMap(p => Option(p.getCollectionUsage))
+    if (usages.isEmpty) -1L else usages.map(_.getUsed).sum / (1024 * 1024)
+  }
+
   private def sampleJvm(): Unit = {
     val memBean = ManagementFactory.getMemoryMXBean
     val heap = memBean.getHeapMemoryUsage
@@ -260,12 +384,13 @@ object BspMetrics {
 
     val currentCompiles = concurrentCompiles.get()
     val loadedClasses = ManagementFactory.getClassLoadingMXBean.getLoadedClassCount
+    val heapLiveMb = liveSetMb()
 
     val cpuProcessStr = String.format(Locale.US, "%.4f", cpuProcess: java.lang.Double)
     val cpuSystemStr = String.format(Locale.US, "%.4f", cpuSystem: java.lang.Double)
 
     writeEvent(
-      s"""{"type":"jvm","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_committed_mb":$heapCommittedMb,"heap_max_mb":$heapMaxMb,"non_heap_used_mb":$nonHeapUsedMb,"gc":$gcJson,"threads":$threads,"peak_threads":$peakThreads,"daemon_threads":$daemonThreads,"cpu_process":$cpuProcessStr,"cpu_system":$cpuSystemStr,"concurrent_compiles":$currentCompiles,"loaded_classes":$loadedClasses}"""
+      s"""{"type":"jvm","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_committed_mb":$heapCommittedMb,"heap_max_mb":$heapMaxMb,"non_heap_used_mb":$nonHeapUsedMb,"gc":$gcJson,"threads":$threads,"peak_threads":$peakThreads,"daemon_threads":$daemonThreads,"cpu_process":$cpuProcessStr,"cpu_system":$cpuSystemStr,"concurrent_compiles":$currentCompiles,"loaded_classes":$loadedClasses,"heap_live_mb":$heapLiveMb}"""
     )
 
     // OOM pressure detection: heap used >= 95% of max
@@ -276,11 +401,11 @@ object BspMetrics {
         if (!oomPressureStarted) {
           oomPressureStarted = true
           writeEvent(
-            s"""{"type":"oom_pressure","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"pct":${String.format(
+            s"""{"type":"oom_pressure","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_live_mb":$heapLiveMb,"heap_max_mb":$heapMaxMb,"pct":${String.format(
                 Locale.US,
                 "%.1f",
                 (usedPct * 100): java.lang.Double
-              )},"concurrent_compiles":$currentCompiles,"active_connections":${activeConnections.get()}}"""
+              )},"concurrent_compiles":$currentCompiles,"active_connections":${activeConnections.get()},"in_flight":${inFlightJson()}}"""
           )
           System.err.println(s"[BspMetrics] WARNING: Heap at ${(usedPct * 100).toInt}% ($heapUsedMb/$heapMaxMb MB) with $currentCompiles concurrent compiles")
         }

@@ -48,25 +48,25 @@ bleep config compile-server max-memory <size>
 
 <p>remove compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)</p>
 
-## `bleep config compile-server heap-pressure-threshold`
+## `bleep config compile-server parallelism`
 
-<p>set heap usage fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)</p>
+<p>set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)</p>
 
 ### Synopsis
 
 ```bash
-bleep config compile-server heap-pressure-threshold <threshold>
+bleep config compile-server parallelism <n>
 ```
 
 ### Arguments
 
 | Argument | Type |
 |----------|------|
-| `threshold` | one |
+| `n` | one |
 
-## `bleep config compile-server heap-pressure-threshold-clear`
+## `bleep config compile-server parallelism-clear`
 
-<p>remove heap pressure threshold setting (use default: 0.80)</p>
+<p>remove the parallelism setting (back to default: one per core)</p>
 
 ## `bleep config compile-server read-timeout`
 

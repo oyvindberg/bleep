@@ -290,8 +290,12 @@ projects:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
     - org.typelevel::cats-effect:3.6.1
-    - for3Use213: true
-      module: org.scala-sbt::zinc:1.12.0
+    # zinc 2.x. compiler-interface 2.0.4 evicts the 1.10.7 that scala3-compiler asks for; coursier's
+    # early-semver rule flags that as suspect, but it is not: diffing the two jars shows 2.0.4 is
+    # purely additive — 150 classes, zero public or protected members removed, two classes added
+    # (HashedVirtualFileRef, BasicHashedVirtualFileRef). The Scala 3 bridge compiled against 1.10.7
+    # links fine against it.
+    - org.scala-sbt::zinc:2.0.4
     - for3Use213: true
       module: ch.epfl.scala::libdaemon:0.0.12
     dependsOn:
@@ -413,6 +417,16 @@ scripts:
     project: scripts-java
 templates:
   template-common:
+    # zinc 2.x pulls compiler-interface 2.0.4, evicting the 1.10.7 that scala3-compiler asks for.
+    # Its POM declares early-semver, so the eviction fails the build by default. The compatibility
+    # argument: diffing the two jars shows 2.0.4 is purely additive over 1.10.7 — 150 classes, zero
+    # public or protected members removed, two added (HashedVirtualFileRef, BasicHashedVirtualFileRef).
+    #
+    # On the TEMPLATE rather than on bleep-bsp, which is the project that actually pulls zinc, because
+    # THIS build must stay resolvable by the PREVIOUS bleep release: CI bootstraps with it, and it
+    # predates schemes travelling along `dependsOn`. Once a release carries that, this can move to
+    # bleep-bsp alone.
+    libraryVersionSchemes: org.scala-sbt:compiler-interface:always
     java:
       options: -proc:none
     platform:

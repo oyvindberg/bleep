@@ -725,17 +725,23 @@ object Main {
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
             ),
             Opts.subcommand[BleepCommand](
-              "heap-pressure-threshold",
-              "set heap usage fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)"
+              "parallelism",
+              "set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)"
             )(
-              Opts.argument[Double]("threshold").map { threshold => () =>
+              Opts.argument[Int]("n").map { n => () =>
+                if (n < 1) throw new BleepException.Text(s"parallelism must be >= 1, got $n")
                 BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = Some(threshold))))
-                  .map(_ => ())
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = Some(n))))
+                  .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
               }
             ),
-            Opts.subcommand[BleepCommand]("heap-pressure-threshold-clear", "remove heap pressure threshold setting (use default: 0.80)")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = None))).map(_ => ()))
+            Opts.subcommand[BleepCommand](
+              "parallelism-clear",
+              "remove the parallelism setting (back to default: one per core)"
+            )(
+              Opts(() =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = None, parallelismRatio = None))).map(_ => ())
+              )
             ),
             Opts.subcommand[BleepCommand](
               "read-timeout",
