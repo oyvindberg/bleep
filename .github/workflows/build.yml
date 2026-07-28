@@ -12,7 +12,15 @@ concurrency:
 
 jobs:
   build:
-    timeout-minutes: 15
+    # Measured, not guessed: this job does sourcegen, a full compile, publish-local AND the whole
+    # test suite. On master it takes 12-14 minutes against a 15-minute cap — 82-92% of budget, so it
+    # was one slow runner away from red before anything changed. The zinc 2 upgrade and per-analysis
+    # interning pushed it over: two consecutive runs were cancelled at exactly 15m17s and 15m18s.
+    #
+    # Not hiding a hang. The log shows suites finishing 4 seconds apart right up to the cut, three
+    # running concurrently — steady throughput into the wall, not a stall. The native-image jobs
+    # already get 40 minutes for less work than this.
+    timeout-minutes: 30
     # need to be newer than `ubuntu-20.04` because of scalafmt native binary
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
