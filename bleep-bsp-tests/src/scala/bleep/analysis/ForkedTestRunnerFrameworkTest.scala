@@ -19,15 +19,6 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
 
   def createTempDir(prefix: String): Path = Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   // ForkedTestRunner class location (bleep-test-runner compiled classes)
   lazy val testRunnerPath: Path = {
     val location = classOf[bleep.testing.runner.ForkedTestRunner].getProtectionDomain.getCodeSource.getLocation.toURI

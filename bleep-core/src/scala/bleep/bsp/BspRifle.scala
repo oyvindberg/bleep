@@ -235,7 +235,7 @@ object BspRifle {
   def readOutput(config: BspRifleConfig): IO[String] = IO.blocking {
     val outputFile = getOutputFile(config)
     if (Files.exists(outputFile)) {
-      Files.readString(outputFile)
+      BspServerOperations.readLogFile(outputFile)
     } else {
       ""
     }
@@ -245,10 +245,9 @@ object BspRifle {
   def readOutputTail(config: BspRifleConfig, lines: Int): IO[String] = IO.blocking {
     val outputFile = getOutputFile(config)
     if (Files.exists(outputFile)) {
-      val allLines = Files.readAllLines(outputFile)
-      val start = Math.max(0, allLines.size() - lines)
-      import scala.jdk.CollectionConverters.*
-      allLines.asScala.slice(start, allLines.size()).mkString("\n")
+      val allLines = BspServerOperations.readLogFile(outputFile).linesIterator.toVector
+      val start = Math.max(0, allLines.size - lines)
+      allLines.slice(start, allLines.size).mkString("\n")
     } else {
       ""
     }

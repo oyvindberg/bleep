@@ -23,15 +23,6 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(dir)
   }
 
-  private def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path)) {
-        import scala.jdk.StreamConverters._
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   // ── PlainVirtualFile ID tests ──────────────────────────────────────────
 
   test("PlainVirtualFile uses ${BASE} prefix for paths under build dir") {

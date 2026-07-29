@@ -6,7 +6,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.StreamConverters.*
 
 /** Removing a Scala 3 source must remove its `.tasty`, not just its `.class`.
   *
@@ -28,12 +27,6 @@ class OrphanedTastyTest extends AnyFunSuite with Matchers with TimeLimits {
 
   private def scalaLibraryClasspath(version: String): List[Path] =
     CompilerResolver.resolveScalaLibrary(version).toList
-
-  private def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path)) Files.list(path).toScala(List).foreach(deleteRecursively)
-      Files.delete(path)
-    }
 
   test("deleting a Scala source deletes its .tasty, not just its .class") {
     failAfter(mediumTimeout) {
