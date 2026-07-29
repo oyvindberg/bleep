@@ -12,7 +12,7 @@ import scala.util.Try
   *
   * This compiler runs as part of the bleep-bsp daemon and provides:
   *   - Cached compiler instances and reflection setup (via CompilerResolver)
-  *   - Incremental compilation using Kotlin's IncrementalJvmCompilerRunner
+  *   - Incremental compilation using Kotlin's BuildHistoryJvmICRunner (Kotlin 2.2+)
   *   - Cross-language incremental compilation support (detects Scala/Java changes)
   *   - Falls back to full compilation if incremental setup fails
   *   - Diagnostic streaming via MessageCollector proxy
@@ -22,12 +22,12 @@ import scala.util.Try
   *
   * ==Cross-Language Incremental Compilation==
   *
-  * When a Kotlin project depends on Scala/Java projects, we need to detect when those dependencies change and trigger a recompilation. Kotlin's native IC
-  * doesn't track classpath changes by default (ClasspathSnapshotDisabled).
+  * When a Kotlin project depends on Scala/Java projects, we need to detect when those dependencies change and trigger a recompilation. The build-history runner
+  * only tracks ABI changes in classpath *jars*, not in the plain output directories that upstream bleep projects compile into.
   *
   * We implement classpath change detection by:
   *   1. Computing a hash of the classpath (paths + modification times)
-  *   2. Storing the hash in the IC cache directory
+  *   2. Storing the hash next to (not inside) the IC cache directory — Kotlin wipes its own working dir on rebuilds
   *   3. On each compilation, comparing current hash with stored hash
   *   4. If different, invalidating the IC cache to force full recompilation
   *
@@ -62,8 +62,8 @@ object KotlinSourceCompiler extends Compiler {
       // Incremental compilation classes (may be null if not available)
       incrementalRunnerClass: Class[?],
       buildReporterInstance: Any,
-      classpathChangesInstance: Any,
-      changedFilesUnknownInstance: Any,
+      modulesApiHistoryInstance: Any,
+      changedFilesToBeComputedInstance: Any,
       icFeaturesClass: Class[?],
       fileLocationsClass: Class[?]
   )
@@ -115,22 +115,22 @@ object KotlinSourceCompiler extends Compiler {
 
   /** Check if classpath has changed since last compilation.
     *
-    * @param cacheDir
-    *   the Kotlin IC cache directory
+    * @param metaDir
+    *   bleep's own IC bookkeeping directory (see [[metaDirFor]])
     * @param classpath
     *   the current classpath
     * @return
     *   true if classpath changed (or no previous hash), false if unchanged
     */
-  private def classpathChanged(cacheDir: Path, classpath: Seq[Path]): Boolean = {
-    val hashFile = cacheDir.resolve("classpath-hash")
+  private def classpathChanged(metaDir: Path, classpath: Seq[Path]): Boolean = {
+    val hashFile = metaDir.resolve("classpath-hash")
     val currentHash = computeClasspathHash(classpath)
 
     val previousHash = Try(Files.readString(hashFile).trim).getOrElse("")
 
     if (currentHash != previousHash) {
       // Save the new hash
-      Files.createDirectories(cacheDir)
+      Files.createDirectories(metaDir)
       Files.writeString(hashFile, currentHash)
       true
     } else {
@@ -138,7 +138,15 @@ object KotlinSourceCompiler extends Compiler {
     }
   }
 
-  /** Invalidate the Kotlin IC cache by deleting all files except the hash file.
+  /** Where bleep keeps its own IC bookkeeping.
+    *
+    * Deliberately a *sibling* of the output directory, not a child of the Kotlin IC working dir: the working dir is handed to Kotlin as one of `outputDirs`,
+    * and on any non-incremental round Kotlin calls `cleanOrCreateDirectories` on all of them — which would delete our classpath hash and make every build look
+    * like a classpath change.
+    */
+  private def metaDirFor(outputDir: Path): Path = outputDir.resolveSibling(s"${outputDir.getFileName}.kotlin-ic-meta")
+
+  /** Invalidate the Kotlin IC cache by deleting its contents.
     *
     * This forces a full recompilation on the next build.
     */
@@ -146,13 +154,12 @@ object KotlinSourceCompiler extends Compiler {
     if (Files.exists(cacheDir)) {
       import scala.jdk.StreamConverters.*
       import scala.util.Using
-      val hashFile = cacheDir.resolve("classpath-hash")
 
       // Use Using to ensure Files.walk stream is properly closed
       Using(Files.walk(cacheDir)) { stream =>
         stream
           .toScala(LazyList)
-          .filter(p => Files.isRegularFile(p) && p != hashFile)
+          .filter(p => Files.isRegularFile(p))
           .foreach { p =>
             Try(Files.delete(p)): Unit
           }
@@ -310,22 +317,31 @@ object KotlinSourceCompiler extends Compiler {
           }
           .getOrElse(throw new NoSuchMethodException("Could not find K2JVMCompiler.exec method"))
 
-        // Try to load incremental compilation support
-        val (incrementalRunnerClass, buildReporterInstance, classpathChangesInstance, changedFilesUnknownInstance, icFeaturesClass, fileLocationsClass) =
+        // Try to load incremental compilation support.
+        //
+        // We deliberately use `BuildHistoryJvmICRunner`, not `IncrementalJvmCompilerRunner`. Since Kotlin 2.2 the latter *only* supports the
+        // classpath-snapshot code path: it hard-errors with "Unexpected ClasspathSnapshotDisabled for this code path" unless you feed it
+        // pre-computed `ClasspathChanges.ClasspathSnapshotEnabled` snapshot files, which we do not produce. `BuildHistoryJvmICRunner` is the
+        // build-history-based runner (what Maven uses) and works with nothing but a build-history file.
+        //
+        // It exists from Kotlin 2.2.0 onwards with a stable 7-arg constructor. On older compilers it is absent and we compile non-incrementally.
+        val (incrementalRunnerClass, buildReporterInstance, modulesApiHistoryInstance, changedFilesToBeComputedInstance, icFeaturesClass, fileLocationsClass) =
           try {
-            val runnerClass = loader.loadClass("org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner")
+            val runnerClass = loader.loadClass("org.jetbrains.kotlin.incremental.BuildHistoryJvmICRunner")
 
             // DoNothingBuildReporter.INSTANCE
             val buildReporterClass = loader.loadClass("org.jetbrains.kotlin.build.report.DoNothingBuildReporter")
             val buildReporter = buildReporterClass.getField("INSTANCE").get(null)
 
-            // ClasspathChanges.ClasspathSnapshotDisabled.INSTANCE
-            val classpathChangesClass = loader.loadClass("org.jetbrains.kotlin.incremental.ClasspathChanges$ClasspathSnapshotDisabled")
-            val classpathChanges = classpathChangesClass.getField("INSTANCE").get(null)
+            // EmptyModulesApiHistory.INSTANCE — we compile one module per invocation, so there is no sibling-module history to consult.
+            val modulesApiHistoryClass = loader.loadClass("org.jetbrains.kotlin.incremental.multiproject.EmptyModulesApiHistory")
+            val modulesApiHistory = modulesApiHistoryClass.getField("INSTANCE").get(null)
 
-            // ChangedFiles.Unknown.INSTANCE
-            val changedFilesClass = loader.loadClass("org.jetbrains.kotlin.incremental.ChangedFiles$Unknown")
-            val changedFilesUnknown = changedFilesClass.getField("INSTANCE").get(null)
+            // ChangedFiles.DeterminableFiles.ToBeComputed.INSTANCE — lets the runner diff sources itself against its own snapshot.
+            // NOTE: passing `ChangedFiles.Unknown` here makes `IncrementalCompilerRunner.compile` return `RequiresRebuild` immediately,
+            // i.e. a full compile on every single build.
+            val changedFilesClass = loader.loadClass("org.jetbrains.kotlin.incremental.ChangedFiles$DeterminableFiles$ToBeComputed")
+            val changedFilesToBeComputed = changedFilesClass.getField("INSTANCE").get(null)
 
             // IncrementalCompilationFeatures class (has default constructor)
             val featuresClass = loader.loadClass("org.jetbrains.kotlin.incremental.IncrementalCompilationFeatures")
@@ -333,14 +349,14 @@ object KotlinSourceCompiler extends Compiler {
             // FileLocations class
             val locationsClass = loader.loadClass("org.jetbrains.kotlin.incremental.storage.FileLocations")
 
-            debug(s"Loaded IncrementalJvmCompilerRunner for Kotlin $version")
-            (runnerClass, buildReporter, classpathChanges, changedFilesUnknown, featuresClass, locationsClass)
+            debug(s"Loaded BuildHistoryJvmICRunner for Kotlin $version")
+            (runnerClass, buildReporter, modulesApiHistory, changedFilesToBeComputed, featuresClass, locationsClass)
           } catch {
             case e: ClassNotFoundException =>
-              debug(s"Incremental compilation not available: ${e.getMessage}")
-              (null, null, null, null, null, null)
-            case e: Exception =>
-              debug(s"Failed to load incremental classes: ${e.getClass.getName}: ${e.getMessage}")
+              System.err.println(
+                s"[bleep] Kotlin $version has no BuildHistoryJvmICRunner (${e.getMessage}); incremental Kotlin compilation is unavailable, " +
+                  s"every build will be a full compile. Use Kotlin 2.2.0 or newer."
+              )
               (null, null, null, null, null, null)
           }
 
@@ -363,8 +379,8 @@ object KotlinSourceCompiler extends Compiler {
           execMethod = execMethod,
           incrementalRunnerClass = incrementalRunnerClass,
           buildReporterInstance = buildReporterInstance,
-          classpathChangesInstance = classpathChangesInstance,
-          changedFilesUnknownInstance = changedFilesUnknownInstance,
+          modulesApiHistoryInstance = modulesApiHistoryInstance,
+          changedFilesToBeComputedInstance = changedFilesToBeComputedInstance,
           icFeaturesClass = icFeaturesClass,
           fileLocationsClass = fileLocationsClass
         )
@@ -389,7 +405,7 @@ object KotlinSourceCompiler extends Compiler {
 
       // Check if classpath has changed since last compilation
       // If so, invalidate the IC cache to ensure correct recompilation
-      if (classpathChanged(cacheDir, input.classpath)) {
+      if (classpathChanged(metaDirFor(input.outputDir), input.classpath)) {
         invalidateCache(cacheDir)
       }
 
@@ -416,16 +432,16 @@ object KotlinSourceCompiler extends Compiler {
       // (Kotlin incremental compiler doesn't expose per-file callbacks, so report all at start)
       sourceFiles.foreach(path => listener.onCompileFile(path, Some("kotlinc-incremental")))
 
-      // Create IncrementalJvmCompilerRunner
-      // Constructor: (workingDir, reporter, buildHistoryFile, outputDirs, classpathChanges, kotlinExtensions, icFeatures)
-      // Note: outputDirs must contain both classesDir (destination) and workingDir
+      // Create BuildHistoryJvmICRunner
+      // Constructor: (workingDir, reporter, buildHistoryFile, outputDirs, modulesApiHistory, kotlinExtensions, icFeatures)
+      // Note: outputDirs must contain both classesDir (destination) and workingDir — the runner asserts this.
       val outputDirs: java.util.Collection[File] = Set(input.outputDir.toFile, cacheDirFile).asJava
 
       val buildHistoryFile = cacheDir.resolve("build-history.bin").toFile
 
       val allConstructors = setup.incrementalRunnerClass.getDeclaredConstructors
       debug(
-        s"IncrementalJvmCompilerRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}"
+        s"BuildHistoryJvmICRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}"
       )
 
       val maybeRunner = tryConstructRunner(
@@ -436,27 +452,17 @@ object KotlinSourceCompiler extends Compiler {
           setup.buildReporterInstance.asInstanceOf[Object],
           buildHistoryFile,
           outputDirs,
-          setup.classpathChangesInstance.asInstanceOf[Object],
+          setup.modulesApiHistoryInstance.asInstanceOf[Object],
           kotlinExtensions,
           icFeatures.asInstanceOf[Object]
-        )
-      ).orElse(
-        tryConstructRunner(
-          allConstructors,
-          6,
-          Array[Object](
-            cacheDirFile,
-            setup.buildReporterInstance.asInstanceOf[Object],
-            outputDirs,
-            setup.classpathChangesInstance.asInstanceOf[Object],
-            kotlinExtensions,
-            icFeatures.asInstanceOf[Object]
-          )
         )
       )
 
       if (maybeRunner.isEmpty) {
-        debug(s"No matching IncrementalJvmCompilerRunner constructor found, falling back to non-incremental compilation")
+        System.err.println(
+          s"[bleep] Kotlin ${config.version}: no 7-arg BuildHistoryJvmICRunner constructor, compiling non-incrementally. " +
+            s"Constructors seen: ${allConstructors.map(_.getParameterCount).mkString(", ")}"
+        )
         return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
       }
       val runner = maybeRunner.get
@@ -491,6 +497,16 @@ object KotlinSourceCompiler extends Compiler {
       val setSuppressWarnings = setup.argumentsClass.getMethod("setSuppressWarnings", classOf[Boolean])
       setSuppressWarnings.invoke(arguments, java.lang.Boolean.TRUE)
 
+      // Enable incremental compilation *inside the compiler*. Without this, `JvmConfigurationPipelinePhase` skips
+      // `setupIncrementalCompilationServices` entirely, so the LookupTracker / ICFileMappingTracker / IncrementalCompilationComponents
+      // we hand it via Services are dropped on the floor, no output-to-source mappings come back, and the IC caches under
+      // caches-jvm/jvm/kotlin are never written — leaving every subsequent build with nothing to be incremental against.
+      //
+      // This is an argument rather than the `kotlin.incremental.compilation` system property on purpose: the property is JVM-global,
+      // and this compiler runs inside a daemon shared by many workspaces.
+      val setIncrementalCompilation = setup.argumentsClass.getMethod("setIncrementalCompilation", classOf[java.lang.Boolean])
+      setIncrementalCompilation.invoke(arguments, java.lang.Boolean.TRUE)
+
       // Apply additional compiler options (e.g., -Xfriend-paths, -Xjsr305)
       applyCompilerOptions(setup, arguments, config.options)
 
@@ -521,7 +537,7 @@ object KotlinSourceCompiler extends Compiler {
             sourceFilesList,
             arguments,
             messageCollectorProxy,
-            setup.changedFilesUnknownInstance,
+            setup.changedFilesToBeComputedInstance,
             fileLocations
           )
         } finally {
