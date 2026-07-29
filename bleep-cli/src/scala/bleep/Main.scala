@@ -965,6 +965,21 @@ object Main {
     if (Properties.isWin)
       println(s"kernel32 console size: ${io.github.alexarchambault.nativeterm.internal.WindowsTerm.getSize()}")
 
+  /** Same class of guard as [[selftestWindowsKernel32]], for the other FFM surface in the binary.
+    *
+    * On JDK 22+ coursier-paths resolves Windows known folders through `SHGetKnownFolderPath`/`CLSIDFromString` downcalls (multi-release classes under
+    * `META-INF/versions/22`), which need `foreign` reachability metadata or the native image aborts with MissingForeignRegistrationError. `_main` forces
+    * `UserPaths.fromAppDirs` before anything else, so linking is already covered by any command — printing the result is what makes a *wrong* answer visible,
+    * and the absolute-path check turns a silently degraded resolution into a failed CI step rather than a cache directory in the wrong place.
+    */
+  private def selftestUserPaths(userPaths: UserPaths): Unit = {
+    println(s"user cache dir: ${userPaths.cacheDir}")
+    println(s"user config dir: ${userPaths.configDir}")
+    List("cache" -> userPaths.cacheDir, "config" -> userPaths.configDir).foreach { case (what, path) =>
+      if (!path.isAbsolute) sys.error(s"resolved $what dir is not absolute: $path")
+    }
+  }
+
   def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
@@ -1004,6 +1019,7 @@ object Main {
         // verify TerminalSizeCache initialization works (SIGWINCH doesn't exist on Windows)
         BspClientDisplayProgress(logger).discard()
         selftestWindowsKernel32()
+        selftestUserPaths(userPaths)
         println("OK")
         ExitCode.Success
 

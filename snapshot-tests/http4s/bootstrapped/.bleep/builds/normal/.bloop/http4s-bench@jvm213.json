@@ -141,46 +141,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.typelevel",
-          "name": "literally_2.13",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "literally_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.ow2.asm",
-          "name": "asm",
-          "version": "9.0",
-          "artifacts": [
-            {
-              "name": "asm",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.openjdk.jmh",
-          "name": "jmh-generator-asm",
+          "name": "jmh-core",
           "version": "1.37",
           "artifacts": [
             {
-              "name": "jmh-generator-asm",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.37/jmh-generator-asm-1.37.jar"
+              "name": "jmh-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "log4cats-core_2.13",
-          "version": "2.7.0",
+          "name": "cats-core_2.13",
+          "version": "2.11.0",
           "artifacts": [
             {
-              "name": "log4cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.13/2.7.0/log4cats-core_2.13-2.7.0.jar"
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.11.0/cats-core_2.13-2.11.0.jar"
             }
           ]
         },
@@ -196,13 +174,13 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.13",
-          "version": "3.5.7",
+          "organization": "io.circe",
+          "name": "circe-core_2.13",
+          "version": "0.14.8",
           "artifacts": [
             {
-              "name": "cats-effect-std_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.5.7/cats-effect-std_2.13-3.5.7.jar"
+              "name": "circe-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.8/circe-core_2.13-0.14.8.jar"
             }
           ]
         },
@@ -218,35 +196,101 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.13",
-          "version": "3.5.7",
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.13",
+          "version": "3.6.0",
           "artifacts": [
             {
-              "name": "cats-effect-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.5.7/cats-effect-kernel_2.13-3.5.7.jar"
+              "name": "ip4s-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.6.0/ip4s-core_2.13-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.13",
+          "version": "3.11.0",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.11.0/fs2-io_2.13-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-math3",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "commons-math3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-parse_2.13",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "cats-parse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.13/1.0.0/cats-parse_2.13-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.0",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-fs2_2.13",
+          "version": "2.4.0",
+          "artifacts": [
+            {
+              "name": "jawn-fs2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.13/2.4.0/jawn-fs2_2.13-2.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalac-compat-annotation_2.13",
+          "version": "0.1.4",
+          "artifacts": [
+            {
+              "name": "scalac-compat-annotation_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_2.13/0.1.4/scalac-compat-annotation_2.13-0.1.4.jar"
             }
           ]
         },
         {
           "organization": "org.openjdk.jmh",
-          "name": "jmh-generator-bytecode",
+          "name": "jmh-generator-reflection",
           "version": "1.37",
           "artifacts": [
             {
-              "name": "jmh-generator-bytecode",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.37/jmh-generator-bytecode-1.37.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.13",
-          "version": "0.14.8",
-          "artifacts": [
-            {
-              "name": "circe-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.8/circe-core_2.13-0.14.8.jar"
+              "name": "jmh-generator-reflection",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.37/jmh-generator-reflection-1.37.jar"
             }
           ]
         },
@@ -258,6 +302,28 @@
             {
               "name": "circe-jawn_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.8/circe-jawn_2.13-0.14.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive_2.13",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "case-insensitive_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.13/1.4.2/case-insensitive_2.13-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.13",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.38/scodec-bits_2.13-1.1.38.jar"
             }
           ]
         },
@@ -274,45 +340,45 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "case-insensitive_2.13",
-          "version": "1.4.2",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "case-insensitive_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.13/1.4.2/case-insensitive_2.13-1.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.13",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.6.0/ip4s-core_2.13-3.6.0.jar"
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.5.7/cats-effect-kernel_2.13-3.5.7.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-parse_2.13",
-          "version": "1.0.0",
+          "name": "cats-effect-std_2.13",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "cats-parse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.13/1.0.0/cats-parse_2.13-1.0.0.jar"
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.5.7/cats-effect-std_2.13-3.5.7.jar"
             }
           ]
         },
         {
-          "organization": "io.circe",
-          "name": "circe-parser_2.13",
-          "version": "0.14.8",
+          "organization": "co.fs2",
+          "name": "fs2-core_2.13",
+          "version": "3.11.0",
           "artifacts": [
             {
-              "name": "circe-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.8/circe-parser_2.13-0.14.8.jar"
+              "name": "fs2-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.11.0/fs2-core_2.13-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-generator-asm",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-generator-asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.37/jmh-generator-asm-1.37.jar"
             }
           ]
         },
@@ -328,57 +394,13 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.13",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.38/scodec-bits_2.13-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.commons",
-          "name": "commons-math3",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "commons-math3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-io_2.13",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-io_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.11.0/fs2-io_2.13-3.11.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
-          "name": "scalac-compat-annotation_2.13",
-          "version": "0.1.4",
+          "name": "jawn-parser_2.13",
+          "version": "1.5.1",
           "artifacts": [
             {
-              "name": "scalac-compat-annotation_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_2.13/0.1.4/scalac-compat-annotation_2.13-0.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.sf.jopt-simple",
-          "name": "jopt-simple",
-          "version": "5.0.4",
-          "artifacts": [
-            {
-              "name": "jopt-simple",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar"
+              "name": "jawn-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.5.1/jawn-parser_2.13-1.5.1.jar"
             }
           ]
         },
@@ -395,39 +417,6 @@
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.15",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.13",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.11.0/cats-core_2.13-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "jawn-fs2_2.13",
-          "version": "2.4.0",
-          "artifacts": [
-            {
-              "name": "jawn-fs2_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.13/2.4.0/jawn-fs2_2.13-2.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
           "artifacts": [
@@ -438,46 +427,57 @@
           ]
         },
         {
-          "organization": "org.openjdk.jmh",
-          "name": "jmh-generator-reflection",
-          "version": "1.37",
+          "organization": "io.circe",
+          "name": "circe-parser_2.13",
+          "version": "0.14.8",
           "artifacts": [
             {
-              "name": "jmh-generator-reflection",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.37/jmh-generator-reflection-1.37.jar"
+              "name": "circe-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.8/circe-parser_2.13-0.14.8.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "jawn-parser_2.13",
-          "version": "1.5.1",
+          "name": "log4cats-core_2.13",
+          "version": "2.7.0",
           "artifacts": [
             {
-              "name": "jawn-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.5.1/jawn-parser_2.13-1.5.1.jar"
+              "name": "log4cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.13/2.7.0/log4cats-core_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.15",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.jopt-simple",
+          "name": "jopt-simple",
+          "version": "5.0.4",
+          "artifacts": [
+            {
+              "name": "jopt-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar"
             }
           ]
         },
         {
           "organization": "org.openjdk.jmh",
-          "name": "jmh-core",
+          "name": "jmh-generator-bytecode",
           "version": "1.37",
           "artifacts": [
             {
-              "name": "jmh-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.13",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.11.0/fs2-core_2.13-3.11.0.jar"
+              "name": "jmh-generator-bytecode",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.37/jmh-generator-bytecode-1.37.jar"
             }
           ]
         }

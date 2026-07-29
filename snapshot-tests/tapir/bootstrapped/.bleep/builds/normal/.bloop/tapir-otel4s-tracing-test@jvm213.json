@@ -233,79 +233,68 @@
     "resolution": {
       "modules": [
         {
-          "organization": "io.opentelemetry.semconv",
-          "name": "opentelemetry-semconv",
-          "version": "1.34.0",
+          "organization": "org.typelevel",
+          "name": "otel4s-core-common_2.13",
+          "version": "0.12.0",
           "artifacts": [
             {
-              "name": "opentelemetry-semconv",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/semconv/opentelemetry-semconv/1.34.0/opentelemetry-semconv-1.34.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatestplus",
-          "name": "scalacheck-1-18_2.13",
-          "version": "3.2.19.0",
-          "artifacts": [
-            {
-              "name": "scalacheck-1-18_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.13/3.2.19.0/scalacheck-1-18_2.13-3.2.19.0.jar"
+              "name": "otel4s-core-common_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-common_2.13/0.12.0/otel4s-core-common_2.13-0.12.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "otel4s-core_2.13",
+          "name": "otel4s-core-trace_2.13",
           "version": "0.12.0",
           "artifacts": [
             {
-              "name": "otel4s-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core_2.13/0.12.0/otel4s-core_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-oteljava-trace_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-oteljava-trace_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-trace_2.13/0.12.0/otel4s-oteljava-trace_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-oteljava-common-testkit_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-oteljava-common-testkit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-common-testkit_2.13/0.12.0/otel4s-oteljava-common-testkit_2.13-0.12.0.jar"
+              "name": "otel4s-core-trace_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-trace_2.13/0.12.0/otel4s-core-trace_2.13-0.12.0.jar"
             }
           ]
         },
         {
           "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-extension-autoconfigure",
+          "name": "opentelemetry-sdk-logs",
           "version": "1.48.0",
           "artifacts": [
             {
-              "name": "opentelemetry-sdk-extension-autoconfigure",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.48.0/opentelemetry-sdk-extension-autoconfigure-1.48.0.jar"
+              "name": "opentelemetry-sdk-logs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.48.0/opentelemetry-sdk-logs-1.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-common",
+          "version": "1.48.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.48.0/opentelemetry-sdk-common-1.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+          "version": "1.48.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.48.0/opentelemetry-sdk-extension-autoconfigure-spi-1.48.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
+          "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+              "name": "scalatest-mustmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
             }
           ]
         },
@@ -321,79 +310,24 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
+          "organization": "org.typelevel",
+          "name": "cats-mtl_2.13",
+          "version": "1.4.0",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-context",
-          "version": "1.48.0",
-          "artifacts": [
-            {
-              "name": "opentelemetry-context",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.48.0/opentelemetry-context-1.48.0.jar"
+              "name": "cats-mtl_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.4.0/cats-mtl_2.13-1.4.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "otel4s-oteljava-metrics-testkit_2.13",
+          "name": "otel4s-core_2.13",
           "version": "0.12.0",
           "artifacts": [
             {
-              "name": "otel4s-oteljava-metrics-testkit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-metrics-testkit_2.13/0.12.0/otel4s-oteljava-metrics-testkit_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-core-common_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-core-common_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-common_2.13/0.12.0/otel4s-core-common_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
+              "name": "otel4s-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core_2.13/0.12.0/otel4s-core_2.13-0.12.0.jar"
             }
           ]
         },
@@ -409,24 +343,123 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest_2.13",
-          "version": "3.2.18",
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-metrics",
+          "version": "1.48.0",
           "artifacts": [
             {
-              "name": "scalatest_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+              "name": "opentelemetry-sdk-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.48.0/opentelemetry-sdk-metrics-1.48.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
+          "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure",
+          "version": "1.48.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.48.0/opentelemetry-sdk-extension-autoconfigure-1.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "otel4s-oteljava-trace-testkit_2.13",
+          "version": "0.12.0",
+          "artifacts": [
+            {
+              "name": "otel4s-oteljava-trace-testkit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-trace-testkit_2.13/0.12.0/otel4s-oteljava-trace-testkit_2.13-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "otel4s-oteljava-metrics-testkit_2.13",
+          "version": "0.12.0",
+          "artifacts": [
+            {
+              "name": "otel4s-oteljava-metrics-testkit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-metrics-testkit_2.13/0.12.0/otel4s-oteljava-metrics-testkit_2.13-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry.semconv",
+          "name": "opentelemetry-semconv",
+          "version": "1.34.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-semconv",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/semconv/opentelemetry-semconv/1.34.0/opentelemetry-semconv-1.34.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "otel4s-core-metrics_2.13",
+          "version": "0.12.0",
+          "artifacts": [
+            {
+              "name": "otel4s-core-metrics_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-metrics_2.13/0.12.0/otel4s-core-metrics_2.13-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -443,89 +476,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "otel4s-oteljava-trace-testkit_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-oteljava-trace-testkit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-trace-testkit_2.13/0.12.0/otel4s-oteljava-trace-testkit_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
           "name": "otel4s-oteljava_2.13",
           "version": "0.12.0",
           "artifacts": [
             {
               "name": "otel4s-oteljava_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava_2.13/0.12.0/otel4s-oteljava_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.13",
-          "version": "3.2.19",
-          "artifacts": [
-            {
-              "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.19/scalactic_2.13-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-core-trace_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-core-trace_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-trace_2.13/0.12.0/otel4s-core-trace_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },
@@ -552,13 +508,35 @@
           ]
         },
         {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-logs",
-          "version": "1.48.0",
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
           "artifacts": [
             {
-              "name": "opentelemetry-sdk-logs",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.48.0/opentelemetry-sdk-logs-1.48.0.jar"
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -574,50 +552,6 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-featurespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.opentelemetry",
           "name": "opentelemetry-api",
           "version": "1.48.0",
@@ -625,17 +559,6 @@
             {
               "name": "opentelemetry-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.48.0/opentelemetry-api-1.48.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
             }
           ]
         },
@@ -652,34 +575,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-core-metrics_2.13",
+          "name": "otel4s-oteljava-metrics_2.13",
           "version": "0.12.0",
           "artifacts": [
             {
-              "name": "otel4s-core-metrics_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-core-metrics_2.13/0.12.0/otel4s-core-metrics_2.13-0.12.0.jar"
+              "name": "otel4s-oteljava-metrics_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-metrics_2.13/0.12.0/otel4s-oteljava-metrics_2.13-0.12.0.jar"
             }
           ]
         },
@@ -695,112 +596,35 @@
           ]
         },
         {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk",
-          "version": "1.48.0",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.48.0/opentelemetry-sdk-1.48.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.13",
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
           "version": "3.2.19",
           "artifacts": [
             {
-              "name": "scalatest-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.19/scalatest-core_2.13-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-metrics",
-          "version": "1.48.0",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk-metrics",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.48.0/opentelemetry-sdk-metrics-1.48.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-common",
-          "version": "1.48.0",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.48.0/opentelemetry-sdk-common-1.48.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.19/scalactic_2.13-3.2.19.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "otel4s-oteljava-metrics_2.13",
+          "name": "otel4s-oteljava-common-testkit_2.13",
           "version": "0.12.0",
           "artifacts": [
             {
-              "name": "otel4s-oteljava-metrics_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-metrics_2.13/0.12.0/otel4s-oteljava-metrics_2.13-0.12.0.jar"
+              "name": "otel4s-oteljava-common-testkit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-common-testkit_2.13/0.12.0/otel4s-oteljava-common-testkit_2.13-0.12.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.13",
+          "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-shouldmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "otel4s-oteljava-common_2.13",
-          "version": "0.12.0",
-          "artifacts": [
-            {
-              "name": "otel4s-oteljava-common_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-common_2.13/0.12.0/otel4s-oteljava-common_2.13-0.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.13",
-          "version": "1.4.0",
-          "artifacts": [
-            {
-              "name": "cats-mtl_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.4.0/cats-mtl_2.13-1.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -817,23 +641,78 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.13",
+          "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-mustmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+          "name": "opentelemetry-context",
           "version": "1.48.0",
           "artifacts": [
             {
-              "name": "opentelemetry-sdk-extension-autoconfigure-spi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.48.0/opentelemetry-sdk-extension-autoconfigure-spi-1.48.0.jar"
+              "name": "opentelemetry-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.48.0/opentelemetry-context-1.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk",
+          "version": "1.48.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.48.0/opentelemetry-sdk-1.48.0.jar"
             }
           ]
         },
@@ -845,6 +724,127 @@
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "otel4s-oteljava-trace_2.13",
+          "version": "0.12.0",
+          "artifacts": [
+            {
+              "name": "otel4s-oteljava-trace_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-trace_2.13/0.12.0/otel4s-oteljava-trace_2.13-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-18_2.13",
+          "version": "3.2.19.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-18_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.13/3.2.19.0/scalacheck-1-18_2.13-3.2.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.13",
+          "version": "3.2.19",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.19/scalatest-core_2.13-3.2.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "otel4s-oteljava-common_2.13",
+          "version": "0.12.0",
+          "artifacts": [
+            {
+              "name": "otel4s-oteljava-common_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-common_2.13/0.12.0/otel4s-oteljava-common_2.13-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
             }
           ]
         }

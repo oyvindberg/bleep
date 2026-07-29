@@ -145,35 +145,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-native",
-          "name": "scalalib_native0.5_2.12",
-          "version": "2.12.20+0.5.6",
+          "organization": "com.lihaoyi",
+          "name": "geny_native0.5_2.12",
+          "version": "1.1.0",
           "artifacts": [
             {
-              "name": "scalalib_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.6/scalalib_native0.5_2.12-2.12.20%2B0.5.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "auxlib_native0.5_2.12",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "auxlib_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.12/0.5.6/auxlib_native0.5_2.12-0.5.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "posixlib_native0.5_2.12",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "posixlib_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.6/posixlib_native0.5_2.12-0.5.6.jar"
+              "name": "geny_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.12/1.1.0/geny_native0.5_2.12-1.1.0.jar"
             }
           ]
         },
@@ -185,17 +163,6 @@
             {
               "name": "fastparse_native0.5_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_native0.5_2.12/3.1.0/fastparse_native0.5_2.12-3.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "nativelib_native0.5_2.12",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "nativelib_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.12/0.5.6/nativelib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
@@ -222,6 +189,17 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_native0.5_2.12",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.5_2.12/0.4.2/sourcecode_native0.5_2.12-0.4.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-native",
           "name": "javalib_native0.5_2.12",
           "version": "0.5.6",
@@ -233,13 +211,35 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "geny_native0.5_2.12",
-          "version": "1.1.0",
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_2.12",
+          "version": "0.5.6",
           "artifacts": [
             {
-              "name": "geny_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.12/1.1.0/geny_native0.5_2.12-1.1.0.jar"
+              "name": "nativelib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.12/0.5.6/nativelib_native0.5_2.12-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_2.12",
+          "version": "0.5.6",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.6/posixlib_native0.5_2.12-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_2.12",
+          "version": "0.5.6",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.12/0.5.6/auxlib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
@@ -255,13 +255,13 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_native0.5_2.12",
-          "version": "0.4.2",
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.5_2.12",
+          "version": "2.12.20+0.5.6",
           "artifacts": [
             {
-              "name": "sourcecode_native0.5_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.5_2.12/0.4.2/sourcecode_native0.5_2.12-0.4.2.jar"
+              "name": "scalalib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.6/scalalib_native0.5_2.12-2.12.20%2B0.5.6.jar"
             }
           ]
         },

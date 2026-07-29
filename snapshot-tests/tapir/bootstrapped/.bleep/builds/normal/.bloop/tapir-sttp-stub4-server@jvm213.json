@@ -136,24 +136,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.sttp.client4",
+          "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "4.0.8",
+          "version": "1.7.14",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.13/4.0.8/core_2.13-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
@@ -180,13 +169,24 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.model",
+          "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.13",
-          "version": "1.7.14",
+          "version": "4.0.8",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.13/4.0.8/core_2.13-4.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },

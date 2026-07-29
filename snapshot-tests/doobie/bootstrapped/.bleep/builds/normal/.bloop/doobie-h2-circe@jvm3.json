@@ -117,17 +117,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.5",
-          "artifacts": [
-            {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.5/scala3-library_3-3.3.5.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
           "version": "1.6.0",
@@ -150,61 +139,6 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_3",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_3",
-          "version": "0.14.12",
-          "artifacts": [
-            {
-              "name": "circe-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.12/circe-core_3-0.14.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-free_3",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-free_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.13.0/cats-free_3-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-jawn_3",
-          "version": "0.14.12",
-          "artifacts": [
-            {
-              "name": "circe-jawn_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.12/circe-jawn_3-0.14.12.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
           "version": "1.3.1",
@@ -212,17 +146,6 @@
             {
               "name": "cats-mtl_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.1/cats-mtl_3-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-numbers_3",
-          "version": "0.14.12",
-          "artifacts": [
-            {
-              "name": "circe-numbers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.12/circe-numbers_3-0.14.12.jar"
             }
           ]
         },
@@ -238,13 +161,46 @@
           ]
         },
         {
-          "organization": "org.tpolecat",
-          "name": "typename_3",
-          "version": "1.1.0",
+          "organization": "io.circe",
+          "name": "circe-jawn_3",
+          "version": "0.14.12",
           "artifacts": [
             {
-              "name": "typename_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_3/1.1.0/typename_3-1.1.0.jar"
+              "name": "circe-jawn_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.12/circe-jawn_3-0.14.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.h2database",
+          "name": "h2",
+          "version": "1.4.200",
+          "artifacts": [
+            {
+              "name": "h2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_3",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.6.1/cats-effect-std_3-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_3",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
             }
           ]
         },
@@ -261,34 +217,12 @@
         },
         {
           "organization": "io.circe",
-          "name": "circe-parser_3",
+          "name": "circe-numbers_3",
           "version": "0.14.12",
           "artifacts": [
             {
-              "name": "circe-parser_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.12/circe-parser_3-0.14.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_3",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_3",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.6.1/cats-effect-std_3-3.6.1.jar"
+              "name": "circe-numbers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.12/circe-numbers_3-0.14.12.jar"
             }
           ]
         },
@@ -304,13 +238,79 @@
           ]
         },
         {
-          "organization": "com.h2database",
-          "name": "h2",
-          "version": "1.4.200",
+          "organization": "io.circe",
+          "name": "circe-core_3",
+          "version": "0.14.12",
           "artifacts": [
             {
-              "name": "h2",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200.jar"
+              "name": "circe-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.12/circe-core_3-0.14.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.tpolecat",
+          "name": "typename_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "typename_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_3/1.1.0/typename_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.5",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.5/scala3-library_3-3.3.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-free_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.13.0/cats-free_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_3",
+          "version": "0.14.12",
+          "artifacts": [
+            {
+              "name": "circe-parser_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.12/circe-parser_3-0.14.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         }

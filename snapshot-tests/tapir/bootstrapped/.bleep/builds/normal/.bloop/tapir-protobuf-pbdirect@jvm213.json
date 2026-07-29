@@ -132,24 +132,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.beachape",
-          "name": "enumeratum_2.13",
-          "version": "1.7.0",
+          "organization": "com.47deg",
+          "name": "pbdirect_2.13",
+          "version": "0.7.0",
           "artifacts": [
             {
-              "name": "enumeratum_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.0/enumeratum_2.13-1.7.0.jar"
+              "name": "pbdirect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/pbdirect_2.13/0.7.0/pbdirect_2.13-0.7.0.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.13",
-          "version": "2.6.1",
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
           "artifacts": [
             {
-              "name": "cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar"
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
@@ -176,50 +176,6 @@
           ]
         },
         {
-          "organization": "com.47deg",
-          "name": "pbdirect_2.13",
-          "version": "0.7.0",
-          "artifacts": [
-            {
-              "name": "pbdirect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/pbdirect_2.13/0.7.0/pbdirect_2.13-0.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.13",
-          "version": "2.3.7",
-          "artifacts": [
-            {
-              "name": "shapeless_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.6.1",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
@@ -227,28 +183,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
@@ -265,12 +199,56 @@
         },
         {
           "organization": "org.typelevel",
+          "name": "cats-core_2.13",
+          "version": "2.6.1",
+          "artifacts": [
+            {
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.7",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
           "name": "simulacrum-scalafix-annotations_2.13",
           "version": "0.5.4",
           "artifacts": [
             {
               "name": "simulacrum-scalafix-annotations_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.13",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.0/enumeratum_2.13-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },
@@ -282,6 +260,28 @@
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.6.1",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         }

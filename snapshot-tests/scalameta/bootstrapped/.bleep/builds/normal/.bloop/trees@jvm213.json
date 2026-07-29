@@ -131,6 +131,28 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.13.16",
@@ -160,28 +182,6 @@
             {
               "name": "sourcecode_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.13",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
             }
           ]
         }

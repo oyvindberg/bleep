@@ -128,34 +128,12 @@
       "modules": [
         {
           "organization": "com.lihaoyi",
-          "name": "geny_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
           "name": "upickle-implicits_2.12",
           "version": "3.3.1",
           "artifacts": [
             {
               "name": "upickle-implicits_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_2.12/3.3.1/upickle-implicits_2.12-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
             }
           ]
         },
@@ -167,17 +145,6 @@
             {
               "name": "upack_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upack_2.12/3.3.1/upack_2.12-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
@@ -194,23 +161,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "ujson_2.12",
+          "name": "upickle_2.12",
           "version": "3.3.1",
           "artifacts": [
             {
-              "name": "ujson_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ujson_2.12/3.3.1/ujson_2.12-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "upickle-core_2.12",
-          "version": "3.3.1",
-          "artifacts": [
-            {
-              "name": "upickle-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_2.12/3.3.1/upickle-core_2.12-3.3.1.jar"
+              "name": "upickle_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle_2.12/3.3.1/upickle_2.12-3.3.1.jar"
             }
           ]
         },
@@ -227,12 +183,45 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "upickle_2.12",
+          "name": "geny_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "ujson_2.12",
           "version": "3.3.1",
           "artifacts": [
             {
-              "name": "upickle_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle_2.12/3.3.1/upickle_2.12-3.3.1.jar"
+              "name": "ujson_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ujson_2.12/3.3.1/ujson_2.12-3.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
@@ -244,6 +233,17 @@
             {
               "name": "magnolia_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "upickle-core_2.12",
+          "version": "3.3.1",
+          "artifacts": [
+            {
+              "name": "upickle-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_2.12/3.3.1/upickle-core_2.12-3.3.1.jar"
             }
           ]
         }

@@ -303,404 +303,46 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-databind",
-          "version": "2.18.2",
-          "artifacts": [
-            {
-              "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.18/scalatest-core_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.circe",
-          "name": "circe-parser_2.13",
+          "name": "circe-jawn_2.13",
           "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.14/circe-parser_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.13",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.38/scodec-bits_2.13-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_2.13",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "literally_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.datatype",
-          "name": "jackson-datatype-jsr310",
-          "version": "2.18.2",
-          "artifacts": [
-            {
-              "name": "jackson-datatype-jsr310",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.client4",
-          "name": "cats_2.13",
-          "version": "4.0.8",
-          "artifacts": [
-            {
-              "name": "cats_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.13/4.0.8/cats_2.13-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.micrometer",
-          "name": "micrometer-observation",
-          "version": "1.14.4",
-          "artifacts": [
-            {
-              "name": "micrometer-observation",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.14.4/micrometer-observation-1.14.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.code.findbugs",
-          "name": "jsr305",
-          "version": "3.0.2",
-          "artifacts": [
-            {
-              "name": "jsr305",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-io_2.13",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "fs2-io_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.12.0/fs2-io_2.13-3.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.micrometer",
-          "name": "micrometer-commons",
-          "version": "1.14.4",
-          "artifacts": [
-            {
-              "name": "micrometer-commons",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.14.4/micrometer-commons-1.14.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.4",
-          "artifacts": [
-            {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+              "name": "circe-jawn_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.14/circe-jawn_2.13-0.14.14.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-codec",
+          "name": "netty-codec-http2",
           "version": "4.1.118.Final",
           "artifacts": [
             {
-              "name": "netty-codec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.118.Final/netty-codec-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.datatype",
-          "name": "jackson-datatype-jdk8",
-          "version": "2.18.2",
-          "artifacts": [
-            {
-              "name": "jackson-datatype-jdk8",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "fs2_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "fs2_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.13/1.5.0/fs2_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "armeria_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "armeria_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/armeria_2.13/1.5.0/armeria_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.118.Final/netty-transport-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.aayushatharva.brotli4j",
-          "name": "service",
-          "version": "1.18.0",
-          "artifacts": [
-            {
-              "name": "service",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.18.0/service-1.18.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-resolver",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-resolver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.118.Final/netty-resolver-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-epoll",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-x86_64.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-aarch_64.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.aayushatharva.brotli4j",
-          "name": "brotli4j",
-          "version": "1.18.0",
-          "artifacts": [
-            {
-              "name": "brotli4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.18.0/brotli4j-1.18.0.jar"
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.118.Final/netty-codec-http2-4.1.118.Final.jar"
             }
           ]
         },
         {
           "organization": "com.beachape",
-          "name": "enumeratum_2.13",
-          "version": "1.7.6",
+          "name": "enumeratum-macros_2.13",
+          "version": "1.7.5",
           "artifacts": [
             {
-              "name": "enumeratum_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
+              "name": "enumeratum-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.13/1.7.5/enumeratum-macros_2.13-1.7.5.jar"
             }
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-core",
-          "version": "2.18.2",
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
           "artifacts": [
             {
-              "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.client4",
-          "name": "core_2.13",
-          "version": "4.0.8",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.13/4.0.8/core_2.13-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-tcnative-classes",
-          "version": "2.0.70.Final",
-          "artifacts": [
-            {
-              "name": "netty-tcnative-classes",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.70.Final/netty-tcnative-classes-2.0.70.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-socks",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-socks",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.118.Final/netty-codec-socks-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
             }
           ]
         },
@@ -716,57 +358,13 @@
           ]
         },
         {
-          "organization": "io.micrometer",
-          "name": "micrometer-core",
-          "version": "1.14.4",
+          "organization": "io.circe",
+          "name": "circe-numbers_2.13",
+          "version": "0.14.14",
           "artifacts": [
             {
-              "name": "micrometer-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.14.4/micrometer-core-1.14.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.13.0/cats-core_2.13-2.13.0.jar"
+              "name": "circe-numbers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.14/circe-numbers_2.13-0.14.14.jar"
             }
           ]
         },
@@ -802,28 +400,6 @@
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-annotations",
-          "version": "2.18.2",
-          "artifacts": [
-            {
-              "name": "jackson-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
@@ -835,57 +411,184 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-resolver-dns",
-          "version": "4.1.118.Final",
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.13",
+          "version": "1.1.38",
           "artifacts": [
             {
-              "name": "netty-resolver-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.118.Final/netty-resolver-dns-4.1.118.Final.jar"
+              "name": "scodec-bits_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.38/scodec-bits_2.13-1.1.38.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jdk8",
+          "version": "2.18.2",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.118.Final/netty-transport-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.18.2",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.1.118.Final/netty-transport-classes-kqueue-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.5.0",
+          "version": "1.7.14",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-featurespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-handler-proxy",
+          "name": "netty-codec-socks",
           "version": "4.1.118.Final",
           "artifacts": [
             {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.118.Final/netty-handler-proxy-4.1.118.Final.jar"
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.118.Final/netty-codec-socks-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.18.2",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.13",
+          "version": "1.0.2",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.2/scala-java8-compat_2.13-1.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-kqueue",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.118.Final/netty-codec-dns-4.1.118.Final.jar"
             }
           ]
         },
@@ -901,24 +604,57 @@
           ]
         },
         {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.netty",
-          "name": "netty-transport-classes-epoll",
+          "name": "netty-resolver-dns",
           "version": "4.1.118.Final",
           "artifacts": [
             {
-              "name": "netty-transport-classes-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.1.118.Final/netty-transport-classes-epoll-4.1.118.Final.jar"
+              "name": "netty-resolver-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.118.Final/netty-resolver-dns-4.1.118.Final.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect-std_2.13",
-          "version": "3.6.1",
+          "name": "cats-core_2.13",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "cats-effect-std_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.13.0/cats-core_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.13/shapeless_2.13-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.13",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.14/circe-generic_2.13-0.14.14.jar"
             }
           ]
         },
@@ -956,34 +692,73 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.13",
+          "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-wordspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.118.Final/netty-handler-4.1.118.Final.jar"
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.13",
+          "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-freespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns-native-macos",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.118.Final/netty-handler-proxy-4.1.118.Final.jar"
             }
           ]
         },
@@ -999,13 +774,222 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "service",
+          "version": "1.18.0",
+          "artifacts": [
+            {
+              "name": "service",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.18.0/service-1.18.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.13",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.14/circe-core_2.13-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "brotli4j",
+          "version": "1.18.0",
+          "artifacts": [
+            {
+              "name": "brotli4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.18.0/brotli4j-1.18.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-tcnative-classes",
+          "version": "2.0.70.Final",
+          "artifacts": [
+            {
+              "name": "netty-tcnative-classes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.70.Final/netty-tcnative-classes-2.0.70.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.13",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.12.0/fs2-core_2.13-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.latencyutils",
+          "name": "LatencyUtils",
+          "version": "2.0.3",
+          "artifacts": [
+            {
+              "name": "LatencyUtils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.14.4",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.14.4/micrometer-commons-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "armeria_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "armeria_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/armeria_2.13/1.5.0/armeria_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.13",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.6.0/ip4s-core_2.13-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.18.2",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.13",
+          "version": "1.7.6",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.13",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.12.0/fs2-io_2.13-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "fs2_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "fs2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.13/1.5.0/fs2_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.13",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar"
             }
           ]
         },
@@ -1021,6 +1005,127 @@
           ]
         },
         {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.14.4",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.14.4/micrometer-observation-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.1.118.Final/netty-transport-classes-epoll-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.118.Final/netty-handler-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.118.Final/netty-codec-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.118.Final/netty-resolver-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_2.13",
           "version": "4.0.8",
@@ -1032,35 +1137,35 @@
           ]
         },
         {
+          "organization": "io.micrometer",
+          "name": "micrometer-core",
+          "version": "1.14.4",
+          "artifacts": [
+            {
+              "name": "micrometer-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.14.4/micrometer-core-1.14.4.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.netty",
-          "name": "netty-codec-dns",
+          "name": "netty-codec-http",
           "version": "4.1.118.Final",
           "artifacts": [
             {
-              "name": "netty-codec-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.118.Final/netty-codec-dns-4.1.118.Final.jar"
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.118.Final/netty-codec-http-4.1.118.Final.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.13",
-          "version": "3.6.1",
+          "name": "cats-kernel_2.13",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "cats-effect-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
             }
           ]
         },
@@ -1083,144 +1188,6 @@
             {
               "name": "netty-common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.118.Final/netty-common-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.13",
-          "version": "1.6.0",
-          "artifacts": [
-            {
-              "name": "jawn-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.13",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-generic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.14/circe-generic_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hdrhistogram",
-          "name": "HdrHistogram",
-          "version": "2.2.2",
-          "artifacts": [
-            {
-              "name": "HdrHistogram",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.13",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.14/circe-core_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.latencyutils",
-          "name": "LatencyUtils",
-          "version": "2.0.3",
-          "artifacts": [
-            {
-              "name": "LatencyUtils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.beachape",
-          "name": "enumeratum-macros_2.13",
-          "version": "1.7.5",
-          "artifacts": [
-            {
-              "name": "enumeratum-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.13/1.7.5/enumeratum-macros_2.13-1.7.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.13",
-          "version": "1.3.1",
-          "artifacts": [
-            {
-              "name": "cats-mtl_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-kqueue",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-kqueue",
-              "classifier": "osx-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-x86_64.jar"
-            },
-            {
-              "name": "netty-transport-native-kqueue",
-              "classifier": "osx-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-aarch_64.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-classes-kqueue",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-classes-kqueue",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.1.118.Final/netty-transport-classes-kqueue-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-haproxy",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-haproxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.1.118.Final/netty-codec-haproxy-4.1.118.Final.jar"
             }
           ]
         },
@@ -1258,118 +1225,151 @@
           ]
         },
         {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.18.2",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.circe",
-          "name": "circe-jawn_2.13",
+          "name": "circe-parser_2.13",
           "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-jawn_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.14/circe-jawn_2.13-0.14.14.jar"
+              "name": "circe-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.14/circe-parser_2.13-0.14.14.jar"
             }
           ]
         },
         {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.13",
-          "version": "2.3.13",
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "shapeless_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.13/shapeless_2.13-2.3.13.jar"
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-java8-compat_2.13",
-          "version": "1.0.2",
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
           "artifacts": [
             {
-              "name": "scala-java8-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.2/scala-java8-compat_2.13-1.0.2.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
-          "version": "1.5.0",
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+              "name": "scalatest-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.18/scalatest-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "core_2.13",
+          "version": "4.0.8",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.13/4.0.8/core_2.13-4.0.8.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-resolver-dns-native-macos",
+          "name": "netty-codec-haproxy",
           "version": "4.1.118.Final",
           "artifacts": [
             {
-              "name": "netty-resolver-dns-native-macos",
-              "classifier": "osx-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-x86_64.jar"
+              "name": "netty-codec-haproxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.1.118.Final/netty-codec-haproxy-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_2.13",
+          "version": "1.3.1",
+          "artifacts": [
+            {
+              "name": "cats-mtl_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "cats_2.13",
+          "version": "4.0.8",
+          "artifacts": [
+            {
+              "name": "cats_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.13/4.0.8/cats_2.13-4.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.1.118.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-x86_64.jar"
             },
             {
-              "name": "netty-resolver-dns-native-macos",
-              "classifier": "osx-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-aarch_64.jar"
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-aarch_64.jar"
             }
           ]
         },
         {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.13",
-          "version": "3.12.0",
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "fs2-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.12.0/fs2-core_2.13-3.12.0.jar"
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.13",
-          "version": "0.14.14",
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "circe-numbers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.14/circe-numbers_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http2",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http2",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.118.Final/netty-codec-http2-4.1.118.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.13",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.6.0/ip4s-core_2.13-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http",
-          "version": "4.1.118.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.118.Final/netty-codec-http-4.1.118.Final.jar"
+              "name": "scalatest-funsuite_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
             }
           ]
         }

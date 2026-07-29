@@ -1,6 +1,7 @@
 package bleep
 package packaging
 
+import bleep.internal.coursierDeps.configurationOrThrow
 import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
@@ -63,7 +64,7 @@ object GenLayout {
     <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
       <info organisation={self.module.organization.value}
             module={self.module.name.value}
-            revision={self.version}
+            revision={self.versionConstraint.asString}
             status="release">
         <description>
           {self.module.name.value}
@@ -92,8 +93,8 @@ object GenLayout {
         <dependency
           org={dep.module.organization.value}
           name={dep.module.name.value}
-          rev={dep.version}
-          conf={dep.configuration.value}
+          rev={dep.versionConstraint.asString}
+          conf={dep.configurationOrThrow.value}
           />
       }
     }
@@ -122,7 +123,7 @@ object GenLayout {
       <packaging>jar</packaging>
       <description>{info.description}</description>
       <url>{info.homePage}</url>
-      <version>{self.version}</version>
+      <version>{self.versionConstraint.asString}</version>
       {
       info.licenseInfo.render { ls =>
         <licenses>
@@ -170,8 +171,8 @@ object GenLayout {
         <dependency>
           <groupId>{dep.module.organization.value}</groupId>
           <artifactId>{dep.module.name.value}</artifactId>
-          <version>{dep.version}</version>{
-          dep.configuration match {
+          <version>{dep.versionConstraint.asString}</version>{
+          dep.configurationOrThrow match {
             case Configuration.empty => Nil
             case other               => <scope>{other.value}</scope>
           }

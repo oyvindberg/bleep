@@ -188,28 +188,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_3",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.19",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-tracer-otel-agent",
           "version": "1.3.8",
@@ -221,13 +199,35 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-freespec_3",
-          "version": "3.2.18",
+          "organization": "org.scalacheck",
+          "name": "scalacheck_3",
+          "version": "1.18.1",
           "artifacts": [
             {
-              "name": "scalatest-freespec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.18/scalatest-freespec_3-3.2.18.jar"
+              "name": "scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.18.1/scalacheck_3-1.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_3",
+          "version": "3.2.19",
+          "artifacts": [
+            {
+              "name": "scalactic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.19/scalactic_3-3.2.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         },
@@ -244,116 +244,6 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-funspec_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.18/scalatest-funspec_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.18/scalatest-funsuite_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-exposition-formats-no-protobuf",
-          "version": "1.3.8",
-          "artifacts": [
-            {
-              "name": "prometheus-metrics-exposition-formats-no-protobuf",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats-no-protobuf/1.3.8/prometheus-metrics-exposition-formats-no-protobuf-1.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.18/scalatest-shouldmatchers_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.18/scalatest-wordspec_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-core",
-          "version": "1.3.8",
-          "artifacts": [
-            {
-              "name": "prometheus-metrics-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.3.8/prometheus-metrics-core-1.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.protobuf",
-          "name": "protobuf-java",
-          "version": "4.31.0",
-          "artifacts": [
-            {
-              "name": "protobuf-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.31.0/protobuf-java-4.31.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_3",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalacheck",
-          "name": "scalacheck_3",
-          "version": "1.18.1",
-          "artifacts": [
-            {
-              "name": "scalacheck_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.18.1/scalacheck_3-1.18.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
           "name": "scalatest-diagrams_3",
           "version": "3.2.18",
           "artifacts": [
@@ -364,13 +254,13 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_3",
-          "version": "3.2.18",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
           "artifacts": [
             {
-              "name": "scalatest-matchers-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.18/scalatest-matchers-core_3-3.2.18.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
             }
           ]
         },
@@ -386,24 +276,79 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_3",
-          "version": "3.2.18",
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "4.31.0",
           "artifacts": [
             {
-              "name": "scalatest-refspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.18/scalatest-refspec_3-3.2.18.jar"
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.31.0/protobuf-java-4.31.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scalactic",
-          "name": "scalactic_3",
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-core",
+          "version": "1.3.8",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.3.8/prometheus-metrics-core-1.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.18/scalatest-flatspec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.18/scalatest-funsuite_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_3",
           "version": "3.2.19",
           "artifacts": [
             {
-              "name": "scalactic_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.19/scalactic_3-3.2.19.jar"
+              "name": "scalatest-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.19/scalatest-core_3-3.2.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.18/scalatest-mustmatchers_3-3.2.18.jar"
             }
           ]
         },
@@ -419,24 +364,24 @@
           ]
         },
         {
-          "organization": "org.scalatestplus",
-          "name": "scalacheck-1-18_3",
-          "version": "3.2.19.0",
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_3",
+          "version": "1.7.14",
           "artifacts": [
             {
-              "name": "scalacheck-1-18_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_3/3.2.19.0/scalacheck-1-18_3-3.2.19.0.jar"
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
             }
           ]
         },
         {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-tracer-otel",
-          "version": "1.3.8",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_3",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "prometheus-metrics-tracer-otel",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.3.8/prometheus-metrics-tracer-otel-1.3.8.jar"
+              "name": "ws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
             }
           ]
         },
@@ -453,34 +398,23 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-core_3",
+          "name": "scalatest-compatible",
           "version": "3.2.19",
           "artifacts": [
             {
-              "name": "scalatest-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.19/scalatest-core_3-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.6",
-          "artifacts": [
-            {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_3",
+          "name": "scalatest-matchers-core_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-mustmatchers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.18/scalatest-mustmatchers_3-3.2.18.jar"
+              "name": "scalatest-matchers-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.18/scalatest-matchers-core_3-3.2.18.jar"
             }
           ]
         },
@@ -496,24 +430,68 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_3",
-          "version": "1.5.0",
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-exposition-textformats",
+          "version": "1.3.8",
           "artifacts": [
             {
-              "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+              "name": "prometheus-metrics-exposition-textformats",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.3.8/prometheus-metrics-exposition-textformats-1.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-tracer-otel",
+          "version": "1.3.8",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-tracer-otel",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.3.8/prometheus-metrics-tracer-otel-1.3.8.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-flatspec_3",
+          "name": "scalatest-refspec_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-flatspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.18/scalatest-flatspec_3-3.2.18.jar"
+              "name": "scalatest-refspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.18/scalatest-refspec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-18_3",
+          "version": "3.2.19.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-18_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_3/3.2.19.0/scalacheck-1-18_3-3.2.19.0.jar"
             }
           ]
         },
@@ -530,12 +508,56 @@
         },
         {
           "organization": "io.prometheus",
+          "name": "prometheus-metrics-model",
+          "version": "1.3.8",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.3.8/prometheus-metrics-model-1.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
           "name": "prometheus-metrics-config",
           "version": "1.3.8",
           "artifacts": [
             {
               "name": "prometheus-metrics-config",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.3.8/prometheus-metrics-config-1.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.18/scalatest-shouldmatchers_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.18/scalatest-funspec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-exposition-formats-no-protobuf",
+          "version": "1.3.8",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-exposition-formats-no-protobuf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats-no-protobuf/1.3.8/prometheus-metrics-exposition-formats-no-protobuf-1.3.8.jar"
             }
           ]
         },
@@ -551,46 +573,24 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_3",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+              "name": "scalatest-wordspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.18/scalatest-wordspec_3-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-model",
-          "version": "1.3.8",
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_3",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "prometheus-metrics-model",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.3.8/prometheus-metrics-model-1.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-exposition-textformats",
-          "version": "1.3.8",
-          "artifacts": [
-            {
-              "name": "prometheus-metrics-exposition-textformats",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.3.8/prometheus-metrics-exposition-textformats-1.3.8.jar"
+              "name": "scalatest-freespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.18/scalatest-freespec_3-3.2.18.jar"
             }
           ]
         }

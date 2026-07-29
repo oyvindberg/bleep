@@ -237,277 +237,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.circe",
-          "name": "circe-yaml-common_2.13",
-          "version": "0.16.0",
-          "artifacts": [
-            {
-              "name": "circe-yaml-common_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_2.13/0.16.0/circe-yaml-common_2.13-0.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "openapi-circe_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "openapi-circe_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-circe_2.13/0.11.9/openapi-circe_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "jsonschema-circe_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "jsonschema-circe_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/jsonschema-circe_2.13/0.11.9/jsonschema-circe_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.beachape",
-          "name": "enumeratum_2.13",
-          "version": "1.7.6",
-          "artifacts": [
-            {
-              "name": "enumeratum_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.13.0/cats-core_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-freespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.13",
+          "name": "circe-jawn_2.13",
           "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-generic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.14/circe-generic_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.18/scalatest-core_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-mustmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.13",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-numbers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.14/circe-numbers_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "openapi-model_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "openapi-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.13/0.11.9/openapi-model_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "asyncapi-model_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "asyncapi-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/asyncapi-model_2.13/0.11.9/asyncapi-model_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-parser_2.13",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.14/circe-parser_2.13-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.yaml",
-          "name": "snakeyaml",
-          "version": "2.2",
-          "artifacts": [
-            {
-              "name": "snakeyaml",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.quicklens",
-          "name": "quicklens_2.13",
-          "version": "1.9.12",
-          "artifacts": [
-            {
-              "name": "quicklens_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/quicklens/quicklens_2.13/1.9.12/quicklens_2.13-1.9.12.jar"
+              "name": "circe-jawn_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.14/circe-jawn_2.13-0.14.14.jar"
             }
           ]
         },
@@ -523,68 +259,112 @@
           ]
         },
         {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.13",
-          "version": "3.2.18",
+          "organization": "com.beachape",
+          "name": "enumeratum_2.13",
+          "version": "1.7.6",
           "artifacts": [
             {
-              "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "name": "enumeratum_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.apispec",
-          "name": "apispec-model_2.13",
+          "name": "openapi-model_2.13",
           "version": "0.11.9",
           "artifacts": [
             {
-              "name": "apispec-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/apispec-model_2.13/0.11.9/apispec-model_2.13-0.11.9.jar"
+              "name": "openapi-model_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.13/0.11.9/openapi-model_2.13-0.11.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.quicklens",
+          "name": "quicklens_2.13",
+          "version": "1.9.12",
+          "artifacts": [
+            {
+              "name": "quicklens_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/quicklens/quicklens_2.13/1.9.12/quicklens_2.13-1.9.12.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
+          "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+              "name": "scalatest-mustmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.18/scalatest-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_2.13",
+          "version": "1.3.1",
+          "artifacts": [
+            {
+              "name": "cats-mtl_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum-macros_2.13",
+          "version": "1.7.5",
+          "artifacts": [
+            {
+              "name": "enumeratum-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.13/1.7.5/enumeratum-macros_2.13-1.7.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.13",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.14/circe-numbers_2.13-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.2",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
             }
           ]
         },
@@ -600,35 +380,35 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "asyncapi-model_2.13",
+          "version": "0.11.9",
           "artifacts": [
             {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "name": "asyncapi-model_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/asyncapi-model_2.13/0.11.9/asyncapi-model_2.13-0.11.9.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.13",
+          "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-featurespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.13",
-          "version": "3.2.18",
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.6.1",
           "artifacts": [
             {
-              "name": "scalatest-propspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
             }
           ]
         },
@@ -655,79 +435,134 @@
           ]
         },
         {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.13.0/cats-core_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.13/shapeless_2.13-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.13",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.14/circe-generic_2.13-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.apispec",
-          "name": "openapi-circe-yaml_2.13",
+          "name": "apispec-model_2.13",
           "version": "0.11.9",
           "artifacts": [
             {
-              "name": "openapi-circe-yaml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-circe-yaml_2.13/0.11.9/openapi-circe-yaml_2.13-0.11.9.jar"
+              "name": "apispec-model_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/apispec-model_2.13/0.11.9/apispec-model_2.13-0.11.9.jar"
             }
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
-          "version": "3.2.18",
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "openapi-circe_2.13",
+          "version": "0.11.9",
           "artifacts": [
             {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+              "name": "openapi-circe_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-circe_2.13/0.11.9/openapi-circe_2.13-0.11.9.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.common",
-          "name": "tagging_2.13",
-          "version": "2.3.5",
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "jsonschema-circe_2.13",
+          "version": "0.11.9",
           "artifacts": [
             {
-              "name": "tagging_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.13/2.3.5/tagging_2.13-2.3.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.13",
-          "version": "1.6.0",
-          "artifacts": [
-            {
-              "name": "jawn-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar"
+              "name": "jsonschema-circe_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/jsonschema-circe_2.13/0.11.9/jsonschema-circe_2.13-0.11.9.jar"
             }
           ]
         },
@@ -743,13 +578,79 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "openapi-circe-yaml_2.13",
+          "version": "0.11.9",
           "artifacts": [
             {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "name": "openapi-circe-yaml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-circe-yaml_2.13/0.11.9/openapi-circe-yaml_2.13-0.11.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.13",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar"
             }
           ]
         },
@@ -765,46 +666,145 @@
           ]
         },
         {
-          "organization": "com.beachape",
-          "name": "enumeratum-macros_2.13",
-          "version": "1.7.5",
+          "organization": "com.softwaremill.common",
+          "name": "tagging_2.13",
+          "version": "2.3.5",
           "artifacts": [
             {
-              "name": "enumeratum-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.13/1.7.5/enumeratum-macros_2.13-1.7.5.jar"
+              "name": "tagging_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.13/2.3.5/tagging_2.13-2.3.5.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.13",
-          "version": "1.3.1",
+          "organization": "org.scalatest",
+          "name": "scalatest_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "cats-mtl_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
-          "name": "circe-jawn_2.13",
-          "version": "0.14.14",
+          "name": "circe-yaml-common_2.13",
+          "version": "0.16.0",
           "artifacts": [
             {
-              "name": "circe-jawn_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.14/circe-jawn_2.13-0.14.14.jar"
+              "name": "circe-yaml-common_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_2.13/0.16.0/circe-yaml-common_2.13-0.16.0.jar"
             }
           ]
         },
         {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.13",
-          "version": "2.3.13",
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
           "artifacts": [
             {
-              "name": "shapeless_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.13/shapeless_2.13-2.3.13.jar"
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.13.0/cats-kernel_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.13",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.14/circe-parser_2.13-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
             }
           ]
         }

@@ -28,7 +28,7 @@ object CompilerTestLibraries {
   /** ScalaTest library for testing */
   lazy val scalaTestLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.scalatest"), ModuleName("scalatest_3")), "3.2.18")
+      Dependency(Module(Organization("org.scalatest"), ModuleName("scalatest_3")), version.VersionConstraint("3.2.18"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -36,8 +36,8 @@ object CompilerTestLibraries {
   /** Kotlin test library */
   lazy val kotlinTestLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.jetbrains.kotlin"), ModuleName("kotlin-test")), "2.3.0"),
-      Dependency(Module(Organization("org.jetbrains.kotlin"), ModuleName("kotlin-test-junit")), "2.3.0")
+      Dependency(Module(Organization("org.jetbrains.kotlin"), ModuleName("kotlin-test")), version.VersionConstraint("2.3.0")),
+      Dependency(Module(Organization("org.jetbrains.kotlin"), ModuleName("kotlin-test-junit")), version.VersionConstraint("2.3.0"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -45,7 +45,7 @@ object CompilerTestLibraries {
   /** JUnit 4 library for Java testing */
   lazy val junitLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("junit"), ModuleName("junit")), "4.13.2")
+      Dependency(Module(Organization("junit"), ModuleName("junit")), version.VersionConstraint("4.13.2"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -53,8 +53,8 @@ object CompilerTestLibraries {
   /** JUnit 5 Platform console launcher for running tests */
   lazy val junitPlatformLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.junit.platform"), ModuleName("junit-platform-console-standalone")), "1.10.2"),
-      Dependency(Module(Organization("org.junit.vintage"), ModuleName("junit-vintage-engine")), "5.10.2")
+      Dependency(Module(Organization("org.junit.platform"), ModuleName("junit-platform-console-standalone")), version.VersionConstraint("1.10.2")),
+      Dependency(Module(Organization("org.junit.vintage"), ModuleName("junit-vintage-engine")), version.VersionConstraint("5.10.2"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -62,7 +62,7 @@ object CompilerTestLibraries {
   /** JUnit 5 (Jupiter) API for compiling JUnit 5 tests */
   lazy val junit5Library: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.junit.jupiter"), ModuleName("junit-jupiter-api")), "5.9.1")
+      Dependency(Module(Organization("org.junit.jupiter"), ModuleName("junit-jupiter-api")), version.VersionConstraint("5.9.1"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -70,9 +70,9 @@ object CompilerTestLibraries {
   /** Jupiter interface (sbt-testing bridge for JUnit 5) + test-interface + vintage engine for ForkedTestRunner */
   lazy val jupiterInterfaceLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("net.aichler"), ModuleName("jupiter-interface")), "0.11.1"),
-      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0"),
-      Dependency(Module(Organization("org.junit.vintage"), ModuleName("junit-vintage-engine")), "5.9.1")
+      Dependency(Module(Organization("net.aichler"), ModuleName("jupiter-interface")), version.VersionConstraint("0.11.1")),
+      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), version.VersionConstraint("1.0")),
+      Dependency(Module(Organization("org.junit.vintage"), ModuleName("junit-vintage-engine")), version.VersionConstraint("5.9.1"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -80,7 +80,7 @@ object CompilerTestLibraries {
   /** sbt test-interface (needed by ForkedTestRunner) */
   lazy val testInterfaceLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0")
+      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), version.VersionConstraint("1.0"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -88,7 +88,7 @@ object CompilerTestLibraries {
   /** MUnit test library */
   lazy val munitLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.scalameta"), ModuleName("munit_3")), "1.0.0")
+      Dependency(Module(Organization("org.scalameta"), ModuleName("munit_3")), version.VersionConstraint("1.0.0"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -96,7 +96,7 @@ object CompilerTestLibraries {
   /** utest library */
   lazy val utestLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("com.lihaoyi"), ModuleName("utest_3")), "0.8.4")
+      Dependency(Module(Organization("com.lihaoyi"), ModuleName("utest_3")), version.VersionConstraint("0.8.4"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -104,8 +104,8 @@ object CompilerTestLibraries {
   /** Kotest libraries (runner + assertions) */
   lazy val kotestLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-runner-junit5-jvm")), "5.9.1"),
-      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-assertions-core-jvm")), "5.9.1")
+      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-runner-junit5-jvm")), version.VersionConstraint("5.9.1")),
+      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-assertions-core-jvm")), version.VersionConstraint("5.9.1"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -113,7 +113,7 @@ object CompilerTestLibraries {
   /** TestNG library */
   lazy val testngLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("org.testng"), ModuleName("testng")), "7.10.2")
+      Dependency(Module(Organization("org.testng"), ModuleName("testng")), version.VersionConstraint("7.10.2"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
@@ -121,7 +121,7 @@ object CompilerTestLibraries {
   /** Mill TestNG bridge (sbt-testing adapter for TestNG) */
   lazy val testngBridgeLibrary: Seq[Path] = {
     val deps = Seq(
-      Dependency(Module(Organization("com.lihaoyi"), ModuleName("mill-contrib-testng_2.13")), "0.9.6")
+      Dependency(Module(Organization("com.lihaoyi"), ModuleName("mill-contrib-testng_2.13")), version.VersionConstraint("0.9.6"))
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }

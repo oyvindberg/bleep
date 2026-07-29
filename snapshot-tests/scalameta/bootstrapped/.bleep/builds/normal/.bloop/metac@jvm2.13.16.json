@@ -133,6 +133,28 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.jline",
           "name": "jline",
           "version": "3.27.1",
@@ -141,6 +163,39 @@
               "name": "jline",
               "classifier": "jdk8",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "3.19.6",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.java-diff-utils",
+          "name": "java-diff-utils",
+          "version": "4.15",
+          "artifacts": [
+            {
+              "name": "java-diff-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -167,6 +222,28 @@
           ]
         },
         {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.13",
+          "version": "0.11.17",
+          "artifacts": [
+            {
+              "name": "lenses_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.13",
+          "version": "0.11.17",
+          "artifacts": [
+            {
+              "name": "scalapb-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scalap",
           "version": "2.13.16",
@@ -189,17 +266,6 @@
           ]
         },
         {
-          "organization": "com.google.protobuf",
-          "name": "protobuf-java",
-          "version": "3.19.6",
-          "artifacts": [
-            {
-              "name": "protobuf-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
           "version": "0.4.2",
@@ -207,72 +273,6 @@
             {
               "name": "sourcecode_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.13",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.java-diff-utils",
-          "name": "java-diff-utils",
-          "version": "4.15",
-          "artifacts": [
-            {
-              "name": "java-diff-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "lenses_2.13",
-          "version": "0.11.17",
-          "artifacts": [
-            {
-              "name": "lenses_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.13",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "scalapb-runtime_2.13",
-          "version": "0.11.17",
-          "artifacts": [
-            {
-              "name": "scalapb-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
             }
           ]
         }

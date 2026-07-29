@@ -165,167 +165,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-js",
-          "name": "scalajs-javalib",
-          "version": "1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-javalib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.16.0/scalajs-javalib-1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-library_2.13",
-          "version": "1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-library_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.16.0/scalajs-library_2.13-1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-locales_sjs1_2.13",
-          "version": "1.5.1",
-          "artifacts": [
-            {
-              "name": "scala-java-locales_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.5.1/scala-java-locales_sjs1_2.13-1.5.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-scalalib_2.13",
-          "version": "2.13.15+1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-scalalib_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.13/2.13.15%2B1.16.0/scalajs-scalalib_2.13-2.13.15%2B1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_sjs1_2.13",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_sjs1_2.13/3.6.0/ip4s-core_sjs1_2.13-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.15",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-time_sjs1_2.13",
-          "version": "2.5.0",
-          "artifacts": [
-            {
-              "name": "scala-java-time_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.5.0/scala-java-time_sjs1_2.13-2.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.portable-scala",
-          "name": "portable-scala-reflect_sjs1_2.13",
-          "version": "1.1.2",
-          "artifacts": [
-            {
-              "name": "portable-scala-reflect_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.2/portable-scala-reflect_sjs1_2.13-1.1.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "cldr-api_sjs1_2.13",
-          "version": "4.0.0",
-          "artifacts": [
-            {
-              "name": "cldr-api_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/4.0.0/cldr-api_sjs1_2.13-4.0.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
-          "name": "cats-effect_sjs1_2.13",
-          "version": "3.5.4",
-          "artifacts": [
-            {
-              "name": "cats-effect_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_2.13/3.5.4/cats-effect_sjs1_2.13-3.5.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-junit-test-runtime_2.13",
-          "version": "1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-junit-test-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.13/1.16.0/scalajs-junit-test-runtime_2.13-1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_sjs1_2.13",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_sjs1_2.13/3.5.7/cats-effect-std_sjs1_2.13-3.5.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "scalac-compat-annotation_2.13",
-          "version": "0.1.4",
-          "artifacts": [
-            {
-              "name": "scalac-compat-annotation_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_2.13/0.1.4/scalac-compat-annotation_2.13-0.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit-diff_sjs1_2.13",
+          "name": "cats-parse_sjs1_2.13",
           "version": "1.0.0",
           "artifacts": [
             {
-              "name": "munit-diff_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_sjs1_2.13/1.0.0/munit-diff_sjs1_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scala-js-macrotask-executor_sjs1_2.13",
-          "version": "1.1.1",
-          "artifacts": [
-            {
-              "name": "scala-js-macrotask-executor_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_2.13/1.1.1/scala-js-macrotask-executor_sjs1_2.13-1.1.1.jar"
+              "name": "cats-parse_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_sjs1_2.13/1.0.0/cats-parse_sjs1_2.13-1.0.0.jar"
             }
           ]
         },
@@ -341,6 +187,39 @@
           ]
         },
         {
+          "organization": "org.scala-js",
+          "name": "scalajs-library_2.13",
+          "version": "1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-library_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.16.0/scalajs-library_2.13-1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-diff_sjs1_2.13",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "munit-diff_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_sjs1_2.13/1.0.0/munit-diff_sjs1_2.13-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_sjs1_2.13",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.2/portable-scala-reflect_sjs1_2.13-1.1.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.typelevel",
           "name": "vault_sjs1_2.13",
           "version": "3.6.0",
@@ -348,105 +227,6 @@
             {
               "name": "vault_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_2.13/3.6.0/vault_sjs1_2.13-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "case-insensitive_sjs1_2.13",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "case-insensitive_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_sjs1_2.13/1.4.2/case-insensitive_sjs1_2.13-1.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_sjs1_2.13",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.11.0/cats-kernel_sjs1_2.13-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-core_sjs1_2.13",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-core_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_sjs1_2.13/3.11.0/fs2-core_sjs1_2.13-3.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-test-interface_2.13",
-          "version": "1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-test-interface_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.16.0/scalajs-test-interface_2.13-1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.15",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "munit-cats-effect_sjs1_2.13",
-          "version": "2.0.0",
-          "artifacts": [
-            {
-              "name": "munit-cats-effect_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_sjs1_2.13/2.0.0/munit-cats-effect_sjs1_2.13-2.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_sjs1_2.13",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "munit_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_sjs1_2.13/1.0.0/munit_sjs1_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scodec",
-          "name": "scodec-bits_sjs1_2.13",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_2.13/1.1.38/scodec-bits_sjs1_2.13-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "log4cats-core_sjs1_2.13",
-          "version": "2.7.0",
-          "artifacts": [
-            {
-              "name": "log4cats-core_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_sjs1_2.13/2.7.0/log4cats-core_sjs1_2.13-2.7.0.jar"
             }
           ]
         },
@@ -462,6 +242,50 @@
           ]
         },
         {
+          "organization": "org.scala-js",
+          "name": "scalajs-test-interface_2.13",
+          "version": "1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-test-interface_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.16.0/scalajs-test-interface_2.13-1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_sjs1_2.13",
+          "version": "4.0.0",
+          "artifacts": [
+            {
+              "name": "cldr-api_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/4.0.0/cldr-api_sjs1_2.13-4.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scala-js-macrotask-executor_sjs1_2.13",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "scala-js-macrotask-executor_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_2.13/1.1.1/scala-js-macrotask-executor_sjs1_2.13-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.13",
+          "version": "2.13.15+1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-scalalib_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.13/2.13.15%2B1.16.0/scalajs-scalalib_2.13-2.13.15%2B1.16.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.typelevel",
           "name": "literally_sjs1_2.13",
           "version": "1.1.0",
@@ -469,6 +293,50 @@
             {
               "name": "literally_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_sjs1_2.13/1.1.0/literally_sjs1_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-core_sjs1_2.13",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "log4cats-core_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_sjs1_2.13/2.7.0/log4cats-core_sjs1_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.15",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_sjs1_2.13",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "munit_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_sjs1_2.13/1.0.0/munit_sjs1_2.13-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "munit-cats-effect_sjs1_2.13",
+          "version": "2.0.0",
+          "artifacts": [
+            {
+              "name": "munit-cats-effect_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_sjs1_2.13/2.0.0/munit-cats-effect_sjs1_2.13-2.0.0.jar"
             }
           ]
         },
@@ -495,6 +363,127 @@
           ]
         },
         {
+          "organization": "org.scala-js",
+          "name": "scalajs-junit-test-runtime_2.13",
+          "version": "1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-junit-test-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.13/1.16.0/scalajs-junit-test-runtime_2.13-1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_sjs1_2.13",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_sjs1_2.13/3.6.0/ip4s-core_sjs1_2.13-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive_sjs1_2.13",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "case-insensitive_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_sjs1_2.13/1.4.2/case-insensitive_sjs1_2.13-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_sjs1_2.13",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_2.13/1.1.38/scodec-bits_sjs1_2.13-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.16.0/scalajs-javalib-1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_sjs1_2.13",
+          "version": "3.5.7",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_sjs1_2.13/3.5.7/cats-effect-std_sjs1_2.13-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_sjs1_2.13",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.11.0/cats-kernel_sjs1_2.13-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.15",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalac-compat-annotation_2.13",
+          "version": "0.1.4",
+          "artifacts": [
+            {
+              "name": "scalac-compat-annotation_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_2.13/0.1.4/scalac-compat-annotation_2.13-0.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_sjs1_2.13",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.5.1/scala-java-locales_sjs1_2.13-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_sjs1_2.13",
+          "version": "3.11.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_sjs1_2.13/3.11.0/fs2-core_sjs1_2.13-3.11.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_sjs1_2.13",
           "version": "3.5.7",
@@ -507,12 +496,23 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-parse_sjs1_2.13",
-          "version": "1.0.0",
+          "name": "cats-effect_sjs1_2.13",
+          "version": "3.5.4",
           "artifacts": [
             {
-              "name": "cats-parse_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_sjs1_2.13/1.0.0/cats-parse_sjs1_2.13-1.0.0.jar"
+              "name": "cats-effect_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_2.13/3.5.4/cats-effect_sjs1_2.13-3.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_sjs1_2.13",
+          "version": "2.5.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.5.0/scala-java-time_sjs1_2.13-2.5.0.jar"
             }
           ]
         }

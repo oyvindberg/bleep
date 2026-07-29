@@ -137,57 +137,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_sjs1_2.12",
-          "version": "1.1.10",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_sjs1_2.12",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "magnolia_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-scalalib_2.12",
-          "version": "2.12.20+1.19.0",
-          "artifacts": [
-            {
-              "name": "scalajs-scalalib_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "cldr-api_sjs1_2.12",
-          "version": "4.5.0",
-          "artifacts": [
-            {
-              "name": "cldr-api_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.monix",
-          "name": "newtypes-core_sjs1_2.12",
-          "version": "0.3.0",
-          "artifacts": [
-            {
-              "name": "newtypes-core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/newtypes-core_sjs1_2.12/0.3.0/newtypes-core_sjs1_2.12-0.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "name": "core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar"
             }
           ]
         },
@@ -203,24 +159,24 @@
           ]
         },
         {
-          "organization": "org.scala-js",
-          "name": "scalajs-javalib",
-          "version": "1.19.0",
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_sjs1_2.12",
+          "version": "4.5.0",
           "artifacts": [
             {
-              "name": "scalajs-javalib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
+              "name": "cldr-api_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_sjs1_2.12",
-          "version": "1.5.0",
+          "organization": "org.scala-js",
+          "name": "scalajs-library_2.12",
+          "version": "1.19.0",
           "artifacts": [
             {
-              "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar"
+              "name": "scalajs-library_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar"
             }
           ]
         },
@@ -247,13 +203,35 @@
           ]
         },
         {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-js",
-          "name": "scalajs-library_2.12",
+          "name": "scalajs-javalib",
           "version": "1.19.0",
           "artifacts": [
             {
-              "name": "scalajs-library_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar"
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.12",
+          "version": "2.12.20+1.19.0",
+          "artifacts": [
+            {
+              "name": "scalajs-scalalib_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar"
             }
           ]
         },
@@ -269,17 +247,6 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_sjs1_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.12",
           "version": "1.1.3",
@@ -287,6 +254,39 @@
             {
               "name": "portable-scala-reflect_sjs1_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.3/portable-scala-reflect_sjs1_2.12-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_sjs1_2.12",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.monix",
+          "name": "newtypes-core_sjs1_2.12",
+          "version": "0.3.0",
+          "artifacts": [
+            {
+              "name": "newtypes-core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/newtypes-core_sjs1_2.12/0.3.0/newtypes-core_sjs1_2.12-0.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_sjs1_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar"
             }
           ]
         }

@@ -909,10 +909,11 @@ class MultiWorkspaceBspServer(
     else version
 
   /** Resolve the com.sourcegraph:semanticdb-javac plugin JAR via coursier */
-  private def resolveJavaSemanticdbPlugin(version: String): Unit =
+  private def resolveJavaSemanticdbPlugin(pluginVersion: String): Unit =
     try {
       import coursier.*
-      val dep = Dependency(Module(Organization("com.sourcegraph"), ModuleName("semanticdb-javac")), version)
+      // `pluginVersion` rather than `version`: coursier 2.1.25 added a `coursier.version` package, and `import coursier.*` makes a local `version` ambiguous.
+      val dep = Dependency(Module(Organization("com.sourcegraph"), ModuleName("semanticdb-javac")), coursier.version.VersionConstraint(pluginVersion))
       val fetch = Fetch().addDependencies(dep)
       val files = fetch.run()
       files.find(_.getName.startsWith("semanticdb-javac")) match {

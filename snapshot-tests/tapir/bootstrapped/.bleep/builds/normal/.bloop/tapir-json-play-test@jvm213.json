@@ -192,12 +192,34 @@
       "modules": [
         {
           "organization": "com.fasterxml.jackson.datatype",
-          "name": "jackson-datatype-jsr310",
+          "name": "jackson-datatype-jdk8",
           "version": "2.14.3",
           "artifacts": [
             {
-              "name": "jackson-datatype-jsr310",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar"
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar"
             }
           ]
         },
@@ -213,68 +235,13 @@
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-databind",
-          "version": "2.14.3",
-          "artifacts": [
-            {
-              "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.datatype",
-          "name": "jackson-datatype-jdk8",
-          "version": "2.14.3",
-          "artifacts": [
-            {
-              "name": "jackson-datatype-jdk8",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.playframework",
-          "name": "play-functional_2.13",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "play-functional_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_2.13/3.0.1/play-functional_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.playframework",
-          "name": "play-json_2.13",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "play-json_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.1/play-json_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.13",
+          "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-flatspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-core",
-          "version": "2.14.3",
-          "artifacts": [
-            {
-              "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar"
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
             }
           ]
         },
@@ -302,34 +269,23 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
+          "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.13",
+          "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-wordspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-freespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -346,6 +302,17 @@
         },
         {
           "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.18",
           "artifacts": [
@@ -356,13 +323,112 @@
           ]
         },
         {
+          "organization": "org.playframework",
+          "name": "play-functional_2.13",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "play-functional_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_2.13/3.0.1/play-functional_2.13-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-json_2.13",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "play-json_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.1/play-json_2.13-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.13",
+          "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-mustmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.18/scalatest-mustmatchers_2.13-3.2.18.jar"
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },
@@ -389,35 +455,35 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.13",
-          "version": "3.2.18",
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.14.3",
           "artifacts": [
             {
-              "name": "scalatest-funspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.18/scalatest-funspec_2.13-3.2.18.jar"
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest_2.13",
+          "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
+          "name": "scalatest-propspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -429,28 +495,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
             }
           ]
         },
@@ -467,56 +511,12 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar"
             }
           ]
         }

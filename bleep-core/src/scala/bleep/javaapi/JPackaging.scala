@@ -228,7 +228,7 @@ object JPackaging {
     new bleepscript.Dep.Java(
       d.module.organization.value,
       d.module.name.value,
-      d.version,
+      d.versionConstraint.asString,
       true
     )
 

@@ -141,56 +141,12 @@
       "modules": [
         {
           "organization": "org.scalatest",
-          "name": "scalatest-compatible",
+          "name": "scalatest-matchers-core_2.13",
           "version": "3.2.10",
           "artifacts": [
             {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.10/scalatest-flatspec_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.10/scalatest-refspec_2.13-3.2.10.jar"
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.10/scalatest-matchers-core_2.13-3.2.10.jar"
             }
           ]
         },
@@ -207,12 +163,78 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.13",
+          "name": "scalatest-compatible",
           "version": "3.2.10",
           "artifacts": [
             {
-              "name": "scalatest-freespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.10/scalatest-freespec_2.13-3.2.10.jar"
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.10/scalatest-diagrams_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.10/scalatest-refspec_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.10/scalatest-funspec_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.10/scalatest-flatspec_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar"
             }
           ]
         },
@@ -224,6 +246,28 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.10/scalatest-mustmatchers_2.13-3.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.13",
+          "version": "3.2.10",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.10/scalatest-freespec_2.13-3.2.10.jar"
             }
           ]
         },
@@ -251,67 +295,12 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-mustmatchers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.10/scalatest-mustmatchers_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "1.3.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.10/scalatest-funspec_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.10",
           "artifacts": [
             {
               "name": "scalatest_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.10/scalatest-diagrams_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.13",
-          "version": "3.2.10",
-          "artifacts": [
-            {
-              "name": "scalatest-featurespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.10/scalatest-featurespec_2.13-3.2.10.jar"
             }
           ]
         },
@@ -327,13 +316,24 @@
           ]
         },
         {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
+          "name": "scalatest-featurespec_2.13",
           "version": "3.2.10",
           "artifacts": [
             {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.10/scalatest-matchers-core_2.13-3.2.10.jar"
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.10/scalatest-featurespec_2.13-3.2.10.jar"
             }
           ]
         },

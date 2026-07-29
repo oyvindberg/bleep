@@ -141,23 +141,12 @@
       "modules": [
         {
           "organization": "org.apache.pekko",
-          "name": "pekko-http-core_2.13",
-          "version": "1.2.0",
+          "name": "pekko-slf4j_2.13",
+          "version": "1.1.4",
           "artifacts": [
             {
-              "name": "pekko-http-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.2.0/pekko-http-core_2.13-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.4",
-          "artifacts": [
-            {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+              "name": "pekko-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.1.4/pekko-slf4j_2.13-1.1.4.jar"
             }
           ]
         },
@@ -173,17 +162,6 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "pekko_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "pekko_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.16",
@@ -191,28 +169,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -229,78 +185,12 @@
         },
         {
           "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.3",
-          "artifacts": [
-            {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-parsing_2.13",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "pekko-parsing_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.2.0/pekko-parsing_2.13-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-slf4j_2.13",
-          "version": "1.1.4",
-          "artifacts": [
-            {
-              "name": "pekko-slf4j_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.1.4/pekko-slf4j_2.13-1.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
           "name": "ssl-config-core_2.13",
           "version": "0.6.1",
           "artifacts": [
             {
               "name": "ssl-config-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-http_2.13",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "pekko-http_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.13/1.2.0/pekko-http_2.13-1.2.0.jar"
             }
           ]
         },
@@ -317,12 +207,34 @@
         },
         {
           "organization": "org.apache.pekko",
-          "name": "pekko-protobuf-v3_2.13",
-          "version": "1.1.4",
+          "name": "pekko-http_2.13",
+          "version": "1.2.0",
           "artifacts": [
             {
-              "name": "pekko-protobuf-v3_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.1.4/pekko-protobuf-v3_2.13-1.1.4.jar"
+              "name": "pekko-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.13/1.2.0/pekko-http_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-core_2.13",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "pekko-http-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.2.0/pekko-http-core_2.13-1.2.0.jar"
             }
           ]
         },
@@ -334,6 +246,94 @@
             {
               "name": "pekko-actor_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.13/1.1.4/pekko-actor_2.13-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-parsing_2.13",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "pekko-parsing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.2.0/pekko-parsing_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.3",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-protobuf-v3_2.13",
+          "version": "1.1.4",
+          "artifacts": [
+            {
+              "name": "pekko-protobuf-v3_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.1.4/pekko-protobuf-v3_2.13-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "pekko_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "pekko_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar"
             }
           ]
         }

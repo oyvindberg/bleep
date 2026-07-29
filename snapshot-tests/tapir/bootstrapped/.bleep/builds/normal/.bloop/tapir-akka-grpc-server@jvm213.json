@@ -169,35 +169,101 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.google.code.findbugs",
-          "name": "jsr305",
-          "version": "3.0.2",
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.13",
+          "version": "0.11.11",
           "artifacts": [
             {
-              "name": "jsr305",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+              "name": "scalapb-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.perfmark",
+          "name": "perfmark-api",
+          "version": "0.25.0",
+          "artifacts": [
+            {
+              "name": "perfmark-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/perfmark/perfmark-api/0.25.0/perfmark-api-0.25.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.android",
+          "name": "annotations",
+          "version": "4.1.1.4",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "akka_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "akka_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.9.0",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
-          "name": "akka-http_2.13",
+          "name": "akka-parsing_2.13",
           "version": "10.2.10",
           "artifacts": [
             {
-              "name": "akka-http_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.10/akka-http_2.13-10.2.10.jar"
+              "name": "akka-parsing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.10/akka-parsing_2.13-10.2.10.jar"
             }
           ]
         },
         {
-          "organization": "com.typesafe.akka",
-          "name": "akka-slf4j_2.13",
-          "version": "2.6.20",
+          "organization": "io.grpc",
+          "name": "grpc-protobuf-lite",
+          "version": "1.48.1",
           "artifacts": [
             {
-              "name": "akka-slf4j_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.20/akka-slf4j_2.13-2.6.20.jar"
+              "name": "grpc-protobuf-lite",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf-lite/1.48.1/grpc-protobuf-lite-1.48.1.jar"
             }
           ]
         },
@@ -224,13 +290,134 @@
           ]
         },
         {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-context",
+          "version": "1.48.1",
+          "artifacts": [
+            {
+              "name": "grpc-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.48.1/grpc-context-1.48.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-core",
+          "version": "1.48.1",
+          "artifacts": [
+            {
+              "name": "grpc-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-core/1.48.1/grpc-core-1.48.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "31.1-android",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/31.1-android/guava-31.1-android.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.api.grpc",
+          "name": "proto-google-common-protos",
+          "version": "2.9.0",
+          "artifacts": [
+            {
+              "name": "proto-google-common-protos",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/api/grpc/proto-google-common-protos/2.9.0/proto-google-common-protos-2.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.36",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.13",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.13",
+          "version": "0.4.3",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.3/ssl-config-core_2.13-0.4.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.13",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.12.0/checker-qual-3.12.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.typesafe.akka",
-          "name": "akka-stream_2.13",
+          "name": "akka-slf4j_2.13",
           "version": "2.6.20",
           "artifacts": [
             {
-              "name": "akka-stream_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.20/akka-stream_2.13-2.6.20.jar"
+              "name": "akka-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.20/akka-slf4j_2.13-2.6.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.mojo",
+          "name": "animal-sniffer-annotations",
+          "version": "1.21",
+          "artifacts": [
+            {
+              "name": "animal-sniffer-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.21/animal-sniffer-annotations-1.21.jar"
             }
           ]
         },
@@ -242,6 +429,160 @@
             {
               "name": "config",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-http_2.13",
+          "version": "10.2.10",
+          "artifacts": [
+            {
+              "name": "akka-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.10/akka-http_2.13-10.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-protobuf",
+          "version": "1.48.1",
+          "artifacts": [
+            {
+              "name": "grpc-protobuf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf/1.48.1/grpc-protobuf-1.48.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lightbend.akka.grpc",
+          "name": "akka-grpc-runtime_2.13",
+          "version": "2.1.6",
+          "artifacts": [
+            {
+              "name": "akka-grpc-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-runtime_2.13/2.1.6/akka-grpc-runtime_2.13-2.1.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-protobuf-v3_2.13",
+          "version": "2.6.20",
+          "artifacts": [
+            {
+              "name": "akka-protobuf-v3_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.20/akka-protobuf-v3_2.13-2.6.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-api",
+          "version": "1.48.1",
+          "artifacts": [
+            {
+              "name": "grpc-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.48.1/grpc-api-1.48.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-actor_2.13",
+          "version": "2.6.20",
+          "artifacts": [
+            {
+              "name": "akka-actor_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.20/akka-actor_2.13-2.6.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-http-core_2.13",
+          "version": "10.2.10",
+          "artifacts": [
+            {
+              "name": "akka-http-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.10/akka-http-core_2.13-10.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.14.0/error_prone_annotations-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
             }
           ]
         },
@@ -258,309 +599,12 @@
         },
         {
           "organization": "io.grpc",
-          "name": "grpc-context",
-          "version": "1.48.1",
-          "artifacts": [
-            {
-              "name": "grpc-context",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.48.1/grpc-context-1.48.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "akka_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "akka_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-parsing_2.13",
-          "version": "10.2.10",
-          "artifacts": [
-            {
-              "name": "akka-parsing_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.10/akka-parsing_2.13-10.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.perfmark",
-          "name": "perfmark-api",
-          "version": "0.25.0",
-          "artifacts": [
-            {
-              "name": "perfmark-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/perfmark/perfmark-api/0.25.0/perfmark-api-0.25.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.3",
-          "artifacts": [
-            {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lightbend.akka.grpc",
-          "name": "akka-grpc-runtime_2.13",
-          "version": "2.1.6",
-          "artifacts": [
-            {
-              "name": "akka-grpc-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-runtime_2.13/2.1.6/akka-grpc-runtime_2.13-2.1.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.guava",
-          "name": "guava",
-          "version": "31.1-android",
-          "artifacts": [
-            {
-              "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/31.1-android/guava-31.1-android.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "scalapb-runtime_2.13",
-          "version": "0.11.11",
-          "artifacts": [
-            {
-              "name": "scalapb-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.grpc",
           "name": "grpc-netty-shaded",
           "version": "1.48.1",
           "artifacts": [
             {
               "name": "grpc-netty-shaded",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-netty-shaded/1.48.1/grpc-netty-shaded-1.48.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.code.gson",
-          "name": "gson",
-          "version": "2.9.0",
-          "artifacts": [
-            {
-              "name": "gson",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.grpc",
-          "name": "grpc-api",
-          "version": "1.48.1",
-          "artifacts": [
-            {
-              "name": "grpc-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.48.1/grpc-api-1.48.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.13",
-          "version": "2.7.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.api.grpc",
-          "name": "proto-google-common-protos",
-          "version": "2.9.0",
-          "artifacts": [
-            {
-              "name": "proto-google-common-protos",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/api/grpc/proto-google-common-protos/2.9.0/proto-google-common-protos-2.9.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.checkerframework",
-          "name": "checker-qual",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "checker-qual",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.12.0/checker-qual-3.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "1.7.36",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "ssl-config-core_2.13",
-          "version": "0.4.3",
-          "artifacts": [
-            {
-              "name": "ssl-config-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.3/ssl-config-core_2.13-0.4.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-http-core_2.13",
-          "version": "10.2.10",
-          "artifacts": [
-            {
-              "name": "akka-http-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.10/akka-http-core_2.13-10.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.grpc",
-          "name": "grpc-protobuf",
-          "version": "1.48.1",
-          "artifacts": [
-            {
-              "name": "grpc-protobuf",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf/1.48.1/grpc-protobuf-1.48.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-protobuf-v3_2.13",
-          "version": "2.6.20",
-          "artifacts": [
-            {
-              "name": "akka-protobuf-v3_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.20/akka-protobuf-v3_2.13-2.6.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parser-combinators_2.13",
-          "version": "1.1.2",
-          "artifacts": [
-            {
-              "name": "scala-parser-combinators_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.android",
-          "name": "annotations",
-          "version": "4.1.1.4",
-          "artifacts": [
-            {
-              "name": "annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.guava",
-          "name": "listenablefuture",
-          "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "artifacts": [
-            {
-              "name": "listenablefuture",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.grpc",
-          "name": "grpc-core",
-          "version": "1.48.1",
-          "artifacts": [
-            {
-              "name": "grpc-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-core/1.48.1/grpc-core-1.48.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.j2objc",
-          "name": "j2objc-annotations",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "j2objc-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.codehaus.mojo",
-          "name": "animal-sniffer-annotations",
-          "version": "1.21",
-          "artifacts": [
-            {
-              "name": "animal-sniffer-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.21/animal-sniffer-annotations-1.21.jar"
             }
           ]
         },
@@ -576,50 +620,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-java8-compat_2.13",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "scala-java8-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-actor_2.13",
-          "version": "2.6.20",
-          "artifacts": [
-            {
-              "name": "akka-actor_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.20/akka-actor_2.13-2.6.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.errorprone",
-          "name": "error_prone_annotations",
-          "version": "2.14.0",
-          "artifacts": [
-            {
-              "name": "error_prone_annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.14.0/error_prone_annotations-2.14.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.typesafe.akka",
           "name": "akka-discovery_2.13",
           "version": "2.6.19",
@@ -631,13 +631,13 @@
           ]
         },
         {
-          "organization": "io.grpc",
-          "name": "grpc-protobuf-lite",
-          "version": "1.48.1",
+          "organization": "com.typesafe.akka",
+          "name": "akka-stream_2.13",
+          "version": "2.6.20",
           "artifacts": [
             {
-              "name": "grpc-protobuf-lite",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf-lite/1.48.1/grpc-protobuf-lite-1.48.1.jar"
+              "name": "akka-stream_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.20/akka-stream_2.13-2.6.20.jar"
             }
           ]
         }

@@ -124,17 +124,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.13",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.apache.commons",
           "name": "commons-compress",
           "version": "1.21",
@@ -147,12 +136,23 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_2.13",
-          "version": "0.4.2",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
           "artifacts": [
             {
-              "name": "sourcecode_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
             }
           ]
         },
@@ -180,12 +180,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "geny_2.13",
-          "version": "1.1.0",
+          "name": "sourcecode_2.13",
+          "version": "0.4.2",
           "artifacts": [
             {
-              "name": "geny_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
+              "name": "sourcecode_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
             }
           ]
         }
