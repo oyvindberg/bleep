@@ -223,6 +223,27 @@ jobs:
       # propagated only the last command's status, which is how 42 Windows test failures stayed hidden behind green runs (#607).
       - name: Compile and publish locally
         shell: bash
+        env:
+          # Windows only, and aimed at one specific failure: this step dies with `Build failed: Input length = 1`,
+          # which is a MalformedInputException out of a strict UTF-8 decode.
+          #
+          # The bleep running here is the *released* M9 from the setup action, not this checkout — the dev script
+          # does not exist until two steps later. M9 read the compile server's `output` log with
+          # `Files.readString` to decide readiness (BspServerOperations.isReady) and to build error messages
+          # (BspRifle.readOutput/readOutputTail). Both throw on the first byte that is not valid UTF-8. Master has
+          # since removed that read (#617) and made the survivors lossy (#626), but neither can help here: M9's
+          # code is fixed on disk.
+          #
+          # What we *can* change is what goes into the log. With stdout redirected to a file, a JDK 19+ JVM picks
+          # `native.encoding` for `stdout.encoding` — on Windows the ANSI codepage, not UTF-8. Anything non-ASCII
+          # and mappable then lands as a single high byte, which is invalid UTF-8; unmappable characters (bleep's
+          # log emoji) land as `?`, and the log for this job shows exactly that mangling. Forcing UTF-8 makes the
+          # bytes decodable by the reader M9 already has.
+          #
+          # JAVA_TOOL_OPTIONS rather than a bleep flag because the writer is the *server* JVM that the client
+          # spawns, and JAVA_TOOL_OPTIONS is inherited by children. Cost is a "Picked up JAVA_TOOL_OPTIONS" line
+          # per JVM.
+          JAVA_TOOL_OPTIONS: ${{ runner.os == 'Windows' && '-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8' || '' }}
         run: |
           bleep sourcegen
           bleep compile bleep-cli
