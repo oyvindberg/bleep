@@ -6,7 +6,6 @@ import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.StreamConverters._
 
 /** Integration tests for BSP diagnostic reset protocol (issue #526).
   *
@@ -25,13 +24,6 @@ class BspDiagnosticResetIntegrationTest extends AnyFunSuite with Matchers with T
     Files.createDirectories(dir.resolve("target/classes"))
     dir
   }
-
-  def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path))
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      Files.delete(path)
-    }
 
   test("BSP diagnostic reset: fixing an error clears stale diagnostics") {
     failAfter(mediumTimeout) {

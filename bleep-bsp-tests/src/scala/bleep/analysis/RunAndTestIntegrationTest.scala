@@ -18,15 +18,6 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   // ============================================================================
   // Scala Main Class Tests
   // ============================================================================

@@ -20,15 +20,6 @@ class KotlinTestRunnerEnvTest extends AnyFunSuite with Matchers {
 
   private def createTempDir(prefix: String): Path = Files.createTempDirectory(prefix)
 
-  private def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path)) {
-        import scala.jdk.StreamConverters._
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   private class RecordingEventHandler extends TestRunnerTypes.TestEventHandler {
     val outputs: mutable.ArrayBuffer[String] = mutable.ArrayBuffer.empty
     def onTestStarted(suite: String, test: String): Unit = ()

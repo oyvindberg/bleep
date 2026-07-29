@@ -14,15 +14,6 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path)) {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   // ============================================================================
   // Toolchain Coexistence Tests
   // ============================================================================
