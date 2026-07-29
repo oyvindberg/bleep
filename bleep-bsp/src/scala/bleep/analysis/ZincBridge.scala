@@ -91,6 +91,23 @@ object ZincBridge {
     */
   private val ecjJarCache = new java.util.concurrent.ConcurrentHashMap[String, Seq[Path]]()
 
+  /** Cached ECJ classloader per ECJ version, because ECJ's caches are `static` and therefore per-classloader.
+    *
+    * `org.eclipse.jdt.internal.compiler.util.JRTUtil` keeps the JDK module image in statics: `images`, `ctSymFiles`, `JRT_FILE_SYSTEMS`, and `classCache` (a
+    * `SoftClassCache` of already-parsed JDK class files). A fresh classloader per compile discards all four, so every Java compile re-opens `ct.sym` as a zip
+    * filesystem and re-reads every JDK class it touches from scratch. Allocation profiling of a loaded daemon put 26% of ALL heap allocation in
+    * `ClasspathJep247Jdk12.findClass` -> `ZipFileSystem.getPath`, churning `ZipPath` and `byte[]` — that is this, and it scales with the number of Java
+    * compiles.
+    *
+    * Sharing one loader across concurrent compiles is also the way ECJ is meant to be used (the Eclipse IDE reuses it for the life of the process); those
+    * statics are concurrent structures. Only the loader is shared — `EcjCompiler` still gets a per-compile cancellation token and progress listener.
+    *
+    * Never closed, deliberately: it lives as long as the daemon, and closing it would throw away the caches that are the entire point. What that retains is
+    * bounded by the number of distinct ECJ versions the daemon serves — normally one — not by compiles or workspaces: 807 classes of metaspace per version,
+    * plus a `SoftClassCache` the GC can reclaim under pressure. The previous code paid that class-loading cost per compile instead.
+    */
+  private val ecjClassLoaderCache = new java.util.concurrent.ConcurrentHashMap[String, java.net.URLClassLoader]()
+
   /** Threads each analysis read/write may use.
     *
     * Zinc defaults this to `availableProcessors()`, which assumes one build at a time. This daemon runs up to `parallelism` operations at once, each loading
@@ -853,12 +870,7 @@ object ZincBridge {
       cancellationToken: CancellationToken,
       progressListener: ProgressListener
   ): xsbti.compile.JavaTools = {
-    // Resolve ECJ jar
-    val ecjJars = getEcjJars(ecjVersion)
-    val ecjClassLoader = new java.net.URLClassLoader(
-      ecjJars.map(_.toUri.toURL).toArray,
-      getClass.getClassLoader
-    )
+    val ecjClassLoader = getEcjClassLoader(ecjVersion)
 
     // Create a forked Java compiler that uses ECJ
     val ecjCompiler = new EcjCompiler(ecjClassLoader, cancellationToken, progressListener)
@@ -878,6 +890,12 @@ object ZincBridge {
 
   private def getEcjJars(version: String): Seq[Path] =
     ecjJarCache.computeIfAbsent(version, resolveEcj)
+
+  private def getEcjClassLoader(version: String): java.net.URLClassLoader =
+    ecjClassLoaderCache.computeIfAbsent(
+      version,
+      v => new java.net.URLClassLoader(getEcjJars(v).map(_.toUri.toURL).toArray, getClass.getClassLoader)
+    )
 
   /** Resolve ECJ jars from Maven */
   private def resolveEcj(version: String): Seq[Path] = {
