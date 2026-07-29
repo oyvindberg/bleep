@@ -220,21 +220,39 @@ object BleepBspProtocol {
   /** A compiler diagnostic with severity.
     *
     * `message` is the short/plain error text (from problem.message()). `rendered` is the compiler's rich formatted output including source line and caret (from
-    * problem.rendered()). `path` is the full file path with line:col suffix.
+    * problem.rendered()).
+    *
+    * Position is carried structurally — `path` is the file path alone, with `line`/`column` beside it. It used to be a single `path:line:col` string, which
+    * every consumer then had to take apart again. That is unparseable on Windows: `BuildDiff.diagKey` recovered the file with `p.indexOf(':')`, so
+    * `C:\foo\Bar.scala:12:5` yielded `"C"` and every diagnostic on the platform collapsed into one dedup key. The compiler hands us `line`/`column` as integers
+    * to begin with (see `CompilerError`), so nothing needs flattening — use [[Diagnostic.displayPath]] when a human-readable location is wanted.
     */
   case class Diagnostic(
       severity: DiagnosticSeverity,
       message: String,
       rendered: Option[String],
-      path: Option[String] // full path:line:col for file-associated diagnostics
-  )
+      path: Option[String], // file path only, no location suffix
+      line: Option[Int], // 1-based, absent when the compiler reported no position
+      column: Option[Int] // 1-based
+  ) {
+
+    /** `path:line:col`, omitting whichever trailing parts the compiler did not report. For display only — never parse this back. */
+    def displayPath: Option[String] =
+      path.map { p =>
+        (line, column) match {
+          case (Some(l), Some(c)) => s"$p:$l:$c"
+          case (Some(l), None)    => s"$p:$l"
+          case _                  => p
+        }
+      }
+  }
 
   object Diagnostic {
     implicit val codec: Codec[Diagnostic] = deriveCodec
 
-    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None)
-    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None)
-    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None)
+    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None, None, None)
+    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None, None, None)
+    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None, None, None)
   }
 
   // ==========================================================================

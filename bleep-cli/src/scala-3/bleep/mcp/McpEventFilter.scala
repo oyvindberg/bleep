@@ -37,6 +37,8 @@ object McpEventFilter {
               diagFields += "message" -> Json.fromString(stripAnsi(d.message))
               d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(stripAnsi(r)))
               d.path.foreach(p => diagFields += "path" -> Json.fromString(p))
+              d.line.foreach(l => diagFields += "line" -> Json.fromInt(l))
+              d.column.foreach(c => diagFields += "column" -> Json.fromInt(c))
               Json.obj(diagFields.result()*)
             }*
           )
