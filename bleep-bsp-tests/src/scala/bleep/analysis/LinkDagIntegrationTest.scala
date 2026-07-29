@@ -246,6 +246,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
+        mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (lt, _) => {
           linkCalled = true
@@ -294,6 +295,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
+        mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) =>
           IO.pure(
@@ -345,6 +347,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
+        mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
         discover = (_, _) => IO.pure((TaskResult.Success, List.empty)),

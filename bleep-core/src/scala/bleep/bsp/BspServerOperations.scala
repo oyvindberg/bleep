@@ -156,10 +156,16 @@ object BspServerOperations {
 
     Seq(config.javaPath.toString) ++
       config.javaOpts ++
-      Seq("-cp", classpath, config.serverMainClass) ++
+      Seq(NativeAccessFlag, "-cp", classpath, config.serverMainClass) ++
       socketArg ++
       dieWithParentArg
   }
+
+  /** The daemon measures its own process tree through `proc_pid_rusage` (see [[bleep.ProcessMemory]]), which is a restricted method. Without this the JVM
+    * prints four lines of warning on the first call, and — per JEP 472 — a future release blocks the call outright rather than warning. Set here rather than in
+    * `javaOpts` so it does not enter the daemon's identity key: it is a constant of how bleep runs the server, not a user-visible tuning choice.
+    */
+  private final val NativeAccessFlag = "--enable-native-access=ALL-UNNAMED"
 
   // ==========================================================================
   // Connection Management

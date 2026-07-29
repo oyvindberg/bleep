@@ -856,7 +856,17 @@ object TaskDag {
       test: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
-      symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
+      symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
+
+      /** Consulted at ADMISSION, before a compile is given a reservation: false means "not now, reconsider on the next wakeup".
+        *
+        * This is the one resource question the machine governor cannot answer for itself. CPU and fork memory are known before a task starts; heap pressure is
+        * a property of the daemon's own heap right now, and the thing that relieves it is another task finishing. It belongs here rather than inside the
+        * compile handler because a gate below admission holds a machine-wide CPU permit while it waits — starving tests and links that could have run.
+        *
+        * Callers with no opinion pass `_ => IO.pure(true)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
+        */
+      mayAdmitCompile: CompileTask => IO[Boolean]
   )
 
   /** Create a DAG executor with the given handlers. */
@@ -880,6 +890,27 @@ object TaskDag {
         * the build rather than merely wait. When the machine is idle the first candidate is admitted by blocking reservation instead, which clamps its request
         * to the machine's totals — so a task larger than the whole machine waits for the whole machine and then runs, rather than never running.
         */
+      /** Ask whether a compile may start, BEFORE spending a reservation on it.
+        *
+        * Heap pressure used to be handled below admission: the compile was admitted, took a machine-wide CPU permit, and only then slept on the gate. That
+        * withholds capacity from every other kind of work — a test or a link that could have run right now waits behind a permit held by something doing
+        * nothing. Deferring here instead leaves the permit available, and the compile is reconsidered on the next wakeup, which fires when a task completes:
+        * exactly when heap is most likely to have been freed.
+        *
+        * `idle` bypasses the gate for the same reason it bypasses `tryReserve` below — with nothing running, nothing will complete to reconsider this, so
+        * deferring would stall the build rather than delay a start.
+        */
+      def mayAdmit(task: Task, idle: Boolean): IO[Boolean] =
+        task match {
+          case c: CompileTask if !idle => handlers.mayAdmitCompile(c)
+          case _                       => IO.pure(true)
+        }
+
+      def reserveFor(task: Task): IO[Option[(Task, IO[Unit])]] = {
+        val c = costOf(task, forkHeaps)
+        machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
+      }
+
       def admit(candidates: List[Task], idle: Boolean): IO[List[(Task, IO[Unit])]] =
         candidates match {
           case Nil           => IO.pure(Nil)
@@ -891,13 +922,19 @@ object TaskDag {
                   .reserveUntilReleased(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb)
                   .map(release => Some((first, release)))
               else
-                machine.tryReserve(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb).map(_.map(release => (first, release)))
+                mayAdmit(first, idle).flatMap {
+                  case true  => reserveFor(first)
+                  case false => IO.pure(None)
+                }
 
             firstAdmission.flatMap { headResult =>
               rest
                 .traverse { task =>
-                  val c = costOf(task, forkHeaps)
-                  machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
+                  // Never `idle` here: if the head was admitted, something is running by definition.
+                  mayAdmit(task, idle = false).flatMap {
+                    case true  => reserveFor(task)
+                    case false => IO.pure(None)
+                  }
                 }
                 .map(tail => (headResult :: tail).flatten)
             }

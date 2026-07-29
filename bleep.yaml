@@ -326,6 +326,12 @@ projects:
     - template-scala-3
     - template-test
     isTestProject: true
+    platform:
+      # ForkCostModelTest measures a real process through ProcessMemory, which calls the restricted
+      # `proc_pid_rusage`. Without this the forked test JVM prints JEP 472 warnings, and a future JDK
+      # blocks the call outright — failing the suite. Scoped to this project rather than to every
+      # forked test JVM bleep runs, because it is this suite's need, not a general one.
+      jvmOptions: --enable-native-access=ALL-UNNAMED
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.19
     dependsOn:

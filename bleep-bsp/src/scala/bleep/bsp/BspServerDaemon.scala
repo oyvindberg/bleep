@@ -322,7 +322,23 @@ object BspServerDaemon {
     // 4. Kill descendant processes
     Runtime.getRuntime.addShutdownHook(new Thread("bsp-shutdown") {
       override def run(): Unit = {
-        shutdownRequested.set(true)
+        // Every shutdown this server decides on sets the flag first: the idle watchdog, and each exit path
+        // out of the accept loop. So finding it still false means the JVM is going down from outside — a
+        // signal, someone's `kill`, or the OS reaping us — and NOT anything the server chose.
+        //
+        // Worth a line of its own because of how it presents at the other end: the client whose compile
+        // was in flight reports "BSP server crashed twice (no OutOfMemoryError recorded)", which reads
+        // exactly like a crash. Nothing in the log said otherwise, so a session diagnosed a thread dump
+        // taken by this very hook as an idle-watchdog bug and filed a report for a shutdown that was
+        // really a `kill`. The dump below is evidence of what was interrupted, not of what stopped us.
+        val selfInitiated = shutdownRequested.getAndSet(true)
+        if (!selfInitiated)
+          logger.warn(
+            s"Going down without an internal shutdown request — killed by a signal, or the parent process died " +
+              s"(the parent-death monitor logs its own line just above when that is the cause). " +
+              s"${activeClientThreads.size()} client(s) still connected; work in flight is being abandoned, " +
+              s"and they will report it as a crash."
+          )
         try BspMetrics.shutdown()
         catch { case _: Exception => () }
         // Process-global lock state. Released here, at daemon shutdown — never per connection.

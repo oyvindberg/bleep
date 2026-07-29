@@ -1,8 +1,5 @@
 package bleep.bsp
 
-import cats.effect.{Clock, IO}
-import scala.concurrent.duration.*
-
 object HeapPressureGate {
   val DefaultThreshold: Double = 0.80
   val DefaultRetryMs: DurationMs = DurationMs(2000L)
@@ -29,64 +26,43 @@ object HeapPressureGate {
     }
   }
 
-  /** Wait until it is safe to start a new compilation.
+  /** Whether a compile may start now, and if not, how long its stagger should be.
     *
-    * Always staggers when other compilations are running, with delay proportional to heap pressure:
-    *   - At low heap (e.g. 2%/80%): short delay (~200ms) then proceed
-    *   - At moderate heap (e.g. 50%/80%): longer delay (~1250ms) then proceed
-    *   - At high heap (>= threshold): full delay, keep waiting until heap drops
-    *
-    * This prevents stampedes (all cores starting simultaneously) while avoiding unnecessary waits when memory is plentiful.
+    * A decision rather than a wait, because the caller is [[TaskDag]]'s admission loop. Waiting here would mean a compile that had ALREADY been admitted —
+    * holding a machine-wide CPU permit — sleeping on it, which withholds capacity from every other kind of work while doing nothing. Deferring at admission
+    * leaves the permit for a test or a link that could run right now, and the compile is reconsidered on the next wakeup, which fires when a task completes:
+    * exactly when heap is most likely to have been freed.
     */
-  def waitForHeapPressure(
-      heapMonitor: HeapMonitor,
-      activeCompiles: IO[Int],
+  sealed trait Decision
+  object Decision {
+    case object Admit extends Decision
+
+    /** Not now. `delayMs` is only the stagger this would have slept, reported to the listener so the "waiting for memory" event still carries a duration. */
+    case class Defer(delayMs: Long) extends Decision
+  }
+
+  /** The gate's whole policy, as a total function of what it observes. Pure so it can be tested without a heap, a clock, or a scheduler.
+    *
+    * `firstRefusedAt` is when this task was first deferred (None if it has never been), which is what makes [[MaxWaitMs]] enforceable across separate admission
+    * attempts rather than within one sleep loop.
+    */
+  def decide(
+      usage: HeapMonitor.Usage,
+      othersCompiling: Boolean,
       threshold: Double,
       retryMs: DurationMs,
-      projectName: String,
-      listener: Listener
-  )(implicit clock: Clock[IO]): IO[Unit] = {
-    def loop(waitStart: Option[EpochMs]): IO[Unit] =
-      for {
-        usage <- IO(heapMonitor.heapUsage())
-        nowMs <- clock.realTime.map(d => EpochMs(d.toMillis))
-        // Daemon-wide, not per connection. See MachineResources.activeCompiles for why that
-        // distinction is the difference between this gate working and this gate never firing.
-        compiling <- activeCompiles
-        othersCompiling = compiling > 1
-        result <-
-          if (!othersCompiling) {
-            // We're the only active compilation — proceed immediately
-            waitStart match {
-              case Some(start) =>
-                val waitedFor = DurationMs(nowMs.value - start.value)
-                IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
-              case None =>
-                IO.unit
-            }
-          } else if (waitStart.isDefined && usage.fraction < threshold) {
-            // Already waited at least one cycle and heap is below threshold — proceed
-            val waitedFor = DurationMs(nowMs.value - waitStart.get.value)
-            IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
-          } else if (waitStart.exists(start => nowMs.value - start.value >= MaxWaitMs)) {
-            // Deadline reached while still under pressure — proceed anyway rather than loop forever.
-            val waitedFor = DurationMs(nowMs.value - waitStart.get.value)
-            IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
-          } else {
-            // Others compiling — stagger with proportional delay.
-            // Scale delay by how close we are to the threshold:
-            //   fraction 0.02 / threshold 0.80 => scale 0.10 (min) => 200ms
-            //   fraction 0.50 / threshold 0.80 => scale 0.625       => 1250ms
-            //   fraction 0.80 / threshold 0.80 => scale 1.0          => 2000ms
-            val scale = math.max(MinDelayFraction, math.min(1.0, usage.fraction / threshold))
-            val effectiveDelayMs = (retryMs.value * scale).toLong
-            val effectiveWaitStart = waitStart.getOrElse(nowMs)
-            IO(listener.onWait(projectName, usage.usedMb, usage.maxMb, effectiveDelayMs, nowMs)) >>
-              IO(BspMetrics.recordHeapPressureStall(projectName, usage.usedMb.value, usage.maxMb.value)) >>
-              IO.sleep(effectiveDelayMs.millis) >>
-              loop(Some(effectiveWaitStart))
-          }
-      } yield result
-    loop(None)
-  }
+      firstRefusedAt: Option[EpochMs],
+      now: EpochMs
+  ): Decision =
+    if (!othersCompiling) Decision.Admit // sole compile: staggering against nobody, and deferring it would stall the build
+    else if (firstRefusedAt.isDefined && usage.fraction < threshold) Decision.Admit // waited at least once and the pressure is gone
+    else if (firstRefusedAt.exists(start => now.value - start.value >= MaxWaitMs)) Decision.Admit // deadline: proceed under pressure rather than never
+    else {
+      // Stagger proportional to how close we are to the threshold:
+      //   fraction 0.02 / threshold 0.80 => scale 0.10 (min) => 200ms
+      //   fraction 0.50 / threshold 0.80 => scale 0.625      => 1250ms
+      //   fraction 0.80 / threshold 0.80 => scale 1.0        => 2000ms
+      val scale = math.max(MinDelayFraction, math.min(1.0, usage.fraction / threshold))
+      Decision.Defer((retryMs.value * scale).toLong)
+    }
 }
