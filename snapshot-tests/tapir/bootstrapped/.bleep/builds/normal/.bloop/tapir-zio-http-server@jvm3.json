@@ -149,6 +149,17 @@
     "resolution": {
       "modules": [
         {
+          "organization": "dev.zio",
+          "name": "zio-json_3",
+          "version": "0.7.42",
+          "artifacts": [
+            {
+              "name": "zio-json_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_3/0.7.42/zio-json_3-0.7.42.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.2.1.Final",
@@ -156,50 +167,6 @@
             {
               "name": "netty-transport",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.1.Final/netty-transport-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-compression",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-compression",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-prelude_3",
-          "version": "1.0.0-RC39",
-          "artifacts": [
-            {
-              "name": "zio-prelude_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_3/1.0.0-RC39/zio-prelude_3-1.0.0-RC39.jar"
             }
           ]
         },
@@ -215,24 +182,24 @@
           ]
         },
         {
-          "organization": "com.softwaremill.magnolia1_3",
-          "name": "magnolia_3",
-          "version": "1.3.18",
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "magnolia_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "dev.zio",
-          "name": "zio-internal-macros_3",
-          "version": "2.1.19",
+          "name": "zio-prelude_3",
+          "version": "1.0.0-RC39",
           "artifacts": [
             {
-              "name": "zio-internal-macros_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_3/2.1.19/zio-internal-macros_3-2.1.19.jar"
+              "name": "zio-prelude_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_3/1.0.0-RC39/zio-prelude_3-1.0.0-RC39.jar"
             }
           ]
         },
@@ -249,45 +216,45 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-schema_3",
-          "version": "1.7.0",
+          "name": "zio-internal-macros_3",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "zio-schema_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_3/1.7.0/zio-schema_3-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-prelude-macros_3",
-          "version": "1.0.0-RC39",
-          "artifacts": [
-            {
-              "name": "zio-prelude-macros_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_3/1.0.0-RC39/zio-prelude-macros_3-1.0.0-RC39.jar"
+              "name": "zio-internal-macros_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_3/2.1.19/zio-internal-macros_3-2.1.19.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-resolver",
+          "name": "netty-common",
           "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "netty-resolver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "dev.zio",
-          "name": "zio-schema-macros_3",
-          "version": "1.7.0",
+          "name": "izumi-reflect_3",
+          "version": "3.0.1",
           "artifacts": [
             {
-              "name": "zio-schema-macros_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_3/1.7.0/zio-schema-macros_3-1.7.0.jar"
+              "name": "izumi-reflect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.1/izumi-reflect_3-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-constraintless_3",
+          "version": "0.3.3",
+          "artifacts": [
+            {
+              "name": "zio-constraintless_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_3/0.3.3/zio-constraintless_3-0.3.3.jar"
             }
           ]
         },
@@ -313,24 +280,90 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-constraintless_3",
-          "version": "0.3.3",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_3",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "zio-constraintless_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_3/0.3.3/zio-constraintless_3-0.3.3.jar"
+              "name": "zio_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_3/1.5.0/zio_3-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_3",
-          "version": "2.13.0",
+          "organization": "com.lihaoyi",
+          "name": "unroll-annotation_3",
+          "version": "0.1.12",
           "artifacts": [
             {
-              "name": "scala-collection-compat_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.13.0/scala-collection-compat_3-2.13.0.jar"
+              "name": "unroll-annotation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_3/0.1.12/unroll-annotation_3-0.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_3",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-macros_3",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-macros_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_3/1.7.0/zio-schema-macros_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.1.Final/netty-transport-native-unix-common-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_3",
+          "name": "magnolia_3",
+          "version": "1.3.18",
+          "artifacts": [
+            {
+              "name": "magnolia_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
             }
           ]
         },
@@ -347,39 +380,6 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-schema-protobuf_3",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-protobuf_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_3/1.7.0/zio-schema-protobuf_3-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-unix-common",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-unix-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.1.Final/netty-transport-native-unix-common-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-base",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-base",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
           "name": "zio-http_3",
           "version": "3.3.3",
           "artifacts": [
@@ -391,122 +391,12 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-schema-derivation_3",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-derivation_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_3/1.7.0/zio-schema-derivation_3-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
           "name": "zio-schema-json_3",
           "version": "1.7.0",
           "artifacts": [
             {
               "name": "zio-schema-json_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_3/1.7.0/zio-schema-json_3-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler-proxy",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-classes-epoll",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-classes-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "unroll-annotation_3",
-          "version": "0.1.12",
-          "artifacts": [
-            {
-              "name": "unroll-annotation_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_3/0.1.12/unroll-annotation_3-0.1.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_3",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-buffer",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-common",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-streams_3",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-streams_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_3/2.1.19/zio-streams_3-2.1.19.jar"
             }
           ]
         },
@@ -532,35 +422,112 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-json_3",
-          "version": "0.7.42",
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "zio-json_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_3/0.7.42/zio-json_3-0.7.42.jar"
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-transport-classes-kqueue",
+          "name": "netty-buffer",
           "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "netty-transport-classes-kqueue",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "dev.zio",
-          "name": "zio_3",
+          "name": "zio-schema_3",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_3/1.7.0/zio-schema_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-protobuf_3",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-protobuf_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_3/1.7.0/zio-schema-protobuf_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_3",
           "version": "2.1.19",
           "artifacts": [
             {
-              "name": "zio_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_3/2.1.19/zio_3-2.1.19.jar"
+              "name": "zio-streams_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_3/2.1.19/zio-streams_3-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
             }
           ]
         },
@@ -572,6 +539,17 @@
             {
               "name": "netty-codec-http",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.1.Final/netty-codec-http-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.13.0/scala-collection-compat_3-2.13.0.jar"
             }
           ]
         },
@@ -588,12 +566,45 @@
         },
         {
           "organization": "dev.zio",
-          "name": "izumi-reflect_3",
-          "version": "3.0.1",
+          "name": "zio-prelude-macros_3",
+          "version": "1.0.0-RC39",
           "artifacts": [
             {
-              "name": "izumi-reflect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.1/izumi-reflect_3-3.0.1.jar"
+              "name": "zio-prelude-macros_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_3/1.0.0-RC39/zio-prelude-macros_3-1.0.0-RC39.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-derivation_3",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-derivation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_3/1.7.0/zio-schema-derivation_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_3",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_3/2.1.19/zio_3-2.1.19.jar"
             }
           ]
         },
@@ -605,17 +616,6 @@
             {
               "name": "zio-stacktracer_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_3/2.1.19/zio-stacktracer_3-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "zio_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_3/1.5.0/zio_3-1.5.0.jar"
             }
           ]
         }

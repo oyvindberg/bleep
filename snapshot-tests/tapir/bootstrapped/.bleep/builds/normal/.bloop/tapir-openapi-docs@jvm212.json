@@ -147,17 +147,6 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.sttp.apispec",
           "name": "apispec-model_2.12",
           "version": "0.11.9",
@@ -165,50 +154,6 @@
             {
               "name": "apispec-model_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/apispec-model_2.12/0.11.9/apispec-model_2.12-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "asyncapi-model_2.12",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "asyncapi-model_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/asyncapi-model_2.12/0.11.9/asyncapi-model_2.12-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.12",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "openapi-model_2.12",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "openapi-model_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.12/0.11.9/openapi-model_2.12-0.11.9.jar"
             }
           ]
         },
@@ -224,6 +169,17 @@
           ]
         },
         {
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "asyncapi-model_2.12",
+          "version": "0.11.9",
+          "artifacts": [
+            {
+              "name": "asyncapi-model_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/asyncapi-model_2.12/0.11.9/asyncapi-model_2.12-0.11.9.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
@@ -235,13 +191,46 @@
           ]
         },
         {
-          "organization": "com.beachape",
-          "name": "enumeratum_2.12",
-          "version": "1.7.6",
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
           "artifacts": [
             {
-              "name": "enumeratum_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "openapi-model_2.12",
+          "version": "0.11.9",
+          "artifacts": [
+            {
+              "name": "openapi-model_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.12/0.11.9/openapi-model_2.12-0.11.9.jar"
             }
           ]
         },
@@ -257,13 +246,24 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.12",
+          "version": "1.7.6",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
             }
           ]
         }

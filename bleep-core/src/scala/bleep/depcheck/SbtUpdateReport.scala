@@ -1,10 +1,12 @@
 package bleep.depcheck
 
+import bleep.internal.coursierDeps.{configurationOrThrow, dependencyArtifactsOrThrow}
 import bleep.nosbt.librarymanagement
 import coursier.cache.CacheUrl
 import coursier.core.*
 import coursier.maven.MavenAttributes
 import coursier.util.Artifact
+import coursier.version.{Version, VersionConstraint}
 import coursier.{Attributes, Dependency, Module, Project, Resolution}
 import ryddig.Logger
 
@@ -39,7 +41,7 @@ object SbtUpdateReport {
     )
     mod
       .withConfigurations(
-        Some(dependency.configuration.value)
+        Some(dependency.configurationOrThrow.value)
           .filter(_.nonEmpty) // ???
       )
       .withExtraAttributes(dependency.module.attributes ++ extraProperties)
@@ -103,7 +105,7 @@ object SbtUpdateReport {
       }
 
       val rep = librarymanagement.ModuleReport(
-        moduleId((dependency, project.version, infoProperties(project).toMap)),
+        moduleId((dependency, project.version0.repr, infoProperties(project).toMap)),
         sbtArtifacts.toVector,
         sbtMissingArtifacts.toVector
       )
@@ -143,9 +145,9 @@ object SbtUpdateReport {
 
     val deps = classifiersOpt match {
       case Some(classifiers) =>
-        res.dependencyArtifacts(Some(classifiers), classpathOrder)
+        res.dependencyArtifactsOrThrow(Some(classifiers), classpathOrder)
       case None =>
-        res.dependencyArtifacts(None, classpathOrder)
+        res.dependencyArtifactsOrThrow(None, classpathOrder)
     }
 
     val depArtifacts1 = fullArtifactsOpt match {
@@ -195,34 +197,34 @@ object SbtUpdateReport {
       }
       val fromInterProj = interProjectDependencies
         .filter(p => p.module != thisModule._1)
-        .map(p => Dependency(p.module, p.version) -> Nil)
+        .map(p => Dependency(p.module, VersionConstraint(p.version0.repr)) -> Nil)
       fromLib ++ fromInterProj
     }
 
-    val versions = (Vector(Dependency(thisModule._1, thisModule._2)) ++ res.dependencies.toVector ++ res.rootDependencies.toVector).map { dep =>
-      dep.module -> dep.version
+    val versions = (Vector(Dependency(thisModule._1, VersionConstraint(thisModule._2))) ++ res.dependencies.toVector ++ res.rootDependencies.toVector).map {
+      dep => dep.module -> dep.versionConstraint
     }.toMap
 
     def clean(dep: Dependency): Dependency =
       dep
-        .withConfiguration(Configuration.empty)
+        .withVariantSelector(VariantSelector.emptyConfiguration)
         .withMinimizedExclusions(MinimizedExclusions.zero)
         .withOptional(false)
 
-    def lookupProject(mv: coursier.core.Resolution.ModuleVersion): Option[Project] =
-      res.projectCache.get(mv) match {
+    def lookupProject(mv: coursier.core.Resolution.ModuleVersionConstraint): Option[Project] =
+      res.projectCache0.get(mv) match {
         case Some((_, p)) => Some(p)
         case _            =>
           interProjectDependencies.find { p =>
-            val tuple = (p.module, p.version)
+            val tuple = (p.module, VersionConstraint(p.version0.repr))
             mv == tuple
           }
       }
 
-    val m = Dependency(thisModule._1, "")
+    val m = Dependency(thisModule._1, VersionConstraint(""))
     val directReverseDependencies = res.rootDependencies.toSet
       .map(clean)
-      .map(_.withVersion(""))
+      .map(_.withVersionConstraint(VersionConstraint("")))
       .map(dep => dep -> Vector(m))
       .toMap
 
@@ -240,21 +242,21 @@ object SbtUpdateReport {
     }
 
     groupedDepArtifacts.toVector.map { case (dep, artifacts) =>
-      val proj = lookupProject(dep.moduleVersion).get
+      val proj = lookupProject(dep.moduleVersionConstraint).get
 
       // FIXME Likely flaky...
       val dependees = reverseDependencies
-        .getOrElse(clean(dep.withVersion("")), Vector.empty)
+        .getOrElse(clean(dep.withVersionConstraint(VersionConstraint(""))), Vector.empty)
         .flatMap { dependee0 =>
           val version = versions(dependee0.module)
-          val dependee = dependee0.withVersion(version)
-          lookupProject(dependee.moduleVersion) match {
+          val dependee = dependee0.withVersionConstraint(version)
+          lookupProject(dependee.moduleVersionConstraint) match {
             case Some(dependeeProj) =>
               Vector(
                 (
                   dependee,
                   ProjectInfo(
-                    dependeeProj.version,
+                    dependeeProj.version0.repr,
                     dependeeProj.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)),
                     dependeeProj.properties
                   )
@@ -266,7 +268,7 @@ object SbtUpdateReport {
         }
       val filesOpt = artifacts.map { case (pub, a, fileOpt) =>
         val fileOpt0 = fileOpt.orElse {
-          if (fullArtifactsOpt.isEmpty) artifactFileOpt(proj.module, proj.version, pub.attributes, a)
+          if (fullArtifactsOpt.isEmpty) artifactFileOpt(proj.module, proj.version0.repr, pub.attributes, a)
           else None
         }
         (pub, a, fileOpt0)
@@ -314,11 +316,11 @@ object SbtUpdateReport {
       )
 
       val reports0 = subRes.rootDependencies match {
-        case Seq(dep) if subRes.projectCache.contains(dep.moduleVersion) =>
+        case Seq(dep) if subRes.projectCache0.contains(dep.moduleVersionConstraint) =>
           // quick hack ensuring the module for the only root dependency
           // appears first in the update report, see https://github.com/coursier/coursier/issues/650
-          val (_, proj) = subRes.projectCache(dep.moduleVersion)
-          val mod = moduleId((dep, proj.version, infoProperties(proj).toMap))
+          val (_, proj) = subRes.projectCache0(dep.moduleVersionConstraint)
+          val mod = moduleId((dep, proj.version0.repr, infoProperties(proj).toMap))
           val (main, other) = reports.partition { r =>
             r.module.organization == mod.organization &&
             r.module.name == mod.name &&
@@ -339,21 +341,21 @@ object SbtUpdateReport {
         // rather than handing them for each dependency (where each dependency could have its own forced
         // versions, and apply and pass them to its transitive dependencies, just like for exclusions today).
         if !forceVersions.contains(c.module)
-        projOpt = subRes.projectCache
-          .get((c.module, c.wantedVersion))
-          .orElse(subRes.projectCache.get((c.module, c.version)))
+        projOpt = subRes.projectCache0
+          .get((c.module, c.wantedVersionConstraint))
+          .orElse(subRes.projectCache0.get((c.module, VersionConstraint(c.version0.asString))))
         (_, proj) <- projOpt.toSeq
       } yield {
-        val dep = Dependency(c.module, c.wantedVersion)
-        val dependee = Dependency(c.dependeeModule, c.dependeeVersion)
-        val dependeeProj = subRes.projectCache.get((c.dependeeModule, c.dependeeVersion)) match {
+        val dep = Dependency(c.module, c.wantedVersionConstraint)
+        val dependee = Dependency(c.dependeeModule, c.dependeeVersionConstraint)
+        val dependeeProj = subRes.projectCache0.get((c.dependeeModule, c.dependeeVersionConstraint)) match {
           case Some((_, p)) =>
-            ProjectInfo(p.version, p.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)), p.properties)
+            ProjectInfo(p.version0.repr, p.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)), p.properties)
           case None =>
             // should not happen
-            ProjectInfo(c.dependeeVersion, Vector.empty, Vector.empty)
+            ProjectInfo(c.dependeeVersionConstraint.asString, Vector.empty, Vector.empty)
         }
-        val rep = moduleReport((dep, Seq((dependee, dependeeProj)), proj.withVersion(c.wantedVersion), Nil, classLoaders))
+        val rep = moduleReport((dep, Seq((dependee, dependeeProj)), proj.withVersion0(Version(c.wantedVersionConstraint.asString)), Nil, classLoaders))
           .withEvicted(true)
           .withEvictedData(Some("version selection")) // ??? put latest-revision like sbt/ivy here?
         librarymanagement.OrganizationArtifactReport(c.module.organization.value, c.module.name.value, Vector(rep))

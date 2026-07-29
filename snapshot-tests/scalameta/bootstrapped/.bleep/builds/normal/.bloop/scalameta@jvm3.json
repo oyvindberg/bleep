@@ -121,13 +121,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.6",
+          "organization": "com.lihaoyi",
+          "name": "geny_3",
+          "version": "1.1.0",
           "artifacts": [
             {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+              "name": "geny_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
             }
           ]
         },
@@ -143,13 +143,13 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_3",
-          "version": "0.4.2",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
           "artifacts": [
             {
-              "name": "sourcecode_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
             }
           ]
         },
@@ -166,12 +166,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "geny_3",
-          "version": "1.1.0",
+          "name": "sourcecode_3",
+          "version": "0.4.2",
           "artifacts": [
             {
-              "name": "geny_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
+              "name": "sourcecode_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
             }
           ]
         }

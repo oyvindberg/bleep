@@ -160,56 +160,12 @@
       "modules": [
         {
           "organization": "org.typelevel",
-          "name": "cats-effect_2.13",
+          "name": "cats-effect-testkit_2.13",
           "version": "3.6.1",
           "artifacts": [
             {
-              "name": "cats-effect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "coop_2.13",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "coop_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_2.13/1.2.0/coop_2.13-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-free_2.13",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-free_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.11.0/cats-free_2.13-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_2.13",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "munit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.0.0/munit_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.11.0/cats-kernel_2.13-2.11.0.jar"
+              "name": "cats-effect-testkit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_2.13/3.6.1/cats-effect-testkit_2.13-3.6.1.jar"
             }
           ]
         },
@@ -221,6 +177,17 @@
             {
               "name": "cats-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.11.0/cats-core_2.13-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         },
@@ -237,12 +204,78 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect-std_2.13",
+          "name": "scalacheck-effect-munit_2.13",
+          "version": "2.0.0-M2",
+          "artifacts": [
+            {
+              "name": "scalacheck-effect-munit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_2.13/2.0.0-M2/scalacheck-effect-munit_2.13-2.0.0-M2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_2.13",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "scalacheck_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.17.1/scalacheck_2.13-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
           "version": "3.6.1",
           "artifacts": [
             {
-              "name": "cats-effect-std_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.6.1/cats-effect_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_2.13",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-free_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.11.0/cats-free_2.13-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalacheck-effect_2.13",
+          "version": "2.0.0-M2",
+          "artifacts": [
+            {
+              "name": "scalacheck-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.13/2.0.0-M2/scalacheck-effect_2.13-2.0.0-M2.jar"
             }
           ]
         },
@@ -254,6 +287,39 @@
             {
               "name": "cats-effect-kernel-testkit_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_2.13/3.6.1/cats-effect-kernel-testkit_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "coop_2.13",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "coop_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_2.13/1.2.0/coop_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.13",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.6.1/cats-effect-std_2.13-3.6.1.jar"
             }
           ]
         },
@@ -281,45 +347,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-mtl_2.13",
-          "version": "1.3.1",
+          "name": "cats-kernel_2.13",
+          "version": "2.11.0",
           "artifacts": [
             {
-              "name": "cats-mtl_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "junit-interface",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-testkit_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-testkit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_2.13/3.6.1/cats-effect-testkit_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "scalacheck-effect-munit_2.13",
-          "version": "2.0.0-M2",
-          "artifacts": [
-            {
-              "name": "scalacheck-effect-munit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_2.13/2.0.0-M2/scalacheck-effect-munit_2.13-2.0.0-M2.jar"
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.11.0/cats-kernel_2.13-2.11.0.jar"
             }
           ]
         },
@@ -331,28 +364,6 @@
             {
               "name": "hamcrest-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.13",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.6.1/cats-effect-kernel_2.13-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "junit",
-          "name": "junit",
-          "version": "4.13.2",
-          "artifacts": [
-            {
-              "name": "junit",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
             }
           ]
         },
@@ -369,34 +380,23 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "scalacheck-effect_2.13",
-          "version": "2.0.0-M2",
+          "name": "cats-mtl_2.13",
+          "version": "1.3.1",
           "artifacts": [
             {
-              "name": "scalacheck-effect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.13/2.0.0-M2/scalacheck-effect_2.13-2.0.0-M2.jar"
+              "name": "cats-mtl_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.13/1.3.1/cats-mtl_2.13-1.3.1.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
+          "organization": "org.scalameta",
+          "name": "munit_2.13",
+          "version": "1.0.0",
           "artifacts": [
             {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalacheck",
-          "name": "scalacheck_2.13",
-          "version": "1.17.1",
-          "artifacts": [
-            {
-              "name": "scalacheck_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.17.1/scalacheck_2.13-1.17.1.jar"
+              "name": "munit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.0.0/munit_2.13-1.0.0.jar"
             }
           ]
         }

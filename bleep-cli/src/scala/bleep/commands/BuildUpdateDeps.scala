@@ -150,9 +150,9 @@ object DependencyUpgrader {
       val version = Version(bleepDep.version)
       val latest =
         if (scalaStewardMode) {
-          version.selectNext(coursierVersion.available.map(Version.apply), allowPrerelease)
+          version.selectNext(coursierVersion.available0.map(v => Version(v.asString)), allowPrerelease)
         } else {
-          version.selectLatest(coursierVersion.available.map(Version.apply), allowPrerelease)
+          version.selectLatest(coursierVersion.available0.map(v => Version(v.asString)), allowPrerelease)
         }
       latest.map(latestV => tuple -> bleepDep.withVersion(latestV.value))
     }

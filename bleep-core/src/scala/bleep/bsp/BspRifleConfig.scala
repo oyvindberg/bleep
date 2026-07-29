@@ -107,6 +107,12 @@ object BspRifleConfig {
   /** JVM options that require a minimum JDK version */
   def jdkVersionOpts(jvmMajorVersion: Int): Seq[String] = {
     val opts = Seq.newBuilder[String]
+    if (jvmMajorVersion >= 22) {
+      // The server resolves user paths via `UserPaths.fromAppDirs`, which on Windows/JDK22+ is an FFM downcall to SHGetKnownFolderPath (coursier-paths ships
+      // that impl under META-INF/versions/22). Without this the JVM prints "WARNING: A restricted method in java.lang.foreign.Linker has been called" on every
+      // server start, and a future JDK will refuse the call outright rather than warn. The native-image build passes the same flag (see GenNativeImage).
+      opts += "--enable-native-access=ALL-UNNAMED"
+    }
     if (jvmMajorVersion >= 25) {
       opts += "-XX:+UseCompactObjectHeaders"
     }

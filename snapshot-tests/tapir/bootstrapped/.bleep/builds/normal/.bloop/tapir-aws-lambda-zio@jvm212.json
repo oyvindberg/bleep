@@ -193,6 +193,94 @@
     "resolution": {
       "modules": [
         {
+          "organization": "dev.zio",
+          "name": "zio-prelude-macros_2.12",
+          "version": "1.0.0-RC39",
+          "artifacts": [
+            {
+              "name": "zio-prelude-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.12/1.0.0-RC39/zio-prelude-macros_2.12-1.0.0-RC39.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.1.Final/netty-transport-native-unix-common-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-protobuf_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-protobuf_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.12/1.7.0/zio-schema-protobuf_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_2.12/1.7.0/zio-schema_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-serialization",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-serialization",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-serialization/1.1.2/aws-lambda-java-serialization-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
@@ -204,68 +292,79 @@
           ]
         },
         {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.1.Final/netty-codec-http-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-http_2.12",
+          "version": "3.3.3",
+          "artifacts": [
+            {
+              "name": "zio-http_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.12/3.3.3/zio-http_2.12-3.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-json_2.12",
+          "version": "0.7.42",
+          "artifacts": [
+            {
+              "name": "zio-json_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.7.42/zio-json_2.12-0.7.42.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.circe",
-          "name": "circe-jawn_2.12",
+          "name": "circe-core_2.12",
           "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-jawn_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.12",
-          "version": "1.6.0",
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "jawn-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.1.Final/netty-transport-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
             }
           ]
         },
@@ -282,45 +381,23 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-stacktracer_2.12",
+          "name": "zio-streams_2.12",
           "version": "2.1.19",
           "artifacts": [
             {
-              "name": "zio-stacktracer_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
+              "name": "zio-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.19/zio-streams_2.12-2.1.19.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.12",
-          "version": "2.13.0",
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "scala-collection-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-json_2.12",
-          "version": "0.7.42",
-          "artifacts": [
-            {
-              "name": "zio-json_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.7.42/zio-json_2.12-0.7.42.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-macros_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.12/1.7.0/zio-schema-macros_2.12-1.7.0.jar"
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.1.Final/netty-transport-4.2.1.Final.jar"
             }
           ]
         },
@@ -336,89 +413,35 @@
           ]
         },
         {
-          "organization": "com.amazonaws",
-          "name": "aws-lambda-java-core",
-          "version": "1.2.3",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "aws-lambda-java-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-core/1.2.3/aws-lambda-java-core-1.2.3.jar"
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-resolver",
+          "name": "netty-transport-classes-kqueue",
           "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "netty-resolver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "dev.zio",
-          "name": "zio-prelude-macros_2.12",
-          "version": "1.0.0-RC39",
+          "name": "zio-schema-macros_2.12",
+          "version": "1.7.0",
           "artifacts": [
             {
-              "name": "zio-prelude-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.12/1.0.0-RC39/zio-prelude-macros_2.12-1.0.0-RC39.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-compression",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-compression",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "unroll-annotation_2.12",
-          "version": "0.1.12",
-          "artifacts": [
-            {
-              "name": "unroll-annotation_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-epoll",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-x86_64.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-aarch_64.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
+              "name": "zio-schema-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.12/1.7.0/zio-schema-macros_2.12-1.7.0.jar"
             }
           ]
         },
@@ -434,138 +457,6 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-constraintless_2.12",
-          "version": "0.3.3",
-          "artifacts": [
-            {
-              "name": "zio-constraintless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.12/0.3.3/zio-constraintless_2.12-0.3.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-protobuf_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-protobuf_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.12/1.7.0/zio-schema-protobuf_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-generic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-parser_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-unix-common",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-unix-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.1.Final/netty-transport-native-unix-common-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-base",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-base",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-internal-macros_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-internal-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-json_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-json_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.12/1.7.0/zio-schema-json_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-streams_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-streams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.19/zio-streams_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect_2.12",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
@@ -577,112 +468,13 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-handler-proxy",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-classes-epoll",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-classes-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-buffer",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-http_2.12",
-          "version": "3.3.3",
-          "artifacts": [
-            {
-              "name": "zio-http_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.12/3.3.3/zio-http_2.12-3.3.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "zio_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.5.0/zio_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-common",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.amazonaws",
-          "name": "aws-lambda-java-serialization",
-          "version": "1.1.2",
-          "artifacts": [
-            {
-              "name": "aws-lambda-java-serialization",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-serialization/1.1.2/aws-lambda-java-serialization-1.1.2.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
-          "name": "cats-core_2.12",
-          "version": "2.13.0",
+          "name": "jawn-parser_2.12",
+          "version": "1.6.0",
           "artifacts": [
             {
-              "name": "cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
+              "name": "jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
             }
           ]
         },
@@ -708,6 +500,39 @@
           ]
         },
         {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "unroll-annotation_2.12",
+          "version": "0.1.12",
+          "artifacts": [
+            {
+              "name": "unroll-annotation_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
@@ -720,12 +545,221 @@
         },
         {
           "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.12",
+          "name": "zio_2.12",
           "version": "1.5.0",
           "artifacts": [
             {
-              "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.5.0/zio_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-runtime-interface-client",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-runtime-interface-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-runtime-interface-client/2.6.0/aws-lambda-java-runtime-interface-client-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-constraintless_2.12",
+          "version": "0.3.3",
+          "artifacts": [
+            {
+              "name": "zio-constraintless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.12/0.3.3/zio-constraintless_2.12-0.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-core",
+          "version": "1.2.3",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-core/1.2.3/aws-lambda-java-core-1.2.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-json_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-json_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.12/1.7.0/zio-schema-json_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-pkitesting",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-pkitesting",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-pkitesting/4.2.1.Final/netty-pkitesting-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
             }
           ]
         },
@@ -742,56 +776,22 @@
         },
         {
           "organization": "io.netty",
-          "name": "netty-transport-classes-kqueue",
+          "name": "netty-transport-native-epoll",
           "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "netty-transport-classes-kqueue",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.amazonaws",
-          "name": "aws-lambda-java-runtime-interface-client",
-          "version": "2.6.0",
-          "artifacts": [
+              "name": "netty-transport-native-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final.jar"
+            },
             {
-              "name": "aws-lambda-java-runtime-interface-client",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-runtime-interface-client/2.6.0/aws-lambda-java-runtime-interface-client-2.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema_2.12",
-          "version": "1.7.0",
-          "artifacts": [
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-x86_64.jar"
+            },
             {
-              "name": "zio-schema_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_2.12/1.7.0/zio-schema_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.1.Final/netty-codec-http-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-pkitesting",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-pkitesting",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-pkitesting/4.2.1.Final/netty-pkitesting-4.2.1.Final.jar"
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-aarch_64.jar"
             }
           ]
         }

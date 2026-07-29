@@ -123,39 +123,6 @@
       "modules": [
         {
           "organization": "com.lihaoyi",
-          "name": "geny_2.11",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "geny_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.commons",
-          "name": "commons-compress",
-          "version": "1.21",
-          "artifacts": [
-            {
-              "name": "commons-compress",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
           "name": "fastparse_2.11",
           "version": "3.0.2",
           "artifacts": [
@@ -184,6 +151,39 @@
             {
               "name": "jarchivelib",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/rauschig/jarchivelib/1.2.0/jarchivelib-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.11",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "geny_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.21",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
             }
           ]
         }

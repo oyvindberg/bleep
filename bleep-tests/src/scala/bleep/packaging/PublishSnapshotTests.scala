@@ -8,12 +8,12 @@ class PublishSnapshotTests extends SnapshotTest {
   test("maven") {
     val logger = logger0.withPath("maven")
 
-    val self = Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), "1.0.0")
+    val self = Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), coursier.version.VersionConstraint("1.0.0"))
     val deps = List(
       Dependency(
         Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty),
-        "1.0.0",
-        Configuration.empty,
+        coursier.version.VersionConstraint("1.0.0"),
+        VariantSelector.emptyConfiguration,
         Set((Organization("com.exclude"), ModuleName("exclude-artifact"))),
         Publication("", Type.empty, Extension.empty, Classifier.empty),
         optional = false,

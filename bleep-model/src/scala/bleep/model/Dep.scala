@@ -4,6 +4,7 @@ package model
 import bleep.internal.ShortenAndSortJson
 import bleep.internal.codecs.*
 import coursier.core.*
+import coursier.version.VersionConstraint
 import io.circe.syntax.*
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
@@ -108,7 +109,7 @@ object Dep {
           moduleName,
           if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
         ),
-        version = version,
+        version = VersionConstraint(version),
         configuration = configuration,
         minimizedExclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
         publication = publication,

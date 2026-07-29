@@ -157,13 +157,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.8.4",
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
           "artifacts": [
             {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar"
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         },
@@ -179,46 +179,13 @@
           ]
         },
         {
-          "organization": "org.portable-scala",
-          "name": "portable-scala-reflect_2.13",
-          "version": "1.1.3",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.8.4",
           "artifacts": [
             {
-              "name": "portable-scala-reflect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_3",
-          "version": "1.3.4",
-          "artifacts": [
-            {
-              "name": "munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.3.4/munit_3-1.3.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar"
             }
           ]
         },
@@ -241,6 +208,39 @@
             {
               "name": "junit",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_3",
+          "version": "1.3.4",
+          "artifacts": [
+            {
+              "name": "munit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.3.4/munit_3-1.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar"
             }
           ]
         },

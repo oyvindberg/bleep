@@ -131,45 +131,12 @@
       "modules": [
         {
           "organization": "dev.zio",
-          "name": "zio-stacktracer_2.13",
-          "version": "2.1.17",
-          "artifacts": [
-            {
-              "name": "zio-stacktracer_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/2.1.17/zio-stacktracer_2.13-2.1.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
           "version": "3.0.1",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect_2.13",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.1/izumi-reflect_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },
@@ -197,12 +164,23 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-internal-macros_2.13",
+          "name": "zio-stacktracer_2.13",
           "version": "2.1.17",
           "artifacts": [
             {
-              "name": "zio-internal-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.17/zio-internal-macros_2.13-2.1.17.jar"
+              "name": "zio-stacktracer_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/2.1.17/zio-stacktracer_2.13-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.13",
+          "version": "2.1.17",
+          "artifacts": [
+            {
+              "name": "zio_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.17/zio_2.13-2.1.17.jar"
             }
           ]
         },
@@ -214,17 +192,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
@@ -241,12 +208,45 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio_2.13",
+          "name": "zio-internal-macros_2.13",
           "version": "2.1.17",
           "artifacts": [
             {
-              "name": "zio_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.17/zio_2.13-2.1.17.jar"
+              "name": "zio-internal-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.17/zio-internal-macros_2.13-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.13",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.1/izumi-reflect_2.13-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
             }
           ]
         },

@@ -130,7 +130,12 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 }
 
 object DependencyUpdateTestFixture {
-  val springVersions = Versions(
+
+  /** coursier 2.1.25 moved `Versions` off raw strings. These fixtures are string dumps of real maven-metadata.xml, so lift them at the edge. */
+  private def versionsOf(latest: String, release: String, available: List[String], lastUpdated: Option[Versions.DateTime]): Versions =
+    Versions(coursier.version.Version(latest), coursier.version.Version(release), available.map(coursier.version.Version(_)), lastUpdated)
+
+  val springVersions = versionsOf(
     "3.3.4",
     "3.3.4",
     List(
@@ -367,7 +372,7 @@ object DependencyUpdateTestFixture {
     Some(DateTime(2024, 9, 19, 10, 54, 26))
   )
 
-  val http4sVersions = Versions(
+  val http4sVersions = versionsOf(
     "1.0-234-d1a2b53",
     "1.0-234-d1a2b53",
     List(
@@ -545,21 +550,30 @@ object DependencyUpdateTestFixture {
   )
   val http4sCore: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
     (Dep.Scala("org.http4s", "http4s-core", "0.21.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
-    (Dependency(coursier.Module(Organization("org.http4s"), ModuleName("http4s-core"), Map.empty), "0.21.0"), http4sVersions)
+    (
+      Dependency(coursier.Module(Organization("org.http4s"), ModuleName("http4s-core"), Map.empty), coursier.version.VersionConstraint("0.21.0")),
+      http4sVersions
+    )
   )
   val http4sDsl: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
     (Dep.Scala("org.http4s", "http4s-dsl", "0.21.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
-    (Dependency(coursier.Module(Organization("org.http4s"), ModuleName("http4s-dsl"), Map.empty), "0.21.0"), http4sVersions)
+    (Dependency(coursier.Module(Organization("org.http4s"), ModuleName("http4s-dsl"), Map.empty), coursier.version.VersionConstraint("0.21.0")), http4sVersions)
   )
 
   val someOtherDep: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
     (Dep.Scala("org.other", "http4s-dsl", "0.21.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
-    (Dependency(coursier.Module(Organization("org.other"), ModuleName("http4s-dsl"), Map.empty), "0.21.0"), http4sVersions)
+    (Dependency(coursier.Module(Organization("org.other"), ModuleName("http4s-dsl"), Map.empty), coursier.version.VersionConstraint("0.21.0")), http4sVersions)
   )
 
   val springBootWeb: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
     (Dep.Scala("org.springframework", "spring-boot-starter-web", "3.0.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
-    (Dependency(coursier.Module(Organization("org.springframework"), ModuleName("spring-boot-starter-web"), Map.empty), "3.0.0"), springVersions)
+    (
+      Dependency(
+        coursier.Module(Organization("org.springframework"), ModuleName("spring-boot-starter-web"), Map.empty),
+        coursier.version.VersionConstraint("3.0.0")
+      ),
+      springVersions
+    )
   )
   val foundByDep = List(http4sDsl, http4sCore, someOtherDep, springBootWeb).toMap
 

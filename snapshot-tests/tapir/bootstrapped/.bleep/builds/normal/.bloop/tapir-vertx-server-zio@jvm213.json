@@ -162,6 +162,237 @@
     "resolution": {
       "modules": [
         {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.121.Final/netty-transport-native-unix-common-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-auth-common",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-auth-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/4.5.15/vertx-auth-common-4.5.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http2",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.121.Final/netty-codec-http2-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.13",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.19/zio_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.121.Final/netty-codec-http-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.121.Final/netty-common-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.121.Final/netty-transport-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.16.1",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.121.Final/netty-codec-socks-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.13",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.1/izumi-reflect_2.13-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.121.Final/netty-codec-dns-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.13-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.121.Final/netty-resolver-dns-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.13",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/2.1.19/zio-streams_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-web",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-web",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web/4.5.15/vertx-web-4.5.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.121.Final/netty-handler-proxy-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.121.Final/netty-buffer-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-bridge-common",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-bridge-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/4.5.15/vertx-bridge-common-4.5.15.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.vertx",
           "name": "vertx-web-common",
           "version": "4.5.15",
@@ -184,61 +415,6 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.vertx",
-          "name": "vertx-bridge-common",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-bridge-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/4.5.15/vertx-bridge-common-4.5.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-core",
-          "version": "2.16.1",
-          "artifacts": [
-            {
-              "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-socks",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-socks",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.121.Final/netty-codec-socks-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
@@ -246,61 +422,6 @@
             {
               "name": "magnolia_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-resolver-dns",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-resolver-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.121.Final/netty-resolver-dns-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.121.Final/netty-handler-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-buffer",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.121.Final/netty-buffer-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio_2.13",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.19/zio_2.13-2.1.19.jar"
             }
           ]
         },
@@ -317,23 +438,12 @@
         },
         {
           "organization": "io.netty",
-          "name": "netty-codec-http2",
+          "name": "netty-handler",
           "version": "4.1.121.Final",
           "artifacts": [
             {
-              "name": "netty-codec-http2",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.121.Final/netty-codec-http2-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.121.Final/netty-codec-http-4.1.121.Final.jar"
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.121.Final/netty-handler-4.1.121.Final.jar"
             }
           ]
         },
@@ -349,61 +459,6 @@
           ]
         },
         {
-          "organization": "io.vertx",
-          "name": "vertx-core",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/4.5.15/vertx-core-4.5.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect_2.13",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.1/izumi-reflect_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.vertx",
-          "name": "vertx-auth-common",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-auth-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/4.5.15/vertx-auth-common-4.5.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.121.Final/netty-transport-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "zio_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.13/1.5.0/zio_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.1.121.Final",
@@ -415,68 +470,13 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-streams_2.13",
-          "version": "2.1.19",
+          "organization": "io.vertx",
+          "name": "vertx-core",
+          "version": "4.5.15",
           "artifacts": [
             {
-              "name": "zio-streams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/2.1.19/zio-streams_2.13-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-unix-common",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-unix-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.121.Final/netty-transport-native-unix-common-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler-proxy",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.121.Final/netty-handler-proxy-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-internal-macros_2.13",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-internal-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.19/zio-internal-macros_2.13-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-dns",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.121.Final/netty-codec-dns-4.1.121.Final.jar"
+              "name": "vertx-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/4.5.15/vertx-core-4.5.15.jar"
             }
           ]
         },
@@ -492,24 +492,24 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-common",
-          "version": "4.1.121.Final",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_2.13",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "netty-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.121.Final/netty-common-4.1.121.Final.jar"
+              "name": "zio_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.13/1.5.0/zio_2.13-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "io.vertx",
-          "name": "vertx-web",
-          "version": "4.5.15",
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.13",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "vertx-web",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web/4.5.15/vertx-web-4.5.15.jar"
+              "name": "zio-internal-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.19/zio-internal-macros_2.13-2.1.19.jar"
             }
           ]
         }
