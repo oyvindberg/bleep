@@ -40,8 +40,12 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
     * (fixed in e3ad7bf0). At the ~11x the suite now really runs at, a Windows runner took 6074ms on a path whose behaviour was correct: the kill was honoured,
     * `terminationReason` was `Killed`, and only the clock assertion failed. Raising the bound keeps the invariant that matters and drops the one that was
     * silently asserting "nothing else is running".
+    *
+    * 15s is picked against the evidence rather than for round-number comfort: healthy is sub-second (all eight tests here finish in ~1.6s together), the worst
+    * seen on a loaded runner is 6074ms, and the shortest workload being ruled out is 30s. So it clears the worst observation by ~2.5x and still fails long
+    * before a cancellation that did not happen at all.
     */
-  val cancellationShortCircuitMs = 20000L
+  val cancellationShortCircuitMs = 15000L
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
