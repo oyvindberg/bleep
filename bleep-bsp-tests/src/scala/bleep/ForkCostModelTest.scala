@@ -95,7 +95,8 @@ class ForkCostModelTest extends AnyFunSuite with Matchers {
         peak should be >= current
         peak should be < 200000L
       case _ =>
-        ProcessMemory.system shouldBe ProcessMemory.Linux // Linux has no peak; only macOS answers both
+        // Only macOS answers both: Linux tracks no high-water Pss, and Windows answers neither.
+        ProcessMemory.system should not be ProcessMemory.MacOs
     }
   }
 
