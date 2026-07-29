@@ -6,7 +6,6 @@ import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.StreamConverters._
 
 /** Integration tests for BSP diagnostic file paths (issue #552).
   *
@@ -26,13 +25,6 @@ class BspDiagnosticPathIntegrationTest extends AnyFunSuite with Matchers with Ti
     Files.createDirectories(dir.resolve("target/classes"))
     dir
   }
-
-  def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path))
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      Files.delete(path)
-    }
 
   def scalaLibraryClasspath(version: String): List[Path] =
     CompilerResolver.resolveScalaLibrary(version).toList

@@ -21,15 +21,6 @@ class CancellationTest extends AnyFunSuite with Matchers {
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   /** Generate a massive Scala source file that would take a long time to compile. Creates many classes with methods to ensure compilation takes several
     * seconds.
     */

@@ -24,13 +24,6 @@ class ZincCacheRoundtripTest extends AnyFunSuite with Matchers with TimeLimits {
     dir
   }
 
-  def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path))
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      Files.delete(path)
-    }
-
   test("TarGz preserves file contents exactly") {
     val workspace = createTempWorkspace("tartest-")
     try {

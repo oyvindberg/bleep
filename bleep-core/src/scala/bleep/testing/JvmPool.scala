@@ -391,27 +391,32 @@ object JvmPool {
       val boundedOptions = MachineResources.withHeapBound(jvmOptions)
       val key = JvmKey(classpath, boundedOptions, environment, workingDirectory)
 
-      // Only CPU is reserved here. The two dimensions have genuinely different lifetimes:
+      // NO machine CPU reservation here. The caller already holds one.
       //
-      //   cpu    — the SUITE's, which is exactly this scope. A JVM idling in the pool between suites
-      //            burns no cores, so holding one for it would throttle the machine for nothing.
-      //   memory — the PROCESS's, which outlives this scope. An idle pooled JVM is still resident and
-      //            still costs its whole footprint, so its reservation is taken at spawn and returned
-      //            at destroy (see `spawnJvm` / `destroy`), not here. Tying memory to the suite is
-      //            what let the governor believe memory was free while live JVMs still held it.
+      // A TestSuiteTask is charged `Cost(TestFork, cpu = 1)` by the DAG interpreter at admission (see
+      // TaskDag.costOf), and this method runs INSIDE that admitted task. Reserving again here asked the
+      // same finite pool for a second permit while holding the first, so once admission had handed out
+      // every permit to test tasks, all of them queued for a permit that could not exist: `cpu 18/18,
+      // running 18, waiting 18`, no forks spawned, no thread doing anything, forever. Compiles in other
+      // workspaces starved behind it, because machine CPU is daemon-wide. The two entries were
+      // distinguishable in the queue dump only by their labels — `test:proj:Suite` from the interpreter
+      // and `test Suite` from here.
       //
-      // Order also matters: the per-pool semaphore (a local counter bounding THIS run's parallelism)
-      // is taken FIRST and the shared machine reservation second, so we never withhold machine-wide
-      // capacity while merely queueing for our own run's token.
+      // The interpreter is the single authority on machine-wide capacity. What stays here is the local
+      // counter bounding THIS run's parallelism, which is not machine-wide and cannot deadlock against
+      // admission.
+      //
+      // Memory is different and is still taken below, not here: it belongs to the PROCESS, which outlives
+      // this scope. An idle pooled JVM is still resident and still costs its whole footprint, so its
+      // reservation is taken at spawn and returned at destroy (see `spawnJvm` / `destroy`). Tying memory
+      // to the suite is what let the governor believe memory was free while live JVMs still held it.
       Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
-        machine.reserve(MachineResources.ResourceKind.TestFork, s"test $label", cpu = 1, memoryMb = 0L).flatMap { _ =>
-          Resource
-            .make(getOrCreate(key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
-              // Return JVM to pool (or destroy it); the semaphore + cpu reservation are released by their own Resources.
-              case (jvm, _) => release(jvm)
-            }
-            .map(_._2)
-        }
+        Resource
+          .make(getOrCreate(key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
+            // Return JVM to pool (or destroy it); the semaphore is released by its own Resource.
+            case (jvm, _) => release(jvm)
+          }
+          .map(_._2)
       }
     }
 

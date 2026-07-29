@@ -78,12 +78,26 @@ class ForkCostModelTest extends AnyFunSuite with Matchers {
     prog.timeout(10.seconds).unsafeRunSync()
   }
 
-  test("macOS footprint output parses, including units other than MB") {
-    ProcessMemory.MacOs.parseSize("    phys_footprint: 542 MB") shouldBe Some(542L)
-    ProcessMemory.MacOs.parseSize("phys_footprint_peak: 1645 MB") shouldBe Some(1645L)
-    ProcessMemory.MacOs.parseSize("phys_footprint: 1.6 GB") shouldBe Some(1638L)
-    ProcessMemory.MacOs.parseSize("phys_footprint: 8192 KB") shouldBe Some(8L)
-    ProcessMemory.MacOs.parseSize("phys_footprint: not-a-number") shouldBe None
+  test("a pid that no longer exists is declined, not guessed at") {
+    // The tree sweep lists pids and then measures them, so forks exit mid-sweep as a matter of course.
+    // proc_pid_rusage answers ESRCH for those; the contract is None rather than a bogus zero.
+    val goneForever = ProcessHandle.current().pid() + 100000000L
+    ProcessMemory.system.footprintMb(goneForever) shouldBe None
+  }
+
+  test("the peak is at least the current footprint, and both are plausible") {
+    // Guards the struct offsets: ri_phys_footprint and ri_lifetime_max_phys_footprint are read from
+    // fixed positions in rusage_info_v4, so a layout that moved would show up as nonsense here.
+    val self = ProcessHandle.current().pid()
+    (ProcessMemory.system.footprintMb(self), ProcessMemory.system.peakFootprintMb(self)) match {
+      case (Some(current), Some(peak)) =>
+        current should be > 0L
+        peak should be >= current
+        peak should be < 200000L
+      case _ =>
+        // Only macOS answers both: Linux tracks no high-water Pss, and Windows answers neither.
+        ProcessMemory.system should not be ProcessMemory.MacOs
+    }
   }
 
   test("the platform reader measures a real process, or honestly declines to") {

@@ -25,9 +25,20 @@ object BspServerOperations {
     */
   val OomMarker = "Terminating due to java.lang.OutOfMemoryError"
 
+  /** Read a captured process log, tolerating bytes that are not valid UTF-8.
+    *
+    * The log is not ours: it is whatever the server wrote to stdout and stderr, including output from every subprocess it spawned. On Windows those routinely
+    * emit console-codepage bytes. `Files.readString` and `Files.readAllLines` decode as strict UTF-8 and throw `MalformedInputException` on the first byte that
+    * does not decode — surfacing as the memorably unhelpful `Build failed: Input length = 1`, i.e. one stray byte in a *diagnostic* log failing the build that
+    * was trying to read it.
+    *
+    * `new String(bytes, UTF_8)` substitutes U+FFFD instead of throwing. Losing a character in a log we only ever print is the right trade.
+    */
+  def readLogFile(log: Path): String =
+    new String(Files.readAllBytes(log), java.nio.charset.StandardCharsets.UTF_8)
+
   def containsOomMarker(log: Path): Boolean =
-    // lossy decode: the log interleaves subprocess output that need not be valid UTF-8, and a diagnosis helper must not throw over it
-    Files.exists(log) && new String(Files.readAllBytes(log), java.nio.charset.StandardCharsets.UTF_8).contains(OomMarker)
+    Files.exists(log) && readLogFile(log).contains(OomMarker)
 
   /** Heap dumps written by older bleep versions, which ran the server with -XX:+HeapDumpOnOutOfMemoryError. They land in the server's working directory (the
     * socket dir) as `java_pid<pid>.hprof`. Current servers don't write dumps; these are legacy litter to clean up.
@@ -156,10 +167,16 @@ object BspServerOperations {
 
     Seq(config.javaPath.toString) ++
       config.javaOpts ++
-      Seq("-cp", classpath, config.serverMainClass) ++
+      Seq(NativeAccessFlag, "-cp", classpath, config.serverMainClass) ++
       socketArg ++
       dieWithParentArg
   }
+
+  /** The daemon measures its own process tree through `proc_pid_rusage` (see [[bleep.ProcessMemory]]), which is a restricted method. Without this the JVM
+    * prints four lines of warning on the first call, and — per JEP 472 — a future release blocks the call outright rather than warning. Set here rather than in
+    * `javaOpts` so it does not enter the daemon's identity key: it is a constant of how bleep runs the server, not a user-visible tuning choice.
+    */
+  private final val NativeAccessFlag = "--enable-native-access=ALL-UNNAMED"
 
   // ==========================================================================
   // Connection Management
@@ -268,7 +285,7 @@ object BspServerOperations {
                 val socketExists = Files.exists(socketFile)
                 val outputExists = Files.exists(outputFile)
                 val outputContent = if (outputExists) {
-                  val content = Files.readString(outputFile)
+                  val content = readLogFile(outputFile)
                   if (content.length > 2000) content.takeRight(2000) else content
                 } else "<no output file>"
                 val pidFile = config.address.socketDir.resolve("pid")

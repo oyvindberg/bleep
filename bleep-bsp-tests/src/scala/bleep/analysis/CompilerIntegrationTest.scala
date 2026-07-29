@@ -140,15 +140,6 @@ class CompilerIntegrationTest extends AnyFunSuite with Matchers {
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   // ============================================================================
   // Java Compiler Tests
   // ============================================================================
@@ -413,15 +404,6 @@ class IncrementalCompilationTest extends AnyFunSuite with Matchers {
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
-
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
 
   // ============================================================================
   // Java Incremental Tests
@@ -760,15 +742,6 @@ class ClasspathCompilationTest extends AnyFunSuite with Matchers {
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   test("Java: compile using class from previously compiled output") {
     val libDir = createTempDir("java-lib-")
     val appDir = createTempDir("java-app-")
@@ -964,15 +937,6 @@ class StreamingDiagnosticTest extends AnyFunSuite with Matchers {
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
-
   test("Java: diagnostics are streamed to listener") {
     val outputDir = createTempDir("java-streaming-")
     try {
@@ -1108,15 +1072,6 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
-
-  def deleteRecursively(path: Path): Unit =
-    if Files.exists(path) then {
-      if Files.isDirectory(path) then {
-        import scala.jdk.StreamConverters.*
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
 
   // ============================================================================
   // Scala Version Isolation Tests

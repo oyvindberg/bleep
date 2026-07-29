@@ -6,7 +6,6 @@ import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.StreamConverters._
 
 /** Integration tests using the BSP test harness.
   *
@@ -28,14 +27,6 @@ class BspHarnessIntegrationTest extends AnyFunSuite with Matchers with TimeLimit
     Files.createDirectories(dir.resolve("target/classes"))
     dir
   }
-
-  def deleteRecursively(path: Path): Unit =
-    if (Files.exists(path)) {
-      if (Files.isDirectory(path)) {
-        Files.list(path).toScala(List).foreach(deleteRecursively)
-      }
-      Files.delete(path)
-    }
 
   // Resolve Scala library via Coursier for the specified version
   def scalaLibraryClasspath(version: String): List[Path] =
