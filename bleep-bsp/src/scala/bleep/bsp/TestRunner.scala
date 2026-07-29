@@ -58,6 +58,9 @@ object TestRunner {
     * @return
     *   Success or Failure result
     */
+  /** `resolveSourcePath` turns a failing frame's declaring class into a build-relative source path. Passed as a function rather than as the analysis machinery
+    * itself so this stays a process runner: the caller knows where the project's analysis lives, and this only knows it wants a path.
+    */
   def runSuite(
       project: CrossProjectName,
       suiteName: String,
@@ -66,6 +69,7 @@ object TestRunner {
       pool: JvmPool,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       options: Options,
+      resolveSourcePath: String => Option[String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
@@ -79,6 +83,7 @@ object TestRunner {
         eventQueue = eventQueue,
         testArgs = options.testArgs,
         idleTimeout = options.idleTimeout,
+        resolveSourcePath = resolveSourcePath,
         killSignal = killSignal
       )
     }
@@ -96,6 +101,7 @@ object TestRunner {
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       testArgs: List[String],
       idleTimeout: FiniteDuration,
+      resolveSourcePath: String => Option[String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
     def now: IO[Long] = IO.realTime.map(_.toMillis)
@@ -145,7 +151,8 @@ object TestRunner {
                         message = message,
                         throwable = throwable,
                         timestamp = ts,
-                        location = location
+                        // The forked JVM knows the class and the bare file name; only this side can say where that source lives.
+                        location = location.map(loc => loc.copy(path = resolveSourcePath(loc.declaringClass)))
                       )
                     )
                 }
