@@ -71,26 +71,13 @@ jobs:
       - name: Summarise compile-server telemetry
         if: always()
         shell: bash
-        run: |
-          set -uo pipefail
-          shopt -s nullglob
-          dirs=(~/.cache/bleep/socket/*/)
-          if [ ${#dirs[@]} -eq 0 ]; then echo "no compile-server socket dirs — nothing to summarise"; exit 0; fi
-          mkdir -p bsp-diagnostics
-          for d in "${dirs[@]}"; do
-            name=$(basename "$d")
-            mkdir -p "bsp-diagnostics/$name"
-            for f in "$d"metrics.jsonl "$d"output "$d"output.1 "$d"output.2; do
-              [ -f "$f" ] && cp "$f" "bsp-diagnostics/$name/"
-            done
-          done
-          python3 .github/scripts/summarise-bsp-metrics.py bsp-diagnostics
+        run: .github/scripts/collect-bsp-diagnostics.sh
 
       - name: Upload compile-server telemetry
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: bsp-diagnostics
+          name: bsp-diagnostics-build
           path: bsp-diagnostics
           retention-days: 14
           if-no-files-found: ignore
@@ -320,6 +307,23 @@ jobs:
           .\${{ matrix.file_name }} selftest
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::bleep selftest failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
         if: runner.os == 'Windows'
+
+      # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
+      # it those arches were invisible: no metrics, no server log, nothing to read when a job hung or was
+      # killed by the job timeout.
+      - name: Summarise compile-server telemetry
+        if: always()
+        shell: bash
+        run: .github/scripts/collect-bsp-diagnostics.sh
+
+      - name: Upload compile-server telemetry
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bsp-diagnostics-${{ matrix.os }}
+          path: bsp-diagnostics
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v7
