@@ -225,7 +225,16 @@ object BleepBspProtocol {
     * Deliberately only the suite's own frames: the first frame overall is usually inside the assertion library, and an annotation pointing at someone else's
     * source is worse than no annotation. Absent when the throwable has no frame in the suite (or there is no throwable at all).
     */
-  case class SourceLocation(declaringClass: String, file: String, line: Int)
+  case class SourceLocation(
+      declaringClass: String,
+      file: String,
+      line: Int,
+      /** Build-relative source path, resolved server-side from zinc's analysis (`ZincSourceLookup`). Absent when analysis cannot answer — no analysis yet, or a
+        * language that does not produce one, which today means Kotlin. Consumers that need a path fall back to `declaringClass` + `file`, which locate the
+        * failure for a human but not precisely enough to annotate a line in a diff.
+        */
+      path: Option[String]
+  )
 
   object SourceLocation {
     implicit val codec: Codec[SourceLocation] = deriveCodec

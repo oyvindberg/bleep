@@ -2172,6 +2172,12 @@ class MultiWorkspaceBspServer(
                       environment = testEnv,
                       workingDirectory = projectDir
                     ),
+                    resolveSourcePath = className =>
+                      bleep.analysis.ZincSourceLookup.relativeSourceForProject(
+                        bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey),
+                        started.buildPaths.variantBuildDir(testTask.project).resolve(".zinc").resolve("analysis.zip"),
+                        className
+                      ),
                     killSignal = taskKillSignal
                   )
               }
