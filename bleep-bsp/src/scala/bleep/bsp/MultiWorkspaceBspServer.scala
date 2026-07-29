@@ -1635,7 +1635,7 @@ class MultiWorkspaceBspServer(
         // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
         val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-        val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
+        val compileHandler = makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker)
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
@@ -1668,7 +1668,8 @@ class MultiWorkspaceBspServer(
             test = testHandler,
             sourcegen = sourcegenHandler,
             annotationProcessor = apHandler,
-            symbolProcessor = kspHandler
+            symbolProcessor = kspHandler,
+            mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold)
           )
         )
 
@@ -1852,23 +1853,51 @@ class MultiWorkspaceBspServer(
       }
     }
 
-  /** Wait until heap pressure is below threshold before starting compilation.
+  /** Heap pressure as an ADMISSION decision, for [[TaskDag.Handlers.mayAdmitCompile]].
     *
-    * Delegates to HeapPressureGate for testable logic. Cancellation-safe: IO.sleep is cancelable.
+    * This replaced an `IO.sleep` loop that ran inside the compile task. The task had already been admitted by then, so it sat on a machine-wide CPU permit
+    * while waiting — withholding capacity from tests and links that could have run. Refusing admission instead leaves the permit available, and the compile is
+    * reconsidered on the next wakeup, which fires whenever a task completes: exactly when heap is most likely to have been freed.
+    *
+    * The refusal-time map is per DAG run and is what makes [[HeapPressureGate.MaxWaitMs]] enforceable at all now that there is no sleep to measure against: it
+    * remembers when each project was first deferred, across separate admission attempts.
+    *
+    * `othersCompiling` is `> 0`, not `> 1` as the old in-task gate used: this runs BEFORE the reservation, so this compile is not in the count yet.
     */
-  private def waitForHeapPressure(
-      projectName: String,
-      originId: Option[String],
-      threshold: Double
-  ): IO[Unit] =
-    HeapPressureGate.waitForHeapPressure(
-      heapMonitor = heapMonitor,
-      activeCompiles = machine.activeCompiles,
-      threshold = threshold,
-      retryMs = HeapPressureGate.DefaultRetryMs,
-      projectName = projectName,
-      listener = makeHeapPressureListener(originId)
-    )
+  private def makeCompileAdmission(originId: Option[String], threshold: Double): TaskDag.CompileTask => IO[Boolean] = {
+    val listener = makeHeapPressureListener(originId)
+    val firstRefusedAt = Ref.unsafe[IO, Map[String, EpochMs]](Map.empty)
+
+    compileTask => {
+      val projectName = compileTask.project.value
+      for {
+        usage <- IO(heapMonitor.heapUsage())
+        compiling <- machine.activeCompiles
+        nowMs <- IO.realTime.map(d => EpochMs(d.toMillis))
+        refusedAt <- firstRefusedAt.get.map(_.get(projectName))
+        admit <- HeapPressureGate.decide(
+          usage = usage,
+          othersCompiling = compiling > 0,
+          threshold = threshold,
+          retryMs = HeapPressureGate.DefaultRetryMs,
+          firstRefusedAt = refusedAt,
+          now = nowMs
+        ) match {
+          case HeapPressureGate.Decision.Admit =>
+            refusedAt match {
+              case None        => IO.pure(true)
+              case Some(start) =>
+                firstRefusedAt.update(_ - projectName) >>
+                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(true)
+            }
+          case HeapPressureGate.Decision.Defer(delayMs) =>
+            firstRefusedAt.update(m => m.updated(projectName, m.getOrElse(projectName, nowMs))) >>
+              IO(listener.onWait(projectName, usage.usedMb, usage.maxMb, delayMs, nowMs)) >>
+              IO(BspMetrics.recordHeapPressureStall(projectName, usage.usedMb.value, usage.maxMb.value)).as(false)
+        }
+      } yield admit
+    }
+  }
 
   /** Send a structured event via BSP notification. Used for compile, link, and test events. */
   private def sendEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
@@ -2051,7 +2080,7 @@ class MultiWorkspaceBspServer(
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
           val compileHandler =
-            makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold, apResults, diagnosticTracker)
+            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val includeTagsSet = testOptions.includeTags.toSet
@@ -2199,7 +2228,8 @@ class MultiWorkspaceBspServer(
               test = testHandler,
               sourcegen = sourcegenHandler,
               annotationProcessor = apHandler,
-              symbolProcessor = kspHandler
+              symbolProcessor = kspHandler,
+              mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold)
             )
           )
 
@@ -2432,7 +2462,6 @@ class MultiWorkspaceBspServer(
       started: Started,
       workspace: Path,
       originId: Option[String],
-      heapPressureThreshold: Double,
       apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult],
       diagnosticTracker: BspDiagnosticTracker
   ): (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
@@ -2467,7 +2496,7 @@ class MultiWorkspaceBspServer(
             // Reserve one core from the machine governor for this compile — the same governor test
             // forks reserve against, so compiles and forks can't oversubscribe the CPU. A compile
             // runs in the server heap (not a forked process), so it reserves no fork memory; server
-            // heap is staggered separately by waitForHeapPressure.
+            // heap pressure is handled at admission — see Handlers.mayAdmitCompile.
             val gatedCompile =
               // Admitted by the DAG before this ran — see TaskDag.admit.
               IO.unit.flatMap { _ =>
@@ -2475,21 +2504,19 @@ class MultiWorkspaceBspServer(
                 // across every connection, and readable via `machine.activeCompiles`. The connection-
                 // local tally that used to be maintained here counted only this client's compiles,
                 // which is not the quantity anything wants to know.
-                waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
-                  val compileStartTime = System.currentTimeMillis()
-                  IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                    compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
-                      .guaranteeCase {
-                        case cats.effect.Outcome.Succeeded(resultIO) =>
-                          resultIO.flatMap { result =>
-                            val dur = System.currentTimeMillis() - compileStartTime
-                            val ok = result == TaskDag.TaskResult.Success
-                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                          }
-                        case _ =>
-                          IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                      }
-                }
+                val compileStartTime = System.currentTimeMillis()
+                IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
+                    .guaranteeCase {
+                      case cats.effect.Outcome.Succeeded(resultIO) =>
+                        resultIO.flatMap { result =>
+                          val dur = System.currentTimeMillis() - compileStartTime
+                          val ok = result == TaskDag.TaskResult.Success
+                          IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                        }
+                      case _ =>
+                        IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                    }
               }
             val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
