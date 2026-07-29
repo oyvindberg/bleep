@@ -197,7 +197,7 @@ class JUnitXmlCollector {
       val key = SuiteKey(project, suite)
       activeSuites(key) = SuiteState(project, suite, Instant.ofEpochMilli(timestamp), Nil, Nil, Nil)
 
-    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, _) =>
+    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, _, _) =>
       val key = SuiteKey(project, suite)
       val tc = TestCaseResult(
         name = test.value,

@@ -412,7 +412,7 @@ object FancyBuildDisplay {
         val key = TestKey(project, suite, test)
         state.runningTests.put(key, RunningTest(project, suite, test, Instant.ofEpochMilli(timestamp))): Unit
 
-      case BuildEvent.TestFinished(project, suite, test, status, _, _, _, _) =>
+      case BuildEvent.TestFinished(project, suite, test, status, _, _, _, _, _) =>
         val key = TestKey(project, suite, test)
         state.runningTests.remove(key): Unit
 

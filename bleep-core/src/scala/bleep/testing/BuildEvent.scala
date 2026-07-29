@@ -149,7 +149,8 @@ object BuildEvent {
       durationMs: Long,
       message: Option[String],
       throwable: Option[String],
-      timestamp: Long
+      timestamp: Long,
+      location: Option[bleep.bsp.protocol.BleepBspProtocol.SourceLocation]
   ) extends BuildEvent
 
   /** A test suite has finished execution. `outcome` distinguishes executed-with-counts from empty / no-framework / errored — never conflated as `(0,0,0,0)`. */

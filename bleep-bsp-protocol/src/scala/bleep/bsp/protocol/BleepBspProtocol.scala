@@ -217,6 +217,20 @@ object BleepBspProtocol {
   // Shared types
   // ==========================================================================
 
+  /** Where a test failed, recovered from the first stack frame belonging to the suite class itself.
+    *
+    * `file` is the bare file name the JVM records in the class file (`MyTest.scala`), not a path — `declaringClass` supplies the package, and only the client
+    * knows the project's source directories, so turning the pair into a real path happens there (see `TestFailure.resolvedPath`).
+    *
+    * Deliberately only the suite's own frames: the first frame overall is usually inside the assertion library, and an annotation pointing at someone else's
+    * source is worse than no annotation. Absent when the throwable has no frame in the suite (or there is no throwable at all).
+    */
+  case class SourceLocation(declaringClass: String, file: String, line: Int)
+
+  object SourceLocation {
+    implicit val codec: Codec[SourceLocation] = deriveCodec
+  }
+
   /** A compiler diagnostic with severity.
     *
     * `message` is the short/plain error text (from problem.message()). `rendered` is the compiler's rich formatted output including source line and caret (from
@@ -447,7 +461,8 @@ object BleepBspProtocol {
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],
-        timestamp: Long
+        timestamp: Long,
+        location: Option[SourceLocation]
     ) extends Event
 
     case class SuiteFinished(

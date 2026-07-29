@@ -373,7 +373,8 @@ object TaskDag {
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],
-        timestamp: Long
+        timestamp: Long,
+        location: Option[bleep.bsp.protocol.BleepBspProtocol.SourceLocation]
     ) extends DagEvent
 
     // Discovery events

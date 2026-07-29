@@ -126,7 +126,7 @@ object TestRunner {
               case TestProtocol.TestResponse.TestStarted(_, test) =>
                 now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))
 
-              case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
+              case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable, location) =>
                 val status = TestStatus.fromString(statusStr)
                 val updateCount =
                   if (status == TestStatus.Passed) passedCount.update(_ + 1)
@@ -144,7 +144,8 @@ object TestRunner {
                         durationMs = durationMs,
                         message = message,
                         throwable = throwable,
-                        timestamp = ts
+                        timestamp = ts,
+                        location = location
                       )
                     )
                 }

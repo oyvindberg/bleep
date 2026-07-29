@@ -216,20 +216,20 @@ object BuildStateReducer {
         runningTests = state.runningTests + key
       )
 
-    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, _, _) =>
+    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, _, _, location) =>
       val testKey = TestKey(project, suite, test)
       val suiteKey = testKey.suiteKey
 
       val updatedFailures = status match {
         case TestStatus.Failed | TestStatus.Error =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.TestFailed) :: state.failures
+          TestFailure(project, suite, test, message, None, output, FailureCategory.TestFailed, location) :: state.failures
         case TestStatus.Timeout =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.Timeout) :: state.failures
+          TestFailure(project, suite, test, message, None, output, FailureCategory.Timeout, location) :: state.failures
         case TestStatus.Cancelled =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.Cancelled) :: state.failures
+          TestFailure(project, suite, test, message, None, output, FailureCategory.Cancelled, location) :: state.failures
         case TestStatus.AssumptionFailed => state.failures // not a failure
         case _                           => state.failures
       }
@@ -282,7 +282,9 @@ object BuildStateReducer {
               message = Some(msg),
               throwable = None,
               output = state.pendingOutput.getOrElse(key, Nil),
-              category = FailureCategory.ProcessError
+              category = FailureCategory.ProcessError,
+              // synthesised from a suite-level failure, so there is no throwable to recover a frame from
+              location = None
             )
           )
         case _ => Nil
@@ -340,7 +342,9 @@ object BuildStateReducer {
         message = Some(s"Suite idle timeout after ${timeoutMs / 1000}s"),
         throwable = threadDumpInfo.flatMap(_.singleThreadStack),
         output = threadDumpInfo.flatMap(_.dumpFile).map(p => s"Thread dump: $p").toList,
-        category = FailureCategory.Timeout
+        category = FailureCategory.Timeout,
+        // a jstack dump of a hung suite, not a thrown exception — no failing frame to point at
+        location = None
       )
       state.copy(
         suitesCompleted = state.suitesCompleted + 1,
@@ -369,7 +373,9 @@ object BuildStateReducer {
         message = Some(desc),
         throwable = None,
         output = output,
-        category = FailureCategory.ProcessError
+        category = FailureCategory.ProcessError,
+        // the forked JVM died; whatever it was doing never produced a throwable
+        location = None
       )
       state.copy(
         suitesCompleted = if (alreadyCounted) state.suitesCompleted else state.suitesCompleted + 1,
@@ -390,7 +396,9 @@ object BuildStateReducer {
         message = Some(message),
         throwable = details,
         output = Nil,
-        category = FailureCategory.BuildError
+        category = FailureCategory.BuildError,
+        // build-level error, not attributable to a line in any suite
+        location = None
       )
       state.copy(
         testsFailed = state.testsFailed + 1,

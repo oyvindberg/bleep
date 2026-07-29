@@ -2987,7 +2987,7 @@ class MultiWorkspaceBspServer(
       def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
         dispatcher.unsafeRunSync(
           eventQueue.offer(
-            Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis()))
+            Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis(), None))
           )
         )
       def onSuiteStarted(suite: String): Unit = ()
@@ -3597,12 +3597,12 @@ class MultiWorkspaceBspServer(
             val protocolEvent = BleepBspProtocol.Event.TestStarted(project, suite, test, timestamp)
             IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
 
-          case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
+          case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
             IO(
               sendTestEvent(
                 originId,
                 s"test:$project:$suite",
-                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp)
+                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location)
               )
             )
 
