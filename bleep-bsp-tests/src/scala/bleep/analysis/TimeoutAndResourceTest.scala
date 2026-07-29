@@ -30,6 +30,19 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   val mediumTimeout = Span(10, Seconds)
   val parallelTimeout = Span(20, Seconds)
 
+  /** Upper bound for "cancellation short-circuited the work", used by the cancellation tests below.
+    *
+    * What those tests prove is that a run which was told to stop does NOT sit through its workload — each one starts a job that would take 30s or 60s, so
+    * returning in any fraction of that is the evidence. The bound is deliberately generous rather than tight: a tight wall-clock number does not measure the
+    * cancellation path, it measures how loaded the machine is, and these run alongside the rest of the suite.
+    *
+    * They previously used 5s, which held only because the suite was effectively serialised — a double-charged CPU reservation capped test parallelism at ~1.4x
+    * (fixed in e3ad7bf0). At the ~11x the suite now really runs at, a Windows runner took 6074ms on a path whose behaviour was correct: the kill was honoured,
+    * `terminationReason` was `Killed`, and only the clock assertion failed. Raising the bound keeps the invariant that matters and drops the one that was
+    * silently asserting "nothing else is running".
+    */
+  val cancellationShortCircuitMs = 20000L
+
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
@@ -83,7 +96,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         val duration = System.currentTimeMillis() - startTime
 
         result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < 5000L
+        duration should be < cancellationShortCircuitMs
       } finally deleteRecursively(tempDir)
     }
   }
@@ -124,7 +137,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         val duration = System.currentTimeMillis() - startTime
 
         result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < 10000L
+        duration should be < cancellationShortCircuitMs
       } finally deleteRecursively(tempDir)
     }
   }
@@ -163,7 +176,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         val duration = System.currentTimeMillis() - startTime
 
         result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < 5000L
+        duration should be < cancellationShortCircuitMs
       } finally deleteRecursively(tempDir)
     }
   }
@@ -312,7 +325,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         val duration = System.currentTimeMillis() - startTime
 
         result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < 5000L
+        duration should be < cancellationShortCircuitMs
       } finally deleteRecursively(tempDir)
     }
   }
