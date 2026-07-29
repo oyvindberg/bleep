@@ -318,10 +318,12 @@ public class ForkedTestRunner {
 
               String throwableStr = null;
               String message = null;
+              StackTraceElement location = null;
               if (event.throwable() != null && event.throwable().isDefined()) {
                 Throwable t = event.throwable().get();
                 message = t.getMessage();
                 throwableStr = stackTraceToString(t);
+                location = failureLocation(t, className);
               }
 
               // Extract test name from selector if available
@@ -337,7 +339,15 @@ public class ForkedTestRunner {
 
               send(
                   TestProtocol.encodeTestFinished(
-                      className, testName, status, event.duration(), message, throwableStr));
+                      className,
+                      testName,
+                      status,
+                      event.duration(),
+                      message,
+                      throwableStr,
+                      location == null ? null : location.getClassName(),
+                      location == null ? null : location.getFileName(),
+                      location == null ? 0 : location.getLineNumber()));
             }
           };
 
@@ -547,6 +557,33 @@ public class ForkedTestRunner {
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
     return sw.toString();
+  }
+
+  /**
+   * The first stack frame belonging to the suite class itself, which is where the failing assertion
+   * lives for every framework we support — the frames above it are inside the assertion library.
+   *
+   * <p>Deliberately not "the first frame with a line number": that points at someone else's source,
+   * and an annotation on the wrong file is worse than no annotation. Returns null when the
+   * throwable has no frame in the suite, which is normal for a failure thrown from a helper or a
+   * fixture.
+   *
+   * <p>Inner and anonymous classes ({@code MyTest$$anon$1}) still belong to the suite, so match on
+   * the {@code $} boundary rather than equality alone. Causes are walked because assertion
+   * libraries routinely wrap.
+   */
+  private static StackTraceElement failureLocation(Throwable t, String suiteClass) {
+    for (Throwable current = t; current != null; current = current.getCause()) {
+      for (StackTraceElement frame : current.getStackTrace()) {
+        String cn = frame.getClassName();
+        boolean inSuite = cn.equals(suiteClass) || cn.startsWith(suiteClass + "$");
+        if (inSuite && frame.getFileName() != null && frame.getLineNumber() > 0) {
+          return frame;
+        }
+      }
+      if (current.getCause() == current) break; // self-referential cause, seen in the wild
+    }
+    return null;
   }
 
   /**

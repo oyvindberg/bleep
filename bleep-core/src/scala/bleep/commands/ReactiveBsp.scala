@@ -863,8 +863,8 @@ class ReactiveBspClient(
       case PE.TestStarted(project, suite, test, timestamp) =>
         Some(BuildEvent.TestStarted(project, suite, test, timestamp))
 
-      case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
-        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp))
+      case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
+        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location))
 
       case PE.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
         Some(BuildEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp))

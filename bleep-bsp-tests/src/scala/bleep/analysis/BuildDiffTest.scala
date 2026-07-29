@@ -43,7 +43,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       durationMs = 10,
       message = None,
       throwable = None,
-      timestamp = ts
+      timestamp = ts,
+      location = None
     )
 
   // ==========================================================================
@@ -129,7 +130,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         durationMs = 50,
         message = None,
         throwable = None,
-        timestamp = ts + 1
+        timestamp = ts + 1,
+        location = None
       )
     )
 
