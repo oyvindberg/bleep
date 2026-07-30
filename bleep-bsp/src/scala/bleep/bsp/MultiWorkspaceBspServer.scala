@@ -1034,6 +1034,22 @@ class MultiWorkspaceBspServer(
         sendLogMessage(line, MessageType.Log)
         line = reader.readLine()
       }
+    } catch {
+      // `Process.destroy()` closes the parent's ends of the pipes. On Linux/BSD/AIX `ProcessImpl.destroy(boolean)` calls `stdout.close()` outright, right
+      // after signalling — and `BufferedInputStream.close()` nulls `buf`, so a thread parked in `readLine()` on that same stream wakes up in
+      // `getBufIfOpen` and throws `IOException("Stream closed")` rather than seeing EOF.
+      //
+      // Which happens here is a race. `$/cancelRequest` is in `immediatelyHandled`, so the `onCancel` above runs inline on the message-loop thread while
+      // this fiber is still parked in the read below. If the blocked read completes before `close()` nulls the buffer, the loop ends on a clean EOF; if
+      // `close()` wins, it throws. Both are the same event — the run was cancelled — reported two different ways.
+      //
+      // Without this catch the throwing half escaped `handleRun` before the status below could be computed, so `dispatch(...).attempt` saw `Left(...)` and
+      // answered the client `-32603 Stream closed` instead of `StatusCode.Cancelled`. That is why
+      // `BspRunIntegrationTest / BSP: async run can be cancelled` looked flaky rather than broken: same run, ubuntu-22.04 green and ubuntu-22.04-arm red.
+      //
+      // Guarded on the token rather than swallowed: an IOException on a run nobody cancelled still propagates and still fails loudly. The guard cannot
+      // race, because `CancellationToken.create()` flips `cancelled` before it fires any listener, so the flag is already set by the time `destroy()` runs.
+      case _: java.io.IOException if cancellation.isCancelled => ()
     } finally
       try reader.close()
       catch { case _: Exception => () }
