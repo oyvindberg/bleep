@@ -125,6 +125,8 @@ class MultiWorkspaceBspServer(
   /** Run the server message loop with concurrent request handling.
     *
     * Notifications (like $/cancelRequest) are processed immediately. Requests are spawned in background fibers so the main loop stays responsive.
+    *
+    * Returns when the transport closes, or when this thread is interrupted — see [[runProgram]] for why the latter needs saying.
     */
   def run(): Unit = {
     val program = runConcurrent
@@ -158,7 +160,7 @@ class MultiWorkspaceBspServer(
             }
         }
       )
-    program.unsafeRunSync()
+    MultiWorkspaceBspServer.runToCompletion(program)
   }
 
   private def runConcurrent: IO[Unit] = {
@@ -4144,6 +4146,32 @@ class MultiWorkspaceBspServer(
 }
 
 object MultiWorkspaceBspServer {
+
+  /** Run the message loop to completion, treating an interrupt of this thread as the stop signal it is.
+    *
+    * Not `program.unsafeRunSync()`. That is defined as `unsafeRunTimed(Long.MaxValue.nanos).get`, and `unsafeRunTimed` answers `None` in exactly one reachable
+    * case here — the calling thread was interrupted while parked waiting for the result. (The other case is the timeout, which `Long.MaxValue` nanoseconds does
+    * not reach.) So `.get` turned "someone asked this connection to stop" into `NoSuchElementException: None.get` thrown out of the middle of the cats-effect
+    * runtime, with a stack trace pointing at `IOPlatform.unsafeRunSync` and nothing naming the interrupt.
+    *
+    * Interrupting the thread that owns a connection is a legitimate way to stop it, and `BspTestHarness` does precisely that in its teardown. It closes the
+    * transport first, so usually the loop has already returned by the time the interrupt lands and nothing is thrown — but when the interrupt wins the race the
+    * harness prints `[BSP Test Server] Server thread crashed: java.util.NoSuchElementException: None.get` for what is a clean shutdown. It is load-dependent
+    * rather than constant: six occurrences in one ubuntu-22.04-arm CI job, none in the same suite on an idle dev machine. Landing next to a genuine failure, it
+    * reads as the cause of it — which is exactly what it did while #628 was being diagnosed.
+    *
+    * `unsafeRunTimed` has already cancelled the program by the time it answers `None`, so the `guarantee` above still runs. Note it runs *asynchronously* —
+    * cancellation is `fiber.cancel.unsafeRunAndForget()` — so this returns without waiting for cleanup. That was equally true before; it is called out here
+    * because "run() returned" does not mean this connection's locks are released.
+    *
+    * The interrupt flag is re-asserted rather than consumed: `unsafeRunTimed` cleared it by catching `InterruptedException`, and swallowing that would hide the
+    * stop request from any caller that checks.
+    */
+  private[bsp] def runToCompletion(program: IO[Unit]): Unit =
+    program.unsafeRunTimed(Long.MaxValue.nanos) match {
+      case Some(()) => ()
+      case None     => Thread.currentThread().interrupt()
+    }
 
   /** Enable debug logging to stderr (for development only) */
   val DebugLogging: Boolean = sys.env.get("BLEEP_BSP_DEBUG").contains("true")
