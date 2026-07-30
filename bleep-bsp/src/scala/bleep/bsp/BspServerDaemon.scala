@@ -281,6 +281,11 @@ object BspServerDaemon {
     locally {
       import cats.effect.unsafe.implicits.global
       val reporter = new Thread("bleep-machine-reporter") {
+        // Constant for the life of the process, so read once rather than per sample. Both are recorded on every machine event anyway: without them the
+        // machine's RAM has to be inferred by inverting the fork-budget formula, which does not work once the budget has been retuned.
+        private val serverHeapMb: Long = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+        private val physicalMemoryMb: Long = bleep.MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 4)
+
         override def run(): Unit =
           try
             while (!shutdownRequested.get()) {
@@ -292,6 +297,8 @@ object BspServerDaemon {
                 totalCpu = snapshot.totalCpu,
                 usedMemoryMb = snapshot.usedMemoryMb,
                 totalMemoryMb = snapshot.totalMemoryMb,
+                physicalMemoryMb = physicalMemoryMb,
+                serverHeapMb = serverHeapMb,
                 activeCompiles = snapshot.activeCompiles,
                 running = snapshot.active.size,
                 waiting = snapshot.waiting.size

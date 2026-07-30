@@ -63,34 +63,30 @@ jobs:
       - name: Run tests
         env:
           CI: true
+        # Step cap, deliberately below the job's 30. A job that exceeds `timeout-minutes` is torn down with
+        # its remaining steps — including the `if: always()` ones — so a hang here would destroy exactly the
+        # telemetry that explains it. Failing the *step* instead leaves the collection below to run.
+        # Measured at 9m26s on master against ~3m30s of preceding steps, so 22 is >2x headroom and still
+        # lands inside 30 with room for the upload.
+        timeout-minutes: 22
         run: ./bleep-cli.sh --dev test
 
-      # Always, including on failure and timeout — a run that went wrong is the one whose telemetry
+      # Always, including on failure and step timeout — a run that went wrong is the one whose telemetry
       # is worth having. CI is also the only environment with a realistic shape: 4 cores and 16GB,
       # where memory bounds actually bind. A developer machine cannot reproduce that.
+      #
+      # Invoked as `bash <script>` rather than executed directly: the exec bit does not survive a Windows
+      # checkout, and this same step exists in the native-image matrix below.
       - name: Summarise compile-server telemetry
         if: always()
         shell: bash
-        run: |
-          set -uo pipefail
-          shopt -s nullglob
-          dirs=(~/.cache/bleep/socket/*/)
-          if [ ${#dirs[@]} -eq 0 ]; then echo "no compile-server socket dirs — nothing to summarise"; exit 0; fi
-          mkdir -p bsp-diagnostics
-          for d in "${dirs[@]}"; do
-            name=$(basename "$d")
-            mkdir -p "bsp-diagnostics/$name"
-            for f in "$d"metrics.jsonl "$d"output "$d"output.1 "$d"output.2; do
-              [ -f "$f" ] && cp "$f" "bsp-diagnostics/$name/"
-            done
-          done
-          python3 .github/scripts/summarise-bsp-metrics.py bsp-diagnostics
+        run: bash .github/scripts/collect-bsp-diagnostics.sh
 
       - name: Upload compile-server telemetry
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: bsp-diagnostics
+          name: bsp-diagnostics-build
           path: bsp-diagnostics
           retention-days: 14
           if-no-files-found: ignore
@@ -125,7 +121,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     # Bumped from 25 → 40: macos-latest (arm64) cancelled at 25:19 mid native-image build under the prior 25-min ceiling. Other arches finish in ~13-20min, but
     # mac arm needs the headroom for the native-image step itself before the test phase even starts.
-    timeout-minutes: 40
+    #
+    # Then 40 → 45: the test step below now has its own 20-minute cap, and this ceiling has to sit far
+    # enough above `slowest-preceding-steps + 20` that the telemetry collection at the end of the job still
+    # fits. macos-latest reaches the test step at ~17m, so 17 + 20 = 37 leaves 8 minutes for collection and
+    # upload. This is a backstop for a wedged runner, not the mechanism that catches a hanging test run.
+    timeout-minutes: 45
     # ============================================================================
     # !!! DO NOT ADD A `run_tests` FLAG OR ANY OTHER PER-ARCH TEST-SKIP MECHANISM !!!
     #
@@ -306,9 +307,37 @@ jobs:
         #
         # `selftest` reaches the two FFM surfaces in the binary unconditionally (kernel32 for the terminal, SHGetKnownFolderPath for the user directories).
         # Both need `foreign` reachability metadata; without it the native image aborts at runtime and only a real Windows user finds out (#601).
+        #
+        # Step cap, deliberately below the job's 45. Exceeding the *job* timeout tears the runner down with
+        # every remaining step, `if: always()` included — which is precisely what happened on windows-latest
+        # in this PR's own first run: the step hung for 36 minutes, the job was killed at its ceiling, and
+        # the two telemetry steps below never ran. The one arch the telemetry was written for produced
+        # nothing, for the one failure mode worth seeing. Failing the step instead keeps them.
+        #
+        # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
+        # 11m31s macos-intel, 12m52s windows. 20 is >1.5x the slowest, and clears the job budget on the
+        # slowest arch (macos-arm reaches this step at ~17m).
+        timeout-minutes: 20
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           ./${{ matrix.file_name }} selftest
+
+      # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
+      # it those arches were invisible: no metrics, no server log, nothing to read when a job hung or was
+      # killed by the job timeout.
+      - name: Summarise compile-server telemetry
+        if: always()
+        shell: bash
+        run: bash .github/scripts/collect-bsp-diagnostics.sh
+
+      - name: Upload compile-server telemetry
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bsp-diagnostics-${{ matrix.os }}
+          path: bsp-diagnostics
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v7
