@@ -75,6 +75,16 @@ def summarise(path: pathlib.Path, rows: list[dict]) -> None:
         idle = sum(1 for r in machine if r.get("used_cpu", 0) == 0 and r.get("waiting", 0) == 0)
         peak_wait = max((r.get("waiting", 0) for r in machine), default=0)
         print(f"\n  machine: {samples} samples at 15s")
+        # Recorded rather than derived: `total_memory_mb` is the *fork* budget (machine RAM minus the server's
+        # own footprint minus an OS reserve) and it is retuned as the run proceeds, so neither the machine's RAM
+        # nor the heap cap can be recovered from it. Older metrics.jsonl files predate these fields.
+        cores = machine[0].get("total_cpu")
+        phys = machine[0].get("physical_memory_mb")
+        heap = machine[0].get("server_heap_mb")
+        if phys is not None and heap is not None:
+            print(f"    machine: {cores} cores, {phys} MB RAM; server heap capped at {heap} MB")
+        budgets = [r.get("total_memory_mb", 0) for r in machine]
+        print(f"    fork budget: {min(budgets)}–{max(budgets)} MB over the run (retuned to what the machine can spare)")
         print(f"    saturated (all cpu in use):            {saturated:>4}  ({100 * saturated / samples:.0f}%)")
         print(f"    idle (nothing running, nothing queued): {idle:>4}  ({100 * idle / samples:.0f}%)")
         print(f"    STARVED (queue non-empty, cpu free):    {starved:>4}  ({100 * starved / samples:.0f}%)   <- admission refusing work it could take")

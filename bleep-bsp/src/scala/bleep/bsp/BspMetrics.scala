@@ -237,18 +237,28 @@ object BspMetrics {
 
   /** Machine-governor state: what the daemon-wide resource governor is admitting and what is queued behind it. Emitted periodically by the daemon's reporter,
     * which is the only thing holding the governor.
+    *
+    * `total_memory_mb` is the *fork* budget, not the machine's RAM — [[bleep.MachineResources.forkMemoryBudgetMb]] subtracts the server's own footprint and an
+    * OS reserve, and [[bleep.MachineResources.retuneMemoryBudget]] then moves it up and down with what the machine can actually spare. Two consequences that
+    * repeatedly misled readers of this data: `used_memory_mb` can legitimately exceed it (retuning down while reservations are held), and the machine's RAM
+    * cannot be recovered from it by inverting the formula, because the value sampled is rarely the initial one.
+    *
+    * So `physical_memory_mb` and `server_heap_mb` are recorded outright. They are constant per process and mildly redundant on every 15s sample, which is the
+    * price of each sample being self-describing rather than something to reconstruct.
     */
   def recordMachine(
       usedCpu: Int,
       totalCpu: Int,
       usedMemoryMb: Long,
       totalMemoryMb: Long,
+      physicalMemoryMb: Long,
+      serverHeapMb: Long,
       activeCompiles: Int,
       running: Int,
       waiting: Int
   ): Unit =
     writeEvent(
-      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
+      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
     )
 
   /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
