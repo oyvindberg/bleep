@@ -13,8 +13,18 @@
 # Windows and macOS run, produced no telemetry at all. Windows is where the platform-specific failures live
 # and was the one arch we could not see into.
 #
-# Windows paths are reached via `$HOME` rather than `$LOCALAPPDATA` on purpose: under Git bash the latter is
-# a backslash path (`C:\Users\runneradmin\AppData\Local`), and backslashes are escapes to the globber.
+# The Windows root comes from `$LOCALAPPDATA` run through `cygpath`, not from `~/AppData/Local`. Two reasons,
+# both of which make the difference between collecting everything and collecting nothing:
+#
+#   - `$LOCALAPPDATA` is a native path (`C:\Users\runneradmin\AppData\Local`) and backslashes are escapes to
+#     the globber, so it has to be converted rather than interpolated. `build.yml`'s "Kill leftover JVMs"
+#     step already documents this trap; this is the same `cygpath` call.
+#   - `~` is not a safe substitute. GitHub runs every `shell: bash` block as `bash --noprofile --norc`, so
+#     none of Git Bash's startup files run and `$HOME` is whatever the runner exported — which is not
+#     guaranteed to be a POSIX path, and is not guaranteed to be the account whose LOCALAPPDATA bleep used.
+#
+# Every candidate root is echoed with what was found under it, so a run that collects nothing says which
+# paths it looked at instead of printing one unfalsifiable "nothing to summarise".
 #
 # Never fails the caller — a diagnostic that breaks the run it is diagnosing is worse than no diagnostic.
 set -uo pipefail
@@ -22,14 +32,36 @@ shopt -s nullglob
 
 out=${1:-bsp-diagnostics}
 
-dirs=(
-  ~/.cache/bleep/socket/*/               # linux (XDG)
-  ~/Library/Caches/build.bleep/socket/*/ # macos
-  ~/AppData/Local/bleep/cache/socket/*/  # windows
+roots=(
+  "$HOME/.cache/bleep"               # linux (XDG)
+  "$HOME/Library/Caches/build.bleep" # macos
 )
 
+if [ -n "${LOCALAPPDATA:-}" ]; then
+  if command -v cygpath >/dev/null 2>&1; then
+    roots+=("$(cygpath "$LOCALAPPDATA")/bleep/cache")
+  else
+    # Only reachable if something other than Git Bash is running this on Windows. Say so rather than
+    # appending a backslash path that would silently match nothing.
+    echo "::warning::LOCALAPPDATA is set but cygpath is not on PATH — cannot resolve the Windows cache dir"
+  fi
+fi
+
+echo "compile-server socket dirs:"
+dirs=()
+for root in "${roots[@]}"; do
+  socket="$root/socket"
+  if [ -d "$socket" ]; then
+    here=("$socket"/*/)
+    echo "  $socket — ${#here[@]} server dir(s)"
+    dirs+=("${here[@]}")
+  else
+    echo "  $socket — absent"
+  fi
+done
+
 if [ ${#dirs[@]} -eq 0 ]; then
-  echo "no compile-server socket dirs — nothing to summarise"
+  echo "no compile-server socket dirs under any of the above — nothing to summarise"
   exit 0
 fi
 
@@ -38,7 +70,11 @@ for d in "${dirs[@]}"; do
   name=$(basename "$d")
   mkdir -p "$out/$name"
   for f in "$d"metrics.jsonl "$d"output "$d"output.1 "$d"output.2; do
-    [ -f "$f" ] && cp "$f" "$out/$name/"
+    [ -f "$f" ] || continue
+    cp "$f" "$out/$name/"
+    # Sizes in the log because an empty metrics.jsonl and a missing one are different failures, and the
+    # artifact listing alone does not distinguish them.
+    echo "  collected $name/$(basename "$f") ($(wc -c <"$f" | tr -d ' ') bytes)"
   done
 done
 
