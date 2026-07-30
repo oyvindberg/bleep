@@ -1,8 +1,9 @@
 package bleep.depcheck
 
+import bleep.internal.coursierDeps.configurationOrThrow
 import bleep.nosbt.librarymanagement
 import coursier.core.*
-import coursier.core.Resolution.ModuleVersion
+import coursier.core.Resolution.ModuleVersionConstraint
 import coursier.util.Print
 import ryddig.Logger
 
@@ -16,7 +17,7 @@ object UpdateRun {
   ): Map[Configuration, Set[Dependency]] = {
 
     val allDepsByConfig = depsByConfig.map { case (config, deps) =>
-      config -> res(config).subset(deps).minDependencies
+      config -> res(config).subset0(deps).fold(err => throw err, _.minDependencies)
     }
 
     val filteredAllDepsByConfig = allDepsByConfig.map { case (config, allDeps) =>
@@ -38,11 +39,11 @@ object UpdateRun {
   ): Set[Dependency] =
     allDependenciesByConfig(res, depsByConfig, configs)
       .flatMap { case (config, deps) =>
-        deps.map(dep => dep.withConfiguration(config --> dep.configuration))
+        deps.map(dep => dep.withVariantSelector(VariantSelector.ConfigurationBased(config --> dep.configurationOrThrow)))
       }
-      .groupBy(_.withConfiguration(Configuration.empty))
+      .groupBy(_.withVariantSelector(VariantSelector.emptyConfiguration))
       .map { case (dep, l) =>
-        dep.withConfiguration(Configuration.join(l.map(_.configuration).toSeq*))
+        dep.withVariantSelector(VariantSelector.ConfigurationBased(Configuration.join(l.map(_.configurationOrThrow).toSeq*)))
       }
       .toSet
 
@@ -55,8 +56,8 @@ object UpdateRun {
     if (verbosityLevel >= 2) {
       val depsByConfig = grouped(params.dependencies)
       val finalDeps = dependenciesWithConfig(params.res, depsByConfig, params.configs)
-      val projCache = params.res.values.foldLeft(Map.empty[ModuleVersion, Project])(_ ++ _.projectCache.map { case (k, (_, v)) => (k, v) })
-      val repr = Print.dependenciesUnknownConfigs(finalDeps.toVector, projCache)
+      val projCache = params.res.values.foldLeft(Map.empty[ModuleVersionConstraint, Project])(_ ++ _.projectCache0.map { case (k, (_, v)) => (k, v) })
+      val repr = Print.dependenciesUnknownConfigs0(finalDeps.toVector, projCache)
       log.info(repr.split('\n').map("  " + _).mkString("\n"))
     }
 

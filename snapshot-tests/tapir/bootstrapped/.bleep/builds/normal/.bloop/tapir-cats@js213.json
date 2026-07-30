@@ -139,45 +139,12 @@
       "modules": [
         {
           "organization": "org.scala-js",
-          "name": "scalajs-javalib",
-          "version": "1.19.0",
-          "artifacts": [
-            {
-              "name": "scalajs-javalib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.19.0/scalajs-library_2.13-1.19.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_sjs1_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.13/1.5.0/core_sjs1_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-locales_sjs1_2.13",
-          "version": "1.5.4",
-          "artifacts": [
-            {
-              "name": "scala-java-locales_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.5.4/scala-java-locales_sjs1_2.13-1.5.4.jar"
             }
           ]
         },
@@ -193,6 +160,28 @@
           ]
         },
         {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_sjs1_2.13",
+          "version": "4.5.0",
+          "artifacts": [
+            {
+              "name": "cldr-api_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/4.5.0/cldr-api_sjs1_2.13-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_sjs1_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.13/2.13.0/cats-core_sjs1_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.13",
           "version": "1.7.14",
@@ -200,17 +189,6 @@
             {
               "name": "core_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.13/1.7.14/core_sjs1_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_sjs1_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.13.0/cats-kernel_sjs1_2.13-2.13.0.jar"
             }
           ]
         },
@@ -237,6 +215,17 @@
           ]
         },
         {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_sjs1_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.13/1.1.10/magnolia_sjs1_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
@@ -248,13 +237,35 @@
           ]
         },
         {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-time_sjs1_2.13",
-          "version": "2.6.0",
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.19.0",
           "artifacts": [
             {
-              "name": "scala-java-time_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.6.0/scala-java-time_sjs1_2.13-2.6.0.jar"
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_sjs1_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.13.0/cats-kernel_sjs1_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_sjs1_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.13/1.5.0/core_sjs1_2.13-1.5.0.jar"
             }
           ]
         },
@@ -270,35 +281,24 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-core_sjs1_2.13",
-          "version": "2.13.0",
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_sjs1_2.13",
+          "version": "1.5.4",
           "artifacts": [
             {
-              "name": "cats-core_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.13/2.13.0/cats-core_sjs1_2.13-2.13.0.jar"
+              "name": "scala-java-locales_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.5.4/scala-java-locales_sjs1_2.13-1.5.4.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
-          "name": "cldr-api_sjs1_2.13",
-          "version": "4.5.0",
+          "name": "scala-java-time_sjs1_2.13",
+          "version": "2.6.0",
           "artifacts": [
             {
-              "name": "cldr-api_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/4.5.0/cldr-api_sjs1_2.13-4.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_sjs1_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.13/1.1.10/magnolia_sjs1_2.13-1.1.10.jar"
+              "name": "scala-java-time_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.6.0/scala-java-time_sjs1_2.13-2.6.0.jar"
             }
           ]
         }

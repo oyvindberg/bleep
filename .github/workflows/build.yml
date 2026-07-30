@@ -128,22 +128,32 @@ jobs:
           - os: ubuntu-22.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
+            dev_script: bleep-cli.sh
+            ni_script: ni-build.sh
             bootstrap_coursier: false
           - os: ubuntu-22.04-arm
             file_name: bleep
             artifact_name: bleep-arm64-pc-linux
+            dev_script: bleep-cli.sh
+            ni_script: ni-build.sh
             bootstrap_coursier: true
           - os: macos-15-intel
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
+            dev_script: bleep-cli.sh
+            ni_script: ni-build.sh
             bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
+            dev_script: bleep-cli.sh
+            ni_script: ni-build.sh
             bootstrap_coursier: false
           - os: windows-latest
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
+            dev_script: bleep-cli.bat
+            ni_script: ni-build.cmd
             bootstrap_coursier: false
     steps:
       - uses: actions/checkout@v7
@@ -190,123 +200,102 @@ jobs:
           printf 'bspServerConfig:\n  testIdleTimeoutMinutes: 10\n' > "$CONFIG_FILE"
           cat "$CONFIG_FILE"
 
-      - name: Build native image (non-windows)
+      # Every step below is `shell: bash` on every OS — GitHub's Windows runners ship Git Bash, and it runs `.bat`/`.cmd` through the Windows loader just fine.
+      # This used to be a parallel universe of eight `shell: cmd` / `shell: pwsh` Windows steps, kept that way because bleep could not resolve its own cache and
+      # config directories without shelling out to `powershell.exe -EncodedCommand` and compiling C# with `Add-Type` on every single invocation. That is gone
+      # (coursier-paths 2.1.25 resolves Windows known folders with an FFM call to SHGetKnownFolderPath instead), so the only real per-OS difference left is the
+      # name of the two generated launcher scripts — hence `matrix.dev_script` / `matrix.ni_script`.
+      #
+      # `shell: bash` also means GitHub runs each block with `set -eo pipefail`, so *every* command's exit code is load-bearing. The old `shell: cmd` blocks
+      # propagated only the last command's status, which is how 42 Windows test failures stayed hidden behind green runs (#607).
+      - name: Compile and publish locally
+        shell: bash
         env:
-          # Tell GenNativeImage to write a stand-alone launcher script instead of running the build inline. The bleep CLI's script subcommand parser only takes
-          # positional args (Opts.arguments[String]), so we can't pass `--emit-script <path>` as a script arg — env var is the cleanest bridge.
-          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.sh
+          # Windows only, and aimed at one specific failure: this step dies with `Build failed: Input length = 1`,
+          # which is a MalformedInputException out of a strict UTF-8 decode.
+          #
+          # The bleep running here is the *released* M9 from the setup action, not this checkout — the dev script
+          # does not exist until two steps later. M9 read the compile server's `output` log with
+          # `Files.readString` to decide readiness (BspServerOperations.isReady) and to build error messages
+          # (BspRifle.readOutput/readOutputTail). Both throw on the first byte that is not valid UTF-8. Master has
+          # since removed that read (#617) and made the survivors lossy (#626), but neither can help here: M9's
+          # code is fixed on disk.
+          #
+          # What we *can* change is what goes into the log. With stdout redirected to a file, a JDK 19+ JVM picks
+          # `native.encoding` for `stdout.encoding` — on Windows the ANSI codepage, not UTF-8. Anything non-ASCII
+          # and mappable then lands as a single high byte, which is invalid UTF-8; unmappable characters (bleep's
+          # log emoji) land as `?`, and the log for this job shows exactly that mangling. Forcing UTF-8 makes the
+          # bytes decodable by the reader M9 already has.
+          #
+          # JAVA_TOOL_OPTIONS rather than a bleep flag because the writer is the *server* JVM that the client
+          # spawns, and JAVA_TOOL_OPTIONS is inherited by children. Cost is a "Picked up JAVA_TOOL_OPTIONS" line
+          # per JVM.
+          JAVA_TOOL_OPTIONS: ${{ runner.os == 'Windows' && '-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8' || '' }}
         run: |
           bleep sourcegen
           bleep compile bleep-cli
           bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
+
+      # Windows-only and genuinely so: mandatory file locks. `compile-server stop-all` can fail to remove socket directories while a JVM still holds them,
+      # and the BSP classpath cache has to go so the dev script re-resolves the jars we just published to ivy local rather than reusing the pre-publish set.
+      - name: Kill leftover JVMs and clear BSP caches (windows)
+        shell: bash
+        if: runner.os == 'Windows'
+        run: |
+          # `//F` `//IM`, not `/F` `/IM`: MSYS would otherwise rewrite a leading single slash into a Windows path.
+          taskkill //F //IM java.exe || true
+          sleep 3
+          # `UserPaths.cacheDir` on Windows, confirmed against a real runner log: C:\Users\runneradmin\AppData\Local\bleep\cache. $LOCALAPPDATA is a native
+          # Windows path, which Git Bash's `rm` will not accept, so convert it. The predecessor of this step looked under %USERPROFILE%\.bleep\cache — a
+          # directory bleep has never used on Windows — so the classpath-cache deletion below silently matched nothing on every run.
+          cache=$(cygpath "$LOCALAPPDATA")/bleep/cache
+          rm -rf "$cache/socket"
+          found=0
+          for f in "$cache"/bleep-bsp-classpath-*.txt; do
+            [ -e "$f" ] || continue
+            echo "Deleting BSP classpath cache: $f"
+            rm -f "$f"
+            found=1
+          done
+          # Loud rather than silent: if this stops matching, the dev script starts resolving bleep-bsp from a pre-publish classpath and the job tests the
+          # wrong jars. That is exactly the failure the old wrong-directory version hid.
+          if [ "$found" = 0 ]; then
+            echo "::warning::no bleep-bsp-classpath-*.txt found under $cache — has UserPaths.cacheDir moved?"
+            ls -la "$cache" || true
+          fi
+
+      - name: Build native image
+        shell: bash
+        env:
+          # Tell GenNativeImage to write a stand-alone launcher script instead of running the build inline. The bleep CLI's script subcommand parser only takes
+          # positional args (Opts.arguments[String]), so we can't pass `--emit-script <path>` as a script arg — env var is the cleanest bridge. GenNativeImage
+          # picks batch vs POSIX shell off the extension, which is why this is a matrix value.
+          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ${{ matrix.ni_script }}
+        run: |
           bleep setup-dev-script bleep-cli
           # Two-phase native-image: first compile GenNativeImage and emit a stand-alone launcher (BSP server still alive). Then shut the compile-server down so
           # its heap is released, and finally run the launcher — `native-image` gets the whole RAM budget to itself. Matters most on memory-constrained runners
           # (mac arm).
-          ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
+          ./${{ matrix.dev_script }} --dev native-image ${{ matrix.file_name }}
           bleep config compile-server stop-all
-          ./ni-build.sh
+          ./${{ matrix.ni_script }}
 
-        if: runner.os != 'Windows'
-
-      - name: Test binary after build (non-windows)
+      - name: Test binary after build
+        shell: bash
         env:
           CI: true
         # `--exclude-tag slow` skips the integration tests (**IT) — those run in the `build` job, which is the canonical full-suite gate. Native-image jobs
         # exercise the binary, not the test surface, so the IT bracket would only slow this matrix down.
+        #
+        # `jvm3` on every arch including Windows. Windows once tested only `bleep-tests`, so `bleep-bsp-tests` — the compiler, BSP, process and linker
+        # machinery, i.e. the most platform-sensitive half of the suite — had never run there. See the banner at the top of this job.
+        #
+        # `selftest` reaches the two FFM surfaces in the binary unconditionally (kernel32 for the terminal, SHGetKnownFolderPath for the user directories).
+        # Both need `foreign` reachability metadata; without it the native image aborts at runtime and only a real Windows user finds out (#601).
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           ./${{ matrix.file_name }} selftest
-        if: runner.os != 'Windows'
-
-        # Windows: cmd shell, one command per step
-      - name: Sourcegen (windows)
-        run: bleep sourcegen
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Compile (windows)
-        run: bleep compile
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Restart compile server before publish (windows)
-        run: bleep config compile-server stop-all
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Publish locally (windows)
-        shell: bash
-        run: bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
-        if: runner.os == 'Windows'
-      - name: Setup GraalVM (windows)
-        uses: graalvm/setup-graalvm@v1
-        if: runner.os == 'Windows'
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          distribution: 'graalvm-community'
-          java-version: '25.0.1'
-          native-image-job-reports: 'true'
-      - name: Stop compile server and clean state (windows)
-        shell: pwsh
-        if: runner.os == 'Windows'
-        run: |
-          $ErrorActionPreference = 'Continue'
-          # Force kill any remaining java processes (BSP servers)
-          # Must do this before compile-server stop-all to avoid Windows file locking issues
-          & taskkill /F /IM java.exe 2>$null
-          Start-Sleep -Seconds 3
-          # Clean up socket directories manually since stop-all may fail with locked files
-          $socketDir = Join-Path $env:USERPROFILE ".bleep" "cache" "socket"
-          if (Test-Path $socketDir) {
-            Remove-Item -Path $socketDir -Recurse -Force -ErrorAction SilentlyContinue
-          }
-          $cacheSocketDir = Join-Path $env:LOCALAPPDATA "bleep" "cache" "socket"
-          if (Test-Path $cacheSocketDir) {
-            Remove-Item -Path $cacheSocketDir -Recurse -Force -ErrorAction SilentlyContinue
-          }
-          # Delete BSP classpath cache so the dev server re-resolves from ivy local
-          $cacheDir = Join-Path $env:USERPROFILE ".bleep" "cache"
-          Get-ChildItem -Path $cacheDir -Filter "bleep-bsp-classpath-*.txt" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Deleting BSP classpath cache: $($_.FullName)"
-            Remove-Item -Path $_.FullName -Force -ErrorAction SilentlyContinue
-          }
-          exit 0
-      - name: Setup dev script (windows)
-        run: bleep setup-dev-script bleep-cli
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Emit native-image launcher (windows)
-        env:
-          BLEEP_NATIVE_IMAGE_EMIT_SCRIPT: ni-build.cmd
-        run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Stop compile-server before native-image (windows)
-        run: bleep config compile-server stop-all
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Build native image (windows)
-        run: ni-build.cmd
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Test binary after build (windows)
-        env:
-          CI: true
-        # Slow ITs run in the `build` job — see the non-windows test step for rationale.
-        #
-        # Tests `jvm3`, same as every other arch in this matrix. This used to test only `bleep-tests`, so `bleep-bsp-tests` — the compiler, BSP, process and
-        # linker machinery, i.e. the most platform-sensitive half of the suite — had never once run on Windows. That is 177 tests here against 742 everywhere
-        # else. Windows is not a second-class arch; see the banner at the top of this job.
-        #
-        # `shell: pwsh` with an explicit $LASTEXITCODE check after every command. This used to be `shell: cmd`, where a multi-line `run:` reports only the LAST
-        # command's exit code — so `bleep test` failing was silently discarded and only `selftest` decided the step. That hid 42 real Windows test failures
-        # across every green run of this job.
-        shell: pwsh
-        run: |
-          .\${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
-          if ($LASTEXITCODE -ne 0) { Write-Host "::error::bleep test failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
-          .\${{ matrix.file_name }} selftest
-          if ($LASTEXITCODE -ne 0) { Write-Host "::error::bleep selftest failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
-        if: runner.os == 'Windows'
 
       # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
       # it those arches were invisible: no metrics, no server log, nothing to read when a job hung or was

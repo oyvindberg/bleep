@@ -297,13 +297,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.12",
-          "version": "1.6.0",
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.12",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "jawn-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
+              "name": "zio-internal-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-interop-tracer_2.12",
+          "version": "23.1.0.5",
+          "artifacts": [
+            {
+              "name": "zio-interop-tracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-interop-tracer_2.12/23.1.0.5/zio-interop-tracer_2.12-23.1.0.5.jar"
             }
           ]
         },
@@ -319,331 +330,35 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.12",
+          "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.13",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.6.1/cats-effect-std_2.12-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-jawn_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-jawn_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-stacktracer_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-stacktracer_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-json_2.12",
-          "version": "0.7.42",
-          "artifacts": [
-            {
-              "name": "zio-json_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.7.42/zio-json_2.12-0.7.42.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.18/scalatest-core_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-macros_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.12/1.7.0/zio-schema-macros_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.client4",
-          "name": "cats_2.12",
-          "version": "4.0.8",
-          "artifacts": [
-            {
-              "name": "cats_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.12/4.0.8/cats_2.12-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.common",
-          "name": "tagging_2.12",
-          "version": "2.3.5",
-          "artifacts": [
-            {
-              "name": "tagging_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.5/tagging_2.12-2.3.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.4",
-          "artifacts": [
-            {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalactic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.18/scalactic_2.12-3.2.18.jar"
+              "name": "scalatest-mustmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
-          "name": "netty-transport",
+          "name": "netty-common",
           "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "netty-transport",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.1.Final/netty-transport-4.2.1.Final.jar"
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
             }
           ]
         },
         {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.12",
-          "version": "3.6.0",
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.12",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "ip4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-resolver",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-resolver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-prelude-macros_2.12",
-          "version": "1.0.0-RC39",
-          "artifacts": [
-            {
-              "name": "zio-prelude-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.12/1.0.0-RC39/zio-prelude-macros_2.12-1.0.0-RC39.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-compression",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-compression",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "unroll-annotation_2.12",
-          "version": "0.1.12",
-          "artifacts": [
-            {
-              "name": "unroll-annotation_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-native-epoll",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-x86_64.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "<MASKED_OS>-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-aarch_64.jar"
+              "name": "scalatest-wordspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
             }
           ]
         },
@@ -655,6 +370,17 @@
             {
               "name": "circe-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
             }
           ]
         },
@@ -671,144 +397,45 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.12",
+          "name": "scalatest_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-wordspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
+              "name": "scalatest_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-prelude-macros_2.12",
+          "version": "1.0.0-RC39",
+          "artifacts": [
+            {
+              "name": "zio-prelude-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.12/1.0.0-RC39/zio-prelude-macros_2.12-1.0.0-RC39.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.12",
+          "name": "scalatest-funspec_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-mustmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-reactive-streams_2.12",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "fs2-reactive-streams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.12.0/fs2-reactive-streams_2.12-3.12.0.jar"
+              "name": "scalatest-funspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.client4",
-          "name": "fs2_2.12",
+          "name": "cats_2.12",
           "version": "4.0.8",
           "artifacts": [
             {
-              "name": "fs2_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_2.12/4.0.8/fs2_2.12-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-socks",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-socks",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.1.Final/netty-codec-socks-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-constraintless_2.12",
-          "version": "0.3.3",
-          "artifacts": [
-            {
-              "name": "zio-constraintless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.12/0.3.3/zio-constraintless_2.12-0.3.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-protobuf_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-protobuf_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.12/1.7.0/zio-schema-protobuf_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-generic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.12",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-parser_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
+              "name": "cats_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.12/4.0.8/cats_2.12-4.0.8.jar"
             }
           ]
         },
@@ -824,46 +451,13 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-codec-base",
-          "version": "4.2.1.Final",
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "fs2_2.12",
+          "version": "4.0.8",
           "artifacts": [
             {
-              "name": "netty-codec-base",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-internal-macros_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-internal-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-json_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-json_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.12/1.7.0/zio-schema-json_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
+              "name": "fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_2.12/4.0.8/fs2_2.12-4.0.8.jar"
             }
           ]
         },
@@ -875,6 +469,72 @@
             {
               "name": "logback-classic",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-prelude_2.12",
+          "version": "1.0.0-RC39",
+          "artifacts": [
+            {
+              "name": "zio-prelude_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_2.12/1.0.0-RC39/zio-prelude_2.12-1.0.0-RC39.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.6.1/cats-effect-std_2.12-3.6.1.jar"
             }
           ]
         },
@@ -891,12 +551,111 @@
         },
         {
           "organization": "dev.zio",
-          "name": "izumi-reflect_2.12",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
           "version": "3.0.1",
           "artifacts": [
             {
-              "name": "izumi-reflect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.1.Final/netty-transport-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-interop-cats_2.12",
+          "version": "23.1.0.5",
+          "artifacts": [
+            {
+              "name": "zio-interop-cats_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-interop-cats_2.12/23.1.0.5/zio-interop-cats_2.12-23.1.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-macros_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.12/1.7.0/zio-schema-macros_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.1.Final/netty-codec-socks-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.common",
+          "name": "tagging_2.12",
+          "version": "2.3.5",
+          "artifacts": [
+            {
+              "name": "tagging_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.5/tagging_2.12-2.3.5.jar"
             }
           ]
         },
@@ -912,61 +671,6 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-handler-proxy",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-classes-epoll",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-classes-epoll",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.12",
-          "version": "1.3.1",
-          "artifacts": [
-            {
-              "name": "cats-mtl_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.12",
           "version": "3.2.18",
@@ -978,90 +682,13 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-buffer",
-          "version": "4.2.1.Final",
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.12",
+          "version": "1.6.0",
           "artifacts": [
             {
-              "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-http_2.12",
-          "version": "3.3.3",
-          "artifacts": [
-            {
-              "name": "zio-http_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.12/3.3.3/zio-http_2.12-3.3.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "zio_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.5.0/zio_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.beachape",
-          "name": "enumeratum-macros_2.12",
-          "version": "1.7.5",
-          "artifacts": [
-            {
-              "name": "enumeratum-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.7.5/enumeratum-macros_2.12-1.7.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-common",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.1.Final/netty-common-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-io_2.12",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "fs2-io_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.12.0/fs2-io_2.12-3.12.0.jar"
+              "name": "jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
             }
           ]
         },
@@ -1087,68 +714,35 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.13.0",
+          "organization": "com.beachape",
+          "name": "enumeratum_2.12",
+          "version": "1.7.6",
           "artifacts": [
             {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-schema-derivation_2.12",
-          "version": "1.7.0",
-          "artifacts": [
-            {
-              "name": "zio-schema-derivation_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_2.12/1.7.0/zio-schema-derivation_2.12-1.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-transport-classes-kqueue",
-          "version": "4.2.1.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-classes-kqueue",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.1.Final/netty-transport-classes-kqueue-4.2.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "literally_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+              "name": "enumeratum_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.12",
+          "name": "scalatest-compatible",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-featurespec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar"
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-protobuf_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-protobuf_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.12/1.7.0/zio-schema-protobuf_2.12-1.7.0.jar"
             }
           ]
         },
@@ -1164,90 +758,134 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.client4",
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.1.Final/netty-handler-proxy-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.1.Final/netty-buffer-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "unroll-annotation_2.12",
+          "version": "0.1.12",
+          "artifacts": [
+            {
+              "name": "unroll-annotation_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.5.0/zio_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
-          "version": "4.0.8",
+          "version": "1.5.0",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.12/4.0.8/core_2.12-4.0.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-interop-tracer_2.12",
-          "version": "23.1.0.5",
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.14",
           "artifacts": [
             {
-              "name": "zio-interop-tracer_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-interop-tracer_2.12/23.1.0.5/zio-interop-tracer_2.12-23.1.0.5.jar"
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
             }
           ]
         },
         {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.12",
-          "version": "3.12.0",
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.1.Final",
           "artifacts": [
             {
-              "name": "fs2-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.12.0/fs2-core_2.12-3.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.12",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.1.Final/netty-codec-compression-4.2.1.Final.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.12",
+          "name": "scalatest-diagrams_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-propspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+              "name": "scalatest-diagrams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.12",
-          "version": "3.2.18",
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.12",
+          "version": "3.6.1",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar"
+              "name": "cats-effect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
             }
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.12",
+          "organization": "org.scalactic",
+          "name": "scalactic_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-funsuite_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+              "name": "scalactic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.18/scalactic_2.12-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-prelude_2.12",
-          "version": "1.0.0-RC39",
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
           "artifacts": [
             {
-              "name": "zio-prelude_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_2.12/1.0.0-RC39/zio-prelude_2.12-1.0.0-RC39.jar"
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
             }
           ]
         },
@@ -1263,6 +901,193 @@
           ]
         },
         {
+          "organization": "dev.zio",
+          "name": "zio-constraintless_2.12",
+          "version": "0.3.3",
+          "artifacts": [
+            {
+              "name": "zio-constraintless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.12/0.3.3/zio-constraintless_2.12-0.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "core_2.12",
+          "version": "4.0.8",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_2.12/4.0.8/core_2.12-4.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_2.12",
+          "version": "1.3.1",
+          "artifacts": [
+            {
+              "name": "cats-mtl_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.1.Final/netty-transport-classes-epoll-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.1.Final/netty-codec-base-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.1.Final/netty-handler-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-json_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-json_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.12/1.7.0/zio-schema-json_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.1.Final/netty-resolver-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.2.1.Final",
@@ -1270,6 +1095,17 @@
             {
               "name": "netty-codec-http",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.1.Final/netty-codec-http-4.2.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.12",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
             }
           ]
         },
@@ -1285,24 +1121,188 @@
           ]
         },
         {
-          "organization": "com.beachape",
-          "name": "enumeratum_2.12",
-          "version": "1.7.6",
+          "organization": "co.fs2",
+          "name": "fs2-core_2.12",
+          "version": "3.12.0",
           "artifacts": [
             {
-              "name": "enumeratum_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
+              "name": "fs2-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.12.0/fs2-core_2.12-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.18/scalatest-core_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "dev.zio",
-          "name": "zio-interop-cats_2.12",
-          "version": "23.1.0.5",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.1",
           "artifacts": [
             {
-              "name": "zio-interop-cats_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-interop-cats_2.12/23.1.0.5/zio-interop-cats_2.12-23.1.0.5.jar"
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.12",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.12.0/fs2-io_2.12-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-derivation_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "zio-schema-derivation_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_2.12/1.7.0/zio-schema-derivation_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.12",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.2.1.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.1.Final/netty-transport-native-epoll-4.2.1.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-http_2.12",
+          "version": "3.3.3",
+          "artifacts": [
+            {
+              "name": "zio-http_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.12/3.3.3/zio-http_2.12-3.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-reactive-streams_2.12",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-reactive-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.12.0/fs2-reactive-streams_2.12-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-json_2.12",
+          "version": "0.7.42",
+          "artifacts": [
+            {
+              "name": "zio-json_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.7.42/zio-json_2.12-0.7.42.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum-macros_2.12",
+          "version": "1.7.5",
+          "artifacts": [
+            {
+              "name": "enumeratum-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.7.5/enumeratum-macros_2.12-1.7.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
             }
           ]
         }

@@ -1,0 +1,33 @@
+{
+  "comment": [
+    "coursier-paths is a multi-release jar: on JDK 22+ `coursier.paths.shaded.dirs.impl.WindowsDefault` (from META-INF/versions/22) resolves Windows known",
+    "folders with `WindowsForeign`, which links two FFM downcalls into shell32/ole32. Native image refuses unregistered downcalls at runtime with",
+    "MissingForeignRegistrationError -- the exact failure mode of #601 -- and `UserPaths.fromAppDirs` is the first thing `Main._main` runs, so an unregistered",
+    "downcall means the binary aborts before doing anything. Registration matches on descriptor shape, not symbol name.",
+    "",
+    "  CLSIDFromString(LPCOLESTR lpsz, LPCLSID pclsid) -> HRESULT              jint (void*, void*)",
+    "  SHGetKnownFolderPath(REFKNOWNFOLDERID, DWORD, HANDLE, PWSTR*) -> HRESULT  jint (void*, jint, void*, void*)",
+    "",
+    "`bleep selftest` resolves the user paths unconditionally so CI has to link these -- see Main.selftestUserPaths."
+  ],
+  "foreign": {
+    "downcalls": [
+      {
+        "returnType": "jint",
+        "parameterTypes": [
+          "void*",
+          "void*"
+        ]
+      },
+      {
+        "returnType": "jint",
+        "parameterTypes": [
+          "void*",
+          "jint",
+          "void*",
+          "void*"
+        ]
+      }
+    ]
+  }
+}

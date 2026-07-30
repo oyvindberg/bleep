@@ -327,7 +327,7 @@ object ResolveProjects {
             ResolvedProject.ResolvedModule(
               organization = module.organization.value,
               name = module.name.value,
-              version = dep.version,
+              version = dep.versionConstraint.asString,
               artifacts = files
                 .map { case (_, pub, _, file) =>
                   ResolvedProject.ResolvedArtifact(

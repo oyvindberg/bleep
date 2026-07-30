@@ -129,24 +129,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.11.12",
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.11",
+          "version": "3.0.2",
           "artifacts": [
             {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+              "name": "fastparse_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
             }
           ]
         },
@@ -173,13 +162,24 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.11",
-          "version": "3.0.2",
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.11.12",
           "artifacts": [
             {
-              "name": "fastparse_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
             }
           ]
         }

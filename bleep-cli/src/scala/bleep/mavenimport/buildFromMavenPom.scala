@@ -692,7 +692,7 @@ object buildFromMavenPom {
     val coursierDeps = testDeps.map { dep =>
       coursier.Dependency(
         coursier.Module(Organization(dep.groupId), ModuleName(dep.artifactId)),
-        dep.version
+        coursier.version.VersionConstraint(dep.version)
       )
     }
 

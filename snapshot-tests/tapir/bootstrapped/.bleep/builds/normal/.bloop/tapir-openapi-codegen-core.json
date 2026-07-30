@@ -126,57 +126,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.13",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.circe",
-          "name": "circe-yaml_2.12",
-          "version": "0.15.2",
+          "name": "circe-core_2.12",
+          "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-yaml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
             }
           ]
         },
@@ -192,13 +148,24 @@
           ]
         },
         {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.circe",
-          "name": "circe-core_2.12",
+          "name": "circe-numbers_2.12",
           "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
             }
           ]
         },
@@ -210,6 +177,39 @@
             {
               "name": "jsoniter-scala-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.36.4/jsoniter-scala-macros_2.12-2.36.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
@@ -226,12 +226,12 @@
         },
         {
           "organization": "io.circe",
-          "name": "circe-generic_2.12",
-          "version": "0.14.14",
+          "name": "circe-yaml_2.12",
+          "version": "0.15.2",
           "artifacts": [
             {
-              "name": "circe-generic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
+              "name": "circe-yaml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar"
             }
           ]
         },
@@ -247,13 +247,13 @@
           ]
         },
         {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.12",
-          "version": "0.14.14",
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
             }
           ]
         }

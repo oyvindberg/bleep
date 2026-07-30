@@ -2,6 +2,7 @@ package bleep
 
 import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
+import bleep.internal.coursierDeps.{configurationOrThrow, fullDetailedArtifactsOrThrow}
 import bleep.internal.FileUtils
 import coursier.cache.CacheDefaults
 import coursier.core.*
@@ -12,6 +13,7 @@ import coursier.params.ResolutionParams
 import coursier.params.rule.SameVersion
 import coursier.util.ModuleMatcher
 import coursier.util.{Artifact, Task}
+import coursier.version.VersionConstraint
 import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
 import io.circe.syntax.*
@@ -143,10 +145,10 @@ object CoursierResolver {
       Codec.forProduct4[Publication, String, Type, Extension, Classifier]("name", "type", "ext", "classifier")(Publication.apply)(mod => (mod.name, mod.`type`, mod.ext, mod.classifier))
 
     implicit val codecDependency: Codec[Dependency] =
-      Codec.forProduct7[Dependency, Module, String, Configuration, Set[(Organization, ModuleName)], Publication, Boolean, Boolean]("module", "version", "configuration", "exclusions", "publication", "optional", "transitive")(Dependency.apply)(x => (x.module, x.version, x.configuration, x.minimizedExclusions.toSet(), x.publication, x.optional, x.transitive))
+      Codec.forProduct7[Dependency, Module, String, Configuration, Set[(Organization, ModuleName)], Publication, Boolean, Boolean]("module", "version", "configuration", "exclusions", "publication", "optional", "transitive")((module, version, configuration, exclusions, publication, optional, transitive) => Dependency(module, VersionConstraint(version), VariantSelector.ConfigurationBased(configuration), exclusions, publication, optional, transitive))(x => (x.module, x.versionConstraint.asString, x.configurationOrThrow, x.minimizedExclusions.toSet(), x.publication, x.optional, x.transitive))
 
     implicit val codecAuthentication: Codec[Authentication] =
-      Codec.forProduct7[Authentication, String, Option[String], Seq[(String, String)], Boolean, Option[String], Boolean, Boolean]("user", "passwordOpt", "httpHeaders", "optional", "realmOpt", "httpsOnly", "passOnRedirect")(Authentication.apply)(x => (x.user, x.passwordOpt, x.httpHeaders, x.optional, x.realmOpt, x.httpsOnly, x.passOnRedirect))
+      Codec.forProduct7[Authentication, Option[String], Option[String], Seq[(String, String)], Boolean, Option[String], Boolean, Boolean]("user", "passwordOpt", "httpHeaders", "optional", "realmOpt", "httpsOnly", "passOnRedirect")(Authentication.apply)(x => (x.userOpt, x.passwordOpt, x.httpHeaders, x.optional, x.realmOpt, x.httpsOnly, x.passOnRedirect))
 
     // break circular structure
     private implicit lazy val encoderMap: Encoder[Map[String, Artifact]] =
@@ -258,20 +260,20 @@ object CoursierResolver {
             // SameVersion rule (scala-reflect/scala-compiler don't exist as 3.x artifacts).
             ResolutionParams()
               .withForceScalaVersion(false)
-              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+              .withScalaVersionOpt0(Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
           case Some(sv) if sv.scalaVersion.is3Or213 =>
             // Scala 2.13/3 (pre-3.8): disable forceScalaVersion to allow scala-library upgrades.
             // scala-library IS added as an explicit dependency with scalaVersion, which acts as
             // a floor constraint. The SameVersion rule ensures all Scala artifacts stay aligned.
             ResolutionParams()
               .withForceScalaVersion(false)
-              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+              .withScalaVersionOpt0(Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
               .addRule(scalaArtifactsSameVersionRule)
           case _ =>
             // Scala 2.12 and older: force the scala version for forward binary compatibility
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)
-              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
+              .withScalaVersionOpt0(versionCombo.asScala.map(x => VersionConstraint(x.scalaVersion.scalaVersion)))
         }
 
         Fetch[Task](fileCache)
@@ -304,7 +306,7 @@ object CoursierResolver {
         ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, CoursierResolver.Result] =
       direct(bleepDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
-        .map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
+        .map(res => CoursierResolver.Result(res.fullDetailedArtifactsOrThrow, res.fullExtraArtifacts))
   }
 
   def asCoursierDeps(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, List[Dependency]] =
@@ -480,7 +482,7 @@ object CoursierResolver {
           // Reconstruct Result from lean format
           val detailedArtifacts = lean.artifacts.map { la =>
             val module = Module(Organization(la.org), ModuleName(la.name), Map.empty)
-            val dep = Dependency(module, la.version)
+            val dep = Dependency(module, VersionConstraint(la.version))
             val pub = Publication(
               la.name,
               if (la.ext == "jar") Type.jar else Type(la.ext),
@@ -520,7 +522,7 @@ object CoursierResolver {
         LeanArtifact(
           org = dep.module.organization.value,
           name = dep.module.name.value,
-          version = dep.version,
+          version = dep.versionConstraint.asString,
           classifier = if (pub.classifier == Classifier.empty) "" else pub.classifier.value,
           ext = pub.ext.value,
           path = fileOpt.map(_.getAbsolutePath).getOrElse("")
@@ -584,7 +586,7 @@ object CoursierResolver {
               ModuleName(classDir.getParent.getFileName.toString),
               Map.empty
             )
-            val dep = Dependency(module, "dev")
+            val dep = Dependency(module, VersionConstraint("dev"))
             val pub = Publication("", Type.jar, Extension.jar, Classifier.empty)
             val artifact =
               Artifact(classDir.toUri.toASCIIString, Map.empty, Map.empty, changing = false, optional = false, authentication = None)

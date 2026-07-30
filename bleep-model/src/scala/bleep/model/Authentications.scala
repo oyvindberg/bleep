@@ -33,7 +33,7 @@ object Authentications {
       "passOnRedirect"
     )((user, pass, headers, optional, realm, httpsOnly, redirect) =>
       Authentication(
-        user.getOrElse(""),
+        user,
         pass,
         headers.map(_.toList).getOrElse(Nil),
         optional.getOrElse(false),
@@ -41,7 +41,7 @@ object Authentications {
         httpsOnly.getOrElse(true),
         redirect.getOrElse(true)
       )
-    )(x => (Some(x.user), x.passwordOpt, Some(x.httpHeaders.toMap), Some(x.optional), x.realmOpt, Some(x.httpsOnly), Some(x.passOnRedirect)))
+    )(x => (x.userOpt, x.passwordOpt, Some(x.httpHeaders.toMap), Some(x.optional), x.realmOpt, Some(x.httpsOnly), Some(x.passOnRedirect)))
 
   private val privateRepoCodec: Codec[AuthEntry.PrivateRepo] =
     Codec.forProduct1[AuthEntry.PrivateRepo, Option[String]]("account")(account => AuthEntry.PrivateRepo(account))(x => x.account)

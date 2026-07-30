@@ -138,72 +138,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.beachape",
-          "name": "enumeratum_2.13",
-          "version": "1.7.6",
-          "artifacts": [
-            {
-              "name": "enumeratum_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.quicklens",
-          "name": "quicklens_2.13",
-          "version": "1.9.12",
-          "artifacts": [
-            {
-              "name": "quicklens_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/quicklens/quicklens_2.13/1.9.12/quicklens_2.13-1.9.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "openapi-model_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "openapi-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.13/0.11.9/openapi-model_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.sttp.apispec",
           "name": "asyncapi-model_2.13",
           "version": "0.11.9",
@@ -211,39 +145,6 @@
             {
               "name": "asyncapi-model_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/asyncapi-model_2.13/0.11.9/asyncapi-model_2.13-0.11.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.apispec",
-          "name": "apispec-model_2.13",
-          "version": "0.11.9",
-          "artifacts": [
-            {
-              "name": "apispec-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/apispec-model_2.13/0.11.9/apispec-model_2.13-0.11.9.jar"
             }
           ]
         },
@@ -259,6 +160,83 @@
           ]
         },
         {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "apispec-model_2.13",
+          "version": "0.11.9",
+          "artifacts": [
+            {
+              "name": "apispec-model_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/apispec-model_2.13/0.11.9/apispec-model_2.13-0.11.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.13",
+          "version": "1.7.6",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.13/1.7.6/enumeratum_2.13-1.7.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.apispec",
+          "name": "openapi-model_2.13",
+          "version": "0.11.9",
+          "artifacts": [
+            {
+              "name": "openapi-model_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/apispec/openapi-model_2.13/0.11.9/openapi-model_2.13-0.11.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.quicklens",
+          "name": "quicklens_2.13",
+          "version": "1.9.12",
+          "artifacts": [
+            {
+              "name": "quicklens_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/quicklens/quicklens_2.13/1.9.12/quicklens_2.13-1.9.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.13",
           "version": "1.7.5",
@@ -266,6 +244,28 @@
             {
               "name": "enumeratum-macros_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.13/1.7.5/enumeratum-macros_2.13-1.7.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
             }
           ]
         }

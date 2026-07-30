@@ -82,10 +82,10 @@ class MavenRemotePublisher(logger: Logger) {
       }
     }
 
-    authentication.passwordOpt match {
-      case Some(password) if authentication.user.nonEmpty =>
+    (authentication.userOpt, authentication.passwordOpt) match {
+      case (Some(user), Some(password)) if user.nonEmpty =>
         val encoded = Base64.getEncoder.encodeToString(
-          s"${authentication.user}:$password".getBytes(StandardCharsets.UTF_8)
+          s"$user:$password".getBytes(StandardCharsets.UTF_8)
         )
         builder.header("Authorization", s"Basic $encoded")
       case _ => ()

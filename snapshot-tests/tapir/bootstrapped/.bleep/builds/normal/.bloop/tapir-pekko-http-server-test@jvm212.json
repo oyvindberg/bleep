@@ -265,90 +265,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.12",
-          "version": "1.6.0",
+          "organization": "com.softwaremill.common",
+          "name": "tagging_2.12",
+          "version": "2.3.5",
           "artifacts": [
             {
-              "name": "jawn-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalactic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.18/scalactic_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.12",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-stream_2.12",
-          "version": "1.1.4",
-          "artifacts": [
-            {
-              "name": "pekko-stream_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.12/1.1.4/pekko-stream_2.12-1.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.12",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-numbers_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-slf4j_2.12",
-          "version": "1.1.4",
-          "artifacts": [
-            {
-              "name": "pekko-slf4j_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.12/1.1.4/pekko-slf4j_2.12-1.1.4.jar"
+              "name": "tagging_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.5/tagging_2.12-2.3.5.jar"
             }
           ]
         },
@@ -364,193 +287,6 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-diagrams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.13",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "pekko_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "pekko_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.12/1.5.0/pekko_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.6.1/cats-effect-std_2.12-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-jawn_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-jawn_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-flatspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-flatspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-actor_2.12",
-          "version": "1.1.4",
-          "artifacts": [
-            {
-              "name": "pekko-actor_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.12/1.1.4/pekko-actor_2.12-1.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "ssl-config-core_2.12",
-          "version": "0.6.1",
-          "artifacts": [
-            {
-              "name": "ssl-config-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.6.1/ssl-config-core_2.12-0.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.18/scalatest-core_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.client4",
-          "name": "cats_2.12",
-          "version": "4.0.8",
-          "artifacts": [
-            {
-              "name": "cats_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.12/4.0.8/cats_2.12-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.common",
-          "name": "tagging_2.12",
-          "version": "2.3.5",
-          "artifacts": [
-            {
-              "name": "tagging_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.5/tagging_2.12-2.3.5.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
@@ -558,171 +294,6 @@
             {
               "name": "reactive-streams",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.6.1/cats-effect-kernel_2.12-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-mustmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-reactive-streams_2.12",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "fs2-reactive-streams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.12.0/fs2-reactive-streams_2.12-3.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.client4",
-          "name": "fs2_2.12",
-          "version": "4.0.8",
-          "artifacts": [
-            {
-              "name": "fs2_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_2.12/4.0.8/fs2_2.12-4.0.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-generic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.12",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-parser_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-classic",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.parboiled",
-          "name": "parboiled_2.12",
-          "version": "2.5.1",
-          "artifacts": [
-            {
-              "name": "parboiled_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.12/2.5.1/parboiled_2.12-2.5.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.12",
-          "version": "1.3.1",
-          "artifacts": [
-            {
-              "name": "cats-mtl_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
             }
           ]
         },
@@ -739,6 +310,72 @@
         },
         {
           "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.12",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-protobuf-v3_2.12",
+          "version": "1.1.4",
+          "artifacts": [
+            {
+              "name": "pekko-protobuf-v3_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.12/1.1.4/pekko-protobuf-v3_2.12-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.6.1/cats-effect-kernel_2.12-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
           "name": "scalatest_2.12",
           "version": "3.2.18",
           "artifacts": [
@@ -750,89 +387,56 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.12",
+          "name": "scalatest-funspec_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-freespec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar"
+              "name": "scalatest-funspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "com.beachape",
-          "name": "enumeratum-macros_2.12",
-          "version": "1.7.5",
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "cats_2.12",
+          "version": "4.0.8",
           "artifacts": [
             {
-              "name": "enumeratum-macros_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.7.5/enumeratum-macros_2.12-1.7.5.jar"
+              "name": "cats_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_2.12/4.0.8/cats_2.12-4.0.8.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
+          "organization": "com.softwaremill.sttp.client4",
+          "name": "fs2_2.12",
+          "version": "4.0.8",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "name": "fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_2.12/4.0.8/fs2_2.12-4.0.8.jar"
             }
           ]
         },
         {
-          "organization": "co.fs2",
-          "name": "fs2-io_2.12",
-          "version": "3.12.0",
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.5.18",
           "artifacts": [
             {
-              "name": "fs2-io_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.12.0/fs2-io_2.12-3.12.0.jar"
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
             }
           ]
         },
         {
-          "organization": "org.apache.pekko",
-          "name": "pekko-parsing_2.12",
-          "version": "1.2.0",
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.12",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "pekko-parsing_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.12/1.2.0/pekko-parsing_2.12-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "literally_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+              "name": "scalatest-funsuite_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
             }
           ]
         },
@@ -848,6 +452,127 @@
           ]
         },
         {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-core_2.12",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "pekko-http-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.12/1.2.0/pekko-http-core_2.12-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.6.1/cats-effect-std_2.12-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.12",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.6.0/jawn-parser_2.12-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.12",
+          "version": "1.7.6",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.12",
           "version": "1.5.0",
@@ -859,6 +584,17 @@
           ]
         },
         {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.12",
+          "version": "1.0.2",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
@@ -866,6 +602,83 @@
             {
               "name": "config",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.parboiled",
+          "name": "parboiled_2.12",
+          "version": "2.5.1",
+          "artifacts": [
+            {
+              "name": "parboiled_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.12/2.5.1/parboiled_2.12-2.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalactic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.18/scalactic_2.12-3.2.18.jar"
             }
           ]
         },
@@ -882,67 +695,23 @@
         },
         {
           "organization": "org.apache.pekko",
-          "name": "pekko-protobuf-v3_2.12",
+          "name": "pekko-actor_2.12",
           "version": "1.1.4",
           "artifacts": [
             {
-              "name": "pekko-protobuf-v3_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.12/1.1.4/pekko-protobuf-v3_2.12-1.1.4.jar"
+              "name": "pekko-actor_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.12/1.1.4/pekko-actor_2.12-1.1.4.jar"
             }
           ]
         },
         {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.12",
-          "version": "3.12.0",
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
           "artifacts": [
             {
-              "name": "fs2-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.12.0/fs2-core_2.12-3.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-http-core_2.12",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "pekko-http-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.12/1.2.0/pekko-http-core_2.12-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pekko",
-          "name": "pekko-http_2.12",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "pekko-http_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.12/1.2.0/pekko-http_2.12-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.12",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
             }
           ]
         },
@@ -958,35 +727,266 @@
           ]
         },
         {
+          "organization": "org.apache.pekko",
+          "name": "pekko-slf4j_2.12",
+          "version": "1.1.4",
+          "artifacts": [
+            {
+              "name": "pekko-slf4j_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.12/1.1.4/pekko-slf4j_2.12-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.14/circe-parser_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_2.12",
+          "version": "1.3.1",
+          "artifacts": [
+            {
+              "name": "cats-mtl_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.12",
+          "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-funsuite_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+              "name": "scalatest-mustmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "pekko_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "pekko_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.12/1.5.0/pekko_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.14/circe-generic_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-stream_2.12",
+          "version": "1.1.4",
+          "artifacts": [
+            {
+              "name": "pekko-stream_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.12/1.1.4/pekko-stream_2.12-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.12",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.12.0/fs2-core_2.12-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.14/circe-jawn_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.12",
+          "version": "0.6.1",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.6.1/ssl-config-core_2.12-0.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http_2.12",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "pekko-http_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.12/1.2.0/pekko-http_2.12-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-parsing_2.12",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "pekko-parsing_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.12/1.2.0/pekko-parsing_2.12-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.18/scalatest-core_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.12",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.12.0/fs2-io_2.12-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.12",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-reactive-streams_2.12",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "fs2-reactive-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.12.0/fs2-reactive-streams_2.12-3.12.0.jar"
             }
           ]
         },
         {
           "organization": "com.beachape",
-          "name": "enumeratum_2.12",
-          "version": "1.7.6",
+          "name": "enumeratum-macros_2.12",
+          "version": "1.7.5",
           "artifacts": [
             {
-              "name": "enumeratum_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.6/enumeratum_2.12-1.7.6.jar"
+              "name": "enumeratum-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.7.5/enumeratum-macros_2.12-1.7.5.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-java8-compat_2.12",
-          "version": "1.0.2",
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.12",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scala-java8-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar"
+              "name": "scalatest-matchers-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
             }
           ]
         }

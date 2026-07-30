@@ -132,24 +132,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.eclipse.lsp4j",
-          "name": "org.eclipse.lsp4j.jsonrpc",
-          "version": "0.20.1",
+          "organization": "org.eclipse.xtext",
+          "name": "org.eclipse.xtext.xbase.lib",
+          "version": "2.28.0",
           "artifacts": [
             {
-              "name": "org.eclipse.lsp4j.jsonrpc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1.jar"
+              "name": "org.eclipse.xtext.xbase.lib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.28.0/org.eclipse.xtext.xbase.lib-2.28.0.jar"
             }
           ]
         },
         {
-          "organization": "org.eclipse.xtend",
-          "name": "org.eclipse.xtend.lib",
-          "version": "2.28.0",
+          "organization": "ch.epfl.scala",
+          "name": "libdaemon_2.13",
+          "version": "0.0.12",
           "artifacts": [
             {
-              "name": "org.eclipse.xtend.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.28.0/org.eclipse.xtend.lib-2.28.0.jar"
+              "name": "libdaemon_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/libdaemon_2.13/0.0.12/libdaemon_2.13-0.0.12.jar"
             }
           ]
         },
@@ -165,13 +165,13 @@
           ]
         },
         {
-          "organization": "org.scalameta",
-          "name": "munit_2.13",
-          "version": "1.1.1",
+          "organization": "org.eclipse.lsp4j",
+          "name": "org.eclipse.lsp4j.generator",
+          "version": "0.20.1",
           "artifacts": [
             {
-              "name": "munit_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.1.1/munit_2.13-1.1.1.jar"
+              "name": "org.eclipse.lsp4j.generator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.20.1/org.eclipse.lsp4j.generator-0.20.1.jar"
             }
           ]
         },
@@ -187,61 +187,6 @@
           ]
         },
         {
-          "organization": "io.github.alexarchambault.scala-cli.snailgun",
-          "name": "snailgun-core_2.13",
-          "version": "0.4.1-sc2",
-          "artifacts": [
-            {
-              "name": "snailgun-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.j2objc",
-          "name": "j2objc-annotations",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "j2objc-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.errorprone",
-          "name": "error_prone_annotations",
-          "version": "2.3.4",
-          "artifacts": [
-            {
-              "name": "error_prone_annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.epfl.scala",
-          "name": "bsp4j",
-          "version": "2.1.1",
-          "artifacts": [
-            {
-              "name": "bsp4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.1/bsp4j-2.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
@@ -249,6 +194,28 @@
             {
               "name": "jsr305",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.lsp4j",
+          "name": "org.eclipse.lsp4j.jsonrpc",
+          "version": "0.20.1",
+          "artifacts": [
+            {
+              "name": "org.eclipse.lsp4j.jsonrpc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.alexarchambault.scala-cli.snailgun",
+          "name": "snailgun-core_2.13",
+          "version": "0.4.1-sc2",
+          "artifacts": [
+            {
+              "name": "snailgun-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2.jar"
             }
           ]
         },
@@ -265,67 +232,23 @@
         },
         {
           "organization": "org.eclipse.xtend",
-          "name": "org.eclipse.xtend.lib.macro",
+          "name": "org.eclipse.xtend.lib",
           "version": "2.28.0",
           "artifacts": [
             {
-              "name": "org.eclipse.xtend.lib.macro",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.28.0/org.eclipse.xtend.lib.macro-2.28.0.jar"
+              "name": "org.eclipse.xtend.lib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.28.0/org.eclipse.xtend.lib-2.28.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.13",
-          "version": "2.13.0",
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "1.1.1",
           "artifacts": [
             {
-              "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.eclipse.lsp4j",
-          "name": "org.eclipse.lsp4j.generator",
-          "version": "0.20.1",
-          "artifacts": [
-            {
-              "name": "org.eclipse.lsp4j.generator",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.20.1/org.eclipse.lsp4j.generator-0.20.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.epfl.scala",
-          "name": "libdaemon_2.13",
-          "version": "0.0.12",
-          "artifacts": [
-            {
-              "name": "libdaemon_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/libdaemon_2.13/0.0.12/libdaemon_2.13-0.0.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n.expecty",
-          "name": "expecty_2.13",
-          "version": "0.17.0",
-          "artifacts": [
-            {
-              "name": "expecty_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/expecty/expecty_2.13/0.17.0/expecty_2.13-0.17.0.jar"
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.1.1/junit-interface-1.1.1.jar"
             }
           ]
         },
@@ -341,17 +264,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalameta",
           "name": "munit-diff_2.13",
           "version": "1.1.1",
@@ -363,13 +275,13 @@
           ]
         },
         {
-          "organization": "com.google.guava",
-          "name": "listenablefuture",
-          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
           "artifacts": [
             {
-              "name": "listenablefuture",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
             }
           ]
         },
@@ -396,24 +308,112 @@
           ]
         },
         {
-          "organization": "org.scalameta",
-          "name": "junit-interface",
-          "version": "1.1.1",
+          "organization": "org.eclipse.xtend",
+          "name": "org.eclipse.xtend.lib.macro",
+          "version": "2.28.0",
           "artifacts": [
             {
-              "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.1.1/junit-interface-1.1.1.jar"
+              "name": "org.eclipse.xtend.lib.macro",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.28.0/org.eclipse.xtend.lib.macro-2.28.0.jar"
             }
           ]
         },
         {
-          "organization": "org.eclipse.xtext",
-          "name": "org.eclipse.xtext.xbase.lib",
-          "version": "2.28.0",
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
           "artifacts": [
             {
-              "name": "org.eclipse.xtext.xbase.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.28.0/org.eclipse.xtext.xbase.lib-2.28.0.jar"
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bsp4j",
+          "version": "2.1.1",
+          "artifacts": [
+            {
+              "name": "bsp4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.1/bsp4j-2.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n.expecty",
+          "name": "expecty_2.13",
+          "version": "0.17.0",
+          "artifacts": [
+            {
+              "name": "expecty_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/expecty/expecty_2.13/0.17.0/expecty_2.13-0.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.3.4",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_2.13",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "munit_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.1.1/munit_2.13-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
             }
           ]
         }

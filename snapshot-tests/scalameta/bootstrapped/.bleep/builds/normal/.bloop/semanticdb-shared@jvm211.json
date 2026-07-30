@@ -132,6 +132,17 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.11",
+          "version": "0.3.1",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.11",
           "version": "0.9.8",
@@ -143,46 +154,13 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.11",
-          "version": "1.0.0",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.11",
+          "version": "1.0.5",
           "artifacts": [
             {
-              "name": "geny_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scalap",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scalap",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.11.12/scalap-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+              "name": "scala-xml_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar"
             }
           ]
         },
@@ -194,17 +172,6 @@
             {
               "name": "protobuf-java",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.8.0/protobuf-java-3.8.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.11",
-          "version": "0.3.1",
-          "artifacts": [
-            {
-              "name": "sourcecode_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
             }
           ]
         },
@@ -231,13 +198,46 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.11",
-          "version": "3.0.2",
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.11.12",
           "artifacts": [
             {
-              "name": "fastparse_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.11",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "geny_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scalap",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scalap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.11.12/scalap-2.11.12.jar"
             }
           ]
         },
@@ -253,13 +253,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.11",
-          "version": "1.0.5",
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.11",
+          "version": "3.0.2",
           "artifacts": [
             {
-              "name": "scala-xml_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar"
+              "name": "fastparse_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
             }
           ]
         }

@@ -138,68 +138,46 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-js",
-          "name": "scalajs-javalib",
-          "version": "1.16.0",
+          "organization": "org.typelevel",
+          "name": "cats-kernel_sjs1_3",
+          "version": "2.11.0",
           "artifacts": [
             {
-              "name": "scalajs-javalib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.16.0/scalajs-javalib-1.16.0.jar"
+              "name": "cats-kernel_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_3/2.11.0/cats-kernel_sjs1_3-2.11.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.1",
+          "name": "scala3-library_sjs1_3",
+          "version": "3.3.4",
           "artifacts": [
             {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.1/scala3-library_3-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scala-js-macrotask-executor_sjs1_3",
-          "version": "1.1.1",
-          "artifacts": [
-            {
-              "name": "scala-js-macrotask-executor_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_3/1.1.1/scala-js-macrotask-executor_sjs1_3-1.1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "case-insensitive_sjs1_3",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "case-insensitive_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_sjs1_3/1.4.2/case-insensitive_sjs1_3-1.4.2.jar"
+              "name": "scala3-library_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.3.4/scala3-library_sjs1_3-3.3.4.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
-          "name": "scala-java-time_sjs1_3",
-          "version": "2.5.0",
+          "name": "cldr-api_sjs1_3",
+          "version": "4.0.0",
           "artifacts": [
             {
-              "name": "scala-java-time_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_3/2.5.0/scala-java-time_sjs1_3-2.5.0.jar"
+              "name": "cldr-api_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_3/4.0.0/cldr-api_sjs1_3-4.0.0.jar"
             }
           ]
         },
         {
-          "organization": "com.comcast",
-          "name": "ip4s-core_sjs1_3",
-          "version": "3.6.0",
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_sjs1_2.13",
+          "version": "1.1.2",
           "artifacts": [
             {
-              "name": "ip4s-core_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_sjs1_3/3.6.0/ip4s-core_sjs1_3-3.6.0.jar"
+              "name": "portable-scala-reflect_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.2/portable-scala-reflect_sjs1_2.13-1.1.2.jar"
             }
           ]
         },
@@ -226,24 +204,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
+          "organization": "org.scodec",
+          "name": "scodec-bits_sjs1_3",
+          "version": "1.1.38",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_sjs1_3",
-          "version": "3.3.4",
-          "artifacts": [
-            {
-              "name": "scala3-library_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.3.4/scala3-library_sjs1_3-3.3.4.jar"
+              "name": "scodec-bits_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_3/1.1.38/scodec-bits_sjs1_3-1.1.38.jar"
             }
           ]
         },
@@ -259,13 +226,24 @@
           ]
         },
         {
-          "organization": "org.portable-scala",
-          "name": "portable-scala-reflect_sjs1_2.13",
-          "version": "1.1.2",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.1",
           "artifacts": [
             {
-              "name": "portable-scala-reflect_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.2/portable-scala-reflect_sjs1_2.13-1.1.2.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.1/scala3-library_3-3.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "locales-minimal-en_us-db_sjs1_3",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "locales-minimal-en_us-db_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/locales-minimal-en_us-db_sjs1_3/1.5.1/locales-minimal-en_us-db_sjs1_3-1.5.1.jar"
             }
           ]
         },
@@ -292,17 +270,6 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_sjs1_3",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_3/1.1.38/scodec-bits_sjs1_3-1.1.38.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_3",
           "version": "1.5.1",
@@ -315,56 +282,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "log4cats-core_sjs1_3",
-          "version": "2.7.0",
+          "name": "cats-effect_sjs1_3",
+          "version": "3.5.4",
           "artifacts": [
             {
-              "name": "log4cats-core_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_sjs1_3/2.7.0/log4cats-core_sjs1_3-2.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "locales-minimal-en_us-db_sjs1_3",
-          "version": "1.5.1",
-          "artifacts": [
-            {
-              "name": "locales-minimal-en_us-db_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/locales-minimal-en_us-db_sjs1_3/1.5.1/locales-minimal-en_us-db_sjs1_3-1.5.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-io_sjs1_3",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-io_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_sjs1_3/3.11.0/fs2-io_sjs1_3-3.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-scalalib_2.13",
-          "version": "2.13.13+1.16.0",
-          "artifacts": [
-            {
-              "name": "scalajs-scalalib_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.13/2.13.13%2B1.16.0/scalajs-scalalib_2.13-2.13.13%2B1.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_sjs1_3",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_3/2.11.0/cats-kernel_sjs1_3-2.11.0.jar"
+              "name": "cats-effect_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_3/3.5.4/cats-effect_sjs1_3-3.5.4.jar"
             }
           ]
         },
@@ -381,34 +304,34 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect_sjs1_3",
-          "version": "3.5.4",
+          "name": "case-insensitive_sjs1_3",
+          "version": "1.4.2",
           "artifacts": [
             {
-              "name": "cats-effect_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_3/3.5.4/cats-effect_sjs1_3-3.5.4.jar"
+              "name": "case-insensitive_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_sjs1_3/1.4.2/case-insensitive_sjs1_3-1.4.2.jar"
             }
           ]
         },
         {
-          "organization": "io.github.cquiroz",
-          "name": "cldr-api_sjs1_3",
-          "version": "4.0.0",
+          "organization": "co.fs2",
+          "name": "fs2-io_sjs1_3",
+          "version": "3.11.0",
           "artifacts": [
             {
-              "name": "cldr-api_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_3/4.0.0/cldr-api_sjs1_3-4.0.0.jar"
+              "name": "fs2-io_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_sjs1_3/3.11.0/fs2-io_sjs1_3-3.11.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "literally_sjs1_3",
-          "version": "1.1.0",
+          "name": "cats-effect-kernel_sjs1_3",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "literally_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_sjs1_3/1.1.0/literally_sjs1_3-1.1.0.jar"
+              "name": "cats-effect-kernel_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_sjs1_3/3.5.7/cats-effect-kernel_sjs1_3-3.5.7.jar"
             }
           ]
         },
@@ -424,13 +347,90 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_sjs1_3",
-          "version": "3.5.7",
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.13",
+          "version": "2.13.13+1.16.0",
           "artifacts": [
             {
-              "name": "cats-effect-kernel_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_sjs1_3/3.5.7/cats-effect-kernel_sjs1_3-3.5.7.jar"
+              "name": "scalajs-scalalib_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.13/2.13.13%2B1.16.0/scalajs-scalalib_2.13-2.13.13%2B1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_sjs1_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_sjs1_3/1.1.0/literally_sjs1_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_sjs1_3",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_sjs1_3/3.6.0/ip4s-core_sjs1_3-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scala-js-macrotask-executor_sjs1_3",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "scala-js-macrotask-executor_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_3/1.1.1/scala-js-macrotask-executor_sjs1_3-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-core_sjs1_3",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "log4cats-core_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_sjs1_3/2.7.0/log4cats-core_sjs1_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.16.0",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.16.0/scalajs-javalib-1.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_sjs1_3",
+          "version": "2.5.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time_sjs1_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_3/2.5.0/scala-java-time_sjs1_3-2.5.0.jar"
             }
           ]
         }

@@ -188,13 +188,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.4",
+          "organization": "org.typelevel",
+          "name": "scalac-compat-annotation_3",
+          "version": "0.1.4",
           "artifacts": [
             {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar"
+              "name": "scalac-compat-annotation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar"
             }
           ]
         },
@@ -210,57 +210,13 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_3",
-          "version": "1.1.38",
-          "artifacts": [
-            {
-              "name": "scodec-bits_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-classic",
-          "version": "1.2.6",
-          "artifacts": [
-            {
-              "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
-          "name": "discipline-core_3",
-          "version": "1.6.0",
+          "name": "cats-effect-kernel-testkit_3",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "discipline-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.6.0/discipline-core_3-1.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "case-insensitive-testing_3",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "case-insensitive-testing_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.4.2/case-insensitive-testing_3-1.4.2.jar"
+              "name": "cats-effect-kernel-testkit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.5.7/cats-effect-kernel-testkit_3-3.5.7.jar"
             }
           ]
         },
@@ -276,116 +232,6 @@
           ]
         },
         {
-          "organization": "org.scalameta",
-          "name": "junit-interface",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "case-insensitive_3",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "case-insensitive_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.4.2/case-insensitive_3-1.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_3",
-          "version": "1.3.0",
-          "artifacts": [
-            {
-              "name": "cats-mtl_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.0/cats-mtl_3-1.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel-laws_3",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel-laws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.11.0/cats-kernel-laws_3-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-testkit_3",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-testkit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.5.7/cats-effect-testkit_3-3.5.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-parse_3",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "cats-parse_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.0.0/cats-parse_3-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "scalac-compat-annotation_3",
-          "version": "0.1.4",
-          "artifacts": [
-            {
-              "name": "scalac-compat-annotation_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.2.6",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_3",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.5.7/cats-effect-kernel_3-3.5.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "coop_3",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "coop_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.2.0/coop_3-1.2.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.comcast",
           "name": "ip4s-test-kit_3",
           "version": "3.6.0",
@@ -397,13 +243,13 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-core_3",
-          "version": "2.11.0",
+          "organization": "org.scodec",
+          "name": "scodec-bits_3",
+          "version": "1.1.38",
           "artifacts": [
             {
-              "name": "cats-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.11.0/cats-core_3-2.11.0.jar"
+              "name": "scodec-bits_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
             }
           ]
         },
@@ -420,105 +266,6 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "munit-cats-effect_3",
-          "version": "2.0.0",
-          "artifacts": [
-            {
-              "name": "munit-cats-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.0.0/munit-cats-effect_3-2.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-core_3",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.11.0/fs2-core_3-3.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "log4cats-core_3",
-          "version": "2.7.0",
-          "artifacts": [
-            {
-              "name": "log4cats-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.7.0/log4cats-core_3-2.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit-diff_3",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "munit-diff_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.0.0/munit-diff_3-1.0.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_3",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "literally_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "vault_3",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "vault_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-laws_3",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-laws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.11.0/cats-laws_3-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-free_3",
-          "version": "2.9.0",
-          "artifacts": [
-            {
-              "name": "cats-free_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.9.0/cats-free_3-2.9.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "scalacheck-effect-munit_3",
-          "version": "2.0.0-M2",
-          "artifacts": [
-            {
-              "name": "scalacheck-effect-munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.0.0-M2/scalacheck-effect-munit_3-2.0.0-M2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
           "name": "scalacheck-effect_3",
           "version": "2.0.0-M2",
           "artifacts": [
@@ -529,57 +276,13 @@
           ]
         },
         {
-          "organization": "junit",
-          "name": "junit",
-          "version": "4.13.2",
+          "organization": "org.scalameta",
+          "name": "munit_3",
+          "version": "1.0.0",
           "artifacts": [
             {
-              "name": "junit",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_3",
-          "version": "2.11.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.11.0/cats-kernel_3-2.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "discipline-munit_3",
-          "version": "2.0.0-M3",
-          "artifacts": [
-            {
-              "name": "discipline-munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0-M3/discipline-munit_3-2.0.0-M3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_3",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.5.7/cats-effect-std_3-3.5.7.jar"
+              "name": "munit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.0.0/munit_3-1.0.0.jar"
             }
           ]
         },
@@ -596,34 +299,276 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect-kernel-testkit_3",
-          "version": "3.5.7",
+          "name": "log4cats-core_3",
+          "version": "2.7.0",
           "artifacts": [
             {
-              "name": "cats-effect-kernel-testkit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.5.7/cats-effect-kernel-testkit_3-3.5.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_3",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.0.0/munit_3-1.0.0.jar"
+              "name": "log4cats-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.7.0/log4cats-core_3-2.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect_3",
+          "name": "case-insensitive-testing_3",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "case-insensitive-testing_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.4.2/case-insensitive-testing_3-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_3",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.11.0/cats-core_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_3",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "cats-mtl_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.0/cats-mtl_3-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.2.6",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_3",
           "version": "3.5.7",
           "artifacts": [
             {
-              "name": "cats-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.5.7/cats-effect_3-3.5.7.jar"
+              "name": "cats-effect-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.5.7/cats-effect-kernel_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-scalacheck_3",
+          "version": "1.0.0-M6",
+          "artifacts": [
+            {
+              "name": "munit-scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.0.0-M6/munit-scalacheck_3-1.0.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalacheck-effect-munit_3",
+          "version": "2.0.0-M2",
+          "artifacts": [
+            {
+              "name": "scalacheck-effect-munit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.0.0-M2/scalacheck-effect-munit_3-2.0.0-M2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_3",
+          "version": "3.5.7",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.5.7/cats-effect-std_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-parse_3",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "cats-parse_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.0.0/cats-parse_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "vault_3",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "vault_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "munit-cats-effect_3",
+          "version": "2.0.0",
+          "artifacts": [
+            {
+              "name": "munit-cats-effect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.0.0/munit-cats-effect_3-2.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive_3",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "case-insensitive_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.4.2/case-insensitive_3-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.6",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-testkit_3",
+          "version": "3.5.7",
+          "artifacts": [
+            {
+              "name": "cats-effect-testkit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.5.7/cats-effect-testkit_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_3",
+          "version": "3.11.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.11.0/fs2-core_3-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-diff_3",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "munit-diff_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.0.0/munit-diff_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_3",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.11.0/cats-kernel_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.4",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_3",
+          "version": "2.9.0",
+          "artifacts": [
+            {
+              "name": "cats-free_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.9.0/cats-free_3-2.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "discipline-core_3",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "discipline-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.6.0/discipline-core_3-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-laws_3",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-laws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.11.0/cats-laws_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "discipline-munit_3",
+          "version": "2.0.0-M3",
+          "artifacts": [
+            {
+              "name": "discipline-munit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0-M3/discipline-munit_3-2.0.0-M3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
             }
           ]
         },
@@ -639,13 +584,68 @@
           ]
         },
         {
-          "organization": "org.scalameta",
-          "name": "munit-scalacheck_3",
-          "version": "1.0.0-M6",
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
           "artifacts": [
             {
-              "name": "munit-scalacheck_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.0.0-M6/munit-scalacheck_3-1.0.0-M6.jar"
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel-laws_3",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel-laws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.11.0/cats-kernel-laws_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_3",
+          "version": "3.5.7",
+          "artifacts": [
+            {
+              "name": "cats-effect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.5.7/cats-effect_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "coop_3",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "coop_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.2.0/coop_3-1.2.0.jar"
             }
           ]
         }

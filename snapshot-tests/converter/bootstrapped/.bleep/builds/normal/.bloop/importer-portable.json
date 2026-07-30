@@ -146,39 +146,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.3",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.12",
-          "version": "0.6.10",
-          "artifacts": [
-            {
-              "name": "geny_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/0.6.10/geny_2.12-0.6.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "macro-compat_2.12",
-          "version": "1.1.1",
-          "artifacts": [
-            {
-              "name": "macro-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.4.1",
@@ -190,13 +157,13 @@
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-databind",
-          "version": "2.9.10.2",
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.12",
+          "version": "0.3.0",
           "artifacts": [
             {
-              "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.10.2/jackson-databind-2.9.10.2.jar"
+              "name": "sourcecode_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.3.0/sourcecode_2.12-0.3.0.jar"
             }
           ]
         },
@@ -213,34 +180,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "os-lib_2.12",
-          "version": "0.7.7",
+          "name": "fansi_2.12",
+          "version": "0.4.0",
           "artifacts": [
             {
-              "name": "os-lib_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_2.12/0.7.7/os-lib_2.12-0.7.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalablytyped.circe013",
-          "name": "circe-core_2.12",
-          "version": "0.13.0-shaded-2",
-          "artifacts": [
-            {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-core_2.12/0.13.0-shaded-2/circe-core_2.12-0.13.0-shaded-2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalablytyped.circe013",
-          "name": "circe-numbers_2.12",
-          "version": "0.13.0-shaded-2",
-          "artifacts": [
-            {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-numbers_2.12/0.13.0-shaded-2/circe-numbers_2.12-0.13.0-shaded-2.jar"
+              "name": "fansi_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.4.0/fansi_2.12-0.4.0.jar"
             }
           ]
         },
@@ -267,13 +212,46 @@
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.12",
-          "version": "2.1.0",
+          "organization": "org.scalablytyped.circe013",
+          "name": "circe-core_2.12",
+          "version": "0.13.0-shaded-2",
           "artifacts": [
             {
-              "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-core_2.12/0.13.0-shaded-2/circe-core_2.12-0.13.0-shaded-2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.3",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.17",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "macro-compat_2.12",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "macro-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
             }
           ]
         },
@@ -289,24 +267,46 @@
           ]
         },
         {
-          "organization": "org.scalablytyped.circe013",
-          "name": "circe-jackson29_2.12",
-          "version": "0.13.0-shaded-2",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.1.0",
           "artifacts": [
             {
-              "name": "circe-jackson29_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-jackson29_2.12/0.13.0-shaded-2/circe-jackson29_2.12-0.13.0-shaded-2.jar"
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
-          "name": "ammonite-ops_2.12",
-          "version": "2.4.0",
+          "name": "os-lib_2.12",
+          "version": "0.7.7",
           "artifacts": [
             {
-              "name": "ammonite-ops_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ammonite-ops_2.12/2.4.0/ammonite-ops_2.12-2.4.0.jar"
+              "name": "os-lib_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_2.12/0.7.7/os-lib_2.12-0.7.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalablytyped.circe013",
+          "name": "circe-numbers_2.12",
+          "version": "0.13.0-shaded-2",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-numbers_2.12/0.13.0-shaded-2/circe-numbers_2.12-0.13.0-shaded-2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.9.10.2",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.10.2/jackson-databind-2.9.10.2.jar"
             }
           ]
         },
@@ -333,35 +333,35 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.17",
+          "organization": "org.scalablytyped.circe013",
+          "name": "circe-jackson29_2.12",
+          "version": "0.13.0-shaded-2",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+              "name": "circe-jackson29_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-jackson29_2.12/0.13.0-shaded-2/circe-jackson29_2.12-0.13.0-shaded-2.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
-          "name": "fansi_2.12",
-          "version": "0.4.0",
+          "name": "geny_2.12",
+          "version": "0.6.10",
           "artifacts": [
             {
-              "name": "fansi_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.4.0/fansi_2.12-0.4.0.jar"
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/0.6.10/geny_2.12-0.6.10.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_2.12",
-          "version": "0.3.0",
+          "name": "ammonite-ops_2.12",
+          "version": "2.4.0",
           "artifacts": [
             {
-              "name": "sourcecode_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.3.0/sourcecode_2.12-0.3.0.jar"
+              "name": "ammonite-ops_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ammonite-ops_2.12/2.4.0/ammonite-ops_2.12-2.4.0.jar"
             }
           ]
         },

@@ -145,11 +145,11 @@ projects:
     - io.circe::circe-generic:0.14.15
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.24
+      module: io.get-coursier::coursier-jvm:2.1.25-M26
     - for3Use213: true
-      module: io.get-coursier::coursier-sbt-maven-repository:2.1.24
+      module: io.get-coursier::coursier-sbt-maven-repository:2.1.25-M26
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.24
+      module: io.get-coursier::coursier:2.1.25-M26
     - org.snakeyaml:snakeyaml-engine:2.9
     extends:
     - template-common
@@ -319,7 +319,7 @@ projects:
     - org.scalatest::scalatest:3.2.19
     - org.typelevel::cats-effect-testkit:3.6.1
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.24
+      module: io.get-coursier::coursier:2.1.25-M26
     dependsOn: bleep-bsp
     extends:
     - template-common

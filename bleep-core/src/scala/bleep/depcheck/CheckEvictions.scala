@@ -1,6 +1,7 @@
 package bleep
 package depcheck
 
+import bleep.internal.coursierDeps.fullDetailedArtifactsOrThrow
 import bleep.nosbt.librarymanagement
 import bleep.nosbt.util.ShowLines.*
 import coursier.core.{Configuration, Dependency, Module}
@@ -76,8 +77,8 @@ object CheckEvictions {
   def updateRun(dependencies: Seq[Dependency], res: Fetch.Result, logger: Logger): librarymanagement.UpdateReport = {
     val params = UpdateParams(
       thisModule = (Module(Organization("fake.org"), ModuleName("project"), Map.empty), ""),
-      artifacts = res.fullDetailedArtifacts.collect { case (_, _, a, Some(f)) => a -> f }.toMap,
-      fullArtifacts = Some(res.fullDetailedArtifacts.map { case (d, p, a, f) => (d, p, a) -> f }.toMap),
+      artifacts = res.fullDetailedArtifactsOrThrow.collect { case (_, _, a, Some(f)) => a -> f }.toMap,
+      fullArtifacts = Some(res.fullDetailedArtifactsOrThrow.map { case (d, p, a, f) => (d, p, a) -> f }.toMap),
       classifiers = None,
       configs = Map(Configuration.compile -> Set.empty),
       dependencies = dependencies.map(d => (Configuration.compile, d)),

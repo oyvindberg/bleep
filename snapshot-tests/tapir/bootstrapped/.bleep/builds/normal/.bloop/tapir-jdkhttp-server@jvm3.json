@@ -111,6 +111,39 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_3",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
@@ -118,17 +151,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "commons-codec",
-          "name": "commons-codec",
-          "version": "1.11",
-          "artifacts": [
-            {
-              "name": "commons-codec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar"
             }
           ]
         },
@@ -145,34 +167,12 @@
         },
         {
           "organization": "org.apache.httpcomponents",
-          "name": "httpclient",
-          "version": "4.5.14",
+          "name": "httpcore",
+          "version": "4.4.16",
           "artifacts": [
             {
-              "name": "httpclient",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_3",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
             }
           ]
         },
@@ -199,24 +199,24 @@
           ]
         },
         {
-          "organization": "org.apache.httpcomponents",
-          "name": "httpcore",
-          "version": "4.4.16",
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_3",
+          "version": "1.5.0",
           "artifacts": [
             {
-              "name": "httpcore",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
+              "name": "ws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "commons-logging",
-          "name": "commons-logging",
-          "version": "1.2",
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.11",
           "artifacts": [
             {
-              "name": "commons-logging",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar"
             }
           ]
         },

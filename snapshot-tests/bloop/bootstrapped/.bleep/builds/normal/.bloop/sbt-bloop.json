@@ -168,17 +168,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-sbt",
-          "name": "sbt",
-          "version": "1.5.8",
-          "artifacts": [
-            {
-              "name": "sbt",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.5.8/sbt-1.5.8.jar"
-            }
-          ]
-        },
-        {
           "organization": "ch.epfl.scala",
           "name": "bloop-config_2.12",
           "version": "2.3.2",
@@ -201,13 +190,13 @@
           ]
         },
         {
-          "organization": "com.github.plokhotnyuk.jsoniter-scala",
-          "name": "jsoniter-scala-core_2.12",
-          "version": "2.13.5.2",
+          "organization": "org.scala-sbt",
+          "name": "sbt",
+          "version": "1.5.8",
           "artifacts": [
             {
-              "name": "jsoniter-scala-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.5.2/jsoniter-scala-core_2.12-2.13.5.2.jar"
+              "name": "sbt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.5.8/sbt-1.5.8.jar"
             }
           ]
         },
@@ -219,6 +208,17 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.13.5.2",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.5.2/jsoniter-scala-core_2.12-2.13.5.2.jar"
             }
           ]
         }

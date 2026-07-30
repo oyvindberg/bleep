@@ -16,7 +16,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     sys.env.get("GITHUB_REF").exists(_.startsWith("refs/tags/v"))
 
   /** Native-image options shared by both the inline build path and the `--emit-script` path. Centralised here so the stand-alone launcher script and a regular
-    * `bleep native-image` invocation produce the same binary, modulo the host JVM picking the binary up off `JAVA_HOME` on Windows CI.
+    * `bleep native-image` invocation produce the same binary.
     *
     * `quickBuild` adds GraalVM's `-Ob` (alias `-O0`): skips advanced inlining / escape-analysis / etc., trading runtime performance for **30–50% faster
     * build**. Selected when not building from a release tag (see [[isReleaseBuild]]): every PR, every master push, every local `bleep native-image` gets the
@@ -62,21 +62,15 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProject(projectName)
 
-    // this is here to pick up the graalvm installed by `graalvm/setup-graalvm@v1` in github actions *on windows*
-    // the one we install ourselves does not work
-    val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)) match {
-      case Some(jvm) =>
-        started.logger
-          .withContext("jvm", jvm)
-          .warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
-        jvm
-      case None => started.jvmCommand
-    }
-
+    // Bleep's own managed JVM, on every platform. This used to prefer a JAVA_HOME provided by `graalvm/setup-graalvm@v1` on Windows, because back on GraalVM 21
+    // "the one we install ourselves does not work". Both reasons that produced are gone on graalvm-community 25: the Windows distribution ships
+    // `bin/native-image.cmd` right next to `bin/java.exe` (which is exactly what `NativeImagePlugin.nativeImageCommand` resolves), and there is no `gu` to
+    // install it with any more. `native-image.cmd` also locates its own `lib/svm/bin/native-image.exe` relative to itself and never reads JAVA_HOME, and since
+    // GraalVM for JDK 17/20 it finds Visual Studio through vswhere and sets up the MSVC build environment itself — so no developer command prompt is needed.
     val plugin = new NativeImagePlugin(
       project = project,
       logger = started.logger,
-      jvmCommand = jvm,
+      jvmCommand = started.jvmCommand,
       nativeImageOptions = options,
       env = sys.env.toList
     ) {
@@ -168,7 +162,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
   /** Write a self-contained launcher for `native-image`. Auto-detects shell vs batch from the script's extension (`.cmd`/`.bat` → Windows batch, else POSIX
     * shell). Each argument is quoted defensively so paths with spaces / `$` / `&` stay literal. The script:
     *   - shells out to the resolved `native-image` binary (already fully-pathed by the GraalVM install layout)
-    *   - sets the env we passed when constructing the plugin (so JAVA_HOME tweaks etc. propagate when CI runs the script after the bleep CLI is gone)
+    *   - sets the env we passed when constructing the plugin, so the script reproduces the environment bleep itself ran under once the CLI is gone
     *   - cd's to the native-image work dir, matching what `nativeImage()` does inline
     *   - propagates the native-image exit code, so CI failures bubble up.
     */

@@ -207,57 +207,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.12",
-          "version": "3.2.18",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.12",
-          "version": "3.2.19",
-          "artifacts": [
-            {
-              "name": "scalactic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.19/scalactic_2.12-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
             }
           ]
         },
@@ -273,24 +229,24 @@
           ]
         },
         {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.12",
-          "version": "1.1.10",
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.19",
           "artifacts": [
             {
-              "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
             }
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-test-sbt_2.12",
-          "version": "2.1.19",
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
           "artifacts": [
             {
-              "name": "zio-test-sbt_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test-sbt_2.12/2.1.19/zio-test-sbt_2.12-2.1.19.jar"
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         },
@@ -307,12 +263,78 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.12",
+          "name": "scalatest-refspec_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-matchers-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
+              "name": "scalatest-refspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-test_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-test_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_2.12/2.1.19/zio-test_2.12-2.1.19.jar"
             }
           ]
         },
@@ -329,133 +351,12 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.12",
+          "name": "scalatest-matchers-core_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-shouldmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-stacktracer_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-stacktracer_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.19",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-core_2.12",
-          "version": "3.2.19",
-          "artifacts": [
-            {
-              "name": "scalatest-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.19/scalatest-core_2.12-3.2.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.12",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatestplus",
-          "name": "scalacheck-1-18_2.12",
-          "version": "3.2.19.0",
-          "artifacts": [
-            {
-              "name": "scalacheck-1-18_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.12/3.2.19.0/scalacheck-1-18_2.12-3.2.19.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-mustmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-streams_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-streams_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.19/zio-streams_2.12-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect_2.12",
-          "version": "3.0.1",
-          "artifacts": [
-            {
-              "name": "izumi-reflect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
+              "name": "scalatest-matchers-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
             }
           ]
         },
@@ -472,45 +373,34 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.12",
+          "name": "scalatest-funspec_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-freespec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar"
+              "name": "scalatest-funspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.portable-scala",
-          "name": "portable-scala-reflect_2.12",
-          "version": "1.1.3",
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.12",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "portable-scala-reflect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/1.1.3/portable-scala-reflect_2.12-1.1.3.jar"
+              "name": "scalatest-featurespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.1.0",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-test_2.12",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-test_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_2.12/2.1.19/zio-test_2.12-2.1.19.jar"
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
             }
           ]
         },
@@ -527,12 +417,45 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.12",
+          "name": "scalatest-funsuite_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-featurespec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar"
+              "name": "scalatest-funsuite_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.19/zio-streams_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar"
             }
           ]
         },
@@ -548,57 +471,134 @@
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
           "artifacts": [
             {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.12",
-          "version": "2.1.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.12",
+          "name": "scalatest-freespec_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-propspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+              "name": "scalatest-freespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.12",
+          "version": "3.2.19",
+          "artifacts": [
+            {
+              "name": "scalactic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.19/scalactic_2.12-3.2.19.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.12",
+          "name": "scalatest-diagrams_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar"
+              "name": "scalatest-diagrams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.12",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/1.1.3/portable-scala-reflect_2.12-1.1.3.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.12",
+          "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-funsuite_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+              "name": "scalatest-mustmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-test-sbt_2.12",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-test-sbt_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test-sbt_2.12/2.1.19/zio-test-sbt_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-18_2.12",
+          "version": "3.2.19.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-18_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.12/3.2.19.0/scalacheck-1-18_2.12-3.2.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.12",
+          "version": "3.2.19",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.19/scalatest-core_2.12-3.2.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
             }
           ]
         }

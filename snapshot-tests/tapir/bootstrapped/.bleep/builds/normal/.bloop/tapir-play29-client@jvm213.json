@@ -144,23 +144,56 @@
       "modules": [
         {
           "organization": "com.typesafe.play",
-          "name": "play-ahc-ws-standalone_2.13",
+          "name": "play-ws-standalone_2.13",
           "version": "2.2.11",
           "artifacts": [
             {
-              "name": "play-ahc-ws-standalone_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ahc-ws-standalone_2.13/2.2.11/play-ahc-ws-standalone_2.13-2.2.11.jar"
+              "name": "play-ws-standalone_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ws-standalone_2.13/2.2.11/play-ws-standalone_2.13-2.2.11.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.play",
-          "name": "cachecontrol_2.13",
-          "version": "2.3.2",
+          "name": "shaded-oauth",
+          "version": "2.2.11",
           "artifacts": [
             {
-              "name": "cachecontrol_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/cachecontrol_2.13/2.3.2/cachecontrol_2.13-2.3.2.jar"
+              "name": "shaded-oauth",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-oauth/2.2.11/shaded-oauth-2.2.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.16",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.13",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
             }
           ]
         },
@@ -198,35 +231,24 @@
           ]
         },
         {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.16",
+          "organization": "com.typesafe.akka",
+          "name": "akka-actor_2.13",
+          "version": "2.6.21",
           "artifacts": [
             {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
+              "name": "akka-actor_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.21/akka-actor_2.13-2.6.21.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.play",
-          "name": "shaded-asynchttpclient",
+          "name": "play-ahc-ws-standalone_2.13",
           "version": "2.2.11",
           "artifacts": [
             {
-              "name": "shaded-asynchttpclient",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-asynchttpclient/2.2.11/shaded-asynchttpclient-2.2.11.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "name": "play-ahc-ws-standalone_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ahc-ws-standalone_2.13/2.2.11/play-ahc-ws-standalone_2.13-2.2.11.jar"
             }
           ]
         },
@@ -242,35 +264,13 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_2.13",
-          "version": "1.7.14",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.13",
+          "version": "1.0.0",
           "artifacts": [
             {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-actor_2.13",
-          "version": "2.6.21",
-          "artifacts": [
-            {
-              "name": "akka-actor_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.21/akka-actor_2.13-2.6.21.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "name": "scala-java8-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar"
             }
           ]
         },
@@ -286,6 +286,17 @@
           ]
         },
         {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
@@ -297,13 +308,24 @@
           ]
         },
         {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.typesafe.play",
-          "name": "play-ws-standalone_2.13",
+          "name": "shaded-asynchttpclient",
           "version": "2.2.11",
           "artifacts": [
             {
-              "name": "play-ws-standalone_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ws-standalone_2.13/2.2.11/play-ws-standalone_2.13-2.2.11.jar"
+              "name": "shaded-asynchttpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-asynchttpclient/2.2.11/shaded-asynchttpclient-2.2.11.jar"
             }
           ]
         },
@@ -319,50 +341,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parser-combinators_2.13",
-          "version": "1.1.2",
-          "artifacts": [
-            {
-              "name": "scala-parser-combinators_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "shaded-oauth",
-          "version": "2.2.11",
-          "artifacts": [
-            {
-              "name": "shaded-oauth",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-oauth/2.2.11/shaded-oauth-2.2.11.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-java8-compat_2.13",
-          "version": "1.0.0",
-          "artifacts": [
-            {
-              "name": "scala-java8-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
@@ -370,6 +348,28 @@
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.play",
+          "name": "cachecontrol_2.13",
+          "version": "2.3.2",
+          "artifacts": [
+            {
+              "name": "cachecontrol_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/cachecontrol_2.13/2.3.2/cachecontrol_2.13-2.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         }

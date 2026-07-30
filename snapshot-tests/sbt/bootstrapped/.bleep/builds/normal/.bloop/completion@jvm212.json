@@ -139,23 +139,56 @@
       "modules": [
         {
           "organization": "com.eed3si9n",
-          "name": "sjson-new-core_2.12",
-          "version": "0.10.1",
+          "name": "shaded-jawn-parser_2.12",
+          "version": "1.3.2",
           "artifacts": [
             {
-              "name": "sjson-new-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.10.1/sjson-new-core_2.12-0.10.1.jar"
+              "name": "shaded-jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/1.3.2/shaded-jawn-parser_2.12-1.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
             }
           ]
         },
         {
           "organization": "org.jline",
-          "name": "jline-native",
+          "name": "jline-reader",
           "version": "3.27.1",
           "artifacts": [
             {
-              "name": "jline-native",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+              "name": "jline-reader",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-style",
+          "version": "3.27.1",
+          "artifacts": [
+            {
+              "name": "jline-style",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.27.1/jline-style-3.27.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.jansi",
+          "name": "jansi",
+          "version": "2.4.1",
+          "artifacts": [
+            {
+              "name": "jansi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1.jar"
             }
           ]
         },
@@ -182,24 +215,13 @@
           ]
         },
         {
-          "organization": "com.swoval",
-          "name": "file-tree-views",
-          "version": "2.1.12",
+          "organization": "org.scala-sbt",
+          "name": "io_2.12",
+          "version": "1.10.5",
           "artifacts": [
             {
-              "name": "file-tree-views",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.logging.log4j",
-          "name": "log4j-api",
-          "version": "2.17.1",
-          "artifacts": [
-            {
-              "name": "log4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
+              "name": "io_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.10.5/io_2.12-1.10.5.jar"
             }
           ]
         },
@@ -215,13 +237,35 @@
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline-style",
-          "version": "3.27.1",
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.20",
           "artifacts": [
             {
-              "name": "jline-style",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.27.1/jline-style-3.27.1.jar"
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-api",
+          "version": "2.17.1",
+          "artifacts": [
+            {
+              "name": "log4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.swoval",
+          "name": "file-tree-views",
+          "version": "2.1.12",
+          "artifacts": [
+            {
+              "name": "file-tree-views",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar"
             }
           ]
         },
@@ -237,13 +281,13 @@
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "io_2.12",
-          "version": "1.10.5",
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-core_2.12",
+          "version": "0.10.1",
           "artifacts": [
             {
-              "name": "io_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.10.5/io_2.12-1.10.5.jar"
+              "name": "sjson-new-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.10.1/sjson-new-core_2.12-0.10.1.jar"
             }
           ]
         },
@@ -260,12 +304,34 @@
         },
         {
           "organization": "org.jline",
-          "name": "jline-reader",
+          "name": "jline-builtins",
           "version": "3.27.1",
           "artifacts": [
             {
-              "name": "jline-reader",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar"
+              "name": "jline-builtins",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.27.1/jline-builtins-3.27.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-native",
+          "version": "3.27.1",
+          "artifacts": [
+            {
+              "name": "jline-native",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-scalajson_2.12",
+          "version": "0.10.1",
+          "artifacts": [
+            {
+              "name": "sjson-new-scalajson_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.10.1/sjson-new-scalajson_2.12-0.10.1.jar"
             }
           ]
         },
@@ -292,28 +358,6 @@
           ]
         },
         {
-          "organization": "org.fusesource.jansi",
-          "name": "jansi",
-          "version": "2.4.1",
-          "artifacts": [
-            {
-              "name": "jansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
@@ -321,50 +365,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "sjson-new-scalajson_2.12",
-          "version": "0.10.1",
-          "artifacts": [
-            {
-              "name": "sjson-new-scalajson_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.10.1/sjson-new-scalajson_2.12-0.10.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "shaded-jawn-parser_2.12",
-          "version": "1.3.2",
-          "artifacts": [
-            {
-              "name": "shaded-jawn-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/1.3.2/shaded-jawn-parser_2.12-1.3.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.12",
-          "version": "2.3.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jline",
-          "name": "jline-builtins",
-          "version": "3.27.1",
-          "artifacts": [
-            {
-              "name": "jline-builtins",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.27.1/jline-builtins-3.27.1.jar"
             }
           ]
         }
