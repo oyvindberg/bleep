@@ -61,7 +61,7 @@ class KotlinNativeIntegrationTest extends AnyFunSuite with Matchers {
   // ============================================================================
 
   test("KotlinNativeCompilerConfig: default configuration") {
-    val config = KotlinNativeCompilerConfig.Default
+    val config = KotlinNativeCompilerConfig.ForTests
     config.kotlinVersion shouldBe bleep.model.Versions.Kotlin23
     config.outputKind shouldBe KotlinNativeCompilerConfig.OutputKind.Executable
     config.debuggable shouldBe true
@@ -192,7 +192,7 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
       writeKotlinSource(srcDir, "Main.kt", "fun main() { println(\"Hello from Kotlin/Native\") }")
 
       val outputPath = tempDir.resolve("app" + ScalaNativeRunner.binaryExtension)
-      val config = KotlinNativeCompilerConfig.Default.copy(
+      val config = KotlinNativeCompilerConfig.ForTests.copy(
         outputKind = KotlinNativeCompilerConfig.OutputKind.Executable
       )
 
@@ -220,7 +220,7 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
       writeKotlinSource(srcDir, "Lib.kt", "fun greet(name: String): String = \"Hello, $name\"")
 
       val outputPath = tempDir.resolve("mylib.klib")
-      val config = KotlinNativeCompilerConfig.Default.copy(
+      val config = KotlinNativeCompilerConfig.ForTests.copy(
         outputKind = KotlinNativeCompilerConfig.OutputKind.Klib
       )
 
@@ -248,7 +248,7 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
       writeKotlinSource(srcDir, "Main.kt", "fun main() { println(\"KotlinNativeOutput42\") }")
 
       val outputPath = tempDir.resolve("app" + ScalaNativeRunner.binaryExtension)
-      val config = KotlinNativeCompilerConfig.Default.copy(
+      val config = KotlinNativeCompilerConfig.ForTests.copy(
         outputKind = KotlinNativeCompilerConfig.OutputKind.Executable
       )
 

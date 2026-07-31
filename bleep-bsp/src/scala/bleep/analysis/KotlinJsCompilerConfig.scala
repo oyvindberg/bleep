@@ -62,8 +62,11 @@ object KotlinJsCompilerConfig {
     case object Node extends Target { val name = "nodejs" }
   }
 
-  /** Default configuration. */
-  val Default: KotlinJsCompilerConfig = KotlinJsCompilerConfig(
+  /** A ready-made config for tests, not a default anything reads at build time. Production builds this explicitly in `ProjectCompiler` from the project's own
+    * `kotlin.version`; nothing here is consulted. It was called `Default` and sat next to real defaults, which reads as "what a project gets when it says
+    * nothing" — it is not, and that misreading is easy to act on.
+    */
+  val ForTests: KotlinJsCompilerConfig = KotlinJsCompilerConfig(
     kotlinVersion = bleep.model.Versions.Kotlin23,
     moduleKind = ModuleKind.CommonJS,
     moduleName = "main",

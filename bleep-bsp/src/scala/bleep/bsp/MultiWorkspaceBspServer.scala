@@ -716,6 +716,19 @@ class MultiWorkspaceBspServer(
       exploded: model.Build.Exploded,
       buildId: BuildId
   ): Either[BleepException, Started] =
+    // Before anything is cached or compiled. The compile path throws on a missing language or platform version, which is right but arrives mid-build as an
+    // IllegalStateException about one project; this reports every offender at once, at load, through the channel the client already renders (`buildLoadError`).
+    model.BuildValidation.missingVersions(exploded) match {
+      case Nil    => createStartedFromValidatedBuild(buildRoot, variant, exploded, buildId)
+      case errors => Left(new BleepException.Text(errors.mkString("\n")))
+    }
+
+  private def createStartedFromValidatedBuild(
+      buildRoot: Path,
+      variant: model.BuildVariant,
+      exploded: model.Build.Exploded,
+      buildId: BuildId
+  ): Either[BleepException, Started] =
     buildCache
       .getOrLoad(buildRoot, variant, buildId, logger) {
         val userPaths = UserPaths.fromAppDirs
