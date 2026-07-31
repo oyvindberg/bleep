@@ -679,6 +679,9 @@ object JvmPool {
           _ <- IO.blocking {
             jvms.foreach(_.kill("bleep: pool shutdown"))
           }
+          // Shutdown kills directly rather than going through `destroy`, so without this the JVMs that survived to the end of a run — usually most of them —
+          // would have a fork_start and never a fork_end, and their lifetimes would be unknowable.
+          _ <- jvms.toList.traverse_(jvm => announceEnd(jvm).attempt)
           _ <- allJvms.set(Set.empty)
           _ <- IO(pool.clear())
           // Backstop for the whole scheme: every process-lifetime reservation is returned here, so a

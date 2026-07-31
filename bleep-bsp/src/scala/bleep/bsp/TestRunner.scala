@@ -92,7 +92,8 @@ object TestRunner {
           killSignal = killSignal
         ).flatTap { result =>
           IO(
-            BspMetrics.recordSuiteFinished(jvm.pid, project.value, suiteName, System.currentTimeMillis() - startedAt, result.getClass.getSimpleName)
+            BspMetrics
+              .recordSuiteFinished(jvm.pid, project.value, suiteName, System.currentTimeMillis() - startedAt, result.getClass.getSimpleName.stripSuffix("$"))
           ).attempt
         }
     }
