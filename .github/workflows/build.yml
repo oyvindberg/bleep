@@ -59,36 +59,27 @@ jobs:
       # worth keeping — an IDE pointed at a dev build wants them).
       - name: Stage jars for the dev binaries
         shell: bash
-        # Only this run's version is copied, never the whole of `~/.ivy2/local`. That directory is whatever the
-        # runner happens to hold — anything a previous step resolved or published — and shipping it would put jars
-        # nobody built here into an artifact people unpack over their own ivy cache. The version is derived from
-        # git and carries the commit sha, so selecting on it yields exactly what this build produced.
+        # Published into its own directory rather than copied out of `~/.ivy2/local`. That directory is whatever
+        # the runner accumulated, and people are being asked to unpack this artifact *over their own* ivy cache —
+        # so it has to hold this build and nothing else. Publishing somewhere clean gets that by construction;
+        # filtering the shared one afterwards only gets it if the filter is right.
         #
-        # Staged with the shell rather than pointing `upload-artifact` at `~/...`: the action does not run `path`
-        # through a shell, so a leading `~` is not guaranteed to expand and would silently match nothing. Copying
-        # first also puts the version and size in the log, where a wrong or empty publish is visible at a glance.
+        # The dev script, not `bleep`: `--to` is new in this build, so the released binary on PATH does not have it.
+        #
+        # Staging in the workspace also avoids pointing `upload-artifact` at a `~` path, which it does not run
+        # through a shell and would silently match nothing, and puts the version and size in the log where a wrong
+        # or empty publish is visible at a glance rather than at someone else's first use.
         run: |
+          ./bleep-cli.sh --dev publish local-ivy --to dev-jars --no-tui
           version=$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')
-          src="$HOME/.ivy2/local/build.bleep"
-          mkdir -p dev-jars/build.bleep
-          for module in "$src"/*/; do
-            name=$(basename "$module")
-            if [ -d "$module/$version" ]; then
-              mkdir -p "dev-jars/build.bleep/$name"
-              cp -R "$module/$version" "dev-jars/build.bleep/$name/"
-            fi
-          done
           echo "$version" > dev-jars/VERSION
           echo "version: $version"
           echo "modules: $(ls dev-jars/build.bleep | wc -l), size: $(du -sh dev-jars | cut -f1)"
-          # The client asks for these by name at exactly this version — a binary paired with an artifact missing
-          # any of them fails at first use, which is too late to find out.
+          # The client asks for these by name at exactly this version. A binary paired with an artifact missing any
+          # of them fails at first use, which is too late to find out.
           for m in bleep-bsp_3 bleep-test-runner bleep-core_3 bleep-model_3; do
             [ -d "dev-jars/build.bleep/$m/$version" ] || { echo "::error::$m was not published at $version"; exit 1; }
           done
-          # Nothing from another version may ride along.
-          strays=$(find dev-jars/build.bleep -mindepth 2 -maxdepth 2 -type d ! -name "$version" | head -5)
-          [ -z "$strays" ] || { echo "::error::unexpected versions in the artifact: $strays"; exit 1; }
 
       - name: Upload jars for the dev binaries
         uses: actions/upload-artifact@v7
