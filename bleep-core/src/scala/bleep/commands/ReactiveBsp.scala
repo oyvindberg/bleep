@@ -457,7 +457,7 @@ case class ReactiveBsp(
       _ <- display.printSummary(filterContext)
       // Update previousRunState from collected events (only in DiffWatch mode)
       _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
-      _ <- IO.delay(started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}"))
+      _ <- IO.delay(started.logger.info(serverLogLine(config)))
       _ <-
         if (flamegraph)
           IO.delay(started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)"))
@@ -498,10 +498,19 @@ case class ReactiveBsp(
               case None      => printCancelledSummary(started, durationMs)
             }
         }
-        started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}")
+        started.logger.info(serverLogLine(config))
         if (flamegraph)
           started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)")
       }
+  }
+
+  /** The failure path can point at a log that is not there — the server never started, or the socket dir was deleted (`compile-server stop-all`, per-invocation
+    * shutdown hook). Saying so beats sending the reader to a file that does not exist.
+    */
+  private def serverLogLine(config: BspRifleConfig): String = {
+    val outputFile = BspRifle.getOutputFile(config)
+    if (java.nio.file.Files.exists(outputFile)) s"  BSP server log: $outputFile"
+    else s"  BSP server log: $outputFile (missing — the server never started, or its directory was deleted)"
   }
 
   private def printErrorSummary(started: Started, err: Throwable, durationMs: Long): Unit = {
