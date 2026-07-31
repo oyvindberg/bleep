@@ -123,15 +123,12 @@ object FetchBleepSnapshot {
     *
     * The commit lookup exists because `?head_sha=` matches only a full 40-character sha, while the version carries eight.
     */
-  private def artifactsForCommit(sha: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, List[GhArtifact]] =
+  private def artifactsForCommit(sha: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, (List[GhArtifact], Run)] =
     for {
       commit <- get[Commit](api(s"commits/$sha"), s"commit $sha", token, cacheLogger, ec)
       run <- runFor(commit, sha, token, cacheLogger, ec)
       page <- get[ArtifactPage](api(s"actions/runs/${run.id}/artifacts?per_page=100"), s"the artifacts of run ${run.id}", token, cacheLogger, ec)
-      _ <-
-        if (page.artifacts.nonEmpty || run.status == "completed") Right(())
-        else Left(s"the CI run for commit $sha is still ${run.status} and has not uploaded its artifacts yet")
-    } yield page.artifacts
+    } yield (page.artifacts, run)
 
   /** The run whose `head_sha` is this commit — or, for a build of a pull request, the run for the commit that was merged.
     *
@@ -160,12 +157,22 @@ object FetchBleepSnapshot {
     }
   }
 
-  private def pick(artifacts: List[GhArtifact], name: String, sha: String): Either[String, GhArtifact] =
+  private def pick(artifacts: List[GhArtifact], name: String, sha: String, run: Run): Either[String, GhArtifact] =
     artifacts.find(_.name == name) match {
       case Some(found) if !found.expired => Right(found)
       // Retention is finite by design, so this is a normal outcome for an old snapshot rather than a failure to explain away.
       case Some(_) => Left(s"the '$name' artifact for commit $sha has expired. CI keeps these for 7 days; rebuild that commit or use a released version")
-      case None    => Left(s"the CI run for commit $sha has no '$name' artifact — it may have failed before uploading")
+      case None    =>
+        // Say what the build did instead of only what is absent. Each of these is a different thing for the reader to do, and "artifact not found" is the same
+        // sentence for all of them.
+        val why = (run.status, run.conclusion) match {
+          case (s, _) if s != "completed" => s"that run is still $s — the remaining jobs upload theirs as they finish"
+          case (_, Some("cancelled"))     => "that run was cancelled, most likely superseded by a later push to the same branch"
+          case (_, Some("failure"))       => "that run failed before this job could upload"
+          case (_, Some(other))           => s"that run ended as $other"
+          case (_, None)                  => "that run reported no conclusion"
+        }
+        Left(s"run ${run.id} for commit $sha has no '$name' artifact: $why")
     }
 
   private def download(art: GhArtifact, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, File] = {
@@ -223,8 +230,8 @@ object FetchBleepSnapshot {
               for {
                 binaryName <- artifactNameFor(osArch)
                 artifacts <- artifactsForCommit(sha, token, cacheLogger, ec)
-                binaryArt <- pick(artifacts, binaryName, sha)
-                jarsArt <- pick(artifacts, "bleep-jars", sha)
+                binaryArt <- pick(artifacts._1, binaryName, sha, artifacts._2)
+                jarsArt <- pick(artifacts._1, "bleep-jars", sha, artifacts._2)
                 binaryDir <- download(binaryArt, token, cacheLogger, ec)
                 jarsDir <- download(jarsArt, token, cacheLogger, ec)
                 _ <- installJars(jarsDir, ivy2Local)
