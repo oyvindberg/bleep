@@ -316,14 +316,89 @@ cost rather than counting them.
 > entirely `stagger` and have never gone near its heap ceiling — in which
 > case more heap buys nothing.
 
-### In CI
+### In CI — where this pays off most
 
-Whatever your CI does, the same files are sitting in the same place when
-a job goes wrong. bleep's own workflow collects them into a downloadable
-artifact on every architecture and prints a summary in the job log; if
-that is useful to you, `.github/scripts/collect-bsp-diagnostics.sh` and
-`summarise-bsp-metrics.py` in this repository are about forty lines
-between them and are not bleep-specific.
+A slow build on your own machine you can poke at. A slow build on a CI
+runner is gone the moment the job ends, and CI is exactly where the
+interesting problems live: four cores instead of sixteen, a cold cache,
+and a memory ceiling you didn't choose. The same `metrics.jsonl` is
+sitting there when the job fails — it just needs collecting before the
+runner is destroyed.
+
+```yaml
+- name: Collect compile-server telemetry
+  if: always()          # the runs worth reading are the ones that failed
+  shell: bash
+  run: |
+    shopt -s nullglob
+    mkdir -p bsp-diagnostics
+    # The cache directory differs per OS, so cover all three rather than
+    # assuming the runner you happen to be on.
+    for d in ~/.cache/bleep/socket/*/ \
+             ~/Library/Caches/build.bleep/socket/*/ \
+             "$(command -v cygpath >/dev/null && cygpath "$LOCALAPPDATA" || echo /nonexistent)"/bleep/cache/socket/*/; do
+      name=$(basename "$d")
+      mkdir -p "bsp-diagnostics/$name"
+      for f in "$d"metrics.jsonl "$d"output; do
+        [ -f "$f" ] && cp "$f" "bsp-diagnostics/$name/"
+      done
+    done
+
+- uses: actions/upload-artifact@v7
+  if: always()
+  with:
+    name: bsp-diagnostics-${{ matrix.os }}
+    path: bsp-diagnostics
+```
+
+Two details that are easy to get wrong, and silent when you do:
+
+- **`if: always()`.** A job that exceeds its `timeout-minutes` is torn
+  down *with* its remaining steps, `always()` included — so if you are
+  chasing a hang, put a `timeout-minutes` on the *step* that hangs, below
+  the job's. Then the step fails, the job continues, and you get the
+  telemetry that explains it.
+- **The per-OS paths.** A Linux-only glob silently collects nothing on
+  Windows and macOS, which looks identical to "there was nothing to
+  collect".
+
+Download the artifact and read it with anything that speaks JSON:
+
+```bash
+# the slowest compiles
+jq -r 'select(.type=="compile_end") | "\(.duration_ms) \(.project)"' metrics.jsonl | sort -rn | head
+
+# was the machine ever full, or was work queued behind idle cores?
+jq -r 'select(.type=="machine") | "\(.used_cpu)/\(.total_cpu) running=\(.running) queued=\(.waiting)"' metrics.jsonl
+
+# what actually allocates
+jq -r 'select(.type=="compile_allocation") | "\(.allocated_mb) \(.project)"' metrics.jsonl | sort -rn | head
+```
+
+bleep's own workflow does exactly this on every architecture and prints a
+summary in the job log;
+`.github/scripts/collect-bsp-diagnostics.sh` and `summarise-bsp-metrics.py`
+in this repository are about forty lines between them and are not
+bleep-specific.
+
+### What this does *not* cover: test timings
+
+`metrics.jsonl` is about the compile server — compiles, sourcegen, heap,
+scheduling. It records **nothing about individual tests or suites**. If
+you are chasing a slow *test* run rather than a slow build, that data
+comes from a different file:
+
+```bash
+bleep test --junit-report target/test-reports
+```
+
+Standard JUnit XML, with `time=` on every `<testsuite>` **and** every
+`<testcase>` — so per-test durations, not just per-suite. Every CI system
+has a viewer for it, and it uploads as an artifact the same way.
+
+The two are complementary: the JUnit XML tells you *which suite* is slow,
+`metrics.jsonl` tells you whether the machine was starved of memory or
+cores while it ran.
 
 ## Where this lives on disk
 
