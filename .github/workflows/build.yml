@@ -70,8 +70,12 @@ jobs:
         # through a shell and would silently match nothing, and puts the version and size in the log where a wrong
         # or empty publish is visible at a glance rather than at someone else's first use.
         run: |
-          ./bleep-cli.sh --dev publish local-ivy --to dev-jars --no-tui
+          # `--version` explicitly, from the same generated file the three other publishes in this workflow read.
+          # Without it the version comes from dynver at runtime, which appends a timestamp when the working tree is
+          # dirty — and the artifact would then be published under a version no binary asks for. The jars are only
+          # useful paired with a binary that names them, so this cannot be left to depend on the tree being clean.
           version=$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')
+          ./bleep-cli.sh --dev publish local-ivy --to dev-jars --version "$version" --no-tui
           echo "$version" > dev-jars/VERSION
           echo "version: $version"
           echo "modules: $(ls dev-jars/build.bleep | wc -l), size: $(du -sh dev-jars | cut -f1)"
