@@ -1547,7 +1547,7 @@ class MultiWorkspaceBspServer(
           val project = started.build.explodedProjects(crossName)
           val platformOpt = project.platform.flatMap(_.name)
           val isKotlin = project.kotlin.flatMap(_.version).isDefined
-          val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin21.kotlinVersion)
+          val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin24.kotlinVersion)
 
           (platformOpt, isKotlin) match {
             case (Some(model.PlatformId.Js), true) =>
@@ -1985,7 +1985,7 @@ class MultiWorkspaceBspServer(
         val project = started.build.explodedProjects(crossName)
         val platformOpt = project.platform.flatMap(_.name)
         val isKotlin = project.kotlin.flatMap(_.version).isDefined
-        val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin21.kotlinVersion)
+        val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin24.kotlinVersion)
 
         (platformOpt, isKotlin) match {
           case (Some(model.PlatformId.Js), true) =>

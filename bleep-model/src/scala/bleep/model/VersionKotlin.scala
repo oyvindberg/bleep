@@ -63,5 +63,7 @@ object VersionKotlin {
 
   val Kotlin2 = VersionKotlin(Versions.Kotlin2)
   val Kotlin21 = VersionKotlin(Versions.Kotlin21)
+  val Kotlin22 = VersionKotlin(Versions.Kotlin22)
   val Kotlin23 = VersionKotlin(Versions.Kotlin23)
+  val Kotlin24 = VersionKotlin(Versions.Kotlin24)
 }

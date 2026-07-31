@@ -513,13 +513,39 @@ object KotlinSourceCompiler extends Compiler {
       // Create MessageCollector proxy
       val messageCollectorProxy = createMessageCollectorProxy(setup, listener, collectedErrors, cancellation)
 
-      // Find the compile method
-      // compile(sources: List<File>, args: Args, messageCollector: MessageCollector, changedFiles: ChangedFiles, fileLocations: FileLocations)
-      val compileMethod = setup.incrementalRunnerClass.getMethods
-        .find { m =>
-          m.getName == "compile" && m.getParameterCount == 5
+      // `IncrementalCompilerRunner.compile` gained a trailing parameter in Kotlin 2.4, verified by reflecting over the real jars:
+      //
+      //   2.2, 2.3   compile(List, CommonCompilerArguments, MessageCollector, ChangedFiles, FileLocations)
+      //   2.4        compile(List, CommonCompilerArguments, MessageCollector, ChangedFiles, FileLocations, ConfigurationInputs)
+      //
+      // Dispatch on the declared arity rather than pinning one, since pinning is the bug this whole change exists to fix — the previous code hard-coded a
+      // constructor arity no shipping compiler had, and failed silently for it.
+      val compileMethods = setup.incrementalRunnerClass.getMethods.filter(_.getName == "compile")
+      val maybeCompileMethod = compileMethods.find(m => m.getParameterCount == 5 || m.getParameterCount == 6)
+      if (maybeCompileMethod.isEmpty) {
+        // Degrade to a full compile rather than throwing: the class resolved and the constructor matched, so we are committed to this path by the time the
+        // shape turns out to differ. Refusing to build a Kotlin release that the previous bleep built is worse than building it non-incrementally and saying so.
+        System.err.println(
+          s"[bleep] Kotlin ${config.version}: BuildHistoryJvmICRunner.compile has no arity this bleep understands (5 or 6), compiling non-incrementally. " +
+            s"Arities seen: ${compileMethods.map(_.getParameterCount).mkString(", ")}"
+        )
+        return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
+      }
+      val compileMethod = maybeCompileMethod.get
+
+      /** Kotlin 2.4's sixth argument. `ConfigurationInputs(Map, List)` is a data class carrying two snapshots the compiler diffs to notice that the *build
+        * configuration* changed — not the sources. Empty and empty is the honest value for bleep: it does not participate in that mechanism, and cross-language
+        * classpath changes are already handled by [[classpathChanged]] invalidating the cache outright.
+        */
+      val extraArgs: Array[Object] =
+        if (compileMethod.getParameterCount == 5) Array.empty
+        else {
+          val configurationInputsClass = setup.incrementalRunnerClass.getClassLoader.loadClass("org.jetbrains.kotlin.incremental.ConfigurationInputs")
+          val ctor = configurationInputsClass.getDeclaredConstructors
+            .find(_.getParameterCount == 2)
+            .getOrElse(throw new NoSuchMethodException(s"ConfigurationInputs on Kotlin ${config.version} has no 2-arg constructor"))
+          Array(ctor.newInstance(new java.util.HashMap[String, String](), new java.util.ArrayList[Object]()).asInstanceOf[Object])
         }
-        .getOrElse(throw new NoSuchMethodException("Could not find IncrementalJvmCompilerRunner.compile method"))
 
       // Redirect System.out/err during compile — the Kotlin compiler writes directly to these
       // streams on errors, which can corrupt BSP JSON-RPC or cause pipe deadlocks in tests.
@@ -534,11 +560,13 @@ object KotlinSourceCompiler extends Compiler {
 
           compileMethod.invoke(
             runner,
-            sourceFilesList,
-            arguments,
-            messageCollectorProxy,
-            setup.changedFilesToBeComputedInstance,
-            fileLocations
+            (Array[Object](
+              sourceFilesList.asInstanceOf[Object],
+              arguments.asInstanceOf[Object],
+              messageCollectorProxy.asInstanceOf[Object],
+              setup.changedFilesToBeComputedInstance.asInstanceOf[Object],
+              fileLocations.asInstanceOf[Object]
+            ) ++ extraArgs)*
           )
         } finally {
           System.setOut(savedOut)

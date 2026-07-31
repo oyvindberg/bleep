@@ -18,9 +18,13 @@ object Versions {
   val ScalaNative05: String = "0.5.12"
 
   // ── Kotlin ──
+  // One val per minor line, each the newest patch of that line. `Kotlin24` is the default for projects that state no version; the older lines stay nameable
+  // because a project may be pinned to one. Incremental compilation needs 2.2 or newer (see KotlinSourceCompiler) — 2.0 and 2.1 compile, but always in full.
   val Kotlin2: String = "2.0.21"
   val Kotlin21: String = "2.1.21"
+  val Kotlin22: String = "2.2.21"
   val Kotlin23: String = "2.3.21"
+  val Kotlin24: String = "2.4.10"
 
   // ── Compilers and formatters bleep fetches ──
   /** Eclipse JDT compiler (ECJ), used when a project opts out of javac */
