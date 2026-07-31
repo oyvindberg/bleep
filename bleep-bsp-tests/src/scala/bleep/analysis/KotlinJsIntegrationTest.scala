@@ -62,7 +62,7 @@ class KotlinJsIntegrationTest extends AnyFunSuite with Matchers {
   // ============================================================================
 
   test("KotlinJsCompilerConfig: default configuration") {
-    val config = KotlinJsCompilerConfig.Default
+    val config = KotlinJsCompilerConfig.ForTests
     config.kotlinVersion shouldBe bleep.model.Versions.Kotlin23
     config.moduleKind shouldBe KotlinJsCompilerConfig.ModuleKind.CommonJS
     config.outputMode shouldBe KotlinJsCompilerConfig.OutputMode.JsExecutable
@@ -175,7 +175,7 @@ class KotlinJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Pla
           |""".stripMargin
       )
 
-      val config = KotlinJsCompilerConfig.Default.copy(
+      val config = KotlinJsCompilerConfig.ForTests.copy(
         moduleName = "hello",
         outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable
       )
@@ -257,7 +257,7 @@ class KotlinJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Pla
           |""".stripMargin
       )
 
-      val config = KotlinJsCompilerConfig.Default.copy(
+      val config = KotlinJsCompilerConfig.ForTests.copy(
         moduleName = "mylib",
         outputMode = KotlinJsCompilerConfig.OutputMode.Klib
       )

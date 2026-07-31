@@ -181,7 +181,7 @@ object BuildCreateNew {
     private def kotlinRecipe(name: String): Recipe = {
       val mainClass = s"$mainPkg.MainKt"
       val kotlin = model.Kotlin(
-        version = Some(model.VersionKotlin.Kotlin23),
+        version = Some(model.VersionKotlin.Kotlin24),
         options = model.Options.empty,
         jvmTarget = Some(model.Jvm.graalvm.majorVersion),
         compilerPlugins = model.JsonSet.empty,

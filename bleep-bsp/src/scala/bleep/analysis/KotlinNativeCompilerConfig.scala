@@ -87,8 +87,11 @@ object KotlinNativeCompilerConfig {
     }
   }
 
-  /** Default configuration. */
-  val Default: KotlinNativeCompilerConfig = KotlinNativeCompilerConfig(
+  /** A ready-made config for tests, not a default anything reads at build time. Production builds this explicitly in `ProjectCompiler` from the project's own
+    * `kotlin.version`; nothing here is consulted. It was called `Default` and sat next to real defaults, which reads as "what a project gets when it says
+    * nothing" — it is not, and that misreading is easy to act on.
+    */
+  val ForTests: KotlinNativeCompilerConfig = KotlinNativeCompilerConfig(
     kotlinVersion = bleep.model.Versions.Kotlin23,
     target = Target.hostTarget,
     outputKind = OutputKind.Executable,

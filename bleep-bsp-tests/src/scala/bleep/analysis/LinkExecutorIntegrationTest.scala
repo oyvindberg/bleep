@@ -119,7 +119,7 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
   test("Kotlin Native test linking produces binary with test runner") {
     assumeKotlinNativeAvailable()
     // Use the same version for compilation and linking to avoid ABI mismatch
-    val kotlinVersion = KotlinNativeCompilerConfig.Default.kotlinVersion
+    val kotlinVersion = KotlinNativeCompilerConfig.ForTests.kotlinVersion
 
     withTempDir("kt-native-test-link") { tempDir =>
       // Step 1: Compile a simple Kotlin source to KLIB
@@ -136,7 +136,7 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
       )
 
       val klibPath = tempDir.resolve("test-proj.klib")
-      val config = KotlinNativeCompilerConfig.Default.copy(
+      val config = KotlinNativeCompilerConfig.ForTests.copy(
         outputKind = KotlinNativeCompilerConfig.OutputKind.Klib
       )
 
