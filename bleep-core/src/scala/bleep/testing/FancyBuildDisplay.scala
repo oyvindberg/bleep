@@ -412,7 +412,7 @@ object FancyBuildDisplay {
         val key = TestKey(project, suite, test)
         state.runningTests.put(key, RunningTest(project, suite, test, Instant.ofEpochMilli(timestamp))): Unit
 
-      case BuildEvent.TestFinished(project, suite, test, status, _, _, _, _) =>
+      case BuildEvent.TestFinished(project, suite, test, status, _, _, _, _, _) =>
         val key = TestKey(project, suite, test)
         state.runningTests.remove(key): Unit
 
@@ -1204,7 +1204,7 @@ object FancyBuildDisplay {
           )
         )
         errors.foreach { diag =>
-          val pathLine = diag.path match {
+          val pathLine = diag.displayPath match {
             case Some(p) =>
               Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
             case None =>
@@ -1219,7 +1219,7 @@ object FancyBuildDisplay {
       }
 
       warnings.foreach { diag =>
-        val pathLine = diag.path match {
+        val pathLine = diag.displayPath match {
           case Some(p) =>
             Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
           case None =>

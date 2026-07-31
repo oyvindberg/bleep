@@ -550,7 +550,10 @@ case class TestFailure(
     message: Option[String],
     throwable: Option[String],
     output: List[String],
-    category: FailureCategory
+    category: FailureCategory,
+    // Where in the suite it was raised, when the forked JVM runner could recover it. Absent for the JS/Native/Kotlin
+    // runners, for timeouts and cancellations (no throwable), and for failures raised outside the suite class.
+    location: Option[bleep.bsp.protocol.BleepBspProtocol.SourceLocation]
 )
 
 case class TestSkipped(
@@ -727,7 +730,7 @@ object BuildDisplay {
       case BuildEvent.TestStarted(_, _, _, _) =>
         IO.unit
 
-      case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _) =>
+      case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _, _) =>
         if (!quietMode) printTestResult(test, status) else IO.unit
 
       case BuildEvent.SuiteFinished(_, suite, outcome, durationMs, _) =>

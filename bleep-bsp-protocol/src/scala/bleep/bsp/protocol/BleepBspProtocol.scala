@@ -217,24 +217,65 @@ object BleepBspProtocol {
   // Shared types
   // ==========================================================================
 
+  /** Where a test failed, recovered from the first stack frame belonging to the suite class itself.
+    *
+    * `file` is the bare file name the JVM records in the class file (`MyTest.scala`), not a path — `declaringClass` supplies the package, and only the client
+    * knows the project's source directories, so turning the pair into a real path happens there (see `TestFailure.resolvedPath`).
+    *
+    * Deliberately only the suite's own frames: the first frame overall is usually inside the assertion library, and an annotation pointing at someone else's
+    * source is worse than no annotation. Absent when the throwable has no frame in the suite (or there is no throwable at all).
+    */
+  case class SourceLocation(
+      declaringClass: String,
+      file: String,
+      line: Int,
+      /** Build-relative source path, resolved server-side from zinc's analysis (`ZincSourceLookup`). Absent when analysis cannot answer — no analysis yet, or a
+        * language that does not produce one, which today means Kotlin. Consumers that need a path fall back to `declaringClass` + `file`, which locate the
+        * failure for a human but not precisely enough to annotate a line in a diff.
+        */
+      path: Option[String]
+  )
+
+  object SourceLocation {
+    implicit val codec: Codec[SourceLocation] = deriveCodec
+  }
+
   /** A compiler diagnostic with severity.
     *
     * `message` is the short/plain error text (from problem.message()). `rendered` is the compiler's rich formatted output including source line and caret (from
-    * problem.rendered()). `path` is the full file path with line:col suffix.
+    * problem.rendered()).
+    *
+    * Position is carried structurally — `path` is the file path alone, with `line`/`column` beside it. It used to be a single `path:line:col` string, which
+    * every consumer then had to take apart again. That is unparseable on Windows: `BuildDiff.diagKey` recovered the file with `p.indexOf(':')`, so
+    * `C:\foo\Bar.scala:12:5` yielded `"C"` and every diagnostic on the platform collapsed into one dedup key. The compiler hands us `line`/`column` as integers
+    * to begin with (see `CompilerError`), so nothing needs flattening — use [[Diagnostic.displayPath]] when a human-readable location is wanted.
     */
   case class Diagnostic(
       severity: DiagnosticSeverity,
       message: String,
       rendered: Option[String],
-      path: Option[String] // full path:line:col for file-associated diagnostics
-  )
+      path: Option[String], // file path only, no location suffix
+      line: Option[Int], // 1-based, absent when the compiler reported no position
+      column: Option[Int] // 1-based
+  ) {
+
+    /** `path:line:col`, omitting whichever trailing parts the compiler did not report. For display only — never parse this back. */
+    def displayPath: Option[String] =
+      path.map { p =>
+        (line, column) match {
+          case (Some(l), Some(c)) => s"$p:$l:$c"
+          case (Some(l), None)    => s"$p:$l"
+          case _                  => p
+        }
+      }
+  }
 
   object Diagnostic {
     implicit val codec: Codec[Diagnostic] = deriveCodec
 
-    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None)
-    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None)
-    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None)
+    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None, None, None)
+    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None, None, None)
+    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None, None, None)
   }
 
   // ==========================================================================
@@ -429,7 +470,8 @@ object BleepBspProtocol {
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],
-        timestamp: Long
+        timestamp: Long,
+        location: Option[SourceLocation]
     ) extends Event
 
     case class SuiteFinished(

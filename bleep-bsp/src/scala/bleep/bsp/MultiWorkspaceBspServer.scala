@@ -2273,6 +2273,12 @@ class MultiWorkspaceBspServer(
                       environment = testEnv,
                       workingDirectory = projectDir
                     ),
+                    resolveSourcePath = className =>
+                      bleep.analysis.ZincSourceLookup.relativeSourceForProject(
+                        bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey),
+                        started.buildPaths.variantBuildDir(testTask.project).resolve(".zinc").resolve("analysis.zip"),
+                        className
+                      ),
                     killSignal = taskKillSignal
                   )
               }
@@ -2987,7 +2993,7 @@ class MultiWorkspaceBspServer(
       def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
         dispatcher.unsafeRunSync(
           eventQueue.offer(
-            Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis()))
+            Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis(), None))
           )
         )
       def onSuiteStarted(suite: String): Unit = ()
@@ -3597,12 +3603,12 @@ class MultiWorkspaceBspServer(
             val protocolEvent = BleepBspProtocol.Event.TestStarted(project, suite, test, timestamp)
             IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
 
-          case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
+          case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
             IO(
               sendTestEvent(
                 originId,
                 s"test:$project:$suite",
-                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp)
+                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location)
               )
             )
 
@@ -3709,20 +3715,15 @@ class MultiWorkspaceBspServer(
 
   /** Convert a compiler error to a protocol Diagnostic preserving severity */
   private def toDiagnostic(error: CompilerError): BleepBspProtocol.Diagnostic = {
-    val pathStr = error.path.map { p =>
-      val locPart = (error.line, error.column) match {
-        case (0, 0) => ""
-        case (l, 0) => s":$l"
-        case (l, c) => s":$l:$c"
-      }
-      s"$p$locPart"
-    }
+    // 0 is the compiler's "no position reported" sentinel for both, so it becomes None rather than a bogus line 0.
+    val line = Option(error.line).filter(_ > 0)
+    val column = Option(error.column).filter(_ > 0)
     val severity = error.severity match {
       case CompilerError.Severity.Error   => bleep.bsp.protocol.DiagnosticSeverity.Error
       case CompilerError.Severity.Warning => bleep.bsp.protocol.DiagnosticSeverity.Warning
       case CompilerError.Severity.Info    => bleep.bsp.protocol.DiagnosticSeverity.Info
     }
-    BleepBspProtocol.Diagnostic(severity, error.message, error.rendered, pathStr)
+    BleepBspProtocol.Diagnostic(severity, error.message, error.rendered, error.path.map(_.toString), line, column)
   }
 
   private val sendEventCounter = new java.util.concurrent.atomic.AtomicInteger(0)

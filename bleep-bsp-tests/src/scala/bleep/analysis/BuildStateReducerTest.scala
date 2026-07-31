@@ -55,7 +55,8 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
         durationMs = 50,
         message = Some("assertion failed"),
         throwable = None,
-        ts + 2
+        ts + 2,
+        location = None
       ),
       BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(0, 1, 0, 0), 100, ts + 3)
     )
@@ -72,13 +73,13 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
       BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.MySuite"), ts),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test1"), ts + 1),
       BuildEvent
-        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2),
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2, None),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test2"), ts + 3),
       BuildEvent
-        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test2"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 4),
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test2"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 4, None),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test3"), ts + 5),
       BuildEvent
-        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test3"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 6),
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test3"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 6, None),
       BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), SuiteOutcome.Executed(3, 0, 0, 0), 100, ts + 7)
     )
 
@@ -178,7 +179,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     val stateBeforeComplete = reduce(
       BuildEvent.SuiteStarted(cpn("proj"), sn("suite1"), ts),
       BuildEvent.TestStarted(cpn("proj"), sn("suite1"), tn("test1"), ts + 1),
-      BuildEvent.TestFinished(cpn("proj"), sn("suite1"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2),
+      BuildEvent.TestFinished(cpn("proj"), sn("suite1"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2, None),
       BuildEvent.SuiteFinished(cpn("proj"), sn("suite1"), SuiteOutcome.Executed(1, 0, 0, 0), 50, ts + 3)
     )
 

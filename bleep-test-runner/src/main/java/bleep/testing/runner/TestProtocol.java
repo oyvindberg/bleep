@@ -43,8 +43,27 @@ public final class TestProtocol {
         + "}}";
   }
 
+  /** For runners that cannot recover a source location, such as the JUnit Platform bridge. */
   public static String encodeTestFinished(
       String suite, String test, String status, long durationMs, String message, String throwable) {
+    return encodeTestFinished(suite, test, status, durationMs, message, throwable, null, null, 0);
+  }
+
+  /**
+   * {@code locationClass} / {@code locationFile} / {@code locationLine} describe the frame where
+   * the failure was raised inside the suite. All three are omitted together — the reader treats a
+   * partial location as no location, since half of one cannot point anywhere.
+   */
+  public static String encodeTestFinished(
+      String suite,
+      String test,
+      String status,
+      long durationMs,
+      String message,
+      String throwable,
+      String locationClass,
+      String locationFile,
+      int locationLine) {
     StringBuilder sb = new StringBuilder();
     sb.append("{\"type\":\"TestFinished\",\"data\":{");
     sb.append("\"suite\":").append(jsonString(suite));
@@ -56,6 +75,13 @@ public final class TestProtocol {
     }
     if (throwable != null) {
       sb.append(",\"throwable\":").append(jsonString(throwable));
+    }
+    if (locationClass != null && locationFile != null && locationLine > 0) {
+      sb.append(",\"location\":{");
+      sb.append("\"declaringClass\":").append(jsonString(locationClass));
+      sb.append(",\"file\":").append(jsonString(locationFile));
+      sb.append(",\"line\":").append(locationLine);
+      sb.append("}");
     }
     sb.append("}}");
     return sb.toString();

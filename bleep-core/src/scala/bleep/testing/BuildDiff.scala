@@ -58,13 +58,10 @@ object BuildDiff {
     */
   case class DiagKey(file: Option[String], message: String)
 
-  private def diagKey(d: BleepBspProtocol.Diagnostic): DiagKey = {
-    val fileOnly = d.path.map { p =>
-      val colonIdx = p.indexOf(':')
-      if (colonIdx > 0) p.substring(0, colonIdx) else p
-    }
-    DiagKey(fileOnly, d.message)
-  }
+  // `d.path` is already the file alone. This used to chop at the first ':' to strip a `line:col` suffix, which on Windows turned every
+  // `C:\...` path into `"C"` — collapsing unrelated files into a single dedup key across the whole platform.
+  private def diagKey(d: BleepBspProtocol.Diagnostic): DiagKey =
+    DiagKey(d.path, d.message)
 
   /** Result of diffing diagnostics for a single project */
   case class CompileDiff(

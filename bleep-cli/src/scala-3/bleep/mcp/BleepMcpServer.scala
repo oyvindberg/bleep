@@ -1399,6 +1399,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           fields += "message" -> Json.fromString(stripAnsi(d.message))
           d.rendered.foreach(r => fields += "rendered" -> Json.fromString(stripAnsi(r)))
           d.path.foreach(p => fields += "path" -> Json.fromString(p))
+          d.line.foreach(l => fields += "line" -> Json.fromInt(l))
+          d.column.foreach(c => fields += "column" -> Json.fromInt(c))
           Json.obj(fields.result()*)
         }
         val totalDiagnostics = allDiagnosticJsons.size
@@ -1456,6 +1458,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
             val df = List.newBuilder[(String, Json)]
             df += "message" -> Json.fromString(stripAnsi(d.message))
             d.path.foreach(p => df += "path" -> Json.fromString(p))
+            d.line.foreach(l => df += "line" -> Json.fromInt(l))
+            d.column.foreach(c => df += "column" -> Json.fromInt(c))
             Json.obj(df.result()*)
           }
           fields += "topErrors" -> Json.arr(topErrors*)

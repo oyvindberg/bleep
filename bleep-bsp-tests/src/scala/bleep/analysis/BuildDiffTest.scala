@@ -22,14 +22,17 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   private def sn(name: String): SuiteName = SuiteName(name)
   private def tn(name: String): TestName = TestName(name)
 
-  private def diag(severity: DiagnosticSeverity, message: String, path: String): BleepBspProtocol.Diagnostic =
-    BleepBspProtocol.Diagnostic(severity = severity, message = message, rendered = None, path = Some(path))
+  private def diag(severity: DiagnosticSeverity, message: String, file: String, line: Option[Int], column: Option[Int]): BleepBspProtocol.Diagnostic =
+    BleepBspProtocol.Diagnostic(severity = severity, message = message, rendered = None, path = Some(file), line = line, column = column)
 
-  private def errorDiag(message: String, path: String): BleepBspProtocol.Diagnostic =
-    diag(DiagnosticSeverity.Error, message, path)
+  private def errorDiag(message: String, file: String): BleepBspProtocol.Diagnostic =
+    diag(DiagnosticSeverity.Error, message, file, None, None)
 
-  private def warningDiag(message: String, path: String): BleepBspProtocol.Diagnostic =
-    diag(DiagnosticSeverity.Warning, message, path)
+  private def errorDiagAt(message: String, file: String, line: Int, column: Int): BleepBspProtocol.Diagnostic =
+    diag(DiagnosticSeverity.Error, message, file, Some(line), Some(column))
+
+  private def warningDiagAt(message: String, file: String, line: Int, column: Int): BleepBspProtocol.Diagnostic =
+    diag(DiagnosticSeverity.Warning, message, file, Some(line), Some(column))
 
   private def testFinished(project: CrossProjectName, suite: SuiteName, test: TestName, status: TestStatus): BuildEvent.TestFinished =
     BuildEvent.TestFinished(
@@ -40,7 +43,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       durationMs = 10,
       message = None,
       throwable = None,
-      timestamp = ts
+      timestamp = ts,
+      location = None
     )
 
   // ==========================================================================
@@ -55,7 +59,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         CompileStatus.Success,
         durationMs = 100,
         timestamp = ts + 1,
-        diagnostics = List(warningDiag("unused import", "Foo.scala:10:5")),
+        diagnostics = List(warningDiagAt("unused import", "Foo.scala", 10, 5)),
         skippedBecause = None
       ),
       BuildEvent.CompileStarted(cpn("proj-b"), ts + 2),
@@ -64,7 +68,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         CompileStatus.Failed,
         durationMs = 200,
         timestamp = ts + 3,
-        diagnostics = List(errorDiag("type mismatch", "Bar.scala:20:3")),
+        diagnostics = List(errorDiagAt("type mismatch", "Bar.scala", 20, 3)),
         skippedBecause = None
       )
     )
@@ -114,7 +118,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         project = cpn("proj-a"),
         status = CompileStatus.Success,
         durationMs = 100,
-        diagnostics = List(warningDiag("unused", "A.scala:1:1")),
+        diagnostics = List(warningDiagAt("unused", "A.scala", 1, 1)),
         skippedBecause = None,
         timestamp = ts
       ),
@@ -126,7 +130,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         durationMs = 50,
         message = None,
         throwable = None,
-        timestamp = ts + 1
+        timestamp = ts + 1,
+        location = None
       )
     )
 
@@ -160,8 +165,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: new errors where none existed before") {
     val current = List(
-      errorDiag("type mismatch", "Foo.scala:10:5"),
-      errorDiag("not found: value x", "Bar.scala:20:3")
+      errorDiagAt("type mismatch", "Foo.scala", 10, 5),
+      errorDiagAt("not found: value x", "Bar.scala", 20, 3)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, Nil, 200)
@@ -173,8 +178,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: all errors fixed") {
     val previous = List(
-      errorDiag("type mismatch", "Foo.scala:10:5"),
-      errorDiag("not found: value x", "Bar.scala:20:3")
+      errorDiagAt("type mismatch", "Foo.scala", 10, 5),
+      errorDiagAt("not found: value x", "Bar.scala", 20, 3)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Success, Nil, previous, 100)
@@ -186,13 +191,13 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: some errors fixed, some new, some remaining") {
     val previous = List(
-      errorDiag("type mismatch", "Foo.scala:10:5"),
-      errorDiag("not found: value x", "Bar.scala:20:3"),
-      errorDiag("missing argument", "Baz.scala:5:1")
+      errorDiagAt("type mismatch", "Foo.scala", 10, 5),
+      errorDiagAt("not found: value x", "Bar.scala", 20, 3),
+      errorDiagAt("missing argument", "Baz.scala", 5, 1)
     )
     val current = List(
-      errorDiag("not found: value x", "Bar.scala:25:3"), // same file+message, different line — matches
-      errorDiag("implicit not found", "Qux.scala:1:1") // new error
+      errorDiagAt("not found: value x", "Bar.scala", 25, 3), // same file+message, different line — matches
+      errorDiagAt("implicit not found", "Qux.scala", 1, 1) // new error
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, previous, 300)
@@ -203,8 +208,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   }
 
   test("diffCompile: line number change does not affect matching") {
-    val previous = List(errorDiag("type mismatch", "Foo.scala:10:5"))
-    val current = List(errorDiag("type mismatch", "Foo.scala:42:8"))
+    val previous = List(errorDiagAt("type mismatch", "Foo.scala", 10, 5))
+    val current = List(errorDiagAt("type mismatch", "Foo.scala", 42, 8))
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, previous, 100)
 
@@ -216,12 +221,12 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: warnings are tracked separately from errors") {
     val previous = List(
-      warningDiag("unused import", "A.scala:1:1"),
-      errorDiag("type mismatch", "B.scala:2:1")
+      warningDiagAt("unused import", "A.scala", 1, 1),
+      errorDiagAt("type mismatch", "B.scala", 2, 1)
     )
     val current = List(
-      warningDiag("unused import", "A.scala:1:1"),
-      warningDiag("deprecation", "C.scala:3:1")
+      warningDiagAt("unused import", "A.scala", 1, 1),
+      warningDiagAt("deprecation", "C.scala", 3, 1)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Success, current, previous, 100)
@@ -235,7 +240,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   }
 
   test("diffCompile: diagnostics without path are matched by message only") {
-    val noDiag = BleepBspProtocol.Diagnostic(severity = DiagnosticSeverity.Error, message = "build error", rendered = None, path = None)
+    val noDiag =
+      BleepBspProtocol.Diagnostic(severity = DiagnosticSeverity.Error, message = "build error", rendered = None, path = None, line = None, column = None)
     val previous = List(noDiag)
     val current = List(noDiag)
 
@@ -541,8 +547,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("diffCompile: same file different line numbers treated as same diagnostic") {
-    val prev = List(errorDiag("type mismatch", "src/Foo.scala:10:5"))
-    val curr = List(errorDiag("type mismatch", "src/Foo.scala:99:1"))
+    val prev = List(errorDiagAt("type mismatch", "src/Foo.scala", 10, 5))
+    val curr = List(errorDiagAt("type mismatch", "src/Foo.scala", 99, 1))
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, curr, prev, 100)
     // Line stripped — same file + same message = same error
@@ -551,12 +557,24 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   }
 
   test("diffCompile: same message different file treated as different diagnostic") {
-    val prev = List(errorDiag("type mismatch", "src/Foo.scala:10:5"))
-    val curr = List(errorDiag("type mismatch", "src/Bar.scala:10:5"))
+    val prev = List(errorDiagAt("type mismatch", "src/Foo.scala", 10, 5))
+    val curr = List(errorDiagAt("type mismatch", "src/Bar.scala", 10, 5))
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, curr, prev, 100)
     diff.newErrors shouldBe 1 // Bar.scala error is new
     diff.fixedErrors shouldBe 1 // Foo.scala error was fixed
+  }
+
+  test("diffCompile: windows drive letters do not collapse distinct files into one diagnostic") {
+    // Regression: position used to be flattened into the path as `file:line:col`, and this diff recovered the file with
+    // `p.indexOf(':')`. On Windows that cut at the drive colon, so every path became "C" and unrelated files shared a
+    // dedup key — a fixed error in one file would cancel out a new error in another, on every Windows build.
+    val prev = List(errorDiagAt("type mismatch", "C:\\proj\\src\\Foo.scala", 10, 5))
+    val curr = List(errorDiagAt("type mismatch", "C:\\proj\\src\\Bar.scala", 10, 5))
+
+    val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, curr, prev, 100)
+    diff.newErrors shouldBe 1
+    diff.fixedErrors shouldBe 1
   }
 
   test("diffCompile: path without line:col is preserved as-is") {
@@ -574,8 +592,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: two identical errors same file are both counted as new") {
     val current = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5"),
-      errorDiag("Found: Int, Required: String", "Foo.scala:20:5") // same file+message — counted via multiset
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5),
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 20, 5) // same file+message — counted via multiset
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, Nil, 100)
@@ -585,11 +603,11 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: fixing one of two identical errors shows 1 fixed") {
     val previous = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5"),
-      errorDiag("Found: Int, Required: String", "Foo.scala:20:5")
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5),
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 20, 5)
     )
     val current = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5")
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, previous, 100)
@@ -600,13 +618,13 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: adding a third identical error shows 1 new") {
     val previous = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5"),
-      errorDiag("Found: Int, Required: String", "Foo.scala:20:5")
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5),
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 20, 5)
     )
     val current = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5"),
-      errorDiag("Found: Int, Required: String", "Foo.scala:20:5"),
-      errorDiag("Found: Int, Required: String", "Foo.scala:30:5")
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5),
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 20, 5),
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 30, 5)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, previous, 100)
@@ -617,8 +635,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: different messages same file are distinct") {
     val current = List(
-      errorDiag("Found: Int, Required: String", "Foo.scala:10:5"),
-      errorDiag("Found: Boolean, Required: List[Int]", "Foo.scala:20:5")
+      errorDiagAt("Found: Int, Required: String", "Foo.scala", 10, 5),
+      errorDiagAt("Found: Boolean, Required: List[Int]", "Foo.scala", 20, 5)
     )
 
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Failed, current, Nil, 100)
@@ -663,7 +681,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   }
 
   test("diffCompile: skipped status with fixed errors reports correctly") {
-    val previous = List(errorDiag("missing import", "A.scala:1:1"))
+    val previous = List(errorDiagAt("missing import", "A.scala", 1, 1))
     val diff = BuildDiff.diffCompile(cpn("proj"), CompileStatus.Skipped, Nil, previous, 0)
 
     diff.status shouldBe CompileStatus.Skipped

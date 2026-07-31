@@ -63,7 +63,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         status = "failed",
         durationMs = 123,
         message = Some("expected 1 but got 2"),
-        throwable = Some("java.lang.AssertionError: expected 1 but got 2\n\tat MySuite.test(MySuite.scala:10)")
+        throwable = Some("java.lang.AssertionError: expected 1 but got 2\n\tat MySuite.test(MySuite.scala:10)"),
+        location = None
       )
       val encoded = TestProtocol.encodeResponse(response)
       val decoded = TestProtocol.decodeResponse(encoded)
@@ -82,7 +83,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         status = "passed",
         durationMs = 5,
         message = None,
-        throwable = None
+        throwable = None,
+        location = None
       )
       val encoded = TestProtocol.encodeResponse(response)
       val decoded = TestProtocol.decodeResponse(encoded)
@@ -349,7 +351,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         durationMs = 150,
         message = Some("assertion failed: expected true"),
         throwable = Some("java.lang.AssertionError"),
-        timestamp = ts
+        timestamp = ts,
+        location = None
       )
 
       event.status shouldBe TestStatus.Failed
@@ -448,7 +451,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         status = "error",
         durationMs = 10,
         message = Some("boom"),
-        throwable = Some(stackTrace)
+        throwable = Some(stackTrace),
+        location = None
       )
       val encoded = TestProtocol.encodeResponse(response)
       val decoded = TestProtocol.decodeResponse(encoded)
@@ -472,7 +476,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
           status = status,
           durationMs = 10,
           message = None,
-          throwable = None
+          throwable = None,
+          location = None
         )
         val encoded = TestProtocol.encodeResponse(response)
         val decoded = TestProtocol.decodeResponse(encoded)

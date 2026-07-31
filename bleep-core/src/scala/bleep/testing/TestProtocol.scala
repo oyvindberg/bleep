@@ -73,7 +73,10 @@ object TestProtocol {
         status: String, // passed, failed, error, skipped, ignored, cancelled, pending
         durationMs: Long,
         message: Option[String],
-        throwable: Option[String]
+        throwable: Option[String],
+        // Where in the suite the failure was raised, when the forked runner could recover it from the throwable.
+        // Absent for passing tests, for failures thrown outside the suite class, and from runners that do not report it.
+        location: Option[bleep.bsp.protocol.BleepBspProtocol.SourceLocation]
     ) extends TestResponse
 
     /** A test suite has completed. `outcome` is reconstructed from the flat wire fields (the Java forked runner emits a `kind` discriminator plus counts) into
