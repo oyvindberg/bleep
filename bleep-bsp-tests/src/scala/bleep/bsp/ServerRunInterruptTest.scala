@@ -22,11 +22,12 @@ class ServerRunInterruptTest extends AnyFunSuite with Matchers {
     val parked = new CountDownLatch(1)
     val thrown = new AtomicReference[Option[Throwable]](None)
 
-    val t = new Thread(
-      () =>
-        try body(parked)
-        catch { case e: Throwable => thrown.set(Some(e)) }, "interrupt-under-test"
-    )
+    // scalafmt's parser (any version/dialect as of 3.11.5) cannot parse a lambda whose body is an
+    // indented try/catch followed by `, arg` in the same call — bind the Runnable first.
+    val runnable: Runnable = () =>
+      try body(parked)
+      catch { case e: Throwable => thrown.set(Some(e)) }
+    val t = new Thread(runnable, "interrupt-under-test")
     t.setDaemon(true)
     t.start()
 

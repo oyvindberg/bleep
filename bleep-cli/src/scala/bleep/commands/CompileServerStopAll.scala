@@ -7,6 +7,7 @@ import cats.effect.unsafe.implicits.global
 import ryddig.Logger
 
 import java.nio.file.{Files, Path}
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
 
 case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends BleepCommand {
@@ -29,6 +30,7 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
 
       // Give the OS time to release file handles after process kill
       Thread.sleep(200)
+      val sizeMb = dirSizeBytes(socketDir) / (1024L * 1024L)
       try FileUtils.deleteDirectory(socketDir)
       catch {
         case _: java.nio.file.DirectoryNotEmptyException | _: java.nio.file.FileSystemException =>
@@ -37,7 +39,18 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
           Thread.sleep(2000)
           FileUtils.deleteDirectory(socketDir)
       }
+      // These dirs can hold multi-GB diagnostic artifacts (heap dumps from pre-M11 servers, output
+      // logs). Deleting gigabytes without a word once cost a user the evidence for an OOM report —
+      // say what went away, and stand out when it was big.
+      val msg = s"deleted $socketDir (${sizeMb}MB)"
+      if (sizeMb >= 1024) logger.warn(msg) else logger.info(msg)
     }
     Right(())
+  }
+
+  private def dirSizeBytes(dir: Path): Long = {
+    val stream = Files.walk(dir)
+    try stream.iterator().asScala.filter(Files.isRegularFile(_)).map(Files.size).sum
+    finally stream.close()
   }
 }
