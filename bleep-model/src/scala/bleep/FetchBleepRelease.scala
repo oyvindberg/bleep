@@ -26,6 +26,17 @@ object FetchBleepRelease {
       cacheLogger: CacheLogger,
       executionContext: ExecutionContext,
       osArch: OsArch.HasNativeImage
+  ): Either[BleepException, Path] =
+    // A snapshot has no release to download. It lives in the artifacts of the CI run for its commit, which is a different lookup and needs a token — see
+    // [[FetchBleepSnapshot]]. Routing here rather than at the call sites so every caller gets it: `Main.maybeRunWithDifferentVersion` and `BleepExecutable`.
+    if (wanted.isDevelopment) FetchBleepSnapshot(wanted, cacheLogger, executionContext, osArch, FetchBleepSnapshot.defaultIvy2Local)
+    else fetchRelease(wanted, cacheLogger, executionContext, osArch)
+
+  private def fetchRelease(
+      wanted: model.BleepVersion,
+      cacheLogger: CacheLogger,
+      executionContext: ExecutionContext,
+      osArch: OsArch.HasNativeImage
   ): Either[BleepException, Path] = {
     val base = s"https://github.com/oyvindberg/bleep/releases/download/v${wanted.value}"
 

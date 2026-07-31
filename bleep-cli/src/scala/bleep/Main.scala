@@ -568,13 +568,17 @@ object Main {
               () => new bleep.plugin.dynver.DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true).version
 
             def publishOpts(target: commands.Publish.Target): Opts[BleepBuildCommand] =
+              publishOptsWith(Opts.unit.map(_ => target))
+
+            def publishOptsWith(targetOpts: Opts[commands.Publish.Target]): Opts[BleepBuildCommand] =
               (
                 Opts.option[String]("version", "version to publish (default: from git tags)").orNone,
                 Opts.flag("assert-release", "fail if git state would produce a snapshot version").orFalse,
                 Opts.flag("dry-run", "show what would be published without uploading").orFalse,
                 publishProjectNames,
-                commonBuildOpts
-              ).mapN { case (version, assertRel, dryRun, projects, buildOpts) =>
+                commonBuildOpts,
+                targetOpts
+              ).mapN { case (version, assertRel, dryRun, projects, buildOpts, target) =>
                 commands.Publish(
                   false,
                   commands.Publish.Options(version, Some(dynVerFallback), assertRel, dryRun, target, projects, ManifestCreator.default),
@@ -583,7 +587,14 @@ object Main {
               }
 
             val builtinSubcommands: List[Opts[BleepBuildCommand]] = List(
-              Opts.subcommand("local-ivy", "publish to local ivy2 cache")(publishOpts(commands.Publish.Target.LocalIvy)),
+              Opts.subcommand("local-ivy", "publish to local ivy2 cache")(
+                publishOptsWith(
+                  Opts
+                    .option[Path]("to", "write the ivy layout here instead of ~/.ivy2/local")
+                    .orNone
+                    .map(commands.Publish.Target.LocalIvy.apply)
+                )
+              ),
               Opts.subcommand("sonatype", "publish to Sonatype / Maven Central (with GPG signing)") {
                 (
                   Opts.option[String]("version", "version to publish (default: from git tags)").orNone,

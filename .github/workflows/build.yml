@@ -28,6 +28,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          # dynver derives the version from the nearest tag and the distance to it. The default depth-1 checkout fetches
+          # no tags, so it finds none and produces `0.0.0+1-<sha>` — which is what the jars and every native image were
+          # published under, and what a bleep.yaml would have had to name to ask for one.
+          fetch-depth: 0
       - uses: bleep-build/bleep-setup-action@v0.0.3
       - uses: coursier/cache-action@v8
         with:
@@ -44,6 +48,54 @@ jobs:
           bleep publish-local --groupId build.bleep --version "$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')"
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
+
+      # The jars that go with the native images the matrix below uploads. A bleep binary asks Coursier for
+      # `build.bleep:bleep-bsp` at the version baked into it, and `constants.DefaultRepos` puts `~/.ivy2/local`
+      # ahead of Maven Central — so unpacking this into `~/.ivy2/local` is all it takes for a downloaded dev
+      # binary to find its own server. Without it the binary resolves nothing, because the version it wants was
+      # never published anywhere: client, server and test-runner must be the same version, and that version is
+      # derived from the git state of this run (`1.0.0-M10+81-236bd0c5-SNAPSHOT`).
+      #
+      # `publish-local` already ran above, for the dev script's own benefit. This only keeps its output.
+      #
+      # From `build` alone, not the matrix: these are JVM jars, identical whichever runner produced them, so one
+      # upload serves all five binaries. ~15MB, of which ~13MB is jars (sources and javadoc are in there too, and
+      # worth keeping — an IDE pointed at a dev build wants them).
+      - name: Stage jars for the dev binaries
+        shell: bash
+        # Published into its own directory rather than copied out of `~/.ivy2/local`. That directory is whatever
+        # the runner accumulated, and people are being asked to unpack this artifact *over their own* ivy cache —
+        # so it has to hold this build and nothing else. Publishing somewhere clean gets that by construction;
+        # filtering the shared one afterwards only gets it if the filter is right.
+        #
+        # The dev script, not `bleep`: `--to` is new in this build, so the released binary on PATH does not have it.
+        #
+        # Staging in the workspace also avoids pointing `upload-artifact` at a `~` path, which it does not run
+        # through a shell and would silently match nothing, and puts the version and size in the log where a wrong
+        # or empty publish is visible at a glance rather than at someone else's first use.
+        run: |
+          # `--version` explicitly, from the same generated file the three other publishes in this workflow read.
+          # Without it the version comes from dynver at runtime, which appends a timestamp when the working tree is
+          # dirty — and the artifact would then be published under a version no binary asks for. The jars are only
+          # useful paired with a binary that names them, so this cannot be left to depend on the tree being clean.
+          version=$(grep 'val current' .bleep/generated-sources/bleep-model/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala | sed 's/.*BleepVersion("\(.*\)").*/\1/')
+          ./bleep-cli.sh --dev publish local-ivy --to dev-jars --version "$version" --no-tui
+          echo "$version" > dev-jars/VERSION
+          echo "version: $version"
+          echo "modules: $(ls dev-jars/build.bleep | wc -l), size: $(du -sh dev-jars | cut -f1)"
+          # The client asks for these by name at exactly this version. A binary paired with an artifact missing any
+          # of them fails at first use, which is too late to find out.
+          for m in bleep-bsp_3 bleep-test-runner bleep-core_3 bleep-model_3; do
+            [ -d "dev-jars/build.bleep/$m/$version" ] || { echo "::error::$m was not published at $version"; exit 1; }
+          done
+
+      - name: Upload jars for the dev binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: bleep-jars
+          path: dev-jars
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Scalafmt Check
         run: ./bleep-cli.sh --dev fmt --check
@@ -173,6 +225,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          # dynver derives the version from the nearest tag and the distance to it. The default depth-1 checkout fetches
+          # no tags, so it finds none and produces `0.0.0+1-<sha>` — which is what the jars and every native image were
+          # published under, and what a bleep.yaml would have had to name to ask for one.
+          fetch-depth: 0
 
       # ARM64 Linux needs JDK 21+ for UnixDomainSocketAddress in BSP server
       - uses: actions/setup-java@v5
@@ -339,12 +395,16 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - name: Temporarily save package
+      # Named for its original job — handing the binary to `release` — which needed it only until that job ran,
+      # hence one day. It is now also how someone tries a build before it is released: download this plus
+      # `bleep-jars`, unpack the jars into `~/.ivy2/local`, and the binary works. A dev build that expires in
+      # 24h is no use for that, and 7 days is still short enough that these do not accumulate.
+      - name: Save the binary
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.file_name }}
-          retention-days: 1
+          retention-days: 7
 
   release:
     timeout-minutes: 40

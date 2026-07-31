@@ -12,7 +12,14 @@ import scala.collection.immutable.SortedMap
 object Publish {
   sealed trait Target
   object Target {
-    case object LocalIvy extends Target
+
+    /** `at` is where the ivy layout is written; `None` means the user's `~/.ivy2/local`, which is what [[bleep.constants.DefaultRepos]] searches ahead of Maven
+      * Central.
+      *
+      * A path is for producing a tree that holds one build and nothing else. `~/.ivy2/local` accumulates — every version ever published or resolved on that
+      * machine — so anything that wants to hand a build to someone else, CI included, needs somewhere clean to put it rather than a filter over that.
+      */
+    case class LocalIvy(at: Option[Path]) extends Target
     case class Resolver(name: model.ResolverName) extends Target
   }
 
@@ -109,8 +116,9 @@ object Publish {
       allArtifacts: Map[model.CrossProjectName, Map[RelPath, Array[Byte]]]
   ): Unit = {
     val targetDesc = target match {
-      case Target.LocalIvy       => "local-ivy (~/.ivy2)"
-      case Target.Resolver(name) => s"resolver '${name.value}'"
+      case Target.LocalIvy(None)     => "local-ivy (~/.ivy2)"
+      case Target.LocalIvy(Some(at)) => s"local-ivy at $at"
+      case Target.Resolver(name)     => s"resolver '${name.value}'"
     }
 
     logger.info(s"Dry run: would publish to $targetDesc")
@@ -212,8 +220,8 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
         if (options.dryRun) dryRun(started, projects, version)
         else
           options.target match {
-            case Publish.Target.LocalIvy =>
-              publishLocal(started, projects, version, constants.ivy2Path, PublishLayout.Ivy)
+            case Publish.Target.LocalIvy(at) =>
+              publishLocal(started, projects, version, at.getOrElse(constants.ivy2Path), PublishLayout.Ivy)
             case Publish.Target.Resolver(resolverName) =>
               publishToResolver(started, projects, version, resolverName)
           }
