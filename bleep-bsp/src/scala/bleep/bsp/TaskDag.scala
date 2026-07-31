@@ -1173,8 +1173,14 @@ object TaskDag {
           supervisor: cats.effect.std.Supervisor[IO]
       ): IO[Unit] =
         for {
-          dag <- dagRef.get
+          // Read `running` BEFORE `dag`. A completing task writes in the opposite order — finished
+          // into dagRef (end of executeTask), then removed from runningRef (its guarantee) — so a
+          // task that finishes between the two reads is visible in at least one snapshot. Read the
+          // other way around, it is visible in neither: not finished in the stale dag, not running
+          // in the fresh set — so `ready.filterNot(running)` admits it a second time and the task
+          // runs twice. Caught by LinkDagIntegrationTest emitting two LinkStarted events 1ms apart.
           running <- runningRef.get
+          dag <- dagRef.get
           maybeKilled <- isKilled
           _ <-
             if (dag.isComplete) {
@@ -1230,8 +1236,10 @@ object TaskDag {
                 }
                 // Re-read state. If nothing is running, the DAG is either complete, in a
                 // transient gap (skips just opened up new ready tasks), or genuinely stuck.
-                newDag <- dagRef.get
+                // Same read order as the loop top: running before dag, so a task finishing
+                // between the reads is seen by at least one of them.
                 newRunning <- runningRef.get
+                newDag <- dagRef.get
                 _ <-
                   if (newDag.isComplete) IO.unit
                   else if (newRunning.isEmpty && newDag.ready.isEmpty && newDag.toSkip.isEmpty) {
