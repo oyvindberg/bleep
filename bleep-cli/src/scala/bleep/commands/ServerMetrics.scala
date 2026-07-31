@@ -91,6 +91,12 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val compileAllocation: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val analysisCache: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val workspaceState: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    // Forked test JVMs and what ran on them, joined on pid.
+    val forkStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val forkReused: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val forkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteScheduled: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteFinished: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -153,6 +159,10 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     events.compileAllocation.foreach(collectTs)
     events.analysisCache.foreach(collectTs)
     events.workspaceState.foreach(collectTs)
+    events.forkStart.foreach(collectTs)
+    events.forkEnd.foreach(collectTs)
+    events.suiteScheduled.foreach(collectTs)
+    events.suiteFinished.foreach(collectTs)
 
     val t0 = if (allTs.isEmpty) 0L else allTs.min
     def relS(tsMs: Long): Double = (tsMs - t0) / 1000.0
@@ -548,7 +558,86 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           cards += stat("Analysis sharing", f"${last.get("sharing_factor").getAsDouble}%.2fx across ${last.get("workspaces").getAsLong} ws", "#22c55e")
       }
 
+      if (events.forkStart.nonEmpty) {
+        // Reuse against starts is what the pool is actually saving, which no other number shows.
+        cards += stat("Test JVMs", s"${events.forkStart.size} started, ${events.forkReused.size} reused", "#0ea5e9")
+        val failed = events.suiteFinished.count(e => getStr(e, "outcome") != "Success")
+        cards += stat("Suites run", s"${events.suiteFinished.size}" + (if (failed > 0) s" ($failed not ok)" else ""), if (failed > 0) "#ef4444" else "#22c55e")
+      }
+
       if (cards.isEmpty) "" else cards.mkString("\n") + "\n"
+    }
+
+    // ---- Test JVMs, and what ran on each ----
+    // One lane per forked JVM. The bar is the fork's life; the darker segments are the suites placed on it. This is the view that answers "which suite was on
+    // the JVM that got killed", which is otherwise a join across three event types done by hand.
+    if (events.forkStart.nonEmpty) {
+      val endByPid = events.forkEnd.map(e => e.get("pid").getAsLong -> e).toMap
+      val lanes = events.forkStart.map(_.get("pid").getAsLong).distinct.sorted
+      val laneIndex = lanes.zipWithIndex.toMap
+      val lastTs = allTs.maxOption.getOrElse(0L)
+
+      val shapes = ArrayBuffer.empty[String]
+      events.forkStart.foreach { f =>
+        val pid = f.get("pid").getAsLong
+        val row = laneIndex(pid)
+        val startS = relS(f.get("ts").getAsLong)
+        val endS = endByPid.get(pid).map(e => relS(e.get("ts").getAsLong)).getOrElse(relS(lastTs))
+        // Killed by us is not a failure — it is how the pool shuts down — so only an unexplained end is coloured as trouble.
+        val killed = endByPid.get(pid).exists(e => e.has("killed_by") && !e.get("killed_by").isJsonNull)
+        val colour = if (endByPid.contains(pid) && !killed) "#ef4444" else "#cbd5e1"
+        shapes += s"""{"type":"rect","x0":$startS,"x1":$endS,"y0":${row - 0.38},"y1":${row + 0.38},"fillcolor":"$colour","opacity":0.55,"line":{"width":0}}"""
+      }
+      events.suiteFinished.foreach { sf =>
+        val pid = sf.get("pid").getAsLong
+        laneIndex.get(pid).foreach { row =>
+          val endS = relS(sf.get("ts").getAsLong)
+          val startS = endS - sf.get("duration_ms").getAsLong / 1000.0
+          val ok = getStr(sf, "outcome") == "Success"
+          shapes += s"""{"type":"rect","x0":$startS,"x1":$endS,"y0":${row - 0.3},"y1":${row + 0.3},"fillcolor":"${
+              if (ok) "#22c55e"
+              else "#ef4444"
+            }","opacity":0.9,"line":{"width":0}}"""
+        }
+      }
+
+      val t = ArrayBuffer.empty[String]
+      if (events.suiteFinished.nonEmpty)
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(events.suiteFinished.map(e => relS(e.get("ts").getAsLong)))},"y":${fmtDoubles(
+            events.suiteFinished.map(e => laneIndex.getOrElse(e.get("pid").getAsLong, 0).toDouble)
+          )},"text":${fmtStrings(
+            events.suiteFinished.map(e => s"${getStr(e, "suite")} — ${e.get("duration_ms").getAsLong}ms (${getStr(e, "outcome")})")
+          )},"marker":{"color":"rgba(0,0,0,0)","size":8},"hovertemplate":"%{text}<extra></extra>","showlegend":false}"""
+
+      val laneLabels = lanes.map { pid =>
+        val n = events.suiteScheduled.count(_.get("pid").getAsLong == pid)
+        s"pid $pid ($n)"
+      }
+      val layout =
+        s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(
+            lanes.indices.map(_.toDouble)
+          )},"ticktext":${fmtStrings(
+            laneLabels
+          )},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes
+            .mkString(",")}]}"""
+      addChart("forks", "Test JVMs — lifetime and the suites on them", t, layout, true, math.max(240, lanes.size * 26 + 90))
+    }
+
+    // ---- Slowest suites ----
+    if (events.suiteFinished.nonEmpty) {
+      val slowest = events.suiteFinished
+        .map(e => (getStr(e, "suite"), e.get("duration_ms").getAsLong, getStr(e, "outcome")))
+        .sortBy(-_._2)
+        .take(15)
+        .reverse
+      val t = ArrayBuffer.empty[String]
+      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(slowest.map(_._2 / 1000.0))},"y":${fmtStrings(
+          slowest.map(r => r._1.split('.').last)
+        )},"marker":{"color":${fmtStrings(
+          slowest.map(r => if (r._3 == "Success") "#22c55e" else "#ef4444")
+        )}},"hovertemplate":"%{y}<br>%{x:.1f}s<extra></extra>"}"""
+      val layout = baseLayout("seconds", "").replace("\"showlegend\":true", "\"showlegend\":false").replace("\"l\":60", "\"l\":190")
+      addChart("suites", "Slowest test suites", t, layout, false, math.max(280, slowest.size * 26 + 60))
     }
 
     val oomLabel = if (oomCrashCount > 0) s"$oomCrashCount CRASH" else if (oomPressureCount > 0) s"$oomPressureCount events" else "None"
