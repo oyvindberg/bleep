@@ -75,17 +75,26 @@ object TestRunner {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
     pool.acquire(suiteName, classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
-      executeWithIdleTimeout(
-        project = project,
-        suiteName = suiteName,
-        framework = framework,
-        jvm = jvm,
-        eventQueue = eventQueue,
-        testArgs = options.testArgs,
-        idleTimeout = options.idleTimeout,
-        resolveSourcePath = resolveSourcePath,
-        killSignal = killSignal
-      )
+      // Recorded here rather than in the pool because this is the only place that knows both which JVM was handed out and what is about to run on it. The pid
+      // joins these to the fork_start/fork_end pair, which is what lets a test run be reconstructed: which suites shared a JVM, and which JVM was killed
+      // under which suite.
+      val startedAt = System.currentTimeMillis()
+      IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, suiteName, framework)).attempt >>
+        executeWithIdleTimeout(
+          project = project,
+          suiteName = suiteName,
+          framework = framework,
+          jvm = jvm,
+          eventQueue = eventQueue,
+          testArgs = options.testArgs,
+          idleTimeout = options.idleTimeout,
+          resolveSourcePath = resolveSourcePath,
+          killSignal = killSignal
+        ).flatTap { result =>
+          IO(
+            BspMetrics.recordSuiteFinished(jvm.pid, project.value, suiteName, System.currentTimeMillis() - startedAt, result.getClass.getSimpleName)
+          ).attempt
+        }
     }
   }
 

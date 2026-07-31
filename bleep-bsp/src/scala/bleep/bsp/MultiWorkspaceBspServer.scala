@@ -2147,7 +2147,7 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
         // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine).use { jvmPool =>
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener).use { jvmPool =>
           // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
           // intermediate compile-time data flow, so no equivalent map.
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()

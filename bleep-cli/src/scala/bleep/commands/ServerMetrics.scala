@@ -11,10 +11,14 @@ import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
 import scala.jdk.StreamConverters._
 
-case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]) extends BleepCommand {
+case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long], file: Option[Path]) extends BleepCommand {
 
+  /** `file` is how a `metrics.jsonl` that came from somewhere else gets opened here — most usefully one downloaded from a CI run, which is the case where you
+    * least want to be reading JSON by hand and where the local socket directory holds nothing relevant. It is the same file this command already reads; only
+    * where it was found differs.
+    */
   override def run(): Either[BleepException, Unit] =
-    findMetricsFile(userPaths.bspSocketDir) match {
+    file.orElse(findMetricsFile(userPaths.bspSocketDir)) match {
       case None =>
         val msg = pid match {
           case Some(p) => s"No metrics found for PID $p. Check that the server wrote metrics.jsonl."
