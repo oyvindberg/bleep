@@ -222,10 +222,6 @@ object JvmPool {
     */
   private class ManagedJvm(
       val process: Process,
-      /** When this fork was created, taken here rather than from `process.info().startInstant()` at the end: by the time a JVM is announced dead it has already
-        * been killed, and the OS stops reporting a start instant for a process that no longer exists — which produced a lifetime of -1 on every fork.
-        */
-      val startedAtMs: Long = System.currentTimeMillis(),
       val stdin: PrintWriter,
       val stdout: BufferedReader,
       val stderr: BufferedReader,
@@ -235,7 +231,14 @@ object JvmPool {
         * JVM sitting idle in the pool is still resident and still costing the machine its whole footprint, so the reservation is only released when the process
         * is actually destroyed. Must be run exactly where the process is killed — see `JvmPoolImpl.destroy`.
         */
-      val releaseMemory: IO[Unit]
+      val releaseMemory: IO[Unit],
+      /** When this fork was created. Taken at construction, not from `process.info().startInstant()` when it dies: by then the process has been killed and the
+        * OS no longer reports a start instant for it, which is why every fork_end carried a lifetime of -1.
+        *
+        * Genuinely last, and defaulted: anywhere else in this list a default silently rebinds the positional arguments after it, which is exactly what the
+        * first attempt at this did — `stdin` became the timestamp and the build stopped compiling.
+        */
+      val startedAtMs: Long = System.currentTimeMillis()
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
