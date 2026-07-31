@@ -1547,7 +1547,13 @@ class MultiWorkspaceBspServer(
           val project = started.build.explodedProjects(crossName)
           val platformOpt = project.platform.flatMap(_.name)
           val isKotlin = project.kotlin.flatMap(_.version).isDefined
-          val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin24.kotlinVersion)
+          // `lazy` and no default: only the isKotlin arms below read this, and there it is defined by construction. A version is not something to invent here —
+          // the exploded build is every project spelled out in full, and nothing in elaboration fills one in, so a missing one is a broken build, not a
+          // prompt to guess. Versions.Kotlin* are for creating and importing projects, which is a different question than compiling one.
+          lazy val kotlinVersion = project.kotlin
+            .flatMap(_.version)
+            .map(_.kotlinVersion)
+            .getOrElse(throw new IllegalStateException(s"Kotlin version not found for ${crossName.value}"))
 
           (platformOpt, isKotlin) match {
             case (Some(model.PlatformId.Js), true) =>
@@ -1571,8 +1577,14 @@ class MultiWorkspaceBspServer(
 
             case (Some(model.PlatformId.Js), false) =>
               // Scala.js
-              val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse(model.VersionScalaJs.ScalaJs1.scalaJsVersion)
-              val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(model.VersionScala.Scala3.scalaVersion)
+              val sjsVersion = project.platform
+                .flatMap(_.jsVersion)
+                .map(_.scalaJsVersion)
+                .getOrElse(throw new IllegalStateException(s"Scala.js version not found for ${crossName.value}"))
+              val scalaVersion = project.scala
+                .flatMap(_.version)
+                .map(_.scalaVersion)
+                .getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
               val baseConfig = if (isRelease) bleep.analysis.ScalaJsLinkConfig.Release else bleep.analysis.ScalaJsLinkConfig.Debug
               val config = baseConfig.copy(
                 emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
@@ -1601,8 +1613,14 @@ class MultiWorkspaceBspServer(
             case (Some(model.PlatformId.Native), false) =>
               // Scala Native
               val snVersion =
-                project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse(model.VersionScalaNative.ScalaNative05.scalaNativeVersion)
-              val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(model.VersionScala.Scala3.scalaVersion)
+                project.platform
+                  .flatMap(_.nativeVersion)
+                  .map(_.scalaNativeVersion)
+                  .getOrElse(throw new IllegalStateException(s"Scala Native version not found for ${crossName.value}"))
+              val scalaVersion = project.scala
+                .flatMap(_.version)
+                .map(_.scalaVersion)
+                .getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
               val baseConfig = if (isRelease) bleep.analysis.ScalaNativeLinkConfig.ReleaseFast else bleep.analysis.ScalaNativeLinkConfig.Debug
               val configWithLto = linkOpts.lto match {
                 case Some("thin") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.Thin)
@@ -1985,7 +2003,11 @@ class MultiWorkspaceBspServer(
         val project = started.build.explodedProjects(crossName)
         val platformOpt = project.platform.flatMap(_.name)
         val isKotlin = project.kotlin.flatMap(_.version).isDefined
-        val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse(model.VersionKotlin.Kotlin24.kotlinVersion)
+        // See the note on the same lookup in the compile path: lazy, and a missing version is a broken build rather than a default.
+        lazy val kotlinVersion = project.kotlin
+          .flatMap(_.version)
+          .map(_.kotlinVersion)
+          .getOrElse(throw new IllegalStateException(s"Kotlin version not found for ${crossName.value}"))
 
         (platformOpt, isKotlin) match {
           case (Some(model.PlatformId.Js), true) =>
@@ -2002,8 +2024,12 @@ class MultiWorkspaceBspServer(
 
           case (Some(model.PlatformId.Js), false) =>
             // Scala.js
-            val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse(model.VersionScalaJs.ScalaJs1.scalaJsVersion)
-            val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(model.VersionScala.Scala3.scalaVersion)
+            val sjsVersion = project.platform
+              .flatMap(_.jsVersion)
+              .map(_.scalaJsVersion)
+              .getOrElse(throw new IllegalStateException(s"Scala.js version not found for ${crossName.value}"))
+            val scalaVersion =
+              project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
             val config = bleep.analysis.ScalaJsLinkConfig.Debug
             Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
@@ -2020,8 +2046,12 @@ class MultiWorkspaceBspServer(
           case (Some(model.PlatformId.Native), false) =>
             // Scala Native - test project
             val snVersion =
-              project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse(model.VersionScalaNative.ScalaNative05.scalaNativeVersion)
-            val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(model.VersionScala.Scala3.scalaVersion)
+              project.platform
+                .flatMap(_.nativeVersion)
+                .map(_.scalaNativeVersion)
+                .getOrElse(throw new IllegalStateException(s"Scala Native version not found for ${crossName.value}"))
+            val scalaVersion =
+              project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
             val config = bleep.analysis.ScalaNativeLinkConfig.Debug
             Some(crossName -> TaskDag.LinkPlatform.ScalaNative(snVersion, scalaVersion, config))
 
