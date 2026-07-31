@@ -72,7 +72,7 @@ object Main {
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
       Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
-        Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(logger, userPaths, pid))
+        (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => commands.ServerMetrics(logger, userPaths, pid, file))
       )
     ).foldK
 
@@ -533,7 +533,9 @@ object Main {
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
-            Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid))
+            (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) =>
+              commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, file)
+            )
           ),
           Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local-ivy')") {
             (
@@ -902,6 +904,12 @@ object Main {
       case Some(str)                        => FileUtils.cwd / str
       case None                             => FileUtils.cwd
     }
+
+  /** Point `server-metrics` at a `metrics.jsonl` from anywhere — a CI artifact, a colleague's machine — so the dashboard and the file you download are the same
+    * mechanism rather than two ways of looking at the same bytes.
+    */
+  private val metricsFileOpt: Opts[Option[Path]] =
+    Opts.option[Path]("file", "read this metrics.jsonl instead of the newest local one (e.g. downloaded from CI)").orNone
 
   val ec: ExecutionContext = ExecutionContext.global
 

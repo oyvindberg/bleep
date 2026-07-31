@@ -95,17 +95,60 @@ or generated-code-heavy builds may need more.
 
 ### Compile-server heap
 
+**Start by looking.** Every time bleep brings a server up it says what
+that server's heap ceiling is, and what the machine has:
+
+```
+Ensuring BSP server (mode=shared, heap=max 12g of 48g RAM, socket=…)
+```
+
+That one line answers "how much am I actually getting?" without any
+digging, which matters more than it sounds — see the floor below.
+
+`max`, because `-Xmx` is a ceiling, not a reservation. Nothing is
+committed up front; ZGC grows the heap as it needs it and hands memory
+back to the OS when the server goes quiet. A server showing `max 12g`
+is usually resident in a fraction of that.
+
 ```bash
 bleep config compile-server max-memory 4g
 bleep config compile-server max-memory 2048m
 bleep config compile-server max-memory-clear   # back to bleep's default
 ```
 
-Sets the `-Xmx` for the compile server JVM(s) bleep starts. The
-default is a quarter of physical RAM, clamped to between 4g and
-16g. Reach for this when you're hitting `OutOfMemoryError` during
-compile, or when you have plenty of RAM and want to give the
-compiler room to breathe.
+#### The default, and its floor
+
+The default is a quarter of physical RAM, clamped to between 4g and 16g:
+
+```
+min(16g, max(4g, RAM / 4))
+```
+
+The clamp is the part worth internalising. A quarter of RAM *sounds*
+proportional, but the 4g floor swallows the whole low end — **every
+machine with 16 GB or less gets exactly 4g**, however much or little it
+has:
+
+| machine RAM | quarter | what you get |
+| --- | --- | --- |
+| 8 GB | 2 g | **4 g** — floor |
+| 14 GB | 3.5 g | **4 g** — floor |
+| 16 GB | 4 g | **4 g** — floor, only just |
+| 32 GB | 8 g | 8 g |
+| 48 GB | 12 g | 12 g |
+| 64 GB+ | 16 g+ | **16 g** — ceiling |
+
+So on a 16 GB laptop and a 14 GB CI runner the server is sized
+identically, and neither is "a quarter of RAM". If that is not what you
+want, say so explicitly — that is exactly what `max-memory` is for.
+
+Reach for it when you're hitting `OutOfMemoryError` during compile, or
+when you have plenty of RAM and want to give the compiler room to
+breathe. Raising it is not free, though: the server's footprint is
+subtracted from the budget your test forks draw on, so a bigger server
+means fewer forks running at once. [Memory &
+Parallelism](/docs/usage/resource-management#small-machines-and-ci) does
+that arithmetic properly, with a table of what fits.
 
 When the server does die of `OutOfMemoryError`, it exits
 immediately — no heap dump or core file is written. The client
@@ -125,9 +168,18 @@ Compiles, links, tests and sourcegen all draw from one budget:
 There is deliberately no separate cap for compiles. One existed briefly and
 was removed: holding capacity back for test forks that might not exist is a
 static partition inside an otherwise work-conserving governor, so a
-compile-only run left half the machine idle. Heap pressure is answered by
-watching the live heap and staggering starts, which responds to what is
-actually happening rather than guessing from a count.
+compile-only run left half the machine idle. Instead the scheduler does two
+distinct things, and it is worth knowing they are distinct because both show
+up as a compile that didn't start immediately:
+
+- it **staggers** a project's first admission attempt whenever something else
+  is already compiling, so a wave of projects doesn't all allocate at once;
+- it **defers under heap pressure**, watching the live heap rather than
+  guessing from a count.
+
+Both are recorded, each with its reason, so a slow build can tell you which
+one it was — see [Seeing what the server is
+doing](#what-the-events-mean).
 
 ```bash
 bleep config compile-server parallelism 4
@@ -181,6 +233,172 @@ Reach for this when test suites OOM (Testcontainers spinning up
 big stacks, generated-fixture tests with large classpaths).
 
 [Reference &rarr;](/docs/reference/cli/config/test-runner/)
+
+## Seeing what the server is doing
+
+The compile server is a long-lived JVM you never launched and can't see,
+which is a bad combination when a build is slower than you expect. So it
+keeps a running account of itself, always on — the overhead is one
+appended line per event — and there are three places to look.
+
+### The one-command answer
+
+```bash
+bleep server-metrics          # the most recent server
+bleep server-metrics <pid>    # a specific one
+```
+
+This reads that server's `metrics.jsonl`, renders it as an HTML page and
+opens it in your browser: heap and GC over time, a timeline of compiles,
+connections, sourcegen, and any OOM events. Start here.
+
+It does not yet chart everything the server records — the machine-level
+counters (`machine`), per-compile allocation, analysis-cache sharing and
+the admission decisions below are in the file but not on the page. For
+those, read `metrics.jsonl` directly; it is one JSON object per line and
+`jq` handles it comfortably.
+
+### The files
+
+Everything a server writes lives in its own socket directory, one per
+server — and you don't have to hunt for it, because bleep prints the path
+every time it brings one up:
+
+```
+Ensuring BSP server (mode=shared, heap=max 12g of 48g RAM, socket=…/socket/105026fd4c1726ac)
+BSP server ready (server log: …/socket/105026fd4c1726ac/output)
+```
+
+The parent differs per OS (`~/.cache/bleep` on Linux,
+`~/Library/Caches/build.bleep` on macOS, `%LOCALAPPDATA%\bleep\cache` on
+Windows), which is another reason to read it off the line rather than
+reconstruct it. Inside each `socket/<id>/`:
+
+| file | what it is |
+| --- | --- |
+| `metrics.jsonl` | append-only event log, one JSON object per line |
+| `output` | the server's own stdout/stderr, rotated |
+| `lock` | how bleep elects a single spawner |
+
+`metrics.jsonl` is flushed after every write, so it survives a crash —
+which is the point, since the interesting failures are the ones that take
+the server with them.
+
+### What the events mean
+
+Each line has a `type`. The ones worth knowing:
+
+| type | says |
+| --- | --- |
+| `compile_start` / `compile_end` | a project compiled, and for how long |
+| `compile_allocation` | how much that compile allocated — the biggest lever on heap |
+| `machine` | every 15s: cores in use, queue depth, fork budget, RAM, heap cap |
+| `jvm` | every 15s: heap used, GC counts and cycle times, threads |
+| `analysis_cache` | how much Zinc analysis is held, and how well it's shared |
+| `admission_defer` | a compile the scheduler declined to start, **and why** |
+| `oom_crash` / `oom_pressure` | the server ran out of heap, or came close |
+
+`admission_defer` carries a `reason`, and the distinction matters when
+you're reading a slow build:
+
+- **`stagger`** — the scheduler deliberately spread compiles out. Normal,
+  and nothing to do with memory. It happens on a project's first
+  admission attempt whenever anything else is compiling, at 5% heap as
+  readily as at 79%.
+- **`heap_pressure`** — the live heap was actually above the threshold and
+  the compile waited for room. *This* is the one that means "consider more
+  heap".
+
+It also carries `delay_ms`, so you can add up what the deferrals actually
+cost rather than counting them.
+
+> **Check `reason` before reaching for `max-memory`.** A build can be
+> entirely `stagger` and have never gone near its heap ceiling — in which
+> case more heap buys nothing.
+
+### In CI — where this pays off most
+
+A slow build on your own machine you can poke at. A slow build on a CI
+runner is gone the moment the job ends, and CI is exactly where the
+interesting problems live: four cores instead of sixteen, a cold cache,
+and a memory ceiling you didn't choose. The same `metrics.jsonl` is
+sitting there when the job fails — it just needs collecting before the
+runner is destroyed.
+
+```yaml
+- name: Collect compile-server telemetry
+  if: always()          # the runs worth reading are the ones that failed
+  shell: bash
+  run: |
+    shopt -s nullglob
+    mkdir -p bsp-diagnostics
+    # The cache directory differs per OS, so cover all three rather than
+    # assuming the runner you happen to be on.
+    for d in ~/.cache/bleep/socket/*/ \
+             ~/Library/Caches/build.bleep/socket/*/ \
+             "$(command -v cygpath >/dev/null && cygpath "$LOCALAPPDATA" || echo /nonexistent)"/bleep/cache/socket/*/; do
+      name=$(basename "$d")
+      mkdir -p "bsp-diagnostics/$name"
+      for f in "$d"metrics.jsonl "$d"output; do
+        [ -f "$f" ] && cp "$f" "bsp-diagnostics/$name/"
+      done
+    done
+
+- uses: actions/upload-artifact@v7
+  if: always()
+  with:
+    name: bsp-diagnostics-${{ matrix.os }}
+    path: bsp-diagnostics
+```
+
+Two details that are easy to get wrong, and silent when you do:
+
+- **`if: always()`.** A job that exceeds its `timeout-minutes` is torn
+  down *with* its remaining steps, `always()` included — so if you are
+  chasing a hang, put a `timeout-minutes` on the *step* that hangs, below
+  the job's. Then the step fails, the job continues, and you get the
+  telemetry that explains it.
+- **The per-OS paths.** A Linux-only glob silently collects nothing on
+  Windows and macOS, which looks identical to "there was nothing to
+  collect".
+
+Download the artifact and read it with anything that speaks JSON:
+
+```bash
+# the slowest compiles
+jq -r 'select(.type=="compile_end") | "\(.duration_ms) \(.project)"' metrics.jsonl | sort -rn | head
+
+# was the machine ever full, or was work queued behind idle cores?
+jq -r 'select(.type=="machine") | "\(.used_cpu)/\(.total_cpu) running=\(.running) queued=\(.waiting)"' metrics.jsonl
+
+# what actually allocates
+jq -r 'select(.type=="compile_allocation") | "\(.allocated_mb) \(.project)"' metrics.jsonl | sort -rn | head
+```
+
+bleep's own workflow does exactly this on every architecture and prints a
+summary in the job log;
+`.github/scripts/collect-bsp-diagnostics.sh` and `summarise-bsp-metrics.py`
+in this repository are about forty lines between them and are not
+bleep-specific.
+
+### What this does *not* cover: test timings
+
+`metrics.jsonl` is about the compile server — compiles, sourcegen, heap,
+scheduling. It records **nothing about individual tests or suites**. If
+you are chasing a slow *test* run rather than a slow build, that data
+comes from a different file:
+
+```bash
+bleep test --junit-report target/test-reports
+```
+
+Standard JUnit XML, with `time=` on every `<testsuite>` **and** every
+`<testcase>` — so per-test durations, not just per-suite. Every CI system
+has a viewer for it, and it uploads as an artifact the same way.
+
+The two are complementary: the JUnit XML tells you *which suite* is slow,
+`metrics.jsonl` tells you whether the machine was starved of memory or
+cores while it ran.
 
 ## Where this lives on disk
 

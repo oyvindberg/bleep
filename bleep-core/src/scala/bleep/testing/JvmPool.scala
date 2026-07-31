@@ -103,7 +103,8 @@ object JvmPool {
       maxConcurrency: Int,
       jvmCommand: Path,
       workingDirectory: Path,
-      machine: MachineResources
+      machine: MachineResources,
+      listener: JvmPoolListener
   ): Resource[IO, JvmPool] =
     Resource.make(
       for {
@@ -117,6 +118,7 @@ object JvmPool {
           if (ProcessMemory.system eq ProcessMemory.Unavailable) IO.pure(ForkCostModel.static)
           else ForkCostModel.create
       } yield new JvmPoolImpl(
+        listener,
         semaphore,
         startLimiter,
         machine,
@@ -229,7 +231,14 @@ object JvmPool {
         * JVM sitting idle in the pool is still resident and still costing the machine its whole footprint, so the reservation is only released when the process
         * is actually destroyed. Must be run exactly where the process is killed — see `JvmPoolImpl.destroy`.
         */
-      val releaseMemory: IO[Unit]
+      val releaseMemory: IO[Unit],
+      /** When this fork was created. Taken at construction, not from `process.info().startInstant()` when it dies: by then the process has been killed and the
+        * OS no longer reports a start instant for it, which is why every fork_end carried a lifetime of -1.
+        *
+        * Genuinely last, and defaulted: anywhere else in this list a default silently rebinds the positional arguments after it, which is exactly what the
+        * first attempt at this did — `stdin` became the timestamp and the build stopped compiling.
+        */
+      val startedAtMs: Long = System.currentTimeMillis()
   ) {
     @volatile private var alive = true
     @volatile private var _protocolClean = true
@@ -365,6 +374,7 @@ object JvmPool {
   private val MaxSpawnFailures = 3
 
   private class JvmPoolImpl(
+      listener: JvmPoolListener,
       semaphore: Semaphore[IO],
       startLimiter: Semaphore[IO],
       machine: MachineResources,
@@ -412,7 +422,9 @@ object JvmPool {
       // to the suite is what let the governor believe memory was free while live JVMs still held it.
       Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
         Resource
-          .make(getOrCreate(key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))) {
+          .make(
+            getOrCreate(label, key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))
+          ) {
             // Return JVM to pool (or destroy it); the semaphore is released by its own Resource.
             case (jvm, _) => release(jvm)
           }
@@ -439,7 +451,19 @@ object JvmPool {
       * actually surrendered yet.
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
-      observeCost(jvm).attempt >> IO(jvm.kill(destroyReason)).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+      observeCost(jvm).attempt >> IO(jvm.kill(destroyReason)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+
+    /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
+      * one the OS killed, since both report exit 137.
+      *
+      * Lifetime comes from the JVM's own record of when the process started rather than a field we would have to keep in step; where the platform does not
+      * supply it, the age is simply omitted rather than guessed.
+      */
+    private def announceEnd(jvm: ManagedJvm): IO[Unit] =
+      IO {
+        val exit = describeExit(jvm.process, jvm.killedByUs)
+        listener.onForkEnd(jvm.process.pid(), System.currentTimeMillis() - jvm.startedAtMs, exit.summary, jvm.killedByUs)
+      }
 
     /** Record what this fork actually cost the machine, for the benefit of the next one of its kind.
       *
@@ -490,6 +514,7 @@ object JvmPool {
       }
 
     private def getOrCreate(
+        label: String,
         key: JvmKey,
         classpath: List[Path],
         jvmOptions: List[String],
@@ -510,18 +535,19 @@ object JvmPool {
         maybeJvm <- queue.tryTake
         jvm <- maybeJvm match {
           case Some(existing) if existing.isAlive =>
-            IO.pure(existing)
+            IO(listener.onForkReused(existing.process.pid(), label)).attempt >> IO.pure(existing)
           case Some(dead) =>
             // JVM died while idle in the pool. `destroy` (not just untracking) so its memory
             // reservation goes back to the governor — otherwise a dead process's footprint would be
             // charged for the rest of the server's life.
-            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
+            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
           case None =>
-            spawnJvm(key, classpath, jvmOptions, runnerClass, environment, cwd)
+            spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
         }
       } yield jvm
 
     private def spawnJvm(
+        label: String,
         key: JvmKey,
         classpath: List[Path],
         jvmOptions: List[String],
@@ -589,6 +615,7 @@ object JvmPool {
                   IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
                 }
               )
+              .flatTap(jvm => IO(listener.onForkStart(jvm.process.pid(), label, parseXmxMb(jvmOptions))).attempt)
               .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
           } {
             // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
@@ -654,6 +681,9 @@ object JvmPool {
           _ <- IO.blocking {
             jvms.foreach(_.kill("bleep: pool shutdown"))
           }
+          // Shutdown kills directly rather than going through `destroy`, so without this the JVMs that survived to the end of a run — usually most of them —
+          // would have a fork_start and never a fork_end, and their lifetimes would be unknowable.
+          _ <- jvms.toList.traverse_(jvm => announceEnd(jvm).attempt)
           _ <- allJvms.set(Set.empty)
           _ <- IO(pool.clear())
           // Backstop for the whole scheme: every process-lifetime reservation is returned here, so a

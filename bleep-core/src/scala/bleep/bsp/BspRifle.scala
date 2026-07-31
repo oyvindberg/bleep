@@ -143,7 +143,7 @@ object BspRifle {
         ensureUp >> BspServerOperations.waitForServer(config)
       } >> IO(logger.info(s"BSP server ready (server log: ${getOutputFile(config)})"))
 
-    IO(logger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")) >> {
+    IO(logger.info(s"Ensuring BSP server (mode=$mode, heap=${heapDescription(config)}, socket=$socketDir)")) >> {
       if (config.dieWithParent)
         // Ephemeral: its socket dir is unique (UUID) and must be a fresh server every time — never reuse, no swarm to elect from.
         BspServerOperations.forceKillAndCleanup(socketDir) >> spawn >> BspServerOperations.waitForServer(config)
@@ -160,6 +160,27 @@ object BspRifle {
     * to notice. The `output` file always belongs to the server generation the caller was dealing with; it must be read before cleanup/forceStop/startServer,
     * which delete or rotate it.
     */
+  /** What the compile server's heap is, and what the machine has — reported at boot next to the socket and the mode.
+    *
+    * The cap was invisible until something went wrong, at which point it turned up in an OOM message. It is worth stating up front because the default is
+    * surprising: `min(16g, max(4g, physicalMb / 4))` clamps to its 4g *floor* on anything under 16GB of RAM, so a quarter-of-RAM rule that sounds proportional
+    * hands the same 4g to a 14GB CI runner and a 16GB laptop. Printing both numbers makes the ratio visible without prescribing anything —
+    * `bleep config compile-server max-memory 8g` is the lever, and `max-memory-clear` puts it back.
+    */
+  private[bsp] def heapDescription(config: BspRifleConfig): String = {
+    val physicalMb = bleep.MachineResources.physicalMemoryMb(fallbackMb = 0L)
+    def render(mb: Long) = if (mb % 1024 == 0) s"${mb / 1024}g" else s"${mb}m"
+
+    config.javaOpts.filter(_.startsWith("-Xmx")).lastOption.flatMap(bleep.MachineResources.parseMemoryMb) match {
+      // "max", because `-Xmx` is a ceiling and nothing is reserved up front — ZGC commits as it needs and hands memory back after `ZUncommitDelay`. Written as
+      // a plain size it reads like the server is holding that much, which would make the number beside the machine's RAM alarming rather than informative.
+      case Some(capMb) if physicalMb > 0 => s"max ${render(capMb)} of ${render(physicalMb)} RAM"
+      case Some(capMb)                   => s"max ${render(capMb)}"
+      // `-Xmx` is always added by SetupBleepBsp, so this is a shape nobody should see; say that rather than inventing a number.
+      case None => "unset"
+    }
+  }
+
   def oomCrashExplanation(config: BspRifleConfig): IO[Option[String]] = IO.blocking {
     val log = config.address.socketDir.resolve("output")
     if (BspServerOperations.containsOomMarker(log)) {

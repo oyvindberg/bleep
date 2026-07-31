@@ -11,10 +11,14 @@ import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
 import scala.jdk.StreamConverters._
 
-case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]) extends BleepCommand {
+case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long], file: Option[Path]) extends BleepCommand {
 
+  /** `file` is how a `metrics.jsonl` that came from somewhere else gets opened here — most usefully one downloaded from a CI run, which is the case where you
+    * least want to be reading JSON by hand and where the local socket directory holds nothing relevant. It is the same file this command already reads; only
+    * where it was found differs.
+    */
   override def run(): Either[BleepException, Unit] =
-    findMetricsFile(userPaths.bspSocketDir) match {
+    file.orElse(findMetricsFile(userPaths.bspSocketDir)) match {
       case None =>
         val msg = pid match {
           case Some(p) => s"No metrics found for PID $p. Check that the server wrote metrics.jsonl."
@@ -80,6 +84,19 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val summary: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val oomPressure: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val oomCrash: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    // Recorded by the server since the telemetry was extended; the dashboard used to drop them on the floor, which meant the questions they answer — was the
+    // machine saturated, why did a compile not start, what is actually allocating — could only be answered by reading metrics.jsonl by hand.
+    val machine: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val admissionDefer: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val compileAllocation: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val analysisCache: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val workspaceState: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    // Forked test JVMs and what ran on them, joined on pid.
+    val forkStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val forkReused: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val forkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteScheduled: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val suiteFinished: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -104,7 +121,21 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "summary"          => events.summary += obj
           case "oom_pressure"     => events.oomPressure += obj
           case "oom_crash"        => events.oomCrash += obj
-          case _                  => ()
+          case "machine"          => events.machine += obj
+          case "admission_defer"  => events.admissionDefer += obj
+          // `heap_pressure_stall` is what this event was called before its two reasons were told apart. Files already on disk still carry that name, and
+          // the CI summariser reads both — a dashboard that silently drops half its input is how these two drifted apart to begin with.
+          case "heap_pressure_stall" => events.admissionDefer += obj
+          case "compile_allocation"  => events.compileAllocation += obj
+          case "analysis_cache"      => events.analysisCache += obj
+          case "workspace_state"     => events.workspaceState += obj
+          case "fork_start"          => events.forkStart += obj
+          case "fork_reused"         => events.forkReused += obj
+          case "fork_end"            => events.forkEnd += obj
+          case "suite_scheduled"     => events.suiteScheduled += obj
+          case "suite_finished"      => events.suiteFinished += obj
+          // compile_phase is deliberately not charted: it fires per phase per project and says more about zinc's internals than about this build.
+          case _ => ()
         }
       }
     }
@@ -128,6 +159,15 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     events.sourcegenStart.foreach(collectTs)
     events.sourcegenEnd.foreach(collectTs)
     events.summary.foreach(collectTs)
+    events.machine.foreach(collectTs)
+    events.admissionDefer.foreach(collectTs)
+    events.compileAllocation.foreach(collectTs)
+    events.analysisCache.foreach(collectTs)
+    events.workspaceState.foreach(collectTs)
+    events.forkStart.foreach(collectTs)
+    events.forkEnd.foreach(collectTs)
+    events.suiteScheduled.foreach(collectTs)
+    events.suiteFinished.foreach(collectTs)
 
     val t0 = if (allTs.isEmpty) 0L else allTs.min
     def relS(tsMs: Long): Double = (tsMs - t0) / 1000.0
@@ -380,6 +420,231 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
 </div>"""
     } else ""
 
+    // ---- Scheduling: is the machine busy, or is work queued behind an empty machine? ----
+    // The two failure modes look identical from outside — a slow build — and have opposite fixes. Saturated means the machine is the limit; a standing queue
+    // over idle cores means admission is holding work back.
+    if (events.machine.nonEmpty) {
+      val t = ArrayBuffer.empty[String]
+      val xArr = fmtDoubles(events.machine.map(e => relS(e.get("ts").getAsLong)))
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("used_cpu").getAsLong)), "CPU in use", "#3b82f6", "solid", "tozeroy", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_cpu").getAsLong)), "Cores", "#9ca3af", "dot", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("running").getAsLong)), "Running", "#22c55e", "solid", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("waiting").getAsLong)), "Queued", "#ef4444", "solid", "none", "lines")
+      addChart("machine-cpu", "Scheduling — CPU and queue", t, baseLayout("Time (s)", "count"), false, 280)
+    }
+
+    // ---- Fork memory budget ----
+    // `total_memory_mb` is the budget for forked processes, not the machine's RAM: the server's own footprint and an OS reserve are already subtracted, and it
+    // is retuned as other processes come and go. Charting it against physical RAM is the only way to see how little of the machine forks may actually use.
+    if (events.machine.nonEmpty) {
+      val t = ArrayBuffer.empty[String]
+      val xArr = fmtDoubles(events.machine.map(e => relS(e.get("ts").getAsLong)))
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("used_memory_mb").getAsLong)), "Forks using", "#8b5cf6", "solid", "tozeroy", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_memory_mb").getAsLong)), "Fork budget", "#f59e0b", "dash", "none", "lines")
+      if (events.machine.head.has("physical_memory_mb"))
+        t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("physical_memory_mb").getAsLong)), "Machine RAM", "#9ca3af", "dot", "none", "lines")
+      if (events.machine.head.has("server_heap_mb"))
+        t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("server_heap_mb").getAsLong)), "Server heap cap", "#ef4444", "dot", "none", "lines")
+      addChart("machine-mem", "Fork memory budget (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
+    }
+
+    // ---- Why a compile did not start ----
+    // Two unrelated reasons wear the same shape. `stagger` is the scheduler deliberately spreading first starts apart and says nothing about memory;
+    // `heap_pressure` is a compile actually waiting for heap. Only the second is an argument for a bigger `-Xmx`, so they are drawn apart.
+    if (events.admissionDefer.nonEmpty) {
+      // Pre-rename events carry no reason. Calling them "unlabelled" rather than folding them into either bucket keeps the chart from asserting something the
+      // data does not say — they were recorded when both causes shared one name.
+      val byReason = events.admissionDefer.groupBy(e => if (e.has("reason")) e.get("reason").getAsString else "unlabelled (pre-rename)")
+      val t = ArrayBuffer.empty[String]
+      val colours = Map("stagger" -> "#f59e0b", "heap_pressure" -> "#ef4444", "unlabelled (pre-rename)" -> "#9ca3af")
+      byReason.toSeq.sortBy(_._1).foreach { case (reason, evs) =>
+        val total = evs.map(e => if (e.has("delay_ms")) e.get("delay_ms").getAsLong else 0L).sum
+        val label = if (total > 0) f"$reason (${total / 1000.0}%.1fs)" else reason
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(evs.map(e => relS(e.get("ts").getAsLong)))},"y":${fmtLongs(
+            evs.map(e => if (e.has("heap_used_mb")) e.get("heap_used_mb").getAsLong else 0L)
+          )},"name":"${escJson(label)}","marker":{"color":"${colours.getOrElse(reason, "#6366f1")}","size":7,"opacity":0.75},"text":${fmtStrings(
+            evs.map(e => getStr(e, "project"))
+          )},"hovertemplate":"%{text}<br>heap %{y} MB<extra></extra>"}"""
+      }
+      if (events.machine.nonEmpty && events.machine.head.has("server_heap_mb")) {
+        val cap = events.machine.head.get("server_heap_mb").getAsLong
+        val xs = fmtDoubles(events.admissionDefer.map(e => relS(e.get("ts").getAsLong)))
+        t += s"""{"type":"scatter","mode":"lines","x":$xs,"y":${fmtLongs(
+            Seq.fill(events.admissionDefer.size)(cap)
+          )},"name":"Heap cap","line":{"color":"#ef4444","dash":"dot","width":1}}"""
+      }
+      addChart("defers", "Deferred compiles — and why", t, baseLayout("Time (s)", "heap at the time (MB)"), false, 280)
+    }
+
+    // ---- What allocates ----
+    // Allocation, not wall time, is what a heap cap has to absorb, and it is wildly uneven between projects: one project routinely accounts for a third of a
+    // build's total. That makes this the shortest path from "raise the heap" to "or fix that one project".
+    if (events.compileAllocation.nonEmpty) {
+      val byProject = events.compileAllocation
+        .groupBy(e => pathName(getStr(e, "project")))
+        .map { case (project, evs) => project -> evs.map(_.get("allocated_mb").getAsLong).sum }
+        .toSeq
+        .sortBy(-_._2)
+        .take(15)
+        .reverse
+      val t = ArrayBuffer.empty[String]
+      t += s"""{"type":"bar","orientation":"h","x":${fmtLongs(byProject.map(_._2))},"y":${fmtStrings(
+          byProject.map(_._1)
+        )},"marker":{"color":"#6366f1"},"hovertemplate":"%{y}<br>%{x} MB allocated<extra></extra>"}"""
+      val layout = baseLayout("MB allocated", "")
+        .replace("\"showlegend\":true", "\"showlegend\":false")
+        .replace("\"l\":60", "\"l\":170")
+      addChart("alloc", "Allocation by project (total)", t, layout, false, math.max(280, byProject.size * 26 + 60))
+    }
+
+    // ---- Analysis cache ----
+    // The largest single retainer in the server heap. `sharing_factor` is why holding several workspaces costs far less than it appears: identical class
+    // metadata is interned across them, so the same analysis counted twice is stored once.
+    if (events.analysisCache.nonEmpty) {
+      val t = ArrayBuffer.empty[String]
+      val xArr = fmtDoubles(events.analysisCache.map(e => relS(e.get("ts").getAsLong)))
+      t += scatterTrace(
+        xArr,
+        fmtLongs(events.analysisCache.map(_.get("file_bytes").getAsLong / (1024L * 1024L))),
+        "Analysis on disk (MB)",
+        "#3b82f6",
+        "solid",
+        "tozeroy",
+        "lines"
+      )
+      t += scatterTrace(xArr, fmtLongs(events.analysisCache.map(_.get("entries").getAsLong)), "Analyses held", "#22c55e", "solid", "none", "lines")
+      if (events.workspaceState.nonEmpty) {
+        val wx = fmtDoubles(events.workspaceState.map(e => relS(e.get("ts").getAsLong)))
+        t += scatterTrace(wx, fmtLongs(events.workspaceState.map(_.get("cached_count").getAsLong)), "Workspaces cached", "#f59e0b", "solid", "none", "lines")
+      }
+      addChart("analysis", "Zinc analysis cache", t, baseLayout("Time (s)", ""), false, 280)
+    }
+
+    // Facts about the machine and the scheduler, which the page could not state before because it did not read these events. Each is here because it answers a
+    // question people actually arrive with: how much heap was this server allowed, was the machine ever full, and did anything wait.
+    val machineStats: String = {
+      val cards = ArrayBuffer.empty[String]
+
+      events.machine.headOption.foreach { first =>
+        if (first.has("server_heap_mb") && first.has("physical_memory_mb")) {
+          val cap = first.get("server_heap_mb").getAsLong
+          val ram = first.get("physical_memory_mb").getAsLong
+          // "max" because -Xmx is a ceiling, not a reservation; the server commits far less than this most of the time.
+          cards += stat("Server heap cap", s"max ${cap / 1024} of ${ram / 1024} GB", "#0ea5e9")
+        }
+        val cores = first.get("total_cpu").getAsLong
+        val saturated = events.machine.count(e => e.get("used_cpu").getAsLong >= e.get("total_cpu").getAsLong)
+        val pct = if (events.machine.isEmpty) 0 else saturated * 100 / events.machine.size
+        cards += stat(s"Saturated ($cores cores)", s"$pct% of samples", if (pct > 80) "#f59e0b" else "#22c55e")
+
+        val deepest = events.machine.map(_.get("waiting").getAsLong).maxOption.getOrElse(0L)
+        // Queued work while cores sit idle is the one shape that means the scheduler, not the machine, is the limit.
+        val starved = events.machine.count(e => e.get("waiting").getAsLong > 0 && e.get("used_cpu").getAsLong < e.get("total_cpu").getAsLong)
+        cards += stat("Deepest queue", s"$deepest" + (if (starved > 0) s" ($starved starved)" else ""), if (starved > 0) "#ef4444" else "#22c55e")
+      }
+
+      if (events.admissionDefer.nonEmpty) {
+        val delay = events.admissionDefer.map(e => if (e.has("delay_ms")) e.get("delay_ms").getAsLong else 0L).sum
+        val pressure = events.admissionDefer.count(e => e.has("reason") && e.get("reason").getAsString == "heap_pressure")
+        val label = if (pressure > 0) s"${events.admissionDefer.size} ($pressure heap)" else s"${events.admissionDefer.size} (stagger)"
+        cards += stat(f"Defers, ${delay / 1000.0}%.1fs", label, if (pressure > 0) "#ef4444" else "#9ca3af")
+      }
+
+      events.compileAllocation
+        .groupBy(e => pathName(getStr(e, "project")))
+        .map { case (project, evs) => project -> evs.map(_.get("allocated_mb").getAsLong).sum }
+        .toSeq
+        .sortBy(-_._2)
+        .headOption
+        .foreach { case (project, mb) => cards += stat("Heaviest allocator", s"$project — ${mb / 1024} GB", "#6366f1") }
+
+      events.analysisCache.lastOption.foreach { last =>
+        if (last.has("sharing_factor"))
+          cards += stat("Analysis sharing", f"${last.get("sharing_factor").getAsDouble}%.2fx across ${last.get("workspaces").getAsLong} ws", "#22c55e")
+      }
+
+      if (events.forkStart.nonEmpty) {
+        // Reuse against starts is what the pool is actually saving, which no other number shows.
+        cards += stat("Test JVMs", s"${events.forkStart.size} started, ${events.forkReused.size} reused", "#0ea5e9")
+        val failed = events.suiteFinished.count(e => getStr(e, "outcome") != "Success")
+        cards += stat("Suites run", s"${events.suiteFinished.size}" + (if (failed > 0) s" ($failed not ok)" else ""), if (failed > 0) "#ef4444" else "#22c55e")
+      }
+
+      if (cards.isEmpty) "" else cards.mkString("\n") + "\n"
+    }
+
+    // ---- Test JVMs, and what ran on each ----
+    // One lane per forked JVM. The bar is the fork's life; the darker segments are the suites placed on it. This is the view that answers "which suite was on
+    // the JVM that got killed", which is otherwise a join across three event types done by hand.
+    if (events.forkStart.nonEmpty) {
+      val endByPid = events.forkEnd.map(e => e.get("pid").getAsLong -> e).toMap
+      val lanes = events.forkStart.map(_.get("pid").getAsLong).distinct.sorted
+      val laneIndex = lanes.zipWithIndex.toMap
+      val lastTs = allTs.maxOption.getOrElse(0L)
+
+      val shapes = ArrayBuffer.empty[String]
+      events.forkStart.foreach { f =>
+        val pid = f.get("pid").getAsLong
+        val row = laneIndex(pid)
+        val startS = relS(f.get("ts").getAsLong)
+        val endS = endByPid.get(pid).map(e => relS(e.get("ts").getAsLong)).getOrElse(relS(lastTs))
+        // Killed by us is not a failure — it is how the pool shuts down — so only an unexplained end is coloured as trouble.
+        val killed = endByPid.get(pid).exists(e => e.has("killed_by") && !e.get("killed_by").isJsonNull)
+        val colour = if (endByPid.contains(pid) && !killed) "#ef4444" else "#cbd5e1"
+        shapes += s"""{"type":"rect","x0":$startS,"x1":$endS,"y0":${row - 0.38},"y1":${row + 0.38},"fillcolor":"$colour","opacity":0.55,"line":{"width":0}}"""
+      }
+      events.suiteFinished.foreach { sf =>
+        val pid = sf.get("pid").getAsLong
+        laneIndex.get(pid).foreach { row =>
+          val endS = relS(sf.get("ts").getAsLong)
+          val startS = endS - sf.get("duration_ms").getAsLong / 1000.0
+          val ok = getStr(sf, "outcome") == "Success"
+          shapes += s"""{"type":"rect","x0":$startS,"x1":$endS,"y0":${row - 0.3},"y1":${row + 0.3},"fillcolor":"${
+              if (ok) "#22c55e"
+              else "#ef4444"
+            }","opacity":0.9,"line":{"width":0}}"""
+        }
+      }
+
+      val t = ArrayBuffer.empty[String]
+      if (events.suiteFinished.nonEmpty)
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(events.suiteFinished.map(e => relS(e.get("ts").getAsLong)))},"y":${fmtDoubles(
+            events.suiteFinished.map(e => laneIndex.getOrElse(e.get("pid").getAsLong, 0).toDouble)
+          )},"text":${fmtStrings(
+            events.suiteFinished.map(e => s"${getStr(e, "suite")} — ${e.get("duration_ms").getAsLong}ms (${getStr(e, "outcome")})")
+          )},"marker":{"color":"rgba(0,0,0,0)","size":8},"hovertemplate":"%{text}<extra></extra>","showlegend":false}"""
+
+      val laneLabels = lanes.map { pid =>
+        val n = events.suiteScheduled.count(_.get("pid").getAsLong == pid)
+        s"pid $pid ($n)"
+      }
+      val layout =
+        s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(
+            lanes.indices.map(_.toDouble)
+          )},"ticktext":${fmtStrings(
+            laneLabels
+          )},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes
+            .mkString(",")}]}"""
+      addChart("forks", "Test JVMs — lifetime and the suites on them", t, layout, true, math.max(240, lanes.size * 26 + 90))
+    }
+
+    // ---- Slowest suites ----
+    if (events.suiteFinished.nonEmpty) {
+      val slowest = events.suiteFinished
+        .map(e => (getStr(e, "suite"), e.get("duration_ms").getAsLong, getStr(e, "outcome")))
+        .sortBy(-_._2)
+        .take(15)
+        .reverse
+      val t = ArrayBuffer.empty[String]
+      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(slowest.map(_._2 / 1000.0))},"y":${fmtStrings(
+          slowest.map(r => r._1.split('.').last)
+        )},"marker":{"color":${fmtStrings(
+          slowest.map(r => if (r._3 == "Success") "#22c55e" else "#ef4444")
+        )}},"hovertemplate":"%{y}<br>%{x:.1f}s<extra></extra>"}"""
+      val layout = baseLayout("seconds", "").replace("\"showlegend\":true", "\"showlegend\":false").replace("\"l\":60", "\"l\":190")
+      addChart("suites", "Slowest test suites", t, layout, false, math.max(280, slowest.size * 26 + 60))
+    }
+
     val oomLabel = if (oomCrashCount > 0) s"$oomCrashCount CRASH" else if (oomPressureCount > 0) s"$oomPressureCount events" else "None"
 
     val statsHtml = s"""$oomWarning<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -391,7 +656,7 @@ ${stat("Avg Build", f"${avgBuildMs / 1000.0}%.1f s", "#f59e0b")}
 ${stat("Max Concurrent", summaryMaxConcurrent.toString, "#8b5cf6")}
 ${stat("Heap", s"$summaryMaxHeap / $heapMax MB", if (anyOom) "#ef4444" else "#ec4899")}
 ${stat("OOM", oomLabel, if (anyOom) "#ef4444" else "#22c55e")}
-</div>"""
+$machineStats</div>"""
 
     s"""<!DOCTYPE html>
 <html lang="en">

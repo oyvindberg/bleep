@@ -342,6 +342,53 @@ object BspMetrics {
         )}","heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"delay_ms":$delayMs,"others_compiling":$othersCompiling}"""
     )
 
+  /** Forked test JVMs, by pid, so a test run can be reconstructed after the fact.
+    *
+    * The compile server already recorded what it compiled; what it *ran* was invisible. These three plus [[recordSuiteScheduled]] answer the questions a slow
+    * or flaky test run actually raises: how many JVMs were started, how many were reused rather than respawned, how long each lived, which were killed rather
+    * than finishing, and which suite ran on which one. The pid is the join key between all of them.
+    */
+  /** The pool announces; this forwards to the same jsonl everything else lands in. Lives here rather than at the call site so there is one place that knows how
+    * a fork becomes an event.
+    */
+  val jvmPoolListener: bleep.testing.JvmPoolListener = new bleep.testing.JvmPoolListener {
+    def onForkStart(pid: Long, label: String, xmxMb: Option[Long]): Unit = recordForkStart(pid, label, xmxMb)
+    def onForkEnd(pid: Long, lifetimeMs: Long, exit: String, killedByUs: Option[String]): Unit = recordForkEnd(pid, lifetimeMs, exit, killedByUs)
+    def onForkReused(pid: Long, label: String): Unit = recordForkReused(pid, label)
+  }
+
+  def recordForkStart(pid: Long, label: String, xmxMb: Option[Long]): Unit =
+    writeEvent(
+      s"""{"type":"fork_start","ts":${now()},"pid":$pid,"label":"${esc(label)}","xmx_mb":${xmxMb.getOrElse(-1L)}}"""
+    )
+
+  /** `killed_by` is the whole point of recording this separately from the exit summary: `destroyForcibly` sends SIGKILL, so a fork bleep terminated is
+    * indistinguishable from one the OS killed unless we say which it was.
+    */
+  def recordForkEnd(pid: Long, lifetimeMs: Long, exit: String, killedByUs: Option[String]): Unit =
+    writeEvent(
+      s"""{"type":"fork_end","ts":${now()},"pid":$pid,"lifetime_ms":$lifetimeMs,"exit":"${esc(exit)}","killed_by":${killedByUs
+          .map(r => s""""${esc(r)}"""")
+          .getOrElse("null")}}"""
+    )
+
+  /** A pooled JVM handed out again instead of a new one being forked. The ratio against `fork_start` is how much the pool actually saves. */
+  def recordForkReused(pid: Long, label: String): Unit =
+    writeEvent(s"""{"type":"fork_reused","ts":${now()},"pid":$pid,"label":"${esc(label)}"}""")
+
+  /** Which suite was placed on which JVM, and how it went. Keyed on pid, so it joins to the fork events above. */
+  def recordSuiteScheduled(pid: Long, project: String, suite: String, framework: String): Unit =
+    writeEvent(
+      s"""{"type":"suite_scheduled","ts":${now()},"pid":$pid,"project":"${esc(project)}","suite":"${esc(suite)}","framework":"${esc(framework)}"}"""
+    )
+
+  def recordSuiteFinished(pid: Long, project: String, suite: String, durationMs: Long, outcome: String): Unit =
+    writeEvent(
+      s"""{"type":"suite_finished","ts":${now()},"pid":$pid,"project":"${esc(project)}","suite":"${esc(
+          suite
+        )}","duration_ms":$durationMs,"outcome":"${esc(outcome)}"}"""
+    )
+
   def recordOomCrash(threadName: String, message: String): Unit = {
     val heap = ManagementFactory.getMemoryMXBean.getHeapMemoryUsage
     val usedMb = heap.getUsed / (1024 * 1024)
