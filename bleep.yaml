@@ -143,6 +143,7 @@ projects:
   bleep-model:
     dependencies:
     - io.circe::circe-generic:0.14.15
+    - io.circe::circe-parser:0.14.15
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
       module: io.get-coursier::coursier-jvm:2.1.25-M26
