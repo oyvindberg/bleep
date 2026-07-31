@@ -129,6 +129,11 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "compile_allocation"  => events.compileAllocation += obj
           case "analysis_cache"      => events.analysisCache += obj
           case "workspace_state"     => events.workspaceState += obj
+          case "fork_start"          => events.forkStart += obj
+          case "fork_reused"         => events.forkReused += obj
+          case "fork_end"            => events.forkEnd += obj
+          case "suite_scheduled"     => events.suiteScheduled += obj
+          case "suite_finished"      => events.suiteFinished += obj
           // compile_phase is deliberately not charted: it fires per phase per project and says more about zinc's internals than about this build.
           case _ => ()
         }
