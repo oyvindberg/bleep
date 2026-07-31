@@ -67,6 +67,20 @@ def summarise(path: pathlib.Path, rows: list[dict]) -> None:
         for proj, mb in sorted(per.items(), key=lambda kv: -kv[1])[:5]:
             print(f"    {mb:>8} MB  {proj}")
 
+    defers = [r for r in rows if r.get("type") == "admission_defer"] or [r for r in rows if r.get("type") == "heap_pressure_stall"]
+    if defers:
+        # Split by reason. Anything without one is a pre-rename event, which had no reason field and was labelled as pressure regardless of what it was.
+        by_reason = {}
+        for r in defers:
+            by_reason.setdefault(r.get("reason", "unlabelled(pre-rename)"), []).append(r)
+        total_delay = sum(r.get("delay_ms", 0) for r in defers)
+        print(f"\n  admission defers: {len(defers)}, {total_delay/1000:.1f}s of stagger requested")
+        for reason, rs in sorted(by_reason.items()):
+            worst = max((r["heap_used_mb"] / r["heap_max_mb"] for r in rs if r.get("heap_max_mb")), default=0)
+            print(f"    {reason:<24} {len(rs):>4}   worst heap seen {worst:.0%}")
+        if "heap_pressure" not in by_reason and "unlabelled(pre-rename)" not in by_reason:
+            print("    (none were memory — the gate was spreading compiles out, not waiting on heap)")
+
     machine = [r for r in rows if r.get("type") == "machine"]
     if machine:
         samples = len(machine)
