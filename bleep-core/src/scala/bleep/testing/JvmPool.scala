@@ -222,6 +222,10 @@ object JvmPool {
     */
   private class ManagedJvm(
       val process: Process,
+      /** When this fork was created, taken here rather than from `process.info().startInstant()` at the end: by the time a JVM is announced dead it has already
+        * been killed, and the OS stops reporting a start instant for a process that no longer exists — which produced a lifetime of -1 on every fork.
+        */
+      val startedAtMs: Long = System.currentTimeMillis(),
       val stdin: PrintWriter,
       val stdout: BufferedReader,
       val stderr: BufferedReader,
@@ -455,12 +459,7 @@ object JvmPool {
     private def announceEnd(jvm: ManagedJvm): IO[Unit] =
       IO {
         val exit = describeExit(jvm.process, jvm.killedByUs)
-        val lifetimeMs = jvm.process
-          .info()
-          .startInstant()
-          .map[java.lang.Long](start => java.lang.Long.valueOf(System.currentTimeMillis() - start.toEpochMilli))
-          .orElse(java.lang.Long.valueOf(-1L))
-        listener.onForkEnd(jvm.process.pid(), lifetimeMs.longValue(), exit.summary, jvm.killedByUs)
+        listener.onForkEnd(jvm.process.pid(), System.currentTimeMillis() - jvm.startedAtMs, exit.summary, jvm.killedByUs)
       }
 
     /** Record what this fork actually cost the machine, for the benefit of the next one of its kind.
