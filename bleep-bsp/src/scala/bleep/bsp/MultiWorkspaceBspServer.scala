@@ -1912,7 +1912,18 @@ class MultiWorkspaceBspServer(
           case HeapPressureGate.Decision.Defer(delayMs) =>
             firstRefusedAt.update(m => m.updated(projectName, m.getOrElse(projectName, nowMs))) >>
               IO(listener.onWait(projectName, usage.usedMb, usage.maxMb, delayMs, nowMs)) >>
-              IO(BspMetrics.recordHeapPressureStall(projectName, usage.usedMb.value, usage.maxMb.value)).as(false)
+              IO(
+                BspMetrics.recordAdmissionDefer(
+                  project = projectName,
+                  // The gate defers for two unrelated reasons and only one of them is memory. Recording which is the difference between reading this data and
+                  // misreading it.
+                  reason = if (usage.fraction >= threshold) "heap_pressure" else "stagger",
+                  heapUsedMb = usage.usedMb.value,
+                  heapMaxMb = usage.maxMb.value,
+                  delayMs = delayMs,
+                  othersCompiling = compiling
+                )
+              ).as(false)
         }
       } yield admit
     }

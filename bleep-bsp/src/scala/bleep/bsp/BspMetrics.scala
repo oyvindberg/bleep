@@ -322,11 +322,24 @@ object BspMetrics {
       s"""{"type":"compile_phase","ts":${now()},"project":"${esc(project)}","phase":"${esc(phase)}","tracked_apis":$trackedApis}"""
     )
 
-  def recordHeapPressureStall(project: String, heapUsedMb: Long, heapMaxMb: Long): Unit =
+  /** A compile the admission gate declined to start, and why.
+    *
+    * Was `heap_pressure_stall`, which is what it is called when it fires and what it almost never is. Across two full CI runs, 74 of 74 events were recorded
+    * below the pressure threshold — the server never crossed it at all, peaking at 65-69% of a 4GB heap. Every one was the gate's deliberate stagger, which
+    * defers a project's first admission attempt whenever anything else is compiling, at 5% heap as readily as at 79%. Named and shaped as it was, the data said
+    * "this build spent its time starved of memory" when it meant "these compiles were spread out on purpose".
+    *
+    * `delay_ms` because the previous event carried none: [[HeapPressureGate.decide]] computes the stagger and hands it to the listener, and it stopped there.
+    * The event whose job is explaining a slow build could not say whether 36 defers cost 7 seconds or 70.
+    *
+    * `others_compiling` is what the gate actually consulted (`machine.activeCompiles`), not [[concurrentCompiles]], which counts something else and disagreed —
+    * events recorded `concurrent_compiles: 0` while the gate was deferring precisely because others were compiling.
+    */
+  def recordAdmissionDefer(project: String, reason: String, heapUsedMb: Long, heapMaxMb: Long, delayMs: Long, othersCompiling: Int): Unit =
     writeEvent(
-      s"""{"type":"heap_pressure_stall","ts":${now()},"project":"${esc(
-          project
-        )}","heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"concurrent_compiles":${concurrentCompiles.get()}}"""
+      s"""{"type":"admission_defer","ts":${now()},"project":"${esc(project)}","reason":"${esc(
+          reason
+        )}","heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"delay_ms":$delayMs,"others_compiling":$othersCompiling}"""
     )
 
   def recordOomCrash(threadName: String, message: String): Unit = {
