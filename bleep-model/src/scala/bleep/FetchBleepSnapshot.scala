@@ -70,13 +70,15 @@ object FetchBleepSnapshot {
           .flatten
       }
 
-  private case class Commit(sha: String)
+  private case class Commit(sha: String, parents: List[Parent])
+  private case class Parent(sha: String)
   private case class Run(id: Long, status: String, conclusion: Option[String])
   private case class RunsPage(workflow_runs: List[Run])
   private case class GhArtifact(id: Long, name: String, expired: Boolean)
   private case class ArtifactPage(artifacts: List[GhArtifact])
 
-  private implicit val commitDecoder: Decoder[Commit] = Decoder.forProduct1("sha")(Commit.apply)
+  private implicit val parentDecoder: Decoder[Parent] = Decoder.forProduct1("sha")(Parent.apply)
+  private implicit val commitDecoder: Decoder[Commit] = Decoder.forProduct2("sha", "parents")(Commit.apply)
   private implicit val runDecoder: Decoder[Run] = Decoder.forProduct3("id", "status", "conclusion")(Run.apply)
   private implicit val runsDecoder: Decoder[RunsPage] = Decoder.forProduct1("workflow_runs")(RunsPage.apply)
   private implicit val artifactDecoder: Decoder[GhArtifact] = Decoder.forProduct3("id", "name", "expired")(GhArtifact.apply)
@@ -124,13 +126,39 @@ object FetchBleepSnapshot {
   private def artifactsForCommit(sha: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, List[GhArtifact]] =
     for {
       commit <- get[Commit](api(s"commits/$sha"), s"commit $sha", token, cacheLogger, ec)
-      runs <- get[RunsPage](api(s"actions/runs?head_sha=${commit.sha}&per_page=20"), s"the runs for $sha", token, cacheLogger, ec)
-      run <- runs.workflow_runs.headOption.toRight(s"no CI run found for commit $sha")
+      run <- runFor(commit, sha, token, cacheLogger, ec)
       page <- get[ArtifactPage](api(s"actions/runs/${run.id}/artifacts?per_page=100"), s"the artifacts of run ${run.id}", token, cacheLogger, ec)
       _ <-
         if (page.artifacts.nonEmpty || run.status == "completed") Right(())
         else Left(s"the CI run for commit $sha is still ${run.status} and has not uploaded its artifacts yet")
     } yield page.artifacts
+
+  /** The run whose `head_sha` is this commit — or, for a build of a pull request, the run for the commit that was merged.
+    *
+    * `actions/checkout` checks out `refs/pull/N/merge` for a pull_request event, so the version baked into that build names an ephemeral merge commit while the
+    * run is recorded against the branch head. Looking up the merge commit therefore finds the commit and then zero runs. Verified against a real PR build:
+    * `0.0.0+1-53645ab8-SNAPSHOT`, where 53645ab8 is `Merge fbe31c09 into 082c3840` and only fbe31c09 has a run.
+    *
+    * GitHub writes those parents as [base, head], so the second is the commit someone actually built. Reached only when the direct lookup finds nothing, so a
+    * push build — every master build, and every release — takes the first branch and never depends on this.
+    */
+  private def runFor(commit: Commit, sha: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, Run] = {
+    def runsFor(candidate: String) =
+      get[RunsPage](api(s"actions/runs?head_sha=$candidate&per_page=20"), s"the runs for $candidate", token, cacheLogger, ec).map(_.workflow_runs)
+
+    runsFor(commit.sha).flatMap {
+      case run :: _ => Right(run)
+      case Nil      =>
+        commit.parents match {
+          case _ :: merged :: Nil =>
+            runsFor(merged.sha).flatMap {
+              case run :: _ => Right(run)
+              case Nil      => Left(s"no CI run found for commit $sha, nor for ${merged.sha.take(8)} which it merged")
+            }
+          case _ => Left(s"no CI run found for commit $sha")
+        }
+    }
+  }
 
   private def pick(artifacts: List[GhArtifact], name: String, sha: String): Either[String, GhArtifact] =
     artifacts.find(_.name == name) match {

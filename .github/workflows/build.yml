@@ -28,6 +28,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          # dynver derives the version from the nearest tag and the distance to it. The default depth-1 checkout fetches
+          # no tags, so it finds none and produces `0.0.0+1-<sha>` — which is what the jars and every native image were
+          # published under, and what a bleep.yaml would have had to name to ask for one.
+          fetch-depth: 0
       - uses: bleep-build/bleep-setup-action@v0.0.3
       - uses: coursier/cache-action@v8
         with:
@@ -221,6 +225,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          # dynver derives the version from the nearest tag and the distance to it. The default depth-1 checkout fetches
+          # no tags, so it finds none and produces `0.0.0+1-<sha>` — which is what the jars and every native image were
+          # published under, and what a bleep.yaml would have had to name to ask for one.
+          fetch-depth: 0
 
       # ARM64 Linux needs JDK 21+ for UnixDomainSocketAddress in BSP server
       - uses: actions/setup-java@v5

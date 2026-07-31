@@ -41,6 +41,12 @@ class FetchBleepSnapshotTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a version built with no tags in reach still yields its sha") {
+    // What a depth-1 checkout actually produced before fetch-depth was set: dynver finds no tag and falls back to 0.0.0.
+    // Old artifacts carry versions of this shape, so the sha still has to come out of them.
+    sha("0.0.0+1-53645ab8-SNAPSHOT") shouldBe Some("53645ab8")
+  }
+
   test("every platform with a native image maps to an artifact name build.yml uploads") {
     // These must stay in step with `matrix.artifact_name`; a typo here is only discovered by someone trying a snapshot.
     val expected = Set(
