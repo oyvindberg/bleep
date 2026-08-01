@@ -2,13 +2,15 @@ name: Deploy docs
 
 on:
   push:
+    # Deliberately NO path filter on master. The published version now comes from git tags rather than from a literal in
+    # docs/, so a build's output can change without any watched path changing — a release would otherwise leave the site
+    # advertising the previous version until someone happened to touch a doc.
     branches:
       - master
-    paths:
-      - "docs/**"
-      - "bleep-site/**"
-      - "docs-snippets-from-tests/**"
-      - ".github/workflows/deploy-docs.yml"
+    # And a release is exactly that case: cutting `v1.0.0-M12` changes what every `$version:` example renders as, without
+    # moving master at all.
+    tags:
+      - "v*"
   pull_request:
     paths:
       - "docs/**"
@@ -31,6 +33,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          # The site reads the newest `v*` tag to render `$version:` in every example. The default depth-1 checkout
+          # fetches no tags at all, and scripts/latest-version.mjs fails the build rather than guessing a version.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
