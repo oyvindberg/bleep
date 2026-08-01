@@ -22,19 +22,56 @@ libraries published to Maven Central, generated-source projects with
 hundreds of thousands of lines, and backend services shipping to
 real users.
 
+## The workload bleep is developed against
+
+The daily driver is a private repository of **12.9M lines across
+57,941 files**. Of that, bleep compiles **4.1M lines of Java and
+Scala across 11,896 files in 67 projects** — and **3.7M of those
+Java lines (92%) are generated and checked in**, a SQL parser and
+AST family spanning a dozen database dialects. Roughly **2,300
+declared tests** run against a corpus of **44,127 SQL files**, and
+several suites are heavy enough to need their own heap.
+
+It is never one build at a time. Development runs across **a dozen
+or more git worktrees concurrently**, each an independent client of
+the same shared compile server, often driven by several agents at
+once. A single diagnostic session on that setup caught the daemon
+serving 11 worktrees across 14 concurrent connections and 18
+concurrent compiles.
+
+That shape is why bleep is built the way it is, and it is where its
+bugs come from. A shared daemon that keeps a dozen worktrees warm is
+what parallel development at this scale needs; it is also the thing
+that has to stay correct under contention before it is worth
+anything.
+
 The version is `1.0.0-M*`, milestone, not GA. The build model is
 stable in practice; named features are tested by integration tests.
 
 ## The bleep-bsp rewrite
 
-The compile server (`bleep-bsp`) was recently rewritten with heavy
-Claude assistance — BSP protocol handling, Zinc invocation, the
-per-project lock model, the shared-daemon lifecycle, the test runner.
-Core paths are tested and the rewrite is what powers the bleep build
-itself today. Edge cases are still being found and fixed: expect
-occasional rough spots over the next few months, especially around
-concurrent workspaces, unusual project shapes, and crash recovery.
-The CLI surface above the BSP layer is unchanged.
+The compile server (`bleep-bsp`) was rewritten with heavy Claude
+assistance — BSP protocol handling, Zinc invocation, the per-project
+lock model, the shared-daemon lifecycle, the test runner. Core paths
+are tested and the rewrite is what powers the bleep build itself
+today. The CLI surface above the BSP layer is unchanged.
+
+**`1.0.0-M11` is largely the release that went and found those edge
+cases.** Its 83 commits are dominated by exactly the areas flagged
+here as rough: concurrent workspaces (one client's disconnect no
+longer kills another's forks; locks and KSP mutexes are scoped
+correctly), scheduling under contention (one machine-wide governor,
+three reproduced deadlocks fixed, every fork bounded), heap
+retention (Zinc analyses interned and owned by their workspace),
+crash recovery (readiness by connect rather than by grepping a
+rotated log, idle self-shutdown, logs that survive the restart meant
+to diagnose them), and a family of bugs that let a broken build
+report success. See the
+[M11 release notes](https://github.com/oyvindberg/bleep/releases/tag/v1.0.0-M11).
+
+Expect occasional rough spots still — this is milestone software and
+the surface is wide — but the specific failure modes that motivated
+this warning have mostly been closed rather than merely acknowledged.
 
 If you hit a bleep-bsp issue, the server log at
 `~/Library/Caches/build.bleep/socket/<hash>/output` (or the equivalent
