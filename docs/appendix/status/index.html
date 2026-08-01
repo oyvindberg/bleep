@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><meta data-rh="true" property="og:description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.833866ae.css">
-<script src="/assets/js/runtime~main.8b653d92.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.724361f5.js" defer="defer"></script>
 <script src="/assets/js/main.b730cf9b.js" defer="defer"></script>
 </head>
 <body>
@@ -28,17 +28,48 @@ private codebases with <strong>millions of lines of source</strong>, plus
 libraries published to Maven Central, generated-source projects with
 hundreds of thousands of lines, and backend services shipping to
 real users.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-workload-bleep-is-developed-against">The workload bleep is developed against<a href="#the-workload-bleep-is-developed-against" class="hash-link" aria-label="Direct link to The workload bleep is developed against" title="Direct link to The workload bleep is developed against" translate="no">​</a></h2>
+<p>The daily driver is a private repository of <strong>12.9M lines across
+57,941 files</strong>. Of that, bleep compiles <strong>4.1M lines of Java and
+Scala across 11,896 files in 67 projects</strong> — and <strong>3.7M of those
+Java lines (92%) are generated and checked in</strong>, a SQL parser and
+AST family spanning a dozen database dialects. Roughly <strong>2,300
+declared tests</strong> run against a corpus of <strong>44,127 SQL files</strong>, and
+several suites are heavy enough to need their own heap.</p>
+<p>It is never one build at a time. Development runs across <strong>a dozen
+or more git worktrees concurrently</strong>, each an independent client of
+the same shared compile server, often driven by several agents at
+once. A single diagnostic session on that setup caught the daemon
+serving 11 worktrees across 14 concurrent connections and 18
+concurrent compiles.</p>
+<p>That shape is why bleep is built the way it is, and it is where its
+bugs come from. A shared daemon that keeps a dozen worktrees warm is
+what parallel development at this scale needs; it is also the thing
+that has to stay correct under contention before it is worth
+anything.</p>
 <p>The version is <code>1.0.0-M*</code>, milestone, not GA. The build model is
 stable in practice; named features are tested by integration tests.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-bleep-bsp-rewrite">The bleep-bsp rewrite<a href="#the-bleep-bsp-rewrite" class="hash-link" aria-label="Direct link to The bleep-bsp rewrite" title="Direct link to The bleep-bsp rewrite" translate="no">​</a></h2>
-<p>The compile server (<code>bleep-bsp</code>) was recently rewritten with heavy
-Claude assistance — BSP protocol handling, Zinc invocation, the
-per-project lock model, the shared-daemon lifecycle, the test runner.
-Core paths are tested and the rewrite is what powers the bleep build
-itself today. Edge cases are still being found and fixed: expect
-occasional rough spots over the next few months, especially around
-concurrent workspaces, unusual project shapes, and crash recovery.
-The CLI surface above the BSP layer is unchanged.</p>
+<p>The compile server (<code>bleep-bsp</code>) was rewritten with heavy Claude
+assistance — BSP protocol handling, Zinc invocation, the per-project
+lock model, the shared-daemon lifecycle, the test runner. Core paths
+are tested and the rewrite is what powers the bleep build itself
+today. The CLI surface above the BSP layer is unchanged.</p>
+<p><strong><code>1.0.0-M11</code> is largely the release that went and found those edge
+cases.</strong> Its 83 commits are dominated by exactly the areas flagged
+here as rough: concurrent workspaces (one client&#x27;s disconnect no
+longer kills another&#x27;s forks; locks and KSP mutexes are scoped
+correctly), scheduling under contention (one machine-wide governor,
+three reproduced deadlocks fixed, every fork bounded), heap
+retention (Zinc analyses interned and owned by their workspace),
+crash recovery (readiness by connect rather than by grepping a
+rotated log, idle self-shutdown, logs that survive the restart meant
+to diagnose them), and a family of bugs that let a broken build
+report success. See the
+<a href="https://github.com/oyvindberg/bleep/releases/tag/v1.0.0-M11" target="_blank" rel="noopener noreferrer" class="">M11 release notes</a>.</p>
+<p>Expect occasional rough spots still — this is milestone software and
+the surface is wide — but the specific failure modes that motivated
+this warning have mostly been closed rather than merely acknowledged.</p>
 <p>If you hit a bleep-bsp issue, the server log at
 <code>~/Library/Caches/build.bleep/socket/&lt;hash&gt;/output</code> (or the equivalent
 on Linux) is the first thing to attach to a bug report.</p>
@@ -64,6 +95,6 @@ workflows; one-off plugins are user-implemented as scripts.</li>
 <p>Use bleep on greenfield projects without reservation. For migrating
 an existing build, run <a class="" href="/docs/demos/importing-sbt-build/"><code>bleep import</code></a>
 or <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import-maven</code></a> first ,
-if the imported result compiles and tests, you&#x27;re in a usable state.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/installing/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Installation</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/tutorials/your-first-project/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Your First Project (Java)</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#the-bleep-bsp-rewrite" class="table-of-contents__link toc-highlight">The bleep-bsp rewrite</a></li><li><a href="#whats-not-yet-covered" class="table-of-contents__link toc-highlight">What&#39;s not yet covered</a></li><li><a href="#recommendation" class="table-of-contents__link toc-highlight">Recommendation</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
+if the imported result compiles and tests, you&#x27;re in a usable state.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/installing/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Installation</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/tutorials/your-first-project/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Your First Project (Java)</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#the-workload-bleep-is-developed-against" class="table-of-contents__link toc-highlight">The workload bleep is developed against</a></li><li><a href="#the-bleep-bsp-rewrite" class="table-of-contents__link toc-highlight">The bleep-bsp rewrite</a></li><li><a href="#whats-not-yet-covered" class="table-of-contents__link toc-highlight">What&#39;s not yet covered</a></li><li><a href="#recommendation" class="table-of-contents__link toc-highlight">Recommendation</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>
