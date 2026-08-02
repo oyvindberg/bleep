@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-M9
+$version: 1.0.0-M11
 jvm:
   # TODO: graalvm-community:25.0.2 is not available for macos-15-intel (x86_64) in coursier's JVM index.
   # Need to either wait for index update, pin x86 macOS to 25.0.1, or drop x86 macOS CI.
@@ -375,7 +375,18 @@ projects:
       enabled: false
     sources: ./src/main/java
   scripts-init:
-    dependencies: build.bleep::bleep-plugin-dynver:${BLEEP_VERSION}
+    # bleep-core is declared explicitly rather than arriving through the dynver plugin. Until 1.0.0-M11 it came for free,
+    # because bleep-plugin-dynver depended on bleep-core; #591 merged the sbt-pgp/sonatype/ci-release sources INTO
+    # bleep-core to break a cycle, which flipped that edge — bleep-core now depends on bleep-plugin-dynver. So the M11
+    # dynver POM lists no bleep-core at all, and GenerateResources died at fork time with
+    # `NoClassDefFoundError: bleep/BleepCodegenScript$Target` while still compiling cleanly, because the script's compile
+    # classpath and the forked runtime classpath are built from different things.
+    #
+    # This project cannot `dependsOn: bleep-core` like every other script project: it sourcegens BleepVersion.scala FOR
+    # bleep-model, which bleep-core depends on, so an in-tree edge would be circular. It has to resolve a published one.
+    dependencies:
+      - build.bleep::bleep-plugin-dynver:${BLEEP_VERSION}
+      - build.bleep::bleep-core:${BLEEP_VERSION}
     extends:
     - template-common
     - template-scala-3
