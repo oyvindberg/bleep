@@ -317,6 +317,37 @@ object BspMetrics {
   def recordSourcegenEnd(scriptName: String, durationMs: Long, success: Boolean): Unit =
     writeEvent(s"""{"type":"sourcegen_end","ts":${now()},"script":"${esc(scriptName)}","duration_ms":$durationMs,"success":$success}""")
 
+  /** Linking a non-JVM target: Scala.js, Scala Native, Kotlin/JS, Kotlin/Native.
+    *
+    * Recorded because it was the one expensive thing the server did and never mentioned. A compile has `compile_start` / `compile_end`, a forked JVM has five
+    * events, and a link — which forks a whole linker toolchain, and for Scala Native means NIR -> LLVM IR -> clang -> executable — had none. It was charged a
+    * cost by the governor and then vanished, so "why was this build slow" could not be answered for any build that links.
+    *
+    * `release_mode` is here because it is the field that predicts the number: the same project linked Debug and linked ReleaseFast are different work by a
+    * large factor, and without it a slow link and a fast one are one population. `platform` for the same reason across toolchains.
+    */
+  def recordLinkStart(project: String, workspace: String, platform: String, releaseMode: Boolean, isTest: Boolean): Unit =
+    writeEvent(
+      s"""{"type":"link_start","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","platform":"${esc(
+          platform
+        )}","release_mode":$releaseMode,"is_test":$isTest}"""
+    )
+
+  def recordLinkEnd(
+      project: String,
+      workspace: String,
+      platform: String,
+      releaseMode: Boolean,
+      isTest: Boolean,
+      durationMs: Long,
+      success: Boolean
+  ): Unit =
+    writeEvent(
+      s"""{"type":"link_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","platform":"${esc(
+          platform
+        )}","release_mode":$releaseMode,"is_test":$isTest,"duration_ms":$durationMs,"success":$success}"""
+    )
+
   def recordCompilePhase(project: String, phase: String, trackedApis: Int): Unit =
     writeEvent(
       s"""{"type":"compile_phase","ts":${now()},"project":"${esc(project)}","phase":"${esc(phase)}","tracked_apis":$trackedApis}"""

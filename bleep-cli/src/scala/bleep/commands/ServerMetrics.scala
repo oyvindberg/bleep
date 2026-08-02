@@ -97,6 +97,9 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val forkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val suiteScheduled: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val suiteFinished: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    // Non-JVM linking. The server forks a whole linker toolchain here — for Scala Native, clang — and used to say nothing about it at all.
+    val linkStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val linkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -134,6 +137,8 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "fork_end"            => events.forkEnd += obj
           case "suite_scheduled"     => events.suiteScheduled += obj
           case "suite_finished"      => events.suiteFinished += obj
+          case "link_start"          => events.linkStart += obj
+          case "link_end"            => events.linkEnd += obj
           // compile_phase is deliberately not charted: it fires per phase per project and says more about zinc's internals than about this build.
           case _ => ()
         }
@@ -168,6 +173,8 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     events.forkEnd.foreach(collectTs)
     events.suiteScheduled.foreach(collectTs)
     events.suiteFinished.foreach(collectTs)
+    events.linkStart.foreach(collectTs)
+    events.linkEnd.foreach(collectTs)
 
     val t0 = if (allTs.isEmpty) 0L else allTs.min
     def relS(tsMs: Long): Double = (tsMs - t0) / 1000.0
@@ -568,6 +575,18 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
         cards += stat("Test JVMs", s"${events.forkStart.size} started, ${events.forkReused.size} reused", "#0ea5e9")
         val failed = events.suiteFinished.count(e => getStr(e, "outcome") != "Success")
         cards += stat("Suites run", s"${events.suiteFinished.size}" + (if (failed > 0) s" ($failed not ok)" else ""), if (failed > 0) "#ef4444" else "#22c55e")
+      }
+
+      if (events.linkEnd.nonEmpty) {
+        val totalMs = events.linkEnd.map(_.get("duration_ms").getAsLong).sum
+        val failed = events.linkEnd.count(e => !e.get("success").getAsBoolean)
+        // Release mode is called out because it is the difference between a link that takes seconds and one that takes
+        // minutes, and a total with both mixed in explains nothing.
+        val release = events.linkEnd.count(e => e.has("release_mode") && e.get("release_mode").getAsBoolean)
+        val detail = f"${events.linkEnd.size} links, ${totalMs / 1000.0}%.1fs" +
+          (if (release > 0) s", $release release-mode" else "") +
+          (if (failed > 0) s", $failed failed" else "")
+        cards += stat("Linking", detail, if (failed > 0) "#ef4444" else "#a855f7")
       }
 
       if (cards.isEmpty) "" else cards.mkString("\n") + "\n"

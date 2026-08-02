@@ -1696,7 +1696,9 @@ class MultiWorkspaceBspServer(
           val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
           val linkLogger = createLinkLogger()
           val outputDir = projectPaths.targetDir.resolve("link-output")
-          LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+          withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
+            LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+          }
         }
 
         // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
@@ -2292,7 +2294,9 @@ class MultiWorkspaceBspServer(
                 val projectPaths = started.projectPaths(linkTask.project)
                 val logger = createLinkLogger()
                 val outputDir = projectPaths.targetDir
-                LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
+                withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
+                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
+                }
               }
 
           val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
@@ -3830,6 +3834,41 @@ class MultiWorkspaceBspServer(
     }
 
   /** Send a log message without project scope (for rare error cases only) */
+  /** Wraps a link with its telemetry, so the two call sites cannot drift.
+    *
+    * Deliberately one helper rather than the same `guaranteeCase` block copied into both link handlers: the compile path already has that shape inline, and
+    * duplicated telemetry is how you end up with two events that disagree about what counts as success.
+    *
+    * `guaranteeCase` rather than `flatMap`, for the same reason the compile path uses it — a link that is cancelled or that throws must still emit its end
+    * event, or the start event is left dangling and the duration is unknowable. That is the bug shape `fork_end` was added to close for test JVMs.
+    */
+  private def withLinkMetrics(linkTask: TaskDag.LinkTask, workspace: String)(
+      run: IO[(TaskDag.TaskResult, TaskDag.LinkResult)]
+  ): IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
+    val project = linkTask.project.value
+    val platform = linkTask.platform.name.wireValue
+    val startedAt = System.currentTimeMillis()
+
+    def end(success: Boolean): IO[Unit] =
+      IO(
+        BspMetrics.recordLinkEnd(
+          project,
+          workspace,
+          platform,
+          linkTask.releaseMode,
+          linkTask.isTest,
+          System.currentTimeMillis() - startedAt,
+          success
+        )
+      )
+
+    IO(BspMetrics.recordLinkStart(project, workspace, platform, linkTask.releaseMode, linkTask.isTest)) >>
+      run.guaranteeCase {
+        case cats.effect.Outcome.Succeeded(resultIO) => resultIO.flatMap { case (taskResult, _) => end(taskResult == TaskDag.TaskResult.Success) }
+        case _                                       => end(false)
+      }
+  }
+
   private def createLinkLogger(): LinkExecutor.LinkLogger = new LinkExecutor.LinkLogger {
     def trace(message: String): Unit = ()
     def debug(message: String): Unit = ()

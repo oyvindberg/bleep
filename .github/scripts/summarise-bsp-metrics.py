@@ -58,6 +58,21 @@ def summarise(path: pathlib.Path, rows: list[dict]) -> None:
         for r in worst:
             print(f"    {fmt_ms(r.get('duration_ms', 0)):>8}  {r.get('project', '?')}")
 
+    links = [r for r in rows if r.get("type") == "link_end"]
+    if links:
+        total = sum(r.get("duration_ms", 0) for r in links)
+        failed = sum(1 for r in links if not r.get("success", True))
+        print(f"\n  links: {len(links)} ({failed} failed), total {fmt_ms(total)}")
+        # Grouped by platform and mode rather than listed flat: a Scala Native release link and a Scala.js debug link are
+        # different work by a large factor, and a single total with both in it explains nothing.
+        per = defaultdict(lambda: [0, 0])
+        for r in links:
+            key = f"{r.get('platform', '?')}{' release' if r.get('release_mode') else ''}"
+            per[key][0] += 1
+            per[key][1] += r.get("duration_ms", 0)
+        for key, (n, ms) in sorted(per.items(), key=lambda kv: -kv[1][1]):
+            print(f"    {fmt_ms(ms):>8}  {key} ({n})")
+
     allocs = [r for r in rows if r.get("type") == "compile_allocation"]
     if allocs:
         per = defaultdict(int)
