@@ -121,6 +121,8 @@ jobs:
         # Measured at 9m26s on master against ~3m30s of preceding steps, so 22 is >2x headroom and still
         # lands inside 30 with room for the upload.
         timeout-minutes: 22
+        # No tag exclusions: this is the canonical full-suite gate, and the only place the platform linkers are
+        # exercised now that the native-image matrix skips them.
         run: ./bleep-cli.sh --dev test
 
       # Always, including on failure and step timeout — a run that went wrong is the one whose telemetry

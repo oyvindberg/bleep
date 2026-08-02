@@ -333,6 +333,32 @@ projects:
       # blocks the call outright — failing the suite. Scoped to this project rather than to every
       # forked test JVM bleep runs, because it is this suite's need, not a general one.
       jvmOptions: --enable-native-access=ALL-UNNAMED
+    # Suites that drive a real platform linker: Scala.js, Scala Native, Kotlin/JS, Kotlin/Native. Each one compiles a
+    # source and then links an artifact — for Scala Native that means NIR -> LLVM IR -> clang -> executable, at Debug,
+    # ReleaseFast and LTO — so the time is clang's and no build tool makes it cheaper.
+    #
+    # `slow`, the same tag bleep-tests puts on its `**IT` suites, because it means the same thing and is already wired
+    # where it is wanted: the native-image jobs pass `--exclude-tag slow`, and they exist to prove the produced binary
+    # runs rather than to re-exercise the test surface. Worth 7.7 of 18.3 minutes of suite time on windows.
+    #
+    # The `build` job stays the canonical full-suite gate and keeps running these, so every linker is still exercised
+    # once per CI run — just once instead of five times. Run them directly with
+    # `bleep test bleep-bsp-tests --only-tag slow`.
+    #
+    # Listed by name rather than by a glob. The cost is a property of what each suite does, not of what it is called:
+    # the cheap suites in the same packages also mention link types, and `ScalaNativeAdvancedTestIntegrationTest` is
+    # 132s from a single link call. A pattern would catch the wrong set in both directions.
+    testTags:
+      slow:
+        - bleep.analysis.ScalaNativeAdvancedIntegrationTest
+        - bleep.analysis.ScalaNativeAdvancedTestIntegrationTest
+        - bleep.analysis.ScalaNativeAdvancedLinkIntegrationTest
+        - bleep.analysis.KotlinNativeIntegrationTest
+        - bleep.analysis.KotlinNativeAdvancedIntegrationTest
+        - bleep.analysis.LinkExecutorIntegrationTest
+        - bleep.analysis.ScalaJsAdvancedIntegrationTest
+        - bleep.analysis.ScalaJsAdvancedLinkIntegrationTest
+        - bleep.analysis.KotlinJsAdvancedIntegrationTest
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.19
     dependsOn:
