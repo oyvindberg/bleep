@@ -364,19 +364,20 @@ jobs:
         # `selftest` reaches the two FFM surfaces in the binary unconditionally (kernel32 for the terminal, SHGetKnownFolderPath for the user directories).
         # Both need `foreign` reachability metadata; without it the native image aborts at runtime and only a real Windows user finds out (#601).
         #
-        # Step cap, deliberately below the job's 45. Exceeding the *job* timeout tears the runner down with
-        # every remaining step, `if: always()` included — which is precisely what happened on windows-latest
-        # in this PR's own first run: the step hung for 36 minutes, the job was killed at its ceiling, and
-        # the two telemetry steps below never ran. The one arch the telemetry was written for produced
-        # nothing, for the one failure mode worth seeing. Failing the step instead keeps them.
+        # Bounded by `run-bounded.sh`, not by `timeout-minutes` alone. The step cap is a GitHub-side reap of the process
+        # tree, and on windows-latest that does not work: run 30697246865 declared 20 minutes here, ran 45m07s, blew the
+        # job's own 45-minute ceiling at 55m00s, and the runner was destroyed with both telemetry steps still pending.
+        # That is the same failure #627 added this cap to prevent, so the cap is evidently not sufficient on its own —
+        # and it fails in the worst way, destroying the diagnostics for the one hang worth reading. Killing the process
+        # ourselves fails the *step*, which keeps the `if: always()` collection below alive.
         #
         # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
-        # 11m31s macos-intel, 12m52s windows. 20 is >1.5x the slowest, and clears the job budget on the
-        # slowest arch (macos-arm reaches this step at ~17m).
-        timeout-minutes: 20
+        # 11m31s macos-intel, 12m52s windows. 18m is ~1.4x the slowest; `selftest` is seconds, so 2m is generous.
+        # `timeout-minutes` stays as a backstop, now above our own bound rather than below it.
+        timeout-minutes: 25
         run: |
-          ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
-          ./${{ matrix.file_name }} selftest
+          bash .github/scripts/run-bounded.sh 1080 ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
+          bash .github/scripts/run-bounded.sh 120 ./${{ matrix.file_name }} selftest
 
       # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
       # it those arches were invisible: no metrics, no server log, nothing to read when a job hung or was

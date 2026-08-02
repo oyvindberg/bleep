@@ -332,7 +332,10 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     val prog = for {
       // Fill memory, then shrink the budget under it so free memory is negative — exactly the state
       // the snapshot showed.
-      hold <- CountDownLatch[IO](1)
+      // Counts 8, once per fork. At 1 this returned as soon as the FIRST fork had reserved, so the retune below raced
+      // the other seven and the over-commit the test exists to construct only sometimes existed: at 8 forks free memory
+      // is -5480, but the test passes anywhere from 6 up, and CI caught it at 5 with `2200 was not less than 0`.
+      hold <- CountDownLatch[IO](8)
       release <- CountDownLatch[IO](1)
       forks <- (1 to 8).toList.parTraverse(i => m.reserve(TestFork, s"fork$i", cpu = 0, memoryMb = 2560).use(_ => hold.release *> release.await).start)
       _ <- hold.await
