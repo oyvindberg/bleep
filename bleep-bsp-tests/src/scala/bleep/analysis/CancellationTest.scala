@@ -18,20 +18,18 @@ import scala.concurrent.duration.*
   */
 class CancellationTest extends AnyFunSuite with Matchers {
 
-  /** Hang guard for the fiber-cancellation tests, not a measurement of how fast cancellation is.
+  /** Cancelling a compile must return immediately. This is the assertion, not a hang guard.
     *
-    * These compile through `IO.interruptible`, whose cancellation interrupts the worker thread and then WAITS for the block to return. Neither scalac, kotlinc
-    * nor javac promises to notice an interrupt promptly, so `fiber.cancel` can legitimately take as long as the whole compile — and each of these tests already
-    * accepts that outcome explicitly ("compilation completed before cancellation took effect"). The only thing the bound rules out is waiting forever.
+    * Each site spends it ON TOP of that test's own `IO.sleep`, because the tests do not all wait the same amount before cancelling — one deliberately sleeps
+    * 500ms to get well into a compile. A flat total would assert "the sleep plus the cancel", which is a different and weaker claim for every test that sleeps
+    * longer.
     *
-    * So it has to clear a FULL uncancelled compile of a deliberately huge generated source on a contended runner, and 30s did not: the whole suite runs in 3.8s
-    * healthy, and CI still saw one of these blow through 30s while the other suites had the machine busy. That is a 8x outlier against healthy, which is the
-    * shape of "kotlinc never reached an interruptible point", not of "the bound is slightly tight".
-    *
-    * Applied to all four sites rather than the one that failed, on the same reasoning as the wall-clock bounds loosened in #623: they share the pattern and the
-    * flaw, and the other three would fail the next time a runner is busy.
+    * Deliberately tight. The previous 30s was loose enough to hide the real behaviour: it passed not because cancellation worked but because a fast machine
+    * finished the whole compile inside the bound, and CI failed it only once the machine was contended enough for a full compile to exceed 30s. Raising it to
+    * 120s would have buried that for good, which is the wrong direction — a build tool that takes a minute to honour Ctrl-C is broken whether or not a test
+    * says so.
     */
-  private val CancellationHangGuard = 120.seconds
+  private val CancelBudget = 200.millis
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
@@ -185,7 +183,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel()) // Signal cancellation to the compiler
         _ <- fiber.cancel // Cancel the fiber
         outcome <- fiber.join
-      } yield outcome).timeout(CancellationHangGuard)
+      } yield outcome).timeout(100.millis + CancelBudget)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -236,7 +234,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(CancellationHangGuard)
+      } yield outcome).timeout(500.millis + CancelBudget)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -311,7 +309,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(CancellationHangGuard)
+      } yield outcome).timeout(100.millis + CancelBudget)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -386,7 +384,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(CancellationHangGuard)
+      } yield outcome).timeout(50.millis + CancelBudget)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
