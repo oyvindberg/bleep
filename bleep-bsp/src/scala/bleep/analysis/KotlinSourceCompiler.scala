@@ -198,10 +198,13 @@ object KotlinSourceCompiler extends Compiler {
   private def runCancellably(name: String, loader: ClassLoader, cancellation: CancellationToken)(work: => CompilationResult): CompilationResult = {
     val done = new java.util.concurrent.CountDownLatch(1)
     val holder = new java.util.concurrent.atomic.AtomicReference[CompilationResult]()
-    val worker = new Thread(
+    lazy val worker: Thread = new Thread(
       () =>
         try holder.set(work)
-        finally done.countDown(),
+        finally {
+          abandonedKotlinCompiles.remove(worker): Unit
+          done.countDown()
+        },
       name
     )
     worker.setContextClassLoader(loader)
@@ -223,6 +226,7 @@ object KotlinSourceCompiler extends Compiler {
 
     if cancellation.isCancelled then {
       worker.interrupt() // best effort — kotlinc may well ignore it, which is why we do not wait
+      if worker.isAlive then abandonedKotlinCompiles.add(worker): Unit
       CompilationCancelled
     } else if !finished then {
       val err = CompilerError(None, 0, 0, s"Kotlin compilation timed out after $CompileTimeoutMinutes minutes", None, CompilerError.Severity.Error)
@@ -231,6 +235,27 @@ object KotlinSourceCompiler extends Compiler {
   }
 
   private val CompileTimeoutMinutes = 5L
+
+  /** Kotlin compiles that a cancel walked away from and which had not stopped yet.
+    *
+    * They do not necessarily run to completion: kotlinc calls `checkCanceled` at phase boundaries and our proxy throws there, so most stop shortly after the
+    * cancel. But that is cooperation, not a guarantee — one inside a long stretch that polls neither the status nor the message collector runs to the end,
+    * still emitting class files into the output directory after we have reported `CompilationCancelled`.
+    *
+    * Identity-set, and a thread that finishes removes itself, so the snapshot is a live count rather than a tally. Same bookkeeping as
+    * [[ZincBridge.abandonedEcjThreads]], which exists for the same reason and is the precedent for accepting the trade at all.
+    */
+  private[analysis] val abandonedKotlinCompiles: java.util.Set[Thread] =
+    java.util.Collections.newSetFromMap(new ConcurrentHashMap[Thread, java.lang.Boolean]())
+
+  /** Snapshot of Kotlin compiles still running after being cancelled. For diagnostics — a non-empty list during a build means something is writing into an
+    * output directory nobody is waiting for.
+    */
+  def abandonedKotlinCompilesSnapshot: List[(String, Long)] = {
+    val out = List.newBuilder[(String, Long)]
+    abandonedKotlinCompiles.forEach(t => out += ((t.getName, t.threadId())))
+    out.result()
+  }
 
   override def compile(
       input: CompilationInput,
