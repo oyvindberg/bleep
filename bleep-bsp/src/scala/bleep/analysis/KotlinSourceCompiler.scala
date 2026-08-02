@@ -184,6 +184,54 @@ object KotlinSourceCompiler extends Compiler {
   // Compilation
   // ==========================================================================
 
+  /** Run a compile so that cancelling it returns immediately, whatever kotlinc happens to be doing.
+    *
+    * kotlinc only observes cancellation when it calls back into our message collector or polls the `Services` status, and between those points it is
+    * unreachable: `Thread.interrupt` sets a flag nothing checks. The incremental path made that visible, because it invokes the compiler on the CALLING thread
+    * — so cancellation could not return until the entire compile had finished. Measured against the other two compilers on the same tests, Scala returns in
+    * 4-162ms and Java likewise, while Kotlin took as long as the compile, which on a contended CI runner meant blowing a 30s bound.
+    *
+    * So the compile gets its own thread and the caller waits on a latch either side can trip. A cancelled compile ABANDONS that thread rather than joining it —
+    * the same trade `Outcome.runInFreshThread` documents for native compilers that ignore interrupts. The work is wasted either way; the only question is
+    * whether the user waits for output nobody wants. The thread is a daemon so an abandoned one cannot hold the JVM open.
+    */
+  private def runCancellably(name: String, loader: ClassLoader, cancellation: CancellationToken)(work: => CompilationResult): CompilationResult = {
+    val done = new java.util.concurrent.CountDownLatch(1)
+    val holder = new java.util.concurrent.atomic.AtomicReference[CompilationResult]()
+    val worker = new Thread(
+      () =>
+        try holder.set(work)
+        finally done.countDown(),
+      name
+    )
+    worker.setContextClassLoader(loader)
+    worker.setDaemon(true)
+    worker.start()
+
+    // Fires immediately if the token is already cancelled, so a cancel that lands before this returns is not lost.
+    cancellation.onCancel(() => done.countDown())
+
+    val finished =
+      try done.await(CompileTimeoutMinutes, java.util.concurrent.TimeUnit.MINUTES)
+      catch {
+        case _: InterruptedException =>
+          // The caller was cancelled through `IO.interruptible`. Re-assert the flag so anything above still sees it.
+          Thread.currentThread().interrupt()
+          worker.interrupt()
+          return CompilationCancelled
+      }
+
+    if cancellation.isCancelled then {
+      worker.interrupt() // best effort — kotlinc may well ignore it, which is why we do not wait
+      CompilationCancelled
+    } else if !finished then {
+      val err = CompilerError(None, 0, 0, s"Kotlin compilation timed out after $CompileTimeoutMinutes minutes", None, CompilerError.Severity.Error)
+      CompilationFailure(List(err))
+    } else holder.get()
+  }
+
+  private val CompileTimeoutMinutes = 5L
+
   override def compile(
       input: CompilationInput,
       listener: DiagnosticListener,
@@ -218,22 +266,25 @@ object KotlinSourceCompiler extends Compiler {
       // Get or create cached compiler setup
       val setup = getOrCreateSetup(config.version)
 
-      // Try incremental compilation first, fall back to full compilation
-      val result = if setup.incrementalRunnerClass != null then {
-        debug(s"Compiling ${sourcePaths.size} Kotlin files (incremental)")
-        val incrementalResult = compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
-        incrementalResult match {
-          case CompilationFailure(errs) if errs.exists(e => e.message.contains("cache\" is null") || e.message.contains("cache is null")) =>
-            // Kotlin IC cache is corrupted — invalidate and retry
-            debug("Kotlin IC cache corrupted (cache is null), invalidating and retrying")
-            val cacheDir = input.outputDir.resolve(".kotlin-ic")
-            invalidateCache(cacheDir)
-            compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
-          case other => other
+      // Both paths run through `runCancellably`, so a cancel returns at once instead of waiting for kotlinc. The
+      // incremental path needs it most — it invokes the compiler inline, on this very thread.
+      val result = runCancellably("kotlin-compile", setup.loader, cancellation) {
+        if setup.incrementalRunnerClass != null then {
+          debug(s"Compiling ${sourcePaths.size} Kotlin files (incremental)")
+          val incrementalResult = compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
+          incrementalResult match {
+            case CompilationFailure(errs) if errs.exists(e => e.message.contains("cache\" is null") || e.message.contains("cache is null")) =>
+              // Kotlin IC cache is corrupted — invalidate and retry
+              debug("Kotlin IC cache corrupted (cache is null), invalidating and retrying")
+              val cacheDir = input.outputDir.resolve(".kotlin-ic")
+              invalidateCache(cacheDir)
+              compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
+            case other => other
+          }
+        } else {
+          debug(s"Compiling ${sourcePaths.size} Kotlin files (full)")
+          compileWithReflection(setup, config, sourcePaths, input, listener, cancellation)
         }
-      } else {
-        debug(s"Compiling ${sourcePaths.size} Kotlin files (full)")
-        compileWithReflection(setup, config, sourcePaths, input, listener, cancellation)
       }
 
       result match {
