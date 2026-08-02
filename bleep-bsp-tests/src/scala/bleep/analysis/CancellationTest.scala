@@ -18,6 +18,21 @@ import scala.concurrent.duration.*
   */
 class CancellationTest extends AnyFunSuite with Matchers {
 
+  /** Hang guard for the fiber-cancellation tests, not a measurement of how fast cancellation is.
+    *
+    * These compile through `IO.interruptible`, whose cancellation interrupts the worker thread and then WAITS for the block to return. Neither scalac, kotlinc
+    * nor javac promises to notice an interrupt promptly, so `fiber.cancel` can legitimately take as long as the whole compile — and each of these tests already
+    * accepts that outcome explicitly ("compilation completed before cancellation took effect"). The only thing the bound rules out is waiting forever.
+    *
+    * So it has to clear a FULL uncancelled compile of a deliberately huge generated source on a contended runner, and 30s did not: the whole suite runs in 3.8s
+    * healthy, and CI still saw one of these blow through 30s while the other suites had the machine busy. That is a 8x outlier against healthy, which is the
+    * shape of "kotlinc never reached an interruptible point", not of "the bound is slightly tight".
+    *
+    * Applied to all four sites rather than the one that failed, on the same reasoning as the wall-clock bounds loosened in #623: they share the pattern and the
+    * flaw, and the other three would fail the next time a runner is busy.
+    */
+  private val CancellationHangGuard = 120.seconds
+
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
 
@@ -170,7 +185,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel()) // Signal cancellation to the compiler
         _ <- fiber.cancel // Cancel the fiber
         outcome <- fiber.join
-      } yield outcome).timeout(30.seconds)
+      } yield outcome).timeout(CancellationHangGuard)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -221,7 +236,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(30.seconds)
+      } yield outcome).timeout(CancellationHangGuard)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -296,7 +311,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(30.seconds)
+      } yield outcome).timeout(CancellationHangGuard)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
@@ -371,7 +386,7 @@ class CancellationTest extends AnyFunSuite with Matchers {
         _ <- IO(cancellation.cancel())
         _ <- fiber.cancel
         outcome <- fiber.join
-      } yield outcome).timeout(30.seconds)
+      } yield outcome).timeout(CancellationHangGuard)
 
       val startTime = System.currentTimeMillis()
       val outcome = program.unsafeRunSync()
