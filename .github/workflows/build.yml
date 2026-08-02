@@ -372,11 +372,17 @@ jobs:
         # ourselves fails the *step*, which keeps the `if: always()` collection below alive.
         #
         # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
-        # 11m31s macos-intel, 12m52s windows. 18m is ~1.4x the slowest; `selftest` is seconds, so 2m is generous.
-        # `timeout-minutes` stays as a backstop, now above our own bound rather than below it.
+        # 11m31s macos-intel, 12m52s-13m14s windows. 20m keeps the >1.5x-the-slowest margin this cap was originally
+        # sized for; only the enforcement was broken, so tightening the number too is not the fix. Runner variance is
+        # real and larger than it looks — macos-latest built the native image in 18m14s on one run and 24m28s on
+        # another, 34% apart — and a bound whose job is to catch a 45-minute hang loses nothing by clearing a slow
+        # healthy run comfortably. `selftest` is seconds, so 2m is generous.
+        # `timeout-minutes` stays as a backstop, now above our own bound rather than below it — 25 against the 22m our
+        # two bounds can add up to. It must also stay clear of the job's 45: macos-arm reaches this step at ~17m, so 25
+        # lands at 42 and leaves the job cap as the last line rather than the first one to fire.
         timeout-minutes: 25
         run: |
-          bash .github/scripts/run-bounded.sh 1080 ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
+          bash .github/scripts/run-bounded.sh 1200 ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
           bash .github/scripts/run-bounded.sh 120 ./${{ matrix.file_name }} selftest
 
       # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
