@@ -318,11 +318,16 @@ object ZincBridge {
     while (depIter.hasNext) {
       val (outputDir, depAnalysisFile) = depIter.next()
       manifest.depAnalysisStats.get(outputDir) match {
-        case None                => return Left(s"new dependency not in manifest: $outputDir")
-        case Some(expectedMtime) =>
+        case None           => return Left(s"new dependency not in manifest: $outputDir")
+        case Some(expected) =>
           if (!Files.exists(depAnalysisFile)) return Left(s"dependency analysis missing: $depAnalysisFile")
           val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
-          if (actualMtime != expectedMtime) return Left(s"dependency analysis mtime changed: $depAnalysisFile")
+          if (actualMtime != expected.mtimeMillis)
+            // The dependency recompiled. That moves the mtime whether or not the analysis actually
+            // changed, and a reproducible analysis format means "recompiled to the same thing" is
+            // common. Compare the bytes before making zinc work it out.
+            if (expected.contentHash == 0L || NoopManifestStore.hashContent(depAnalysisFile) != expected.contentHash)
+              return Left(s"dependency analysis content changed: $depAnalysisFile")
       }
     }
 

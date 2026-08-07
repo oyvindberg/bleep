@@ -24,13 +24,23 @@ object NoopManifestStore {
     * zinc then finds nothing to recompile (`noop_disagreement` in the metrics), because a checkout, a formatter or a code generator rewriting identical content
     * moves ctime without changing the file. Comparing the hash turns a full zinc invalidation into one read of a file we already stat.
     */
+  /** A dependency's analysis file as this project last saw it.
+    *
+    * mtime alone was the check, and it is the wrong one: any recompile of the dependency rewrites its `analysis.zip` and moves the mtime, even when the
+    * resulting analysis is byte-identical — which `ConsistentAnalysisFormat(reproducible = true)` makes the common case. Every downstream project then declined
+    * the fast path and made zinc prove, the expensive way, that nothing had changed. Measured: 100% of organic `noop_disagreement` events were exactly this.
+    *
+    * mtime is kept as the cheap first test; the hash is only read when it disagrees.
+    */
+  case class DepAnalysisStat(mtimeMillis: Long, contentHash: Long)
+
   case class FileStatEntry(ctimeMillis: Long, mtimeMillis: Long, size: Long, contentHash: Long)
 
   case class NoopManifest(
       sourceStats: Map[Path, FileStatEntry],
       sourceDirStats: Map[Path, FileStatEntry], // source dir + subdirs → stat (detects file add/delete)
       outputDirStats: Map[Path, FileStatEntry], // output dir + subdirs → stat (detects class file add/delete)
-      depAnalysisStats: Map[Path, Long], // outputDir → dep analysis mtime millis
+      depAnalysisStats: Map[Path, DepAnalysisStat], // outputDir → dep analysis mtime + content hash
       optionsHash: Long,
       cachedResult: ProjectCompileSuccess
   )
@@ -45,7 +55,7 @@ object NoopManifestStore {
   // v4: sourceDirStats records source roots *and every nested subdirectory*. v3 recorded
   // only the top-level roots, so a file added in a nested package dir bumped no recorded
   // mtime and the project was wrongly declared a noop. v3 manifests are a cache miss.
-  private val NoopManifestVersion: Byte = 5
+  private val NoopManifestVersion: Byte = 6
 
   /** Path of the manifest file, sibling to the analysis file. */
   def manifestPath(analysisFile: Path): Path =
@@ -163,8 +173,11 @@ object NoopManifestStore {
       .toMap
 
     val depStats = dependencyAnalyses.map { case (outputDir, depAnalysisFile) =>
-      val mtime = if (Files.exists(depAnalysisFile)) Files.getLastModifiedTime(depAnalysisFile).toMillis else 0L
-      outputDir -> mtime
+      val stat =
+        if (Files.exists(depAnalysisFile))
+          DepAnalysisStat(Files.getLastModifiedTime(depAnalysisFile).toMillis, hashContent(depAnalysisFile))
+        else DepAnalysisStat(0L, 0L)
+      outputDir -> stat
     }
 
     // Stat output directories (outputDir + all subdirs).
@@ -224,9 +237,10 @@ object NoopManifestStore {
       }
 
       out.writeInt(manifest.depAnalysisStats.size)
-      manifest.depAnalysisStats.foreach { case (outputDir, mtime) =>
+      manifest.depAnalysisStats.foreach { case (outputDir, stat) =>
         out.writeUTF(outputDir.toString)
-        out.writeLong(mtime)
+        out.writeLong(stat.mtimeMillis)
+        out.writeLong(stat.contentHash)
       }
 
       out.writeUTF(manifest.cachedResult.outputDir.toString)
@@ -299,13 +313,14 @@ object NoopManifestStore {
       }
 
       val depCount = in.readInt()
-      val depStatsBuilder = Map.newBuilder[Path, Long]
+      val depStatsBuilder = Map.newBuilder[Path, DepAnalysisStat]
       depStatsBuilder.sizeHint(depCount)
       i = 0
       while (i < depCount) {
         val outputDir = Path.of(in.readUTF())
         val mtime = in.readLong()
-        depStatsBuilder += outputDir -> mtime
+        val depHash = in.readLong()
+        depStatsBuilder += outputDir -> DepAnalysisStat(mtime, depHash)
         i += 1
       }
 
