@@ -130,7 +130,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-monix-newtype-test@jvm213/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

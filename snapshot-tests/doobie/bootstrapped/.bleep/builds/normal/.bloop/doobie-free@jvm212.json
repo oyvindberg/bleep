@@ -91,7 +91,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-free@jvm212/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

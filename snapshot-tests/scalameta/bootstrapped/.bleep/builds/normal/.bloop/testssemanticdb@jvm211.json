@@ -146,7 +146,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/testssemanticdb@jvm211/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

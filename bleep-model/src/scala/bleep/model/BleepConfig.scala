@@ -125,9 +125,17 @@ object BspServerConfig {
   // connected), so this never interrupts a compile or a live editor.
   val DefaultCompileServerIdleTimeoutMinutes: Int = 60
 
-  // Four builds is enough that an editor plus a couple of CLI worktrees all stay warm, and few enough that the retained floor stays a fraction of the heap
-  // rather than most of it. Evicted entries are reloaded on next use, so this trades a cold build load for headroom.
-  val DefaultMaxCachedWorkspaces: Int = 4
+  // Raised from 4 once analyses became shareable between workspaces: byte-identical analysis files
+  // now back a single object graph, so each additional workspace costs less than the last. Measured
+  // on eight divergent dlab worktrees — 399 analysis entries behind 253 distinct graphs, 37% of them
+  // duplicates costing nothing, against 22% at four — the retained floor came to 3.71GB, or 464MB per
+  // workspace where four cost ~525MB each.
+  //
+  // The trade is explicit: eight warm builds hold ~1.6GB more than four, which is headroom the
+  // compile-admission gate would otherwise have for concurrent compiles. It buys not re-resolving and
+  // re-reading a build every time attention moves between worktrees, which is the common shape of
+  // working across several at once. Tune with `bleep config compile-server max-cached-workspaces`.
+  val DefaultMaxCachedWorkspaces: Int = 8
 
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,

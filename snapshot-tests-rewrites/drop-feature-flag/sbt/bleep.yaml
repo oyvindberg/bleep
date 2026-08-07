@@ -661,6 +661,8 @@ templates:
       options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding utf8 -language:higherKinds -language:implicitConversions
         -unchecked
+      setup:
+        order: mixed
   template-common-main:
     extends: template-common
     platform:

@@ -232,7 +232,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-http4s-server-zio-test@jvm212/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

@@ -128,7 +128,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-native-bridge-0-5/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

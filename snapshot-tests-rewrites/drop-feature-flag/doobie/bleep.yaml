@@ -472,6 +472,8 @@ templates:
       name: jvm
     scala:
       options: -Wconf:cat=unused-nowarn:s
+      setup:
+        order: mixed
   template-common-main:
     extends: template-common
     sbt-scope: main
