@@ -106,7 +106,9 @@ object BspRifle {
         .make(IO.blocking {
           if (!jvmPermit.tryAcquire()) (Option.empty[java.nio.channels.FileChannel], false) // another fiber/thread here is spawning
           else {
-            Files.createDirectories(socketDir)
+            // 0700, not whatever the umask says: this is the first thing to create the directory, and the daemon refuses to lock one that is group/other
+            // readable (see BspServerOperations.ensureSocketDir).
+            BspServerOperations.ensureSocketDir(socketDir)
             val ch = java.nio.channels.FileChannel.open(spawnLockPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE)
             val gotFile =
               try ch.tryLock() != null // null → another process holds it

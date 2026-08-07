@@ -10,13 +10,11 @@ import ryddig.jul.RyddigJulBridge
 import bleep.{MachineMemory, MachineResources}
 
 import java.nio.file.{Files, Path, Paths}
-import java.nio.file.attribute.PosixFilePermissions
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-import scala.util.Properties
 
 /** Daemon entry point for the BSP server.
   *
@@ -609,12 +607,9 @@ object BspServerDaemon {
     logger.info("Parent death monitor started (will exit on stdin EOF)")
   }
 
+  /** The client normally gets here first, so this mostly repairs rather than creates — but the daemon is the process `LockFiles.under` throws in, so it owns
+    * the last word on the permissions it demands.
+    */
   private def ensureSafeDirectoryExists(dir: Path): Unit =
-    if (!Files.exists(dir)) {
-      Files.createDirectories(dir)
-      if (!Properties.isWin) {
-        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString("rwx------"))
-        ()
-      }
-    }
+    BspServerOperations.ensureSocketDir(dir)
 }
