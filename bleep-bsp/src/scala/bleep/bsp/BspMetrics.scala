@@ -273,7 +273,7 @@ object BspMetrics {
       )
       .mkString("[", ",", "]")
     writeEvent(
-      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"sharing_factor":${String
+      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"shared_analyses":${stats.sharedAnalyses},"content_hits":${stats.contentHits},"sharing_factor":${String
           .format(Locale.US, "%.2f", stats.sharingFactor: java.lang.Double)},"per_workspace":$perWorkspace}"""
     )
   }
