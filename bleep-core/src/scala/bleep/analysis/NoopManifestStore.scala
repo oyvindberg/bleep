@@ -18,7 +18,13 @@ import java.nio.file.{Files, Path, StandardCopyOption}
 object NoopManifestStore {
 
   /** Per-file (or per-directory) stat tuple captured at compile time. */
-  case class FileStatEntry(ctimeMillis: Long, mtimeMillis: Long, size: Long)
+  /** `contentHash` is 0 for anything not hashed — directories, and entries from before the hash existed.
+    *
+    * It exists for one case: a source whose timestamps moved but whose bytes did not. That is the single most common reason the noop fast path declines and
+    * zinc then finds nothing to recompile (`noop_disagreement` in the metrics), because a checkout, a formatter or a code generator rewriting identical content
+    * moves ctime without changing the file. Comparing the hash turns a full zinc invalidation into one read of a file we already stat.
+    */
+  case class FileStatEntry(ctimeMillis: Long, mtimeMillis: Long, size: Long, contentHash: Long)
 
   case class NoopManifest(
       sourceStats: Map[Path, FileStatEntry],
@@ -39,7 +45,7 @@ object NoopManifestStore {
   // v4: sourceDirStats records source roots *and every nested subdirectory*. v3 recorded
   // only the top-level roots, so a file added in a nested package dir bumped no recorded
   // mtime and the project was wrongly declared a noop. v3 manifests are a cache miss.
-  private val NoopManifestVersion: Byte = 4
+  private val NoopManifestVersion: Byte = 5
 
   /** Path of the manifest file, sibling to the analysis file. */
   def manifestPath(analysisFile: Path): Path =
@@ -52,9 +58,34 @@ object NoopManifestStore {
     FileStatEntry(
       ctimeMillis = ctimeAttr.toMillis,
       mtimeMillis = attrs.lastModifiedTime().toMillis,
-      size = attrs.size()
+      size = attrs.size(),
+      contentHash = 0L
     )
   }
+
+  /** As [[statFile]], plus a content hash. Only for source FILES — directories have no content and never take this path. */
+  def statSourceFile(path: Path): FileStatEntry = statFile(path).copy(contentHash = hashContent(path))
+
+  /** FNV-1a over the file's bytes. Not cryptographic: it only has to change when the content does, and a source file we mis-hash costs a recompile, not a wrong
+    * answer — zinc still does the real comparison.
+    */
+  def hashContent(path: Path): Long =
+    try {
+      var h = 0xcbf29ce484222325L
+      val prime = 0x100000001b3L
+      val in = Files.newInputStream(path)
+      try {
+        val buf = new Array[Byte](64 * 1024)
+        var n = in.read(buf)
+        while (n > 0) {
+          var i = 0
+          while (i < n) { h ^= (buf(i) & 0xffL); h *= prime; i += 1 }
+          n = in.read(buf)
+        }
+      } finally in.close()
+      // Never collide with "not hashed".
+      if (h == 0L) 1L else h
+    } catch { case _: Exception => 0L }
 
   /** Drop source directories that are nested under another source directory. E.g. given {src, src/java}, drop src/java since walking src already covers it. */
   def removeNestedDirs(dirs: Set[Path]): Set[Path] = {
@@ -118,7 +149,7 @@ object NoopManifestStore {
     var i = 0
     while (i < sourceFiles.length) {
       val path = sourceFiles(i)
-      sourceStats.put(path, statFile(path))
+      sourceStats.put(path, statSourceFile(path))
       i += 1
     }
 
@@ -173,6 +204,7 @@ object NoopManifestStore {
         out.writeLong(stat.ctimeMillis)
         out.writeLong(stat.mtimeMillis)
         out.writeLong(stat.size)
+        out.writeLong(stat.contentHash)
       }
 
       out.writeInt(manifest.sourceDirStats.size)
@@ -235,7 +267,8 @@ object NoopManifestStore {
         val ctime = in.readLong()
         val mtime = in.readLong()
         val size = in.readLong()
-        sourceStatsBuilder += path -> FileStatEntry(ctime, mtime, size)
+        val hash = in.readLong()
+        sourceStatsBuilder += path -> FileStatEntry(ctime, mtime, size, hash)
         i += 1
       }
 
@@ -248,7 +281,7 @@ object NoopManifestStore {
         val dirCtime = in.readLong()
         val dirMtime = in.readLong()
         val dirSize = in.readLong()
-        sourceDirStatsBuilder += dir -> FileStatEntry(dirCtime, dirMtime, dirSize)
+        sourceDirStatsBuilder += dir -> FileStatEntry(dirCtime, dirMtime, dirSize, 0L)
         i += 1
       }
 
@@ -261,7 +294,7 @@ object NoopManifestStore {
         val outCtime = in.readLong()
         val outMtime = in.readLong()
         val outSize = in.readLong()
-        outputDirStatsBuilder += dir -> FileStatEntry(outCtime, outMtime, outSize)
+        outputDirStatsBuilder += dir -> FileStatEntry(outCtime, outMtime, outSize, 0L)
         i += 1
       }
 
