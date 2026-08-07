@@ -44,7 +44,8 @@ object InProcessBspServer {
                   machine = machine,
                   heapMonitor = HeapMonitor.system,
                   kspMutexes = new KspMutexes,
-                  buildCache = new BuildCache(bleep.model.BspServerConfig.default.effectiveMaxCachedWorkspaces, inProcessAnalysisCache),
+                  buildCache =
+                    new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), inProcessAnalysisCache),
                   analysisCache = inProcessAnalysisCache
                 )
               server.run()

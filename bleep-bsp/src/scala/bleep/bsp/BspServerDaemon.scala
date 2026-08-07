@@ -265,7 +265,9 @@ object BspServerDaemon {
     // BuildCache, so that dropping a build also drops the analyses read while compiling it — which
     // is where the memory actually is. See BuildCache.dropAll for why the cascade runs one way only.
     val analysisCache = new bleep.analysis.AnalysisCache
-    val buildCache = new BuildCache(daemonConfig.effectiveMaxCachedWorkspaces, analysisCache)
+    // The server's own heap is the exact figure the ratio should scale on — the client set `-Xmx`
+    // when it started us.
+    val buildCache = new BuildCache(daemonConfig.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache)
 
     // Background reporter. Two jobs, one thread:
     //

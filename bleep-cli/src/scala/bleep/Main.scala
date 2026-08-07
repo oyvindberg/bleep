@@ -758,7 +758,7 @@ object Main {
             ),
             Opts.subcommand[BleepCommand](
               "max-cached-workspaces",
-              "set how many workspaces' builds stay warm in the server (default: 8). Evicted ones reload on next use"
+              "set how many workspaces' builds stay warm in the server (default: one per GB of server heap, at least 2). Evicted ones reload on next use"
             )(
               Opts.argument[Int]("n").map { n => () =>
                 if (n < 1) throw new BleepException.Text(s"max-cached-workspaces must be >= 1, got $n")
@@ -769,7 +769,7 @@ object Main {
             ),
             Opts.subcommand[BleepCommand](
               "max-cached-workspaces-clear",
-              "remove the setting (back to default: 8)"
+              "remove the setting (back to default: one per GB of server heap, at least 2)"
             )(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = None))).map(_ => ()))
             ),
