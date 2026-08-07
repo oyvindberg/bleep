@@ -281,6 +281,81 @@ projects:
     publish:
       enabled: false
     source-layout: kotlin
+  bleep-zinc-classpath:
+    dependencies:
+    - org.scala-sbt:compiler-interface:2.0.4
+    - org.scala-sbt:launcher-interface:1.6.0
+    - org.scala-sbt::io:1.12.2
+    extends: template-zinc
+    sources: ../liberated/zinc/internal/zinc-classpath/src/main/scala
+  bleep-zinc-classfile:
+    dependencies:
+    - org.scala-sbt:compiler-interface:2.0.4
+    - org.scala-sbt::io:1.12.2
+    - org.scala-sbt::util-logging:2.0.0
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-classfile/src/main/java
+    - ../liberated/zinc/internal/zinc-classfile/src/main/scala
+  bleep-zinc-apiinfo:
+    dependencies: org.scala-sbt:compiler-interface:2.0.4
+    dependsOn: bleep-zinc-classfile
+    extends: template-zinc
+    sources: ../liberated/zinc/internal/zinc-apiinfo/src/main/scala
+  bleep-zinc-compile-core:
+    dependencies:
+    - org.scala-sbt:compiler-interface:2.0.4
+    - org.scala-sbt:launcher-interface:1.6.0
+    - org.scala-lang.modules::scala-parser-combinators:2.1.0
+    - org.scala-sbt::util-logging:2.0.0
+    - org.scala-sbt::util-control:2.0.0
+    - org.scala-sbt::io:1.12.2
+    dependsOn:
+    - bleep-zinc-classpath
+    - bleep-zinc-apiinfo
+    - bleep-zinc-classfile
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/contraband-java
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/java
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/scala
+  bleep-zinc-core:
+    dependencies:
+    - org.scala-sbt:compiler-interface:2.0.4
+    - org.scala-lang.modules::scala-parallel-collections:1.2.0
+    - org.scala-sbt::io:1.12.2
+    - org.scala-sbt::util-logging:2.0.0
+    - org.scala-sbt::util-relation:2.0.0
+    dependsOn:
+    - bleep-zinc-compile-core
+    - bleep-zinc-apiinfo
+    - bleep-zinc-classpath
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-core/src/main/java
+    - ../liberated/zinc/internal/zinc-core/src/main/scala
+    - ../liberated/zinc/internal/zinc-core/src/main/scala-3
+  bleep-zinc-persist:
+    dependencies:
+    - org.scala-sbt::sbinary:0.5.1
+    - org.scala-lang.modules::scala-parallel-collections:1.2.0
+    dependsOn:
+    - bleep-zinc-core
+    - bleep-zinc-compile-core
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-persist/src/main/java
+    - ../liberated/zinc/internal/zinc-persist/src/main/scala
+  bleep-zinc:
+    dependsOn:
+    - bleep-zinc-core
+    - bleep-zinc-persist
+    - bleep-zinc-compile-core
+    - bleep-zinc-classfile
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/zinc/src/main/java
+    - ../liberated/zinc/zinc/src/main/scala
   bleep-bsp:
     dependencies:
     - org.scala-lang::scala3-compiler:3.8.3
@@ -296,13 +371,13 @@ projects:
     # purely additive — 150 classes, zero public or protected members removed, two classes added
     # (HashedVirtualFileRef, BasicHashedVirtualFileRef). The Scala 3 bridge compiled against 1.10.7
     # links fine against it.
-    - org.scala-sbt::zinc:2.0.4
     - for3Use213: true
       module: ch.epfl.scala::libdaemon:0.0.12
     dependsOn:
     - bleep-model
     - bleep-core
     - bleep-bsp-protocol
+    - bleep-zinc
     - bleep-test-runner
     extends:
     - template-common
@@ -504,3 +579,18 @@ templates:
     scala:
       options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error
       version: 3.8.3
+  template-zinc:
+    # Liberated sbt/zinc, compiled from `liberated/zinc` as-is. Upstream does not build under
+    # bleep's -Werror + strict settings, and the point of liberating it is that upstream stays
+    # mergeable verbatim — so silence warnings here rather than patching 24k lines. Bleep's own
+    # code keeps full strict mode; this template applies only to the vendored zinc modules.
+    extends:
+    - template-common
+    - template-scala-3
+    - template-parcollection-ok
+    scala:
+      options: -Wconf:any:s
+      # zinc-compile-core has `xsbti.ReporterUtil` (java) calling `sbt.internal.inc.ReporterManager`
+      # (scala), which in turn uses contraband-generated java. Neither language can go first.
+      setup:
+        order: mixed

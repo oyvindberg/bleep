@@ -215,7 +215,8 @@ object RemoteCache {
     if (!NoopManifestStore.ctimeAvailable) return
 
     val resolved = started.resolvedProject(crossName)
-    val maybeLanguage = ProjectLanguage.fromResolvedScalaJava(resolved)
+    val ecjVersion = started.build.explodedProjects(crossName).java.flatMap(_.ecjVersion).map(_.version)
+    val maybeLanguage = ProjectLanguage.fromResolvedScalaJava(resolved, ecjVersion)
     if (maybeLanguage.isEmpty) return
 
     val analysisFile = projectPaths.targetDir.resolve(".zinc").resolve("analysis.zip")
@@ -256,7 +257,7 @@ object RemoteCache {
       sourceFiles = sourceFiles,
       dependencyAnalyses = dependencyAnalyses,
       language = maybeLanguage.get,
-      ecjVersion = None,
+      ecjVersion = ecjVersion,
       result = result
     ): Unit
     started.logger.debug(s"${crossName.value}: regenerated noop manifest")

@@ -160,7 +160,9 @@ object BleepBuildConverter {
             ProjectLanguage.ScalaJava(
               scalaVersion = scalaLang.version,
               scalaOptions = scalaLang.options,
-              javaOptions = scalaLang.javaOptions ++ additionalJavaOptions
+              javaOptions = scalaLang.javaOptions ++ additionalJavaOptions,
+              ecjVersion = javaConfig.flatMap(_.ecjVersion).map(_.version),
+              compileOrder = scalaLang.setup.map(_.order).getOrElse(model.CompileOrder.JavaThenScala)
             )
 
           case javaLang: ResolvedProject.Language.Java =>

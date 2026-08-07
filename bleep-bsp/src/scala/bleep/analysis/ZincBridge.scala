@@ -954,6 +954,19 @@ object ZincBridge {
       )
   }
 
+  /** Bleep's configured compile order, as zinc's enum.
+    *
+    * `Mixed` is the only one that lets Java and Scala in one project refer to each other: scalac reads the `.java` sources for their signatures before javac
+    * compiles them. The other two require one language to compile against nothing from the other, which is why `java->scala` stays the default — it skips
+    * scalac's java parsing and is what nearly every project wants.
+    */
+  private def zincCompileOrder(order: bleep.model.CompileOrder): CompileOrder =
+    order match {
+      case bleep.model.CompileOrder.JavaThenScala => CompileOrder.JavaThenScala
+      case bleep.model.CompileOrder.ScalaThenJava => CompileOrder.ScalaThenJava
+      case bleep.model.CompileOrder.Mixed         => CompileOrder.Mixed
+    }
+
   private def createInputs(
       config: ProjectConfig,
       sources: Array[VirtualFile],
@@ -1155,7 +1168,7 @@ object ZincBridge {
       javacOptions,
       100, // maxErrors
       sourcePositionMapper,
-      CompileOrder.JavaThenScala,
+      zincCompileOrder(language.compileOrder),
       Optional.empty[Path](), // temporaryClassesDir
       Optional.of[xsbti.FileConverter](fileConverter),
       Optional.empty[xsbti.compile.analysis.ReadStamps](),
