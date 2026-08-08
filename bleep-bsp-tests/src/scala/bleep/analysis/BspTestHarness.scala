@@ -208,7 +208,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       heapMonitor = HeapMonitor.system,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(bleep.model.BspServerConfig.default.effectiveMaxCachedWorkspaces, harnessAnalysisCache),
+      buildCache = new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), harnessAnalysisCache),
       analysisCache = harnessAnalysisCache
     )
 

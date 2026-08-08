@@ -757,6 +757,23 @@ object Main {
               )
             ),
             Opts.subcommand[BleepCommand](
+              "max-cached-workspaces",
+              "set how many workspaces' builds stay warm in the server (default: one per GB of server heap, at least 2). Evicted ones reload on next use"
+            )(
+              Opts.argument[Int]("n").map { n => () =>
+                if (n < 1) throw new BleepException.Text(s"max-cached-workspaces must be >= 1, got $n")
+                BleepConfigOps
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = Some(n))))
+                  .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
+              }
+            ),
+            Opts.subcommand[BleepCommand](
+              "max-cached-workspaces-clear",
+              "remove the setting (back to default: one per GB of server heap, at least 2)"
+            )(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = None))).map(_ => ()))
+            ),
+            Opts.subcommand[BleepCommand](
               "read-timeout",
               "set minutes the server waits for a client's next message before dropping the connection, 0 to wait forever (default: 30)"
             )(

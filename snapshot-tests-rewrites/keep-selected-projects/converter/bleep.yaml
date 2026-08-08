@@ -21,6 +21,8 @@ templates:
         -Ywarn-unused:patvars -Ywarn-unused:privates -Ywarn-value-discard -deprecation
         -encoding utf8 -feature -language:existentials -language:experimental.macros
         -language:higherKinds -language:implicitConversions -unchecked
+      setup:
+        order: mixed
       version: 2.12.17
   template-common-main:
     extends: template-common

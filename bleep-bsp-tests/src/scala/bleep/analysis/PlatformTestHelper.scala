@@ -115,7 +115,9 @@ trait PlatformTestHelper {
     val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
       scalaVersion = scalaVersion,
       scalaOptions = scalaOptions,
-      javaOptions = Nil
+      javaOptions = Nil,
+      ecjVersion = None,
+      compileOrder = bleep.model.CompileOrder.JavaThenScala
     )
 
     val config = ProjectConfig(
@@ -184,7 +186,9 @@ trait PlatformTestHelper {
     val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
       scalaVersion = scalaVersion,
       scalaOptions = scalaOptions,
-      javaOptions = Nil
+      javaOptions = Nil,
+      ecjVersion = None,
+      compileOrder = bleep.model.CompileOrder.JavaThenScala
     )
 
     val fullClasspath = (scalaLibJars ++ snLibJars ++ extraDeps).distinct

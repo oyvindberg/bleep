@@ -629,6 +629,7 @@ templates:
         addLibraryToBootClasspath: false
         filterLibraryFromClasspath: false
         manageBootClasspath: false
+        order: mixed
   template-common-main:
     extends: template-common
     sbt-scope: main

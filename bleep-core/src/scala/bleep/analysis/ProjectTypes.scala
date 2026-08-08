@@ -7,8 +7,16 @@ import java.nio.file.Path
 /** Language mode for a project */
 enum ProjectLanguage {
 
-  /** Scala and Java compiled together by Zinc. `--release` lives in `javaOptions` like any other javac flag — javac honors it from there. */
-  case ScalaJava(scalaVersion: String, scalaOptions: List[String], javaOptions: List[String])
+  /** Scala and Java compiled together by Zinc. `--release` lives in `javaOptions` like any other javac flag — javac honors it from there. `ecjVersion` selects
+    * the compiler for the project's `.java` sources, exactly as it does for [[JavaOnly]] — mixed projects honor it too.
+    */
+  case ScalaJava(
+      scalaVersion: String,
+      scalaOptions: List[String],
+      javaOptions: List[String],
+      ecjVersion: Option[String],
+      compileOrder: bleep.model.CompileOrder
+  )
 
   /** Kotlin/JVM compiled by K2JVMCompiler */
   case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String], javaRelease: Option[Int])
@@ -25,15 +33,20 @@ enum ProjectLanguage {
 
 object ProjectLanguage {
 
-  /** Derive a `ScalaJava` from a resolved project. Returns None for non-Scala languages — Kotlin variants etc. don't use the Zinc-backed noop manifest path. */
-  def fromResolvedScalaJava(resolved: ResolvedProject): Option[ProjectLanguage.ScalaJava] =
+  /** Derive a `ScalaJava` from a resolved project. Returns None for non-Scala languages — Kotlin variants etc. don't use the Zinc-backed noop manifest path.
+    *
+    * `ecjVersion` is not carried by [[ResolvedProject.Language.Scala]], so the caller must supply it from the project's `java` config.
+    */
+  def fromResolvedScalaJava(resolved: ResolvedProject, ecjVersion: Option[String]): Option[ProjectLanguage.ScalaJava] =
     resolved.language match {
       case scalaLang: ResolvedProject.Language.Scala =>
         Some(
           ProjectLanguage.ScalaJava(
             scalaVersion = scalaLang.version,
             scalaOptions = scalaLang.options,
-            javaOptions = scalaLang.javaOptions
+            javaOptions = scalaLang.javaOptions,
+            ecjVersion = ecjVersion,
+            compileOrder = scalaLang.setup.map(_.order).getOrElse(bleep.model.CompileOrder.JavaThenScala)
           )
         )
       case _ => None

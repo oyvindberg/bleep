@@ -119,7 +119,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal/inc_compile.zip",
       "setup": {
-        "order": "java->scala",
+        "order": "mixed",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

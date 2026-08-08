@@ -2428,6 +2428,8 @@ templates:
     ignoreEvictionErrors: yes
     resources: ./src/${SCOPE}/protobuf
     scala:
+      setup:
+        order: mixed
       strict: true
     source-layout: sbt-matrix
     sources: ./src/${SCOPE}/protobuf

@@ -367,6 +367,8 @@ templates:
       options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
         -feature -language:existentials -language:higherKinds -language:implicitConversions
         -unchecked
+      setup:
+        order: mixed
   template-common-main:
     extends: template-common
     sbt-scope: main

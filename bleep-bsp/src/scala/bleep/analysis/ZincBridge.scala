@@ -221,7 +221,7 @@ object ZincBridge {
   ): Option[ProjectCompileSuccess] = {
     val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
     val analysisFile = analysisDir.resolve("analysis.zip")
-    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion)
+    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion).toOption
   }
 
   /** Compile a Scala/Java project using Zinc.
@@ -291,8 +291,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String]
-  ): Option[NoopManifest] = {
-    if (!ctimeAvailable) return None
+  ): Either[String, NoopManifest] = {
+    if (!ctimeAvailable) return Left("ctime unavailable on this platform")
 
     val manifest = {
       val mem = noopManifestCache.get(analysisFile)
@@ -302,26 +302,32 @@ object ZincBridge {
           case Some(disk) =>
             noopManifestCache.put(analysisFile, disk)
             disk
-          case None => return None
+          case None => return Left("no manifest on disk")
         }
       }
     }
 
     // Options hash (cheap)
     val currentHash = computeOptionsHash(language, ecjVersion)
-    if (currentHash != manifest.optionsHash) return None
+    if (currentHash != manifest.optionsHash) return Left("compiler options changed")
 
     // Dependency analysis mtimes
-    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
+    if (dependencyAnalyses.size != manifest.depAnalysisStats.size)
+      return Left(s"dependency count changed (${manifest.depAnalysisStats.size} -> ${dependencyAnalyses.size})")
     val depIter = dependencyAnalyses.iterator
     while (depIter.hasNext) {
       val (outputDir, depAnalysisFile) = depIter.next()
       manifest.depAnalysisStats.get(outputDir) match {
-        case None                => return None
-        case Some(expectedMtime) =>
-          if (!Files.exists(depAnalysisFile)) return None
+        case None           => return Left(s"new dependency not in manifest: $outputDir")
+        case Some(expected) =>
+          if (!Files.exists(depAnalysisFile)) return Left(s"dependency analysis missing: $depAnalysisFile")
           val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
-          if (actualMtime != expectedMtime) return None
+          if (actualMtime != expected.mtimeMillis)
+            // The dependency recompiled. That moves the mtime whether or not the analysis actually
+            // changed, and a reproducible analysis format means "recompiled to the same thing" is
+            // common. Compare the bytes before making zinc work it out.
+            if (expected.contentHash == 0L || NoopManifestStore.hashContent(depAnalysisFile) != expected.contentHash)
+              return Left(s"dependency analysis content changed: $depAnalysisFile")
       }
     }
 
@@ -337,22 +343,24 @@ object ZincBridge {
         val (dir, expected) = outIter.next()
         if (!Files.isDirectory(dir)) {
           noopManifestCache.remove(analysisFile)
-          return None
+          return Left(s"output dir gone: $dir")
         }
         val stat = statFile(dir)
         if (stat.ctimeMillis != expected.ctimeMillis || stat.mtimeMillis != expected.mtimeMillis) {
           noopManifestCache.remove(analysisFile)
-          return None
+          return Left(
+            s"output dir stat changed: $dir (ctime ${expected.ctimeMillis}->${stat.ctimeMillis}, mtime ${expected.mtimeMillis}->${stat.mtimeMillis})"
+          )
         }
       }
     }
     // Also verify analysis file still exists
     if (!Files.exists(analysisFile)) {
       noopManifestCache.remove(analysisFile)
-      return None
+      return Left("analysis file missing")
     }
 
-    Some(manifest)
+    Right(manifest)
   }
 
   /** Check noop using source DIRECTORIES (no file walk).
@@ -369,16 +377,19 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String]
-  ): Option[ProjectCompileSuccess] = {
+  ): Either[String, ProjectCompileSuccess] = {
     val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
-      case Some(m) => m
-      case None    => return None
+      case Right(m)     => m
+      case Left(reason) => return Left(reason)
     }
 
     // The configured source roots must all be recorded — otherwise the build's `sources`
     // changed since the manifest was written and none of the recorded stats describe it.
     val normalizedDirs = removeNestedDirs(sourceDirs)
-    if (!normalizedDirs.forall(manifest.sourceDirStats.contains)) return None
+    normalizedDirs.find(d => !manifest.sourceDirStats.contains(d)) match {
+      case Some(d) => return Left(s"source root not in manifest: $d")
+      case None    => ()
+    }
 
     // Check every recorded source directory (roots + nested subdirs) — a dir's mtime moves
     // when a file is added/deleted/renamed directly inside it. Iterating the *recorded* set
@@ -388,28 +399,24 @@ object ZincBridge {
     val dirIter = manifest.sourceDirStats.iterator
     while (dirIter.hasNext) {
       val (dir, expected) = dirIter.next()
-      if (!Files.isDirectory(dir)) return None
+      if (!Files.isDirectory(dir)) return Left(s"source dir gone: $dir")
       val stat = statFile(dir)
-      if (
-        stat.ctimeMillis != expected.ctimeMillis ||
-        stat.mtimeMillis != expected.mtimeMillis
-      ) return None
+      if (stat.ctimeMillis != expected.ctimeMillis || stat.mtimeMillis != expected.mtimeMillis)
+        return Left(s"source dir stat changed: $dir (ctime ${expected.ctimeMillis}->${stat.ctimeMillis}, mtime ${expected.mtimeMillis}->${stat.mtimeMillis})")
     }
 
     // Check per-source file stats (from manifest's recorded paths — no directory walk)
     val srcIter = manifest.sourceStats.iterator
     while (srcIter.hasNext) {
       val (path, expected) = srcIter.next()
-      if (!Files.exists(path)) return None
+      if (!Files.exists(path)) return Left(s"source gone: $path")
       val stat = statFile(path)
-      if (
-        stat.ctimeMillis != expected.ctimeMillis ||
-        stat.mtimeMillis != expected.mtimeMillis ||
-        stat.size != expected.size
-      ) return None
+      if (stat.size != expected.size) return Left(s"source size changed: $path (${expected.size} -> ${stat.size})")
+      if (stat.ctimeMillis != expected.ctimeMillis || stat.mtimeMillis != expected.mtimeMillis)
+        if (!contentUnchanged(path, expected)) return Left(s"source content changed: $path")
     }
 
-    Some(manifest.cachedResult)
+    Right(manifest.cachedResult)
   }
 
   /** Check noop using an already-collected source file array.
@@ -427,14 +434,15 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String]
-  ): Option[ProjectCompileSuccess] = {
+  ): Either[String, ProjectCompileSuccess] = {
     val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
-      case Some(m) => m
-      case None    => return None
+      case Right(m)     => m
+      case Left(reason) => return Left(reason)
     }
 
     // Source count
-    if (sources.length != manifest.sourceStats.size) return None
+    if (sources.length != manifest.sourceStats.size)
+      return Left(s"source count changed (${manifest.sourceStats.size} -> ${sources.length})")
 
     // Per-source stat check
     val srcIter = sources.iterator
@@ -445,21 +453,30 @@ object ZincBridge {
         case other                 => Path.of(other.id())
       }
       manifest.sourceStats.get(path) match {
-        case None           => return None
+        case None           => return Left(s"source not in manifest: $path")
         case Some(expected) =>
           val stat = statFile(path)
-          if (
-            stat.ctimeMillis != expected.ctimeMillis ||
-            stat.mtimeMillis != expected.mtimeMillis ||
-            stat.size != expected.size
-          ) return None
+          if (stat.size != expected.size) return Left(s"source size changed: $path (${expected.size} -> ${stat.size})")
+          if (stat.ctimeMillis != expected.ctimeMillis || stat.mtimeMillis != expected.mtimeMillis)
+            // Timestamps moved but the size did not. A checkout, a formatter or a generator
+            // re-emitting identical bytes lands here, and zinc would go on to hash the content and
+            // find nothing to do. Hash it now instead: one file read against a full invalidation.
+            if (!contentUnchanged(path, expected)) return Left(s"source content changed: $path")
       }
     }
 
-    Some(manifest.cachedResult)
+    Right(manifest.cachedResult)
   }
 
   private def statFile(path: Path): FileStatEntry = NoopManifestStore.statFile(path)
+
+  /** Whether a source whose timestamps moved still has the bytes the manifest recorded.
+    *
+    * A manifest written before content hashes existed stores 0, which cannot prove anything — those decline as they always did, and the next successful compile
+    * rewrites the manifest with a hash.
+    */
+  private def contentUnchanged(path: Path, expected: FileStatEntry): Boolean =
+    expected.contentHash != 0L && NoopManifestStore.hashContent(path) == expected.contentHash
 
   private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String]): Long =
     NoopManifestStore.computeOptionsHash(language, ecjVersion)
@@ -512,12 +529,14 @@ object ZincBridge {
     // Fast path: check noop manifest BEFORE any Zinc work (loading analysis,
     // creating compilers, hashing files). This skips ~5s of FarmHash I/O per
     // project on noop builds by using unix:ctime as a reliable change detector.
-    checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion) match {
-      case Some(cachedResult) =>
-        diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
-        return cachedResult
-      case None => ()
-    }
+    // Why the fast path declined, kept so it can be compared against zinc's own verdict below.
+    val noopDeclinedBecause: String =
+      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion) match {
+        case Right(cachedResult) =>
+          diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
+          return cachedResult
+        case Left(reason) => reason
+      }
 
     val scalaInstance = getScalaInstance(language.scalaVersion)
     val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken, progressListener)
@@ -620,6 +639,13 @@ object ZincBridge {
       // Retroactively mark up-to-date if incremental analysis found nothing to recompile
       if (hasPrevAnalysis && !result.hasModified) {
         diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
+        // The fast path said "something changed" and zinc, having done the full invalidation,
+        // disagreed. Every one of these is a compile that could have cost nothing and instead
+        // paid for loading the analysis and computing invalidation — measured at ~70% of all
+        // compile phase time, across 83% of the compiles that get this far. The reason is the
+        // lead: it names which stat the manifest tripped on.
+        debug(s"[ZincBridge] noop_disagreement ${config.name}: fast path declined ($noopDeclinedBecause), zinc recompiled nothing")
+        bleep.bsp.BspMetrics.recordNoopDisagreement(config.name, noopDeclinedBecause)
       }
 
       // Zinc swallows cancellation: `Incremental.compile` catches `xsbti.CompileCancelled`
@@ -954,6 +980,19 @@ object ZincBridge {
       )
   }
 
+  /** Bleep's configured compile order, as zinc's enum.
+    *
+    * `Mixed` is the only one that lets Java and Scala in one project refer to each other: scalac reads the `.java` sources for their signatures before javac
+    * compiles them. The other two require one language to compile against nothing from the other, which is why `java->scala` stays the default — it skips
+    * scalac's java parsing and is what nearly every project wants.
+    */
+  private def zincCompileOrder(order: bleep.model.CompileOrder): CompileOrder =
+    order match {
+      case bleep.model.CompileOrder.JavaThenScala => CompileOrder.JavaThenScala
+      case bleep.model.CompileOrder.ScalaThenJava => CompileOrder.ScalaThenJava
+      case bleep.model.CompileOrder.Mixed         => CompileOrder.Mixed
+    }
+
   private def createInputs(
       config: ProjectConfig,
       sources: Array[VirtualFile],
@@ -1155,7 +1194,7 @@ object ZincBridge {
       javacOptions,
       100, // maxErrors
       sourcePositionMapper,
-      CompileOrder.JavaThenScala,
+      zincCompileOrder(language.compileOrder),
       Optional.empty[Path](), // temporaryClassesDir
       Optional.of[xsbti.FileConverter](fileConverter),
       Optional.empty[xsbti.compile.analysis.ReadStamps](),

@@ -93,7 +93,16 @@ object ZincProjectCompiler extends ProjectCompiler {
   ): IO[ProjectCompileResult] =
     config.language match {
       case sl: ProjectLanguage.ScalaJava =>
-        ZincBridge.compile(config, sl, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion = None, analyses = analyses)
+        ZincBridge.compile(
+          config,
+          sl,
+          diagnosticListener,
+          cancellationToken,
+          dependencyAnalyses,
+          progressListener,
+          ecjVersion = sl.ecjVersion,
+          analyses = analyses
+        )
       case other =>
         IO.raiseError(new IllegalArgumentException(s"ZincProjectCompiler cannot compile $other"))
     }
@@ -377,7 +386,9 @@ object JavacProjectCompiler extends ProjectCompiler {
         val scalaJavaLang: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
           scalaVersion = zincScalaVersion,
           scalaOptions = List.empty,
-          javaOptions = javaLang.javaOptions
+          javaOptions = javaLang.javaOptions,
+          ecjVersion = javaLang.ecjVersion,
+          compileOrder = bleep.model.CompileOrder.JavaThenScala
         )
         val javaConfig = config.copy(language = scalaJavaLang)
         ZincBridge.compile(

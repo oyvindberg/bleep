@@ -89,6 +89,16 @@ object BspMetrics {
       s"""{"type":"compile_allocation","ts":${now()},"project":"${esc(project)}","allocated_mb":${allocatedBytes / (1024 * 1024)},"duration_ms":$durationMs}"""
     )
 
+  /** A compile where the noop fast path declined but zinc then recompiled nothing.
+    *
+    * Pure waste: the analysis was loaded and invalidation computed to reach a conclusion the manifest check could have reached from stats alone. `reason` names
+    * the stat that tripped, so the aggregate answers which check is too conservative rather than just how often.
+    */
+  def recordNoopDisagreement(project: String, reason: String): Unit =
+    writeEvent(
+      s"""{"type":"noop_disagreement","ts":${now()},"project":"${esc(project)}","reason":"${esc(reason)}"}"""
+    )
+
   // OOM tracking
   private val OomThreshold = 0.95
   @volatile private var oomPressureStarted = false
@@ -273,7 +283,7 @@ object BspMetrics {
       )
       .mkString("[", ",", "]")
     writeEvent(
-      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"sharing_factor":${String
+      s"""{"type":"analysis_cache","ts":${now()},"entries":${stats.entries},"file_bytes":${stats.fileBytes},"workspaces":${stats.perWorkspace.size},"interned_classes":${stats.internedClasses},"intern_hits":${stats.internHits},"intern_misses":${stats.internMisses},"shared_analyses":${stats.sharedAnalyses},"content_hits":${stats.contentHits},"sharing_factor":${String
           .format(Locale.US, "%.2f", stats.sharingFactor: java.lang.Double)},"per_workspace":$perWorkspace}"""
     )
   }

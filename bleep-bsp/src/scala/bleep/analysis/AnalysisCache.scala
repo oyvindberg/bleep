@@ -117,10 +117,60 @@ class AnalysisCache {
   private def bucket(key: model.WorkspaceKey): ConcurrentHashMap[Path, Entry] =
     byWorkspace.computeIfAbsent(key, _ => new ConcurrentHashMap[Path, Entry]())
 
+  /** Analyses indexed by the SHA-256 of the file they were read from, so two workspaces holding byte-identical analysis share one object graph.
+    *
+    * `internAnalysis` shares `AnalyzedClass` values and nothing else, which was right when the API tree was most of the heap. It no longer is: measured on
+    * three divergent dlab worktrees, `xsbti.api.*` was 597MB of a 2.03GB floor while stamps and relations — untouched by interning — were 854MB. Their spines
+    * are per-analysis maps, so there is no cheap way to share them piecemeal. Sharing the whole analysis is the cheap way.
+    *
+    * The opportunity is real rather than theoretical: hashing every project's `analysis.zip` across four worktrees checked out at four DIFFERENT commits, 35 of
+    * 133 projects were byte-identical everywhere and 50% of the retained bytes were redundant copies. Worktrees mostly differ in a few projects.
+    *
+    * Safe across workspaces because a `CompileAnalysis` holds no absolute paths: everything is keyed by `VirtualFileRef` ids that `MappedFileConverter` writes
+    * in `${BASE}/…` form. The one Path-typed field the read mapper rebases, `classpathHash`, lives in `MiniSetup`, which is not part of the analysis. (The same
+    * property is why copying a `.bleep` directory into a fresh worktree works.)
+    *
+    * Weak values, like the class interner: a shared analysis lives exactly as long as some workspace still holds it.
+    */
+  private val byContent = new ConcurrentHashMap[String, ContentRef]()
+  private val contentQueue = new ReferenceQueue[CompileAnalysis]()
+  private val contentHits = new LongAdder()
+
+  private final class ContentRef(val key: String, value: CompileAnalysis) extends WeakReference[CompileAnalysis](value, contentQueue)
+
+  private def expungeStaleContent(): Unit = {
+    var ref = contentQueue.poll()
+    while (ref != null) {
+      ref match {
+        case cr: ContentRef => byContent.remove(cr.key, cr): Unit
+        case _              => ()
+      }
+      ref = contentQueue.poll()
+    }
+  }
+
+  /** SHA-256 of the analysis file, or None if it cannot be read — in which case the caller simply deserialises as before. */
+  private def contentHash(analysisFile: Path): Option[String] =
+    try {
+      val md = MessageDigest.getInstance("SHA-256")
+      val buf = new Array[Byte](64 * 1024)
+      val in = Files.newInputStream(analysisFile)
+      try {
+        var n = in.read(buf)
+        while (n > 0) { md.update(buf, 0, n); n = in.read(buf) }
+      } finally in.close()
+      Some(md.digest().map("%02x".format(_)).mkString)
+    } catch { case _: Exception => None }
+
   /** The cached analysis for `analysisFile`, if held and the file has not changed underneath it.
     *
     * The mtime check is what makes a `remote-cache pull` (or any other out-of-band rewrite) safe: a changed file invalidates the entry rather than serving
     * something that no longer describes what is on disk.
+    *
+    * Deliberately NOT extended to consult the content index. Doing so would also skip deserialisation, but it would let a workspace be served an analysis it
+    * never read — which breaks the partitioning this cache is built on, lets `mtime` be bypassed as the staleness check, and lets an evicted workspace
+    * resurrect what it just dropped. The sharing happens in [[put]] instead, where the analysis is one this workspace legitimately read: the memory is shared,
+    * the ownership is not.
     */
   def get(key: model.WorkspaceKey, analysisFile: Path, currentMtime: Long): Option[CompileAnalysis] =
     Option(byWorkspace.get(key)).flatMap(b => Option(b.get(analysisFile))) match {
@@ -132,7 +182,22 @@ class AnalysisCache {
 
   /** Intern and store, returning the instance to use. Callers must use the RETURN value, not what they passed in — that is the whole point. */
   def put(key: model.WorkspaceKey, analysisFile: Path, mtime: Long, analysis: CompileAnalysis): CompileAnalysis = {
-    val shared = internAnalysis(analysis)
+    expungeStaleContent()
+    // If some workspace already holds an analysis deserialised from these exact bytes, keep that one
+    // and let this copy become garbage. Both describe the same compilation, so either is correct —
+    // this just stops the daemon holding N graphs where one will do. The caller must use the return
+    // value, which it already had to.
+    val hash = contentHash(analysisFile)
+    val existing = hash.flatMap(h => Option(byContent.get(h))).flatMap(ref => Option(ref.get()))
+    val shared = existing match {
+      case Some(already) =>
+        contentHits.increment()
+        already
+      case None =>
+        val fresh = internAnalysis(analysis)
+        hash.foreach(h => byContent.put(h, new ContentRef(h, fresh)): Unit)
+        fresh
+    }
     val bytes =
       try Files.size(analysisFile)
       catch { case _: Exception => 0L }
@@ -167,7 +232,14 @@ class AnalysisCache {
       }
       .toList
       .sortBy(-_.fileBytes)
-    AnalysisCache.Stats(per, internedClasses = interned.size(), internHits = internHits.sum(), internMisses = internMisses.sum())
+    AnalysisCache.Stats(
+      per,
+      internedClasses = interned.size(),
+      internHits = internHits.sum(),
+      internMisses = internMisses.sum(),
+      sharedAnalyses = byContent.size(),
+      contentHits = contentHits.sum()
+    )
   }
 }
 
@@ -193,7 +265,14 @@ object AnalysisCache {
 
   case class Freed(entries: Int, fileBytes: Long)
   case class WorkspaceStats(key: model.WorkspaceKey, entries: Int, fileBytes: Long)
-  case class Stats(perWorkspace: List[WorkspaceStats], internedClasses: Int, internHits: Long, internMisses: Long) {
+  case class Stats(
+      perWorkspace: List[WorkspaceStats],
+      internedClasses: Int,
+      internHits: Long,
+      internMisses: Long,
+      sharedAnalyses: Int,
+      contentHits: Long
+  ) {
     def entries: Int = perWorkspace.map(_.entries).sum
     def fileBytes: Long = perWorkspace.map(_.fileBytes).sum
 

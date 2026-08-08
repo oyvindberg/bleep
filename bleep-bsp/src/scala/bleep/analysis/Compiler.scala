@@ -58,7 +58,8 @@ sealed trait LanguageConfig {
 
 case class ScalaConfig(
     version: String, // e.g., "3.3.3", "3.7.4"
-    options: List[String] = Nil
+    options: List[String] = Nil,
+    ecjVersion: Option[String] = None // ECJ version for the project's .java sources (None = use javac)
 ) extends LanguageConfig
 
 case class KotlinConfig(
@@ -318,7 +319,9 @@ object Compiler {
     ProjectLanguage.ScalaJava(
       scalaVersion = c.version,
       scalaOptions = c.options,
-      javaOptions = Nil
+      javaOptions = Nil,
+      ecjVersion = c.ecjVersion,
+      compileOrder = bleep.model.CompileOrder.JavaThenScala
     )
 
   private def toProjectLanguageJava(c: JavaConfig): ProjectLanguage.JavaOnly =

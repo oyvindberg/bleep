@@ -95,9 +95,15 @@ case class BspServerConfig(
     minutes * 60 * 1000
   }
 
-  /** How many workspaces' builds the daemon caches. Always >= 1: the workspace being compiled has to stay cached while it compiles. */
-  def effectiveMaxCachedWorkspaces: Int = {
-    val n = maxCachedWorkspaces.getOrElse(BspServerConfig.DefaultMaxCachedWorkspaces)
+  /** How many workspaces' builds the daemon caches, for a server with `maxHeapBytes` of heap.
+    *
+    * Takes the heap rather than reading it, so the model stays free of runtime lookups and the scaling is testable. The daemon passes its own
+    * `Runtime.getRuntime.maxMemory()`, which is exact — the client sets `-Xmx` when it starts the server.
+    *
+    * Always >= 1: the workspace being compiled has to stay cached while it compiles.
+    */
+  def maxCachedWorkspacesFor(maxHeapBytes: Long): Int = {
+    val n = maxCachedWorkspaces.getOrElse(BspServerConfig.defaultMaxCachedWorkspaces(maxHeapBytes))
     if (n < 1) sys.error(s"maxCachedWorkspaces must be >= 1, got $n")
     n
   }
@@ -125,9 +131,28 @@ object BspServerConfig {
   // connected), so this never interrupts a compile or a live editor.
   val DefaultCompileServerIdleTimeoutMinutes: Int = 60
 
-  // Four builds is enough that an editor plus a couple of CLI worktrees all stay warm, and few enough that the retained floor stays a fraction of the heap
-  // rather than most of it. Evicted entries are reloaded on next use, so this trades a cold build load for headroom.
-  val DefaultMaxCachedWorkspaces: Int = 4
+  /** Never cache fewer than this, however small the heap: one warm build is no better than none when work moves between two worktrees. */
+  val MinCachedWorkspaces: Int = 2
+
+  /** One cached build per gigabyte of server heap.
+    *
+    * A fixed count was wrong in both directions — too many on a small heap, needlessly few on a large one — and the right number is a function of how much heap
+    * there is to hold them.
+    *
+    * A ratio is only defensible because the marginal cost of a workspace falls as more are resident: byte-identical analysis files back a single shared object
+    * graph, and the more workspaces are loaded the likelier any given analysis is already there. Measured on divergent dlab worktrees, which are large (~93MB
+    * of analysis each):
+    *
+    * 4 resident -> 2.10GB retained, 525MB per workspace, 22% of entries were duplicates 8 resident -> 3.71GB retained, 464MB per workspace, 37% duplicates 10
+    * resident -> 3.93GB retained, 393MB per workspace, 44% duplicates
+    *
+    * The ninth and tenth workspaces cost about 110MB each, against ~525MB for the fourth. Extrapolating the earlier per-workspace figure would have predicted
+    * 5.6GB at twelve; the curve says closer to 4.2GB, a third of a 12GB heap, leaving the compile-admission gate the rest.
+    */
+  def defaultMaxCachedWorkspaces(maxHeapBytes: Long): Int = {
+    val gb = maxHeapBytes / (1024L * 1024L * 1024L)
+    math.max(MinCachedWorkspaces, gb.toInt)
+  }
 
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
