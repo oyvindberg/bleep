@@ -82,7 +82,7 @@ object BspServerOperations {
   def startServer(config: BspRifleConfig, logger: Logger): IO[Process] = IO
     .blocking {
       val socketDir = config.address.socketDir
-      ensureDirectoryExists(socketDir)
+      ensureSocketDir(socketDir)
 
       // Multi-GB heap dumps left behind by older bleep versions (whose servers ran with
       // -XX:+HeapDumpOnOutOfMemoryError) accumulate one per crash until the disk fills.
@@ -554,17 +554,26 @@ object BspServerOperations {
       paths.reverse.foreach(p => Files.deleteIfExists(p): Unit)
     } catch { case _: Exception => () }
 
-  /** Ensure a directory exists with proper permissions */
-  private def ensureDirectoryExists(dir: Path): Unit =
-    if (!Files.exists(dir)) {
-      Files.createDirectories(dir)
-      // Set restrictive permissions on Unix
-      try
-        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString("rwx------")): Unit
-      catch {
-        case _: UnsupportedOperationException => () // Windows
-      }
+  /** Create the socket directory if it is missing, and make an existing one 0700.
+    *
+    * libdaemonjvm's `LockFiles.under` — the first thing the daemon does — hard-fails on a socket directory carrying ANY group or other permission bit, and the
+    * client's retry loop just spawns another daemon that dies the same way. The failure is total and permanent for that bleep version (the version is part of
+    * the JVM key, so the directory is never revisited by an older binary that got it right): every spawn ends in "BSP server failed to start within 1 minute",
+    * with `socket file exists: false` forever, and only a manual `chmod 700` unsticks it.
+    *
+    * Which is exactly what a default umask of 022 produced. The permission fix used to be conditional on having just created the directory, but by then the
+    * client had already created it — `BspRifle.ensureRunning` mkdirs the socket dir to put its `.spawn-lock` there, before any of this runs — so `mkdir(2) &
+    * ~umask` decided the permissions and the fix never fired. Repairing unconditionally is what makes 0700 an invariant of the directory rather than a property
+    * of whoever happened to create it first.
+    */
+  def ensureSocketDir(dir: Path): Unit = {
+    Files.createDirectories(dir)
+    // Only the leaf: the parent cache directory is shared with unrelated bleep state and is nobody's lock directory.
+    if (dir.getFileSystem.supportedFileAttributeViews().contains("posix")) {
+      val wanted = PosixFilePermissions.fromString("rwx------")
+      if (Files.getPosixFilePermissions(dir) != wanted) Files.setPosixFilePermissions(dir, wanted): Unit
     }
+  }
 
   // ==========================================================================
   // Zombie Detection

@@ -82,7 +82,6 @@ object BspRifleConfig {
     "-Xss4m",
     "-XX:ReservedCodeCacheSize=512m",
     "-XX:+UseZGC",
-    "-XX:+ZGenerational",
     "-XX:ZUncommitDelay=30",
     "-XX:ZCollectionInterval=5",
     "-XX:+UseStringDeduplication",
@@ -107,6 +106,12 @@ object BspRifleConfig {
   /** JVM options that require a minimum JDK version */
   def jdkVersionOpts(jvmMajorVersion: Int): Seq[String] = {
     val opts = Seq.newBuilder[String]
+    // Generational ZGC was opt-in through JDK 23 and is the only mode from 24 on, where the flag was removed. Passing it anyway costs a warning line at the top
+    // of every server log ("Ignoring option ZGenerational; support was removed in 24.0") — noise directly above the stack traces people come to that file to
+    // read. `jvmMajorVersion` is 0 when the JVM name has no parsable version, which reads as "not a JDK we can vouch for": say nothing rather than guess.
+    if (jvmMajorVersion >= 21 && jvmMajorVersion < 24) {
+      opts += "-XX:+ZGenerational"
+    }
     if (jvmMajorVersion >= 22) {
       // The server resolves user paths via `UserPaths.fromAppDirs`, which on Windows/JDK22+ is an FFM downcall to SHGetKnownFolderPath (coursier-paths ships
       // that impl under META-INF/versions/22). Without this the JVM prints "WARNING: A restricted method in java.lang.foreign.Linker has been called" on every
