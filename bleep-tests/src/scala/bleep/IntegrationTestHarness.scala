@@ -20,8 +20,9 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
   *      the docs site's `<Snippet path="..." />` can include the same files the tests run against.
   *   3. Bootstraps `Started` in-process and runs assertions.
   *
-  * The snippets directory is git-tracked. CI can assert no diff (`git diff --exit-code docs-snippets-from-tests`) to catch drift between what tests exercise
-  * and what the site renders.
+  * The snippets directory is git-tracked, and [[commitSnippets]] only ever writes it — it does not compare, so a stale snippet fails nothing here. The `Build`
+  * workflow runs `git diff --exit-code docs-snippets-from-tests` after the suite to catch that; without it the drift is invisible, because CI updates the
+  * runner's checkout and then discards it. They had gone stale once already, and the site publishes these files, so it rendered a version nobody could install.
   */
 abstract class IntegrationTestHarness extends AnyFunSuite {
   protected val userPaths: UserPaths = UserPaths.fromAppDirs
