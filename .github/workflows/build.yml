@@ -125,6 +125,20 @@ jobs:
         # exercised now that the native-image matrix skips them.
         run: ./bleep-cli.sh --dev test
 
+      # `IntegrationTestHarness.commitSnippets` WRITES these files as a side effect of the tests above.
+      # It never compares them, so nothing failed while they drifted: the runner's checkout was updated
+      # and then thrown away. They had been stale since $version moved to 1.0.0-M11, and since the docs
+      # site is published from exactly these files, the site was showing a version nobody could install.
+      #
+      # No `if: always()`: on a test failure the snippets are legitimately half-written, and a second red
+      # step would only obscure the first.
+      - name: Snippets match what the tests generate
+        run: |
+          if ! git diff --exit-code -- docs-snippets-from-tests; then
+            echo "::error::docs-snippets-from-tests is stale. Run the tests locally and commit the result."
+            exit 1
+          fi
+
       # Always, including on failure and step timeout — a run that went wrong is the one whose telemetry
       # is worth having. CI is also the only environment with a realistic shape: 4 cores and 16GB,
       # where memory bounds actually bind. A developer machine cannot reproduce that.
