@@ -47,6 +47,9 @@ object ServerTopView {
     // Paint the background first and let everything else land on top. Widgets that set no background of their own leave these cells alone, so this reaches the
     // borders and the empty space below the last line too.
     stack(
+      // Clear first: a Block with only a style set recolours cells without replacing their symbols, so characters from a previous, longer frame stayed on
+      // screen underneath — a line from the Overview was still visible after switching to a shorter tab.
+      widget(jatatui.widgets.Clear.INSTANCE),
       widget(Block.empty().withStyle(Palette.background)),
       column(
         length(1, text("", style(Palette.textDim))),
@@ -346,19 +349,34 @@ object ServerTopView {
           }
         }
 
-  /** What the server is doing right now, and what is stacked up behind it. */
+  /** What the server is doing right now, and what is stacked up behind it.
+    *
+    * Work and forked JVMs are listed apart because they are charged for different things, and mixing them reads as nonsense: a suite costs a slot and no
+    * memory, while the JVM it runs in costs memory and no slot. A pooled JVM is kept warm between suites, so it goes on holding its footprint while using
+    * nothing else — which is why a server can be at "0 slots" and several gigabytes at the same time.
+    */
   private def activityLines(status: DaemonStatus): List[Line] = {
     val machine = status.machine
+    val (forks, work) = machine.active.partition(entry => entry.cpu == 0 && entry.memoryMb > 0)
 
     val running =
-      if (machine.active.isEmpty) List(lineOf("  Nothing running.", Palette.textDim))
+      if (work.isEmpty) List(lineOf("  Nothing running.", Palette.textDim))
       else
-        machine.active.map(entry =>
+        work.map(entry =>
           lineOf(
-            f"  ▸ ${entry.kind}%-10s ${entry.label}%-30s using ${entry.cpu}%d slot(s), ${entry.memoryMb}%d MB, for ${humanDuration(entry.ageMs)}%s",
+            f"  ▸ ${entry.kind}%-10s ${entry.label}%-40s ${entry.cpu}%d slot(s), running ${humanDuration(entry.ageMs)}%s",
             Palette.accent
           )
         )
+
+    val forkLines =
+      if (forks.isEmpty) Nil
+      else
+        List(
+          Line.empty(),
+          sectionOf(s"FORKED JVMS — ${forks.size} holding ${forks.map(_.memoryMb).sum} MB between them"),
+          lineOf("  Kept warm between suites, so they hold memory without using a slot.", Palette.textDim)
+        ) ++ forks.map(entry => lineOf(f"  ▪ ${entry.label}%-46s ${entry.memoryMb}%5d MB, alive ${humanDuration(entry.ageMs)}%s", Palette.textMuted))
 
     val queue =
       if (machine.waiting.isEmpty) List(lineOf("  Nothing waiting — the server has capacity to spare.", Palette.textDim))
@@ -377,7 +395,11 @@ object ServerTopView {
       lineOf(s"  #${connection.connId} $who$version$workspace", if (connection.observer) Palette.textDim else Palette.textMuted)
     }
 
-    List(sectionOf(s"RUNNING NOW — ${machine.activeCompiles} compiling")) ++ running ++
+    val heading =
+      if (work.isEmpty) "RUNNING NOW — nothing"
+      else s"RUNNING NOW — ${work.size} operation(s), ${machine.activeCompiles} of them compiles"
+
+    List(sectionOf(heading)) ++ running ++ forkLines ++
       List(Line.empty(), sectionOf(s"WAITING FOR CAPACITY — ${machine.waiting.size}")) ++ queue ++
       List(Line.empty(), sectionOf(s"CONNECTED CLIENTS — ${status.connections.size}")) ++ clients
   }

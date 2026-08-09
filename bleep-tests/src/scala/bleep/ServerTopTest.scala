@@ -209,6 +209,29 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     draw(stateWith(List(tooOld))) should include("older bleep")
   }
 
+  /** A suite is charged a slot and no memory; the JVM it runs in is charged memory and no slot, and stays alive between suites. Listed together those read as
+    * nonsense — "using 0 slot(s), 5120 MB" — and leave you unable to explain why a server at zero slots is holding gigabytes.
+    */
+  test("forked JVMs are listed apart from the work, since they are charged for different things") {
+    val suite = MachineEntryDto("TestFork", "test:dfmt/DfmtBatteryTest", cpu = 1, memoryMb = 0, ageMs = 99000)
+    val jvm = MachineEntryDto("TestFork", "jvm ce91585a08d64aec", cpu = 0, memoryMb = 5120, ageMs = 99000)
+    val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(suite, jvm)))).copy(tab = Tab.Activity)
+
+    val screen = draw(state)
+    screen should include("RUNNING NOW — 1 operation(s)")
+    screen should include("FORKED JVMS — 1 holding 5120 MB")
+    withClue("the explanation belongs next to the numbers that prompt the question: ") {
+      screen should include("hold memory without using a slot")
+    }
+  }
+
+  test("with only forked JVMs alive the work section says nothing is running, not zero compiles") {
+    val jvm = MachineEntryDto("TestFork", "jvm abc", cpu = 0, memoryMb = 512, ageMs = 1000)
+    val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(jvm)))).copy(tab = Tab.Activity)
+
+    draw(state) should include("RUNNING NOW — nothing")
+  }
+
   test("the activity tab shows what is running and who is connected") {
     val compiling = MachineEntryDto(kind = "Compile", label = "bleep-core", cpu = 4, memoryMb = 512, ageMs = 3000)
     val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))).copy(tab = Tab.Activity)
