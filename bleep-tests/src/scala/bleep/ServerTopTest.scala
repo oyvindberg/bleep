@@ -87,6 +87,12 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     TestBackend.bufferView(harness.backend.buffer())
   }
 
+  /** Every message the screen would dispatch, by clicking each cell of a column band. Scanning rather than hard-coding coordinates keeps these tests about
+    * "this is clickable" instead of about the current line spacing — the first version broke the moment the layout gained a blank line.
+    */
+  private def clicksAnywhere(state: ServerTopState): List[Msg] =
+    (0 until 30).flatMap(y => (0 until 100).flatMap(x => clickAt(state, x, y))).toList
+
   /** Render, click a cell, and report what the view dispatched. Covers the click targets without a terminal or a mouse. */
   private def clickAt(state: ServerTopState, x: Int, y: Int): List[Msg] = {
     val dispatched = scala.collection.mutable.ListBuffer.empty[Msg]
@@ -223,48 +229,43 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
   private val twoServers = List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false))
 
-  test("clicking a server row selects that server") {
+  test("every server row is clickable, and selects the server it names") {
     val state = stateWith(twoServers)
+    val selections = clicksAnywhere(state).collect { case msg: Msg.SelectRow => msg.index }.distinct.sorted
 
-    // Row 0 of the list sits just below the header line and the box border.
-    clickAt(state, x = 20, y = 2) shouldBe List(Msg.SelectRow(0))
-    clickAt(state, x = 20, y = 3) shouldBe List(Msg.SelectRow(1))
+    selections shouldBe List(0, 1)
   }
 
   test("a click selects a row rather than nudging the cursor, so it lands where you pointed") {
     val state = stateWith(twoServers)
-    val selected = clickAt(state, x = 20, y = 3).foldLeft(state)((acc, msg) => ServerTopUpdate.update(acc, msg)._1)
+    val selected = ServerTopUpdate.update(state, Msg.SelectRow(1))._1
 
     selected.selectedRow.map(_.hash) shouldBe Some("bbbb2222")
   }
 
-  test("clicking a tab opens it") {
-    val state = stateWith(twoServers)
-    val tabRow = 2 + 2 + 1 // header, two rows, bottom border
+  test("every tab is clickable") {
+    val opened = clicksAnywhere(stateWith(twoServers)).collect { case msg: Msg.SelectTab => msg.tab }.distinct
 
-    val messages = (0 until 100).flatMap(x => clickAt(state, x, tabRow)).collect { case msg: Msg.SelectTab => msg.tab }.distinct
-    withClue(s"every tab should be clickable, got $messages: ") {
-      messages should contain allElementsOf Tab.all
+    withClue(s"got $opened: ") {
+      opened should contain allElementsOf Tab.all
     }
   }
 
-  test("the footer actions are clickable, not just documented") {
-    val state = stateWith(twoServers)
-    val footerRow = 29
+  test("the action buttons are clickable, not just documented") {
+    val pressed = clicksAnywhere(stateWith(twoServers)).collect { case Msg.Key(press) => press }.distinct
 
-    val messages = (0 until 100).flatMap(x => clickAt(state, x, footerRow)).collect { case Msg.Key(press) => press }.distinct
-    messages should contain(KeyPress.Quit)
-    messages should contain(KeyPress.Kill)
-    messages should contain(KeyPress.Restart)
-    messages should contain(KeyPress.NextTab)
+    pressed should contain(KeyPress.Quit)
+    pressed should contain(KeyPress.Kill)
+    pressed should contain(KeyPress.Restart)
+    pressed should contain(KeyPress.NextTab)
   }
 
   test("a confirmation can be answered with the mouse") {
     val asked = press(stateWith(twoServers), KeyPress.Kill)
-    val messages = (0 until 100).flatMap(x => clickAt(asked, x, 29)).collect { case Msg.Key(press) => press }.distinct
+    val pressed = clicksAnywhere(asked).collect { case Msg.Key(press) => press }.distinct
 
-    messages should contain(KeyPress.Yes)
-    messages should contain(KeyPress.No)
+    pressed should contain(KeyPress.Yes)
+    pressed should contain(KeyPress.No)
   }
 
   test("clicking elsewhere while a confirmation is up dismisses it rather than answering") {
@@ -343,6 +344,61 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     tabs.take(Tab.all.length) shouldBe Tab.all
     tabs.last shouldBe Tab.Overview
+  }
+
+  test("left and right move between tabs, and left from the first wraps to the last") {
+    val state = stateWith(List(running("aaaa1111", isCurrent = true)))
+
+    press(state, KeyPress.NextTab).tab shouldBe Tab.Workspaces
+    withClue("wrapping backwards beats doing nothing at the left edge: ") {
+      press(state, KeyPress.PrevTab).tab shouldBe Tab.all.last
+    }
+    press(press(state, KeyPress.NextTab), KeyPress.PrevTab).tab shouldBe Tab.Overview
+  }
+
+  test("the log tab shows the tail the loop read, and says so when there is none") {
+    val state = stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Log)
+
+    draw(state) should include("no log yet")
+    draw(state.copy(logTail = List("[info ] compiling bleep-core", "[error] boom"))) should include("compiling bleep-core")
+  }
+
+  test("the config tab shows how the server was launched, including its classpath") {
+    val identity = bleep.bsp.ServerJson(
+      bleepVersion = "1.0.0-M11",
+      jvmName = "graalvm-community",
+      jvmVersion = "25.0.1",
+      javaBin = "/opt/jvm/bin/java",
+      javaOpts = List("-Xmx12g", "-XX:+UseZGC"),
+      serverMainClass = "bleep.bsp.BspServerDaemon",
+      command = List("/opt/jvm/bin/java", "-Xmx12g", "-cp", "/a/one.jar:/b/two.jar", "bleep.bsp.BspServerDaemon"),
+      workingDir = "/tmp/socket-dir",
+      spawnedAtEpochMs = 1L
+    )
+    val row = running("aaaa1111", isCurrent = true)
+    val withIdentity = row.copy(info = row.info.copy(identity = Some(identity)))
+    val screen = draw(stateWith(List(withIdentity)).copy(tab = Tab.Config))
+
+    screen should include("STARTED WITH")
+    screen should include("/opt/jvm/bin/java")
+    screen should include("-Xmx12g")
+    withClue("the classpath is the answer to 'why is this server behaving like another version': ") {
+      screen should include("2 entries")
+      screen should include("/a/one.jar")
+      screen should include("/b/two.jar")
+    }
+  }
+
+  test("a server with no recorded launch command says so rather than showing an empty section") {
+    draw(stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Config)) should include("predates the recorded launch command")
+  }
+
+  test("the actions are a row of buttons") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+
+    screen should include("[ k kill ]")
+    screen should include("[ r restart ]")
+    screen should include("[ q quit ]")
   }
 
   test("q quits, and quitting during a confirmation just dismisses it") {

@@ -47,9 +47,12 @@ object ServerTopView {
     stack(
       widget(Block.empty().withStyle(Palette.background)),
       column(
+        length(1, text("", style(Palette.textDim))),
         length(1, header(state)),
+        length(1, text("", style(Palette.textDim))),
         length(serverListHeight(state), serverList(state, dispatch)),
         fill(1, detail(state, dispatch)),
+        length(1, text("", style(Palette.textDim))),
         length(1, footer(state, dispatch))
       )
     )
@@ -171,7 +174,8 @@ object ServerTopView {
               case Tab.Overview   => overview(status)
               case Tab.Workspaces => workspaces(status)
               case Tab.Activity   => activity(status)
-              case Tab.Config     => config(status)
+              case Tab.Log        => logTail(state)
+              case Tab.Config     => config(status, row.info.identity)
             }
             column(
               length(1, tabBar(state, dispatch)),
@@ -275,7 +279,22 @@ object ServerTopView {
       List(section(s"CLIENTS · ${status.connections.size} connected")) ++ clients
   }
 
-  private def config(status: DaemonStatus): List[Element] = {
+  /** The tail of the server's own log, read from disk by the loop. Reading the file rather than streaming it is what makes this work on a server that has just
+    * died — see `bleep server log`, which does the same thing.
+    */
+  private def logTail(state: ServerTopState): List[Element] =
+    if (state.logTail.isEmpty) List(text("  no log yet", style(Palette.textDim)))
+    else
+      state.logTail.map { line =>
+        // The daemon logs at info and warn; colouring by level is what makes a wall of log skimmable.
+        val color =
+          if (line.contains("[error]") || line.contains("ERROR")) Palette.error
+          else if (line.contains("[warn ]") || line.contains("WARN")) Palette.warning
+          else Palette.textMuted
+        text(s"  $line", style(color))
+      }
+
+  private def config(status: DaemonStatus, identity: Option[bleep.bsp.ServerJson]): List[Element] = {
     val booted = status.config
     List(
       section("AS BOOTED"),
@@ -287,8 +306,33 @@ object ServerTopView {
       field("max memory", booted.compileServerMaxMemory.getOrElse("default")),
       field("test runner", booted.testRunnerMaxMemory.getOrElse("default")),
       text("  `bleep server config show` compares these with the file on disk", style(Palette.textDim))
-    )
+    ) ++ startup(identity)
   }
+
+  /** How this server was actually launched, from the `server.json` written at spawn: the JVM, its options, and the classpath it was given.
+    *
+    * The classpath is the answer to "why is this server behaving like a different version of bleep", which is otherwise only recoverable by reading the daemon
+    * log. It is long, so it is summarised and then listed one entry per line.
+    */
+  private def startup(identity: Option[bleep.bsp.ServerJson]): List[Element] =
+    identity match {
+      case None => List(section("STARTED WITH"), text("  unknown — this server predates the recorded launch command", style(Palette.textDim)))
+      case Some(json) =>
+        val classpath = classpathOf(json.command)
+        List(
+          section("STARTED WITH"),
+          field("java", json.javaBin),
+          field("jvm", s"${json.jvmName}:${json.jvmVersion}"),
+          field("main class", json.serverMainClass),
+          field("working dir", json.workingDir),
+          field("java options", if (json.javaOpts.isEmpty) "none" else json.javaOpts.mkString(" ")),
+          field("classpath", s"${classpath.size} entries")
+        ) ++ classpath.map(entry => text(s"      $entry", style(Palette.textDim)))
+    }
+
+  /** The classpath as the daemon was given it — the argument after `-cp` in the recorded argv. */
+  private def classpathOf(command: List[String]): List[String] =
+    command.sliding(2).collectFirst { case List("-cp", classpath) => classpath.split(java.io.File.pathSeparator).toList }.getOrElse(Nil)
 
   // ── building blocks ─────────────────────────────────────────────
 
@@ -334,16 +378,26 @@ object ServerTopView {
       case None =>
         state.message match {
           case Some(message) => text(s" $message", style(Palette.info))
-          case None          =>
-            row(
-              length(10, clickable(Msg.Key(KeyPress.Quit), dispatch, text(" q quit", style(Palette.textDim)))),
-              length(12, text("↑↓ select", style(Palette.textDim))),
-              length(9, clickable(Msg.Key(KeyPress.NextTab), dispatch, text("⇥ tab", style(Palette.textDim)))),
-              length(9, clickable(Msg.Key(KeyPress.Kill), dispatch, text("k kill", style(Palette.textDim)))),
-              fill(1, clickable(Msg.Key(KeyPress.Restart), dispatch, text("r restart", style(Palette.textDim))))
-            )
+          case None          => buttons(dispatch)
         }
     }
+
+  /** The actions, as a row of buttons rather than a legend. They are the things you came to do, so they look pressable and are. */
+  private def buttons(dispatch: Msg => Unit): Element = {
+    val actions = List(
+      ("k", "kill", KeyPress.Kill, Palette.error),
+      ("r", "restart", KeyPress.Restart, Palette.warning),
+      ("⇥", "tab", KeyPress.NextTab, Palette.info),
+      ("q", "quit", KeyPress.Quit, Palette.textMuted)
+    )
+
+    val cells = actions.map { case (key, label, press, color) =>
+      val width = key.length + label.length + 6
+      length(width, clickable(Msg.Key(press), dispatch, text(s" [ $key $label ] ", Palette.boldOnSurface(color))))
+    }
+
+    row((text(" ", style(Palette.textDim)) :: cells.map(identity) ::: List(fill(1, text("   ←→ tabs   ↑↓ select", style(Palette.textDim)))))*)
+  }
 
   private def pct(value: Double): String = if (value < 0) "n/a" else f"${value * 100}%.0f%%"
 

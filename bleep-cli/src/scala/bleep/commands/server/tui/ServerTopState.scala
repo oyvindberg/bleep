@@ -29,6 +29,7 @@ case class ServerTopState(
     tab: ServerTopState.Tab,
     pending: Option[ServerTopState.Confirm],
     message: Option[String],
+    logTail: List[String],
     nowMs: Long,
     quit: Boolean
 ) {
@@ -42,9 +43,10 @@ object ServerTopState {
     case object Overview extends Tab { val title = "Overview" }
     case object Workspaces extends Tab { val title = "Workspaces" }
     case object Activity extends Tab { val title = "Activity" }
+    case object Log extends Tab { val title = "Log" }
     case object Config extends Tab { val title = "Config" }
 
-    val all: List[Tab] = List(Overview, Workspaces, Activity, Config)
+    val all: List[Tab] = List(Overview, Workspaces, Activity, Log, Config)
   }
 
   /** A destructive action waiting for y/n. Killing a compile server can throw away a running build, so it is never one keystroke away. */
@@ -61,6 +63,9 @@ object ServerTopState {
   sealed trait Msg
   object Msg {
     case class Refreshed(rows: List[ServerRow], nowMs: Long) extends Msg
+
+    /** The tail of the selected server's log, read from disk by the loop. Kept out of [[ServerRow]] because it is only ever wanted for one server at a time. */
+    case class LogTail(lines: List[String]) extends Msg
     case class Key(key: KeyPress) extends Msg
     case class ActionFinished(message: String) extends Msg
 
@@ -77,6 +82,7 @@ object ServerTopState {
     case object Up extends KeyPress
     case object Down extends KeyPress
     case object NextTab extends KeyPress
+    case object PrevTab extends KeyPress
     case object Quit extends KeyPress
     case object Kill extends KeyPress
     case object Restart extends KeyPress
@@ -85,7 +91,7 @@ object ServerTopState {
   }
 
   def initial(nowMs: Long): ServerTopState =
-    ServerTopState(rows = Nil, selected = 0, tab = Tab.Overview, pending = None, message = None, nowMs = nowMs, quit = false)
+    ServerTopState(rows = Nil, selected = 0, tab = Tab.Overview, pending = None, message = None, logTail = Nil, nowMs = nowMs, quit = false)
 
   /** A side effect the loop should perform. Returned rather than done, so `update` stays a pure function of state and message. */
   sealed trait Effect
@@ -115,6 +121,9 @@ object ServerTopUpdate {
     case Msg.SelectTab(tab) =>
       (state.copy(tab = tab), Nil)
 
+    case Msg.LogTail(lines) =>
+      (state.copy(logTail = lines), Nil)
+
     case Msg.Key(key) =>
       state.pending match {
         case Some(confirm) =>
@@ -134,7 +143,8 @@ object ServerTopUpdate {
             case KeyPress.Quit              => (state.copy(quit = true), Nil)
             case KeyPress.Up                => (state.copy(selected = clamp(state.selected - 1, state.rows.length), message = None), Nil)
             case KeyPress.Down              => (state.copy(selected = clamp(state.selected + 1, state.rows.length), message = None), Nil)
-            case KeyPress.NextTab           => (state.copy(tab = nextTab(state.tab)), Nil)
+            case KeyPress.NextTab           => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
+            case KeyPress.PrevTab           => (state.copy(tab = shiftTab(state.tab, -1)), Nil)
             case KeyPress.Kill              => (confirming(state, Action.Kill), Nil)
             case KeyPress.Restart           => (confirming(state, Action.Restart), Nil)
             case KeyPress.Yes | KeyPress.No => (state, Nil)
@@ -150,9 +160,10 @@ object ServerTopUpdate {
       case Some(row)                        => state.copy(pending = Some(Confirm(action, row.hash)), message = None)
     }
 
-  private def nextTab(tab: Tab): Tab = {
+  /** Wraps in both directions, so ← from the first tab lands on the last rather than doing nothing. */
+  private def shiftTab(tab: Tab, by: Int): Tab = {
     val all = Tab.all
-    all((all.indexOf(tab) + 1) % all.length)
+    all(((all.indexOf(tab) + by) % all.length + all.length) % all.length)
   }
 
   private def clamp(index: Int, size: Int): Int =

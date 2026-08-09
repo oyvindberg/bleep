@@ -21,6 +21,7 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
 
   private val PollIntervalMs = 1000L
   private val InputPollNanos = 100_000_000 // 100ms, so a keystroke never waits on the data tick
+  private val LogTailLines = 200
 
   def run(): Unit = {
     val terminal: Terminal[CrosstermBackend] = Jatatui.init()
@@ -32,6 +33,7 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
       val renderer = new Renderer
 
       var state = ServerTopUpdate.update(initialState(), Msg.Refreshed(scan(), System.currentTimeMillis()))._1
+      state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
       var lastPoll = System.currentTimeMillis()
 
       // Clicks arrive while the element tree is being built, so they land here and are applied on the next turn of the loop, exactly like keystrokes.
@@ -43,14 +45,21 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
 
         var pendingClick = clicked.poll()
         while (pendingClick != null) {
+          val before = state.selectedRow.map(_.hash)
           state = applyMsg(state, pendingClick)
+          // Selecting another server should show that server's log, not the previous one's until the next tick.
+          if (state.selectedRow.map(_.hash) != before) state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
           pendingClick = clicked.poll()
         }
 
         if (jni.poll(new _root_.tui.crossterm.Duration(0, InputPollNanos)))
           jni.read() match {
             case key: _root_.tui.crossterm.Event.Key =>
-              keyPress(key).foreach(press => state = applyMsg(state, Msg.Key(press)))
+              keyPress(key).foreach { press =>
+                val before = state.selectedRow.map(_.hash)
+                state = applyMsg(state, Msg.Key(press))
+                if (state.selectedRow.map(_.hash) != before) state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
+              }
 
             case mouse: _root_.tui.crossterm.Event.Mouse =>
               // Handing the event to the renderer is what makes the click land on whichever element owns that cell; the element then dispatches its own Msg.
@@ -62,6 +71,7 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
         val now = System.currentTimeMillis()
         if (now - lastPoll >= PollIntervalMs) {
           state = ServerTopUpdate.update(state, Msg.Refreshed(scan(), now))._1
+          state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
           lastPoll = now
         }
       }
@@ -81,6 +91,33 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
     }
   }
 
+  /** The last few lines of the selected server's log.
+    *
+    * Read from the end of the file rather than by loading it: these logs run to tens of megabytes, and this happens once a second.
+    */
+  private def tailOfSelectedLog(state: ServerTopState): List[String] =
+    state.selectedRow match {
+      case None => Nil
+      case Some(row) =>
+        val file = row.info.socketDir.resolve("output")
+        if (!java.nio.file.Files.exists(file)) Nil
+        else {
+          val channel = java.nio.file.Files.newByteChannel(file)
+          try {
+            val size = channel.size()
+            val window = math.min(size, 16384L)
+            channel.position(size - window)
+            val buffer = java.nio.ByteBuffer.allocate(window.toInt)
+            channel.read(buffer): Unit
+            val text = new String(buffer.array(), java.nio.charset.StandardCharsets.UTF_8)
+            // The first line is usually cut in half by the window, so drop it unless we happened to read the whole file.
+            val lines = text.linesIterator.toList
+            val whole = if (window == size) lines else lines.drop(1)
+            whole.takeRight(LogTailLines)
+          } finally channel.close()
+        }
+    }
+
   private def mouseEvent(mouse: _root_.tui.crossterm.Event.Mouse): Option[jatatui.react.MouseEvent] = {
     val event = mouse.mouseEvent
     val kind = event.kind match {
@@ -98,6 +135,8 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
       case _: _root_.tui.crossterm.KeyCode.Up      => Some(KeyPress.Up)
       case _: _root_.tui.crossterm.KeyCode.Down    => Some(KeyPress.Down)
       case _: _root_.tui.crossterm.KeyCode.Tab     => Some(KeyPress.NextTab)
+      case _: _root_.tui.crossterm.KeyCode.Right   => Some(KeyPress.NextTab)
+      case _: _root_.tui.crossterm.KeyCode.Left    => Some(KeyPress.PrevTab)
       case _: _root_.tui.crossterm.KeyCode.Esc     => Some(KeyPress.Quit)
       case char: _root_.tui.crossterm.KeyCode.Char =>
         char.c() match {
