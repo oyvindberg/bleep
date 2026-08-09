@@ -157,6 +157,76 @@ jobs:
                 "schema.json": [ "**/bleep.yaml" ]
             }
 
+  # `run-bounded.sh` is the only thing standing between a hung test step and a destroyed runner, and nothing exercised
+  # it. It failed three times — runs 30697246865, 30752489661 and 31268861301 — each time reaching the job's ceiling at
+  # 55m00s, which tears down the `if: always()` telemetry steps and leaves no artifact and no retrievable log. The one
+  # hang worth reading is the one that reports nothing.
+  #
+  # Every fix so far was reasoned and shipped unverified, which is why the same signature came back twice. This job is
+  # the verification: hang deliberately, and assert the bound does what the surrounding steps depend on it doing.
+  #
+  # Both arches: the mechanism is meant to be one code path, and running it on Linux too keeps a Windows-only
+  # regression from hiding behind "it works locally".
+  bound-check:
+    name: run-bounded.sh bounds a hang on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    # Generously above the 30s bound under test, and far below the native-image job's 45: if this job is ever itself
+    # reaped by its own ceiling, that IS the failure being tested for, and it should look different from a hang.
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: A hang fails the step, and ends it
+        shell: bash
+        run: |
+          start=$SECONDS
+          set +e
+          bash .github/scripts/run-bounded.sh 30 bash .github/scripts/hang-tree.sh
+          rc=$?
+          set -e
+          elapsed=$((SECONDS - start))
+          echo "exit=$rc elapsed=${elapsed}s"
+
+          # 124 is what the bound reports on expiry, matching timeout(1).
+          if [ "$rc" != "124" ]; then
+            echo "::error title=Bound did not fire::expected exit 124 after ~30s, got $rc"
+            exit 1
+          fi
+
+          # The assertion that matters, and the one no previous fix checked. Killing the child is necessary but not
+          # sufficient: GitHub waits for the step's output pipes to close, so a surviving grandchild holding stdout keeps
+          # the step alive even though the bound "fired". That is precisely how a 20-minute bound became a 55-minute
+          # teardown. If we got here at all the pipes closed; this pins how long that took.
+          if [ "$elapsed" -ge 120 ]; then
+            echo "::error title=Bound fired but the step did not end::took ${elapsed}s for a 30s bound"
+            exit 1
+          fi
+
+      - name: Nothing survived the kill
+        if: always()
+        shell: bash
+        # Requirement 1 from the script's header: the whole tree dies, not just the direct child. Checked after the fact
+        # rather than trusted, because both the winpid translation and `taskkill //T` fail silently behind `|| true`.
+        run: |
+          if [ -n "${WINDIR:-}" ]; then
+            if tasklist //FI "IMAGENAME eq PING.EXE" 2>/dev/null | grep -qi "ping.exe"; then
+              echo "::error title=Survivor::ping.exe outlived the kill — the process tree was not reaped"
+              tasklist //FI "IMAGENAME eq PING.EXE" 2>/dev/null || true
+              exit 1
+            fi
+          else
+            if pgrep -f "sleep 3000" >/dev/null 2>&1; then
+              echo "::error title=Survivor::a sleep outlived the kill — the process tree was not reaped"
+              pgrep -af "sleep 3000" || true
+              exit 1
+            fi
+          fi
+          echo "no survivors"
+
   build-intellij-plugin:
     runs-on: ubuntu-latest
     timeout-minutes: 10

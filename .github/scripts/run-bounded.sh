@@ -68,6 +68,16 @@ kill_tree() {
     if [ -n "$winpid" ]; then
       taskkill //F //T //PID "$winpid" >/dev/null 2>&1 || true
     fi
+    # Belt and braces, because every part of the targeted path above can fail silently: /proc/<pid>/winpid may not
+    # exist for the child shape we got, and `taskkill //T` only walks the tree it can see. Both failures are masked by
+    # `|| true`, which is how a bound that looked correct let a 45-minute hang through three times.
+    #
+    # By image name, so nothing has to be translated or walked. Safe here specifically: this runs on a CI runner at the
+    # moment we have already decided the tree is unsalvageable, and the only steps after it read files. It would not be
+    # safe on a developer machine, which is why it lives behind the timeout branch and not in normal teardown.
+    for image in java.exe bleep.exe; do
+      taskkill //F //T //IM "$image" >/dev/null 2>&1 || true
+    done
   fi
   kill -9 -- "-$child_pid" 2>/dev/null || true
   kill -9 "$child_pid" 2>/dev/null || true
