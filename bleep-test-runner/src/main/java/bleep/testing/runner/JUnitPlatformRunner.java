@@ -101,7 +101,7 @@ class JUnitPlatformRunner {
 
               @Override
               public void executionStarted(TestIdentifier testIdentifier) {
-                if (testIdentifier.isTest()) {
+                if (testIdentifier.isTest() && !isChildlessVintageClass(testIdentifier)) {
                   String testName = testIdentifier.getDisplayName();
                   send(TestProtocol.encodeTestStarted(currentSuite, testName));
                 }
@@ -110,7 +110,16 @@ class JUnitPlatformRunner {
               @Override
               public void executionFinished(
                   TestIdentifier testIdentifier, TestExecutionResult result) {
-                if (!testIdentifier.isTest()) return;
+                if (!testIdentifier.isTest()) {
+                  // A container fails on its own whenever the failure is not attributable to any
+                  // one test: @AfterClass/@AfterAll/@BeforeClass/@BeforeAll throwing, a class-level
+                  // rule, a @Parameters method blowing up, an engine dying. Dropping these reported
+                  // a suite whose teardown asserted as green, with exit 0.
+                  if (result.getStatus() == TestExecutionResult.Status.FAILED) {
+                    reportContainerFailure(testIdentifier, result);
+                  }
+                  return;
+                }
 
                 String testName = testIdentifier.getDisplayName();
                 long durationMs = 0; // JUnit Platform doesn't provide per-test duration in listener
@@ -121,6 +130,18 @@ class JUnitPlatformRunner {
 
                 switch (result.getStatus()) {
                   case SUCCESSFUL:
+                    if (isChildlessVintageClass(testIdentifier)) {
+                      // Count nothing, so the suite finishes with zero events and is reported as
+                      // Empty rather than as one green test. See isChildlessVintageClass.
+                      send(
+                          TestProtocol.encodeLog(
+                              "warn",
+                              currentSuite
+                                  + " has no runnable tests — JUnit 4 reported the class itself as"
+                                  + " a leaf. An empty @Parameters list or @SuiteClasses({}) does"
+                                  + " this."));
+                      return;
+                    }
                     status = "passed";
                     passed[0]++;
                     break;
@@ -158,9 +179,65 @@ class JUnitPlatformRunner {
                         currentSuite, testName, status, durationMs, message, throwableStr));
               }
 
+              /**
+               * True when the platform handed us the requested class itself as a leaf "test".
+               *
+               * <p>JUnit 4's {@code Description.isTest()} means only "I have no children", so a
+               * class that produced no runnable tests — an empty {@code @Parameters} list,
+               * {@code @SuiteClasses({})} — arrives through the vintage engine as a single leaf
+               * whose unique id ends in {@code [runner:<the class we asked for>]} instead of the
+               * usual {@code [test:method(class)]}. Reporting it as one passed test made a suite
+               * that ran nothing look exactly like a green one.
+               */
+              private boolean isChildlessVintageClass(TestIdentifier testIdentifier) {
+                return testIdentifier.getUniqueId().endsWith("[runner:" + currentSuite + "]");
+              }
+
+              /**
+               * Surface a failed container as a synthetic failed test, so it lands in the counts,
+               * in the failures section, and in the exit code like any other failure.
+               */
+              private void reportContainerFailure(
+                  TestIdentifier testIdentifier, TestExecutionResult result) {
+                String testName = containerTestName(testIdentifier);
+                String message = null;
+                String throwableStr = null;
+                if (result.getThrowable().isPresent()) {
+                  Throwable t = result.getThrowable().get();
+                  message = t.getMessage();
+                  throwableStr = stackTraceToString(t);
+                }
+                failed[0]++;
+
+                try {
+                  capturedOut.flush();
+                  capturedErr.flush();
+                } catch (Exception e) {
+                  // Ignore
+                }
+
+                // Started/finished as a pair: the reader counts started tests, and a finish without
+                // a start leaves its running-test bookkeeping short.
+                send(TestProtocol.encodeTestStarted(currentSuite, testName));
+                send(
+                    TestProtocol.encodeTestFinished(
+                        currentSuite, testName, "failed", 0, message, throwableStr));
+              }
+
               @Override
               public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-                if (!testIdentifier.isTest()) return;
+                if (!testIdentifier.isTest()) {
+                  // A skipped container (@Disabled/@Ignore on the class) reports nothing for the
+                  // tests underneath it, so without this the suite finishes having emitted zero
+                  // events and is reported as an empty — i.e. failed — suite.
+                  if (!testIdentifier.getParentId().isPresent()) return;
+                  String containerName = containerTestName(testIdentifier);
+                  skipped[0]++;
+                  send(
+                      TestProtocol.encodeTestFinished(
+                          currentSuite, containerName, "skipped", 0, reason, null));
+                  return;
+                }
                 String testName = testIdentifier.getDisplayName();
                 skipped[0]++;
                 send(
@@ -235,6 +312,16 @@ class JUnitPlatformRunner {
   private void send(String message) {
     protocolOut.println(message);
     protocolOut.flush();
+  }
+
+  /**
+   * A name for a container reported as if it were a test. Roots are engine descriptors ("JUnit
+   * Vintage"); everything below them is a class, a {@code @Nested} class, or a parameterized group,
+   * all of which fail for class-lifecycle reasons.
+   */
+  private static String containerTestName(TestIdentifier testIdentifier) {
+    String suffix = testIdentifier.getParentId().isPresent() ? " (class-level)" : " (engine-level)";
+    return testIdentifier.getDisplayName() + suffix;
   }
 
   private static String stackTraceToString(Throwable t) {
