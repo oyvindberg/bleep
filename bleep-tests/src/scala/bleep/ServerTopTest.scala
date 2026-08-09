@@ -221,7 +221,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     screen should include("RUNNING NOW — 1 operation(s)")
     screen should include("FORKED JVMS — 1 holding 5120 MB")
     withClue("the explanation belongs next to the numbers that prompt the question: ") {
-      screen should include("hold memory without using a slot")
+      screen should include("charged above, to the work")
     }
   }
 

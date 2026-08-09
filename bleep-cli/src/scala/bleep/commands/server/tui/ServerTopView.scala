@@ -352,8 +352,10 @@ object ServerTopView {
   /** What the server is doing right now, and what is stacked up behind it.
     *
     * Work and forked JVMs are listed apart because they are charged for different things, and mixing them reads as nonsense: a suite costs a slot and no
-    * memory, while the JVM it runs in costs memory and no slot. A pooled JVM is kept warm between suites, so it goes on holding its footprint while using
-    * nothing else — which is why a server can be at "0 slots" and several gigabytes at the same time.
+    * memory, while the JVM it runs in costs memory and no slot.
+    *
+    * The slot is charged to the work, not the process, so a suite running in a fork appears twice — once above holding the slot, once below holding the memory.
+    * A fork with no suite is between jobs and kept warm, still holding its footprint. Either way the total is right: one slot per running suite.
     */
   private def activityLines(status: DaemonStatus): List[Line] = {
     val machine = status.machine
@@ -375,7 +377,8 @@ object ServerTopView {
         List(
           Line.empty(),
           sectionOf(s"FORKED JVMS — ${forks.size} holding ${forks.map(_.memoryMb).sum} MB between them"),
-          lineOf("  Kept warm between suites, so they hold memory without using a slot.", Palette.textDim)
+          lineOf("  A running suite's slot is charged above, to the work; these rows are the processes and the memory they hold.", Palette.textDim),
+          lineOf("  Forks with no work above are between suites, kept warm rather than restarted.", Palette.textDim)
         ) ++ forks.map(entry => lineOf(f"  ▪ ${entry.label}%-46s ${entry.memoryMb}%5d MB, alive ${humanDuration(entry.ageMs)}%s", Palette.textMuted))
 
     val queue =
