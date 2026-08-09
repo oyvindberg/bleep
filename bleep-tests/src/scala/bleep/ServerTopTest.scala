@@ -147,11 +147,13 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     val screen = draw(stateWith(List(withIdentity("aaaa1111", "1.0.0-M11", "25.0.1"), withIdentity("bbbb2222", "1.0.0-M10", "24.0.1"))))
 
-    screen should include("bleep version")
-    screen should include("1.0.0-M11")
-    screen should include("1.0.0-M10")
-    screen should include("graalvm-community 25.0.1")
-    screen should include("graalvm-community 24.0.1")
+    screen should include("bleep")
+    withClue("the shared 1.0.0- prefix is dropped; what is left is what differs: ") {
+      screen should include("M11")
+      screen should include("M10")
+    }
+    screen should include("graalvm 25.0.1")
+    screen should include("graalvm 24.0.1")
   }
 
   /** The row carries more columns than a narrow terminal can hold, and something has to be cut. It must never be the marker saying which server is yours,
@@ -165,7 +167,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("a server with nothing recorded says so in the version column rather than showing a blank") {
-    draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("unknown version")
+    draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("unknown")
   }
 
   test("the server list shows state, heap and uptime, and marks this build's server") {
@@ -260,8 +262,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     screen should include("1 running")
     screen should include("1 stopped")
-    withClue("a busy machine should say so at the top, not only in a tab: ") {
-      screen should include("1 compiling")
+    withClue("counting compiles alone undersold a server full of test suites; slots is what busy means: ") {
+      screen should include("slots busy")
     }
   }
 
@@ -285,7 +287,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
   test("a running server says what it is doing, and a stopped one what it is holding") {
     val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
-    draw(stateWith(List(busy))) should include("1 compiling")
+    draw(stateWith(List(busy))) should include("1 running")
 
     draw(stateWith(List(dead("bbbb2222")))) should include("MB on disk")
   }
@@ -708,7 +710,23 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     val compiling = MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)
     val busy = draw(stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))))
-    busy should include("Building bleep-core")
+    withClue("what makes a server busy is the slots it holds, whatever kind of work holds them: ") {
+      busy should include("Busy — 4 of 18 slots")
+      busy should include("1 compile")
+    }
+  }
+
+  /** A server running one compile and sixteen test suites reported "1 compiling", because that count is of compiles. It is the wrong number to lead with. */
+  test("a server full of test suites reads as busy, not as one compile") {
+    val compile = MachineEntryDto("Compile", "bleep-core", 1, 0, 3000)
+    val suites = (1 to 16).map(index => MachineEntryDto("TestFork", s"suite-$index", 1, 0, 3000)).toList
+    val row = running("aaaa1111", isCurrent = true, active = compile :: suites)
+    val busy = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(usedCpu = 17))))
+
+    val screen = draw(stateWith(List(busy)))
+    screen should include("17 of 18 slots")
+    screen should include("16 test suites")
+    screen should include("1 compile")
   }
 
   test("a queue with nothing running says so rather than reading as idle") {

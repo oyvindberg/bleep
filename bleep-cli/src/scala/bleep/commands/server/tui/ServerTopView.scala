@@ -75,16 +75,18 @@ object ServerTopView {
   private def header(state: ServerTopState): Element = {
     val running = state.rows.count(_.info.isRunning)
     val stopped = state.rows.length - running
-    val compiling = state.rows.flatMap(_.status).map(_.machine.activeCompiles).sum
+    // Slots held, not compiles counted: a server full of test suites is busy, and saying "0 compiling" about it is worse than saying nothing.
+    val busySlots = state.rows.flatMap(_.status).map(_.machine.usedCpu).sum
+    val totalSlots = state.rows.flatMap(_.status).map(_.machine.totalCpu).sum
     val queued = state.rows.flatMap(_.status).map(_.machine.waiting.size).sum
     val litterMb = state.rows.filterNot(_.info.isRunning).map(_.info.sizeMb).sum
 
     val parts = List(Some(s"$running running"), Option.when(stopped > 0)(s"$stopped stopped"), Option.when(litterMb > 0)(s"${litterMb}MB on disk")).flatten
-    val activity = if (compiling > 0) s"   ● $compiling compiling" + (if (queued > 0) s", $queued queued" else "") else ""
+    val activity = if (busySlots > 0) s"   ● $busySlots of $totalSlots slots busy" + (if (queued > 0) s", $queued queued" else "") else ""
 
     row(
       length(23, text(" BLEEP COMPILE SERVERS", bold(Palette.info))),
-      fill(1, text(parts.mkString(" · ") + activity, style(if (compiling > 0) Palette.accent else Palette.textMuted)))
+      fill(1, text(parts.mkString(" · ") + activity, style(if (busySlots > 0) Palette.accent else Palette.textMuted)))
     )
   }
 
@@ -111,15 +113,22 @@ object ServerTopView {
         4 -> text("", style(Palette.textDim)),
         10 -> text("server", style(Palette.textDim)),
         13 -> text("", style(Palette.textDim)),
-        9 -> text("state", style(Palette.textDim)),
-        22 -> text("bleep version", style(Palette.textDim)),
-        26 -> text("jvm", style(Palette.textDim)),
-        14 -> text("heap", style(Palette.textDim)),
-        10 -> text("load", style(Palette.textDim)),
-        9 -> text("uptime", style(Palette.textDim)),
+        8 -> text("state", style(Palette.textDim)),
+        17 -> text("bleep", style(Palette.textDim)),
+        17 -> text("jvm", style(Palette.textDim)),
+        15 -> text("heap", style(Palette.textDim)),
+        8 -> text("up", style(Palette.textDim)),
         16 -> text("doing", style(Palette.textDim))
       ).map { case (width, element) => length(width, element) }*
     )
+
+  /** `1.0.0-M11+32-80f5bbb7-SNAPSHOT` carries about six useful characters. The shared prefix and suffix are noise in a column meant to show a difference. */
+  private def shortVersion(version: String): String =
+    version.stripPrefix("1.0.0-").stripSuffix("-SNAPSHOT")
+
+  /** `graalvm-community:25.0.1:default` likewise: the flavour and the trailing `:default` are the same on every row here. */
+  private def shortJvm(name: String, version: String): String =
+    s"${name.replace("-community", "")} ${version.stripSuffix(":default")}"
 
   /** Sentinel width meaning "take whatever is left of the line". */
   private val RestOfLine = -1
@@ -134,6 +143,7 @@ object ServerTopView {
     // The selected row sits on the raised surface, the same way the build display lifts its summary panel. The cursor is then obvious from shape as well as
     // colour, which matters on terminals where these greys sit close together.
     def cell(content: String, cellColor: jatatui.core.style.Color, emphasised: Boolean): Element = {
+      // Callers pass the width; a value longer than its column used to run straight into the next one, which is how "MB 4 ws 3 cl2m48s" happened.
       val cellStyle =
         if (selected && emphasised) Palette.boldOnSurface(cellColor)
         else if (selected) Palette.onSurface(cellColor)
@@ -142,49 +152,53 @@ object ServerTopView {
       text(content, cellStyle)
     }
 
+    /** Clip to the column and always leave a space, so a long value cannot run into its neighbour. */
+    def fitted(content: String, width: Int): String =
+      if (content.length >= width) content.take(math.max(0, width - 2)) + "… " else content
+
     val busy = serverRow.status.map(_.machine).map { machine =>
-      if (machine.activeCompiles > 0) s"${machine.activeCompiles} compiling" + (if (machine.waiting.nonEmpty) s" +${machine.waiting.size}q" else "")
+      val working = machine.active.count(_.cpu > 0)
+      if (working > 0) s"$working running" + (if (machine.waiting.nonEmpty) s" +${machine.waiting.size}q" else "")
       else if (machine.waiting.nonEmpty) s"${machine.waiting.size} queued"
       else "idle"
     }
 
     val heap = serverRow.status.map(status => f"${status.jvm.heapUsedMb}%d/${status.jvm.heapMaxMb}%d MB").getOrElse("")
-    val counts = serverRow.status.map(status => s"${status.workspaces.size} ws  ${status.connections.size} cl").getOrElse("")
     val uptime = serverRow.status.map(status => humanDuration(nowMs - status.startedAtEpochMs)).getOrElse("")
 
     // What actually makes this a separate server. The socket directory is a hash of bleep version + JVM + java options, so two rows differing in any of these
-    // are two servers by design — showing the hash alone leaves "why are there four of these" unanswerable without digging.
-    val version = serverRow.info.identity.map(_.bleepVersion).getOrElse("unknown version")
-    val jvm = serverRow.info.identity.map(id => s"${id.jvmName} ${id.jvmVersion}").getOrElse("unknown jvm")
+    // are two servers by design. Shortened, because the parts they share carry no information: every version starts "1.0.0-" and ends "-SNAPSHOT", and every
+    // JVM here is some flavour of graalvm — what distinguishes them is the bit in the middle.
+    val version = serverRow.info.identity.map(id => shortVersion(id.bleepVersion)).getOrElse("unknown")
+    val jvm = serverRow.info.identity.map(id => shortJvm(id.jvmName, id.jvmVersion)).getOrElse("unknown")
 
     // A stopped server has nothing to report but is still holding disk, which is the reason to care about it at all.
     val stoppedNote = if (serverRow.info.isRunning) "unreachable" else s"${serverRow.info.sizeMb} MB on disk"
 
+    // Six columns, not nine. Workspace and client counts moved to the tabs that are about them: what belongs here is which server, whether it is mine, what
+    // makes it distinct, how fat it is and what it is doing.
     val cells =
       if (serverRow.status.isEmpty)
         List(
-          2 -> cell(if (selected) " ▸" else "  ", Palette.accent, emphasised = true),
-          2 -> cell(s"$marker ", color, emphasised = false),
+          4 -> cell(if (selected) s" ▸$marker" else s"  $marker", color, emphasised = true),
           10 -> cell(serverRow.hash.take(8), Palette.textDim, emphasised = selected),
           13 -> cell("", Palette.accent, emphasised = false),
-          9 -> cell(serverRow.info.state.label, color, emphasised = false),
-          22 -> cell(version, Palette.textDim, emphasised = false),
-          26 -> cell(jvm, Palette.textDim, emphasised = false),
+          8 -> cell(serverRow.info.state.label, color, emphasised = false),
+          17 -> cell(fitted(version, 17), Palette.textDim, emphasised = false),
+          17 -> cell(fitted(jvm, 17), Palette.textDim, emphasised = false),
           RestOfLine -> cell(stoppedNote, Palette.textDim, emphasised = false)
         )
       else
         List(
-          2 -> cell(if (selected) " ▸" else "  ", Palette.accent, emphasised = true),
-          2 -> cell(s"$marker ", color, emphasised = false),
+          4 -> cell(if (selected) s" ▸$marker" else s"  $marker", color, emphasised = true),
           10 -> cell(serverRow.hash.take(8), Palette.text, emphasised = selected),
           // Kept to the left on purpose: it is the one column that must survive a narrow terminal, since it is what tells you which server is yours.
           13 -> cell(if (serverRow.isCurrent) "← this build" else "", Palette.accent, emphasised = true),
-          9 -> cell(serverRow.info.state.label, color, emphasised = false),
-          22 -> cell(version, Palette.info, emphasised = false),
-          26 -> cell(jvm, Palette.textMuted, emphasised = false),
-          14 -> cell(heap, Palette.textMuted, emphasised = false),
-          10 -> cell(counts, Palette.textMuted, emphasised = false),
-          9 -> cell(uptime, Palette.textMuted, emphasised = false),
+          8 -> cell(serverRow.info.state.label, color, emphasised = false),
+          17 -> cell(fitted(version, 17), Palette.info, emphasised = false),
+          17 -> cell(fitted(jvm, 17), Palette.textMuted, emphasised = false),
+          15 -> cell(heap, Palette.textMuted, emphasised = false),
+          8 -> cell(uptime, Palette.textMuted, emphasised = false),
           RestOfLine -> cell(busy.getOrElse(""), if (busy.contains("idle")) Palette.textDim else Palette.accent, emphasised = !busy.contains("idle"))
         )
 
@@ -288,23 +302,39 @@ object ServerTopView {
 
   /** One sentence for what this server is doing, in the place the eye lands first.
     *
-    * Everything else on this tab is a number you have to interpret; this says whether anything is happening at all, which is the question most visits are
-    * actually asking.
+    * Counting compiles alone undersells it badly: a server running one compile and sixteen test suites reported "1 compiling", because `activeCompiles` counts
+    * exactly what its name says. What makes a server busy is the slots it is holding, whatever kind of work holds them, so that is what this says.
     */
   private def statusLine(status: DaemonStatus): Line = {
     val machine = status.machine
-    val compiling = machine.active.map(_.label).distinct
+    val working = machine.active.filter(_.cpu > 0)
+    val forks = machine.active.filter(entry => entry.cpu == 0 && entry.memoryMb > 0)
+
+    val breakdown = working.groupBy(_.kind).toList.sortBy(-_._2.size).map { case (kind, entries) => s"${entries.size} ${workName(kind, entries.size)}" }
+    val waiting = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} waiting for capacity" else ""
 
     val (summary, color) =
-      if (machine.active.nonEmpty) {
-        val what = if (compiling.size <= 3) compiling.mkString(", ") else s"${compiling.take(3).mkString(", ")} and ${compiling.size - 3} more"
-        val queued = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} waiting for capacity" else ""
-        (s"Building $what$queued", Palette.accent)
-      } else if (machine.waiting.nonEmpty) (s"${machine.waiting.size} operation(s) waiting for capacity", Palette.warning)
+      if (working.nonEmpty) {
+        val slots = s"${machine.usedCpu} of ${machine.totalCpu} slots"
+        (s"Busy — $slots: ${breakdown.mkString(", ")}$waiting", Palette.accent)
+      } else if (machine.waiting.nonEmpty) (s"Stalled — nothing running, ${machine.waiting.size} waiting for capacity", Palette.warning)
+      else if (forks.nonEmpty) (s"Idle — ${forks.size} forked JVM(s) kept warm, holding ${forks.map(_.memoryMb).sum} MB", Palette.text)
       else if (status.connections.exists(!_.observer)) ("Idle, with a client connected", Palette.text)
       else ("Idle, nobody connected", Palette.textDim)
 
     boldLineOf(s"  $summary", color)
+  }
+
+  /** The governor's kind names are internal ("TestFork", "SourcegenFork"); these are what the work is called. */
+  private def workName(kind: String, count: Int): String = {
+    val singular = kind match {
+      case "Compile"       => "compile"
+      case "TestFork"      => "test suite"
+      case "SourcegenFork" => "sourcegen"
+      case "KspFork"       => "symbol processor"
+      case other           => other.toLowerCase
+    }
+    if (count == 1) singular else s"${singular}s"
   }
 
   /** How long since the server last did anything for a real client — the same clock its idle shutdown counts down, so it also says how long it has left. */
