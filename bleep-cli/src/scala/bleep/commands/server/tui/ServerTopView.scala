@@ -6,12 +6,10 @@ package tui
 import bleep.bsp.ServerState
 import bleep.bsp.protocol.DaemonStatus
 import bleep.testing.FancyBuildDisplay.Palette
-import jatatui.components.gauge.LineGaugeProps
-import jatatui.components.{Components => Widgets}
 import jatatui.core.layout.Flex
 import jatatui.core.style.Style
-import jatatui.react.Components._
 import jatatui.react.Element
+import jatatui.react.Components._
 import jatatui.core.text.{Line, Span, Text}
 import jatatui.widgets.Borders
 import jatatui.widgets.block.Block
@@ -90,7 +88,7 @@ object ServerTopView {
   // ── server list ─────────────────────────────────────────────────
 
   private def serverListHeight(state: ServerTopState): Int =
-    math.max(3, math.min(state.rows.length, 8) + 2)
+    math.max(4, math.min(state.rows.length, 8) + 3)
 
   private def serverList(state: ServerTopState, dispatch: Msg => Unit): Element = {
     val rows: List[Element] =
@@ -100,8 +98,28 @@ object ServerTopView {
           clickable(Msg.SelectRow(index), dispatch, serverListRow(row, selected = index == state.selected, state.nowMs))
         }
 
-    packed(" servers ", rows)
+    packed(" servers ", heading :: rows)
   }
+
+  /** Because the row now carries several unlabelled columns, and "which of these is the JVM" should not need working out. */
+  private val heading: Element =
+    row(
+      List(
+        4 -> text("", style(Palette.textDim)),
+        10 -> text("server", style(Palette.textDim)),
+        13 -> text("", style(Palette.textDim)),
+        9 -> text("state", style(Palette.textDim)),
+        22 -> text("bleep version", style(Palette.textDim)),
+        26 -> text("jvm", style(Palette.textDim)),
+        14 -> text("heap", style(Palette.textDim)),
+        10 -> text("load", style(Palette.textDim)),
+        9 -> text("uptime", style(Palette.textDim)),
+        16 -> text("doing", style(Palette.textDim))
+      ).map { case (width, element) => length(width, element) }*
+    )
+
+  /** Sentinel width meaning "take whatever is left of the line". */
+  private val RestOfLine = -1
 
   private def serverListRow(serverRow: ServerRow, selected: Boolean, nowMs: Long): Element = {
     val (marker, color) = serverRow.info.state match {
@@ -131,6 +149,11 @@ object ServerTopView {
     val counts = serverRow.status.map(status => s"${status.workspaces.size} ws  ${status.connections.size} cl").getOrElse("")
     val uptime = serverRow.status.map(status => humanDuration(nowMs - status.startedAtEpochMs)).getOrElse("")
 
+    // What actually makes this a separate server. The socket directory is a hash of bleep version + JVM + java options, so two rows differing in any of these
+    // are two servers by design — showing the hash alone leaves "why are there four of these" unanswerable without digging.
+    val version = serverRow.info.identity.map(_.bleepVersion).getOrElse("unknown version")
+    val jvm = serverRow.info.identity.map(id => s"${id.jvmName} ${id.jvmVersion}").getOrElse("unknown jvm")
+
     // A stopped server has nothing to report but is still holding disk, which is the reason to care about it at all.
     val stoppedNote = if (serverRow.info.isRunning) "unreachable" else s"${serverRow.info.sizeMb} MB on disk"
 
@@ -139,25 +162,31 @@ object ServerTopView {
         List(
           2 -> cell(if (selected) " ▸" else "  ", Palette.accent, emphasised = true),
           2 -> cell(s"$marker ", color, emphasised = false),
-          18 -> cell(serverRow.hash, Palette.textDim, emphasised = selected),
+          10 -> cell(serverRow.hash.take(8), Palette.textDim, emphasised = selected),
+          13 -> cell("", Palette.accent, emphasised = false),
           9 -> cell(serverRow.info.state.label, color, emphasised = false),
-          40 -> cell(stoppedNote, Palette.textDim, emphasised = false),
-          13 -> cell("", Palette.accent, emphasised = false)
+          22 -> cell(version, Palette.textDim, emphasised = false),
+          26 -> cell(jvm, Palette.textDim, emphasised = false),
+          RestOfLine -> cell(stoppedNote, Palette.textDim, emphasised = false)
         )
       else
         List(
           2 -> cell(if (selected) " ▸" else "  ", Palette.accent, emphasised = true),
           2 -> cell(s"$marker ", color, emphasised = false),
-          18 -> cell(serverRow.hash, Palette.text, emphasised = selected),
+          10 -> cell(serverRow.hash.take(8), Palette.text, emphasised = selected),
+          // Kept to the left on purpose: it is the one column that must survive a narrow terminal, since it is what tells you which server is yours.
+          13 -> cell(if (serverRow.isCurrent) "← this build" else "", Palette.accent, emphasised = true),
           9 -> cell(serverRow.info.state.label, color, emphasised = false),
+          22 -> cell(version, Palette.info, emphasised = false),
+          26 -> cell(jvm, Palette.textMuted, emphasised = false),
           14 -> cell(heap, Palette.textMuted, emphasised = false),
-          12 -> cell(counts, Palette.textMuted, emphasised = false),
+          10 -> cell(counts, Palette.textMuted, emphasised = false),
           9 -> cell(uptime, Palette.textMuted, emphasised = false),
-          16 -> cell(busy.getOrElse(""), if (busy.contains("idle")) Palette.textDim else Palette.accent, emphasised = !busy.contains("idle")),
-          13 -> cell(if (serverRow.isCurrent) "← this build" else "", Palette.accent, emphasised = true)
+          RestOfLine -> cell(busy.getOrElse(""), if (busy.contains("idle")) Palette.textDim else Palette.accent, emphasised = !busy.contains("idle"))
         )
 
-    row(cells.map { case (width, element) => length(width, element) }*)
+    // `fill` for the last column so the row uses whatever width is left rather than overflowing a fixed budget.
+    row(cells.map { case (width, element) => if (width == RestOfLine) fill(1, element) else length(width, element) }*)
   }
 
   // ── detail ──────────────────────────────────────────────────────
@@ -174,8 +203,6 @@ object ServerTopView {
               List(text(row.error.map(_.message).getOrElse(s"${row.info.state.label} — nothing to report"), style(Palette.warning)))
             )
           case Some(status) =>
-            // Panes that need their own height, their own scrolling or their own widgets build themselves below; this is only the element-based Overview.
-            val lines = if (state.tab == Tab.Overview) overview(status) else Nil
             column(
               length(1, tabBar(state, dispatch)),
               fill(
@@ -185,7 +212,7 @@ object ServerTopView {
                   // Overview is a short, fixed set of rows and needs real elements for its gauges. The others are plain text of unbounded length — a workspace
                   // list, a queue, a classpath — and one element per line means one layout constraint per line, solved every frame. 202 classpath entries
                   // froze the dashboard outright.
-                  case Tab.Overview   => packed("", lines)
+                  case Tab.Overview   => textPane(overviewLines(status))
                   case Tab.Config     => textPane(configLines(status))
                   case Tab.Workspaces => textPane(workspaceLines(status))
                   case Tab.Activity   => textPane(activityLines(status))
@@ -209,11 +236,14 @@ object ServerTopView {
 
   /** Written out in words rather than abbreviations.
     *
-    * The numbers here are only useful if you know what they mean: "live set" and "heap used" answer different questions, and "fork mem" answers one most people
-    * do not know they have. Each row says what it is measuring, and the three that answer "is this server in trouble" get a full-width bar, because a bar
-    * answers that at a glance where a pair of numbers has to be read and divided.
+    * The numbers are only useful if you know what they mean: "live set" and "heap used" answer different questions, and "fork mem" answers one most people do
+    * not know they have. Each row says what it is measuring, and the three that answer "is this server in trouble" get a bar, because a bar answers that at a
+    * glance where a pair of numbers has to be read and divided.
+    *
+    * Built as lines rather than elements like every other pane: a container solves a layout constraint per child, and with more lines than rows it drops one
+    * from the *middle* rather than clipping the end — the CAPACITY heading disappeared exactly that way.
     */
-  private def overview(status: DaemonStatus): List[Element] = {
+  private def overviewLines(status: DaemonStatus): List[Line] = {
     val jvm = status.jvm
     val machine = status.machine
 
@@ -227,22 +257,25 @@ object ServerTopView {
       else collections.map(gc => s"${gc.name.replace("ZGC ", "")}: ${gc.count} runs taking ${gc.timeMs} ms").mkString("   ")
 
     List(
-      section("MEMORY — how much of its heap this server is using"),
-      bigGauge("Heap in use", ratio(jvm.heapUsedMb, jvm.heapMaxMb), s"${jvm.heapUsedMb} MB of ${jvm.heapMaxMb} MB"),
-      field("Retained", retained),
-      field("Committed", s"${jvm.heapCommittedMb} MB reserved from the OS, ${jvm.nonHeapUsedMb} MB outside the heap"),
-      field("Collections", gcSummary),
-      blank,
-      section("CAPACITY — what this server may spend on compiling"),
-      bigGauge("Compile slots", ratio(machine.usedCpu.toLong, machine.totalCpu.toLong), s"${machine.usedCpu} of ${machine.totalCpu} in use"),
-      bigGauge("Memory for forks", ratio(machine.usedMemoryMb, machine.totalMemoryMb), s"${machine.usedMemoryMb} MB of ${machine.totalMemoryMb} MB"),
-      field("Threads", s"${jvm.threads} alive, peak ${jvm.peakThreads}, ${jvm.daemonThreads} of them background"),
-      field("Processor", s"${pct(jvm.cpuProcess)} of the machine used by this server, ${pct(jvm.cpuSystem)} used in total"),
-      field("Open files", jvm.openFileDescriptors.map(count => s"$count file descriptors").getOrElse("not reported on this platform")),
-      blank,
-      section("WHAT IT IS KEEPING WARM — so the next build does not pay for it again"),
-      field("Builds", s"${status.buildCache.cachedWorkspaces.size} of ${status.buildCache.bound} workspaces cached"),
-      field(
+      statusLine(status),
+      fieldOf("Last activity", lastActivity(status)),
+      Line.empty(),
+      sectionOf("MEMORY — how much of its heap this server is using"),
+      gaugeLine("Heap in use", ratio(jvm.heapUsedMb, jvm.heapMaxMb), s"${jvm.heapUsedMb} MB of ${jvm.heapMaxMb} MB"),
+      fieldOf("Retained", retained),
+      fieldOf("Committed", s"${jvm.heapCommittedMb} MB reserved from the OS, ${jvm.nonHeapUsedMb} MB outside the heap"),
+      fieldOf("Collections", gcSummary),
+      Line.empty(),
+      sectionOf("CAPACITY — what this server may spend on compiling"),
+      gaugeLine("Compile slots", ratio(machine.usedCpu.toLong, machine.totalCpu.toLong), s"${machine.usedCpu} of ${machine.totalCpu} in use"),
+      gaugeLine("Memory for forks", ratio(machine.usedMemoryMb, machine.totalMemoryMb), s"${machine.usedMemoryMb} MB of ${machine.totalMemoryMb} MB"),
+      fieldOf("Threads", s"${jvm.threads} alive, peak ${jvm.peakThreads}, ${jvm.daemonThreads} of them background"),
+      fieldOf("Processor", s"${pct(jvm.cpuProcess)} of the machine used by this server, ${pct(jvm.cpuSystem)} used in total"),
+      fieldOf("Open files", jvm.openFileDescriptors.map(count => s"$count file descriptors").getOrElse("not reported on this platform")),
+      Line.empty(),
+      sectionOf("WHAT IT IS KEEPING WARM — so the next build does not pay for it again"),
+      fieldOf("Builds", s"${status.buildCache.cachedWorkspaces.size} of ${status.buildCache.bound} workspaces cached"),
+      fieldOf(
         "Compile analysis",
         s"${status.analysisCache.entries} entries, ${status.analysisCache.fileBytes / (1024 * 1024)} MB, " +
           s"${status.analysisCache.sharedAnalyses} shared between workspaces"
@@ -250,22 +283,52 @@ object ServerTopView {
     )
   }
 
-  private val blank: Element = text("", style(Palette.textDim))
-
-  /** A full-width bar with the label above the numbers beside it. Wider than the old inline gauge because these three are the ones worth seeing from across the
-    * room, and a 20-column bar cannot show the difference between 70% and 80%.
+  /** One sentence for what this server is doing, in the place the eye lands first.
+    *
+    * Everything else on this tab is a number you have to interpret; this says whether anything is happening at all, which is the question most visits are
+    * actually asking.
     */
-  private def bigGauge(label: String, value: Double, caption: String): Element =
-    row(
-      length(LabelWidth + 6, text(s"  $label", style(Palette.textDim))),
-      length(3, text(f"${(value * 100).toInt}%2d%%", bold(colorFor(value)))),
-      length(
-        34,
-        // Without an explicit empty label the widget prints its own percentage, which lands next to ours and disagrees about rounding.
-        Widgets.lineGauge(LineGaugeProps.of(value).withLabel("").withFilledStyle(style(colorFor(value))).withUnfilledStyle(style(Palette.border)))
-      ),
-      fill(1, text(s"  $caption", style(Palette.text)))
+  private def statusLine(status: DaemonStatus): Line = {
+    val machine = status.machine
+    val compiling = machine.active.map(_.label).distinct
+
+    val (summary, color) =
+      if (machine.active.nonEmpty) {
+        val what = if (compiling.size <= 3) compiling.mkString(", ") else s"${compiling.take(3).mkString(", ")} and ${compiling.size - 3} more"
+        val queued = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} waiting for capacity" else ""
+        (s"Building $what$queued", Palette.accent)
+      } else if (machine.waiting.nonEmpty) (s"${machine.waiting.size} operation(s) waiting for capacity", Palette.warning)
+      else if (status.connections.exists(!_.observer)) ("Idle, with a client connected", Palette.text)
+      else ("Idle, nobody connected", Palette.textDim)
+
+    boldLineOf(s"  $summary", color)
+  }
+
+  /** How long since the server last did anything for a real client — the same clock its idle shutdown counts down, so it also says how long it has left. */
+  private def lastActivity(status: DaemonStatus): String =
+    status.idleMs match {
+      case None       => "not reported by this server"
+      case Some(idle) =>
+        val timeout = status.config.compileServerIdleTimeoutMillis
+        val ago = if (idle < 1000) "just now" else s"${humanDuration(idle)} ago"
+        if (timeout <= 0) s"$ago (idle shutdown disabled)"
+        else if (status.connections.exists(!_.observer)) s"$ago — a client is connected, so the idle clock is not running"
+        else s"$ago — shuts down after ${humanDuration(timeout)} idle"
+    }
+
+  /** A bar drawn as text rather than with the gauge widget, so the whole pane can be one paragraph. Also lets the bar and its percentage share one colour. */
+  private def gaugeLine(label: String, value: Double, caption: String): Line = {
+    val width = 30
+    val filled = math.max(0, math.min(width, math.round(value * width).toInt))
+    val color = colorFor(value)
+    Line.from(
+      Span.styled(s"  ${label.padTo(LabelWidth + 4, ' ')}", style(Palette.textDim)),
+      Span.styled(f"${(value * 100).toInt}%3d%% ", bold(color)),
+      Span.styled("█" * filled, style(color)),
+      Span.styled("─" * (width - filled), style(Palette.border)),
+      Span.styled(s"  $caption", style(Palette.text))
     )
+  }
 
   /** Which workspaces this server is holding, and what each is doing — the answer to "whose build is this". */
   private def workspaceLines(status: DaemonStatus): List[Line] =
@@ -470,14 +533,6 @@ object ServerTopView {
     Line.from(Span.styled(s"  ${label.padTo(LabelWidth + 4, ' ')}", style(Palette.textDim)), Span.styled(value, style(Palette.text)))
 
   // ── building blocks ─────────────────────────────────────────────
-
-  private def section(title: String): Element = text(s" $title", bold(Palette.info))
-
-  private def field(label: String, value: String): Element =
-    row(
-      length(LabelWidth + 2, text(s"  $label", style(Palette.textDim))),
-      fill(1, text(value, style(Palette.text)))
-    )
 
   /** Green until it matters, amber while it fills, red when it is the reason something is slow. */
   private def colorFor(value: Double): jatatui.core.style.Color =

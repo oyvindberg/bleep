@@ -144,7 +144,13 @@ case class DaemonStatus(
     workspaces: List[WorkspaceDto],
     buildCache: BuildCacheDto,
     analysisCache: AnalysisCacheDto,
-    config: ServerConfigDto
+    config: ServerConfigDto,
+    /** How long since this server last did anything for a real client — the clock the idle shutdown counts down.
+      *
+      * `Option` so that a daemon from before this field existed still decodes: these responses cross versions in practice, since every locally deployed
+      * snapshot leaves the previous server running, and a missing field must read as "did not say" rather than failing the whole status.
+      */
+    idleMs: Option[Long]
 )
 
 object DaemonStatus {

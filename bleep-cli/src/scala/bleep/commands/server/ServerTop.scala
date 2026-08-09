@@ -15,7 +15,7 @@ case class ServerTop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opt
   override def run(): Either[BleepException, Unit] =
     FancyBuildDisplay.checkSupport match {
       case Right(()) =>
-        new tui.ServerTopLoop(logger, userPaths, currentWorkspace).run()
+        new tui.ServerTopLoop(userPaths, currentWorkspace).run()
         Right(())
       case Left(reason) =>
         logger.warn(s"$reason — showing the listing instead")

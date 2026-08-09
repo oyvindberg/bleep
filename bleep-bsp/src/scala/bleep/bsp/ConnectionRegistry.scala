@@ -72,6 +72,9 @@ class ConnectionRegistry(now: () => Long) {
 
   def idleForMs(nowMs: Long): Long = nowMs - lastActivityMs.get()
 
+  /** Idle time as of now, for reporting. The watchdog takes its own `now` so it can be tested; this is the convenience for handlers. */
+  def idleMs: Long = idleForMs(System.currentTimeMillis())
+
   def snapshot: List[ConnectionDto] =
     entries
       .values()

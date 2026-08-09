@@ -16,7 +16,8 @@ import java.nio.file.Path
   * Everything it decides is decided by [[ServerTopUpdate.update]] and everything it draws is drawn by [[ServerTopView]]; this owns the clock, the socket and
   * the keyboard, which is exactly the set of things a test should not have to own.
   */
-class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Option[Path]) {
+/** Takes no logger on purpose: anything written to stderr lands on the screen this is drawing, so every command it runs gets a storing logger instead. */
+class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
   import ServerTopState._
 
   private val PollIntervalMs = 1000L
@@ -220,16 +221,35 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
       .sortBy(row => (!row.isCurrent, !row.info.isRunning, row.hash))
   }
 
+  /** Run a command without letting it write to the terminal.
+    *
+    * The commands log their progress, and a logger writing to stderr goes straight to the screen the dashboard is drawing on — the line lands on top of
+    * whatever was there, corrupting the frame until the next full repaint. Observed when stopping a server that turned out to be from an older bleep: its
+    * "cannot report status" warning was painted across the server list.
+    *
+    * So the TUI hands the command a logger that stores instead of printing, and shows what it collected in the footer, where a message belongs.
+    */
   private def perform(action: Action, hash: String): String = {
+    val stored = ryddig.Loggers.storing()
+    val command = commandFor(action, hash, stored)
+
+    val outcome = command.run() match {
+      case Right(())       => s"${action.verb} $hash"
+      case Left(exception) => s"${action.verb} $hash failed: ${exception.message}"
+    }
+
+    // The last line the command logged is the informative one — "stopped", or why it could not be.
+    val lastMessage = stored.underlying.lastOption.map(_.message.plainText.trim).filter(_.nonEmpty)
+    lastMessage.fold(outcome)(message => s"$outcome: $message")
+  }
+
+  private def commandFor(action: Action, hash: String, logger: Logger): BleepCommand = {
     val command = action match {
       case Action.Kill =>
         ServerKill(logger, userPaths, List(hash), all = false, force = false, deleteDir = false, deprecatedAlias = None, currentWorkspace = currentWorkspace)
       case Action.Restart =>
         ServerRestart(logger, userPaths, List(hash), all = false, currentWorkspace = currentWorkspace)
     }
-    command.run() match {
-      case Right(())       => s"${action.verb} $hash: done"
-      case Left(exception) => s"${action.verb} $hash failed: ${exception.message}"
-    }
+    command
   }
 }

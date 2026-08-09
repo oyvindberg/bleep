@@ -65,7 +65,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       compileServerIdleTimeoutMillis = 60 * 60000L,
       testIdleTimeoutMinutes = 2,
       heapPressureThreshold = 0.8
-    )
+    ),
+    idleMs = Some(0L)
   )
 
   private def info(hash: String, state: ServerState): ServerDirInfo =
@@ -81,8 +82,10 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     ServerTopState.initial(NowMs).copy(rows = rows)
 
   /** Render at a fixed size and read the buffer back as plain text. */
-  private def draw(state: ServerTopState): String = {
-    val harness = new TestHarness(100, 30)
+  private def draw(state: ServerTopState): String = drawAt(state, width = 140)
+
+  private def drawAt(state: ServerTopState, width: Int): String = {
+    val harness = new TestHarness(width, 30)
     harness.render(ServerTopView.render(state, _ => ()))
     TestBackend.bufferView(harness.backend.buffer())
   }
@@ -120,6 +123,49 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
   test("box titles keep their spaces") {
     draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include(" servers ")
+  }
+
+  /** Four servers on a machine looks like a mistake until you can see that they differ in bleep version or JVM — which is exactly what puts them in different
+    * socket directories in the first place. The hash alone leaves that unanswerable without digging.
+    */
+  test("each row shows the things that make it a separate server") {
+    def withIdentity(hash: String, version: String, jvmVersion: String) = {
+      val base = running(hash, isCurrent = false)
+      val identity = bleep.bsp.ServerJson(
+        bleepVersion = version,
+        jvmName = "graalvm-community",
+        jvmVersion = jvmVersion,
+        javaBin = "/opt/jvm/bin/java",
+        javaOpts = Nil,
+        serverMainClass = "x",
+        command = Nil,
+        workingDir = "/tmp",
+        spawnedAtEpochMs = 1L
+      )
+      base.copy(info = base.info.copy(identity = Some(identity)))
+    }
+
+    val screen = draw(stateWith(List(withIdentity("aaaa1111", "1.0.0-M11", "25.0.1"), withIdentity("bbbb2222", "1.0.0-M10", "24.0.1"))))
+
+    screen should include("bleep version")
+    screen should include("1.0.0-M11")
+    screen should include("1.0.0-M10")
+    screen should include("graalvm-community 25.0.1")
+    screen should include("graalvm-community 24.0.1")
+  }
+
+  /** The row carries more columns than a narrow terminal can hold, and something has to be cut. It must never be the marker saying which server is yours,
+    * because that is the one a reader acts on.
+    */
+  test("on a narrow terminal the this-build marker survives, whatever else is cut") {
+    val screen = drawAt(stateWith(List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false))), width = 72)
+
+    screen should include("← this build")
+    screen should include("aaaa1111")
+  }
+
+  test("a server with nothing recorded says so in the version column rather than showing a blank") {
+    draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("unknown version")
   }
 
   test("the server list shows state, heap and uptime, and marks this build's server") {
@@ -517,7 +563,9 @@ class ServerTopTest extends AnyFunSuite with Matchers {
         "/opt/jvm/bin/java",
         "-cp",
         (1 to 202)
-          .map(index => s"/Users/dev/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/example/library-$index/1.2.3/library-$index-1.2.3.jar")
+          .map(index =>
+            s"/Users/dev/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/example/deeply/nested/group/library-$index/1.2.3/library-$index-1.2.3.jar"
+          )
           .mkString(":"),
         "x"
       ),
@@ -540,12 +588,13 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("the startup tab scrolls sideways, which is the only way to read a long path") {
-    val unscrolled = draw(startupState)
-    val sideways = draw(ServerTopUpdate.update(startupState, Msg.ScrollStartup(0, 24))._1)
+    // Narrow on purpose: sideways scrolling only means anything when the content is wider than the pane, and the offset is clamped to the overflow.
+    val unscrolled = drawAt(startupState, width = 80)
+    val sideways = drawAt(ServerTopUpdate.update(startupState, Msg.ScrollStartup(0, 24))._1, width = 80)
 
     sideways should not be unscrolled
     withClue("shifting right should cut off the start of each path: ") {
-      sideways should not include "/Users/dev/Library/Caches"
+      sideways should not include "/Users/dev/Library/Caches/Coursier/v1"
     }
   }
 
@@ -610,6 +659,17 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     }
   }
 
+  /** A container solves one layout constraint per child, and given more children than rows it drops one from the middle rather than clipping the end. The
+    * CAPACITY heading vanished exactly that way, between a blank line and the row below it, which reads as a rendering glitch rather than a bug.
+    */
+  test("every section heading survives a pane shorter than its content") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+
+    screen should include("MEMORY —")
+    screen should include("CAPACITY —")
+    screen should include("WHAT IT IS KEEPING WARM")
+  }
+
   test("the heap gauge prints its percentage once") {
     val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
     val heapLine = screen.linesIterator.find(_.contains("Heap in use")).getOrElse(fail("no heap row"))
@@ -617,6 +677,47 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     withClue(s"the widget prints its own label unless silenced: $heapLine ") {
       "%".r.findAllIn(heapLine).size shouldBe 1
     }
+  }
+
+  test("the overview leads with one sentence about what the server is doing") {
+    val idle = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    idle should include("Idle")
+
+    val compiling = MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)
+    val busy = draw(stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))))
+    busy should include("Building bleep-core")
+  }
+
+  test("a queue with nothing running says so rather than reading as idle") {
+    val row = running("aaaa1111", isCurrent = true)
+    val queued = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(waiting = List(MachineEntryDto("Compile", "x", 1, 1, 1))))))
+
+    draw(stateWith(List(queued))) should include("waiting for capacity")
+  }
+
+  test("last activity says how long ago, and what the idle clock is doing about it") {
+    val row = running("aaaa1111", isCurrent = true)
+    val idleAWhile = row.copy(status = row.status.map(_.copy(idleMs = Some(300000L), connections = Nil)))
+
+    val screen = draw(stateWith(List(idleAWhile)))
+    screen should include("5m0s ago")
+    withClue("the same clock drives the idle shutdown, so say what it will do: ") {
+      screen should include("shuts down after")
+    }
+  }
+
+  test("a connected client stops the idle clock, and the overview says that rather than counting up misleadingly") {
+    val row = running("aaaa1111", isCurrent = true)
+    val withClient = row.copy(status = row.status.map(_.copy(idleMs = Some(300000L))))
+
+    draw(stateWith(List(withClient))) should include("idle clock is not running")
+  }
+
+  test("a server too old to report idle time says so instead of showing zero") {
+    val row = running("aaaa1111", isCurrent = true)
+    val old = row.copy(status = row.status.map(_.copy(idleMs = None)))
+
+    draw(stateWith(List(old))) should include("not reported by this server")
   }
 
   test("the overview explains what it is measuring rather than abbreviating it") {
