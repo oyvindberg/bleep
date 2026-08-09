@@ -40,7 +40,15 @@ object AdminError {
 object ServerAdminClient {
 
   private val ContentLength = "Content-Length:"
+
+  /** JSON-RPC's own "no such method". What a daemon that knows the gate but not the method would ideally say. */
   private val MethodNotFound = -32601
+
+  /** What a pre-admin daemon actually says, and the reason this is not just MethodNotFound: its dispatch rejects everything except `build/initialize` *before*
+    * looking at the method name, so an unknown admin method comes back as "Server not initialized" rather than "method not found". A current daemon can never
+    * answer an admin method this way — they are exempt from that gate — so on these methods the code unambiguously means "too old".
+    */
+  private val ServerNotInitialized = -32002
 
   /** `observer = true` always: reading a daemon's status must never extend its life or reset its idle clock. */
   def status(socketDir: Path): Either[AdminError, DaemonStatus] =
@@ -80,7 +88,8 @@ object ServerAdminClient {
             case Some(err) =>
               val code = err.hcursor.get[Int]("code").getOrElse(0)
               val msg = err.hcursor.get[String]("message").getOrElse(err.noSpaces)
-              if (code == MethodNotFound) Left(AdminError.TooOld(socketDir)) else Left(AdminError.Failed(socketDir, msg))
+              if (code == MethodNotFound || code == ServerNotInitialized) Left(AdminError.TooOld(socketDir))
+              else Left(AdminError.Failed(socketDir, msg))
             case None =>
               json.hcursor.downField("result").focus match {
                 case Some(result) => Right(result)

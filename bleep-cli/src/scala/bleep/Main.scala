@@ -75,7 +75,7 @@ object Main {
       importMavenCmd(buildPaths, logger),
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
-      serverCommand(logger, userPaths),
+      serverCommand(userPaths).map(mkCommand => mkCommand(logger)),
       Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
         (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => commands.ServerMetrics(logger, userPaths, pid, file))
       )
@@ -85,15 +85,19 @@ object Main {
     *
     * Present in both command trees on purpose: daemons are user-global, not per-build. Being unable to list or kill your servers from a directory that happens
     * to have no bleep.yaml would be exactly backwards, since a stray daemon is most annoying when you are not in the project it belongs to.
+    *
+    * Yields a `Logger => BleepCommand` rather than a finished command because a `Started` carries a `StoringLogger` while decline is still parsing, and only
+    * swaps in the real one to run the command (see `Started.withLogger` and [[runBuildCommand]]). A command that captured the logger when its `Opts` were built
+    * would write every line into the void.
     */
-  def serverCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
+  def serverCommand(userPaths: UserPaths): Opts[Logger => BleepCommand] =
     Opts.subcommand("server", "inspect and control the compile servers (bsp daemons) running on this machine")(
-      List(
+      List[Opts[Logger => BleepCommand]](
         Opts.subcommand("ls", "list every compile server on this machine, running or not")(
-          outputMode.map(mode => commands.server.ServerLs(logger, userPaths, mode))
+          outputMode.map(mode => (logger: Logger) => commands.server.ServerLs(logger, userPaths, mode))
         ),
         Opts.subcommand("status", "detailed status for one compile server")(
-          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) => commands.server.ServerStatus(logger, userPaths, id, mode))
+          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) => (logger: Logger) => commands.server.ServerStatus(logger, userPaths, id, mode))
         )
       ).foldK
     )
@@ -554,7 +558,12 @@ object Main {
           },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
-          serverCommand(started.pre.logger, started.pre.userPaths),
+          serverCommand(started.pre.userPaths).map(mkCommand =>
+            new BleepBuildCommand {
+              // The logger arrives with `started` at run time — capturing it earlier would capture the StoringLogger used during parsing.
+              override def run(started: Started): Either[BleepException, Unit] = mkCommand(started.logger).run()
+            }
+          ),
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
             (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) =>
               commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, file)

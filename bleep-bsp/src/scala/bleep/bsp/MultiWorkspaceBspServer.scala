@@ -640,8 +640,14 @@ class MultiWorkspaceBspServer(
     def entry(e: MachineResources.Entry): MachineEntryDto =
       MachineEntryDto(kind = e.kind.toString, label = e.label, cpu = e.cpu, memoryMb = e.memoryMb, ageMs = e.ageMs)
 
-    val workspaces = BspServerDaemon.getWorkspaces.toList.sortBy(_.toString).map { workspace =>
-      val operations = SharedWorkspaceState.getActiveOperations(workspace).map { work =>
+    // Union of two views that genuinely disagree, and a daemon serving a workspace should appear either way: `workspaces` holds what was explicitly registered
+    // (daemon args, bleep/registerWorkspace), while the build cache holds whatever a client has actually shipped a build for. Listing only the former showed
+    // "no workspaces" on a daemon that had just compiled one.
+    val registered = BspServerDaemon.getWorkspaces.map(_.toString).toList
+    val allWorkspaces = (registered ++ cachedWorkspaces).distinct.sorted
+
+    val workspaces = allWorkspaces.map { path =>
+      val operations = SharedWorkspaceState.getActiveOperations(java.nio.file.Paths.get(path)).map { work =>
         OperationDto(
           operationId = work.operationId,
           operation = work.operation,
@@ -649,11 +655,7 @@ class MultiWorkspaceBspServer(
           startedAgoMs = nowMs - work.startTimeMs
         )
       }
-      WorkspaceDto(
-        path = workspace.toString,
-        buildCached = cachedWorkspaces.contains(workspace.toString),
-        activeOperations = operations
-      )
+      WorkspaceDto(path = path, buildCached = cachedWorkspaces.contains(path), activeOperations = operations)
     }
 
     DaemonStatus(
