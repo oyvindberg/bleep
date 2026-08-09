@@ -76,7 +76,7 @@ object Main {
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
       serverCommand(userPaths, currentWorkspace = None).map(mkCommand => mkCommand(logger)),
-      Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+      Opts.subcommand("server-metrics", "(deprecated: use `bleep server metrics`) open BSP server metrics dashboard in browser")(
         (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => commands.ServerMetrics(logger, userPaths, pid, file))
       )
     ).foldK
@@ -98,6 +98,37 @@ object Main {
         ),
         Opts.subcommand("status", "detailed status for one compile server")(
           (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) => (logger: Logger) => commands.server.ServerStatus(logger, userPaths, id, mode))
+        ),
+        Opts.subcommand("kill", "stop compile servers — gracefully over the protocol, escalating only if that does not work")(
+          (
+            Opts.arguments[String]("id").orEmpty,
+            Opts.flag("all", "stop every compile server on this machine").orFalse,
+            Opts.flag("force", "skip the graceful path: kill immediately and delete the socket directory").orFalse
+          ).mapN { (ids, all, force) => (logger: Logger) =>
+            commands.server.ServerKill(logger, userPaths, ids, all = all, force = force, deleteDir = force, deprecatedAlias = None)
+          }
+        ),
+        Opts.subcommand("stop-all", "force-stop every compile server and delete its socket directory")(
+          // Deliberately keeps the force-and-delete behaviour `bleep config compile-server stop-all` has always had, since it lives in people's scripts and
+          // muscle memory. `kill --all` is the graceful counterpart.
+          Opts.unit.map(_ =>
+            (logger: Logger) => commands.server.ServerKill(logger, userPaths, Nil, all = true, force = true, deleteDir = true, deprecatedAlias = None)
+          )
+        ),
+        Opts.subcommand("log", "print a compile server's log; -f to follow")(
+          (
+            Opts.argument[String]("id").orNone,
+            Opts.option[Int]("lines", "how many lines to print (default 100)", "n").withDefault(100),
+            Opts.flag("follow", "keep printing as the log grows", "f").orFalse,
+            Opts
+              .option[Int]("generation", "0 = current log, 1 or 2 = rotated (a crashed daemon's log is usually here)")
+              .withDefault(0)
+          ).mapN { (id, lines, follow, generation) => (logger: Logger) =>
+            commands.server.ServerLog(logger, userPaths, id, lines, follow, generation)
+          }
+        ),
+        Opts.subcommand("metrics", "open the compile server metrics dashboard in a browser")(
+          (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => (logger: Logger) => commands.ServerMetrics(logger, userPaths, pid, file))
         )
       ).foldK
     )
@@ -564,7 +595,7 @@ object Main {
               override def run(started: Started): Either[BleepException, Unit] = mkCommand(started.logger).run()
             }
           ),
-          Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+          Opts.subcommand("server-metrics", "(deprecated: use `bleep server metrics`) open BSP server metrics dashboard in browser")(
             (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) =>
               commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, file)
             )
@@ -753,9 +784,18 @@ object Main {
                 commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
               }
             ),
-            Opts.subcommand("stop-all", "stop every shared compile server currently running")(
+            Opts.subcommand("stop-all", "(deprecated: use `bleep server stop-all`) stop every shared compile server currently running")(
               Opts {
-                commands.CompileServerStopAll(logger, userPaths)
+                // Same implementation, one line of warning. Kept working for two releases because it is in scripts and muscle memory; removal is M13.
+                commands.server.ServerKill(
+                  logger,
+                  userPaths,
+                  Nil,
+                  all = true,
+                  force = true,
+                  deleteDir = true,
+                  deprecatedAlias = Some("bleep config compile-server stop-all")
+                )
               }
             ),
             Opts.subcommand[BleepCommand]("max-memory", "set max heap for compile server JVM (e.g. 4g, 2048m)")(
