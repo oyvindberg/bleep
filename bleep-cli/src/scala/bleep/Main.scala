@@ -20,7 +20,11 @@ object Main {
   // Install SIGINFO handler on macOS (Ctrl+T) for thread dumps
   if (Properties.isMac) {
     try
-      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => internal.ChildProcessDiagnostics.dumpAll(System.err)): Unit
+      sun.misc.Signal
+        .handle(
+          new sun.misc.Signal("INFO"),
+          (_: sun.misc.Signal) => internal.ChildProcessDiagnostics.dumpAll(System.err, jvmBinDirs = Nil, extraPids = Nil)
+        ): Unit
     catch {
       case _: Exception => // Signal handling not available
     }
