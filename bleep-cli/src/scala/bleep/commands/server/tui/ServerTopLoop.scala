@@ -21,7 +21,8 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
 
   private val PollIntervalMs = 1000L
   private val InputPollNanos = 100_000_000 // 100ms, so a keystroke never waits on the data tick
-  private val LogTailLines = 200
+  private val LogTailLines = 500
+  private val LogPollIntervalMs = 250L
 
   def run(): Unit = {
     val terminal: Terminal[CrosstermBackend] = Jatatui.init()
@@ -35,6 +36,7 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
       var state = ServerTopUpdate.update(initialState(), Msg.Refreshed(scan(), System.currentTimeMillis()))._1
       state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
       var lastPoll = System.currentTimeMillis()
+      var lastLogPoll = lastPoll
 
       // Clicks arrive while the element tree is being built, so they land here and are applied on the next turn of the loop, exactly like keystrokes.
       val clicked = new java.util.concurrent.ConcurrentLinkedQueue[Msg]()
@@ -52,7 +54,10 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
           pendingClick = clicked.poll()
         }
 
-        if (jni.poll(new _root_.tui.crossterm.Duration(0, InputPollNanos)))
+        // Drain every pending event before drawing again. A mouse wheel emits events far faster than a frame takes to render, so handling one per frame makes
+        // the pane fall further and further behind until it looks frozen — the build display learned the same lesson about scroll lag.
+        var hasEvent = jni.poll(new _root_.tui.crossterm.Duration(0, InputPollNanos))
+        while (hasEvent && !state.quit) {
           jni.read() match {
             case key: _root_.tui.crossterm.Event.Key =>
               keyPress(key).foreach { press =>
@@ -68,11 +73,31 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
             case _ => ()
           }
 
+          var queued = clicked.poll()
+          while (queued != null) {
+            val before = state.selectedRow.map(_.hash)
+            state = applyMsg(state, queued)
+            if (state.selectedRow.map(_.hash) != before) state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
+            queued = clicked.poll()
+          }
+
+          hasEvent = jni.poll(new _root_.tui.crossterm.Duration(0, 0))
+        }
+
         val now = System.currentTimeMillis()
+
+        // The log gets its own, faster cadence: status is a round trip per server, the log is a seek to the end of one file, and a log you are watching should
+        // move at something closer to the speed it is being written.
+        if (state.tab == ServerTopState.Tab.Log && now - lastLogPoll >= LogPollIntervalMs) {
+          state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
+          lastLogPoll = now
+        }
+
         if (now - lastPoll >= PollIntervalMs) {
           state = ServerTopUpdate.update(state, Msg.Refreshed(scan(), now))._1
           state = ServerTopUpdate.update(state, Msg.LogTail(tailOfSelectedLog(state)))._1
           lastPoll = now
+          lastLogPoll = now
         }
       }
     } finally Jatatui.restore()
@@ -97,7 +122,7 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
     */
   private def tailOfSelectedLog(state: ServerTopState): List[String] =
     state.selectedRow match {
-      case None => Nil
+      case None      => Nil
       case Some(row) =>
         val file = row.info.socketDir.resolve("output")
         if (!java.nio.file.Files.exists(file)) Nil

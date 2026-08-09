@@ -12,8 +12,12 @@ import jatatui.core.layout.Flex
 import jatatui.core.style.Style
 import jatatui.react.Components._
 import jatatui.react.Element
+import jatatui.core.text.{Line, Span, Text}
 import jatatui.widgets.Borders
 import jatatui.widgets.block.Block
+import jatatui.widgets.paragraph.Paragraph
+
+import scala.jdk.CollectionConverters._
 
 import java.time.Duration
 
@@ -174,12 +178,12 @@ object ServerTopView {
               case Tab.Overview   => overview(status)
               case Tab.Workspaces => workspaces(status)
               case Tab.Activity   => activity(status)
-              case Tab.Log        => logTail(state)
+              case Tab.Log        => Nil // rendered by its own pane, which needs to know its height
               case Tab.Config     => config(status, row.info.identity)
             }
             column(
               length(1, tabBar(state, dispatch)),
-              fill(1, packed("", lines))
+              fill(1, if (state.tab == Tab.Log) logPane(state, dispatch) else packed("", lines))
             )
         }
     }
@@ -279,20 +283,69 @@ object ServerTopView {
       List(section(s"CLIENTS · ${status.connections.size} connected")) ++ clients
   }
 
-  /** The tail of the server's own log, read from disk by the loop. Reading the file rather than streaming it is what makes this work on a server that has just
-    * died — see `bleep server log`, which does the same thing.
+  /** The tail of the server's own log, scrollable, with a scrollbar.
+    *
+    * Rendered as one paragraph rather than one element per line. The layout solver runs over every child of a container, so a few hundred children cost a
+    * constraint solve per frame at ten frames a second — which is what made this pane stutter and then stop responding. One widget, one solve.
+    *
+    * Sizing needs the pane's real height, which only the render context knows, so this is a component rather than a plain element.
     */
-  private def logTail(state: ServerTopState): List[Element] =
-    if (state.logTail.isEmpty) List(text("  no log yet", style(Palette.textDim)))
-    else
-      state.logTail.map { line =>
-        // The daemon logs at info and warn; colouring by level is what makes a wall of log skimmable.
-        val color =
-          if (line.contains("[error]") || line.contains("ERROR")) Palette.error
-          else if (line.contains("[warn ]") || line.contains("WARN")) Palette.warning
-          else Palette.textMuted
-        text(s"  $line", style(color))
+  private def logPane(state: ServerTopState, dispatch: Msg => Unit): Element =
+    component { ctx =>
+      ctx.onScroll { event =>
+        val delta = event.kind match {
+          case jatatui.react.MouseEvent.Kind.SCROLL_UP   => 3
+          case jatatui.react.MouseEvent.Kind.SCROLL_DOWN => -3
+          case _                                         => 0
+        }
+        if (delta != 0) dispatch(Msg.ScrollLog(delta))
       }
+
+      val height = ctx.area().map[Int](area => math.max(1, area.height - 2)).orElse(20)
+      val total = state.logTail.length
+      val end = math.max(0, total - state.logScrollFromBottom)
+      val visible = state.logTail.slice(math.max(0, end - height), end)
+
+      val body =
+        if (state.logTail.isEmpty) Paragraph.of(Text.raw("  no log yet")).withStyle(style(Palette.textDim))
+        else Paragraph.of(Text.fromLines(visible.map(logLine).asJava))
+
+      val title = if (state.followingLog) " log — following " else f" log — ${state.logScrollFromBottom}%d lines back "
+      box(
+        title,
+        Borders.ALL,
+        row(
+          fill(1, widget(body)),
+          length(1, widget(scrollbar(total, end, height)))
+        )
+      )
+    }
+
+  /** Coloured by level, so a wall of log is skimmable rather than uniform. */
+  private def logLine(line: String): Line = {
+    val color =
+      if (line.contains("[error]") || line.contains("ERROR")) Palette.error
+      else if (line.contains("[warn ]") || line.contains("WARN")) Palette.warning
+      else Palette.textMuted
+    Line.from(Span.styled(line, style(color)))
+  }
+
+  /** A plain track with a proportional thumb. Drawn here rather than with the stateful scrollbar widget because the position is already in the state, and this
+    * keeps the pane a pure function of it.
+    */
+  private def scrollbar(total: Int, end: Int, height: Int): jatatui.core.widgets.Widget =
+    if (total <= height) Paragraph.of(Text.fromLines(List.fill(height)(Line.from(Span.styled("│", style(Palette.border)))).asJava))
+    else {
+      val thumbSize = math.max(1, (height.toDouble / total * height).toInt)
+      val maxStart = math.max(1, total - height)
+      val position = math.max(0, end - height).toDouble / maxStart
+      val thumbStart = math.min(height - thumbSize, math.round(position * (height - thumbSize)).toInt)
+      val cells = (0 until height).map { index =>
+        val inThumb = index >= thumbStart && index < thumbStart + thumbSize
+        Line.from(Span.styled(if (inThumb) "┃" else "│", style(if (inThumb) Palette.info else Palette.border)))
+      }
+      Paragraph.of(Text.fromLines(cells.toList.asJava))
+    }
 
   private def config(status: DaemonStatus, identity: Option[bleep.bsp.ServerJson]): List[Element] = {
     val booted = status.config
@@ -316,7 +369,7 @@ object ServerTopView {
     */
   private def startup(identity: Option[bleep.bsp.ServerJson]): List[Element] =
     identity match {
-      case None => List(section("STARTED WITH"), text("  unknown — this server predates the recorded launch command", style(Palette.textDim)))
+      case None       => List(section("STARTED WITH"), text("  unknown — this server predates the recorded launch command", style(Palette.textDim)))
       case Some(json) =>
         val classpath = classpathOf(json.command)
         List(

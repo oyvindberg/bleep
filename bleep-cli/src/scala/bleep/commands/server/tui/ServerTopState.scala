@@ -30,10 +30,17 @@ case class ServerTopState(
     pending: Option[ServerTopState.Confirm],
     message: Option[String],
     logTail: List[String],
+    /** How far back from the newest line the log is scrolled. Counted from the bottom, not the top, because the interesting end of a log is the end: at 0 the
+      * view follows new lines, and it stays followed however many arrive.
+      */
+    logScrollFromBottom: Int,
     nowMs: Long,
     quit: Boolean
 ) {
   def selectedRow: Option[ServerRow] = rows.lift(selected)
+
+  /** True while the log view is pinned to the newest line, which is where it starts and where it returns when you scroll back down. */
+  def followingLog: Boolean = logScrollFromBottom == 0
 }
 
 object ServerTopState {
@@ -74,6 +81,9 @@ object ServerTopState {
       */
     case class SelectRow(index: Int) extends Msg
     case class SelectTab(tab: Tab) extends Msg
+
+    /** Positive scrolls back into history, negative returns towards the newest line. */
+    case class ScrollLog(delta: Int) extends Msg
   }
 
   /** The keys the dashboard reacts to, named rather than passed through as crossterm events, so `update` never touches the terminal library. */
@@ -91,7 +101,17 @@ object ServerTopState {
   }
 
   def initial(nowMs: Long): ServerTopState =
-    ServerTopState(rows = Nil, selected = 0, tab = Tab.Overview, pending = None, message = None, logTail = Nil, nowMs = nowMs, quit = false)
+    ServerTopState(
+      rows = Nil,
+      selected = 0,
+      tab = Tab.Overview,
+      pending = None,
+      message = None,
+      logTail = Nil,
+      logScrollFromBottom = 0,
+      nowMs = nowMs,
+      quit = false
+    )
 
   /** A side effect the loop should perform. Returned rather than done, so `update` stays a pure function of state and message. */
   sealed trait Effect
@@ -115,14 +135,20 @@ object ServerTopUpdate {
       (state.copy(message = Some(message), pending = None), Nil)
 
     case Msg.SelectRow(index) =>
-      // A click while a confirmation is up dismisses it: the prompt names one server, and pointing at another plainly means "not that one".
-      (state.copy(selected = clamp(index, state.rows.length), message = None, pending = None), Nil)
+      // A click while a confirmation is up dismisses it: the prompt names one server, and pointing at another plainly means "not that one". A different server
+      // means a different log, so the view goes back to following.
+      (state.copy(selected = clamp(index, state.rows.length), message = None, pending = None, logScrollFromBottom = 0), Nil)
 
     case Msg.SelectTab(tab) =>
       (state.copy(tab = tab), Nil)
 
     case Msg.LogTail(lines) =>
-      (state.copy(logTail = lines), Nil)
+      // Scrolled-back readers keep their place as new lines arrive; followers stay pinned to the end. Without this, tailing a busy server would drag the view
+      // out from under anyone trying to read it.
+      (state.copy(logTail = lines, logScrollFromBottom = clamp(state.logScrollFromBottom, lines.length)), Nil)
+
+    case Msg.ScrollLog(delta) =>
+      (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom + delta, state.logTail.length)), Nil)
 
     case Msg.Key(key) =>
       state.pending match {
@@ -140,14 +166,17 @@ object ServerTopUpdate {
 
         case None =>
           key match {
-            case KeyPress.Quit              => (state.copy(quit = true), Nil)
-            case KeyPress.Up                => (state.copy(selected = clamp(state.selected - 1, state.rows.length), message = None), Nil)
-            case KeyPress.Down              => (state.copy(selected = clamp(state.selected + 1, state.rows.length), message = None), Nil)
-            case KeyPress.NextTab           => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
-            case KeyPress.PrevTab           => (state.copy(tab = shiftTab(state.tab, -1)), Nil)
-            case KeyPress.Kill              => (confirming(state, Action.Kill), Nil)
-            case KeyPress.Restart           => (confirming(state, Action.Restart), Nil)
-            case KeyPress.Yes | KeyPress.No => (state, Nil)
+            case KeyPress.Quit => (state.copy(quit = true), Nil)
+            // On the Log tab the arrows scroll the log, which is what they are for when a log is what you are looking at. Rows stay selectable by clicking.
+            case KeyPress.Up if state.tab == Tab.Log   => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom + 1, state.logTail.length)), Nil)
+            case KeyPress.Down if state.tab == Tab.Log => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom - 1, state.logTail.length)), Nil)
+            case KeyPress.Up                           => (state.copy(selected = clamp(state.selected - 1, state.rows.length), message = None), Nil)
+            case KeyPress.Down                         => (state.copy(selected = clamp(state.selected + 1, state.rows.length), message = None), Nil)
+            case KeyPress.NextTab                      => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
+            case KeyPress.PrevTab                      => (state.copy(tab = shiftTab(state.tab, -1)), Nil)
+            case KeyPress.Kill                         => (confirming(state, Action.Kill), Nil)
+            case KeyPress.Restart                      => (confirming(state, Action.Restart), Nil)
+            case KeyPress.Yes | KeyPress.No            => (state, Nil)
           }
       }
   }

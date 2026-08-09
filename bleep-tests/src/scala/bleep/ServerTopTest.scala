@@ -363,6 +363,75 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     draw(state.copy(logTail = List("[info ] compiling bleep-core", "[error] boom"))) should include("compiling bleep-core")
   }
 
+  private def logState(lines: Int): ServerTopState =
+    stateWith(List(running("aaaa1111", isCurrent = true)))
+      .copy(tab = Tab.Log, logTail = (1 to lines).map(index => s"line $index").toList)
+
+  test("the log follows the newest line, and says so") {
+    val screen = draw(logState(500))
+
+    screen should include("following")
+    withClue("following means the end of the log is what you see: ") {
+      screen should include("line 500")
+      screen should not include "line 1 "
+    }
+  }
+
+  test("scrolling back shows older lines and stops following") {
+    val scrolled = ServerTopUpdate.update(logState(500), Msg.ScrollLog(100))._1
+    scrolled.followingLog shouldBe false
+
+    val screen = draw(scrolled)
+    screen should include("100 lines back")
+    screen should include("line 400")
+    screen should not include "line 500"
+  }
+
+  test("new lines arriving do not drag the view out from under someone reading history") {
+    val scrolled = ServerTopUpdate.update(logState(500), Msg.ScrollLog(100))._1
+    val grown = ServerTopUpdate.update(scrolled, Msg.LogTail((1 to 600).map(index => s"line $index").toList))._1
+
+    withClue("the reader stays where they were, counted from the end: ") {
+      grown.logScrollFromBottom shouldBe 100
+      draw(grown) should include("line 500")
+    }
+  }
+
+  test("scrolling back to the bottom resumes following") {
+    val scrolled = ServerTopUpdate.update(logState(500), Msg.ScrollLog(50))._1
+    val returned = ServerTopUpdate.update(scrolled, Msg.ScrollLog(-50))._1
+
+    returned.followingLog shouldBe true
+    draw(returned) should include("following")
+  }
+
+  test("scrolling cannot run past either end of the log") {
+    val state = logState(20)
+
+    ServerTopUpdate.update(state, Msg.ScrollLog(-5))._1.logScrollFromBottom shouldBe 0
+    ServerTopUpdate.update(state, Msg.ScrollLog(9999))._1.logScrollFromBottom shouldBe 19
+  }
+
+  test("the log has a scrollbar, with a thumb that is not the whole track") {
+    val screen = draw(logState(500))
+
+    screen should include("┃")
+    screen should include("│")
+  }
+
+  test("arrows scroll the log while it is open, and select servers everywhere else") {
+    val onLog = logState(500)
+    press(onLog, KeyPress.Up).logScrollFromBottom shouldBe 1
+
+    val onOverview = stateWith(List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false)))
+    press(onOverview, KeyPress.Down).selected shouldBe 1
+  }
+
+  test("choosing another server shows its log from the end, not the previous one's position") {
+    val scrolled = ServerTopUpdate.update(logState(500), Msg.ScrollLog(100))._1
+    ServerTopUpdate.update(scrolled, Msg.SelectRow(0))._1.logScrollFromBottom shouldBe 0
+  }
+
   test("the config tab shows how the server was launched, including its classpath") {
     val identity = bleep.bsp.ServerJson(
       bleepVersion = "1.0.0-M11",
