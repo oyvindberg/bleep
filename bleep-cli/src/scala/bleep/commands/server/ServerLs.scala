@@ -18,24 +18,32 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
   /** One row per socket directory, paired with whatever the daemon would say about itself. Queried once and reused for both the "is this mine" test and the
     * rendering, so `ls` opens at most one connection per running daemon.
     */
-  private case class Row(info: ServerDirInfo, status: Option[bleep.bsp.protocol.DaemonStatus], error: Option[bleep.bsp.AdminError]) {
+  private case class Row(info: ServerDirInfo, status: Option[bleep.bsp.protocol.DaemonStatus], error: Option[bleep.bsp.AdminError], isCurrent: Boolean) {
 
-    /** Serves the build you are standing in. Answered from what the daemon reports it is serving rather than by re-deriving its JVM-key hash: the daemon's own
-      * account is the truth, and it stays right even when config has drifted since it started.
+    /** Holds this workspace, but is not the server this build would use — an older bleep that compiled here at some point. Worth saying, because it explains
+      * why its heap is not small, but it must not be confused with yours.
       */
-    def isCurrent: Boolean =
-      currentWorkspace.exists(cwd => status.exists(_.workspaces.exists(_.path == cwd.toString)))
+    def alsoHasWorkspace: Boolean =
+      !isCurrent && currentWorkspace.exists(cwd => status.exists(_.workspaces.exists(_.path == cwd.toString)))
   }
 
   override def run(): Either[BleepException, Unit] = {
-    val rows = ServerDirs.scan(userPaths).map { info =>
-      if (!info.isRunning) Row(info, None, None)
+    val queried = ServerDirs.scan(userPaths).map { info =>
+      if (!info.isRunning) (info, None, None)
       else
         ServerAdminClient.status(info.socketDir) match {
-          case Right(status) => Row(info, Some(status), None)
-          case Left(err)     => Row(info, None, Some(err))
+          case Right(status) => (info, Some(status), None)
+          case Left(err)     => (info, None, Some(err))
         }
     }
+
+    // Exactly one server can be the one this build talks to, however many have the workspace loaded.
+    val holders = currentWorkspace.toList.flatMap { cwd =>
+      queried.collect { case (info, Some(status), _) if status.workspaces.exists(_.path == cwd.toString) => (info.hash, info.identity.map(_.bleepVersion)) }
+    }
+    val currentHash = ServerDirs.currentAmong(holders, bleep.model.BleepVersion.current.value)
+
+    val rows = queried.map { case (info, status, error) => Row(info, status, error, isCurrent = currentHash.contains(info.hash)) }
 
     // Yours first — it is the one you almost always came to look at.
     val ordered = rows.sortBy(row => (!row.isCurrent, !row.info.isRunning, row.info.hash))
@@ -95,7 +103,10 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
           case _                   => "◇"
         }
         // The one serving the directory you are standing in. Everything else on the machine is someone else's daemon, or a leftover.
-        val current = if (row.isCurrent) " ← this build" else ""
+        val current =
+          if (row.isCurrent) " ← this build"
+          else if (row.alsoHasWorkspace) " (also has this workspace)"
+          else ""
         val head = s"$marker ${info.hash}  ${info.state.label}  ${info.bleepVersion}  ${info.jvm}$current"
 
         val detail = row.status match {

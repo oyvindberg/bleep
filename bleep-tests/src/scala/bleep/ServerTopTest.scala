@@ -137,9 +137,9 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   test("the overview keeps the live set distinct from heap used, which is the number that says retaining vs churning") {
     val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
 
-    screen should include("live set")
-    screen should include("128MB")
-    screen should include("fds 383")
+    screen should include("Retained")
+    screen should include("128 MB still held")
+    screen should include("383 file descriptors")
     screen should include("Major Cycles")
   }
 
@@ -148,8 +148,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val unsupported = row.copy(status = row.status.map(s => s.copy(jvm = s.jvm.copy(heapLiveMb = -1L, openFileDescriptors = None))))
 
     val screen = draw(stateWith(List(unsupported)))
-    screen should include("live set      n/a")
-    screen should include("fds n/a")
+    screen should include("not reported by this JVM")
+    screen should include("not reported on this platform")
   }
 
   test("a server that cannot be asked shows the reason instead of an empty pane") {
@@ -351,9 +351,9 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     press(state, KeyPress.NextTab).tab shouldBe Tab.Workspaces
     withClue("wrapping backwards beats doing nothing at the left edge: ") {
-      press(state, KeyPress.PrevTab).tab shouldBe Tab.all.last
+      press(state, KeyPress.Left).tab shouldBe Tab.all.last
     }
-    press(press(state, KeyPress.NextTab), KeyPress.PrevTab).tab shouldBe Tab.Overview
+    press(press(state, KeyPress.NextTab), KeyPress.Left).tab shouldBe Tab.Overview
   }
 
   test("the log tab shows the tail the loop read, and says so when there is none") {
@@ -446,9 +446,9 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     )
     val row = running("aaaa1111", isCurrent = true)
     val withIdentity = row.copy(info = row.info.copy(identity = Some(identity)))
-    val screen = draw(stateWith(List(withIdentity)).copy(tab = Tab.Config))
+    val screen = draw(stateWith(List(withIdentity)).copy(tab = Tab.Startup))
 
-    screen should include("STARTED WITH")
+    screen should include("HOW THIS SERVER WAS STARTED")
     screen should include("/opt/jvm/bin/java")
     screen should include("-Xmx12g")
     withClue("the classpath is the answer to 'why is this server behaving like another version': ") {
@@ -477,7 +477,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       spawnedAtEpochMs = 1L
     )
     val row = running("aaaa1111", isCurrent = true)
-    val state = stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Config)
+    val state = stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Startup)
 
     draw(state) // warm up, so the measurement is not dominated by first-render setup
     val startedAt = System.nanoTime()
@@ -491,7 +491,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("a server with no recorded launch command says so rather than showing an empty section") {
-    draw(stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Config)) should include("predates the recorded launch command")
+    draw(stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Startup)) should include("too old to record it")
   }
 
   test("the actions are a row of buttons") {
@@ -500,6 +500,135 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     screen should include("[ k kill ]")
     screen should include("[ r restart ]")
     screen should include("[ q quit ]")
+  }
+
+  // ── the startup tab ──────────────────────────────────────────────
+
+  private def startupState: ServerTopState = {
+    val identity = bleep.bsp.ServerJson(
+      bleepVersion = "1.0.0-M11",
+      jvmName = "graalvm-community",
+      jvmVersion = "25.0.1",
+      javaBin = "/opt/jvm/bin/java",
+      javaOpts = List("-Xmx12g", "-XX:+UseZGC"),
+      serverMainClass = "bleep.bsp.BspServerDaemon",
+      // As long as the real thing: a coursier cache path runs well past 120 characters, which is why this pane needs an x axis at all.
+      command = List(
+        "/opt/jvm/bin/java",
+        "-cp",
+        (1 to 202)
+          .map(index => s"/Users/dev/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/example/library-$index/1.2.3/library-$index-1.2.3.jar")
+          .mkString(":"),
+        "x"
+      ),
+      workingDir = "/tmp/socket-dir",
+      spawnedAtEpochMs = 1L
+    )
+    val row = running("aaaa1111", isCurrent = true)
+    stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Startup)
+  }
+
+  test("the startup tab scrolls down through the classpath") {
+    val top = draw(startupState)
+    top should include("CLASSPATH — 202 entries")
+
+    val scrolled = draw(ServerTopUpdate.update(startupState, Msg.ScrollStartup(40, 0))._1)
+    withClue("scrolling down should reach entries the first screen could not show: ") {
+      scrolled should not include "CLASSPATH — 202 entries"
+      scrolled should include("library-4")
+    }
+  }
+
+  test("the startup tab scrolls sideways, which is the only way to read a long path") {
+    val unscrolled = draw(startupState)
+    val sideways = draw(ServerTopUpdate.update(startupState, Msg.ScrollStartup(0, 24))._1)
+
+    sideways should not be unscrolled
+    withClue("shifting right should cut off the start of each path: ") {
+      sideways should not include "/Users/dev/Library/Caches"
+    }
+  }
+
+  test("arrows scroll the startup pane instead of changing tab, since a classpath is wider than any terminal") {
+    press(startupState, KeyPress.Right).startupScrollX should be > 0
+    press(startupState, KeyPress.Down).startupScrollY should be > 0
+
+    withClue("the tab must not change while the arrows are busy scrolling: ") {
+      press(startupState, KeyPress.Right).tab shouldBe Tab.Startup
+    }
+  }
+
+  test("scrolling cannot go negative in either direction") {
+    ServerTopUpdate.update(startupState, Msg.ScrollStartup(-10, -10))._1.startupScrollY shouldBe 0
+    ServerTopUpdate.update(startupState, Msg.ScrollStartup(-10, -10))._1.startupScrollX shouldBe 0
+  }
+
+  test("scrolling past the end is clamped by the pane, not left to run away") {
+    val far = ServerTopUpdate.update(startupState, Msg.ScrollStartup(100000, 0))._1
+    val screen = draw(far)
+
+    withClue("a huge offset should still render the tail of the list rather than an empty pane: ") {
+      screen should include("library-202")
+    }
+  }
+
+  test("choosing another server resets the startup pane to the top left") {
+    val scrolled = ServerTopUpdate.update(startupState, Msg.ScrollStartup(50, 50))._1
+    val moved = ServerTopUpdate.update(scrolled, Msg.SelectRow(0))._1
+
+    moved.startupScrollY shouldBe 0
+    moved.startupScrollX shouldBe 0
+  }
+
+  /** Every bleep version ever run in a directory leaves a server that has it loaded, so "does it hold this workspace" matches several. Marking more than one
+    * "this build" is worse than marking none — that label is what a reader trusts when deciding which server to kill.
+    */
+  test("only one server is marked as this build, however many hold the workspace") {
+    val clientVersion = bleep.model.BleepVersion.current.value
+    val candidates = List(("older11", Some("1.0.0-M10")), ("mine22", Some(clientVersion)), ("older33", Some("1.0.0-M9")))
+
+    bleep.bsp.ServerDirs.currentAmong(candidates, clientVersion) shouldBe Some("mine22")
+  }
+
+  test("with no version match it still picks exactly one rather than several") {
+    val candidates = List(("aaa", Some("1.0.0-M10")), ("bbb", Some("1.0.0-M9")))
+    bleep.bsp.ServerDirs.currentAmong(candidates, "1.0.0-M11") shouldBe Some("aaa")
+  }
+
+  test("nothing holding the workspace means nothing is marked") {
+    bleep.bsp.ServerDirs.currentAmong(Nil, "1.0.0-M11") shouldBe None
+  }
+
+  test("a server that holds the workspace but is not ours says so, instead of claiming to be this build") {
+    val mine = running("mine1111", isCurrent = true)
+    val other = running("other222", isCurrent = false)
+    val screen = draw(stateWith(List(mine, other)))
+
+    screen should include("← this build")
+    withClue("exactly one row may claim it: ") {
+      screen.linesIterator.count(_.contains("← this build")) shouldBe 1
+    }
+  }
+
+  test("the heap gauge prints its percentage once") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val heapLine = screen.linesIterator.find(_.contains("Heap in use")).getOrElse(fail("no heap row"))
+
+    withClue(s"the widget prints its own label unless silenced: $heapLine ") {
+      "%".r.findAllIn(heapLine).size shouldBe 1
+    }
+  }
+
+  test("the overview explains what it is measuring rather than abbreviating it") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+
+    screen should include("Heap in use")
+    screen should include("Compile slots")
+    screen should include("Memory for forks")
+    withClue("section headings should say what the numbers under them are for: ") {
+      screen should include("how much of its heap")
+      screen should include("what this server may spend on compiling")
+    }
   }
 
   test("q quits, and quitting during a confirmation just dismisses it") {

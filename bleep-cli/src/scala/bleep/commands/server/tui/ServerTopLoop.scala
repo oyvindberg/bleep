@@ -67,8 +67,17 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
               }
 
             case mouse: _root_.tui.crossterm.Event.Mouse =>
-              // Handing the event to the renderer is what makes the click land on whichever element owns that cell; the element then dispatches its own Msg.
-              mouseEvent(mouse).foreach(event => renderer.dispatchMouse(event): Unit)
+              // Horizontal wheel never reaches the react layer — it has no kind for it — so it is turned into a message here. It is also the natural way to
+              // read a classpath, which is the one pane wide enough to need it.
+              mouse.mouseEvent.kind match {
+                case _: _root_.tui.crossterm.MouseEventKind.ScrollLeft if state.tab == ServerTopState.Tab.Startup =>
+                  state = applyMsg(state, Msg.ScrollStartup(0, -8))
+                case _: _root_.tui.crossterm.MouseEventKind.ScrollRight if state.tab == ServerTopState.Tab.Startup =>
+                  state = applyMsg(state, Msg.ScrollStartup(0, 8))
+                case _ =>
+                  // Handing the event to the renderer is what makes a click land on whichever element owns that cell; the element then dispatches its own Msg.
+                  mouseEvent(mouse).foreach(event => renderer.dispatchMouse(event): Unit)
+              }
 
             case _ => ()
           }
@@ -167,8 +176,8 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
       case _: _root_.tui.crossterm.KeyCode.Up      => Some(KeyPress.Up)
       case _: _root_.tui.crossterm.KeyCode.Down    => Some(KeyPress.Down)
       case _: _root_.tui.crossterm.KeyCode.Tab     => Some(KeyPress.NextTab)
-      case _: _root_.tui.crossterm.KeyCode.Right   => Some(KeyPress.NextTab)
-      case _: _root_.tui.crossterm.KeyCode.Left    => Some(KeyPress.PrevTab)
+      case _: _root_.tui.crossterm.KeyCode.Right   => Some(KeyPress.Right)
+      case _: _root_.tui.crossterm.KeyCode.Left    => Some(KeyPress.Left)
       case _: _root_.tui.crossterm.KeyCode.Esc     => Some(KeyPress.Quit)
       case char: _root_.tui.crossterm.KeyCode.Char =>
         char.c() match {
@@ -188,17 +197,26 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
     val infos = ServerDirs.scan(userPaths)
     val mine = currentWorkspace.map(_.toAbsolutePath.normalize().toString)
 
-    infos
-      .map { info =>
-        val (status, error) =
-          if (!info.isRunning) (None, None)
-          else
-            ServerAdminClient.status(info.socketDir) match {
-              case Right(status) => (Some(status), None)
-              case Left(err)     => (None, Some(err))
-            }
-        ServerRow(info, status, error, isCurrent = mine.exists(path => status.exists(_.workspaces.exists(_.path == path))))
-      }
+    val queried = infos.map { info =>
+      val (status, error) =
+        if (!info.isRunning) (None, None)
+        else
+          ServerAdminClient.status(info.socketDir) match {
+            case Right(status) => (Some(status), None)
+            case Left(err)     => (None, Some(err))
+          }
+      (info, status, error)
+    }
+
+    // Several servers can hold the same workspace — every bleep version ever run here leaves one — but only one is the server this build talks to. Marking
+    // more than one is worse than marking none, since that label is what a reader trusts when deciding which to kill.
+    val holders = mine.toList.flatMap { path =>
+      queried.collect { case (info, Some(status), _) if status.workspaces.exists(_.path == path) => (info.hash, info.identity.map(_.bleepVersion)) }
+    }
+    val currentHash = ServerDirs.currentAmong(holders, bleep.model.BleepVersion.current.value)
+
+    queried
+      .map { case (info, status, error) => ServerRow(info, status, error, isCurrent = currentHash.contains(info.hash)) }
       .sortBy(row => (!row.isCurrent, !row.info.isRunning, row.hash))
   }
 

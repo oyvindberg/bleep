@@ -34,6 +34,8 @@ case class ServerTopState(
       * view follows new lines, and it stays followed however many arrive.
       */
     logScrollFromBottom: Int,
+    startupScrollY: Int,
+    startupScrollX: Int,
     nowMs: Long,
     quit: Boolean
 ) {
@@ -53,7 +55,12 @@ object ServerTopState {
     case object Log extends Tab { val title = "Log" }
     case object Config extends Tab { val title = "Config" }
 
-    val all: List[Tab] = List(Overview, Workspaces, Activity, Log, Config)
+    /** How the server was launched: java binary, options, and the classpath it was handed. Its own tab because a classpath is hundreds of long lines — it needs
+      * room and it needs scrolling in both directions, which no other pane does.
+      */
+    case object Startup extends Tab { val title = "Startup" }
+
+    val all: List[Tab] = List(Overview, Workspaces, Activity, Log, Config, Startup)
   }
 
   /** A destructive action waiting for y/n. Killing a compile server can throw away a running build, so it is never one keystroke away. */
@@ -84,6 +91,9 @@ object ServerTopState {
 
     /** Positive scrolls back into history, negative returns towards the newest line. */
     case class ScrollLog(delta: Int) extends Msg
+
+    /** Scrolls the startup pane, which is the only one wide enough to need an x axis. */
+    case class ScrollStartup(dy: Int, dx: Int) extends Msg
   }
 
   /** The keys the dashboard reacts to, named rather than passed through as crossterm events, so `update` never touches the terminal library. */
@@ -92,7 +102,12 @@ object ServerTopState {
     case object Up extends KeyPress
     case object Down extends KeyPress
     case object NextTab extends KeyPress
-    case object PrevTab extends KeyPress
+
+    /** The arrows are deliberately not "previous/next tab": what they do depends on the pane. On Startup they scroll sideways, because a classpath is far wider
+      * than any terminal; everywhere else they move between tabs.
+      */
+    case object Left extends KeyPress
+    case object Right extends KeyPress
     case object Quit extends KeyPress
     case object Kill extends KeyPress
     case object Restart extends KeyPress
@@ -109,6 +124,8 @@ object ServerTopState {
       message = None,
       logTail = Nil,
       logScrollFromBottom = 0,
+      startupScrollY = 0,
+      startupScrollX = 0,
       nowMs = nowMs,
       quit = false
     )
@@ -137,7 +154,10 @@ object ServerTopUpdate {
     case Msg.SelectRow(index) =>
       // A click while a confirmation is up dismisses it: the prompt names one server, and pointing at another plainly means "not that one". A different server
       // means a different log, so the view goes back to following.
-      (state.copy(selected = clamp(index, state.rows.length), message = None, pending = None, logScrollFromBottom = 0), Nil)
+      (
+        state.copy(selected = clamp(index, state.rows.length), message = None, pending = None, logScrollFromBottom = 0, startupScrollY = 0, startupScrollX = 0),
+        Nil
+      )
 
     case Msg.SelectTab(tab) =>
       (state.copy(tab = tab), Nil)
@@ -146,6 +166,11 @@ object ServerTopUpdate {
       // Scrolled-back readers keep their place as new lines arrive; followers stay pinned to the end. Without this, tailing a busy server would drag the view
       // out from under anyone trying to read it.
       (state.copy(logTail = lines, logScrollFromBottom = clamp(state.logScrollFromBottom, lines.length)), Nil)
+
+    case Msg.ScrollStartup(dy, dx) =>
+      // No upper bound here: the pane knows its own content and clamps when it renders. Clamping in the state would mean the state needing to know how many
+      // classpath entries there are and how tall the pane is, which is exactly the knowledge it does not have.
+      (state.copy(startupScrollY = math.max(0, state.startupScrollY + dy), startupScrollX = math.max(0, state.startupScrollX + dx)), Nil)
 
     case Msg.ScrollLog(delta) =>
       (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom + delta, state.logTail.length)), Nil)
@@ -168,15 +193,20 @@ object ServerTopUpdate {
           key match {
             case KeyPress.Quit => (state.copy(quit = true), Nil)
             // On the Log tab the arrows scroll the log, which is what they are for when a log is what you are looking at. Rows stay selectable by clicking.
-            case KeyPress.Up if state.tab == Tab.Log   => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom + 1, state.logTail.length)), Nil)
-            case KeyPress.Down if state.tab == Tab.Log => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom - 1, state.logTail.length)), Nil)
-            case KeyPress.Up                           => (state.copy(selected = clamp(state.selected - 1, state.rows.length), message = None), Nil)
-            case KeyPress.Down                         => (state.copy(selected = clamp(state.selected + 1, state.rows.length), message = None), Nil)
-            case KeyPress.NextTab                      => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
-            case KeyPress.PrevTab                      => (state.copy(tab = shiftTab(state.tab, -1)), Nil)
-            case KeyPress.Kill                         => (confirming(state, Action.Kill), Nil)
-            case KeyPress.Restart                      => (confirming(state, Action.Restart), Nil)
-            case KeyPress.Yes | KeyPress.No            => (state, Nil)
+            case KeyPress.Up if state.tab == Tab.Log     => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom + 1, state.logTail.length)), Nil)
+            case KeyPress.Down if state.tab == Tab.Log   => (state.copy(logScrollFromBottom = clamp(state.logScrollFromBottom - 1, state.logTail.length)), Nil)
+            case KeyPress.Up if state.tab == Tab.Startup => (state.copy(startupScrollY = math.max(0, state.startupScrollY - 1)), Nil)
+            case KeyPress.Down if state.tab == Tab.Startup  => (state.copy(startupScrollY = state.startupScrollY + 1), Nil)
+            case KeyPress.Up                                => (state.copy(selected = clamp(state.selected - 1, state.rows.length), message = None), Nil)
+            case KeyPress.Down                              => (state.copy(selected = clamp(state.selected + 1, state.rows.length), message = None), Nil)
+            case KeyPress.NextTab                           => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
+            case KeyPress.Left if state.tab == Tab.Startup  => (state.copy(startupScrollX = math.max(0, state.startupScrollX - 8)), Nil)
+            case KeyPress.Right if state.tab == Tab.Startup => (state.copy(startupScrollX = state.startupScrollX + 8), Nil)
+            case KeyPress.Left                              => (state.copy(tab = shiftTab(state.tab, -1)), Nil)
+            case KeyPress.Right                             => (state.copy(tab = shiftTab(state.tab, 1)), Nil)
+            case KeyPress.Kill                              => (confirming(state, Action.Kill), Nil)
+            case KeyPress.Restart                           => (confirming(state, Action.Restart), Nil)
+            case KeyPress.Yes | KeyPress.No                 => (state, Nil)
           }
       }
   }

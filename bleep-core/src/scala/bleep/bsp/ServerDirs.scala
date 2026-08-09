@@ -152,6 +152,20 @@ object ServerDirs {
     }
   }
 
+  /** Which of the servers holding this workspace is the one *this* build would actually talk to.
+    *
+    * More than one can have the same workspace loaded — every bleep version you have run here leaves a server that has seen it — but only one of them is yours,
+    * and marking several "this build" is worse than marking none: it is the one label a reader trusts to decide which server to kill.
+    *
+    * The socket directory is named after a hash that includes the client's own bleep version, so a server recorded with a different version is definitionally
+    * not the one this client connects to. Where that does not decide it, the first candidate wins rather than several being marked.
+    *
+    * @param candidates
+    *   hash and recorded bleep version, for the servers that report holding the workspace, in display order.
+    */
+  def currentAmong(candidates: List[(String, Option[String])], clientVersion: String): Option[String] =
+    candidates.collectFirst { case (hash, Some(version)) if version == clientVersion => hash }.orElse(candidates.headOption.map(_._1))
+
   /** Resolve a user-supplied id: a pid, a socket-dir hash, or an unambiguous prefix of the hash. */
   def resolve(infos: List[ServerDirInfo], id: String): Either[String, ServerDirInfo] = {
     val byPid = infos.filter(_.pid.map(_.toString).contains(id))
