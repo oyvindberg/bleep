@@ -5,10 +5,12 @@ package tui
 
 import bleep.bsp.ServerState
 import bleep.testing.FancyBuildDisplay.Palette
-import jatatui.core.style.{Modifier, Style}
+import jatatui.core.layout.Flex
+import jatatui.core.style.Style
 import jatatui.react.Components._
 import jatatui.react.Element
 import jatatui.widgets.Borders
+import jatatui.widgets.block.Block
 
 import java.time.Duration
 
@@ -20,15 +22,28 @@ import java.time.Duration
 object ServerTopView {
   import ServerTopState._
 
-  private def style(color: jatatui.core.style.Color): Style = Style.empty().withFg(color)
-  private def bold(color: jatatui.core.style.Color): Style = Style.empty().withFg(color).withAddModifier(Modifier.BOLD)
+  // The same theme the build display and the picker use, so the three look like one program. Crucially every cell carries the background: this palette is built
+  // for a dark one, and on a terminal supplying its own light background the text is close to invisible.
+  private def style(color: jatatui.core.style.Color): Style = Palette.style(color)
+  private def bold(color: jatatui.core.style.Color): Style = Palette.bold(color)
 
   def render(state: ServerTopState): Element =
-    column(
-      length(serverListHeight(state), serverList(state)),
-      fill(1, detail(state)),
-      length(1, footer(state))
+    // Paint the background first and let everything else land on top. Widgets that set no background of their own leave these cells alone, so this reaches the
+    // borders and the empty space below the last line too.
+    stack(
+      widget(Block.empty().withStyle(Palette.background)),
+      column(
+        length(serverListHeight(state), serverList(state)),
+        fill(1, detail(state)),
+        length(1, footer(state))
+      )
     )
+
+  /** Lines stack from the top, one row each. Without this the box shares its height out among the children and a handful of lines end up spread down the pane
+    * with gaps between them.
+    */
+  private def packed(title: String, lines: List[Element]): Element =
+    box(title, Borders.ALL, lines.map(line => length(1, line))*).`with`(props => props.withFlex(Flex.Start))
 
   private def serverListHeight(state: ServerTopState): Int =
     math.max(3, math.min(state.rows.length, 8) + 2)
@@ -61,18 +76,18 @@ object ServerTopView {
           )
         }
 
-    box(" compile servers ", Borders.ALL, rows*)
+    packed(" compile servers ", rows)
   }
 
   private def detail(state: ServerTopState): Element =
     state.selectedRow match {
-      case None      => box(" detail ", Borders.ALL, text("nothing to show", style(Palette.textDim)))
+      case None      => packed(" detail ", List(text("nothing to show", style(Palette.textDim))))
       case Some(row) =>
         val title = s" ${state.tab.title} — ${row.hash} "
         row.status match {
           case None =>
             // A row we could not ask says why, rather than rendering an empty pane that looks like "nothing is happening".
-            box(title, Borders.ALL, text(row.error.map(_.message).getOrElse(s"${row.info.state.label} — nothing to report"), style(Palette.warning)))
+            packed(title, List(text(row.error.map(_.message).getOrElse(s"${row.info.state.label} — nothing to report"), style(Palette.warning))))
           case Some(status) =>
             val lines = state.tab match {
               case Tab.Overview   => overview(status)
@@ -80,7 +95,7 @@ object ServerTopView {
               case Tab.Activity   => activity(status)
               case Tab.Config     => config(status)
             }
-            box(title, Borders.ALL, lines*)
+            packed(title, lines)
         }
     }
 

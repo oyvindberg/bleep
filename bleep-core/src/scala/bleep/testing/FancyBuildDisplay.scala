@@ -47,12 +47,23 @@ object FancyBuildDisplay {
     val warning: Color = new Color.Indexed(222) // rgb(255,215,135) — warm amber
     val info: Color = new Color.Indexed(111) // rgb(135,175,255) — soft blue
     val accent: Color = new Color.Indexed(183) // rgb(215,175,255) — lavender
+
+    /** Style helpers — every cell gets our bg so the terminal theme never bleeds through.
+      *
+      * They live on the palette rather than in this file because they *are* the theme: this palette is built for a dark background, and text painted with it
+      * onto a terminal that supplies its own light background is close to unreadable. Anything drawing a bleep TUI — the build display, the picker, `bleep
+      * server top` — takes its colours from here so they look like one program.
+      */
+    def style(color: Color): Style = Style.empty().withFg(color).withBg(bg)
+    def bold(color: Color): Style = Style.empty().withFg(color).withBg(bg).withAddModifier(Modifier.BOLD)
+
+    /** Just the background, for filling an area before anything is drawn on it. */
+    val background: Style = Style.empty().withBg(bg)
   }
 
-  // Style helpers — every cell gets our bg so the terminal theme never bleeds through
-  private def s(color: Color): Style = Style.empty().withFg(color).withBg(Palette.bg)
-  private def sb(color: Color): Style = Style.empty().withFg(color).withBg(Palette.bg).withAddModifier(Modifier.BOLD)
-  private val sBg: Style = Style.empty().withBg(Palette.bg)
+  private def s(color: Color): Style = Palette.style(color)
+  private def sb(color: Color): Style = Palette.bold(color)
+  private val sBg: Style = Palette.background
   // Surface variants for raised panels (summary block)
   private def ss(color: Color): Style = Style.empty().withFg(color).withBg(Palette.surface)
   private def ssb(color: Color): Style = Style.empty().withFg(color).withBg(Palette.surface).withAddModifier(Modifier.BOLD)

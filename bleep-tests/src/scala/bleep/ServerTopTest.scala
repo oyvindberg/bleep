@@ -87,6 +87,22 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     TestBackend.bufferView(harness.backend.buffer())
   }
 
+  /** Every cell, including the ones no text lands on. The palette is built for a dark background; without one painted, text rendered on a terminal that
+    * supplies its own light background is close to unreadable — which is exactly what shipped before this test existed.
+    */
+  test("the whole screen is painted with the palette background, not just the cells with text on them") {
+    val harness = new TestHarness(100, 30)
+    harness.render(ServerTopView.render(stateWith(List(running("aaaa1111", isCurrent = true)))))
+    val buffer = harness.backend.buffer()
+
+    val corners = List((0, 0), (99, 0), (0, 29), (99, 29))
+    corners.foreach { case (x, y) =>
+      withClue(s"cell ($x,$y) should carry the palette background: ") {
+        buffer.cellAt(x, y).style().bg().orElse(null) shouldBe bleep.testing.FancyBuildDisplay.Palette.bg
+      }
+    }
+  }
+
   test("box titles keep their spaces") {
     draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("compile servers")
   }
