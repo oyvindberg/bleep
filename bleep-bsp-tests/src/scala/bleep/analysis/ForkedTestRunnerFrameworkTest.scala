@@ -30,6 +30,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       passed: Int,
       failed: Int,
       skipped: Int,
+      outcome: String,
       testResults: List[(String, String)], // (testName, status)
       protocolLines: List[String],
       errors: List[String]
@@ -72,6 +73,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       var suitePassed = 0
       var suiteFailed = 0
       var suiteSkipped = 0
+      var suiteOutcome = ""
 
       lines.foreach { line =>
         if (line.contains("\"type\":\"TestFinished\"")) {
@@ -83,6 +85,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
           suitePassed = extractJsonIntField(line, "passed")
           suiteFailed = extractJsonIntField(line, "failed")
           suiteSkipped = extractJsonIntField(line, "skipped")
+          suiteOutcome = extractJsonField(line, "outcome")
         }
         if (line.contains("\"type\":\"Error\"")) {
           errors += extractJsonField(line, "message")
@@ -93,6 +96,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
         passed = suitePassed,
         failed = suiteFailed,
         skipped = suiteSkipped,
+        outcome = suiteOutcome,
         testResults = testResults.toList,
         protocolLines = lines,
         errors = errors.toList
@@ -925,6 +929,442 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       result.failed shouldBe 1
       result.testResults.count(_._2 == "passed") shouldBe 1
       result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // Container-level lifecycle failures (JUnit Platform)
+  //
+  // @AfterClass/@AfterAll and friends are reported by the platform against the *container*, not
+  // against any test. The listener used to drop every non-test identifier, so a class whose
+  // teardown asserted was reported green with exit 0.
+  // ============================================================================
+
+  val junit4AfterClassFailure = SourceFile(
+    Path.of("example/Junit4AfterClassFailureTest.java"),
+    """package example;
+      |
+      |import org.junit.AfterClass;
+      |import org.junit.Test;
+      |import static org.junit.Assert.*;
+      |
+      |public class Junit4AfterClassFailureTest {
+      |    @Test
+      |    public void passingTest() {
+      |        assertEquals(2, 1 + 1);
+      |    }
+      |
+      |    @AfterClass
+      |    public static void afterAll() {
+      |        throw new AssertionError("deliberate @AfterClass failure");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val junit4ParameterizedAfterClassFailure = SourceFile(
+    Path.of("example/Junit4ParameterizedAfterClassTest.java"),
+    """package example;
+      |
+      |import java.util.Arrays;
+      |import java.util.List;
+      |import org.junit.AfterClass;
+      |import org.junit.Test;
+      |import org.junit.runner.RunWith;
+      |import org.junit.runners.Parameterized;
+      |
+      |@RunWith(Parameterized.class)
+      |public class Junit4ParameterizedAfterClassTest {
+      |    @Parameterized.Parameters(name = "{0}")
+      |    public static List<Object[]> params() {
+      |        return Arrays.asList(new Object[] {"a"}, new Object[] {"b"});
+      |    }
+      |
+      |    @Parameterized.Parameter(0)
+      |    public String name;
+      |
+      |    @Test
+      |    public void passes() {}
+      |
+      |    @AfterClass
+      |    public static void afterAll() {
+      |        throw new AssertionError("deliberate @AfterClass failure");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val junit5AfterAllFailure = SourceFile(
+    Path.of("example/Junit5AfterAllFailureTest.java"),
+    """package example;
+      |
+      |import org.junit.jupiter.api.AfterAll;
+      |import org.junit.jupiter.api.Test;
+      |import static org.junit.jupiter.api.Assertions.*;
+      |
+      |public class Junit5AfterAllFailureTest {
+      |    @Test
+      |    public void passingTest() {
+      |        assertEquals(2, 1 + 1);
+      |    }
+      |
+      |    @AfterAll
+      |    public static void afterAll() {
+      |        fail("deliberate @AfterAll failure");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val junit5BeforeAllFailure = SourceFile(
+    Path.of("example/Junit5BeforeAllFailureTest.java"),
+    """package example;
+      |
+      |import org.junit.jupiter.api.BeforeAll;
+      |import org.junit.jupiter.api.Test;
+      |import static org.junit.jupiter.api.Assertions.*;
+      |
+      |public class Junit5BeforeAllFailureTest {
+      |    @BeforeAll
+      |    public static void beforeAll() {
+      |        fail("deliberate @BeforeAll failure");
+      |    }
+      |
+      |    @Test
+      |    public void neverRuns() {
+      |        assertEquals(2, 1 + 1);
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val junit5DisabledClass = SourceFile(
+    Path.of("example/Junit5DisabledClassTest.java"),
+    """package example;
+      |
+      |import org.junit.jupiter.api.Disabled;
+      |import org.junit.jupiter.api.Test;
+      |import static org.junit.jupiter.api.Assertions.*;
+      |
+      |@Disabled("not today")
+      |public class Junit5DisabledClassTest {
+      |    @Test
+      |    public void neverRuns() {
+      |        assertEquals(2, 1 + 1);
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  test("JUnit 4: @AfterClass failure is reported against the class") {
+    val outputDir = createTempDir("junit4-afterclass-")
+    try {
+      compileJava(Seq(junit4AfterClassFailure), CompilerTestLibraries.junitLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
+      val result = runSuiteViaProtocol(cp, "example.Junit4AfterClassFailureTest", "JUnit")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.outcome shouldBe "executed"
+      val failures = result.testResults.filter(_._2 == "failed")
+      failures.size shouldBe 1
+      failures.head._1 should include("class-level")
+      result.protocolLines.mkString("\n") should include("deliberate @AfterClass failure")
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("JUnit 4: @AfterClass failure in a @Parameterized class is reported against the class") {
+    val outputDir = createTempDir("junit4-param-afterclass-")
+    try {
+      compileJava(Seq(junit4ParameterizedAfterClassFailure), CompilerTestLibraries.junitLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
+      val result = runSuiteViaProtocol(cp, "example.Junit4ParameterizedAfterClassTest", "JUnit")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 2
+      result.failed shouldBe 1
+      result.outcome shouldBe "executed"
+      result.testResults.count(_._2 == "failed") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("JUnit 5: @AfterAll failure is reported against the class") {
+    val outputDir = createTempDir("junit5-afterall-")
+    try {
+      compileJava(Seq(junit5AfterAllFailure), CompilerTestLibraries.junit5Library, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
+      val result = runSuiteViaProtocol(cp, "example.Junit5AfterAllFailureTest", "JUnit Jupiter")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.outcome shouldBe "executed"
+      val failures = result.testResults.filter(_._2 == "failed")
+      failures.size shouldBe 1
+      failures.head._1 should include("class-level")
+      result.protocolLines.mkString("\n") should include("deliberate @AfterAll failure")
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("JUnit 5: @BeforeAll failure is reported as a failure, not an empty suite") {
+    val outputDir = createTempDir("junit5-beforeall-")
+    try {
+      compileJava(Seq(junit5BeforeAllFailure), CompilerTestLibraries.junit5Library, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
+      val result = runSuiteViaProtocol(cp, "example.Junit5BeforeAllFailureTest", "JUnit Jupiter")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 0
+      result.failed shouldBe 1
+      result.outcome shouldBe "executed"
+      result.protocolLines.mkString("\n") should include("deliberate @BeforeAll failure")
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("JUnit 5: a @Disabled class is skipped, not an empty suite") {
+    val outputDir = createTempDir("junit5-disabled-")
+    try {
+      compileJava(Seq(junit5DisabledClass), CompilerTestLibraries.junit5Library, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
+      val result = runSuiteViaProtocol(cp, "example.Junit5DisabledClassTest", "JUnit Jupiter")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 0
+      result.failed shouldBe 0
+      result.skipped shouldBe 1
+      result.outcome shouldBe "executed"
+    } finally deleteRecursively(outputDir)
+  }
+
+  val junit4EmptyParams = SourceFile(
+    Path.of("example/Junit4EmptyParamsTest.java"),
+    """package example;
+      |
+      |import java.util.Collections;
+      |import java.util.List;
+      |import org.junit.Test;
+      |import org.junit.runner.RunWith;
+      |import org.junit.runners.Parameterized;
+      |
+      |@RunWith(Parameterized.class)
+      |public class Junit4EmptyParamsTest {
+      |    @Parameterized.Parameters(name = "{0}")
+      |    public static List<Object[]> params() {
+      |        return Collections.emptyList();
+      |    }
+      |
+      |    @Parameterized.Parameter(0)
+      |    public String name;
+      |
+      |    @Test
+      |    public void passes() {}
+      |}
+      |""".stripMargin
+  )
+
+  test("JUnit 4: a class with an empty @Parameters list is empty, not one passed test") {
+    val outputDir = createTempDir("junit4-emptyparams-")
+    try {
+      compileJava(Seq(junit4EmptyParams), CompilerTestLibraries.junitLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
+      val result = runSuiteViaProtocol(cp, "example.Junit4EmptyParamsTest", "JUnit")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 0
+      result.failed shouldBe 0
+      result.outcome shouldBe "empty"
+      result.testResults shouldBe empty
+    } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // Class-level teardown failures on the sbt-testing path
+  //
+  // Same question as the JUnit Platform bridge above, asked of every framework that goes through
+  // sbt's test-interface instead: when the failure belongs to the class rather than to any one
+  // test, does it reach us at all?
+  // ============================================================================
+
+  val scalaTestAfterAllFailure = SourceFile(
+    Path.of("AfterAllFailingScalaTest.scala"),
+    """package example
+      |
+      |import org.scalatest.BeforeAndAfterAll
+      |import org.scalatest.funsuite.AnyFunSuite
+      |
+      |class AfterAllFailingScalaTest extends AnyFunSuite with BeforeAndAfterAll {
+      |  test("passing test") {
+      |    assert(1 + 1 == 2)
+      |  }
+      |  override def afterAll(): Unit =
+      |    throw new AssertionError("deliberate afterAll failure")
+      |}
+      |""".stripMargin
+  )
+
+  val munitAfterAllFailure = SourceFile(
+    Path.of("AfterAllFailingMUnitTest.scala"),
+    """package example
+      |
+      |class AfterAllFailingMUnitTest extends munit.FunSuite {
+      |  test("passing test") {
+      |    assertEquals(1 + 1, 2)
+      |  }
+      |  override def afterAll(): Unit =
+      |    throw new AssertionError("deliberate afterAll failure")
+      |}
+      |""".stripMargin
+  )
+
+  val utestAfterAllFailure = SourceFile(
+    Path.of("AfterAllFailingUTest.scala"),
+    """package example
+      |
+      |import utest._
+      |
+      |object AfterAllFailingUTest extends TestSuite {
+      |  val tests = Tests {
+      |    test("passing test") {
+      |      assert(1 + 1 == 2)
+      |    }
+      |  }
+      |  // java.lang.AssertionError spelled out: `import utest._` shadows it with utest.AssertionError
+      |  override def utestAfterAll(): Unit =
+      |    throw new java.lang.AssertionError("deliberate utestAfterAll failure")
+      |}
+      |""".stripMargin
+  )
+
+  val kotestAfterSpecFailure = SourceFile(
+    Path.of("example/AfterSpecFailingKotest.kt"),
+    """package example
+      |
+      |import io.kotest.core.spec.style.FunSpec
+      |import io.kotest.matchers.shouldBe
+      |
+      |class AfterSpecFailingKotest : FunSpec({
+      |    test("addition works") {
+      |        (1 + 1) shouldBe 2
+      |    }
+      |    afterSpec {
+      |        throw AssertionError("deliberate afterSpec failure")
+      |    }
+      |})
+      |""".stripMargin
+  )
+
+  val testngAfterClassFailure = SourceFile(
+    Path.of("example/TestNGAfterClassFailureTest.java"),
+    """package example;
+      |
+      |import org.testng.annotations.AfterClass;
+      |import org.testng.annotations.Test;
+      |import static org.testng.Assert.*;
+      |
+      |public class TestNGAfterClassFailureTest {
+      |    @Test
+      |    public void passingTest() {
+      |        assertEquals(1 + 1, 2);
+      |    }
+      |
+      |    @AfterClass
+      |    public void afterAll() {
+      |        throw new AssertionError("deliberate @AfterClass failure");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  test("ScalaTest: afterAll failure is not swallowed") {
+    val outputDir = createTempDir("scalatest-afterall-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.scalaTestLibrary
+      compileScala(Seq(scalaTestAfterAllFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.scalaTestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingScalaTest", "ScalaTest")
+
+      info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
+      withClue(result.protocolLines.mkString("\n")) {
+        (result.failed > 0 || result.outcome == "errored") shouldBe true
+      }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("MUnit: afterAll failure is not swallowed") {
+    val outputDir = createTempDir("munit-afterall-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.munitLibrary
+      compileScala(Seq(munitAfterAllFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingMUnitTest", "MUnit")
+
+      info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
+      withClue(result.protocolLines.mkString("\n")) {
+        (result.failed > 0 || result.outcome == "errored") shouldBe true
+      }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("utest: utestAfterAll failure is not swallowed") {
+    val outputDir = createTempDir("utest-afterall-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.utestLibrary
+      compileScala(Seq(utestAfterAllFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingUTest", "utest")
+
+      info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
+      withClue(result.protocolLines.mkString("\n")) {
+        (result.failed > 0 || result.outcome == "errored") shouldBe true
+      }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("Kotest: afterSpec failure is not swallowed") {
+    val outputDir = createTempDir("kotest-afterspec-")
+    try {
+      val compileClasspath = CompilerTestLibraries.kotlinLibrary ++ CompilerTestLibraries.kotestLibrary
+      compileKotlin(Seq(kotestAfterSpecFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
+      val result = runSuiteViaProtocol(cp, "example.AfterSpecFailingKotest", "Kotest")
+
+      info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
+      withClue(result.protocolLines.mkString("\n")) {
+        (result.failed > 0 || result.outcome == "errored") shouldBe true
+      }
+    } finally deleteRecursively(outputDir)
+  }
+
+  // TestNG is the one framework where a class-level teardown failure never reaches us, and the
+  // limitation is not ours to fix here: the sbt-testing bridge bleep discovers on the user's
+  // classpath, `mill.testng.TestNGListener`, implements `org.testng.ITestListener` and nothing
+  // else. TestNG routes @BeforeClass/@AfterClass failures to `IConfigurationListener` instead, so
+  // the bridge emits no event for them — TestNG prints "Configuration Failures: 1" and we are told
+  // only about the passing test. This test pins that behaviour rather than pretending it is fine;
+  // when a bridge that implements IConfigurationListener shows up, it fails and we come back.
+  //
+  // A @BeforeClass failure is less severe: TestNG skips the dependent tests, and skips do go
+  // through ITestListener, so the suite at least does not look green.
+  test("TestNG: @AfterClass failure is invisible — the mill bridge reports no configuration events") {
+    val outputDir = createTempDir("testng-afterclass-")
+    try {
+      compileJava(Seq(testngAfterClassFailure), CompilerTestLibraries.testngLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.TestNGAfterClassFailureTest", "TestNG")
+
+      info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
+      withClue(result.protocolLines.mkString("\n")) {
+        result.passed shouldBe 1
+        result.failed shouldBe 0
+        // TestNG itself knows; it just has no way to tell the bridge.
+        result.protocolLines.mkString("\n") should include("Configuration Failures: 1")
+      }
     } finally deleteRecursively(outputDir)
   }
 }

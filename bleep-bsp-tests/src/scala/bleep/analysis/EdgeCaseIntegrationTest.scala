@@ -882,19 +882,29 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
   // Helpers
   // ==========================================================================
 
+  /** The callbacks arrive on the runner's reader threads — stdout and stderr drain independently — so every append is synchronized and every read takes a
+    * snapshot under the same lock. Unguarded `mutable.Buffer` appends raced inside `ensureSize` and threw `ArrayIndexOutOfBoundsException: arraycopy` out of a
+    * test that had nothing to do with concurrency.
+    */
   class RecordingTestEventHandler extends TestRunnerTypes.TestEventHandler {
-    val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
-    val suiteStarts = mutable.Buffer[String]()
-    val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
+    private val testStartsBuffer = mutable.Buffer[(String, String)]()
+    private val testFinishesBuffer = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
+    private val suiteStartsBuffer = mutable.Buffer[String]()
+    private val suiteFinishesBuffer = mutable.Buffer[(String, Int, Int, Int)]()
+    private val outputsBuffer = mutable.Buffer[(String, String, OutputChannel)]()
 
-    def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
+    def testStarts: List[(String, String)] = synchronized(testStartsBuffer.toList)
+    def testFinishes: List[(String, String, TestStatus, Long, Option[String])] = synchronized(testFinishesBuffer.toList)
+    def suiteStarts: List[String] = synchronized(suiteStartsBuffer.toList)
+    def suiteFinishes: List[(String, Int, Int, Int)] = synchronized(suiteFinishesBuffer.toList)
+    def outputs: List[(String, String, OutputChannel)] = synchronized(outputsBuffer.toList)
+
+    def onTestStarted(suite: String, test: String): Unit = synchronized(testStartsBuffer += ((suite, test)))
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
-      testFinishes += ((suite, test, status, durationMs, message))
-    def onSuiteStarted(suite: String): Unit = suiteStarts += suite
-    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
+      synchronized(testFinishesBuffer += ((suite, test, status, durationMs, message)))
+    def onSuiteStarted(suite: String): Unit = synchronized(suiteStartsBuffer += suite)
+    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = synchronized(suiteFinishesBuffer += ((suite, passed, failed, skipped)))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = synchronized(outputsBuffer += ((suite, line, channel)))
   }
 
   // ==========================================================================
