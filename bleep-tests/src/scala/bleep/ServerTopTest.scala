@@ -83,8 +83,17 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   /** Render at a fixed size and read the buffer back as plain text. */
   private def draw(state: ServerTopState): String = {
     val harness = new TestHarness(100, 30)
-    harness.render(ServerTopView.render(state))
+    harness.render(ServerTopView.render(state, _ => ()))
     TestBackend.bufferView(harness.backend.buffer())
+  }
+
+  /** Render, click a cell, and report what the view dispatched. Covers the click targets without a terminal or a mouse. */
+  private def clickAt(state: ServerTopState, x: Int, y: Int): List[Msg] = {
+    val dispatched = scala.collection.mutable.ListBuffer.empty[Msg]
+    val harness = new TestHarness(100, 30)
+    harness.render(ServerTopView.render(state, msg => dispatched.append(msg): Unit))
+    harness.renderer.dispatchMouse(new jatatui.react.MouseEvent(x, y, new tui.crossterm.KeyModifiers(0), jatatui.react.MouseEvent.Kind.DOWN)): Unit
+    dispatched.toList
   }
 
   /** Every cell, including the ones no text lands on. The palette is built for a dark background; without one painted, text rendered on a terminal that
@@ -92,7 +101,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     */
   test("the whole screen is painted with the palette background, not just the cells with text on them") {
     val harness = new TestHarness(100, 30)
-    harness.render(ServerTopView.render(stateWith(List(running("aaaa1111", isCurrent = true)))))
+    harness.render(ServerTopView.render(stateWith(List(running("aaaa1111", isCurrent = true))), _ => ()))
     val buffer = harness.backend.buffer()
 
     val corners = List((0, 0), (99, 0), (0, 29), (99, 29))
@@ -104,7 +113,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("box titles keep their spaces") {
-    draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("compile servers")
+    draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include(" servers ")
   }
 
   test("the server list shows state, heap and uptime, and marks this build's server") {
@@ -112,8 +121,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     screen should include("aaaa1111")
     screen should include("running")
-    screen should include("512/12288MB")
-    screen should include("up 10m0s")
+    screen should include("512/12288 MB")
+    screen should include("10m0s")
     screen should include("← this build")
     screen should include("bbbb2222")
     screen should include("dead")
@@ -122,9 +131,10 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   test("the overview keeps the live set distinct from heap used, which is the number that says retaining vs churning") {
     val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
 
-    screen should include("live 128MB")
+    screen should include("live set")
+    screen should include("128MB")
     screen should include("fds 383")
-    screen should include("ZGC Major Cycles")
+    screen should include("Major Cycles")
   }
 
   test("an unmeasurable live set renders n/a rather than a zero that looks like a measurement") {
@@ -132,7 +142,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val unsupported = row.copy(status = row.status.map(s => s.copy(jvm = s.jvm.copy(heapLiveMb = -1L, openFileDescriptors = None))))
 
     val screen = draw(stateWith(List(unsupported)))
-    screen should include("live n/a")
+    screen should include("live set      n/a")
     screen should include("fds n/a")
   }
 
@@ -166,11 +176,106 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     val screen = draw(state)
     screen should include("/home/dev/project")
-    screen should include("compile bleep-core, bleep-cli")
+    screen should include("compile  bleep-core, bleep-cli")
+  }
+
+  test("the header answers the machine-level question before any server is selected") {
+    val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
+    val screen = draw(stateWith(List(busy, dead("bbbb2222"))))
+
+    screen should include("1 running")
+    screen should include("1 stopped")
+    withClue("a busy machine should say so at the top, not only in a tab: ") {
+      screen should include("1 compiling")
+    }
+  }
+
+  test("gauges render as bars with a percentage, not as empty boxes") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+
+    screen should include("4%")
+    withClue("a titled gauge draws a block border instead of a bar: ") {
+      screen should not include "┌────────────────────┐"
+    }
+  }
+
+  test("the tab bar shows every tab and which one is open") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+
+    screen should include("[Overview]")
+    screen should include("Workspaces")
+    screen should include("Activity")
+    screen should include("Config")
+  }
+
+  test("a running server says what it is doing, and a stopped one what it is holding") {
+    val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
+    draw(stateWith(List(busy))) should include("1 compiling")
+
+    draw(stateWith(List(dead("bbbb2222")))) should include("MB on disk")
   }
 
   test("an empty machine renders the invitation rather than an empty box") {
     draw(ServerTopState.initial(NowMs)) should include("no compile servers")
+  }
+
+  // ── clicking ────────────────────────────────────────────────────
+
+  private val twoServers = List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false))
+
+  test("clicking a server row selects that server") {
+    val state = stateWith(twoServers)
+
+    // Row 0 of the list sits just below the header line and the box border.
+    clickAt(state, x = 20, y = 2) shouldBe List(Msg.SelectRow(0))
+    clickAt(state, x = 20, y = 3) shouldBe List(Msg.SelectRow(1))
+  }
+
+  test("a click selects a row rather than nudging the cursor, so it lands where you pointed") {
+    val state = stateWith(twoServers)
+    val selected = clickAt(state, x = 20, y = 3).foldLeft(state)((acc, msg) => ServerTopUpdate.update(acc, msg)._1)
+
+    selected.selectedRow.map(_.hash) shouldBe Some("bbbb2222")
+  }
+
+  test("clicking a tab opens it") {
+    val state = stateWith(twoServers)
+    val tabRow = 2 + 2 + 1 // header, two rows, bottom border
+
+    val messages = (0 until 100).flatMap(x => clickAt(state, x, tabRow)).collect { case msg: Msg.SelectTab => msg.tab }.distinct
+    withClue(s"every tab should be clickable, got $messages: ") {
+      messages should contain allElementsOf Tab.all
+    }
+  }
+
+  test("the footer actions are clickable, not just documented") {
+    val state = stateWith(twoServers)
+    val footerRow = 29
+
+    val messages = (0 until 100).flatMap(x => clickAt(state, x, footerRow)).collect { case Msg.Key(press) => press }.distinct
+    messages should contain(KeyPress.Quit)
+    messages should contain(KeyPress.Kill)
+    messages should contain(KeyPress.Restart)
+    messages should contain(KeyPress.NextTab)
+  }
+
+  test("a confirmation can be answered with the mouse") {
+    val asked = press(stateWith(twoServers), KeyPress.Kill)
+    val messages = (0 until 100).flatMap(x => clickAt(asked, x, 29)).collect { case Msg.Key(press) => press }.distinct
+
+    messages should contain(KeyPress.Yes)
+    messages should contain(KeyPress.No)
+  }
+
+  test("clicking elsewhere while a confirmation is up dismisses it rather than answering") {
+    val asked = press(stateWith(twoServers), KeyPress.Kill)
+    asked.pending shouldBe defined
+
+    val (after, effects) = ServerTopUpdate.update(asked, Msg.SelectRow(1))
+    withClue("pointing at another server plainly means 'not that one': ") {
+      after.pending shouldBe None
+      effects shouldBe empty
+    }
   }
 
   // ── update ──────────────────────────────────────────────────────

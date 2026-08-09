@@ -63,6 +63,12 @@ object ServerTopState {
     case class Refreshed(rows: List[ServerRow], nowMs: Long) extends Msg
     case class Key(key: KeyPress) extends Msg
     case class ActionFinished(message: String) extends Msg
+
+    /** Pointed at directly, rather than arrived at with the arrow keys. Clicks are their own messages instead of synthesised keystrokes so that "select this
+      * row" cannot be confused with "move down one", which behave differently when the list changes underneath them.
+      */
+    case class SelectRow(index: Int) extends Msg
+    case class SelectTab(tab: Tab) extends Msg
   }
 
   /** The keys the dashboard reacts to, named rather than passed through as crossterm events, so `update` never touches the terminal library. */
@@ -101,6 +107,13 @@ object ServerTopUpdate {
 
     case Msg.ActionFinished(message) =>
       (state.copy(message = Some(message), pending = None), Nil)
+
+    case Msg.SelectRow(index) =>
+      // A click while a confirmation is up dismisses it: the prompt names one server, and pointing at another plainly means "not that one".
+      (state.copy(selected = clamp(index, state.rows.length), message = None, pending = None), Nil)
+
+    case Msg.SelectTab(tab) =>
+      (state.copy(tab = tab), Nil)
 
     case Msg.Key(key) =>
       state.pending match {

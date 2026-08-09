@@ -59,15 +59,19 @@ object FancyBuildDisplay {
 
     /** Just the background, for filling an area before anything is drawn on it. */
     val background: Style = Style.empty().withBg(bg)
+
+    /** The raised variants, for panels and selected rows that need to sit above the base background. */
+    def onSurface(color: Color): Style = Style.empty().withFg(color).withBg(surface)
+    def boldOnSurface(color: Color): Style = Style.empty().withFg(color).withBg(surface).withAddModifier(Modifier.BOLD)
+    val surfaceBackground: Style = Style.empty().withBg(surface)
   }
 
   private def s(color: Color): Style = Palette.style(color)
   private def sb(color: Color): Style = Palette.bold(color)
   private val sBg: Style = Palette.background
-  // Surface variants for raised panels (summary block)
-  private def ss(color: Color): Style = Style.empty().withFg(color).withBg(Palette.surface)
-  private def ssb(color: Color): Style = Style.empty().withFg(color).withBg(Palette.surface).withAddModifier(Modifier.BOLD)
-  private val sSurface: Style = Style.empty().withBg(Palette.surface)
+  private def ss(color: Color): Style = Palette.onSurface(color)
+  private def ssb(color: Color): Style = Palette.boldOnSurface(color)
+  private val sSurface: Style = Palette.surfaceBackground
 
   /** Info about workspace being busy (another connection is building) */
   case class WorkspaceBusyInfo(
