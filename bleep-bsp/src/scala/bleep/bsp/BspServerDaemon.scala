@@ -351,7 +351,8 @@ object BspServerDaemon {
         // Process-global lock state. Released here, at daemon shutdown — never per connection.
         try ProjectLock.releaseAllOnDaemonShutdown().unsafeRunSync()
         catch { case _: Exception => () }
-        try bleep.internal.ChildProcessDiagnostics.dumpAll(System.err)
+        // The daemon is a real JVM, so `java.home` finds its own jstack; its forked test JVMs are all descendants.
+        try bleep.internal.ChildProcessDiagnostics.dumpAll(System.err, jvmBinDirs = Nil, extraPids = Nil)
         catch { case _: Exception => () }
         try
           ProcessHandle.current().descendants().forEach { ph =>

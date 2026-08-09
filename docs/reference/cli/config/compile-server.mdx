@@ -68,6 +68,26 @@ bleep config compile-server parallelism <n>
 
 <p>remove the parallelism setting (back to default: one per core)</p>
 
+## `bleep config compile-server max-cached-workspaces`
+
+<p>set how many workspaces' builds stay warm in the server (default: one per GB of server heap, at least 2). Evicted ones reload on next use</p>
+
+### Synopsis
+
+```bash
+bleep config compile-server max-cached-workspaces <n>
+```
+
+### Arguments
+
+| Argument | Type |
+|----------|------|
+| `n` | one |
+
+## `bleep config compile-server max-cached-workspaces-clear`
+
+<p>remove the setting (back to default: one per GB of server heap, at least 2)</p>
+
 ## `bleep config compile-server read-timeout`
 
 <p>set minutes the server waits for a client's next message before dropping the connection, 0 to wait forever (default: 30)</p>

@@ -374,7 +374,9 @@ jobs:
         # ourselves fails the *step*, which keeps the `if: always()` collection below alive.
         #
         # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
-        # 11m31s macos-intel, 12m52s-13m14s windows. 20m keeps the >1.5x-the-slowest margin this cap was originally
+        # 11m31s macos-intel, 12m52s-13m14s windows. Windows has since roughly halved — 13 consecutive re-runs on
+        # 2026-08-09 measured 5m11s-7m8s, from the analysis-sharing and noop-fast-path work — so the margin below is
+        # now larger than it was sized for, not tighter. 20m keeps the >1.5x-the-slowest margin this cap was originally
         # sized for; only the enforcement was broken, so tightening the number too is not the fix. Runner variance is
         # real and larger than it looks — macos-latest built the native image in 18m14s on one run and 24m28s on
         # another, 34% apart — and a bound whose job is to catch a 45-minute hang loses nothing by clearing a slow

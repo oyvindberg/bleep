@@ -6,15 +6,23 @@ import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 import scala.util.Try
 
-/** Dumps thread stacks from this JVM and all child JVMs.
+/** Dumps thread stacks from this JVM, its descendants, and any other process the caller names.
   *
-  * Uses `ProcessHandle.current().descendants()` to find children — no manual registry needed. For Java children, runs `jstack` to get thread dumps. Groups
-  * threads with identical stacks for compact output.
+  * Uses `ProcessHandle.current().descendants()` to find children — no manual registry needed — plus an explicit pid list for the processes that are nobody's
+  * descendant, which is how the shared compile server gets included. For Java processes, runs `jstack`. Groups threads with identical stacks for compact
+  * output.
   */
 object ChildProcessDiagnostics {
 
-  /** Dump threads from this JVM and all descendant JVMs. */
-  def dumpAll(out: PrintStream): Unit = {
+  /** Dump threads from this JVM, all descendant JVMs, and any process named in `extraPids`.
+    *
+    * `jvmBinDirs` are JVM `bin` directories to look for `jstack` in, ahead of `java.home` — see [[findJstack]] for why `java.home` is not sufficient.
+    *
+    * `extraPids` exists because descendants are not the whole story. The shared compile server is the case that matters: it was spawned by whichever client
+    * started it, possibly days ago, so it is nobody's descendant now. A client asking "why is my build stuck" would otherwise dump every process except the one
+    * actually doing the work.
+    */
+  def dumpAll(out: PrintStream, jvmBinDirs: List[Path], extraPids: List[Long]): Unit = {
     val timestamp = java.time.LocalDateTime.now().toString
     out.println()
     out.println(s"=== Thread Dump ($timestamp) ===")
@@ -22,20 +30,27 @@ object ChildProcessDiagnostics {
     // Current JVM
     dumpCurrentJvm(out)
 
-    // Child JVMs
+    val selfPid = ProcessHandle.current().pid()
     val descendants = ProcessHandle.current().descendants().iterator().asScala.toList
-    val javaChildren = descendants.filter(isJavaProcess)
+    val extra = extraPids
+      .filterNot(pid => pid == selfPid || descendants.exists(_.pid() == pid))
+      .flatMap(pid => ProcessHandle.of(pid).toScala)
+    val all = descendants ++ extra
+
+    val javaChildren = all.filter(isJavaProcess)
 
     if (javaChildren.nonEmpty) {
-      val jstackPath = findJstack()
+      val jstackPath = findJstack(jvmBinDirs)
+      if (jstackPath.isEmpty)
+        out.println("  (no jstack on this machine — a native-image client has no JDK of its own, so pass one of its bin directories)")
       javaChildren.foreach { ph =>
         dumpChildJvm(out, ph, jstackPath)
       }
     }
 
-    val nonJava = descendants.filterNot(isJavaProcess)
+    val nonJava = all.filterNot(isJavaProcess)
     if (nonJava.nonEmpty) {
-      out.println(s"--- Non-Java child processes (${nonJava.size}) ---")
+      out.println(s"--- Other non-Java processes (${nonJava.size}) ---")
       nonJava.foreach { ph =>
         val cmd = ph.info().command().toScala.getOrElse("unknown")
         out.println(s"  PID ${ph.pid()}: $cmd")
@@ -58,7 +73,7 @@ object ChildProcessDiagnostics {
     val pid = ph.pid()
     val cmd = ph.info().command().toScala.getOrElse("java")
     out.println()
-    out.println(s"--- Child JVM PID $pid ($cmd) ---")
+    out.println(s"--- Other JVM PID $pid ($cmd) ---")
 
     jstackPath match {
       case Some(jstack) =>
@@ -217,16 +232,25 @@ object ChildProcessDiagnostics {
       cmd.endsWith("/java") || cmd.endsWith("/java.exe") || cmd.contains("jdk") || cmd.contains("jre")
     }
 
-  /** Find jstack relative to current JVM's java.home. */
-  private def findJstack(): Option[Path] = {
-    val javaHome = Paths.get(System.getProperty("java.home"))
-    // java.home may be <jdk>/Contents/Home (macOS) or <jdk> (Linux/Windows)
-    val candidates = List(
-      javaHome.resolve("bin").resolve("jstack"),
-      javaHome.resolve("../bin/jstack").normalize(),
-      javaHome.resolve("../../bin/jstack").normalize()
-    )
-    candidates.find(Files.isExecutable)
+  /** Find `jstack`, preferring the JVM `bin` directories the caller names.
+    *
+    * `java.home` alone is not enough, in two ways that both silently produced an empty dump rather than an error:
+    *
+    *   - the client is a GraalVM native image, so it has no JDK of its own and the property is absent or points at something with no `bin/jstack`. A client
+    *     asking "why is my build stuck" could therefore dump its own threads and nothing else. Callers that know a real JVM (`Started.jvmCommand.getParent`)
+    *     pass it in.
+    *   - `.exe` was never tried, so this found nothing at all on Windows — including in the server, which is where the hangs worth dumping have actually
+    *     happened.
+    */
+  private def findJstack(jvmBinDirs: List[Path]): Option[Path] = {
+    val fromJavaHome: List[Path] =
+      Option(System.getProperty("java.home")).map(Paths.get(_)).toList.flatMap { javaHome =>
+        // java.home may be <jdk>/Contents/Home (macOS) or <jdk> (Linux/Windows)
+        List(javaHome.resolve("bin"), javaHome.resolve("../bin").normalize(), javaHome.resolve("../../bin").normalize())
+      }
+    (jvmBinDirs ++ fromJavaHome)
+      .flatMap(dir => List(dir.resolve("jstack"), dir.resolve("jstack.exe")))
+      .find(Files.isExecutable)
   }
 
   private def runJstack(jstackPath: Path, pid: Long): Option[String] =

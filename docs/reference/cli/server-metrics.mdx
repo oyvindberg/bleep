@@ -13,7 +13,7 @@ title: bleep server-metrics
 ## Synopsis
 
 ```bash
-bleep server-metrics <pid>
+bleep server-metrics <pid> [flags]
 ```
 
 ## Arguments
@@ -21,4 +21,10 @@ bleep server-metrics <pid>
 | Argument | Type |
 |----------|------|
 | `pid` | one |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--file <path>` | read this metrics.jsonl instead of the newest local one (e.g. downloaded from CI) |
 
