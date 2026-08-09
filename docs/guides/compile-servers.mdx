@@ -48,6 +48,40 @@ build root). The compile server runs the Scala compiler on the JVM
 it was started with, so if your build mixes projects on different
 JVMs, **bleep starts one shared compile server per JVM**.
 
+## The dashboard
+
+```bash
+bleep server        # same thing
+bleep server top
+```
+
+A live view of every compile server on the machine, refreshed once a
+second. The list is on top, yours marked; below it a detail pane for
+whichever server is selected, with tabs for **Overview** (heap and
+live set, GC, threads, CPU, file descriptors), **Workspaces**,
+**Activity** (what is compiling, what is queued, who is connected)
+and **Config** (what that server booted with).
+
+| key | |
+| --- | --- |
+| `↑` `↓` | select a server |
+| `⇥` | next tab |
+| `k` | stop the selected server |
+| `r` | restart it |
+| `q` | quit |
+
+`k` and `r` ask for confirmation first — a compile server may be in
+the middle of somebody's build — and then run exactly the same code
+as `bleep server kill` and `bleep server restart`.
+
+The dashboard connects as an *observer*, which means watching a
+server never keeps it alive and never resets its idle clock. If a
+server idles out while you are looking at it, the row turns `dead`,
+which is the truth.
+
+Where a terminal cannot support it — a pipe, a CI log — this falls
+back to the listing below and says why.
+
 ## Seeing what is running
 
 Because one server exists per bleep version and JVM configuration,

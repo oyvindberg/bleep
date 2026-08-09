@@ -93,6 +93,9 @@ object Main {
   def serverCommand(userPaths: UserPaths, currentWorkspace: Option[java.nio.file.Path]): Opts[Logger => BleepCommand] =
     Opts.subcommand("server", "inspect and control the compile servers (bsp daemons) running on this machine")(
       List[Opts[Logger => BleepCommand]](
+        Opts.subcommand("top", "live dashboard of every compile server — also what bare `bleep server` runs")(
+          Opts.unit.map(_ => (logger: Logger) => commands.server.ServerTop(logger, userPaths, currentWorkspace))
+        ),
         Opts.subcommand("ls", "list every compile server on this machine, running or not")(
           outputMode.map(mode => (logger: Logger) => commands.server.ServerLs(logger, userPaths, mode, currentWorkspace))
         ),
@@ -145,7 +148,9 @@ object Main {
         ),
         Opts.subcommand("config", "show and change the settings compile servers start with")(
           serverConfigCommand(userPaths, currentWorkspace)
-        )
+        ),
+        // Bare `bleep server` opens the dashboard. Last in the list so every named subcommand is matched first, and it only claims the no-argument case.
+        Opts.unit.map(_ => (logger: Logger) => commands.server.ServerTop(logger, userPaths, currentWorkspace))
       ).foldK
     )
 

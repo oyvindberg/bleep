@@ -50,6 +50,7 @@
   - bleep remote-cache push
 - bleep run
 - bleep server
+  - bleep server top
   - bleep server ls
   - bleep server status
   - bleep server kill
