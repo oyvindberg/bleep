@@ -145,12 +145,19 @@ class ServerTopLoop(logger: Logger, userPaths: UserPaths, currentWorkspace: Opti
 
   private def mouseEvent(mouse: _root_.tui.crossterm.Event.Mouse): Option[jatatui.react.MouseEvent] = {
     val event = mouse.mouseEvent
+    // Every kind the binding can produce is named here, horizontal scroll included. Beyond mapping them, naming them keeps them reachable: native-image drops
+    // classes nothing references, and the crossterm jar's own JNI config missed ScrollLeft/ScrollRight — see the reachability metadata in src/resources.
     val kind = event.kind match {
       case _: _root_.tui.crossterm.MouseEventKind.Down       => Some(jatatui.react.MouseEvent.Kind.DOWN)
       case _: _root_.tui.crossterm.MouseEventKind.Up         => Some(jatatui.react.MouseEvent.Kind.UP)
+      case _: _root_.tui.crossterm.MouseEventKind.Drag       => Some(jatatui.react.MouseEvent.Kind.DRAG)
+      case _: _root_.tui.crossterm.MouseEventKind.Moved      => Some(jatatui.react.MouseEvent.Kind.MOVE)
       case _: _root_.tui.crossterm.MouseEventKind.ScrollUp   => Some(jatatui.react.MouseEvent.Kind.SCROLL_UP)
       case _: _root_.tui.crossterm.MouseEventKind.ScrollDown => Some(jatatui.react.MouseEvent.Kind.SCROLL_DOWN)
-      case _                                                 => None
+      // Horizontal scroll has nothing to move here, but it must still be matched rather than left to fall through as an unknown event.
+      case _: _root_.tui.crossterm.MouseEventKind.ScrollLeft  => None
+      case _: _root_.tui.crossterm.MouseEventKind.ScrollRight => None
+      case _                                                  => None
     }
     kind.map(k => new jatatui.react.MouseEvent(event.column, event.row, event.modifiers, k))
   }
