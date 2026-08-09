@@ -68,14 +68,21 @@ kill_tree() {
     if [ -n "$winpid" ]; then
       taskkill //F //T //PID "$winpid" >/dev/null 2>&1 || true
     fi
-    # Belt and braces, because every part of the targeted path above can fail silently: /proc/<pid>/winpid may not
-    # exist for the child shape we got, and `taskkill //T` only walks the tree it can see. Both failures are masked by
-    # `|| true`, which is how a bound that looked correct let a 45-minute hang through three times.
+    # Belt and braces, and on Windows it is not optional: the `bound-check` job proved the targeted kill above does NOT
+    # reach a DETACHED grandchild. `start /B` leaves the intermediate `cmd` to exit, so by the time we look there is no
+    # live parent link to walk — `taskkill //T` cannot see it, and both that and the winpid translation fail silently
+    # behind `|| true`. That is how a 20-minute bound produced a 55-minute teardown three times: the survivor also held
+    # the step's stdout, and GitHub waits for the pipes, not for us.
     #
-    # By image name, so nothing has to be translated or walked. Safe here specifically: this runs on a CI runner at the
-    # moment we have already decided the tree is unsalvageable, and the only steps after it read files. It would not be
-    # safe on a developer machine, which is why it lives behind the timeout branch and not in normal teardown.
-    for image in java.exe bleep.exe; do
+    # By image name, because a descendant walk cannot find what has no living ancestor. Safe here specifically: this
+    # runs on a CI runner at the moment we have already decided the tree is unsalvageable, and the only steps after it
+    # read files. It would not be safe on a developer machine, which is why it lives behind the timeout branch.
+    #
+    # Configurable, so the images swept are the ones the bounded command can actually spawn — a hardcoded list is a
+    # guess that fails quietly when it is wrong, which is the whole failure mode being fixed here.
+    # node.exe belongs in the default alongside the JVMs: the Scala.js suites fork node, and a forked node inherits the
+    # step's stdout exactly like a test JVM does. It cannot hold the pipe open if it is not running.
+    for image in ${BOUND_KILL_IMAGES:-java.exe bleep.exe node.exe}; do
       taskkill //F //T //IM "$image" >/dev/null 2>&1 || true
     done
   fi

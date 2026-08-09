@@ -182,6 +182,11 @@ jobs:
 
       - name: A hang fails the step, and ends it
         shell: bash
+        env:
+          # The images this harness can spawn, standing in for java.exe/bleep.exe in the real step. Passed explicitly
+          # because the sweep must name what the bounded command actually starts; a hardcoded list is a guess, and this
+          # job exists to stop guesses shipping.
+          BOUND_KILL_IMAGES: ping.exe
         run: |
           start=$SECONDS
           set +e
@@ -219,9 +224,19 @@ jobs:
               exit 1
             fi
           else
-            if pgrep -f "sleep 3000" >/dev/null 2>&1; then
+            # `pgrep -x sleep` then filter on args, NOT `pgrep -f "sleep 3000"`. The -f form matches any process whose
+            # command line merely CONTAINS the pattern — including this step's own ancestry, which mentions it in the
+            # check itself. That false-positived locally and would have reported a survivor that did not exist. Matching
+            # comm exactly means no shell can satisfy it.
+            survivors=""
+            for pid in $(pgrep -x sleep 2>/dev/null || true); do
+              case "$(ps -o args= -p "$pid" 2>/dev/null)" in
+                *3000*) survivors="$survivors $pid" ;;
+              esac
+            done
+            if [ -n "$survivors" ]; then
               echo "::error title=Survivor::a sleep outlived the kill — the process tree was not reaped"
-              pgrep -af "sleep 3000" || true
+              ps -o pid,ppid,pgid,args -p ${survivors# } || true
               exit 1
             fi
           fi
