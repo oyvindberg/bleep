@@ -81,6 +81,13 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   private def stateWith(rows: List[ServerRow]): ServerTopState =
     ServerTopState.initial(NowMs).copy(rows = rows)
 
+  /** Join classpath entries the way the daemon's own launch command does, in `BspServerOperations`.
+    *
+    * Hardcoding `:` here passes on unix and quietly lies on Windows, where the separator is `;`: the fixture becomes one enormous single path, the pane
+    * faithfully reports "1 entries", and the failure looks like a rendering bug rather than a test that built the wrong input.
+    */
+  private def classpathArg(entries: Seq[String]): String = entries.mkString(java.io.File.pathSeparator)
+
   /** Render at a fixed size and read the buffer back as plain text. */
   private def draw(state: ServerTopState): String = drawAt(state, width = 140)
 
@@ -529,7 +536,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       javaBin = "/opt/jvm/bin/java",
       javaOpts = List("-Xmx12g", "-XX:+UseZGC"),
       serverMainClass = "bleep.bsp.BspServerDaemon",
-      command = List("/opt/jvm/bin/java", "-Xmx12g", "-cp", "/a/one.jar:/b/two.jar", "bleep.bsp.BspServerDaemon"),
+      command = List("/opt/jvm/bin/java", "-Xmx12g", "-cp", classpathArg(List("/a/one.jar", "/b/two.jar")), "bleep.bsp.BspServerDaemon"),
       workingDir = "/tmp/socket-dir",
       spawnedAtEpochMs = 1L
     )
@@ -561,7 +568,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       javaBin = "/opt/jvm/bin/java",
       javaOpts = List("-Xmx12g"),
       serverMainClass = "bleep.bsp.BspServerDaemon",
-      command = List("/opt/jvm/bin/java", "-cp", (1 to 202).map(index => s"/jars/lib-$index.jar").mkString(":"), "bleep.bsp.BspServerDaemon"),
+      command = List("/opt/jvm/bin/java", "-cp", classpathArg((1 to 202).map(index => s"/jars/lib-$index.jar")), "bleep.bsp.BspServerDaemon"),
       workingDir = "/tmp/socket-dir",
       spawnedAtEpochMs = 1L
     )
@@ -605,11 +612,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       command = List(
         "/opt/jvm/bin/java",
         "-cp",
-        (1 to 202)
-          .map(index =>
+        classpathArg(
+          (1 to 202).map(index =>
             s"/Users/dev/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/example/deeply/nested/group/library-$index/1.2.3/library-$index-1.2.3.jar"
           )
-          .mkString(":"),
+        ),
         "x"
       ),
       workingDir = "/tmp/socket-dir",

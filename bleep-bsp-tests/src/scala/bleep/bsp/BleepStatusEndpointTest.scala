@@ -7,7 +7,7 @@ import ryddig.{LogPatterns, Loggers}
 
 import java.io.{BufferedReader, InputStreamReader, PipedInputStream, PipedOutputStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** The admin endpoints, driven the way a real client drives them: raw JSON-RPC over a socket, with no BSP handshake at all.
@@ -32,10 +32,12 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
 
     private val analysisCache = new bleep.analysis.AnalysisCache
 
+    val socketDir: Path = Paths.get("/tmp/sockets/deadbeef")
+
     val daemonInfo: DaemonInfo = DaemonInfo(
       startedAtEpochMs = 1_700_000_000_000L,
       pid = 4242L,
-      socketDir = Paths.get("/tmp/sockets/deadbeef"),
+      socketDir = socketDir,
       bleepVersion = "1.2.3-test",
       bootedConfig = bleep.model.BspServerConfig.default.copy(parallelism = Some(7), maxCachedWorkspaces = Some(9)),
       connectionRegistry = registry,
@@ -106,7 +108,8 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     status.bleepVersion shouldBe "1.2.3-test"
     status.pid shouldBe 4242L
     status.startedAtEpochMs shouldBe 1_700_000_000_000L
-    status.socketDir shouldBe "/tmp/sockets/deadbeef"
+    // Compared against the fixture's own Path rather than a literal: the DTO carries the platform rendering, `\tmp\sockets\deadbeef` on Windows.
+    status.socketDir shouldBe f.socketDir.toString
   }
 
   test("it reports the config the daemon booted with, not what is on disk now") {
