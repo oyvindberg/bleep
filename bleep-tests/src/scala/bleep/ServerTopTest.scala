@@ -458,6 +458,38 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     }
   }
 
+  /** A real bleep-bsp classpath is over 200 jars. Rendered as one element per line that is 200+ children in a container, and the layout solver runs over every
+    * child on every frame — which froze the dashboard outright the moment anyone opened this tab. Panes whose length is driven by data render as one widget.
+    *
+    * Timing is the only way to state "this does not scale with the data" without asserting on jatatui's internals; the bound is loose enough not to be flaky
+    * and tight enough that the old behaviour (seconds) could never pass.
+    */
+  test("a pane with a real-sized classpath renders promptly, rather than one layout child per entry") {
+    val identity = bleep.bsp.ServerJson(
+      bleepVersion = "1.0.0-M11",
+      jvmName = "graalvm-community",
+      jvmVersion = "25.0.1",
+      javaBin = "/opt/jvm/bin/java",
+      javaOpts = List("-Xmx12g"),
+      serverMainClass = "bleep.bsp.BspServerDaemon",
+      command = List("/opt/jvm/bin/java", "-cp", (1 to 202).map(index => s"/jars/lib-$index.jar").mkString(":"), "bleep.bsp.BspServerDaemon"),
+      workingDir = "/tmp/socket-dir",
+      spawnedAtEpochMs = 1L
+    )
+    val row = running("aaaa1111", isCurrent = true)
+    val state = stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Config)
+
+    draw(state) // warm up, so the measurement is not dominated by first-render setup
+    val startedAt = System.nanoTime()
+    val screen = draw(state)
+    val elapsedMs = (System.nanoTime() - startedAt) / 1000000
+
+    screen should include("202 entries")
+    withClue(s"rendering a 202-entry classpath took ${elapsedMs}ms: ") {
+      elapsedMs should be < 250L
+    }
+  }
+
   test("a server with no recorded launch command says so rather than showing an empty section") {
     draw(stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Config)) should include("predates the recorded launch command")
   }

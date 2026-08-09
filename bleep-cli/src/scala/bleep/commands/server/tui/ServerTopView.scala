@@ -183,7 +183,19 @@ object ServerTopView {
             }
             column(
               length(1, tabBar(state, dispatch)),
-              fill(1, if (state.tab == Tab.Log) logPane(state, dispatch) else packed("", lines))
+              fill(
+                1,
+                state.tab match {
+                  case Tab.Log => logPane(state, dispatch)
+                  // Overview is a short, fixed set of rows and needs real elements for its gauges. The others are plain text of unbounded length — a workspace
+                  // list, a queue, a classpath — and one element per line means one layout constraint per line, solved every frame. 202 classpath entries
+                  // froze the dashboard outright.
+                  case Tab.Overview   => packed("", lines)
+                  case Tab.Config     => textPane(configLines(status, row.info.identity))
+                  case Tab.Workspaces => textPane(workspaceLines(status))
+                  case Tab.Activity   => textPane(activityLines(status))
+                }
+              )
             )
         }
     }
@@ -232,6 +244,87 @@ object ServerTopView {
   }
 
   /** Which workspaces this server is holding, and what each is doing — the answer to "whose build is this". */
+  private def workspaceLines(status: DaemonStatus): List[Line] =
+    if (status.workspaces.isEmpty) List(lineOf("  no workspaces loaded", Palette.textDim))
+    else
+      sectionOf(s"${status.workspaces.size} LOADED") ::
+        status.workspaces.flatMap { workspace =>
+          val cached = if (workspace.buildCached) "build cached" else "build not cached"
+          val busy = if (workspace.activeOperations.isEmpty) "idle" else s"${workspace.activeOperations.size} active"
+          List(
+            boldLineOf(s"  ${workspace.path}", Palette.text),
+            lineOf(s"      $cached · $busy", Palette.textDim)
+          ) ++ workspace.activeOperations.map { op =>
+            lineOf(s"      ▸ ${op.operation}  ${op.projects.mkString(", ")}  ${humanDuration(op.startedAgoMs)}", Palette.accent)
+          }
+        }
+
+  /** What the server is doing right now, and what is stacked up behind it. */
+  private def activityLines(status: DaemonStatus): List[Line] = {
+    val machine = status.machine
+
+    val running =
+      if (machine.active.isEmpty) List(lineOf("  nothing running", Palette.textDim))
+      else
+        machine.active.map(entry =>
+          lineOf(f"  ▸ ${entry.kind}%-10s ${entry.label}%-30s cpu ${entry.cpu}%d   ${entry.memoryMb}%dMB   ${humanDuration(entry.ageMs)}%s", Palette.accent)
+        )
+
+    val queue =
+      if (machine.waiting.isEmpty) List(lineOf("  queue empty", Palette.textDim))
+      else
+        machine.waiting.map(entry =>
+          lineOf(
+            f"  · ${entry.kind}%-10s ${entry.label}%-30s wants cpu ${entry.cpu}%d, ${entry.memoryMb}%dMB   waited ${humanDuration(entry.ageMs)}%s",
+            Palette.warning
+          )
+        )
+
+    val clients = status.connections.map { connection =>
+      val who = connection.clientName.getOrElse(if (connection.observer) "observer" else "unidentified")
+      val version = connection.clientVersion.map(v => s" $v").getOrElse("")
+      val workspace = connection.workspace.map(w => s" — $w").getOrElse("")
+      lineOf(s"  #${connection.connId} $who$version$workspace", if (connection.observer) Palette.textDim else Palette.textMuted)
+    }
+
+    List(sectionOf(s"RUNNING · ${machine.activeCompiles} compiling")) ++ running ++
+      List(sectionOf(s"QUEUE · ${machine.waiting.size} waiting")) ++ queue ++
+      List(sectionOf(s"CLIENTS · ${status.connections.size} connected")) ++ clients
+  }
+
+  private def configLines(status: DaemonStatus, identity: Option[bleep.bsp.ServerJson]): List[Line] = {
+    val booted = status.config
+    val base = List(
+      sectionOf("AS BOOTED"),
+      fieldOf("parallelism", booted.parallelism.toString),
+      fieldOf("max cached", s"${booted.maxCachedWorkspaces} workspaces"),
+      fieldOf("read timeout", s"${booted.bspReadTimeoutMillis / 60000}m"),
+      fieldOf("idle timeout", s"${booted.compileServerIdleTimeoutMillis / 60000}m"),
+      fieldOf("heap pressure", booted.heapPressureThreshold.toString),
+      fieldOf("max memory", booted.compileServerMaxMemory.getOrElse("default")),
+      fieldOf("test runner", booted.testRunnerMaxMemory.getOrElse("default")),
+      lineOf("  `bleep server config show` compares these with the file on disk", Palette.textDim)
+    )
+
+    val launch = identity match {
+      case None       => List(sectionOf("STARTED WITH"), lineOf("  unknown — this server predates the recorded launch command", Palette.textDim))
+      case Some(json) =>
+        val classpath = classpathOf(json.command)
+        List(
+          sectionOf("STARTED WITH"),
+          fieldOf("java", json.javaBin),
+          fieldOf("jvm", s"${json.jvmName}:${json.jvmVersion}"),
+          fieldOf("main class", json.serverMainClass),
+          fieldOf("working dir", json.workingDir),
+          fieldOf("java options", if (json.javaOpts.isEmpty) "none" else json.javaOpts.mkString(" ")),
+          fieldOf("classpath", s"${classpath.size} entries")
+        ) ++ classpath.map(entry => lineOf(s"      $entry", Palette.textDim))
+    }
+
+    base ++ launch
+  }
+
+  /** Element form, kept only for the Overview tab, which needs widgets for its gauges. */
   private def workspaces(status: DaemonStatus): List[Element] =
     if (status.workspaces.isEmpty) List(text("  no workspaces loaded", style(Palette.textDim)))
     else
@@ -386,6 +479,21 @@ object ServerTopView {
   /** The classpath as the daemon was given it — the argument after `-cp` in the recorded argv. */
   private def classpathOf(command: List[String]): List[String] =
     command.sliding(2).collectFirst { case List("-cp", classpath) => classpath.split(java.io.File.pathSeparator).toList }.getOrElse(Nil)
+
+  /** A pane of plain text as a single widget.
+    *
+    * One element per line makes the layout solver do work proportional to the number of lines, every frame — which is fine for a dozen rows and fatal for a few
+    * hundred. Text that can grow without bound goes through here instead.
+    */
+  private def textPane(lines: List[Line]): Element =
+    box("", Borders.ALL, widget(Paragraph.of(Text.fromLines(lines.asJava))))
+
+  private def lineOf(content: String, color: jatatui.core.style.Color): Line = Line.from(Span.styled(content, style(color)))
+  private def boldLineOf(content: String, color: jatatui.core.style.Color): Line = Line.from(Span.styled(content, bold(color)))
+  private def sectionOf(title: String): Line = boldLineOf(s" $title", Palette.info)
+
+  private def fieldOf(label: String, value: String): Line =
+    Line.from(Span.styled(s"  ${label.padTo(LabelWidth, ' ')}", style(Palette.textDim)), Span.styled(value, style(Palette.text)))
 
   // ── building blocks ─────────────────────────────────────────────
 
