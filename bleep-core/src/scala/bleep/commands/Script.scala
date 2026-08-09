@@ -10,7 +10,7 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
 
 object Script {
   private val scriptBuildOpts: CommonBuildOpts =
-    CommonBuildOpts(DisplayMode.NoTui, flamegraph = false, cancel = false)
+    CommonBuildOpts(DisplayMode.NoTui, flamegraph = false, cancel = false, maxTime = None)
 
   def run(started: Started, scriptDefs: Seq[model.ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
     traverseish.runAll(scriptDefs) { case model.ScriptDef.Main(project, main, _) =>

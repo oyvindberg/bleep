@@ -47,6 +47,22 @@ if [ -n "${LOCALAPPDATA:-}" ]; then
   fi
 fi
 
+# The `--max-time` thread dump, if bleep bounded itself on this run. Collected FIRST, and before the early exit
+# below: it lives in the workspace rather than the server's socket dir, and it is the one artifact that exists
+# precisely when the run went wrong. A run with no socket dirs at all is exactly when you would still want it.
+dumps=(.bleep/builds/*/max-time-thread-dump.txt)
+if [ ${#dumps[@]} -gt 0 ]; then
+  mkdir -p "$out"
+  for f in "${dumps[@]}"; do
+    variant=$(basename "$(dirname "$f")")
+    cp "$f" "$out/max-time-thread-dump-$variant.txt"
+    echo "collected max-time thread dump for variant '$variant' ($(wc -c <"$f" | tr -d ' ') bytes)"
+    echo "::warning::bleep exceeded --max-time on this run; thread dump is in the bsp-diagnostics artifact"
+  done
+else
+  echo "no --max-time thread dump (the build was not bounded out)"
+fi
+
 echo "compile-server socket dirs:"
 dirs=()
 for root in "${roots[@]}"; do

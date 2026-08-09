@@ -33,7 +33,8 @@ case class PublishSonatype(options: PublishSonatype.Options, buildOpts: CommonBu
         projects = projects,
         displayMode = buildOpts.displayMode,
         flamegraph = buildOpts.flamegraph,
-        cancel = buildOpts.cancel
+        cancel = buildOpts.cancel,
+        maxTime = buildOpts.maxTime
       )
       .run(started)
       .map { case () =>

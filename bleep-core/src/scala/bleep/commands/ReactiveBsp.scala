@@ -12,6 +12,7 @@ import cats.effect.unsafe.implicits.global
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Path
+import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
@@ -45,7 +46,11 @@ case class ReactiveBsp(
       * `sys.env` read at the send site so tests can inject values that are provably not in the running JVM's own environment — the only way to prove the value
       * travelled over BSP rather than being inherited by the fork.
       */
-    clientEnv: Map[String, String]
+    clientEnv: Map[String, String],
+    /** Wall-clock ceiling for one run of this command, from `--max-time`. `None` means unbounded, which is the default: a bound nobody asked for would kill
+      * somebody's legitimately long build. Applied per run, so in `--watch` each cycle gets the full budget.
+      */
+    maxTime: Option[FiniteDuration]
 ) extends BleepBuildCommand {
 
   /** Persists across watch cycles for per-project diff (only used in DiffWatch mode) */
@@ -59,6 +64,21 @@ case class ReactiveBsp(
   override def run(started: Started): Either[BleepException, Unit] =
     if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(runOnce)
     else runOnce(started)
+
+  /** The bound for one run, or `None` when `--max-time` was not given.
+    *
+    * `serverPids` is what makes the dump worth having: the compile server is not a descendant of this process, so nothing else would find it, and it is usually
+    * the half that is actually stuck. `jvmBinDirs` supplies a `jstack` — this client is a native image and has no JDK of its own.
+    */
+  private def maxTimeFor(started: Started, serverPids: List[Long]): Option[bleep.internal.MaxTime] =
+    maxTime.map { duration =>
+      bleep.internal.MaxTime(
+        duration = duration,
+        dumpTo = started.buildPaths.workspaceVariantDir / "max-time-thread-dump.txt",
+        jvmBinDirs = List(started.jvmCommand.getParent),
+        serverPids = serverPids
+      )
+    }
 
   private def runOnce(started: Started): Either[BleepException, Unit] = {
     // For `bleep test --only-tag slow`, prune projects whose `testTags` declare none of the requested tags before BSP dispatch.
@@ -197,7 +217,8 @@ case class ReactiveBsp(
     } yield summary
 
     try {
-      val summary = program.unsafeRunSync()
+      // No separate daemon in this mode, so there is no server pid to dump — the work is happening on these threads.
+      val summary = bleep.internal.MaxTime.bound(maxTimeFor(started, serverPids = Nil), program).unsafeRunSync()
       resultFromSummary(summary)
     } catch {
       case ex: Exception =>
@@ -476,7 +497,8 @@ case class ReactiveBsp(
     var errorOpt: Option[Throwable] = None
 
     try {
-      val summary = program.unsafeRunSync()
+      val serverPids = bleep.bsp.BspServerOperations.readPid(config.address.socketDir.resolve("pid")).unsafeRunSync().toList
+      val summary = bleep.internal.MaxTime.bound(maxTimeFor(started, serverPids), program).unsafeRunSync()
       summaryOpt = Some(summary)
       resultFromSummary(summary)
     } catch {
@@ -965,7 +987,8 @@ object ReactiveBsp {
       projects: Array[model.CrossProjectName],
       displayMode: DisplayMode,
       flamegraph: Boolean,
-      cancel: Boolean
+      cancel: Boolean,
+      maxTime: Option[FiniteDuration]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -981,7 +1004,8 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
-    clientEnv = Map.empty
+    clientEnv = Map.empty,
+    maxTime = maxTime
   )
 
   /** Create test-bsp command */
@@ -998,7 +1022,8 @@ object ReactiveBsp {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[Path],
-      clientEnv: Map[String, String]
+      clientEnv: Map[String, String],
+      maxTime: Option[FiniteDuration]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -1014,7 +1039,8 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = junitReportDir,
-    clientEnv = clientEnv
+    clientEnv = clientEnv,
+    maxTime = maxTime
   )
 
   /** Create link-bsp command */
@@ -1024,7 +1050,8 @@ object ReactiveBsp {
       displayMode: DisplayMode,
       options: LinkOptions,
       flamegraph: Boolean,
-      cancel: Boolean
+      cancel: Boolean,
+      maxTime: Option[FiniteDuration]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -1040,6 +1067,7 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
-    clientEnv = Map.empty
+    clientEnv = Map.empty,
+    maxTime = maxTime
   )
 }

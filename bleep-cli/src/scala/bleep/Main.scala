@@ -11,6 +11,7 @@ import ryddig.Logger
 
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Properties, Success, Try}
 
 object Main {
@@ -179,18 +180,32 @@ object Main {
 
     val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
 
+    /** Wall-clock ceiling for the build, e.g. `--max-time 15m`.
+      *
+      * Off unless asked for. A default here would eventually kill somebody's legitimately long clean build, and there is no value that is right for both a
+      * laptop and a cold CI runner — which is the same reason it is a per-invocation flag rather than a setting on the shared compile server, where whichever
+      * client happened to spawn the daemon would silently impose its choice on everyone else.
+      */
+    val maxTime: Opts[Option[FiniteDuration]] =
+      Opts
+        .option[String]("max-time", "give up after this long, e.g. 90s / 15m / 1h, and dump thread state before failing")
+        .mapValidated(str => Validated.fromEither(internal.MaxTime.parse(str).left.map(NonEmptyList.one)))
+        .orNone
+
     val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
       (
         Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
         Opts.flag("quiet", "alias for --no-tui", "q").orFalse
       ).mapN(_ || _),
       Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-      cancel
-    ).mapN { case (noTui, flamegraph, cancel) =>
+      cancel,
+      maxTime
+    ).mapN { case (noTui, flamegraph, cancel, maxTime) =>
       commands.CommonBuildOpts(
         displayMode = commands.DisplayMode.fromFlags(noTui),
         flamegraph = flamegraph,
-        cancel = cancel
+        cancel = cancel,
+        maxTime = maxTime
       )
     }
 
@@ -343,12 +358,13 @@ object Main {
               ).mapN(_ || _),
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel) =>
+              cancel,
+              maxTime
+            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, maxTime) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, maxTime)
             }
           ),
           Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
@@ -367,8 +383,9 @@ object Main {
                 Opts.flag("quiet", "alias for --no-tui", "q").orFalse
               ).mapN(_ || _),
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel) =>
+              cancel,
+              maxTime
+            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel, maxTime) =>
               val linkOptions = commands.LinkOptions(
                 releaseMode = release,
                 sourceMaps = sourceMaps,
@@ -378,7 +395,7 @@ object Main {
                 optimize = optimize,
                 debugInfo = debugInfo
               )
-              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel)
+              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel, maxTime)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
@@ -403,26 +420,44 @@ object Main {
               excludeTag,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
-              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, onlyTag, excludeTag, flamegraph, cancel, junitReportDir) =>
-              val (effectiveWatch, effectiveDisplayMode) =
-                if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.test(
-                watch = effectiveWatch,
-                projects = projectNames,
-                displayMode = effectiveDisplayMode,
-                jvmOptions = jvmOpts.toList,
-                testArgs = testArgs.toList,
-                only = only.map(_.toList).getOrElse(Nil),
-                exclude = exclude.map(_.toList).getOrElse(Nil),
-                includeTags = onlyTag.map(_.toList).getOrElse(Nil),
-                excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
-                flamegraph = flamegraph,
-                cancel = cancel,
-                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
-                clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
-              )
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              maxTime
+            ).mapN {
+              case (
+                    watch,
+                    projectNames,
+                    noTui,
+                    diffWatch,
+                    jvmOpts,
+                    testArgs,
+                    only,
+                    exclude,
+                    onlyTag,
+                    excludeTag,
+                    flamegraph,
+                    cancel,
+                    junitReportDir,
+                    maxTime
+                  ) =>
+                val (effectiveWatch, effectiveDisplayMode) =
+                  if (diffWatch) (true, commands.DisplayMode.DiffWatch)
+                  else (watch, commands.DisplayMode.fromFlags(noTui))
+                commands.ReactiveBsp.test(
+                  watch = effectiveWatch,
+                  projects = projectNames,
+                  displayMode = effectiveDisplayMode,
+                  jvmOptions = jvmOpts.toList,
+                  testArgs = testArgs.toList,
+                  only = only.map(_.toList).getOrElse(Nil),
+                  exclude = exclude.map(_.toList).getOrElse(Nil),
+                  includeTags = onlyTag.map(_.toList).getOrElse(Nil),
+                  excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
+                  flamegraph = flamegraph,
+                  cancel = cancel,
+                  junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(),
+                  maxTime = maxTime
+                )
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(

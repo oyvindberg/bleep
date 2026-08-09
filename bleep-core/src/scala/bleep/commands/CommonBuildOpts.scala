@@ -9,5 +9,7 @@ package commands
 case class CommonBuildOpts(
     displayMode: DisplayMode,
     flamegraph: Boolean,
-    cancel: Boolean
+    cancel: Boolean,
+    /** Wall-clock ceiling for the build this command triggers, from `--max-time`. `None` means unbounded. */
+    maxTime: Option[scala.concurrent.duration.FiniteDuration]
 )

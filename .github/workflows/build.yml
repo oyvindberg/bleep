@@ -123,7 +123,10 @@ jobs:
         timeout-minutes: 22
         # No tag exclusions: this is the canonical full-suite gate, and the only place the platform linkers are
         # exercised now that the native-image matrix skips them.
-        run: ./bleep-cli.sh --dev test
+        # `--max-time` sized just under the step's 22-minute cap, so bleep gives up on itself before GitHub reaps it.
+        # That difference is the whole point: bleep exiting on its own ends the step cleanly and leaves the telemetry
+        # steps below alive, where a GitHub-side reap destroys them along with the runner.
+        run: ./bleep-cli.sh --dev test --max-time 20m
 
       # `IntegrationTestHarness.commitSnippets` WRITES these files as a side effect of the tests above.
       # It never compares them, so nothing failed while they drifted: the runner's checkout was updated
@@ -400,7 +403,15 @@ jobs:
         # lands at 42 and leaves the job cap as the last line rather than the first one to fire.
         timeout-minutes: 25
         run: |
-          bash .github/scripts/run-bounded.sh 1200 ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow
+          # Two bounds, deliberately ordered 19m < 20m. `--max-time` is bleep bounding itself: it cancels the build,
+          # writes a thread dump of the client AND the compile server to `.bleep/builds/*/max-time-thread-dump.txt`,
+          # and exits non-zero — so the step ends normally and the telemetry steps below still run. `run-bounded.sh`
+          # stays as the outer backstop for the case `--max-time` structurally cannot cover, which is the client being
+          # unable to act at all.
+          #
+          # 19m rather than a tighter number on purpose: it sits just under the bound that is already enforced here, so
+          # this can only convert an existing kill into a clean exit. It cannot fail a run that passes today.
+          bash .github/scripts/run-bounded.sh 1200 ./${{ matrix.file_name }} --dev test --no-color jvm3 --exclude-tag slow --max-time 19m
           bash .github/scripts/run-bounded.sh 120 ./${{ matrix.file_name }} selftest
 
       # Same telemetry as the `build` job. This matrix is the only place Windows and macOS run, so without
