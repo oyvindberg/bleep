@@ -38,7 +38,9 @@ projects:
     - com.lumidion::sonatype-central-client-upickle:0.3.0
     - com.olvind.ryddig::ryddig:0.0.6
     - com.olvind.ryddig::ryddig-jul:0.0.6
-    - com.olvind.tui::tui:0.0.10
+    - com.olvind.jatatui:jatatui-core:0.30.0
+    - com.olvind.jatatui:jatatui-crossterm:0.30.0
+    - com.olvind.jatatui:jatatui-widgets:0.30.0
     - com.softwaremill.sttp.client4::slf4j-backend:4.0.0-M16
     - com.softwaremill.sttp.client4::upickle:4.0.0-M16
     - com.swoval:file-tree-views:2.1.12

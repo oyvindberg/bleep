@@ -1,48 +1,56 @@
 package bleep
 
 import bleep.testing.FancyBuildDisplay.Palette
-import tui._
-import tui.widgets.{BlockWidget, ListWidget, ParagraphWidget}
+import jatatui.core.layout.{Constraint, Direction, Layout}
+import jatatui.core.style.{Modifier, Style}
+import jatatui.core.text.{Line, Text}
+import jatatui.crossterm.Jatatui
+import jatatui.widgets.Borders
+import jatatui.widgets.block.Block
+import jatatui.widgets.list.{List as ListWidget, ListItem, ListState}
 
-/** Reusable single-select picker using tui-scala. Returns the selected index, or None if user cancelled (Esc). */
+import java.util.Optional
+import scala.jdk.CollectionConverters._
+
+/** Reusable single-select picker using jatatui. Returns the selected index, or None if user cancelled (Esc). */
 object TuiPicker {
 
   def pick(title: String, items: List[String]): Option[Int] =
     if (!testing.FancyBuildDisplay.isSupported) pickFallback(title, items)
     else pickTui(title, items)
 
-  private def pickTui(title: String, items: List[String]): Option[Int] =
-    withTerminal { (jni, terminal) =>
-      val listState = ListWidget.State(selected = Some(0))
+  private def pickTui(title: String, items: List[String]): Option[Int] = {
+    val terminal = Jatatui.init()
+    try {
+      val jni = terminal.backend().writer()
+      val listState = ListState.empty()
+      listState.select(Optional.of(Integer.valueOf(0)))
       var done = false
       var result: Option[Int] = None
 
+      val baseStyle = Style.empty().withFg(Palette.text).withBg(Palette.bg)
+
       while (!done) {
         terminal.draw { f =>
-          val chunks = Layout(
-            direction = Direction.Vertical,
-            constraints = Array(Constraint.Length(3), Constraint.Min(1))
-          ).split(f.size)
+          val chunks = Layout
+            .of(Direction.Vertical, java.util.List.of[Constraint](new Constraint.Length(3), new Constraint.Min(1)))
+            .split(f.area())
 
-          val titleWidget = ParagraphWidget(
-            text = Text.nostyle(title),
-            block = Some(BlockWidget(borders = Borders.ALL, title = Some(Spans.nostyle("Setup")))),
-            style = Style(fg = Some(Palette.text), bg = Some(Palette.bg))
-          )
+          val titleWidget = jatatui.widgets.paragraph.Paragraph
+            .of(Text.raw(title))
+            .withBlock(Block.empty().withBorders(Borders.ALL).withTitle(Line.raw("Setup")))
+            .withStyle(baseStyle)
           f.renderWidget(titleWidget, chunks(0))
 
-          val listItems = items.zipWithIndex.map { case (item, _) =>
-            ListWidget.Item(Text.nostyle(s"  $item"), Style(fg = Some(Palette.text), bg = Some(Palette.bg)))
-          }.toArray
+          val listItems = items.map(item => ListItem.of(Text.raw(s"  $item")).withStyle(baseStyle))
 
-          val list = ListWidget(
-            items = listItems,
-            block = Some(BlockWidget(borders = Borders.ALL)),
-            style = Style(fg = Some(Palette.text), bg = Some(Palette.bg)),
-            highlightStyle = Style(fg = Some(Palette.bg), bg = Some(Palette.info), addModifier = Modifier.BOLD),
-            highlightSymbol = Some("▸ ")
-          )
-          f.renderStatefulWidget(list, chunks(1))(listState)
+          val list = ListWidget
+            .of(listItems.asJava)
+            .withBlock(Block.empty().withBorders(Borders.ALL))
+            .withStyle(baseStyle)
+            .withHighlightStyle(Style.empty().withFg(Palette.bg).withBg(Palette.info).withAddModifier(Modifier.BOLD))
+            .withHighlightSymbol("▸ ")
+          f.renderStatefulWidget(list, chunks(1), listState)
         }: Unit
 
         if (jni.poll(new tui.crossterm.Duration(0, 100_000_000))) { // 100ms
@@ -50,13 +58,13 @@ object TuiPicker {
             case key: tui.crossterm.Event.Key =>
               key.keyEvent.code match {
                 case _: tui.crossterm.KeyCode.Up =>
-                  val cur = listState.selected.getOrElse(0)
-                  listState.select(Some(math.max(0, cur - 1)))
+                  val cur = selectedIndex(listState)
+                  listState.select(Optional.of(Integer.valueOf(math.max(0, cur - 1))))
                 case _: tui.crossterm.KeyCode.Down =>
-                  val cur = listState.selected.getOrElse(0)
-                  listState.select(Some(math.min(items.length - 1, cur + 1)))
+                  val cur = selectedIndex(listState)
+                  listState.select(Optional.of(Integer.valueOf(math.min(items.length - 1, cur + 1))))
                 case _: tui.crossterm.KeyCode.Enter =>
-                  result = listState.selected
+                  result = Some(selectedIndex(listState))
                   done = true
                 case _: tui.crossterm.KeyCode.Esc =>
                   done = true
@@ -69,9 +77,15 @@ object TuiPicker {
         }
       }
       result
-    }
+    } finally Jatatui.restore()
+  }
 
-  /** Fallback for environments without TUI support (Windows, non-interactive terminals). */
+  private def selectedIndex(listState: ListState): Int = {
+    val selected = listState.selected()
+    if (selected.isPresent) selected.get().intValue() else 0
+  }
+
+  /** Fallback for environments without TUI support (non-interactive terminals). */
   private def pickFallback(title: String, items: List[String]): Option[Int] = {
     System.err.println(title)
     items.zipWithIndex.foreach { case (item, idx) =>
