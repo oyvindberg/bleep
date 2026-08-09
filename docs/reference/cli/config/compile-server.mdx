@@ -26,7 +26,19 @@ bleep config compile-server <subcommand>
 
 ## `bleep config compile-server stop-all`
 
-<p>stop every shared compile server currently running</p>
+<p>(deprecated: use `bleep server stop-all`) stop every shared compile server currently running</p>
+
+### Synopsis
+
+```bash
+bleep config compile-server stop-all [flags]
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--force` | skip the graceful path: kill immediately and delete the socket directory |
 
 ## `bleep config compile-server max-memory`
 

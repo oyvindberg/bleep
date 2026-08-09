@@ -49,6 +49,14 @@
   - bleep remote-cache pull
   - bleep remote-cache push
 - bleep run
+- bleep server
+  - bleep server ls
+  - bleep server status
+  - bleep server kill
+  - bleep server stop-all
+  - bleep server restart
+  - bleep server log
+  - bleep server metrics
 - bleep server-metrics
 - bleep setup-dev-script
 - bleep setup-ide

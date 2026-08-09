@@ -123,6 +123,11 @@ object Main {
                   .ServerKill(logger, userPaths, Nil, all = true, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
             )
         ),
+        Opts.subcommand("restart", "stop a compile server so the next build starts a fresh one with the current config")(
+          (Opts.arguments[String]("id").orEmpty, Opts.flag("all", "restart every running compile server").orFalse).mapN { (ids, all) => (logger: Logger) =>
+            commands.server.ServerRestart(logger, userPaths, ids, all = all, currentWorkspace = currentWorkspace)
+          }
+        ),
         Opts.subcommand("log", "print a compile server's log; -f to follow")(
           (
             Opts.argument[String]("id").orNone,
