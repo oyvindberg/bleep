@@ -17,8 +17,12 @@ import scala.jdk.CollectionConverters._
   * log says.
   *
   * One instance per daemon, created in `runWithLock` and passed structurally through [[DaemonInfo]] — never a global.
+  *
+  * @param now
+  *   the time source, injected rather than read from the wall clock, so the idle-clock behaviour can be tested by moving time instead of by sleeping. Every
+  *   assertion here is about whether an event moved the clock, which a test can only state precisely if it owns the clock.
   */
-class ConnectionRegistry {
+class ConnectionRegistry(now: () => Long) {
 
   private case class Entry(
       connId: Int,
@@ -32,12 +36,16 @@ class ConnectionRegistry {
   private val entries = new ConcurrentHashMap[Int, Entry]()
 
   /** Wall-clock of the last moment this daemon did anything for a *real* client. Observers deliberately never move it. */
-  private val lastActivityMs = new AtomicLong(System.currentTimeMillis())
+  private val lastActivityMs = new AtomicLong(now())
 
-  def register(connId: Int, connectedAtEpochMs: Long): Unit = {
+  /** Accepting a connection deliberately does NOT move the idle clock.
+    *
+    * At accept time nobody has said yet what they are — that arrives with `build/initialize` or with an admin request declaring `observer: true`. Touching here
+    * would mean a 1Hz `bleep server top` refreshed the idle window on every poll simply by connecting, which is the immortal-daemon bug this class exists to
+    * prevent, just moved one method earlier. The clock moves when a connection proves itself a real client, and again when one leaves.
+    */
+  def register(connId: Int, connectedAtEpochMs: Long): Unit =
     entries.put(connId, Entry(connId, connectedAtEpochMs, observer = false, clientName = None, clientVersion = None, workspace = None)): Unit
-    touch()
-  }
 
   /** Called when a connection's first admin request declares `observer: true`. Idempotent. */
   def markObserver(connId: Int): Unit =
@@ -72,5 +80,5 @@ class ConnectionRegistry {
       .sortBy(_.connId)
       .map(e => ConnectionDto(e.connId, e.connectedAtEpochMs, e.observer, e.clientName, e.clientVersion, e.workspace))
 
-  private def touch(): Unit = lastActivityMs.set(System.currentTimeMillis())
+  private def touch(): Unit = lastActivityMs.set(now())
 }

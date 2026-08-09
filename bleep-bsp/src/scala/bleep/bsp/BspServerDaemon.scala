@@ -185,7 +185,7 @@ object BspServerDaemon {
     val startedAtEpochMs = System.currentTimeMillis()
     // Who is connected, and which of them count as use. Observers (`bleep server top`) are tracked but deliberately neither hold the daemon open nor refresh
     // its idle clock — see [[ConnectionRegistry]]. This replaces the bare `lastActivityMs` the watchdog used to read.
-    val connectionRegistry = new ConnectionRegistry
+    val connectionRegistry = new ConnectionRegistry(() => System.currentTimeMillis())
 
     // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
     // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously

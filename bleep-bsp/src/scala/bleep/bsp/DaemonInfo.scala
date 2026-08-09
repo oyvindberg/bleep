@@ -40,7 +40,7 @@ object DaemonInfo {
       socketDir = java.nio.file.Paths.get(""),
       bleepVersion = model.BleepVersion.current.value,
       bootedConfig = bootedConfig,
-      connectionRegistry = new ConnectionRegistry,
+      connectionRegistry = new ConnectionRegistry(() => System.currentTimeMillis()),
       requestDaemonShutdown = () => ()
     )
 }
