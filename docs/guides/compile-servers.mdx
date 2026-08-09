@@ -57,22 +57,36 @@ bleep server top
 
 A live view of every compile server on the machine, refreshed once a
 second. The list is on top, yours marked; below it a detail pane for
-whichever server is selected, with tabs for **Overview** (heap and
-live set, GC, threads, CPU, file descriptors), **Workspaces**,
-**Activity** (what is compiling, what is queued, who is connected)
-and **Config** (what that server booted with).
+whichever server is selected.
+
+Tabs: **Overview** (heap with a gauge, live set, GC, threads, CPU,
+file descriptors, cache sizes), **Workspaces** (which are loaded and
+what each is running), **Activity** (what is compiling, what is
+queued behind it, who is connected), **Log** (that server's log,
+tailed), and **Config** (what it booted with, including the java
+options and the full classpath it was started with).
 
 | key | |
 | --- | --- |
-| `↑` `↓` | select a server |
-| `⇥` | next tab |
+| `↑` `↓` | select a server — or scroll, on the Log tab |
+| `←` `→` `⇥` | move between tabs |
 | `k` | stop the selected server |
 | `r` | restart it |
 | `q` | quit |
 
+**Everything is clickable.** Rows select, tabs open, the action
+buttons along the bottom fire, and a confirmation is answered by
+clicking `[yes]` or `[no]`. The mouse wheel scrolls the log. Clicks
+go through exactly the same path as the keys, so the two cannot
+disagree.
+
 `k` and `r` ask for confirmation first — a compile server may be in
 the middle of somebody's build — and then run exactly the same code
 as `bleep server kill` and `bleep server restart`.
+
+The Log tab follows the newest line until you scroll back, and then
+holds your place while new lines keep arriving; scrolling back to the
+bottom resumes following. The title says which it is doing.
 
 The dashboard connects as an *observer*, which means watching a
 server never keeps it alive and never resets its idle clock. If a
@@ -106,6 +120,11 @@ stopped listening shows as `wedged`, a stopped one as `dead`, and
 leftover logs and metrics with no server at all as `litter` — with
 their disk usage, since those are what silently eat a few hundred
 megabytes each.
+
+Compile servers are found by scanning those socket directories, so a
+server whose directory has been deleted while it kept running would
+otherwise be invisible — still holding its heap, and unreachable.
+Those are listed too, as `orphan`, with the pid to stop them by.
 
 For one server in depth — heap and live set, GC, threads, open file
 descriptors, what it is compiling right now, what is queued behind

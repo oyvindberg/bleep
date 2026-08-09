@@ -136,6 +136,29 @@ class ServerDirsTest extends AnyFunSuite with Matchers {
     error should include("aaaa2222")
   }
 
+  // ── orphans ──────────────────────────────────────────────────────
+
+  test("the socket directory is recovered from a daemon's command line") {
+    val commandLine = "/opt/jvm/bin/java -Xmx12g -cp a.jar:b.jar bleep.bsp.BspServerDaemon --socket /tmp/sockets/abc123"
+    ServerDirs.socketDirOf(commandLine) shouldBe Some("/tmp/sockets/abc123")
+  }
+
+  test("a command line with no --socket yields nothing rather than guessing") {
+    ServerDirs.socketDirOf("/opt/jvm/bin/java -cp a.jar bleep.bsp.BspServerDaemon") shouldBe None
+  }
+
+  /** A force-stop deletes the socket directory after killing, so a process that survives the kill is orphaned by its own cleanup — and then invisible to a
+    * listing built by scanning those directories, while it goes on holding its heap. One was found two days old holding 4.1GB that nothing could name.
+    */
+  test("scanning for orphans does not mistake a live, known server for one") {
+    val known = ServerDirs.scan(bleep.UserPaths.fromAppDirs)
+    val orphans = ServerDirs.orphanDaemons(known)
+
+    withClue(s"orphans: $orphans, known: ${known.map(_.hash)}: ") {
+      orphans.map(_.socketDir).toSet.intersect(known.map(_.socketDir.toString).toSet) shouldBe empty
+    }
+  }
+
   test("an id matching nothing says so and points at ls") {
     ServerDirs.resolve(candidates, "zzzz").left.getOrElse(fail("expected failure")) should include("bleep server ls")
   }

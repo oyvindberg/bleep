@@ -65,6 +65,11 @@ object BspRifleConfig {
     case class Tcp(host: String, port: Int, socketDir: Path) extends Address
   }
 
+  /** The daemon's entry point. Lives here with the other facts about how a compile server is launched, because two places need it and they must agree: the
+    * client puts it on the command line, and [[ServerDirs]] recognises a daemon process by finding it there.
+    */
+  val ServerMainClass = "bleep.bsp.BspServerDaemon"
+
   /** Default max heap for the BSP server: a quarter of physical RAM, clamped to [4g, 16g].
     *
     * The old fixed 4g cap OOM-killed the server repeatedly on large builds under concurrent clients, even on machines with plenty of RAM. Machine-dependent but

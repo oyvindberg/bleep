@@ -40,14 +40,18 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
     // Yours first — it is the one you almost always came to look at.
     val ordered = rows.sortBy(row => (!row.isCurrent, !row.info.isRunning, row.info.hash))
 
+    // A daemon whose socket directory is gone cannot be found by scanning those directories, so it would otherwise be missing from the one listing meant to
+    // account for every compile server on the machine — while still holding its heap.
+    val orphans = ServerDirs.orphanDaemons(rows.map(_.info))
+
     outputMode match {
-      case OutputMode.Json => renderJson(ordered)
-      case _               => renderText(ordered)
+      case OutputMode.Json => renderJson(ordered, orphans)
+      case _               => renderText(ordered, orphans)
     }
     Right(())
   }
 
-  private def renderJson(rows: List[Row]): Unit = {
+  private def renderJson(rows: List[Row], orphans: List[ServerDirs.OrphanDaemon]): Unit = {
     val json = rows.map { row =>
       val info = row.info
       val status = row.status
@@ -69,11 +73,19 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
         "error" -> row.error.map(_.message).asJson
       )
     }
-    println(io.circe.Json.arr(json*).spaces2)
+    val orphanJson = orphans.map(orphan =>
+      io.circe.Json.obj(
+        "state" -> "orphan".asJson,
+        "pid" -> orphan.pid.asJson,
+        "socketDir" -> orphan.socketDir.asJson,
+        "note" -> "running with no socket directory — kill by pid".asJson
+      )
+    )
+    println(io.circe.Json.arr((json ++ orphanJson)*).spaces2)
   }
 
-  private def renderText(rows: List[Row]): Unit =
-    if (rows.isEmpty) logger.info("no compile servers — one starts on the next build")
+  private def renderText(rows: List[Row], orphans: List[ServerDirs.OrphanDaemon]): Unit = {
+    if (rows.isEmpty && orphans.isEmpty) logger.info("no compile servers — one starts on the next build")
     else
       rows.foreach { row =>
         val info = row.info
@@ -108,6 +120,12 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
           case _                  => logger.info(head); logger.info(detail)
         }
       }
+
+    orphans.foreach { orphan =>
+      logger.warn(s"! orphan            running   pid ${orphan.pid}")
+      logger.warn(s"  compile server with no socket directory (${orphan.socketDir}) — nothing can reach it; stop it with `kill ${orphan.pid}`")
+    }
+  }
 
   private def humanDuration(ms: Long): String = {
     val d = Duration.ofMillis(ms)

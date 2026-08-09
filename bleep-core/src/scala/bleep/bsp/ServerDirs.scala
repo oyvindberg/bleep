@@ -4,7 +4,7 @@ package bsp
 import bleep.internal.FileUtils
 import cats.effect.unsafe.implicits.global
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
 
@@ -91,6 +91,48 @@ object ServerDirs {
       sizeBytes = dirSizeBytes(socketDir)
     )
   }
+
+  /** A compile server process with no socket directory left to find it by.
+    *
+    * @param socketDir
+    *   the directory it was started with, from its own command line — gone from disk, or it would have been listed normally.
+    */
+  case class OrphanDaemon(pid: Long, socketDir: String, rssMb: Option[Long])
+
+  /** Compile servers that outlived their socket directory.
+    *
+    * A daemon is normally found by scanning those directories, which makes one whose directory has been deleted invisible — while it goes on holding a
+    * multi-gigabyte heap. That is not hypothetical: a force-stop deletes the directory after killing, and a process that survives the kill is orphaned by its
+    * own cleanup. One was found two days old, holding 4.1GB, which nothing on the machine could name.
+    *
+    * Found by asking the OS for processes whose command line runs the daemon main class, and keeping the ones whose `--socket` directory no longer exists.
+    */
+  def orphanDaemons(known: List[ServerDirInfo]): List[OrphanDaemon] = {
+    val knownDirs = known.map(_.socketDir.toString).toSet
+
+    ProcessHandle
+      .allProcesses()
+      .iterator()
+      .asScala
+      .toList
+      .flatMap { handle =>
+        val commandLine = handle.info().commandLine()
+        if (!commandLine.isPresent || !commandLine.get().contains(BspRifleConfig.ServerMainClass)) None
+        else
+          socketDirOf(commandLine.get()) match {
+            case Some(dir) if !knownDirs.contains(dir) || !Files.exists(Paths.get(dir)) => Some(OrphanDaemon(handle.pid(), dir, None))
+            case Some(_)                                                                => None
+            // No `--socket` at all is stranger still, and worth showing rather than dropping.
+            case None => Some(OrphanDaemon(handle.pid(), "unknown", None))
+          }
+      }
+  }
+
+  /** The `--socket` argument out of a daemon's command line. Separated out because the command line is the only handle on an orphan, and parsing it is the part
+    * worth testing without needing a real orphaned process to hand.
+    */
+  private[bsp] def socketDirOf(commandLine: String): Option[String] =
+    commandLine.split(' ').sliding(2).collectFirst { case Array("--socket", dir) => dir }
 
   /** The daemon serving a given workspace, if one is.
     *
