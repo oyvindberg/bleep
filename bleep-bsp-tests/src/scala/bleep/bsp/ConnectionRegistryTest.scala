@@ -49,6 +49,10 @@ class ConnectionRegistryTest extends AnyFunSuite with Matchers {
     val farFuture = System.currentTimeMillis() + 600000
     val idleBefore = registry.idleForMs(farFuture)
 
+    // The registry stamps wall-clock millis, so without this the whole lifecycle can land inside the same millisecond as construction and the clock looks
+    // unmoved. Sleeping is the honest fix: the property under test is about time passing.
+    Thread.sleep(5)
+
     registry.register(1, System.currentTimeMillis())
     registry.markClient(1, Some("Metals"), Some("1.0"), Some("/tmp/ws"))
     registry.unregister(1)

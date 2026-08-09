@@ -92,6 +92,24 @@ object ServerDirs {
     )
   }
 
+  /** The daemon serving a given workspace, if one is.
+    *
+    * Answered from what each daemon reports it is serving rather than by re-deriving its JVM-key hash: the daemon's own account is the truth, and it stays
+    * right even when config on disk has drifted since it started. Costs one round trip per running daemon, which is why callers that already hold a status
+    * should test against that instead.
+    *
+    * This is what makes `bleep server log`, `status` and `kill` default to *your* server rather than refusing to choose among several.
+    */
+  def servingWorkspace(infos: List[ServerDirInfo], workspace: Path): Option[ServerDirInfo] = {
+    val wanted = workspace.toAbsolutePath.normalize().toString
+    infos.filter(_.isRunning).find { info =>
+      ServerAdminClient.status(info.socketDir) match {
+        case Right(status) => status.workspaces.exists(_.path == wanted)
+        case Left(_)       => false
+      }
+    }
+  }
+
   /** Resolve a user-supplied id: a pid, a socket-dir hash, or an unambiguous prefix of the hash. */
   def resolve(infos: List[ServerDirInfo], id: String): Either[String, ServerDirInfo] = {
     val byPid = infos.filter(_.pid.map(_.toString).contains(id))

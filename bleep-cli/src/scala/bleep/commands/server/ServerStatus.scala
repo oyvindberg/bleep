@@ -12,7 +12,8 @@ import java.time.Duration
   *
   * With no id and exactly one running server, that one is used. With several, it says which ids to choose from rather than picking one.
   */
-case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String], outputMode: OutputMode) extends BleepCommand {
+case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String], outputMode: OutputMode, currentWorkspace: Option[java.nio.file.Path])
+    extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] = {
     val infos = ServerDirs.scan(userPaths)
@@ -32,16 +33,7 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
   }
 
   private def select(infos: List[ServerDirInfo]): Either[BleepException, ServerDirInfo] =
-    id match {
-      case Some(wanted) => ServerDirs.resolve(infos, wanted).left.map(msg => new BleepException.Text(msg))
-      case None         =>
-        infos.filter(_.isRunning) match {
-          case one :: Nil => Right(one)
-          case Nil        => Left(new BleepException.Text("no compile server is running. Run 'bleep server ls' to see stopped ones."))
-          case many       =>
-            Left(new BleepException.Text(s"${many.size} servers are running — pick one: ${many.map(_.hash).mkString(", ")}"))
-        }
-    }
+    ServerTarget.select(infos, id, currentWorkspace, allowStopped = false, what = "inspect")
 
   private def renderText(info: ServerDirInfo, status: bleep.bsp.protocol.DaemonStatus): Unit = {
     val uptime = Duration.ofMillis(System.currentTimeMillis() - status.startedAtEpochMs)

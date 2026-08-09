@@ -21,7 +21,8 @@ case class ServerLog(
     id: Option[String],
     lines: Int,
     follow: Boolean,
-    generation: Int
+    generation: Int,
+    currentWorkspace: Option[Path]
 ) extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] = {
@@ -42,21 +43,14 @@ case class ServerLog(
     socketDir.resolve(if (generation == 0) "output" else s"output.$generation")
 
   private def select(infos: List[ServerDirInfo]): Either[BleepException, ServerDirInfo] =
-    id match {
-      case Some(wanted) => ServerDirs.resolve(infos, wanted).left.map(msg => new BleepException.Text(msg))
-      case None         =>
-        // Prefer a running server, but fall back to a single dead one: reading a dead daemon's log is a main reason to be here.
-        infos.filter(_.isRunning) match {
-          case one :: Nil => Right(one)
-          case Nil        =>
-            infos match {
-              case one :: Nil => Right(one)
-              case Nil        => Left(new BleepException.Text("no compile servers"))
-              case many       => Left(new BleepException.Text(s"pick one: ${many.map(_.hash).mkString(", ")}"))
-            }
-          case many => Left(new BleepException.Text(s"${many.size} servers are running — pick one: ${many.map(_.hash).mkString(", ")}"))
-        }
-    }
+    ServerTarget.select(
+      infos = infos,
+      id = id,
+      currentWorkspace = currentWorkspace,
+      // Reading a dead daemon's log is a main reason to be here, so a lone stopped server is a fine default when nothing is running.
+      allowStopped = true,
+      what = "log"
+    )
 
   private def printTail(file: Path): Unit =
     BspServerOperations.readLogFile(file).linesIterator.toList.takeRight(lines).foreach(println)

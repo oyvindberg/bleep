@@ -30,7 +30,8 @@ case class ServerKill(
     force: Boolean,
     deleteDir: Boolean,
     /** Set when reached through an old command path, naming it so the warning can quote what the user actually typed. */
-    deprecatedAlias: Option[String]
+    deprecatedAlias: Option[String],
+    currentWorkspace: Option[java.nio.file.Path]
 ) extends BleepCommand {
 
   private val GracePeriod = 10.seconds
@@ -63,14 +64,10 @@ case class ServerKill(
         }
         .left
         .map(msg => new BleepException.Text(msg))
+    else if (infos.forall(!_.isRunning)) Right(Nil)
     else
-      // No argument and exactly one server: the intent is unambiguous. More than one, and guessing would be the wrong kind of helpful.
-      infos.filter(_.isRunning) match {
-        case one :: Nil => Right(List(one))
-        case Nil        => Right(Nil)
-        case many       =>
-          Left(new BleepException.Text(s"${many.size} servers are running — name one, or pass --all: ${many.map(_.hash).mkString(", ")}"))
-      }
+      // Same rule as `status` and `log`: your build's server, or the only one running, and otherwise refuse rather than guess.
+      ServerTarget.select(infos, None, currentWorkspace, allowStopped = false, what = "stop").map(List(_))
 
   private def kill(info: ServerDirInfo): Unit = {
     val sizeMb = info.sizeMb

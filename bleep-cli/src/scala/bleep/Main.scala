@@ -97,7 +97,9 @@ object Main {
           outputMode.map(mode => (logger: Logger) => commands.server.ServerLs(logger, userPaths, mode, currentWorkspace))
         ),
         Opts.subcommand("status", "detailed status for one compile server")(
-          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) => (logger: Logger) => commands.server.ServerStatus(logger, userPaths, id, mode))
+          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) =>
+            (logger: Logger) => commands.server.ServerStatus(logger, userPaths, id, mode, currentWorkspace)
+          )
         ),
         Opts.subcommand("kill", "stop compile servers — gracefully over the protocol, escalating only if that does not work")(
           (
@@ -105,15 +107,21 @@ object Main {
             Opts.flag("all", "stop every compile server on this machine").orFalse,
             Opts.flag("force", "skip the graceful path: kill immediately and delete the socket directory").orFalse
           ).mapN { (ids, all, force) => (logger: Logger) =>
-            commands.server.ServerKill(logger, userPaths, ids, all = all, force = force, deleteDir = force, deprecatedAlias = None)
+            commands.server
+              .ServerKill(logger, userPaths, ids, all = all, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
           }
         ),
-        Opts.subcommand("stop-all", "force-stop every compile server and delete its socket directory")(
-          // Deliberately keeps the force-and-delete behaviour `bleep config compile-server stop-all` has always had, since it lives in people's scripts and
-          // muscle memory. `kill --all` is the graceful counterpart.
-          Opts.unit.map(_ =>
-            (logger: Logger) => commands.server.ServerKill(logger, userPaths, Nil, all = true, force = true, deleteDir = true, deprecatedAlias = None)
-          )
+        Opts.subcommand("stop-all", "stop every compile server — exactly `kill --all`, spelled the way people reach for it")(
+          // Same command, same flags, same behaviour. It briefly kept the old force-and-delete semantics for script parity, but two commands you use daily
+          // behaving differently is a worse tax than the parity was worth.
+          Opts
+            .flag("force", "skip the graceful path: kill immediately and delete the socket directory")
+            .orFalse
+            .map(force =>
+              (logger: Logger) =>
+                commands.server
+                  .ServerKill(logger, userPaths, Nil, all = true, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
+            )
         ),
         Opts.subcommand("log", "print a compile server's log; -f to follow")(
           (
@@ -124,7 +132,7 @@ object Main {
               .option[Int]("generation", "0 = current log, 1 or 2 = rotated (a crashed daemon's log is usually here)")
               .withDefault(0)
           ).mapN { (id, lines, follow, generation) => (logger: Logger) =>
-            commands.server.ServerLog(logger, userPaths, id, lines, follow, generation)
+            commands.server.ServerLog(logger, userPaths, id, lines, follow, generation, currentWorkspace)
           }
         ),
         Opts.subcommand("metrics", "open the compile server metrics dashboard in a browser")(
@@ -784,18 +792,22 @@ object Main {
                 commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
               }
             ),
-            Opts.subcommand("stop-all", "(deprecated: use `bleep server stop-all`) stop every shared compile server currently running")(
-              Opts {
-                // Same implementation, one line of warning. Kept working for two releases because it is in scripts and muscle memory; removal is M13.
-                commands.server.ServerKill(
-                  logger,
-                  userPaths,
-                  Nil,
-                  all = true,
-                  force = true,
-                  deleteDir = true,
-                  deprecatedAlias = Some("bleep config compile-server stop-all")
-                )
+            Opts.subcommand[BleepCommand]("stop-all", "(deprecated: use `bleep server stop-all`) stop every shared compile server currently running")(
+              Opts.flag("force", "skip the graceful path: kill immediately and delete the socket directory").orFalse.map { force => () =>
+                // Same command and same defaults as `bleep server stop-all`, so the old spelling does not quietly do something different from the new one.
+                // Kept working for two releases because it is in scripts and muscle memory; removal is M13.
+                commands.server
+                  .ServerKill(
+                    logger,
+                    userPaths,
+                    Nil,
+                    all = true,
+                    force = force,
+                    deleteDir = force,
+                    deprecatedAlias = Some("bleep config compile-server stop-all"),
+                    currentWorkspace = None
+                  )
+                  .run()
               }
             ),
             Opts.subcommand[BleepCommand]("max-memory", "set max heap for compile server JVM (e.g. 4g, 2048m)")(
