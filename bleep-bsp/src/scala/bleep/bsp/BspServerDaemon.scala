@@ -182,9 +182,10 @@ object BspServerDaemon {
     val shutdownRequested = AtomicBoolean(false)
     val connectionCounter = AtomicInteger(0)
     val activeClientThreads = ConcurrentHashMap.newKeySet[Thread]()
-    // Wall-clock of the last moment the server was doing anything for a client — set on connect and on each client thread's exit. The idle watchdog measures
-    // silence from here, but only while no client is connected, so a long compile or an editor left open never counts as idle.
-    val lastActivityMs = new java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis())
+    val startedAtEpochMs = System.currentTimeMillis()
+    // Who is connected, and which of them count as use. Observers (`bleep server top`) are tracked but deliberately neither hold the daemon open nor refresh
+    // its idle clock — see [[ConnectionRegistry]]. This replaces the bare `lastActivityMs` the watchdog used to read.
+    val connectionRegistry = new ConnectionRegistry
 
     // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
     // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously
@@ -388,8 +389,8 @@ object BspServerDaemon {
           while (!shutdownRequested.get()) {
             try Thread.sleep(pollMs)
             catch { case _: InterruptedException => () }
-            val idleFor = System.currentTimeMillis() - lastActivityMs.get()
-            if (!shutdownRequested.get() && activeClientThreads.isEmpty && idleFor >= idleTimeoutMs) {
+            val idleFor = connectionRegistry.idleForMs(System.currentTimeMillis())
+            if (!shutdownRequested.get() && connectionRegistry.nonObserverCount == 0 && idleFor >= idleTimeoutMs) {
               logger.info(s"Idle for ${idleFor / 1000}s with no connected client (timeout ${idleTimeoutMs / 60000}m) — shutting down")
               shutdownRequested.set(true)
               try serverSocket.close() // unblocks the accept() below
@@ -402,6 +403,22 @@ object BspServerDaemon {
       watchdog.start()
     }
 
+    // Everything a connection needs to answer questions about the daemon as a whole. Built once, passed down — none of this becomes a global.
+    val daemonInfo = DaemonInfo(
+      startedAtEpochMs = startedAtEpochMs,
+      pid = ProcessHandle.current().pid(),
+      socketDir = socketPaths.path.getParent,
+      bleepVersion = bleep.model.BleepVersion.current.value,
+      bootedConfig = daemonConfig,
+      connectionRegistry = connectionRegistry,
+      requestDaemonShutdown = () => {
+        // Same mechanism the idle watchdog uses: close the socket so accept() unblocks and the normal cleanup path runs, rather than System.exit skipping it.
+        shutdownRequested.set(true)
+        try serverSocket.close()
+        catch { case _: Throwable => () }
+      }
+    )
+
     try
       // Accept connections concurrently — each client gets its own thread.
       // Client threads are non-daemon so the JVM stays alive even if the
@@ -412,7 +429,7 @@ object BspServerDaemon {
           val clientSocket = serverSocket.accept()
           if (clientSocket != null) {
             val connId = connectionCounter.incrementAndGet()
-            lastActivityMs.set(System.currentTimeMillis())
+            connectionRegistry.register(connId, System.currentTimeMillis())
             logger.info(s"Client #$connId connected")
             BspMetrics.recordConnectionOpen(connId)
 
@@ -439,7 +456,9 @@ object BspServerDaemon {
                   machine,
                   kspMutexes,
                   buildCache,
-                  analysisCache
+                  analysisCache,
+                  daemonInfo,
+                  connId
                 )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
@@ -457,15 +476,17 @@ object BspServerDaemon {
                       machine,
                       kspMutexes,
                       buildCache,
-                      analysisCache
+                      analysisCache,
+                      daemonInfo,
+                      connId
                     )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
                     try clientSocket.close()
                     catch { case _: Exception => () }
                     activeClientThreads.remove(Thread.currentThread())
-                    // Reset the idle clock as the client leaves, so a daemon that just finished a long session gets the full idle window before being reaped.
-                    lastActivityMs.set(System.currentTimeMillis())
+                    // Resets the idle clock, but only for a real client — see [[ConnectionRegistry.unregister]].
+                    connectionRegistry.unregister(connId)
                     logger.info(s"Client #$connId thread exiting")
                   },
                 s"bsp-client-$connId"
@@ -510,7 +531,9 @@ object BspServerDaemon {
       machine: MachineResources,
       kspMutexes: KspMutexes,
       buildCache: BuildCache,
-      analysisCache: bleep.analysis.AnalysisCache
+      analysisCache: bleep.analysis.AnalysisCache,
+      daemonInfo: DaemonInfo,
+      connId: Int
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -522,7 +545,9 @@ object BspServerDaemon {
         heapMonitor = HeapMonitor.system,
         kspMutexes = kspMutexes,
         buildCache = buildCache,
-        analysisCache = analysisCache
+        analysisCache = analysisCache,
+        daemonInfo = daemonInfo,
+        connId = connId
       )
 
       // Run server message loop

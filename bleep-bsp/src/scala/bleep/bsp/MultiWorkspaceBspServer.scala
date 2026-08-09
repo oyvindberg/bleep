@@ -17,6 +17,19 @@ import bleep.analysis.{
   ZincBridge
 }
 import bleep.bsp.protocol.KillReason
+import bleep.bsp.protocol.{
+  AnalysisCacheDto,
+  AnalysisWorkspaceDto,
+  BleepServerAdmin,
+  BuildCacheDto,
+  DaemonStatus,
+  MachineEntryDto,
+  MachineSnapshotDto,
+  OperationDto,
+  ServerConfigDto,
+  StatusRequest,
+  WorkspaceDto
+}
 import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome}
 import bleep.bsp.TraceCategory
 import bleep.model.{CrossProjectName, SuiteName, TestName}
@@ -52,7 +65,9 @@ class MultiWorkspaceBspServer(
     heapMonitor: HeapMonitor,
     kspMutexes: KspMutexes,
     buildCache: BuildCache,
-    analysisCache: bleep.analysis.AnalysisCache
+    analysisCache: bleep.analysis.AnalysisCache,
+    daemonInfo: DaemonInfo,
+    connId: Int
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -291,7 +306,9 @@ class MultiWorkspaceBspServer(
     */
   private def dispatch(method: String, params: Option[RawJson], cancellation: CancellationToken): IO[Option[RawJson]] = IO.defer {
     logger.withContext("method", method).withContext("thread", Thread.currentThread().getName).warn("dispatch")
-    if !initialized.get() && method != "build/initialize" then
+    // The admin methods are deliberately outside the initialize handshake: `bleep server ls` runs from any directory, including one with no build at all, and
+    // must be able to connect, ask, and leave without pretending to be a BSP client.
+    if !initialized.get() && method != "build/initialize" && !BleepServerAdmin.Methods.contains(method) then
       throw BspException(
         JsonRpcErrorCodes.ServerNotInitialized,
         "Server not initialized"
@@ -318,6 +335,12 @@ class MultiWorkspaceBspServer(
     def sync(result: => Option[RawJson]): IO[Option[RawJson]] = IO.blocking(result)
 
     method match {
+      case BleepServerAdmin.StatusMethod =>
+        sync(Some(circeRaw(handleAdminStatus(parseAdminRequest(method, params)))))
+
+      case BleepServerAdmin.ShutdownMethod =>
+        sync { handleAdminShutdown(); Some(circeRaw(io.circe.Json.obj())) }
+
       case "build/initialize" =>
         sync(Some(toRaw(handleInitialize(parseParams[InitializeBuildParams](params)))))
 
@@ -597,6 +620,89 @@ class MultiWorkspaceBspServer(
     logger.warn("build/shutdown received - cancelling all active requests")
     shutdownRequested.set(true)
     cancelAllActiveRequests()
+  }
+
+  /** Assemble everything `bleep server status` / `top` show. Pure reads — nothing here can disturb a compile running on another connection.
+    *
+    * The numbers all existed before; none of them could leave the process. `machine.snapshot` and the two caches were already constructor params, the JVM
+    * vitals only ever reached `metrics.jsonl`, and uptime was not recorded anywhere until [[DaemonInfo]].
+    */
+  private def handleAdminStatus(request: StatusRequest): DaemonStatus = {
+    if (request.observer) daemonInfo.connectionRegistry.markObserver(connId)
+
+    val machineSnapshot = machine.snapshot.unsafeRunSync()
+    val cachedWorkspaces = buildCache.cachedWorkspaces
+    val analysisStats = analysisCache.stats
+    val jvm = JvmSampler.sample()
+    val config = daemonInfo.bootedConfig
+    val nowMs = System.currentTimeMillis()
+
+    def entry(e: MachineResources.Entry): MachineEntryDto =
+      MachineEntryDto(kind = e.kind.toString, label = e.label, cpu = e.cpu, memoryMb = e.memoryMb, ageMs = e.ageMs)
+
+    val workspaces = BspServerDaemon.getWorkspaces.toList.sortBy(_.toString).map { workspace =>
+      val operations = SharedWorkspaceState.getActiveOperations(workspace).map { work =>
+        OperationDto(
+          operationId = work.operationId,
+          operation = work.operation,
+          projects = work.projects.toList.sorted,
+          startedAgoMs = nowMs - work.startTimeMs
+        )
+      }
+      WorkspaceDto(
+        path = workspace.toString,
+        buildCached = cachedWorkspaces.contains(workspace.toString),
+        activeOperations = operations
+      )
+    }
+
+    DaemonStatus(
+      adminProtocolVersion = BleepServerAdmin.ProtocolVersion,
+      bleepVersion = daemonInfo.bleepVersion,
+      pid = daemonInfo.pid,
+      startedAtEpochMs = daemonInfo.startedAtEpochMs,
+      socketDir = daemonInfo.socketDir.toString,
+      jvm = jvm,
+      machine = MachineSnapshotDto(
+        totalCpu = machineSnapshot.totalCpu,
+        usedCpu = machineSnapshot.usedCpu,
+        totalMemoryMb = machineSnapshot.totalMemoryMb,
+        usedMemoryMb = machineSnapshot.usedMemoryMb,
+        activeCompiles = machineSnapshot.activeCompiles,
+        active = machineSnapshot.active.map(entry),
+        waiting = machineSnapshot.waiting.map(entry)
+      ),
+      connections = daemonInfo.connectionRegistry.snapshot,
+      workspaces = workspaces,
+      buildCache = BuildCacheDto(cachedWorkspaces = cachedWorkspaces, bound = buildCache.bound),
+      analysisCache = AnalysisCacheDto(
+        entries = analysisStats.entries,
+        fileBytes = analysisStats.fileBytes,
+        internedClasses = analysisStats.internedClasses,
+        sharedAnalyses = analysisStats.sharedAnalyses,
+        contentHits = analysisStats.contentHits,
+        perWorkspace = analysisStats.perWorkspace.map(w => AnalysisWorkspaceDto(w.key.toString, w.entries, w.fileBytes))
+      ),
+      config = ServerConfigDto(
+        parallelism = config.effectiveParallelism,
+        compileServerMaxMemory = config.compileServerMaxMemory,
+        testRunnerMaxMemory = config.testRunnerMaxMemory,
+        maxCachedWorkspaces = config.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()),
+        bspReadTimeoutMillis = config.effectiveBspReadTimeoutMillis.toLong,
+        compileServerIdleTimeoutMillis = config.effectiveCompileServerIdleTimeoutMillis,
+        testIdleTimeoutMinutes = config.effectiveTestIdleTimeoutMinutes,
+        heapPressureThreshold = config.effectiveHeapPressureThreshold
+      )
+    )
+  }
+
+  /** Daemon-wide shutdown, as distinct from `build/shutdown` which only ends this connection.
+    *
+    * Logged as a chosen exit naming the connection that asked, so it never reads as a crash in the server log afterwards.
+    */
+  private def handleAdminShutdown(): Unit = {
+    logger.warn(s"bleep/shutdown requested by connection #$connId — shutting the daemon down")
+    daemonInfo.requestDaemonShutdown()
   }
 
   /** Register an operation for visibility. Non-blocking — multiple operations can run concurrently.
@@ -4221,6 +4327,22 @@ class MultiWorkspaceBspServer(
 
   private def toRaw[T](value: T)(using codec: JsonValueCodec[T]): RawJson =
     RawJson(writeToArray(value))
+
+  /** The BSP types on this transport carry jsoniter codecs; the bleep admin DTOs are circe, like the rest of bleep's own protocol (see `handleBuildChanged`).
+    * These two bridge that gap at the edge rather than duplicating every DTO in a second encoding.
+    */
+  private def circeRaw[T: io.circe.Encoder](value: T): RawJson =
+    RawJson(io.circe.syntax.EncoderOps(value).asJson.noSpaces.getBytes("UTF-8"))
+
+  private def parseAdminRequest(method: String, params: Option[RawJson]): StatusRequest =
+    params match {
+      case None      => throw BspException(JsonRpcErrorCodes.InvalidParams, s"$method requires params")
+      case Some(raw) =>
+        circeDecode[StatusRequest](new String(raw.value, "UTF-8")) match {
+          case Right(p)  => p
+          case Left(err) => throw BspException(JsonRpcErrorCodes.InvalidParams, s"Could not parse $method: ${err.getMessage}")
+        }
+    }
 
   /** Debug logging helper - only logs if DebugLogging is enabled */
   private inline def debugLog(message: => String): Unit =

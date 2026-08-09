@@ -75,10 +75,28 @@ object Main {
       importMavenCmd(buildPaths, logger),
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
+      serverCommand(logger, userPaths),
       Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
         (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => commands.ServerMetrics(logger, userPaths, pid, file))
       )
     ).foldK
+
+  /** `bleep server` — everything about the compile server daemons.
+    *
+    * Present in both command trees on purpose: daemons are user-global, not per-build. Being unable to list or kill your servers from a directory that happens
+    * to have no bleep.yaml would be exactly backwards, since a stray daemon is most annoying when you are not in the project it belongs to.
+    */
+  def serverCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
+    Opts.subcommand("server", "inspect and control the compile servers (bsp daemons) running on this machine")(
+      List(
+        Opts.subcommand("ls", "list every compile server on this machine, running or not")(
+          outputMode.map(mode => commands.server.ServerLs(logger, userPaths, mode))
+        ),
+        Opts.subcommand("status", "detailed status for one compile server")(
+          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) => commands.server.ServerStatus(logger, userPaths, id, mode))
+        )
+      ).foldK
+    )
 
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
@@ -536,6 +554,7 @@ object Main {
           },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
+          serverCommand(started.pre.logger, started.pre.userPaths),
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
             (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) =>
               commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, file)
