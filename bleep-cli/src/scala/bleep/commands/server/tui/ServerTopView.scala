@@ -76,8 +76,11 @@ object ServerTopView {
     val running = state.rows.count(_.info.isRunning)
     val stopped = state.rows.length - running
     // Slots held, not compiles counted: a server full of test suites is busy, and saying "0 compiling" about it is worse than saying nothing.
+    //
+    // Held slots sum across servers because each is really holding them, but capacity does not: every server on this machine sees the same cores, so adding
+    // their totals claimed 36 slots on an 18-core machine.
     val busySlots = state.rows.flatMap(_.status).map(_.machine.usedCpu).sum
-    val totalSlots = state.rows.flatMap(_.status).map(_.machine.totalCpu).sum
+    val totalSlots = state.rows.flatMap(_.status).map(_.machine.totalCpu).maxOption.getOrElse(0)
     val queued = state.rows.flatMap(_.status).map(_.machine.waiting.size).sum
     val litterMb = state.rows.filterNot(_.info.isRunning).map(_.info.sizeMb).sum
 
@@ -126,9 +129,13 @@ object ServerTopView {
   private def shortVersion(version: String): String =
     version.stripPrefix("1.0.0-").stripSuffix("-SNAPSHOT")
 
-  /** `graalvm-community:25.0.1:default` likewise: the flavour and the trailing `:default` are the same on every row here. */
-  private def shortJvm(name: String, version: String): String =
-    s"${name.replace("-community", "")} ${version.stripSuffix(":default")}"
+  /** The JvmKey's `name` already carries the version — `graalvm-community:25.0.1` — and its `version` is the JVM *index*, almost always `default`. Appending
+    * that made the column overflow and truncate to `graalvm:25.0.1 …`, hiding the very thing it exists to show. Only a non-default index is worth the width.
+    */
+  private def shortJvm(name: String, index: String): String = {
+    val flavour = name.replace("-community", "")
+    if (index == "default") flavour else s"$flavour ($index)"
+  }
 
   /** Sentinel width meaning "take whatever is left of the line". */
   private val RestOfLine = -1

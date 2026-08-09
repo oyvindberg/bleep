@@ -131,10 +131,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   test("each row shows the things that make it a separate server") {
     def withIdentity(hash: String, version: String, jvmVersion: String) = {
       val base = running(hash, isCurrent = false)
+      // As the JvmKey actually records it: the name carries the version, and jvmVersion is the JVM index.
       val identity = bleep.bsp.ServerJson(
         bleepVersion = version,
-        jvmName = "graalvm-community",
-        jvmVersion = jvmVersion,
+        jvmName = s"graalvm-community:$jvmVersion",
+        jvmVersion = "default",
         javaBin = "/opt/jvm/bin/java",
         javaOpts = Nil,
         serverMainClass = "x",
@@ -152,8 +153,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       screen should include("M11")
       screen should include("M10")
     }
-    screen should include("graalvm 25.0.1")
-    screen should include("graalvm 24.0.1")
+    withClue("the index is `default` on every row here and only costs width: ") {
+      screen should include("graalvm:25.0.1")
+      screen should include("graalvm:24.0.1")
+      screen should not include "default"
+    }
   }
 
   /** The row carries more columns than a narrow terminal can hold, and something has to be cut. It must never be the marker saying which server is yours,
@@ -254,6 +258,20 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val screen = draw(state)
     screen should include("/home/dev/project")
     screen should include("compile  bleep-core, bleep-cli")
+  }
+
+  /** Every server on a machine sees the same cores, so adding their capacities claimed 36 slots on an 18-core machine. Held slots do sum — each server really
+    * is holding those — but capacity is one number.
+    */
+  test("the header does not multiply the machine's capacity by the number of servers") {
+    def busy(hash: String) = {
+      val row = running(hash, isCurrent = false)
+      row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(usedCpu = 9, totalCpu = 18))))
+    }
+
+    val screen = draw(stateWith(List(busy("aaaa1111"), busy("bbbb2222"))))
+    screen should include("18 of 18 slots busy")
+    screen should not include "of 36 slots"
   }
 
   test("the header answers the machine-level question before any server is selected") {
