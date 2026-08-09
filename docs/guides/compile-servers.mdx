@@ -23,10 +23,10 @@ This is what you want for interactive development.
 If you previously switched modes and want to go back:
 
 ```bash
-bleep config compile-server auto-shutdown-disable
+bleep server config mode shared
 ```
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### One-shot per invocation
 
@@ -36,10 +36,10 @@ Useful on memory-constrained machines, or when you only run bleep
 occasionally and don't want a JVM resident in the background.
 
 ```bash
-bleep config compile-server auto-shutdown-enable
+bleep server config mode per-invocation
 ```
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### Per-JVM servers
 
@@ -133,9 +133,9 @@ bumps, or upgraded bleep binaries don't pile up and hold memory
 indefinitely. The default is one hour.
 
 ```bash
-bleep config compile-server idle-timeout 120   # minutes
-bleep config compile-server idle-timeout 0      # never self-shut-down
-bleep config compile-server idle-timeout-clear  # back to default 60
+bleep server config idle-timeout 120   # minutes
+bleep server config idle-timeout 0      # never self-shut-down
+bleep server config idle-timeout-clear  # back to default 60
 ```
 
 The clock measures **fully-idle** time only: it resets whenever a
@@ -150,7 +150,7 @@ This is different from the [idle read timeout](#idle-read-timeout)
 below: that drops a single stuck *connection*; this retires the
 whole *server* once it has been unused for long enough.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ## Memory
 
@@ -176,9 +176,9 @@ back to the OS when the server goes quiet. A server showing `max 12g`
 is usually resident in a fraction of that.
 
 ```bash
-bleep config compile-server max-memory 4g
-bleep config compile-server max-memory 2048m
-bleep config compile-server max-memory-clear   # back to bleep's default
+bleep server config max-memory 4g
+bleep server config max-memory 2048m
+bleep server config max-memory-clear   # back to bleep's default
 ```
 
 #### The default, and its floor
@@ -222,7 +222,7 @@ from the server log and reports it together with the configured
 cap and the command to raise it. Heap dumps left behind by older
 bleep versions are deleted automatically at server start.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### How much runs at once
 
@@ -247,7 +247,7 @@ one it was — see [Seeing what the server is
 doing](#what-the-events-mean).
 
 ```bash
-bleep config compile-server parallelism 4
+bleep server config parallelism 4
 ```
 
 ### Cached builds
@@ -264,9 +264,9 @@ nobody has a basis to tune. Evictions are logged if you want to see them.
 ### Idle read timeout
 
 ```bash
-bleep config compile-server read-timeout 30
-bleep config compile-server read-timeout 0        # wait forever
-bleep config compile-server read-timeout-clear    # back to default 30
+bleep server config read-timeout 30
+bleep server config read-timeout 0        # wait forever
+bleep server config read-timeout-clear    # back to default 30
 ```
 
 How long the server waits for a client's next message before dropping
@@ -277,7 +277,7 @@ This is a per-read idle timeout, not a session limit. A long compile
 keeps the socket quiet, but the clock resets the moment the client speaks
 again &mdash; so it can never interrupt a running build.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### Test-runner heap
 
@@ -290,14 +290,14 @@ that. See
 [Memory & Parallelism](/docs/usage/resource-management#per-fork-heap).
 
 ```bash
-bleep config test-runner max-memory 2g
-bleep config test-runner max-memory-clear
+bleep server config test-runner-max-memory 2g
+bleep server config test-runner-max-memory-clear
 ```
 
 Reach for this when test suites OOM (Testcontainers spinning up
 big stacks, generated-fixture tests with large classpaths).
 
-[Reference &rarr;](/docs/reference/cli/config/test-runner/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ## Seeing what the server is doing
 

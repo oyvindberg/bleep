@@ -82,8 +82,8 @@ One knob: **`parallelism`** — how many operations bleep may run at once on thi
 It is a property of the *machine*, not of a run: the compile server is shared between every client and every workspace on it, so this is the total across all of them, not a limit each one gets separately.
 
 ```bash
-bleep config compile-server parallelism 2
-bleep config compile-server parallelism-clear   # back to one per core
+bleep server config parallelism 2
+bleep server config parallelism-clear   # back to one per core
 ```
 
 `parallelismRatio` expresses the same thing as a fraction of cores (`0.5` for half) if you prefer that in a config file shared across machines of different sizes.
@@ -99,8 +99,8 @@ A CI job is one machine, so configure the machine, as a step before you build:
 ```yaml
 - name: Configure bleep for this runner
   run: |
-    bleep config compile-server parallelism 2
-    bleep config compile-server max-memory 4g
+    bleep server config parallelism 2
+    bleep server config max-memory 4g
 
 - name: Test
   run: bleep test

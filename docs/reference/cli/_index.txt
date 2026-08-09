@@ -57,6 +57,7 @@
   - bleep server restart
   - bleep server log
   - bleep server metrics
+  - bleep server config
 - bleep server-metrics
 - bleep setup-dev-script
 - bleep setup-ide
