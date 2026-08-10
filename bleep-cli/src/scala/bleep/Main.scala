@@ -73,12 +73,184 @@ object Main {
       ),
       importCmd(buildLoader, userPaths, buildPaths, logger),
       importMavenCmd(buildPaths, logger),
-      configCommand(logger, userPaths),
+      configCommand(userPaths).map(mkCommand => mkCommand(logger)),
       installTabCompletions(userPaths, logger),
-      Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+      serverCommand(userPaths, currentWorkspace = None).map(mkCommand => mkCommand(logger)),
+      Opts.subcommand("server-metrics", "(deprecated: use `bleep server metrics`) open BSP server metrics dashboard in browser")(
         (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => commands.ServerMetrics(logger, userPaths, pid, file))
       )
     ).foldK
+
+  /** `bleep server` — everything about the compile server daemons.
+    *
+    * Present in both command trees on purpose: daemons are user-global, not per-build. Being unable to list or kill your servers from a directory that happens
+    * to have no bleep.yaml would be exactly backwards, since a stray daemon is most annoying when you are not in the project it belongs to.
+    *
+    * Yields a `Logger => BleepCommand` rather than a finished command because a `Started` carries a `StoringLogger` while decline is still parsing, and only
+    * swaps in the real one to run the command (see `Started.withLogger` and [[runBuildCommand]]). A command that captured the logger when its `Opts` were built
+    * would write every line into the void.
+    */
+  def serverCommand(userPaths: UserPaths, currentWorkspace: Option[java.nio.file.Path]): Opts[Logger => BleepCommand] =
+    Opts.subcommand("server", "inspect and control the compile servers (bsp daemons) running on this machine")(
+      List[Opts[Logger => BleepCommand]](
+        Opts.subcommand("top", "live dashboard of every compile server — also what bare `bleep server` runs")(
+          Opts.unit.map(_ => (logger: Logger) => commands.server.ServerTop(logger, userPaths, currentWorkspace))
+        ),
+        Opts.subcommand("ls", "list every compile server on this machine, running or not")(
+          outputMode.map(mode => (logger: Logger) => commands.server.ServerLs(logger, userPaths, mode, currentWorkspace))
+        ),
+        Opts.subcommand("status", "detailed status for one compile server")(
+          (Opts.argument[String]("id").orNone, outputMode).mapN((id, mode) =>
+            (logger: Logger) => commands.server.ServerStatus(logger, userPaths, id, mode, currentWorkspace)
+          )
+        ),
+        Opts.subcommand("kill", "stop compile servers — gracefully over the protocol, escalating only if that does not work")(
+          (
+            Opts.arguments[String]("id").orEmpty,
+            Opts.flag("all", "stop every compile server on this machine").orFalse,
+            Opts.flag("force", "skip the graceful path: kill immediately and delete the socket directory").orFalse
+          ).mapN { (ids, all, force) => (logger: Logger) =>
+            commands.server
+              .ServerKill(logger, userPaths, ids, all = all, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
+          }
+        ),
+        Opts.subcommand("stop-all", "stop every compile server — exactly `kill --all`, spelled the way people reach for it")(
+          // Same command, same flags, same behaviour. It briefly kept the old force-and-delete semantics for script parity, but two commands you use daily
+          // behaving differently is a worse tax than the parity was worth.
+          Opts
+            .flag("force", "skip the graceful path: kill immediately and delete the socket directory")
+            .orFalse
+            .map(force =>
+              (logger: Logger) =>
+                commands.server
+                  .ServerKill(logger, userPaths, Nil, all = true, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
+            )
+        ),
+        Opts.subcommand("restart", "stop a compile server so the next build starts a fresh one with the current config")(
+          (Opts.arguments[String]("id").orEmpty, Opts.flag("all", "restart every running compile server").orFalse).mapN { (ids, all) => (logger: Logger) =>
+            commands.server.ServerRestart(logger, userPaths, ids, all = all, currentWorkspace = currentWorkspace)
+          }
+        ),
+        Opts.subcommand("log", "print a compile server's log; -f to follow")(
+          (
+            Opts.argument[String]("id").orNone,
+            Opts.option[Int]("lines", "how many lines to print (default 100)", "n").withDefault(100),
+            Opts.flag("follow", "keep printing as the log grows", "f").orFalse,
+            Opts
+              .option[Int]("generation", "0 = current log, 1 or 2 = rotated (a crashed daemon's log is usually here)")
+              .withDefault(0)
+          ).mapN { (id, lines, follow, generation) => (logger: Logger) =>
+            commands.server.ServerLog(logger, userPaths, id, lines, follow, generation, currentWorkspace)
+          }
+        ),
+        Opts.subcommand("metrics", "open the compile server metrics dashboard in a browser")(
+          (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) => (logger: Logger) => commands.ServerMetrics(logger, userPaths, pid, file))
+        ),
+        Opts.subcommand("config", "show and change the settings compile servers start with")(
+          serverConfigCommand(userPaths, currentWorkspace)
+        ),
+        // Bare `bleep server` opens the dashboard. Last in the list so every named subcommand is matched first, and it only claims the no-argument case.
+        Opts.unit.map(_ => (logger: Logger) => commands.server.ServerTop(logger, userPaths, currentWorkspace))
+      ).foldK
+    )
+
+  /** The compile server's settings, one subcommand per knob.
+    *
+    * Bespoke rather than a generic `config set <key> <value>`: each knob gets its own name, arity, metavar, help text and validation, which is what makes the
+    * surface discoverable and the errors specific. Only the decline surface is per-knob — every one of them runs the same [[commands.server.ServerConfigSet]].
+    *
+    * Five of these had no command at all before and could only be set by hand-editing the YAML: parallelism-ratio, heap-pressure-threshold, test-idle-timeout,
+    * sourcegen-max-memory and ksp-runner-max-memory.
+    */
+  private def serverConfigCommand(userPaths: UserPaths, currentWorkspace: Option[java.nio.file.Path]): Opts[Logger => BleepCommand] = {
+    def set(knob: String, description: String)(update: model.BspServerConfig => model.BspServerConfig): Opts[Logger => BleepCommand] =
+      Opts.subcommand(knob, description)(
+        Opts.unit.map(_ => (logger: Logger) => commands.server.ServerConfigSet(logger, userPaths, knob, update, deprecatedAlias = None))
+      )
+
+    def setValue[A](knob: String, description: String, metavar: String)(
+        validate: A => Unit
+    )(update: (model.BspServerConfig, A) => model.BspServerConfig)(using argument: Argument[A]): Opts[Logger => BleepCommand] =
+      Opts.subcommand(knob, description)(
+        Opts.argument[A](metavar).map { value => (logger: Logger) =>
+          validate(value)
+          commands.server.ServerConfigSet(logger, userPaths, knob, config => update(config, value), deprecatedAlias = None)
+        }
+      )
+
+    def positive(knob: String)(n: Int): Unit =
+      if (n < 1) throw new BleepException.Text(s"$knob must be >= 1, got $n")
+
+    def nonNegative(knob: String)(n: Int): Unit =
+      if (n < 0) throw new BleepException.Text(s"$knob must be >= 0 (0 disables it), got $n")
+
+    List[Opts[Logger => BleepCommand]](
+      Opts.subcommand("show", "every setting, what it is set to, and what the running server actually booted with")(
+        outputMode.map(mode => (logger: Logger) => commands.server.ServerConfigShow(logger, userPaths, mode, currentWorkspace))
+      ),
+      // Named for what it is, rather than for the behaviour it switches off. `auto-shutdown-disable` meant "shared" and `auto-shutdown-enable` meant
+      // "one server per invocation", which reads backwards often enough to be worth renaming.
+      Opts.subcommand("mode", "shared (keep the server warm between invocations) or per-invocation (shut it down each time, slower but frees memory)")(
+        Opts.argument[String]("shared|per-invocation").map { mode => (logger: Logger) =>
+          val compileServerMode = mode match {
+            case "shared"         => model.CompileServerMode.Shared
+            case "per-invocation" => model.CompileServerMode.NewEachInvocation
+            case other            => throw new BleepException.Text(s"mode must be `shared` or `per-invocation`, got `$other`")
+          }
+          commands.CompileServerSetMode(logger, userPaths, compileServerMode)
+        }
+      ),
+      setValue[Int]("parallelism", "how many operations may run at once — compiles, test forks, sourcegen (default: one per core)", "n")(
+        positive("parallelism")
+      )((config, n) => config.copy(parallelism = Some(n))),
+      set("parallelism-clear", "remove the parallelism setting (back to default: one per core)")(_.copy(parallelism = None, parallelismRatio = None)),
+      setValue[Double]("parallelism-ratio", "the same as a fraction of cores, e.g. 0.5 for half. Used when parallelism is unset", "ratio") { ratio =>
+        if (ratio <= 0 || ratio > 1) throw new BleepException.Text(s"parallelism-ratio must be in (0, 1], got $ratio")
+      }((config, ratio) => config.copy(parallelismRatio = Some(ratio))),
+      set("parallelism-ratio-clear", "remove the parallelism ratio")(_.copy(parallelismRatio = None)),
+      setValue[String]("max-memory", "max heap for the compile server JVM (e.g. 4g, 2048m)", "size")(_ => ())((config, size) =>
+        config.copy(compileServerMaxMemory = Some(size))
+      ),
+      set("max-memory-clear", "remove the compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)")(
+        _.copy(compileServerMaxMemory = None)
+      ),
+      setValue[Int](
+        "max-cached-workspaces",
+        "how many workspaces' builds stay warm in the server (default: one per GB of server heap, at least 2). Evicted ones reload on next use",
+        "n"
+      )(positive("max-cached-workspaces"))((config, n) => config.copy(maxCachedWorkspaces = Some(n))),
+      set("max-cached-workspaces-clear", "remove the setting (back to default: one per GB of server heap, at least 2)")(_.copy(maxCachedWorkspaces = None)),
+      setValue[Int]("read-timeout", "minutes the server waits for a client's next message before dropping the connection; 0 waits forever", "minutes")(
+        nonNegative("read-timeout")
+      )((config, n) => config.copy(bspReadTimeoutMinutes = Some(n))),
+      set("read-timeout-clear", "remove the read timeout setting (back to default: 30 minutes)")(_.copy(bspReadTimeoutMinutes = None)),
+      setValue[Int]("idle-timeout", "minutes a server with no connected client stays alive before shutting itself down; 0 disables", "minutes")(
+        nonNegative("idle-timeout")
+      )((config, n) => config.copy(compileServerIdleTimeoutMinutes = Some(n))),
+      set("idle-timeout-clear", "remove the idle timeout setting (back to default: 60 minutes)")(_.copy(compileServerIdleTimeoutMinutes = None)),
+      setValue[Double]("heap-pressure-threshold", "heap fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)", "fraction") {
+        fraction =>
+          if (fraction <= 0 || fraction > 1) throw new BleepException.Text(s"heap-pressure-threshold must be in (0, 1], got $fraction")
+      }((config, fraction) => config.copy(heapPressureThreshold = Some(fraction))),
+      set("heap-pressure-threshold-clear", "remove the setting (back to default: 0.80)")(_.copy(heapPressureThreshold = None)),
+      setValue[String]("test-runner-max-memory", "max heap for forked test runner JVMs (e.g. 512m, 2g)", "size")(_ => ())((config, size) =>
+        config.copy(testRunnerMaxMemory = Some(size))
+      ),
+      set("test-runner-max-memory-clear", "remove the test runner max heap setting (back to the JVM default)")(_.copy(testRunnerMaxMemory = None)),
+      setValue[Int]("test-idle-timeout", "minutes a test suite may go without emitting an event before it is considered stuck (default: 2)", "minutes")(
+        positive("test-idle-timeout")
+      )((config, n) => config.copy(testIdleTimeoutMinutes = Some(n))),
+      set("test-idle-timeout-clear", "remove the test idle timeout setting (back to default: 2 minutes)")(_.copy(testIdleTimeoutMinutes = None)),
+      setValue[String]("sourcegen-max-memory", "max heap for forked sourcegen JVMs (e.g. 500m, 2g)", "size")(_ => ())((config, size) =>
+        config.copy(sourcegenMaxMemory = Some(size))
+      ),
+      set("sourcegen-max-memory-clear", "remove the sourcegen max heap setting (back to the JVM default)")(_.copy(sourcegenMaxMemory = None)),
+      setValue[String]("ksp-runner-max-memory", "max heap for forked KSP runner JVMs (e.g. 512m, 1500m)", "size")(_ => ())((config, size) =>
+        config.copy(kspRunnerMaxMemory = Some(size))
+      ),
+      set("ksp-runner-max-memory-clear", "remove the KSP runner max heap setting (back to the JVM default)")(_.copy(kspRunnerMaxMemory = None))
+    ).foldK
+  }
 
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
@@ -534,9 +706,21 @@ object Main {
             val buildPaths0 = BuildPaths(started.buildPaths.cwd, BuildLoader.nonExisting(started.buildPaths.cwd), model.BuildVariant.Normal)
             importMavenCmd(buildPaths0, started.logger)
           },
-          configCommand(started.pre.logger, started.pre.userPaths),
+          configCommand(started.pre.userPaths).map(mkCommand =>
+            new BleepBuildCommand {
+              // As with `serverCommand`: the real logger only arrives with `started` at run time. Capturing one here would capture the StoringLogger decline
+              // uses while parsing, which is why `bleep config ...` inside a build wrote its changes without printing a word.
+              override def run(started: Started): Either[BleepException, Unit] = mkCommand(started.logger).run()
+            }
+          ),
           installTabCompletions(started.userPaths, started.pre.logger),
-          Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+          serverCommand(started.pre.userPaths, currentWorkspace = Some(started.buildPaths.buildDir)).map(mkCommand =>
+            new BleepBuildCommand {
+              // The logger arrives with `started` at run time — capturing it earlier would capture the StoringLogger used during parsing.
+              override def run(started: Started): Either[BleepException, Unit] = mkCommand(started.logger).run()
+            }
+          ),
+          Opts.subcommand("server-metrics", "(deprecated: use `bleep server metrics`) open BSP server metrics dashboard in browser")(
             (Opts.argument[Long]("pid").orNone, metricsFileOpt).mapN((pid, file) =>
               commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid, file)
             )
@@ -682,14 +866,22 @@ object Main {
     ret
   }
 
-  private def updateBspServerConfig(f: model.BspServerConfig => model.BspServerConfig)(config: model.BleepConfig): model.BleepConfig =
-    config.copy(bspServerConfig = Some(f(config.bspServerConfigOrDefault)))
+  /** An old `bleep config compile-server <knob>` invocation, routed through the same command the new spelling uses so the two cannot diverge. */
+  private def deprecatedKnob(
+      logger: Logger,
+      userPaths: UserPaths,
+      knob: String,
+      update: model.BspServerConfig => model.BspServerConfig
+  ): Either[BleepException, Unit] =
+    commands.server
+      .ServerConfigSet(logger, userPaths, knob, update, deprecatedAlias = Some(s"bleep config compile-server $knob"))
+      .run()
 
-  def configCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
+  def configCommand(userPaths: UserPaths): Opts[Logger => BleepCommand] =
     Opts.subcommand("config", "manage user-level bleep configuration: auth, compile-server / test-runner JVM settings, remote-cache credentials, log timing")(
       List(
-        Opts.subcommand[BleepCommand]("file", "show configuration file location")(
-          outputMode.map { mode => () =>
+        Opts.subcommand[Logger => BleepCommand]("file", "show configuration file location")(
+          outputMode.map { mode => (logger: Logger) => () =>
             mode match {
               case OutputMode.Text =>
                 logger.warn(s"Config file is found in ${userPaths.configYaml}")
@@ -703,11 +895,11 @@ object Main {
             }
           }
         ),
-        Opts.subcommand[BleepCommand]("log-timing-enable", "enable timing info in logs")(
-          Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true))).map(_ => ()))
+        Opts.subcommand[Logger => BleepCommand]("log-timing-enable", "enable timing info in logs")(
+          Opts((logger: Logger) => () => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true))).map(_ => ()))
         ),
-        Opts.subcommand[BleepCommand]("log-timing-disable", "disable timing info in logs")(
-          Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(false))).map(_ => ()))
+        Opts.subcommand[Logger => BleepCommand]("log-timing-disable", "disable timing info in logs")(
+          Opts((logger: Logger) => () => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(false))).map(_ => ()))
         ),
         Opts.subcommand(
           "compile-server",
@@ -716,119 +908,131 @@ object Main {
           List(
             Opts.subcommand(
               "auto-shutdown-disable",
-              "leave compile servers running between bleep invocations. this gets much better performance at the cost of memory"
-            )(Opts {
+              "(deprecated: use `bleep server config mode shared`) leave compile servers running between bleep invocations"
+            )(Opts { (logger: Logger) =>
               commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
             }),
-            Opts.subcommand("auto-shutdown-enable", "shut down the compile server between bleep invocations, slower (cold start each time), but frees memory")(
-              Opts {
+            Opts.subcommand(
+              "auto-shutdown-enable",
+              "(deprecated: use `bleep server config mode per-invocation`) shut down the compile server between bleep invocations"
+            )(
+              Opts { (logger: Logger) =>
                 commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
               }
             ),
-            Opts.subcommand("stop-all", "stop every shared compile server currently running")(
-              Opts {
-                commands.CompileServerStopAll(logger, userPaths)
+            Opts.subcommand[Logger => BleepCommand]("stop-all", "(deprecated: use `bleep server stop-all`) stop every shared compile server currently running")(
+              Opts.flag("force", "skip the graceful path: kill immediately and delete the socket directory").orFalse.map { force => (logger: Logger) => () =>
+                // Same command and same defaults as `bleep server stop-all`, so the old spelling does not quietly do something different from the new one.
+                // Kept working for two releases because it is in scripts and muscle memory; removal is M13.
+                commands.server
+                  .ServerKill(
+                    logger,
+                    userPaths,
+                    Nil,
+                    all = true,
+                    force = force,
+                    deleteDir = force,
+                    deprecatedAlias = Some("bleep config compile-server stop-all"),
+                    currentWorkspace = None
+                  )
+                  .run()
               }
             ),
-            Opts.subcommand[BleepCommand]("max-memory", "set max heap for compile server JVM (e.g. 4g, 2048m)")(
-              Opts.argument[String]("size").map { size => () =>
-                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = Some(size)))).map(_ => ())
+            Opts.subcommand[Logger => BleepCommand]("max-memory", "(deprecated: use `bleep server config max-memory`) set max heap for compile server JVM")(
+              Opts.argument[String]("size").map { size => (logger: Logger) => () =>
+                deprecatedKnob(logger, userPaths, "max-memory", _.copy(compileServerMaxMemory = Some(size)))
               }
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "max-memory-clear",
               "remove compile server max heap setting (back to default: 1/4 of physical RAM, clamped to 4g..16g)"
             )(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "max-memory-clear", _.copy(compileServerMaxMemory = None)))
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "parallelism",
-              "set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)"
+              "(deprecated: use `bleep server config parallelism`) set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)"
             )(
-              Opts.argument[Int]("n").map { n => () =>
+              Opts.argument[Int]("n").map { n => (logger: Logger) => () =>
                 if (n < 1) throw new BleepException.Text(s"parallelism must be >= 1, got $n")
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = Some(n))))
-                  .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
+                deprecatedKnob(logger, userPaths, "parallelism", _.copy(parallelism = Some(n)))
               }
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "parallelism-clear",
-              "remove the parallelism setting (back to default: one per core)"
+              "(deprecated: use `bleep server config parallelism-clear`) remove the parallelism setting (back to default: one per core)"
             )(
-              Opts(() =>
-                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(parallelism = None, parallelismRatio = None))).map(_ => ())
-              )
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "parallelism-clear", _.copy(parallelism = None, parallelismRatio = None)))
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "max-cached-workspaces",
               "set how many workspaces' builds stay warm in the server (default: one per GB of server heap, at least 2). Evicted ones reload on next use"
             )(
-              Opts.argument[Int]("n").map { n => () =>
+              Opts.argument[Int]("n").map { n => (logger: Logger) => () =>
                 if (n < 1) throw new BleepException.Text(s"max-cached-workspaces must be >= 1, got $n")
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = Some(n))))
-                  .map(_ => logger.info("Takes effect when the server next starts — `bleep config compile-server stop-all` to apply now"))
+                deprecatedKnob(logger, userPaths, "max-cached-workspaces", _.copy(maxCachedWorkspaces = Some(n)))
               }
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "max-cached-workspaces-clear",
-              "remove the setting (back to default: one per GB of server heap, at least 2)"
+              "(deprecated: use `bleep server config max-cached-workspaces-clear`) remove the setting (back to default: one per GB of server heap, at least 2)"
             )(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(maxCachedWorkspaces = None))).map(_ => ()))
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "max-cached-workspaces-clear", _.copy(maxCachedWorkspaces = None)))
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "read-timeout",
               "set minutes the server waits for a client's next message before dropping the connection, 0 to wait forever (default: 30)"
             )(
-              Opts.argument[Int]("minutes").map { minutes => () =>
+              Opts.argument[Int]("minutes").map { minutes => (logger: Logger) => () =>
                 if (minutes < 0) throw new BleepException.Text(s"read-timeout must be >= 0 (0 waits forever), got $minutes")
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(bspReadTimeoutMinutes = Some(minutes))))
-                  .map(_ => ())
+                deprecatedKnob(logger, userPaths, "read-timeout", _.copy(bspReadTimeoutMinutes = Some(minutes)))
               }
             ),
-            Opts.subcommand[BleepCommand]("read-timeout-clear", "remove read timeout setting (use default: 30 minutes)")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(bspReadTimeoutMinutes = None))).map(_ => ()))
+            Opts.subcommand[Logger => BleepCommand]("read-timeout-clear", "remove read timeout setting (use default: 30 minutes)")(
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "read-timeout-clear", _.copy(bspReadTimeoutMinutes = None)))
             ),
-            Opts.subcommand[BleepCommand](
+            Opts.subcommand[Logger => BleepCommand](
               "idle-timeout",
               "set minutes the server stays alive with no connected client before shutting itself down, 0 to stay alive forever (default: 60)"
             )(
-              Opts.argument[Int]("minutes").map { minutes => () =>
+              Opts.argument[Int]("minutes").map { minutes => (logger: Logger) => () =>
                 if (minutes < 0) throw new BleepException.Text(s"idle-timeout must be >= 0 (0 stays alive forever), got $minutes")
-                BleepConfigOps
-                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerIdleTimeoutMinutes = Some(minutes))))
-                  .map(_ => ())
+                deprecatedKnob(logger, userPaths, "idle-timeout", _.copy(compileServerIdleTimeoutMinutes = Some(minutes)))
               }
             ),
-            Opts.subcommand[BleepCommand]("idle-timeout-clear", "remove idle timeout setting (use default: 60 minutes)")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerIdleTimeoutMinutes = None))).map(_ => ()))
+            Opts.subcommand[Logger => BleepCommand]("idle-timeout-clear", "remove idle timeout setting (use default: 60 minutes)")(
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "idle-timeout-clear", _.copy(compileServerIdleTimeoutMinutes = None)))
             )
           ).foldK
         ),
         Opts.subcommand("test-runner", "configure test runner JVM settings")(
           List(
-            Opts.subcommand[BleepCommand]("max-memory", "set max heap for test runner JVMs (e.g. 512m, 2g)")(
-              Opts.argument[String]("size").map { size => () =>
-                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(testRunnerMaxMemory = Some(size)))).map(_ => ())
+            Opts.subcommand[Logger => BleepCommand](
+              "max-memory",
+              "(deprecated: use `bleep server config test-runner-max-memory`) set max heap for test runner JVMs (e.g. 512m, 2g)"
+            )(
+              Opts.argument[String]("size").map { size => (logger: Logger) => () =>
+                deprecatedKnob(logger, userPaths, "test-runner-max-memory", _.copy(testRunnerMaxMemory = Some(size)))
               }
             ),
-            Opts.subcommand[BleepCommand]("max-memory-clear", "remove test runner max heap setting (use JVM default)")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(testRunnerMaxMemory = None))).map(_ => ()))
+            Opts.subcommand[Logger => BleepCommand](
+              "max-memory-clear",
+              "(deprecated: use `bleep server config test-runner-max-memory-clear`) remove test runner max heap setting (use JVM default)"
+            )(
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "test-runner-max-memory-clear", _.copy(testRunnerMaxMemory = None)))
             )
           ).foldK
         ),
         Opts.subcommand("auth", "configure authentication for private repositories (Artifact Registry, GitHub Packages, GitLab)")(
           List(
-            Opts.subcommand[BleepCommand]("setup", "interactive setup for private repository authentication")(
-              Opts(() => commands.PublishSetup(logger, userPaths, None).run())
+            Opts.subcommand[Logger => BleepCommand]("setup", "interactive setup for private repository authentication")(
+              Opts((logger: Logger) => () => commands.PublishSetup(logger, userPaths, None).run())
             ),
-            Opts.subcommand[BleepCommand]("list", "list configured authentications")(
-              outputMode.map(mode => () => commands.ConfigAuthList(logger, userPaths, mode).run())
+            Opts.subcommand[Logger => BleepCommand]("list", "list configured authentications")(
+              outputMode.map(mode => (logger: Logger) => () => commands.ConfigAuthList(logger, userPaths, mode).run())
             ),
-            Opts.subcommand[BleepCommand]("remove", "remove authentication for a repository URI prefix")(
-              Opts.argument[String]("uri-prefix").map { uriStr => () =>
+            Opts.subcommand[Logger => BleepCommand]("remove", "remove authentication for a repository URI prefix")(
+              Opts.argument[String]("uri-prefix").map { uriStr => (logger: Logger) => () =>
                 commands.ConfigAuthRemove(logger, userPaths, java.net.URI.create(uriStr)).run()
               }
             )
@@ -836,11 +1040,11 @@ object Main {
         ),
         Opts.subcommand("remote-cache", "configure remote build cache credentials")(
           List(
-            Opts.subcommand[BleepCommand]("setup", "interactive setup for S3 remote cache credentials")(
-              Opts(commands.ConfigRemoteCacheSetup(logger, userPaths))
+            Opts.subcommand[Logger => BleepCommand]("setup", "interactive setup for S3 remote cache credentials")(
+              Opts((logger: Logger) => commands.ConfigRemoteCacheSetup(logger, userPaths))
             ),
-            Opts.subcommand[BleepCommand]("clear", "remove remote cache credentials from config")(
-              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(remoteCacheCredentials = None)).map(_ => ()))
+            Opts.subcommand[Logger => BleepCommand]("clear", "remove remote cache credentials from config")(
+              Opts((logger: Logger) => () => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(remoteCacheCredentials = None)).map(_ => ()))
             )
           ).foldK
         )

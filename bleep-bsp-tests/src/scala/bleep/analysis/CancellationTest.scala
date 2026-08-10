@@ -24,12 +24,16 @@ class CancellationTest extends AnyFunSuite with Matchers {
     * 500ms to get well into a compile. A flat total would assert "the sleep plus the cancel", which is a different and weaker claim for every test that sleeps
     * longer.
     *
-    * Deliberately tight. The previous 30s was loose enough to hide the real behaviour: it passed not because cancellation worked but because a fast machine
-    * finished the whole compile inside the bound, and CI failed it only once the machine was contended enough for a full compile to exceed 30s. Raising it to
-    * 120s would have buried that for good, which is the wrong direction — a build tool that takes a minute to honour Ctrl-C is broken whether or not a test
-    * says so.
+    * The number separates two outcomes that are orders of magnitude apart: cancellation returns in single-digit to low-hundreds of milliseconds, or it waits
+    * for the compile, which for these deliberately huge generated sources runs to 30s and beyond on a contended runner. Anything comfortably between the two
+    * makes the same claim, so the bound is set for the slowest machine that runs it rather than the fastest.
+    *
+    * It was 200ms first, which held everywhere except macos-15-intel — the slowest runner in the matrix — and there only for Kotlin. That is not a bound
+    * catching a regression, it is a bound measuring the runner. 3s keeps a 10x margin under "waited for the compile" while no longer depending on how loaded
+    * the machine is. What it must never go back to is the original 30s/120s, which passed for the wrong reason: fast machines finished the entire compile
+    * inside the bound, so the test said nothing at all until CI got slow enough to expose it.
     */
-  private val CancelBudget = 200.millis
+  private val CancelBudget = 3.seconds
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)

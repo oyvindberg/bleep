@@ -445,67 +445,31 @@ object BspMetrics {
 
   // --------------- JVM sampling ---------------
 
-  /** The live set: heap still occupied immediately AFTER the last collection of each heap pool, which is the number that says whether the server is retaining
-    * or merely churning.
-    *
-    * `heap_used_mb` cannot answer that. Sampled at an arbitrary moment it includes whatever garbage has accumulated since the last GC, so a healthy server
-    * churning hard and a server whose floor is creeping up towards its ceiling produce the same sawtooth. Deriving the floor by taking minima over a window (as
-    * one has to do without this) needs a long window and still only approximates it.
-    *
-    * `-1` when the JVM does not report collection usage for its heap pools, which is a real answer, not a zero to be averaged in.
-    */
-  private def liveSetMb(): Long = {
-    val pools = ManagementFactory.getMemoryPoolMXBeans.asScala.filter(_.getType == java.lang.management.MemoryType.HEAP)
-    val usages = pools.flatMap(p => Option(p.getCollectionUsage))
-    if (usages.isEmpty) -1L else usages.map(_.getUsed).sum / (1024 * 1024)
-  }
-
   private def sampleJvm(): Unit = {
-    val memBean = ManagementFactory.getMemoryMXBean
-    val heap = memBean.getHeapMemoryUsage
-    val nonHeap = memBean.getNonHeapMemoryUsage
-    val threadBean = ManagementFactory.getThreadMXBean
-    val gcBeans = ManagementFactory.getGarbageCollectorMXBeans.asScala
+    val stats = JvmSampler.sample()
 
-    val heapUsed = heap.getUsed
+    val heapUsed = JvmSampler.heapUsedBytes()
     updateMaxLong(maxHeapUsedBytes, heapUsed)
 
-    val heapUsedMb = heapUsed / (1024 * 1024)
-    val heapCommittedMb = heap.getCommitted / (1024 * 1024)
-    val heapMaxMb = heap.getMax / (1024 * 1024)
-    val nonHeapUsedMb = nonHeap.getUsed / (1024 * 1024)
+    val heapUsedMb = stats.heapUsedMb
+    val heapMaxMb = stats.heapMaxMb
+    val heapLiveMb = stats.heapLiveMb
 
-    val gcJson = gcBeans
-      .map { gc =>
-        s"""{"name":"${esc(gc.getName)}","count":${gc.getCollectionCount},"time_ms":${gc.getCollectionTime}}"""
-      }
+    val gcJson = stats.gc
+      .map(gc => s"""{"name":"${esc(gc.name)}","count":${gc.count},"time_ms":${gc.timeMs}}""")
       .mkString("[", ",", "]")
 
-    val threads = threadBean.getThreadCount
-    val peakThreads = threadBean.getPeakThreadCount
-    val daemonThreads = threadBean.getDaemonThreadCount
-
-    val (cpuProcess, cpuSystem) =
-      try {
-        val osBean = ManagementFactory.getOperatingSystemMXBean.asInstanceOf[com.sun.management.OperatingSystemMXBean]
-        (osBean.getProcessCpuLoad, osBean.getCpuLoad)
-      } catch {
-        case _: ClassCastException => (-1.0, -1.0)
-      }
-
     val currentCompiles = concurrentCompiles.get()
-    val loadedClasses = ManagementFactory.getClassLoadingMXBean.getLoadedClassCount
-    val heapLiveMb = liveSetMb()
 
-    val cpuProcessStr = String.format(Locale.US, "%.4f", cpuProcess: java.lang.Double)
-    val cpuSystemStr = String.format(Locale.US, "%.4f", cpuSystem: java.lang.Double)
+    val cpuProcessStr = String.format(Locale.US, "%.4f", stats.cpuProcess: java.lang.Double)
+    val cpuSystemStr = String.format(Locale.US, "%.4f", stats.cpuSystem: java.lang.Double)
 
     writeEvent(
-      s"""{"type":"jvm","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_committed_mb":$heapCommittedMb,"heap_max_mb":$heapMaxMb,"non_heap_used_mb":$nonHeapUsedMb,"gc":$gcJson,"threads":$threads,"peak_threads":$peakThreads,"daemon_threads":$daemonThreads,"cpu_process":$cpuProcessStr,"cpu_system":$cpuSystemStr,"concurrent_compiles":$currentCompiles,"loaded_classes":$loadedClasses,"heap_live_mb":$heapLiveMb}"""
+      s"""{"type":"jvm","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_committed_mb":${stats.heapCommittedMb},"heap_max_mb":$heapMaxMb,"non_heap_used_mb":${stats.nonHeapUsedMb},"gc":$gcJson,"threads":${stats.threads},"peak_threads":${stats.peakThreads},"daemon_threads":${stats.daemonThreads},"cpu_process":$cpuProcessStr,"cpu_system":$cpuSystemStr,"concurrent_compiles":$currentCompiles,"loaded_classes":${stats.loadedClasses},"heap_live_mb":$heapLiveMb}"""
     )
 
     // OOM pressure detection: heap used >= 95% of max
-    val heapMaxBytes = heap.getMax
+    val heapMaxBytes = JvmSampler.heapMaxBytes()
     if (heapMaxBytes > 0) {
       val usedPct = heapUsed.toDouble / heapMaxBytes
       if (usedPct >= OomThreshold) {

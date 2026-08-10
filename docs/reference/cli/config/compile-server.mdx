@@ -18,19 +18,31 @@ bleep config compile-server <subcommand>
 
 ## `bleep config compile-server auto-shutdown-disable`
 
-<p>leave compile servers running between bleep invocations. this gets much better performance at the cost of memory</p>
+<p>(deprecated: use `bleep server config mode shared`) leave compile servers running between bleep invocations</p>
 
 ## `bleep config compile-server auto-shutdown-enable`
 
-<p>shut down the compile server between bleep invocations, slower (cold start each time), but frees memory</p>
+<p>(deprecated: use `bleep server config mode per-invocation`) shut down the compile server between bleep invocations</p>
 
 ## `bleep config compile-server stop-all`
 
-<p>stop every shared compile server currently running</p>
+<p>(deprecated: use `bleep server stop-all`) stop every shared compile server currently running</p>
+
+### Synopsis
+
+```bash
+bleep config compile-server stop-all [flags]
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--force` | skip the graceful path: kill immediately and delete the socket directory |
 
 ## `bleep config compile-server max-memory`
 
-<p>set max heap for compile server JVM (e.g. 4g, 2048m)</p>
+<p>(deprecated: use `bleep server config max-memory`) set max heap for compile server JVM</p>
 
 ### Synopsis
 
@@ -50,7 +62,7 @@ bleep config compile-server max-memory <size>
 
 ## `bleep config compile-server parallelism`
 
-<p>set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)</p>
+<p>(deprecated: use `bleep server config parallelism`) set how many operations may run at once — compiles, test forks, sourcegen (default: one per core)</p>
 
 ### Synopsis
 
@@ -66,7 +78,7 @@ bleep config compile-server parallelism <n>
 
 ## `bleep config compile-server parallelism-clear`
 
-<p>remove the parallelism setting (back to default: one per core)</p>
+<p>(deprecated: use `bleep server config parallelism-clear`) remove the parallelism setting (back to default: one per core)</p>
 
 ## `bleep config compile-server max-cached-workspaces`
 
@@ -86,7 +98,7 @@ bleep config compile-server max-cached-workspaces <n>
 
 ## `bleep config compile-server max-cached-workspaces-clear`
 
-<p>remove the setting (back to default: one per GB of server heap, at least 2)</p>
+<p>(deprecated: use `bleep server config max-cached-workspaces-clear`) remove the setting (back to default: one per GB of server heap, at least 2)</p>
 
 ## `bleep config compile-server read-timeout`
 

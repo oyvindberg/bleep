@@ -108,6 +108,22 @@ object BspServerOperations {
           s"\nCommand: ${command.mkString(" ")}\n\n"
       )
 
+      // Record who this daemon is before it exists. The socket dir name is an irreversible hash, so without this a dead daemon is anonymous — see [[ServerJson]].
+      ServerJson.write(
+        socketDir,
+        ServerJson(
+          bleepVersion = config.jvmKey.bleepVersion,
+          jvmName = config.jvmKey.name,
+          jvmVersion = config.jvmKey.version,
+          javaBin = config.javaPath.toString,
+          javaOpts = config.javaOpts.toList,
+          serverMainClass = config.serverMainClass,
+          command = command.toList,
+          workingDir = config.workingDir.toString,
+          spawnedAtEpochMs = System.currentTimeMillis()
+        )
+      )
+
       val pb = new ProcessBuilder(command.asJava)
       pb.directory(config.workingDir.toFile)
       // Default ANSI-off for the BSP daemon JVM. With NO_COLOR=1 in the daemon's own env, every subprocess it ever spawns inherits the var via ProcessBuilder's

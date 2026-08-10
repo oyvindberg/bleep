@@ -76,7 +76,7 @@ object SetupBleepBsp {
         jvmKey = jvmKey,
         javaPath = resolvedJvm.javaBin,
         javaOpts = javaOpts,
-        serverMainClass = "bleep.bsp.BspServerDaemon",
+        serverMainClass = BspRifleConfig.ServerMainClass,
         serverClasspath = serverClasspath ++ semanticdbJavacClasspath,
         workingDir = socketDir,
         startCheckPeriod = 10.millis,

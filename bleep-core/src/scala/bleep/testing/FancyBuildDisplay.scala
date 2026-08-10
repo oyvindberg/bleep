@@ -5,12 +5,20 @@ import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
-import tui._
+import jatatui.core.layout.{Constraint, Direction, HorizontalAlignment, Layout, Rect}
+import jatatui.core.style.{Color, Modifier, Style}
+import jatatui.core.terminal.{Frame, Terminal}
+import jatatui.core.text.{Line, Span, Text}
+import jatatui.crossterm.CrosstermBackend
+import jatatui.widgets.Borders
+import jatatui.widgets.block.{Block, BorderType}
+import jatatui.widgets.list.{List as ListWidget, ListItem}
+import jatatui.widgets.paragraph.Paragraph
 import tui.crossterm.CrosstermJni
-import tui.widgets._
 
 import java.time.{Duration, Instant}
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 /** Terminal UI for build execution - functional and readable */
 object FancyBuildDisplay {
@@ -28,27 +36,42 @@ object FancyBuildDisplay {
   // Dark theme using 256-color indexed palette for reliable rendering.
   // Grayscale ramp (232-255) for backgrounds, 6x6x6 cube for accents.
   object Palette {
-    val bg = Color.Indexed(234) // #1c1c1c — near-black base
-    val surface = Color.Indexed(236) // #303030 — raised surface
-    val text = Color.Indexed(253) // #dadada — primary text
-    val textMuted = Color.Indexed(249) // #b2b2b2 — secondary text
-    val textDim = Color.Indexed(243) // #767676 — tertiary / timestamps
-    val border = Color.Indexed(240) // #585858 — borders
-    val success = Color.Indexed(114) // rgb(135,215,135) — soft green
-    val error = Color.Indexed(210) // rgb(255,135,135) — coral red
-    val warning = Color.Indexed(222) // rgb(255,215,135) — warm amber
-    val info = Color.Indexed(111) // rgb(135,175,255) — soft blue
-    val accent = Color.Indexed(183) // rgb(215,175,255) — lavender
+    val bg: Color = new Color.Indexed(234) // #1c1c1c — near-black base
+    val surface: Color = new Color.Indexed(236) // #303030 — raised surface
+    val text: Color = new Color.Indexed(253) // #dadada — primary text
+    val textMuted: Color = new Color.Indexed(249) // #b2b2b2 — secondary text
+    val textDim: Color = new Color.Indexed(243) // #767676 — tertiary / timestamps
+    val border: Color = new Color.Indexed(240) // #585858 — borders
+    val success: Color = new Color.Indexed(114) // rgb(135,215,135) — soft green
+    val error: Color = new Color.Indexed(210) // rgb(255,135,135) — coral red
+    val warning: Color = new Color.Indexed(222) // rgb(255,215,135) — warm amber
+    val info: Color = new Color.Indexed(111) // rgb(135,175,255) — soft blue
+    val accent: Color = new Color.Indexed(183) // rgb(215,175,255) — lavender
+
+    /** Style helpers — every cell gets our bg so the terminal theme never bleeds through.
+      *
+      * They live on the palette rather than in this file because they *are* the theme: this palette is built for a dark background, and text painted with it
+      * onto a terminal that supplies its own light background is close to unreadable. Anything drawing a bleep TUI — the build display, the picker, `bleep
+      * server top` — takes its colours from here so they look like one program.
+      */
+    def style(color: Color): Style = Style.empty().withFg(color).withBg(bg)
+    def bold(color: Color): Style = Style.empty().withFg(color).withBg(bg).withAddModifier(Modifier.BOLD)
+
+    /** Just the background, for filling an area before anything is drawn on it. */
+    val background: Style = Style.empty().withBg(bg)
+
+    /** The raised variants, for panels and selected rows that need to sit above the base background. */
+    def onSurface(color: Color): Style = Style.empty().withFg(color).withBg(surface)
+    def boldOnSurface(color: Color): Style = Style.empty().withFg(color).withBg(surface).withAddModifier(Modifier.BOLD)
+    val surfaceBackground: Style = Style.empty().withBg(surface)
   }
 
-  // Style helpers — every cell gets our bg so the terminal theme never bleeds through
-  private def s(color: Color): Style = Style(fg = Some(color), bg = Some(Palette.bg))
-  private def sb(color: Color): Style = Style(fg = Some(color), bg = Some(Palette.bg), addModifier = Modifier.BOLD)
-  private val sBg: Style = Style(bg = Some(Palette.bg))
-  // Surface variants for raised panels (summary block)
-  private def ss(color: Color): Style = Style(fg = Some(color), bg = Some(Palette.surface))
-  private def ssb(color: Color): Style = Style(fg = Some(color), bg = Some(Palette.surface), addModifier = Modifier.BOLD)
-  private val sSurface: Style = Style(bg = Some(Palette.surface))
+  private def s(color: Color): Style = Palette.style(color)
+  private def sb(color: Color): Style = Palette.bold(color)
+  private val sBg: Style = Palette.background
+  private def ss(color: Color): Style = Palette.onSurface(color)
+  private def ssb(color: Color): Style = Palette.boldOnSurface(color)
+  private val sSurface: Style = Palette.surfaceBackground
 
   /** Info about workspace being busy (another connection is building) */
   case class WorkspaceBusyInfo(
@@ -124,26 +147,22 @@ object FancyBuildDisplay {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
   }
 
-  /** Check if TUI mode is supported (terminal with raw mode support) */
-  /** Check if TUI mode is supported. Returns Right(()) or Left(reason). */
-  def checkSupport: Either[String, Unit] = {
-    val isWindows = System.getProperty("os.name", "").toLowerCase.contains("win")
-    if (isWindows) {
-      Left("TUI not supported on Windows (CrosstermJni requires SIGWINCH)")
-    } else {
-      try {
-        val jni = new CrosstermJni
-        jni.enableRawMode()
-        jni.disableRawMode()
-        Right(())
-      } catch {
-        case e: UnsatisfiedLinkError =>
-          Left(s"TUI disabled: native library not found: ${e.getMessage}")
-        case e: Throwable =>
-          Left(s"TUI disabled: raw mode failed: ${e.getClass.getSimpleName}: ${e.getMessage}")
-      }
+  /** Check if TUI mode is supported (terminal with raw mode support). Returns Right(()) or Left(reason).
+    *
+    * Windows is supported: jatatui's crossterm ships Windows natives and does not depend on SIGWINCH, unlike the tui-scala backend this replaced.
+    */
+  def checkSupport: Either[String, Unit] =
+    try {
+      val jni = new CrosstermJni
+      jni.enableRawMode()
+      jni.disableRawMode()
+      Right(())
+    } catch {
+      case e: UnsatisfiedLinkError =>
+        Left(s"TUI disabled: native library not found: ${e.getMessage}")
+      case e: Throwable =>
+        Left(s"TUI disabled: raw mode failed: ${e.getClass.getSimpleName}: ${e.getMessage}")
     }
-  }
 
   def isSupported: Boolean = checkSupport.isRight
 
@@ -187,7 +206,7 @@ object FancyBuildDisplay {
           jni.execute(new tui.crossterm.Command.EnterAlternateScreen(), new tui.crossterm.Command.EnableMouseCapture())
 
           backend = new CrosstermBackend(jni)
-          val terminal = Terminal.init(backend)
+          val terminal = Terminal.create(backend)
 
           // Add shutdown hook to restore terminal on JVM exit (belt and suspenders)
           shutdownHook = new Thread(() => restoreTerminal(), "terminal-restore")
@@ -207,7 +226,7 @@ object FancyBuildDisplay {
 
   private def runLoop(
       jni: CrosstermJni,
-      terminal: Terminal,
+      terminal: Terminal[CrosstermBackend],
       eventQueue: Queue[IO, Option[BuildEvent]],
       testRunStateOpt: Option[Ref[IO, TestRunState]],
       mode: BuildMode,
@@ -538,14 +557,13 @@ object FancyBuildDisplay {
 
   private def renderUI(f: Frame, state: State, displayItems: List[ProjectDisplayItem], issuePane: PaneData, issueMetrics: Array[Int]): Unit = {
     // Fill entire screen with our dark background first
-    f.renderWidget(BlockWidget(style = sBg), f.size)
+    f.renderWidget(Block.empty().withStyle(sBg), f.area())
 
-    if (f.size.height < 10 || f.size.width < 40) {
-      val msg = ParagraphWidget(
-        text = Text.fromSpans(Spans.from(Span.styled("Terminal too small", s(Palette.warning)))),
-        alignment = Alignment.Center
-      )
-      f.renderWidget(msg, f.size)
+    if (f.area().height < 10 || f.area().width < 40) {
+      val msg = Paragraph
+        .of(Text.from(Line.from(Span.styled("Terminal too small", s(Palette.warning)))))
+        .withAlignment(HorizontalAlignment.Center)
+      f.renderWidget(msg, f.area())
       return
     }
 
@@ -562,7 +580,7 @@ object FancyBuildDisplay {
 
     // Active panes (Projects, Tests) get exactly the space they need.
     // Issues pane gets all remaining space (it's scrollable).
-    val available = math.max(0, f.size.height - titleHeight - summaryHeight)
+    val available = math.max(0, f.area().height - titleHeight - summaryHeight)
     val activePaneHeights = activePanes.map(p => math.min(p.items.length + 2, available))
     val usedByActive = activePaneHeights.sum
     val issueHeight = if (issuePane.items.nonEmpty) math.max(3, available - usedByActive) else 0
@@ -571,18 +589,17 @@ object FancyBuildDisplay {
     val paneHeights = if (issuePane.items.nonEmpty) activePaneHeights :+ issueHeight else activePaneHeights
 
     val constraints = Array.newBuilder[Constraint]
-    constraints += Constraint.Length(titleHeight)
-    constraints += Constraint.Length(summaryHeight)
-    paneHeights.foreach(h => constraints += Constraint.Length(h))
+    constraints += new Constraint.Length(titleHeight)
+    constraints += new Constraint.Length(summaryHeight)
+    paneHeights.foreach(h => constraints += new Constraint.Length(h))
     val usedByPanes = paneHeights.sum
     if (usedByPanes < available) {
-      constraints += Constraint.Length(available - usedByPanes)
+      constraints += new Constraint.Length(available - usedByPanes)
     }
 
-    val chunks = Layout(
-      direction = Direction.Vertical,
-      constraints = constraints.result()
-    ).split(f.size)
+    val chunks = Layout
+      .of(Direction.Vertical, constraints.result().toList.asJava)
+      .split(f.area())
 
     renderTitle(f, chunks(0), state)
     renderSummary(f, chunks(1), state, displayItems)
@@ -624,7 +641,7 @@ object FancyBuildDisplay {
 
     // Park cursor at first column of last line so that if something clobbers
     // the TUI (e.g. stderr output), it overwrites from the bottom.
-    f.setCursor(0, f.size.height - 1)
+    f.setCursorPosition(0, f.area().height - 1)
   }
 
   private def renderTitle(f: Frame, area: Rect, state: State): Unit = {
@@ -633,12 +650,9 @@ object FancyBuildDisplay {
       case BuildMode.Test                        => "BLEEP TEST RUNNER"
       case BuildMode.Run(_, _)                   => "BLEEP RUN"
     }
-    val paragraph = ParagraphWidget(
-      text = Text.fromSpans(
-        Spans.from(Span.styled(title, sb(Palette.info)))
-      ),
-      alignment = Alignment.Center
-    )
+    val paragraph = Paragraph
+      .of(Text.from(Line.from(Span.styled(title, sb(Palette.info)))))
+      .withAlignment(HorizontalAlignment.Center)
     f.renderWidget(paragraph, area)
   }
 
@@ -647,10 +661,10 @@ object FancyBuildDisplay {
     val elapsed = formatDuration(state.elapsedMs)
 
     // Line 1: test/compile counters (surface bg for raised panel)
-    val line1: Spans = state.mode match {
+    val line1: Line = state.mode match {
       case BuildMode.Test =>
         val totalFailed = state.core.testsFailed + state.core.testsTimedOut + state.core.testsCancelled
-        Spans.from(
+        Line.from(
           Span.styled(s"$passedIcon ", ss(Palette.success)),
           Span.styled(s"${state.core.testsPassed} passed", ssb(Palette.success)),
           Span.styled("  ", sSurface),
@@ -661,7 +675,7 @@ object FancyBuildDisplay {
           Span.styled(s"${state.core.testsSkipped} skipped", ss(if (state.core.testsSkipped > 0) Palette.warning else Palette.textDim))
         )
       case BuildMode.Compile | BuildMode.Link(_) =>
-        Spans.from(
+        Line.from(
           Span.styled(s"$passedIcon ", ss(Palette.success)),
           Span.styled(s"${state.core.compilesCompleted} compiled", ssb(Palette.success)),
           Span.styled("  ", sSurface),
@@ -678,7 +692,7 @@ object FancyBuildDisplay {
           )
         )
       case BuildMode.Run(_, _) =>
-        Spans.from(
+        Line.from(
           Span.styled(s"$passedIcon ", ss(Palette.success)),
           Span.styled(s"${state.core.compilesCompleted} compiled", ssb(Palette.success)),
           Span.styled("  ", sSurface),
@@ -691,17 +705,17 @@ object FancyBuildDisplay {
     }
 
     // Line 2: suite progress + duration
-    val line2: Spans = state.mode match {
+    val line2: Line = state.mode match {
       case BuildMode.Test =>
         val suiteTotal = state.effectiveSuiteCount
         val progress = (state.suiteProgress * 100).toInt
-        Spans.from(
+        Line.from(
           Span.styled(s"Suites: ${state.core.suitesCompleted}/$suiteTotal ($progress%)", ss(Palette.text)),
           Span.styled("  |  ", ss(Palette.textDim)),
           Span.styled(s"Duration: $elapsed", ss(Palette.text))
         )
       case _ =>
-        Spans.from(
+        Line.from(
           Span.styled(s"Duration: $elapsed", ss(Palette.text))
         )
     }
@@ -722,7 +736,7 @@ object FancyBuildDisplay {
       s"Compiled: ${state.core.compilesCompleted}"
     }
 
-    val line3: Spans = Spans.from(
+    val line3: Line = Line.from(
       Span.styled(compiledStr, ss(Palette.textMuted)),
       Span.styled(s"  Parallelism: $parallelism", ss(Palette.textMuted)),
       Span.styled("  |  ", ss(Palette.textDim)),
@@ -739,72 +753,68 @@ object FancyBuildDisplay {
     }
 
     val summaryTitle = summaryOpt match {
-      case Some(summary) if summary.allDone && !hasProblems => Some(Spans.styled("FINISHED", ssb(Palette.success)))
-      case Some(summary) if summary.allDone                 => Some(Spans.styled("FINISHED (with failures)", ssb(Palette.error)))
-      case _                                                => Some(Spans.styled("Summary", ss(Palette.info)))
+      case Some(summary) if summary.allDone && !hasProblems => Line.styled("FINISHED", ssb(Palette.success))
+      case Some(summary) if summary.allDone                 => Line.styled("FINISHED (with failures)", ssb(Palette.error))
+      case _                                                => Line.styled("Summary", ss(Palette.info))
     }
 
-    val paragraph = ParagraphWidget(
-      text = Text.fromSpans(line1, line2, line3),
-      block = Some(
-        BlockWidget(
-          title = summaryTitle,
-          borders = Borders.ALL,
-          borderStyle = Style(fg = Some(borderColor), bg = Some(Palette.surface)),
-          borderType = BlockWidget.BorderType.Rounded,
-          style = sSurface
-        )
-      ),
-      alignment = Alignment.Center
-    )
+    val block = Block
+      .empty()
+      .withTitle(summaryTitle)
+      .withBorders(Borders.ALL)
+      .withBorderStyle(Style.empty().withFg(borderColor).withBg(Palette.surface))
+      .withBorderType(BorderType.Rounded)
+      .withStyle(sSurface)
+
+    val paragraph = Paragraph
+      .of(Text.from(line1, line2, line3))
+      .withBlock(block)
+      .withAlignment(HorizontalAlignment.Center)
     f.renderWidget(paragraph, area)
   }
 
   // ── Pane infrastructure ──────────────────────────────────────────────
 
   private case class PaneData(
-      items: Array[ListWidget.Item],
+      items: Array[ListItem],
       title: String,
       titleColor: Color,
       borderColor: Color
   )
 
-  private def renderPane(f: Frame, area: Rect, title: String, titleColor: Color, borderColor: Color, items: Array[ListWidget.Item]): Unit = {
-    val list = ListWidget(
-      items = items,
-      block = Some(
-        BlockWidget(
-          title = Some(Spans.styled(title, s(titleColor))),
-          borders = Borders.ALL,
-          borderStyle = s(borderColor),
-          borderType = BlockWidget.BorderType.Rounded,
-          style = sBg
-        )
-      )
-    )
+  private def renderPane(f: Frame, area: Rect, title: String, titleColor: Color, borderColor: Color, items: Array[ListItem]): Unit = {
+    val block = Block
+      .empty()
+      .withTitle(Line.styled(title, s(titleColor)))
+      .withBorders(Borders.ALL)
+      .withBorderStyle(s(borderColor))
+      .withBorderType(BorderType.Rounded)
+      .withStyle(sBg)
+
+    val list = ListWidget.of(items.toList.asJava).withBlock(block)
     f.renderWidget(list, area)
   }
 
   // ── Pane builders ──────────────────────────────────────────────────
 
   private def buildWorkspaceBusyPane(state: State, busy: WorkspaceBusyInfo): PaneData = {
-    val items = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
+    val items = scala.collection.mutable.ArrayBuffer.empty[ListItem]
 
     val elapsedMs = java.time.Duration.between(busy.receivedAt, Instant.now()).toMillis + busy.startedAgoMs
     val elapsedStr = formatDuration(elapsedMs)
 
     if (busy.cancelRequested) {
-      items += ListWidget.Item(
-        content = Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s"${state.spinner} ", s(Palette.error)),
             Span.styled("Cancelling active build...", sb(Palette.error))
           )
         )
       )
-      items += ListWidget.Item(
-        content = Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s"  ${busy.operation}: ", s(Palette.textMuted)),
             Span.styled(busy.projects.mkString(", "), s(Palette.text)),
             Span.styled(s" ($elapsedStr)", s(Palette.textDim))
@@ -812,29 +822,29 @@ object FancyBuildDisplay {
         )
       )
     } else {
-      items += ListWidget.Item(
-        content = Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s"${state.spinner} ", s(Palette.warning)),
             Span.styled("Waiting for active build to finish...", sb(Palette.warning))
           )
         )
       )
-      items += ListWidget.Item(
-        content = Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s"  ${busy.operation}: ", s(Palette.textMuted)),
             Span.styled(busy.projects.mkString(", "), s(Palette.text)),
             Span.styled(s" ($elapsedStr)", s(Palette.textDim))
           )
         )
       )
-      items += ListWidget.Item(
-        content = Text.fromSpans(Spans.from(Span.styled("", s(Palette.textDim))))
+      items += ListItem.of(
+        Text.from(Line.from(Span.styled("", s(Palette.textDim))))
       )
-      items += ListWidget.Item(
-        content = Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled("  'c'", sb(Palette.info)),
             Span.styled(" cancel running build   ", s(Palette.textMuted)),
             Span.styled("'q'", sb(Palette.info)),
@@ -849,7 +859,7 @@ object FancyBuildDisplay {
   }
 
   private def buildProjectPane(state: State, displayItems: List[ProjectDisplayItem]): PaneData = {
-    val items = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
+    val items = scala.collection.mutable.ArrayBuffer.empty[ListItem]
 
     val hasActiveDisplayItems = displayItems.exists {
       case _: ProjectDisplayItem.Compiling   => true
@@ -862,9 +872,9 @@ object FancyBuildDisplay {
       case ProjectDisplayItem.Compiling(project, percent, blockedCount) =>
         val progressStr = percent.map(p => s" $p%").getOrElse("")
         val blockedStr = if (blockedCount > 0) s" (blocks $blockedCount)" else ""
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $compilingIcon ", s(Palette.accent)),
               Span.styled("BUILD ", s(Palette.accent)),
               Span.styled(project.value, s(Palette.text)),
@@ -876,9 +886,9 @@ object FancyBuildDisplay {
       case ProjectDisplayItem.Linking(project, blockedCount) =>
         val spinner = spinnerFrames(state.frame % spinnerFrames.length)
         val blockedStr = if (blockedCount > 0) s" (blocks $blockedCount)" else ""
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $spinner ", s(Palette.accent)),
               Span.styled("LINK ", s(Palette.accent)),
               Span.styled(project.value, s(Palette.text)),
@@ -889,9 +899,9 @@ object FancyBuildDisplay {
 
       case ProjectDisplayItem.Discovering(project) =>
         val spinner = spinnerFrames(state.frame % spinnerFrames.length)
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $spinner ", s(Palette.info)),
               Span.styled("DISCOVER ", s(Palette.info)),
               Span.styled(project.value, s(Palette.text))
@@ -911,9 +921,9 @@ object FancyBuildDisplay {
         } else {
           s" (${phase.description})"
         }
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $phaseIcon ", s(Palette.textDim)),
               Span.styled(project.value, s(Palette.textMuted)),
               Span.styled(waitingForStr, s(Palette.textDim))
@@ -929,9 +939,9 @@ object FancyBuildDisplay {
       val spinner = spinnerFrames(state.frame % spinnerFrames.length)
       // Shorten the script name for display (just class name)
       val shortName = scriptMain.split('.').lastOption.getOrElse(scriptMain)
-      items += ListWidget.Item(
-        Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s" $spinner ", s(Palette.info)),
             Span.styled("SOURCEGEN ", s(Palette.info)),
             Span.styled(shortName, s(Palette.text))
@@ -943,9 +953,9 @@ object FancyBuildDisplay {
     // Show linking projects from BuildState
     state.core.currentlyLinking.toList.sorted.foreach { project =>
       val spinner = spinnerFrames(state.frame % spinnerFrames.length)
-      items += ListWidget.Item(
-        Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s" $spinner ", s(Palette.accent)),
             Span.styled("LINK ", s(Palette.accent)),
             Span.styled(project.value, s(Palette.text))
@@ -958,9 +968,9 @@ object FancyBuildDisplay {
     state.stalledProjects.values.foreach { stalled =>
       val waitSec = math.max(0, (stalled.retryAtMs - System.currentTimeMillis() + 999) / 1000)
       val spinner = spinnerFrames(state.frame % spinnerFrames.length)
-      items += ListWidget.Item(
-        Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s" $spinner ", s(Palette.warning)),
             Span.styled("WAIT ", s(Palette.warning)),
             Span.styled(stalled.project.value, s(Palette.text)),
@@ -975,9 +985,9 @@ object FancyBuildDisplay {
     state.lockedProjects.values.foreach { locked =>
       val waitSec = (System.currentTimeMillis() - locked.timestamp + 999) / 1000
       val spinner = spinnerFrames(state.frame % spinnerFrames.length)
-      items += ListWidget.Item(
-        Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s" $spinner ", s(Palette.warning)),
             Span.styled("LOCK ", s(Palette.warning)),
             Span.styled(locked.project.value, s(Palette.text)),
@@ -993,9 +1003,9 @@ object FancyBuildDisplay {
         val phaseStr = cp.phase.map(p => s" ($p)").getOrElse("")
         val progressStr = cp.progress.map(p => s" $p%").getOrElse(phaseStr)
         val elapsed = formatDuration(cp.elapsedMs)
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $compilingIcon ", s(Palette.accent)),
               Span.styled("BUILD ", s(Palette.accent)),
               Span.styled(cp.name, s(Palette.text)),
@@ -1012,7 +1022,7 @@ object FancyBuildDisplay {
   }
 
   private def buildTestPane(state: State, displayItems: List[ProjectDisplayItem]): PaneData = {
-    val items = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
+    val items = scala.collection.mutable.ArrayBuffer.empty[ListItem]
 
     val hasActiveDisplayItems = displayItems.exists(_.isInstanceOf[ProjectDisplayItem.Testing])
 
@@ -1023,9 +1033,9 @@ object FancyBuildDisplay {
         val failureStr = if (failures > 0) s" ${failedIcon}$failures" else ""
         val spinner = spinnerFrames(state.frame % spinnerFrames.length)
 
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $spinner ", s(Palette.info)),
               Span.styled(project.value, s(Palette.accent)),
               Span.styled(s" $progressStr ($progressPercent%)", s(Palette.text)),
@@ -1037,9 +1047,9 @@ object FancyBuildDisplay {
         val testsBySuite = runningTests.groupBy(_.suiteName).toList.sortBy(_._1.value)
 
         if (testsBySuite.isEmpty) {
-          items += ListWidget.Item(
-            Text.fromSpans(
-              Spans.from(
+          items += ListItem.of(
+            Text.from(
+              Line.from(
                 Span.styled("  ", sBg),
                 Span.styled(s"$runningIcon ", s(Palette.info)),
                 Span.styled("running tests...", s(Palette.textMuted))
@@ -1054,9 +1064,9 @@ object FancyBuildDisplay {
             val testCount = suiteTests.count(_.testName.value.nonEmpty)
             val testCountStr = if (testCount > 0) s"$testCount tests, " else ""
 
-            items += ListWidget.Item(
-              Text.fromSpans(
-                Spans.from(
+            items += ListItem.of(
+              Text.from(
+                Line.from(
                   Span.styled("  ", sBg),
                   Span.styled(s"[${suiteJvmPid}] ", s(Palette.textDim)),
                   Span.styled(suiteName.shortName, s(Palette.text)),
@@ -1067,9 +1077,9 @@ object FancyBuildDisplay {
 
             suiteTests.filter(_.testName.value.nonEmpty).foreach { rt =>
               val testElapsed = formatDuration(rt.elapsedMs)
-              items += ListWidget.Item(
-                Text.fromSpans(
-                  Spans.from(
+              items += ListItem.of(
+                Text.from(
+                  Line.from(
                     Span.styled("    ", sBg),
                     Span.styled(s"$runningIcon ", s(Palette.info)),
                     Span.styled(rt.testName.value, s(Palette.textMuted)),
@@ -1086,9 +1096,9 @@ object FancyBuildDisplay {
         val spinner = spinnerFrames(state.frame % spinnerFrames.length)
         val platformStr = platform.value.toUpperCase
 
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $spinner ", s(Palette.info)),
               Span.styled(project.value, s(Palette.accent)),
               Span.styled(s" [$platformStr]", s(Palette.textDim)),
@@ -1101,9 +1111,9 @@ object FancyBuildDisplay {
         val duration = formatDuration(durationMs)
         val (icon, color) = if (failed > 0) (failedIcon, Palette.error) else (passedIcon, Palette.success)
         val stats = s"$passed passed, $failed failed" + (if (skipped > 0) s", $skipped skipped" else "")
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $icon ", s(color)),
               Span.styled(project.value, s(Palette.accent)),
               Span.styled(s" $stats", s(Palette.textDim)),
@@ -1126,9 +1136,9 @@ object FancyBuildDisplay {
         val projectTests = testsByProject.getOrElse(project, Seq.empty)
         val failedCount = projectSuites.map(_.testsFailed).sum
 
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $spinner ", s(Palette.info)),
               Span.styled(project.value, s(Palette.accent)),
               Span.styled(s" ${projectSuites.size} suites", s(Palette.textDim)),
@@ -1146,9 +1156,9 @@ object FancyBuildDisplay {
           val testsInSuite = testsBySuite.getOrElse(suiteName, Seq.empty)
           val elapsed = suiteInfo.map(rs => formatDuration(rs.elapsedMs)).getOrElse("")
 
-          items += ListWidget.Item(
-            Text.fromSpans(
-              Spans.from(
+          items += ListItem.of(
+            Text.from(
+              Line.from(
                 Span.styled("  ", sBg),
                 Span.styled(shortSuite, s(Palette.text)),
                 Span.styled(if (elapsed.nonEmpty) s" ($elapsed)" else "", s(Palette.textDim))
@@ -1158,9 +1168,9 @@ object FancyBuildDisplay {
 
           testsInSuite.foreach { rt =>
             val testElapsed = formatDuration(rt.elapsedMs)
-            items += ListWidget.Item(
-              Text.fromSpans(
-                Spans.from(
+            items += ListItem.of(
+              Text.from(
+                Line.from(
                   Span.styled("    ", sBg),
                   Span.styled(s"$runningIcon ", s(Palette.info)),
                   Span.styled(rt.test.value, s(Palette.textMuted)),
@@ -1183,8 +1193,8 @@ object FancyBuildDisplay {
     msg.linesIterator.map(_.trim).filter(_.nonEmpty).mkString(" ")
 
   private def buildIssuePane(state: State): PaneData = {
-    val items = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
-    val warningItems = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
+    val items = scala.collection.mutable.ArrayBuffer.empty[ListItem]
+    val warningItems = scala.collection.mutable.ArrayBuffer.empty[ListItem]
 
     // Show compile failures: errors first, collect warnings for the bottom
     state.core.compileFailures.foreach { cf =>
@@ -1194,9 +1204,9 @@ object FancyBuildDisplay {
       val skippedSuffix = if (skippedCount > 0) s" (${skippedCount} skipped)" else ""
 
       if (errors.nonEmpty) {
-        items += ListWidget.Item(
-          Text.fromSpans(
-            Spans.from(
+        items += ListItem.of(
+          Text.from(
+            Line.from(
               Span.styled(s" $failedIcon COMPILE ", s(Palette.error)),
               Span.styled(cf.project.value, s(Palette.accent)),
               Span.styled(skippedSuffix, s(Palette.warning))
@@ -1206,32 +1216,32 @@ object FancyBuildDisplay {
         errors.foreach { diag =>
           val pathLine = diag.displayPath match {
             case Some(p) =>
-              Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
+              Line.from(Span.styled(s"    $p", s(Palette.textDim)))
             case None =>
-              Spans.from(Span.styled("    <unknown>", s(Palette.textDim)))
+              Line.from(Span.styled("    <unknown>", s(Palette.textDim)))
           }
-          val messageLine = Spans.from(
+          val messageLine = Line.from(
             Span.styled("    E ", s(Palette.error)),
             Span.styled(flattenMessage(diag.message), s(Palette.error))
           )
-          items += ListWidget.Item(Text.fromSpans(pathLine, messageLine))
+          items += ListItem.of(Text.from(pathLine, messageLine))
         }
       }
 
       warnings.foreach { diag =>
         val pathLine = diag.displayPath match {
           case Some(p) =>
-            Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
+            Line.from(Span.styled(s"    $p", s(Palette.textDim)))
           case None =>
-            Spans.from(
+            Line.from(
               Span.styled(s"    ${cf.project}", s(Palette.textDim))
             )
         }
-        val messageLine = Spans.from(
+        val messageLine = Line.from(
           Span.styled("    W ", s(Palette.warning)),
           Span.styled(flattenMessage(diag.message), s(Palette.warning))
         )
-        warningItems += ListWidget.Item(Text.fromSpans(pathLine, messageLine))
+        warningItems += ListItem.of(Text.from(pathLine, messageLine))
       }
     }
 
@@ -1244,14 +1254,14 @@ object FancyBuildDisplay {
         case FailureCategory.ProcessError => ("!", Palette.error)
         case FailureCategory.BuildError   => ("!", Palette.error)
       }
-      items += ListWidget.Item(
-        Text.fromSpans(
-          Spans.from(
+      items += ListItem.of(
+        Text.from(
+          Line.from(
             Span.styled(s" $icon ", s(color)),
             Span.styled(s"${failure.project} ", s(Palette.accent)),
             Span.styled(s"${failure.suite}.${failure.test}", s(Palette.text))
           ),
-          Spans.from(
+          Line.from(
             Span.styled("    ", sBg),
             Span.styled(flattenMessage(failure.message.getOrElse("(no message)")), s(Palette.textMuted))
           )
@@ -1271,11 +1281,11 @@ object FancyBuildDisplay {
   }
 
   /** Shift spans content left by `offset` characters for horizontal scrolling */
-  private def hShiftSpans(spans: Spans, offset: Int): Spans = {
+  private def hShiftSpans(spans: Line, offset: Int): Line = {
     if (offset <= 0) return spans
     var remaining = offset
     val shifted = Array.newBuilder[Span]
-    spans.spans.foreach { span =>
+    spans.spans.asScala.foreach { span =>
       if (remaining <= 0) {
         shifted += span
       } else {
@@ -1283,20 +1293,18 @@ object FancyBuildDisplay {
         if (len <= remaining) {
           remaining -= len
         } else {
-          shifted += span.copy(content = span.content.substring(remaining))
+          shifted += span.withContent(span.content.substring(remaining))
           remaining = 0
         }
       }
     }
-    Spans(shifted.result())
+    Line.fromSpans(shifted.result().toList.asJava)
   }
 
-  private def hShiftItem(item: ListWidget.Item, offset: Int): ListWidget.Item = {
+  private def hShiftItem(item: ListItem, offset: Int): ListItem = {
     if (offset <= 0) return item
-    ListWidget.Item(
-      Text(item.content.lines.map(line => hShiftSpans(line, offset))),
-      item.style
-    )
+    val shiftedLines = item.content.lines.asScala.map(line => hShiftSpans(line, offset)).toList
+    ListItem.of(Text.fromLines(shiftedLines.asJava)).withStyle(item.style)
   }
 
   private def scrollIssues(s: State, delta: Int, totalItems: Int, maxVisible: Int): State = {
@@ -1314,14 +1322,14 @@ object FancyBuildDisplay {
     val thumbPos = if (maxOffset > 0) ((offset.toDouble / maxOffset) * (trackHeight - thumbHeight)).toInt else 0
     val x = area.right - 1 // right border column
     val yStart = area.top + 1 // skip top border
-    val bufArea = f.buffer.area
+    val bufArea = f.bufferMut().area()
     for (i <- 0 until trackHeight) {
       val y = yStart + i
       if (x >= 0 && x < bufArea.width && y >= 0 && y < bufArea.height) {
         val inThumb = i >= thumbPos && i < thumbPos + thumbHeight
         val ch = if (inThumb) "\u2503" else "\u2502" // ┃ for thumb, │ for track
         val style = if (inThumb) s(Palette.info) else s(Palette.border)
-        f.buffer.setString(x, y, ch, style): Unit
+        f.bufferMut().setString(x, y, ch, style): Unit
       }
     }
   }

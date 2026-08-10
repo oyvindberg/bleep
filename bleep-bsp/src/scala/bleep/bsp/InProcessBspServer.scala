@@ -46,7 +46,9 @@ object InProcessBspServer {
                   kspMutexes = new KspMutexes,
                   buildCache =
                     new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), inProcessAnalysisCache),
-                  analysisCache = inProcessAnalysisCache
+                  analysisCache = inProcessAnalysisCache,
+                  daemonInfo = DaemonInfo.inProcess(bleep.model.BspServerConfig.default),
+                  connId = 1
                 )
               server.run()
             } catch {

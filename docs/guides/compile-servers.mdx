@@ -23,10 +23,10 @@ This is what you want for interactive development.
 If you previously switched modes and want to go back:
 
 ```bash
-bleep config compile-server auto-shutdown-disable
+bleep server config mode shared
 ```
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### One-shot per invocation
 
@@ -36,10 +36,10 @@ Useful on memory-constrained machines, or when you only run bleep
 occasionally and don't want a JVM resident in the background.
 
 ```bash
-bleep config compile-server auto-shutdown-enable
+bleep server config mode per-invocation
 ```
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### Per-JVM servers
 
@@ -48,17 +48,135 @@ build root). The compile server runs the Scala compiler on the JVM
 it was started with, so if your build mixes projects on different
 JVMs, **bleep starts one shared compile server per JVM**.
 
+## The dashboard
+
+```bash
+bleep server        # same thing
+bleep server top
+```
+
+A live view of every compile server on the machine, refreshed once a
+second. The list is on top, yours marked; below it a detail pane for
+whichever server is selected.
+
+Tabs: **Overview** (heap with a gauge, live set, GC, threads, CPU,
+file descriptors, cache sizes), **Workspaces** (which are loaded and
+what each is running), **Activity** (what is compiling, what is
+queued behind it, who is connected), **Log** (that server's log,
+tailed), and **Config** (what it booted with, including the java
+options and the full classpath it was started with).
+
+| key | |
+| --- | --- |
+| `↑` `↓` | select a server — or scroll, on the Log tab |
+| `←` `→` `⇥` | move between tabs |
+| `k` | stop the selected server |
+| `r` | restart it |
+| `q` | quit |
+
+**Everything is clickable.** Rows select, tabs open, the action
+buttons along the bottom fire, and a confirmation is answered by
+clicking `[yes]` or `[no]`. The mouse wheel scrolls the log. Clicks
+go through exactly the same path as the keys, so the two cannot
+disagree.
+
+`k` and `r` ask for confirmation first — a compile server may be in
+the middle of somebody's build — and then run exactly the same code
+as `bleep server kill` and `bleep server restart`.
+
+The Log tab follows the newest line until you scroll back, and then
+holds your place while new lines keep arriving; scrolling back to the
+bottom resumes following. The title says which it is doing.
+
+The dashboard connects as an *observer*, which means watching a
+server never keeps it alive and never resets its idle clock. If a
+server idles out while you are looking at it, the row turns `dead`,
+which is the truth.
+
+Where a terminal cannot support it — a pipe, a CI log — this falls
+back to the listing below and says why.
+
+## Seeing what is running
+
+Because one server exists per bleep version and JVM configuration,
+a machine that has been through a few upgrades or worktrees quietly
+accumulates several — each holding a multi-gigabyte heap. `bleep
+server ls` shows all of them, and marks the one serving the build
+you are standing in:
+
+```bash
+bleep server ls
+```
+
+```
+● fd769f08a1374d38  running  1.0.0-M11  graalvm-community:25.0.1 ← this build
+    pid 36310  heap 106/12288MB  up 52m  1 clients  1 workspaces
+◇ 4bded7741810ee92  dead  1.0.0-M10  graalvm-community:24.0.1
+    pid 6028  412MB on disk
+```
+
+Nothing is filtered out. A server whose process is alive but has
+stopped listening shows as `wedged`, a stopped one as `dead`, and
+leftover logs and metrics with no server at all as `litter` — with
+their disk usage, since those are what silently eat a few hundred
+megabytes each.
+
+Compile servers are found by scanning those socket directories, so a
+server whose directory has been deleted while it kept running would
+otherwise be invisible — still holding its heap, and unreachable.
+Those are listed too, as `orphan`, with the pid to stop them by.
+
+For one server in depth — heap and live set, GC, threads, open file
+descriptors, what it is compiling right now, what is queued behind
+that, who is connected, and the config it actually booted with:
+
+```bash
+bleep server status              # the one serving this build
+bleep server status <id> -o json # any of them, for scripts
+```
+
+`<id>` is a pid, a socket-directory hash, or any unambiguous prefix
+of one. Every subcommand below takes the same, and every one of
+them defaults to the server for the build you are in.
+
+[Reference &rarr;](/docs/reference/cli/server/)
+
+## Reading a server's log
+
+```bash
+bleep server log             # this build's server
+bleep server log -f          # follow
+bleep server log --generation 1
+```
+
+The log is read from disk, so this works on a server that has
+crashed or been killed — which is when you want it most. Logs
+rotate only when a server starts, so a crashed server's last words
+are usually in generation 1, not the current one.
+
 ## Stopping running servers
 
 ```bash
-bleep config compile-server stop-all
+bleep server stop-all   # every server; `kill --all` by another name
+bleep server kill       # just this build's
+bleep server kill <id>
 ```
 
-Stops every shared compile server bleep has started for the
-current user. Run this when you're done for the day, or when you
-need to reclaim memory before doing something else heavy.
+Stopping is graceful: bleep asks the server to shut down over the
+protocol so it can release its lock and clean up its files, then
+escalates to a signal, and only then to force. Pass `--force` to
+skip straight to the end and delete the socket directory too.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+Run this when you're done for the day, or when you need to reclaim
+memory before doing something else heavy.
+
+To pick up a configuration change, `bleep server restart` stops the
+server without starting a replacement — the next build starts one
+that reads the config as it is on disk now. (It deliberately does
+not replay the old server's command line, which would reinstate the
+very `-Xmx` you were trying to change.)
+
+[Reference &rarr;](/docs/reference/cli/server/)
 
 ## Idle self-shutdown
 
@@ -68,9 +186,9 @@ bumps, or upgraded bleep binaries don't pile up and hold memory
 indefinitely. The default is one hour.
 
 ```bash
-bleep config compile-server idle-timeout 120   # minutes
-bleep config compile-server idle-timeout 0      # never self-shut-down
-bleep config compile-server idle-timeout-clear  # back to default 60
+bleep server config idle-timeout 120   # minutes
+bleep server config idle-timeout 0      # never self-shut-down
+bleep server config idle-timeout-clear  # back to default 60
 ```
 
 The clock measures **fully-idle** time only: it resets whenever a
@@ -85,7 +203,7 @@ This is different from the [idle read timeout](#idle-read-timeout)
 below: that drops a single stuck *connection*; this retires the
 whole *server* once it has been unused for long enough.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ## Memory
 
@@ -111,9 +229,9 @@ back to the OS when the server goes quiet. A server showing `max 12g`
 is usually resident in a fraction of that.
 
 ```bash
-bleep config compile-server max-memory 4g
-bleep config compile-server max-memory 2048m
-bleep config compile-server max-memory-clear   # back to bleep's default
+bleep server config max-memory 4g
+bleep server config max-memory 2048m
+bleep server config max-memory-clear   # back to bleep's default
 ```
 
 #### The default, and its floor
@@ -157,7 +275,7 @@ from the server log and reports it together with the configured
 cap and the command to raise it. Heap dumps left behind by older
 bleep versions are deleted automatically at server start.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### How much runs at once
 
@@ -182,7 +300,7 @@ one it was — see [Seeing what the server is
 doing](#what-the-events-mean).
 
 ```bash
-bleep config compile-server parallelism 4
+bleep server config parallelism 4
 ```
 
 ### Cached builds
@@ -199,9 +317,9 @@ nobody has a basis to tune. Evictions are logged if you want to see them.
 ### Idle read timeout
 
 ```bash
-bleep config compile-server read-timeout 30
-bleep config compile-server read-timeout 0        # wait forever
-bleep config compile-server read-timeout-clear    # back to default 30
+bleep server config read-timeout 30
+bleep server config read-timeout 0        # wait forever
+bleep server config read-timeout-clear    # back to default 30
 ```
 
 How long the server waits for a client's next message before dropping
@@ -212,7 +330,7 @@ This is a per-read idle timeout, not a session limit. A long compile
 keeps the socket quiet, but the clock resets the moment the client speaks
 again &mdash; so it can never interrupt a running build.
 
-[Reference &rarr;](/docs/reference/cli/config/compile-server/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ### Test-runner heap
 
@@ -225,27 +343,33 @@ that. See
 [Memory & Parallelism](/docs/usage/resource-management#per-fork-heap).
 
 ```bash
-bleep config test-runner max-memory 2g
-bleep config test-runner max-memory-clear
+bleep server config test-runner-max-memory 2g
+bleep server config test-runner-max-memory-clear
 ```
 
 Reach for this when test suites OOM (Testcontainers spinning up
 big stacks, generated-fixture tests with large classpaths).
 
-[Reference &rarr;](/docs/reference/cli/config/test-runner/)
+[Reference &rarr;](/docs/reference/cli/server/config/)
 
 ## Seeing what the server is doing
 
-The compile server is a long-lived JVM you never launched and can't see,
-which is a bad combination when a build is slower than you expect. So it
-keeps a running account of itself, always on — the overhead is one
-appended line per event — and there are three places to look.
+The compile server is a long-lived JVM you never launched, which is a bad
+combination when a build is slower than you expect. Two different questions
+get two different tools:
+
+- **What is it doing *now*?** `bleep server status` — heap, GC, threads,
+  what is compiling, what is queued behind it, who is connected. It asks
+  the running server directly.
+- **What did it do, and when?** The rest of this section. The server keeps
+  a running account of itself, always on — the overhead is one appended
+  line per event.
 
 ### The one-command answer
 
 ```bash
-bleep server-metrics          # the most recent server
-bleep server-metrics <pid>    # a specific one
+bleep server metrics          # the most recent server
+bleep server metrics <pid>    # a specific one
 ```
 
 This reads that server's `metrics.jsonl`, renders it as an HTML page and
