@@ -828,13 +828,13 @@ function McpSection() {
         >
           Agentic development has a shape: an orchestrating session fans
           subagents out into git worktrees, each working a branch in
-          parallel. Bleep is built for exactly that. Register the MCP
-          server once (<code>claude mcp add --scope user bleep -- bleep
-          mcp-server</code>) and every session — and every subagent it
-          sends into a worktree — can compile, test, run, and inspect
-          any checkout on the machine. The design assumptions are blunt:
-          many agents at once, many worktrees at once, tokens are
-          scarce, and cached state that can go stale eventually will.
+          parallel. Bleep is built for exactly that shape. Register the
+          MCP server once (<code>claude mcp add --scope user bleep --
+          bleep mcp-server</code>) and every session — and every
+          subagent it sends into a worktree — can compile, test, run,
+          and inspect any checkout on the machine. Many agents at once,
+          many worktrees at once, tight token budgets: that&rsquo;s the
+          design target, not an edge case.
         </SectionHeader>
 
         <Reveal>
@@ -844,12 +844,11 @@ function McpSection() {
                 Worktrees are <em>first-class</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Every tool call names the checkout it targets, so a
-                subagent in a worktree can never silently build the
-                parent&rsquo;s. One registration covers every project
-                and every worktree you&rsquo;ll ever create: nothing to
-                seed on <code>git worktree add</code>, nothing to clean
-                up on remove, no per-checkout config at all.
+                Every tool call is explicit about which checkout it
+                targets, so any number of agents work any number of
+                worktrees over one connection. <code>git worktree
+                add</code> and start compiling — a worktree is just
+                another directory to bleep.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -874,11 +873,12 @@ function McpSection() {
               <p className={styles.mcpCardBody}>
                 Compile and test return a compact JSON summary plus a
                 request id; the full transcript — every diagnostic,
-                every stack trace — is one <code>bleep.details</code>{" "}
-                call away, and it can&rsquo;t go stale no matter who
-                compiles in between. Per-project errors stream as MCP
-                notifications the instant a project finishes. Latency
-                floor for surfacing a real problem: milliseconds.
+                every stack trace, exactly as that run produced it — is
+                one <code>bleep.details</code> call away, fetched only
+                when the agent decides it needs it. Per-project errors
+                stream as MCP notifications the instant a project
+                finishes. Latency floor for surfacing a real problem:
+                milliseconds.
               </p>
             </article>
           </div>
