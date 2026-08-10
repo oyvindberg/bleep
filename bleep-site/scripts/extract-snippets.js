@@ -184,11 +184,21 @@ async function main() {
     }
   }
 
+  // These files are checked in with BLEEP_LATEST_VERSION where a version belongs, so that cutting a
+  // release tag does not change them and the drift check stays meaningful. Nothing else resolves it
+  // for them: the remark plugin that handles the token in hand-written docs walks markdown, and these
+  // reach the page as <Snippet path="..." /> props instead. Left alone, every generated bleep.yaml on
+  // the site would tell readers to depend on "BLEEP_LATEST_VERSION".
+  const { latestBleepVersion } = await import("./latest-version.mjs");
+  const { VERSION_PLACEHOLDER } = await import("./remark-bleep-version.mjs");
+  const version = latestBleepVersion();
+
   // docs-snippets-from-tests files: full content only. Same json key (relative
   // path) so <Snippet path="..." /> can fetch them by raw path.
   for (const file of buildFiles) {
     try {
-      const content = fs.readFileSync(file, "utf8");
+      const raw = fs.readFileSync(file, "utf8");
+      const content = raw.split(VERSION_PLACEHOLDER).join(version);
       const relativePath = path.relative(ROOT_DIR, file);
       allSnippets[relativePath] = {
         name: relativePath,

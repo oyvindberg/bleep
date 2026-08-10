@@ -94,6 +94,22 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     }
 }
 
+object Workspace {
+
+  /** What generated snippets write instead of a bleep version, resolved to the newest `v*` tag when the site is built.
+    *
+    * These files are checked in and a CI step diffs them against what the tests produce, so whatever goes in here has to be identical on every commit. A
+    * resolved version cannot be: it comes from dynver, so cutting `v1.0.0-M12` changes it, and the tag build is the first build that can possibly know the new
+    * value. Every release therefore failed the drift check against snippets that no earlier commit could have contained, and between releases the committed
+    * files went on advertising the previous version until someone regenerated them by hand.
+    *
+    * The token is shared with hand-written docs, which have used it all along. Its definition lives in `bleep-site/scripts/remark-bleep-version.mjs`
+    * (`VERSION_PLACEHOLDER`); `extract-snippets.js` substitutes it for these files, because the remark plugin only walks markdown and these reach the page as
+    * `<Snippet path="..." />` props. Change it in one place and the other two have to follow.
+    */
+  val VersionPlaceholder: String = "BLEEP_LATEST_VERSION"
+}
+
 /** A test workspace: a temp directory + a bleep.yaml + source files + an attached `Started`/`Commands` pair when [[start]] is called.
   *
   * Methods that take a `snippet` name mirror the file content into `<snippetsRoot>/<snippet>` so the docs site can include the same content via
@@ -212,7 +228,7 @@ class Workspace(
   /** Read a file written by [[bleepNew]] (or any other workspace setup) and tag it as a snippet. The content is mirrored to `<snippetsRoot>/<snippet>` when the
     * test body completes.
     *
-    * For bleep.yaml content the in-test `$version: dev` is rewritten to the latest release tag so docs are copy-pasteable. Same trick as [[snippetWithPrelude]]
+    * For bleep.yaml content the in-test `$version: dev` is rewritten to [[VersionPlaceholder]] so docs are copy-pasteable. Same trick as [[snippetWithPrelude]]
     * uses for the manually-authored prelude path.
     */
   def attachSnippet(relPath: String, snippet: String): Unit = {
@@ -222,10 +238,8 @@ class Workspace(
     taggedSnippets.update(snippet, content)
   }
 
-  private def normalizeDevVersionForDocs(yaml: String): String = {
-    val release = model.BleepVersion.current.value.takeWhile(_ != '+')
-    yaml.replaceFirst("(?m)^\\$version: dev$", s"\\$$version: $release")
-  }
+  private def normalizeDevVersionForDocs(yaml: String): String =
+    yaml.replaceFirst("(?m)^\\$version: dev$", s"\\$$version: ${Workspace.VersionPlaceholder}")
 
   /** Mirror `userYaml` (with the published `$schema` / `$version` / `jvm` prelude) to `<snippetsRoot>/<snippet>` without affecting the workspace bleep.yaml.
     * Use this when the in-test bleep.yaml needs different values than what the docs should show — e.g. a localhost test port versus a documented Artifactory
@@ -253,13 +267,12 @@ class Workspace(
   }
 
   /** When the user wants to show the full bleep.yaml (with schema + version + jvm) we reconstruct it. The test body's yaml prelude uses `$version: dev`; for
-    * the site we substitute the most recent release tag so docs are copy-pasteable. Dynver appends `+<commits>-<sha>-SNAPSHOT` after the tag — strip it.
+    * the site we substitute [[VersionPlaceholder]] so docs are copy-pasteable.
     */
   private def snippetWithPrelude(userYaml: String): String = {
-    val release = model.BleepVersion.current.value.takeWhile(_ != '+')
     val publishedPrelude =
       s"""$$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-         |$$version: $release
+         |$$version: ${Workspace.VersionPlaceholder}
          |jvm:
          |  name: ${model.Jvm.graalvm.name}
          |""".stripMargin
