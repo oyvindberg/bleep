@@ -1312,22 +1312,11 @@ object Main {
         }
 
       case "mcp-server" :: args =>
+        // Deliberately no build loading and no version dispatch here: the MCP server is workspace-free at boot.
+        // Every tool call names its workspace via the required `directory` parameter and bootstraps it fresh.
         val (preOpts, _) = PreBootstrapOpts.parse(args)
         val lopts = preOpts.toLoggingOpts
-        val cwd = cwdFor(preOpts.directory)
-        val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(lopts), buildLoader, preOpts.dev).andThen {
-          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
-          val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
-
-          bleepLoggers.stderrAndFileLogging(config, lopts, buildPaths).use { logger =>
-            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
-              case Left(be)   => fatal("", logger, be)
-              case Right(pre) =>
-                mcp.McpServerRunner.run(pre)
-            }
-          }
-        }
+        mcp.McpServerRunner.run(bleepLoggers.stderrAll(lopts), userPaths, ec)
 
       case args =>
         val (preOpts, restArgs) = PreBootstrapOpts.parse(args)
