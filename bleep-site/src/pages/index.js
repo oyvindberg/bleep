@@ -826,50 +826,58 @@ function McpSection() {
             </>
           }
         >
-          Claude Code, Cursor, and the next generation of dev tools talk
-          to bleep through MCP, the Model Context Protocol. One
-          command (<Link to="/docs/reference/cli/setup-mcp-server/"><code>bleep setup-mcp-server</code></Link>) and an agent can
-          compile, test, run, and inspect your build through 18
-          structured tool calls. The design assumptions are blunt: more
-          than one agent will be running at once, tokens are scarce, and
-          any tool that takes seconds blocks every agent attached to it.
+          Agentic development has a shape: an orchestrating session fans
+          subagents out into git worktrees, each working a branch in
+          parallel. Bleep is built for exactly that. Register the MCP
+          server once (<code>claude mcp add --scope user bleep -- bleep
+          mcp-server</code>) and every session — and every subagent it
+          sends into a worktree — can compile, test, run, and inspect
+          any checkout on the machine. The design assumptions are blunt:
+          many agents at once, many worktrees at once, tokens are
+          scarce, and cached state that can go stale eventually will.
         </SectionHeader>
 
         <Reveal>
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                <em>Performance</em>
+                Worktrees are <em>first-class</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Four parallel agents on the same build mean four parallel
-                tool calls. If the build tool is slow, every one of them
-                stalls, aggregate latency multiplies. Bleep&rsquo;s
-                MCP server runs in-process against the BSP daemon. Every
-                call is sub-second after warmup, sub-100ms once warm.
+                Every tool call names the checkout it targets, so a
+                subagent in a worktree can never silently build the
+                parent&rsquo;s. One registration covers every project
+                and every worktree you&rsquo;ll ever create: nothing to
+                seed on <code>git worktree add</code>, nothing to clean
+                up on remove, no per-checkout config at all.
               </p>
             </article>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                <em>Ease</em>
+                One <em>hot daemon</em>, every checkout
               </h3>
               <p className={styles.mcpCardBody}>
-                <Link to="/docs/reference/cli/setup-mcp-server/"><code>bleep setup-mcp-server</code></Link> writes
-                <code>.mcp.json</code> in your build root. Any MCP client
-                picks it up automatically. No adapter to configure, no
-                protocol to translate, bleep speaks MCP natively.
+                Every call bootstraps at native-CLI speed and lands on
+                the shared compile server, which keeps incremental state
+                resident and deduplicates identical dependency analyses
+                between checkouts. Four agents on four branches share
+                one warm heap, not four cold ones. Add the{" "}
+                <Link to="/docs/usage/remote-cache/">local build cache</Link>{" "}
+                and a fresh worktree skips compiling what a sibling
+                already built.
               </p>
             </article>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                <em>Structured</em> output
+                <em>Structured</em>, token-frugal output
               </h3>
               <p className={styles.mcpCardBody}>
-                Every tool returns a compact JSON summary by default
-                : error counts, failure suites, the diff against
-                the previous run. Full diagnostics are one extra call
-                away. Per-project errors stream as MCP notifications the
-                instant a project finishes, not at the end. Latency
+                Compile and test return a compact JSON summary plus a
+                request id; the full transcript — every diagnostic,
+                every stack trace — is one <code>bleep.details</code>{" "}
+                call away, and it can&rsquo;t go stale no matter who
+                compiles in between. Per-project errors stream as MCP
+                notifications the instant a project finishes. Latency
                 floor for surfacing a real problem: milliseconds.
               </p>
             </article>
