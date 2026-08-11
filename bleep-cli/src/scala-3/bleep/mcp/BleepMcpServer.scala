@@ -1035,6 +1035,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     private def matchesAny(pattern: java.util.regex.Pattern, fields: Iterable[String]): Boolean =
       fields.exists(f => pattern.matcher(f).find())
 
+    private def plural(n: Int, word: String): String =
+      if (n == 1) s"$n $word" else s"$n ${word}s"
+
     /** Format compile result from protocol events. Compact mode returns counts, a summary line and the first few errors; verbose mode (bleep.details) returns
       * every diagnostic. A query narrows the diagnostics array to matching entries (message, rendered, path); summary counts always reflect the full run. When
       * limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
@@ -1090,9 +1093,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         fields += "warnings" -> Json.fromInt(warningCount)
 
         val summaryParts = List.newBuilder[String]
-        if (success) summaryParts += s"Build succeeded (${compileEvents.size} projects)"
-        else summaryParts += s"Build failed: $errorCount errors in ${failedProjects.map(_.project).distinct.size} projects"
-        if (warningCount > 0) summaryParts += s"$warningCount warnings"
+        if (success) summaryParts += s"Build succeeded (${plural(compileEvents.size, "project")})"
+        else summaryParts += s"Build failed: ${plural(errorCount, "error")} in ${plural(failedProjects.map(_.project).distinct.size, "project")}"
+        if (warningCount > 0) summaryParts += plural(warningCount, "warning")
         if (!success) summaryParts += "Use bleep.details with this requestId for all diagnostics"
         fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
 
@@ -1153,8 +1156,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       durationMs.foreach(d => fields += "durationMs" -> Json.fromLong(d))
 
       val summaryParts = List.newBuilder[String]
-      if (failed == 0) summaryParts += s"All $passed tests passed"
-      else summaryParts += s"$failed tests failed, $passed passed"
+      if (failed == 0) summaryParts += s"${plural(passed, "test")} passed"
+      else summaryParts += s"${plural(failed, "test")} failed, $passed passed"
       if (failed > 0) summaryParts += "Use bleep.details with this requestId for failure details"
       fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
 

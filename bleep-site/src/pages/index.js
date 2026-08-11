@@ -431,8 +431,8 @@ function PerformanceSection() {
         >
           Cut the code, the build plugins, the scopes, the task graph.
           The inner loop stops being something you wait for. That
-          matters double now: an agent compiles fifty times a session,
-          and a slow build taxes every single one.
+          matters more than ever: an agent compiles fifty times a
+          session, and a slow build taxes every single one.
         </SectionHeader>
 
         <Reveal>
@@ -843,8 +843,8 @@ function McpSection() {
           bleep mcp-server</code>) and every session — and every
           subagent it sends into a worktree — can compile, test, run,
           and inspect any checkout on the machine. Many agents at once,
-          many worktrees at once, small token budgets — bleep was built
-          for this, and it shows.
+          many worktrees at once, small token budgets — it all just
+          works, and it&rsquo;s fast.
         </SectionHeader>
 
         <Reveal>
@@ -862,7 +862,7 @@ function McpSection() {
 agent[auth]   bleep.compile { directory: ~/wt/auth }              → { requestId: 12, success: true }
 agent[api]    bleep.test    { directory: ~/wt/api }               → { requestId: 13, failed: 2 }
 agent[api]    bleep.details { requestId: 13, query: "Timeout" }   → the two stack traces that matter
-agent[ui]     bleep.compile { directory: ~/wt/ui }                → warm — the daemon already knows these deps`}</pre>
+agent[ui]     bleep.compile { directory: ~/wt/ui }                → instant — the daemon already knows these deps`}</pre>
         </Reveal>
 
         <Reveal>
@@ -889,7 +889,7 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }                → warm — t
                 resident and deduplicates identical dependency analyses
                 between checkouts. Four agents on four branches share
                 one warm heap, not four cold ones. Add the{" "}
-                <Link to="/docs/usage/remote-cache/">local build cache</Link>{" "}
+                <Link to="/docs/usage/remote-cache/#local-directory-cache">local build cache</Link>{" "}
                 and a fresh worktree skips compiling what a sibling
                 already built.
               </p>
@@ -900,15 +900,15 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }                → warm — t
               </h3>
               <p className={styles.mcpCardBody}>
                 A raw build log is thousands of lines, and an agent fed
-                one starts flailing: tee it to a file, grep the file,
-                miss the answer. Bleep returns data instead — success
-                or failure, counts, the first errors, a couple hundred
-                tokens — and failures stream the instant a project
-                finishes. The full transcript sits behind a request id:
-                paginated, and <em>searchable</em> with a regex through{" "}
-                <code>bleep.details</code>, because reaching for grep is
-                what agents do. No temp files, no drowned context
-                window, no missed diagnostics.
+                one starts flailing: it tees the log to a file, greps
+                the file, and misses the answer. Bleep returns data
+                instead — success or failure, counts, the first errors,
+                a couple hundred tokens — and failures stream the
+                instant a project finishes. The full transcript sits
+                behind a request id: paginated, and <em>searchable</em>{" "}
+                with a regex through <code>bleep.details</code>, because
+                reaching for grep is what agents do. No temp files, no
+                drowned context window, no missed diagnostics.
               </p>
             </article>
           </div>
