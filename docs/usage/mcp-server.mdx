@@ -56,7 +56,7 @@ than the native binary, useful when iterating on bleep itself.
 | ----------------------- | ----------- | ------------------------------------------------------------------------------------- |
 | `bleep.compile`         | read-only   | Compile selected projects. Returns error counts and a `requestId`.                    |
 | `bleep.test`            | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `requestId`.            |
-| `bleep.details`         | read-only   | The full transcript of a completed compile/test request, by `requestId`. Paginated.   |
+| `bleep.details`         | read-only   | The full transcript of a completed compile/test request, by `requestId`. Searchable (regex) and paginated. |
 | `bleep.test.suites`     | read-only   | List test suite class names without running them. Requires projects to be compiled.   |
 | `bleep.sourcegen`       | additive    | Run sourcegen scripts for selected projects.                                          |
 | `bleep.fmt`             | additive    | Format Scala and Java sources via scalafmt and google-java-format.                    |
@@ -101,7 +101,17 @@ drill in:
 agent: bleep.details { requestId: 7 }
        → every diagnostic, every failing test with its stack trace;
          project/limit/offset parameters paginate large results
+
+agent: bleep.details { requestId: 7, query: "NullPointer|timed out" }
+       → only the matching diagnostics or failures — a case-insensitive
+         regex over messages, paths, suite/test names and stack traces
 ```
+
+The `query` parameter exists because searching output is what agents
+do. Given a long log they will divert it to a file and grep it —
+losing structure, and often the answer. Searching the structured
+transcript server-side returns exactly the matching items, still as
+data.
 
 A transcript describes its own run, never current state — so it cannot
 go stale when someone compiles from the CLI in between. The current
@@ -140,11 +150,16 @@ bounded and shared across checkouts.
 
 ### Compactness over completeness
 
-A full compile transcript can be tens of thousands of tokens. An
-agent making decisions doesn't need the transcript, it needs to
-know *did anything go wrong*. Returning a summary plus a `requestId`,
-with `bleep.details` available for drill-in, turns a 30 000-token
-tool response into a 200-token one and a follow-up.
+A full compile transcript can be tens of thousands of tokens, and
+dumping it into an agent's context does real damage: the signal
+drowns, the agent starts managing output instead of fixing code —
+redirecting logs to files, grepping them, paging through noise — and
+frequently never finds the line that mattered. Structured data
+removes that entire class of failure. The agent gets *did anything go
+wrong* as a boolean, counts, and the first errors in a couple hundred
+tokens; everything deeper is a targeted `bleep.details` call —
+paginated, or searched with a regex — that returns exactly the items
+asked for, still as data.
 
 ### Errors stream, results summarise
 

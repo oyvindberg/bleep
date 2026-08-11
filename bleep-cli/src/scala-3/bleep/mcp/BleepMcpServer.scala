@@ -146,7 +146,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           |## Tools
           |- bleep.compile — compile projects. Returns compact summary + requestId. Streams errors per-project as they occur.
           |- bleep.test — run tests. Returns compact summary + requestId with pass/fail counts.
-          |- bleep.details — full transcript of a completed compile/test request by requestId. Use project/limit/offset to paginate.
+          |- bleep.details — full transcript of a completed compile/test request by requestId. Search it with `query` (regex); project/limit/offset paginate.
           |- bleep.test.suites — discover test suites without running them (requires compiled code)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
@@ -252,7 +252,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.details",
         Some("Request Details"),
         Some(
-          "Full transcript of a completed compile/test request: every diagnostic, every test failure with stack trace. Pass the requestId from a compile/test response, or omit it for the most recent request. Use project/limit/offset to paginate large results."
+          "Full transcript of a completed compile/test request: every diagnostic, every test failure with stack trace. Pass the requestId from a compile/test response, or omit it for the most recent request. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -552,7 +552,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
 
         events <- collectedEvents.get.map(_.reverse)
         requestId <- requestLog.modify(_.push(System.currentTimeMillis(), started.buildPaths.buildDir.toString, "compile", events, None))
-      } yield withRequestId(formatCompileResult(events, verbose = false, limit = None, offset = None), requestId)
+      } yield withRequestId(formatCompileResult(events, verbose = false, query = None, limit = None, offset = None), requestId)
     }
 
     /** Execute a test run on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + requestId. */
@@ -618,7 +618,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         events <- collectedEvents.get.map(_.reverse)
         trr <- testRunResult.get
         requestId <- requestLog.modify(_.push(System.currentTimeMillis(), started.buildPaths.buildDir.toString, "test", events, trr))
-      } yield withRequestId(formatTestResult(events, trr, includeThrowables = false, limit = None, offset = None), requestId)
+      } yield withRequestId(formatTestResult(events, trr, includeThrowables = false, query = None, limit = None, offset = None), requestId)
     }
 
     private def withRequestId(json: Json, requestId: Long): String =
@@ -635,9 +635,15 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           case Some(proj) => filterEventsByProject(entry.events, proj)
           case None       => entry.events
         }
+        val query = args.query.map { q =>
+          try java.util.regex.Pattern.compile(q, java.util.regex.Pattern.CASE_INSENSITIVE)
+          catch {
+            case e: java.util.regex.PatternSyntaxException => throw new BleepException.Text(s"query is not a valid regex: ${e.getMessage}")
+          }
+        }
         val result =
-          if (entry.mode == "test") formatTestResult(events, entry.testRunResult, includeThrowables = true, args.limit, args.offset)
-          else formatCompileResult(events, verbose = true, args.limit, args.offset)
+          if (entry.mode == "test") formatTestResult(events, entry.testRunResult, includeThrowables = true, query, args.limit, args.offset)
+          else formatCompileResult(events, verbose = true, query, args.limit, args.offset)
         result
           .deepMerge(
             Json.obj(
@@ -1025,12 +1031,18 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     // Formatting
     // ========================================================================
 
+    /** True if the pattern matches any of the given nullable/optional text fields. */
+    private def matchesAny(pattern: java.util.regex.Pattern, fields: Iterable[String]): Boolean =
+      fields.exists(f => pattern.matcher(f).find())
+
     /** Format compile result from protocol events. Compact mode returns counts, a summary line and the first few errors; verbose mode (bleep.details) returns
-      * every diagnostic. When limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
+      * every diagnostic. A query narrows the diagnostics array to matching entries (message, rendered, path); summary counts always reflect the full run. When
+      * limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
       */
     private def formatCompileResult(
         events: List[BleepBspProtocol.Event],
         verbose: Boolean,
+        query: Option[java.util.regex.Pattern],
         limit: Option[Int],
         offset: Option[Int]
     ): Json = {
@@ -1044,7 +1056,11 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       val success = failedProjects.isEmpty
 
       if (verbose) {
-        val allDiagnosticJsons = allDiagnostics.map { d =>
+        val consideredDiagnostics = query match {
+          case Some(p) => allDiagnostics.filter(d => matchesAny(p, List(stripAnsi(d.message)) ++ d.rendered.map(stripAnsi) ++ d.path))
+          case None    => allDiagnostics
+        }
+        val allDiagnosticJsons = consideredDiagnostics.map { d =>
           val fields = List.newBuilder[(String, Json)]
           fields += "severity" -> Json.fromString(d.severity.wireValue)
           fields += "message" -> Json.fromString(stripAnsi(d.message))
@@ -1063,6 +1079,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         resultFields += "success" -> Json.fromBoolean(success)
         resultFields += "errors" -> Json.fromInt(errorCount)
         resultFields += "warnings" -> Json.fromInt(warningCount)
+        query.foreach(p => resultFields += "query" -> Json.fromString(p.pattern))
         resultFields += "totalDiagnostics" -> Json.fromInt(totalDiagnostics)
         resultFields += "diagnostics" -> Json.arr(sliced*)
         Json.obj(resultFields.result()*)
@@ -1097,23 +1114,32 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       }
     }
 
-    /** Format test result from protocol events. Compact mode elides stack traces; verbose mode (bleep.details) includes them. When limit/offset are provided,
-      * the failures array is sliced and a totalFailures count is included. Summary counts (passed/failed) always reflect the full run.
+    /** Format test result from protocol events. Compact mode elides stack traces; verbose mode (bleep.details) includes them. A query narrows the failures
+      * array to matching entries (suite, test, message, stack trace); summary counts always reflect the full run. When limit/offset are provided, the failures
+      * array is sliced and a totalFailures count is included.
       */
     private def formatTestResult(
         events: List[BleepBspProtocol.Event],
         testRunResult: Option[BleepBspProtocol.TestRunResult],
         includeThrowables: Boolean,
+        query: Option[java.util.regex.Pattern],
         limit: Option[Int],
         offset: Option[Int]
     ): Json = {
       import BleepBspProtocol.{Event => E}
 
       val testEvents = events.collect { case e: E.TestFinished => e }
-      val failedTests = testEvents.filter(e => e.status.isFailure)
+      val allFailedTests = testEvents.filter(e => e.status.isFailure)
+      val failedTests = query match {
+        case Some(p) =>
+          allFailedTests.filter(e =>
+            matchesAny(p, List(e.project.value, e.suite.value, e.test.value) ++ e.message.map(stripAnsi) ++ e.throwable.map(stripAnsi))
+          )
+        case None => allFailedTests
+      }
 
       val passed = testRunResult.map(_.totalPassed).getOrElse(testEvents.count(_.status == TestStatus.Passed))
-      val failed = testRunResult.map(_.totalFailed).getOrElse(failedTests.size)
+      val failed = testRunResult.map(_.totalFailed).getOrElse(allFailedTests.size)
       val durationMs = testRunResult.map(_.durationMs)
 
       val fields = List.newBuilder[(String, Json)]
@@ -1135,6 +1161,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       // Include failure details: always include message, never inline full stack traces in compact mode
       if (failedTests.nonEmpty) {
         val totalFailures = failedTests.size
+        query.foreach(p => fields += "query" -> Json.fromString(p.pattern))
         fields += "totalFailures" -> Json.fromInt(totalFailures)
         val slicedFailures = {
           val afterOffset = offset.map(o => failedTests.drop(o)).getOrElse(failedTests)

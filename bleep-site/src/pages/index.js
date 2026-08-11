@@ -868,17 +868,19 @@ function McpSection() {
             </article>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                <em>Structured</em>, token-frugal output
+                Answers, not <em>transcripts</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Compile and test return a compact JSON summary plus a
-                request id; the full transcript — every diagnostic,
-                every stack trace, exactly as that run produced it — is
-                one <code>bleep.details</code> call away, fetched only
-                when the agent decides it needs it. Per-project errors
-                stream as MCP notifications the instant a project
-                finishes. Latency floor for surfacing a real problem:
-                milliseconds.
+                A raw build log is thousands of lines, and an agent fed
+                one starts flailing: tee it to a file, grep the file,
+                miss the answer. Bleep returns data instead — success
+                or failure, counts, the first errors, a couple hundred
+                tokens — and failures stream the instant a project
+                finishes. The full transcript sits behind a request id:
+                paginated, and <em>searchable</em> with a regex through{" "}
+                <code>bleep.details</code>, because reaching for grep is
+                what agents do. No temp files, no drowned context
+                window, no missed diagnostics.
               </p>
             </article>
           </div>

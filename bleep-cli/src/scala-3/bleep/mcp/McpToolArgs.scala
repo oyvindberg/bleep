@@ -111,17 +111,18 @@ object TestArgs {
 }
 
 /** Args for bleep.details: full results of a completed request by id. */
-case class DetailsArgs(requestId: Option[Long], project: Option[String], limit: Option[Int], offset: Option[Int])
+case class DetailsArgs(requestId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
 object DetailsArgs {
-  private val knownFields = Set("requestId", "project", "limit", "offset")
+  private val knownFields = Set("requestId", "project", "query", "limit", "offset")
   given Decoder[DetailsArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
       requestId <- decodeOptional[Long](c, "requestId")
       project <- decodeOptional[String](c, "project")
+      query <- decodeOptional[String](c, "query")
       limit <- decodeOptional[Int](c, "limit")
       offset <- decodeOptional[Int](c, "offset")
-    } yield DetailsArgs(requestId, project, limit, offset)
+    } yield DetailsArgs(requestId, project, query, limit, offset)
   }
   given JsonSchemaEncoder[DetailsArgs] = schema(
     Json.obj(
@@ -134,6 +135,12 @@ object DetailsArgs {
         "project" -> Json.obj(
           "type" -> Json.fromString("string"),
           "description" -> Json.fromString("Filter to a single project name.")
+        ),
+        "query" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString(
+            "Search the transcript instead of paging through it: a case-insensitive regex matched against each diagnostic's message, rendered text and path (compile) or each failure's suite, test, message and stack trace (test). Only matching items are returned; summary counts still reflect the full run."
+          )
         ),
         "limit" -> Json.obj(
           "type" -> Json.fromString("integer"),
