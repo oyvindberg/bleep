@@ -1,7 +1,7 @@
 package bleep.model
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.{ACursor, Decoder, Encoder}
 
 case class BleepConfig(
     compileServerMode: Option[CompileServerMode],
@@ -40,8 +40,16 @@ case class BspServerConfig(
     parallelismRatio: Option[Double],
     /** Idle timeout for test suites in minutes — resets each time a test completes */
     testIdleTimeoutMinutes: Option[Int],
-    /** Max heap for forked test runner JVMs, e.g. "512m", "2g". None = JVM default */
-    testRunnerMaxMemory: Option[String],
+    /** Default heap for forked test runner JVMs, e.g. "512m", "2g". None = [[bleep.MachineResources.DefaultForkHeapMb]].
+      *
+      * A default, not a ceiling: a project that states its own `-Xmx` in `platform.jvmOptions` runs with that instead, and this number does not apply. That is
+      * the right way round, because how much heap a suite needs is a property of the code, which lives in the build, while this setting belongs to whoever owns
+      * the machine. What protects the machine from a project asking for a lot is admission, not clamping — [[bleep.MachineResources]] charges a fork its whole
+      * footprint and will run an oversized one alone rather than alongside others.
+      *
+      * Was `testRunnerMaxMemory`, which named a ceiling it never was; the old key is still read.
+      */
+    testRunnerHeap: Option[String],
     /** Max heap for forked sourcegen JVMs, e.g. "500m", "2g". None = JVM default */
     sourcegenMaxMemory: Option[String],
     /** Max heap for forked KSP runner JVMs (`KSPJvmMain`), e.g. "512m", "1500m". KSP bundles its own Analysis-API kotlinc which is memory-hungry on real builds
@@ -158,7 +166,7 @@ object BspServerConfig {
     parallelism = None,
     parallelismRatio = None,
     testIdleTimeoutMinutes = None,
-    testRunnerMaxMemory = None,
+    testRunnerHeap = None,
     sourcegenMaxMemory = None,
     kspRunnerMaxMemory = None,
     compileServerMaxMemory = None,
@@ -168,6 +176,16 @@ object BspServerConfig {
     maxCachedWorkspaces = None
   )
 
-  implicit val decoder: Decoder[BspServerConfig] = deriveDecoder
+  /** `testRunnerHeap` was called `testRunnerMaxMemory` until it was renamed to say what it does. Config files on disk outlive a rename, so the old key is read
+    * as the new one — someone who set it once should not silently lose the setting to an upgrade. Writing always uses the new name, so a config rewritten by
+    * any `bleep server config` command migrates itself.
+    */
+  private val migrateLegacyKeys: ACursor => ACursor =
+    _.withFocus(_.mapObject { obj =>
+      if (obj.contains("testRunnerHeap")) obj
+      else obj("testRunnerMaxMemory").fold(obj)(legacy => obj.add("testRunnerHeap", legacy).remove("testRunnerMaxMemory"))
+    })
+
+  implicit val decoder: Decoder[BspServerConfig] = deriveDecoder[BspServerConfig].prepare(migrateLegacyKeys)
   implicit val encoder: Encoder[BspServerConfig] = deriveEncoder
 }

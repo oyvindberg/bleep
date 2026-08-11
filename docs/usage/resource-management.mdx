@@ -56,13 +56,33 @@ If that distinction bites, the symptom tells you which side you are on: an `OutO
 
 ### Precedence for a test fork
 
-Three sources are concatenated, and **the last `-Xmx` wins**:
+A test fork is started with **exactly one `-Xmx`**, chosen from the first of these that states one:
 
-1. `testRunnerMaxMemory` from user config — the build-wide baseline
-2. the project's `platform.jvmOptions` — the per-project exception
-3. `--jvm-opt` on the command line — this run only
+1. `--jvm-opt` on the command line — this run only
+2. the project's `platform.jvmOptions` — what this code needs, checked into the build
+3. `testRunnerHeap` from user config — the default for projects that state nothing
+4. bleep's own default, 2 GB
 
-So a global baseline can be set once, a heavy project can override it, and a one-off investigation can override both without editing anything.
+**`testRunnerHeap` is a default, not a ceiling.** A project that sets `-Xmx` in `platform.jvmOptions` overrides it, in either direction — a project may ask for *more* heap than the machine-level setting, and it gets it:
+
+```yaml
+# user config says testRunnerHeap: 1g …
+projects:
+  my-heavy-tests:
+    isTestProject: true
+    platform:
+      jvmOptions: -Xmx4g    # … and this suite still forks with 4 GB
+```
+
+That is the right way round: how much heap a suite needs is a property of the code, and the code is what lives in the repo. Nothing silently shrinks a heap the build asked for. What protects the machine from one project asking for a lot is *admission* — bleep charges a fork its whole footprint and will run an oversized one on its own rather than alongside others — not clamping.
+
+To see what a fork was actually given, `bleep server config show` prints the configured default, and the test view reports each fork's heap. If you want to check from inside a suite, `Runtime.getRuntime.maxMemory` is the number that settles it. Do **not** test this by setting an absurdly small `-Xmx` and expecting a crash: the JVM quietly rounds a too-small heap up to something it can start with, so `-Xmx3m` proves nothing.
+
+:::info Renamed
+
+`testRunnerHeap` was called `testRunnerMaxMemory`, and `bleep server config test-runner-max-memory` is now `bleep server config test-runner-heap`. The old name never was a maximum — a project's own `-Xmx` has always outranked it. Existing config files and the old command keep working.
+
+:::
 
 ### The other forked processes
 
@@ -70,7 +90,7 @@ Sourcegen scripts and KSP runners are sized in user config, since they are bleep
 
 | Setting | Sizes |
 | --- | --- |
-| `testRunnerMaxMemory` | test runner JVMs (all projects) |
+| `testRunnerHeap` | test runner JVMs, for projects that state no `-Xmx` of their own |
 | `sourcegenMaxMemory` | sourcegen scripts |
 | `kspRunnerMaxMemory` | KSP (Kotlin symbol processing) runners |
 | `compileServerMaxMemory` | the compile server itself — **not** a fork; the long-lived heap your compiles run inside |

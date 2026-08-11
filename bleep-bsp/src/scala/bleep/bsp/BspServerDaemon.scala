@@ -195,7 +195,7 @@ object BspServerDaemon {
     // There is deliberately NO separate user knob for the fork-memory budget. Users already control
     // both dimensions of what forks cost, at the level each belongs to: `parallelism` /
     // `parallelismRatio` in the user config bound how many forks run at once, and
-    // `testRunnerMaxMemory` (or a project's own jvmOptions) bounds how big each one is. A third
+    // `testRunnerHeap` (or a project's own jvmOptions) bounds how big each one is. A third
     // machine-level number would overlap both and, because the daemon is shared and long-lived,
     // could only have been delivered by environment — which the daemon inherits from whichever
     // client happened to cold-start it and every later client silently reuses. A setting that

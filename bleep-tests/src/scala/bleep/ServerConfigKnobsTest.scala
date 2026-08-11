@@ -29,7 +29,7 @@ class ServerConfigKnobsTest extends AnyFunSuite with Matchers {
       bspReadTimeoutMinutes = Some(15),
       compileServerIdleTimeoutMinutes = Some(120),
       heapPressureThreshold = Some(0.85),
-      testRunnerMaxMemory = Some("2g"),
+      testRunnerHeap = Some("2g"),
       testIdleTimeoutMinutes = Some(5),
       sourcegenMaxMemory = Some("500m"),
       kspRunnerMaxMemory = Some("1500m")

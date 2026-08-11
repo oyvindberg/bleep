@@ -454,7 +454,10 @@ object ServerTopView {
       fieldOf("Idle timeout", s"${booted.compileServerIdleTimeoutMillis / 60000} minutes with no client before shutting down"),
       fieldOf("Heap pressure", s"new compiles wait above ${(booted.heapPressureThreshold * 100).toInt}% heap"),
       fieldOf("Max memory", booted.compileServerMaxMemory.getOrElse("bleep's default")),
-      fieldOf("Test runner", booted.testRunnerMaxMemory.map(m => s"$m per forked test JVM").getOrElse("the JVM default")),
+      fieldOf(
+        "Test runner",
+        booted.testRunnerHeap.map(m => s"$m per forked test JVM, unless the project states its own").getOrElse("bleep's default per forked test JVM")
+      ),
       Line.empty(),
       lineOf("  These were read when the server started. `bleep server config show` compares them with the file on disk,", Palette.textDim),
       lineOf("  and `bleep server restart` applies anything that has changed since.", Palette.textDim)

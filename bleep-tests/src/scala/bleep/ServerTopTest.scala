@@ -59,7 +59,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     config = ServerConfigDto(
       parallelism = 18,
       compileServerMaxMemory = Some("12g"),
-      testRunnerMaxMemory = None,
+      testRunnerHeap = None,
       maxCachedWorkspaces = 12,
       bspReadTimeoutMillis = 30 * 60000L,
       compileServerIdleTimeoutMillis = 60 * 60000L,

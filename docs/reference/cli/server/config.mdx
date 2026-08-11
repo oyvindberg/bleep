@@ -188,9 +188,29 @@ bleep server config heap-pressure-threshold <fraction>
 
 <p>remove the setting (back to default: 0.80)</p>
 
+## `bleep server config test-runner-heap`
+
+<p>default heap for forked test runner JVMs (e.g. 512m, 2g). A project's own platform.jvmOptions -Xmx overrides it</p>
+
+### Synopsis
+
+```bash
+bleep server config test-runner-heap <size>
+```
+
+### Arguments
+
+| Argument | Type |
+|----------|------|
+| `size` | one |
+
+## `bleep server config test-runner-heap-clear`
+
+<p>remove the setting (back to bleep's default: 2048m per test fork)</p>
+
 ## `bleep server config test-runner-max-memory`
 
-<p>max heap for forked test runner JVMs (e.g. 512m, 2g)</p>
+<p>(deprecated: use `bleep server config test-runner-heap`)</p>
 
 ### Synopsis
 
@@ -206,7 +226,7 @@ bleep server config test-runner-max-memory <size>
 
 ## `bleep server config test-runner-max-memory-clear`
 
-<p>remove the test runner max heap setting (back to the JVM default)</p>
+<p>(deprecated: use `bleep server config test-runner-heap-clear`)</p>
 
 ## `bleep server config test-idle-timeout`
 

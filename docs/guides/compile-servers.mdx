@@ -338,14 +338,19 @@ The test runner is a separate forked JVM. It does **not** share heap with
 the compile server, and neither does anything else your build forks — your
 code is compiled inside the server, but run inside a fork. A project that
 needs more memory for its tests says so in `bleep.yaml` with
-`platform.jvmOptions`; this setting is the build-wide default underneath
-that. See
+`platform.jvmOptions`; this setting is the default underneath that, for
+projects that state no `-Xmx` of their own. It is a default, not a
+ceiling — a project asking for `-Xmx4g` gets 4 GB even when this says
+`1g`. See
 [Memory & Parallelism](/docs/usage/resource-management#per-fork-heap).
 
 ```bash
-bleep server config test-runner-max-memory 2g
-bleep server config test-runner-max-memory-clear
+bleep server config test-runner-heap 2g
+bleep server config test-runner-heap-clear
 ```
+
+The old spelling, `test-runner-max-memory`, still works and writes the
+same setting.
 
 Reach for this when test suites OOM (Testcontainers spinning up
 big stacks, generated-fixture tests with large classpaths).
@@ -541,7 +546,7 @@ compileServerMode:
 bspServerConfig:
   compileServerMaxMemory: 4g
   parallelism: 4
-  testRunnerMaxMemory: 2g
+  testRunnerHeap: 2g
   bspReadTimeoutMinutes: 30
 ```
 
