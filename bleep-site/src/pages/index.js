@@ -872,11 +872,9 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }                → instant �
                 Worktrees are <em>first-class</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Every tool call is explicit about which checkout it
-                targets, so any number of agents work any number of
-                worktrees over one connection. <code>git worktree
-                add</code> and start compiling — a worktree is just
-                another directory to bleep.
+                <code>git worktree add</code> and start compiling. No
+                setup, no teardown, no per-checkout config — a worktree
+                is just another directory to bleep.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -884,14 +882,11 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }                → instant �
                 One <em>hot daemon</em>, every checkout
               </h3>
               <p className={styles.mcpCardBody}>
-                Every call bootstraps at native-CLI speed and lands on
-                the shared compile server, which keeps incremental state
-                resident and deduplicates identical dependency analyses
-                between checkouts. Four agents on four branches share
-                one warm heap, not four cold ones. Add the{" "}
+                All checkouts share one compile server that keeps
+                incremental state hot and stores identical dependency
+                analyses once. Add the{" "}
                 <Link to="/docs/usage/remote-cache/#local-directory-cache">local build cache</Link>{" "}
-                and a fresh worktree skips compiling what a sibling
-                already built.
+                and a fresh worktree skips what a sibling already built.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -899,16 +894,11 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }                → instant �
                 Answers, not <em>transcripts</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                A raw build log is thousands of lines, and an agent fed
-                one starts flailing: it tees the log to a file, greps
-                the file, and misses the answer. Bleep returns data
-                instead — success or failure, counts, the first errors,
-                a couple hundred tokens — and failures stream the
-                instant a project finishes. The full transcript sits
-                behind a request id: paginated, and <em>searchable</em>{" "}
-                with a regex through <code>bleep.details</code>, because
-                reaching for grep is what agents do. No temp files, no
-                drowned context window, no missed diagnostics.
+                Success, counts, and the first errors as data; failures
+                stream the moment they happen; the full transcript is
+                searchable with a regex via <code>bleep.details</code>.
+                No log files, no grep expeditions, no missed
+                diagnostics.
               </p>
             </article>
           </div>
