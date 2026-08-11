@@ -859,6 +859,7 @@ function McpSection() {
 
         <Reveal delay={80}>
           <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
+agent[auth]   bleep.copy-state { directory: ~/wt/auth, from: ~/main }  → parent's compiled state, cloned
 agent[auth]   bleep.compile { directory: ~/wt/auth }  → { requestId: 12, success: true }
 agent[api]    bleep.test { directory: ~/wt/api }  → { requestId: 13, failed: 2 }
 agent[api]    bleep.details { requestId: 13, query: "Timeout" }  → the two stack traces that matter
@@ -872,9 +873,12 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon k
                 Worktrees are <em>first-class</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>git worktree add</code> and start compiling. No
-                setup, no teardown, no per-checkout config — a worktree
-                is just another directory to bleep.
+                <code>git worktree add</code>, one{" "}
+                <code>bleep.copy-state</code> call to clone the parent
+                worktree&rsquo;s compiled state — clonefile-fast, under
+                the compile server&rsquo;s locks — and the first build
+                compiles a few files instead of a few hundred. No other
+                setup, no teardown, no per-checkout config.
               </p>
             </article>
             <article className={styles.mcpCard}>
