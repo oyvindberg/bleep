@@ -1293,7 +1293,8 @@
 .vignette {
   display: block;
   margin: 2.1rem auto 2.75rem;
-  max-width: 880px;
+  max-width: 940px;
+  width: fit-content;
   background: var(--ink-950);
   border: 1px solid var(--hairline-strong);
   border-radius: 0;

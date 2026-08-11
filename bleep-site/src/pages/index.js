@@ -859,10 +859,10 @@ function McpSection() {
 
         <Reveal delay={80}>
           <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
-agent[auth]   bleep.compile { directory: ~/wt/auth }              → { requestId: 12, success: true }
-agent[api]    bleep.test    { directory: ~/wt/api }               → { requestId: 13, failed: 2 }
-agent[api]    bleep.details { requestId: 13, query: "Timeout" }   → the two stack traces that matter
-agent[ui]     bleep.compile { directory: ~/wt/ui }                → instant — the daemon already knows these deps`}</pre>
+agent[auth]   bleep.compile { directory: ~/wt/auth }  → { requestId: 12, success: true }
+agent[api]    bleep.test { directory: ~/wt/api }  → { requestId: 13, failed: 2 }
+agent[api]    bleep.details { requestId: 13, query: "Timeout" }  → the two stack traces that matter
+agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon knows these deps`}</pre>
         </Reveal>
 
         <Reveal>
