@@ -19,9 +19,32 @@ object BleepServerAdmin {
 
   val StatusMethod = "bleep/status"
   val ShutdownMethod = "bleep/shutdown"
+  val CopyStateMethod = "bleep/copyState"
 
   /** Methods that must work before `build/initialize`. */
-  val Methods: Set[String] = Set(StatusMethod, ShutdownMethod)
+  val Methods: Set[String] = Set(StatusMethod, ShutdownMethod, CopyStateMethod)
+}
+
+/** Copy one workspace's compiled state into a freshly created git worktree, so its first build starts from the parent's incremental baseline instead of cold.
+  *
+  * Runs in the daemon on purpose: it takes the same per-project locks compiles take (shared on each source project), so state is never copied mid-compile — the
+  * one guarantee a client-side copy cannot give while other agents keep compiling the parent.
+  *
+  * `from`/`to` are absolute workspace roots (the directories containing bleep.yaml). `variant` is the build-variant directory name, defaulting to "normal".
+  */
+case class CopyStateRequest(from: String, to: String, variant: Option[String])
+
+object CopyStateRequest {
+  implicit val codec: Codec[CopyStateRequest] = deriveCodec
+}
+
+/** @param projects
+  *   cross-project names whose state was copied
+  */
+case class CopyStateResponse(projects: List[String], durationMs: Long)
+
+object CopyStateResponse {
+  implicit val codec: Codec[CopyStateResponse] = deriveCodec
 }
 
 /** @param observer

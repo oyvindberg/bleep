@@ -76,13 +76,29 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   def variantBuildDir(crossName: model.CrossProjectName): Path =
     crossProjectDir(crossName) / "builds" / variant.name
 
+  /** `<workspace>/.bleep/projects/<crossName>/builds/<variant>/.zinc/` — zinc's per-project state: analysis, classfile cache, noop manifest. */
+  def zincDir(crossName: model.CrossProjectName): Path =
+    variantBuildDir(crossName) / ".zinc"
+
+  /** `<workspace>/.bleep/projects/<crossName>/builds/<variant>/.zinc/analysis.zip` — the zinc incremental-compilation analysis. */
+  def zincAnalysisFile(crossName: model.CrossProjectName): Path =
+    zincDir(crossName) / "analysis.zip"
+
+  /** `<workspace>/.bleep/projects/<crossName>/generated-sources/` — all source-like generated outputs, SHARED across variants. */
+  def generatedSourcesBaseDir(crossName: model.CrossProjectName): Path =
+    crossProjectDir(crossName) / "generated-sources"
+
+  /** `<workspace>/.bleep/projects/<crossName>/generated-resources/` — all resource-like generated outputs, SHARED across variants. */
+  def generatedResourcesBaseDir(crossName: model.CrossProjectName): Path =
+    crossProjectDir(crossName) / "generated-resources"
+
   /** Source-like generated outputs, SHARED across variants. Located under the cross-project's `generated-sources/` directory. */
   def generatedSourcesDir(crossName: model.CrossProjectName, folderName: String): Path =
-    crossProjectDir(crossName) / "generated-sources" / folderName
+    generatedSourcesBaseDir(crossName) / folderName
 
   /** Resource-like generated outputs, SHARED across variants. Located under the cross-project's `generated-resources/` directory. */
   def generatedResourcesDir(crossName: model.CrossProjectName, folderName: String): Path =
-    crossProjectDir(crossName) / "generated-resources" / folderName
+    generatedResourcesBaseDir(crossName) / folderName
 
   // === project resolution ===
 

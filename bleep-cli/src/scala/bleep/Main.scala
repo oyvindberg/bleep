@@ -675,6 +675,11 @@ object Main {
           Opts.subcommand("clean", "delete compile output and generated sources for selected projects (or the whole build)")(
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
+          Opts.subcommand("copy-state", "copy compiled state from a sibling git worktree, so the first build here starts from its incremental baseline")(
+            Opts
+              .argument[String]("source worktree")
+              .map(fromStr => commands.CopyState(from = fromStr))
+          ),
           Opts.subcommand("projects", "show projects under current directory")(
             (projectNames, outputMode).mapN { (projectNames, mode) =>
               new BleepBuildCommand {

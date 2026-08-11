@@ -151,6 +151,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
           |- bleep.clean — delete build outputs for projects
+          |- bleep.copy-state — seed a fresh git worktree with the parent worktree's compiled state; call once after forking, before compiling
           |- bleep.projects — list all projects with dependencies
           |- bleep.programs — list projects that have a mainClass (runnable programs)
           |- bleep.scripts — list scripts defined in the build
@@ -168,6 +169,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         sourcegenTool,
         fmtTool,
         cleanTool,
+        copyStateTool,
         buildTool,
         buildResolvedTool,
         projectsTool,
@@ -353,6 +355,30 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
                   )
                   .noSpaces
               )
+          }
+        },
+      None
+    )
+
+    private def copyStateTool: ToolFunction[IO] = textTool[CopyStateArgs](
+      ToolFunction.Info(
+        "bleep.copy-state",
+        Some("Copy State"),
+        Some(
+          "Seed a freshly created git worktree with compiled state from the worktree it was forked off, so its first build compiles only the diff instead of everything. Call this once, right after creating a worktree, before compiling in it. The copy runs in the compile daemon under per-project locks, so it is safe while the parent keeps compiling."
+        ),
+        ToolFunction.Effect.Additive(false),
+        false
+      ),
+      (args, _) =>
+        bootstrapFor(args.directory).flatMap { started =>
+          IO.fromEither(commands.CopyState(from = args.from).exec(started)).map { response =>
+            Json
+              .obj(
+                "projects" -> Json.arr(response.projects.map(Json.fromString)*),
+                "durationMs" -> Json.fromLong(response.durationMs)
+              )
+              .noSpaces
           }
         },
       None

@@ -22,6 +22,8 @@ import bleep.bsp.protocol.{
   AnalysisWorkspaceDto,
   BleepServerAdmin,
   BuildCacheDto,
+  CopyStateRequest,
+  CopyStateResponse,
   DaemonStatus,
   MachineEntryDto,
   MachineSnapshotDto,
@@ -341,6 +343,10 @@ class MultiWorkspaceBspServer(
       case BleepServerAdmin.ShutdownMethod =>
         sync { handleAdminShutdown(); Some(circeRaw(io.circe.Json.obj())) }
 
+      case BleepServerAdmin.CopyStateMethod =>
+        // async on purpose: takes Resource-scoped project locks, so $/cancelRequest must be able to cancel the fiber and run the finalizers
+        handleCopyState(parseCopyStateRequest(params)).map(r => Some(circeRaw(r)))
+
       case "build/initialize" =>
         sync(Some(toRaw(handleInitialize(parseParams[InitializeBuildParams](params)))))
 
@@ -620,6 +626,106 @@ class MultiWorkspaceBspServer(
     logger.warn("build/shutdown received - cancelling all active requests")
     shutdownRequested.set(true)
     cancelAllActiveRequests()
+  }
+
+  /** Copy compiled state from workspace `from` into a freshly created worktree `to`, under the same per-project locks compiles take.
+    *
+    * Per project, holding a Shared lock on the source (which blocks writers but not other readers): the classes directories, the zinc analysis, and the
+    * generated sources/resources are cloned. What is deliberately NOT copied: `noop-manifest.bin` — its keys are absolute paths into `from`, and a copied
+    * manifest validates successfully against those paths, yielding a false noop that points `to` at `from`'s classes. The target's first compile does one zinc
+    * round-trip per project against the copied analysis (fast — the analysis is byte-identical to one already resident, see AnalysisCache) and writes its own
+    * manifest. `.zinc/cache`, `ksp/` and `.bleep-lock` are also skipped: caches regenerate, and a lock file must never be inherited.
+    *
+    * Projects are enumerated from disk, not from a resolved build — the daemon needs neither workspace's build to be loaded, and `to` has typically never
+    * connected. Lock acquisition is sorted by project name, the same global order compiles use.
+    */
+  private def handleCopyState(request: CopyStateRequest): IO[CopyStateResponse] = {
+    import java.nio.file.{Files, Path, Paths}
+    import scala.jdk.CollectionConverters.*
+
+    val startMs = System.currentTimeMillis()
+
+    def workspacePaths(dirStr: String, what: String): BuildPaths = {
+      val dir = Paths.get(dirStr)
+      if (!dir.isAbsolute || !Files.isDirectory(dir)) throw BspException(JsonRpcErrorCodes.InvalidParams, s"$what is not an existing absolute directory: $dir")
+      val buildLoader = BuildLoader.find(dir)
+      val buildPaths = BuildPaths(dir, buildLoader, model.BuildVariant.Normal)
+      if (buildPaths.buildDir.normalize() != dir.normalize())
+        throw BspException(JsonRpcErrorCodes.InvalidParams, s"$what is not a workspace root: the build for $dir lives at ${buildPaths.buildDir}")
+      buildPaths
+    }
+
+    def validated: (BuildPaths, BuildPaths, List[CrossProjectName]) = {
+      request.variant.foreach { v =>
+        if (v != model.BuildVariant.Normal.name)
+          throw BspException(JsonRpcErrorCodes.InvalidParams, s"unsupported build variant for copy-state: $v")
+      }
+      val fromPaths = workspacePaths(request.from, "from")
+      val toPaths = workspacePaths(request.to, "to")
+      if (fromPaths.buildDir == toPaths.buildDir) throw BspException(JsonRpcErrorCodes.InvalidParams, s"from and to are the same workspace: ${request.from}")
+      if (!Files.isDirectory(fromPaths.projectsDir))
+        throw BspException(JsonRpcErrorCodes.InvalidParams, s"${request.from} has no compiled state to copy (${fromPaths.projectsDir} does not exist)")
+      if (Files.exists(toPaths.projectsDir))
+        throw BspException(
+          JsonRpcErrorCodes.InvalidParams,
+          s"${request.to} already has state at ${toPaths.projectsDir} — copy-state is for freshly created worktrees"
+        )
+
+      val projects: List[CrossProjectName] = Files
+        .list(fromPaths.projectsDir)
+        .iterator()
+        .asScala
+        .flatMap { dir =>
+          CrossProjectName.fromString(dir.getFileName.toString) match {
+            case Some(crossName) => Some(crossName)
+            case None            => throw BspException(JsonRpcErrorCodes.InvalidParams, s"not a valid project directory name: ${dir.getFileName}")
+          }
+        }
+        .filter(crossName => Files.isDirectory(fromPaths.variantBuildDir(crossName)))
+        .toList
+        .sortBy(_.value)
+      (fromPaths, toPaths, projects)
+    }
+
+    def copyProject(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Unit = {
+      def cloneIfPresent(src: Path, dest: Path): Unit =
+        if (Files.isDirectory(src)) CloneDir.clone(src, dest)
+
+      val srcVariantDir = fromPaths.variantBuildDir(crossName)
+      val destVariantDir = toPaths.variantBuildDir(crossName)
+      // both names, unconditionally: the daemon has no resolved build here, so it cannot know which of the two a project uses
+      List("classes", "test-classes").foreach(dirName => cloneIfPresent(srcVariantDir.resolve(dirName), destVariantDir.resolve(dirName)))
+
+      val srcAnalysis = fromPaths.zincAnalysisFile(crossName)
+      if (Files.isRegularFile(srcAnalysis)) {
+        val destAnalysis = toPaths.zincAnalysisFile(crossName)
+        Files.createDirectories(destAnalysis.getParent)
+        Files.copy(srcAnalysis, destAnalysis)
+        ()
+      }
+
+      cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName))
+      cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+    }
+
+    IO.blocking(validated).flatMap { case (fromPaths, toPaths, projects) =>
+      projects
+        .foldLeft(IO.pure(List.empty[String])) { case (acc, crossName) =>
+          acc.flatMap { copied =>
+            ProjectLock
+              .acquire(
+                project = crossName,
+                outputDir = fromPaths.variantBuildDir(crossName).resolve("classes"),
+                mode = ProjectLock.LockMode.Shared,
+                timeout = scala.concurrent.duration.FiniteDuration(60, "seconds"),
+                onContention = () => logger.info(s"copy-state waiting for in-flight compile of ${crossName.value}")
+              )
+              .use(_ => IO.blocking(copyProject(fromPaths, toPaths, crossName)))
+              .as(crossName.value :: copied)
+          }
+        }
+        .map(copied => CopyStateResponse(projects = copied.reverse, durationMs = System.currentTimeMillis() - startMs))
+    }
   }
 
   /** Assemble everything `bleep server status` / `top` show. Pure reads — nothing here can disturb a compile running on another connection.
@@ -4348,6 +4454,16 @@ class MultiWorkspaceBspServer(
         circeDecode[StatusRequest](new String(raw.value, "UTF-8")) match {
           case Right(p)  => p
           case Left(err) => throw BspException(JsonRpcErrorCodes.InvalidParams, s"Could not parse $method: ${err.getMessage}")
+        }
+    }
+
+  private def parseCopyStateRequest(params: Option[RawJson]): CopyStateRequest =
+    params match {
+      case None      => throw BspException(JsonRpcErrorCodes.InvalidParams, s"${BleepServerAdmin.CopyStateMethod} requires params")
+      case Some(raw) =>
+        circeDecode[CopyStateRequest](new String(raw.value, "UTF-8")) match {
+          case Right(p)  => p
+          case Left(err) => throw BspException(JsonRpcErrorCodes.InvalidParams, s"Could not parse ${BleepServerAdmin.CopyStateMethod}: ${err.getMessage}")
         }
     }
 

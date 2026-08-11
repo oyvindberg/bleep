@@ -61,6 +61,7 @@ than the native binary, useful when iterating on bleep itself.
 | `bleep.sourcegen`       | additive    | Run sourcegen scripts for selected projects.                                          |
 | `bleep.fmt`             | additive    | Format Scala and Java sources via scalafmt and google-java-format.                    |
 | `bleep.clean`           | destructive | Delete compile output for selected projects.                                          |
+| `bleep.copy-state`      | additive    | Seed a fresh git worktree with the parent worktree's compiled state. Call once after forking. |
 | `bleep.build.effective` | read-only   | The project config after templates apply, what bleep sees.                            |
 | `bleep.build.resolved`  | read-only   | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.         |
 | `bleep.projects`        | read-only   | List projects with their dependencies and test-project flag.                          |
@@ -134,6 +135,22 @@ If a build declares a `$version` different from the running MCP
 server's, the call fails with an explanation — install the matching
 binary and call `bleep.restart`, which exits the process so the client
 relaunches it as the new binary.
+
+A fresh worktree starts cold: it has your parent's sources but none of
+its compiled state. `bleep.copy-state { directory, from }` (CLI:
+`bleep copy-state <source-worktree>`) fixes that in one call — it
+clones the parent worktree's classes, zinc analyses and generated
+sources into the new one, using the fastest copy the filesystem offers
+(clonefile on APFS, reflink where Linux supports it). The copy runs in
+the compile daemon under the same per-project locks compiles take, so
+it is safe even while other agents keep compiling the parent. The
+first build afterwards no-ops through everything unchanged and
+compiles incrementally from the parent's baseline for the rest —
+typically a few files, not a few hundred. State is copied from the
+worktree you forked off and nowhere else: what you start with is
+exactly what your parent had, which makes a seeded worktree's behavior
+explainable rather than dependent on whatever happens to be in a
+cache.
 
 ## Why these design choices
 

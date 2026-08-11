@@ -57,9 +57,7 @@ object BleepBuildConverter {
       case other => other
     }
 
-    // Use the same path structure as BuildPaths.targetDir: name/crossId
-    val targetDir = started.buildPaths.variantBuildDir(crossName)
-    val analysisDir = Some(targetDir.resolve(".zinc"))
+    val analysisDir = Some(started.buildPaths.zincDir(crossName))
 
     ProjectConfig(
       name = crossName.value,

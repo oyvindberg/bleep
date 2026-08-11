@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.bsp.protocol.{BleepServerAdmin, DaemonStatus, StatusRequest}
+import bleep.bsp.protocol.{BleepServerAdmin, CopyStateRequest, CopyStateResponse, DaemonStatus, StatusRequest}
 import cats.effect.unsafe.implicits.global
 import io.circe.syntax._
 
@@ -70,6 +70,17 @@ object ServerAdminClient {
     */
   def shutdown(socketDir: Path): Either[AdminError, Unit] =
     call(socketDir, BleepServerAdmin.ShutdownMethod, io.circe.Json.obj()).map(_ => ())
+
+  /** Copy compiled state between worktrees, under the daemon's per-project locks. Real work, not observation — the connection deliberately counts as a client
+    * so the daemon stays alive for the duration.
+    */
+  def copyState(socketDir: Path, request: CopyStateRequest): Either[AdminError, CopyStateResponse] =
+    call(socketDir, BleepServerAdmin.CopyStateMethod, request.asJson).flatMap { json =>
+      json.as[CopyStateResponse] match {
+        case Left(err)       => Left(AdminError.Failed(socketDir, s"could not decode copy-state response: ${err.getMessage}"))
+        case Right(response) => Right(response)
+      }
+    }
 
   private def call(socketDir: Path, method: String, params: io.circe.Json): Either[AdminError, io.circe.Json] = {
     val address = BspRifleConfig.Address.DomainSocket(socketDir.resolve("socket"))

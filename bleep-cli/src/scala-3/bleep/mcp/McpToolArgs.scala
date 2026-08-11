@@ -182,6 +182,34 @@ object BuildArgs {
   ).asInstanceOf[JsonSchemaEncoder[BuildArgs]]
 }
 
+/** Args for bleep.copy-state: seed a fresh worktree with the parent worktree's compiled state. */
+case class CopyStateArgs(directory: String, from: String)
+object CopyStateArgs {
+  private val knownFields = Set("directory", "from")
+  given Decoder[CopyStateArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
+      from <- c.downField("from").as[String]
+    } yield CopyStateArgs(directory, from)
+  }
+  given JsonSchemaEncoder[CopyStateArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        directoryProperty,
+        "from" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString(
+            "Absolute path of the worktree this one was forked from — the only place state is copied from. Typically the checkout the orchestrating session runs in."
+          )
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("directory"), Json.fromString("from"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[CopyStateArgs]]
+}
+
 /** Args for tools that need only a workspace: projects, programs, scripts. */
 case class DirArgs(directory: String)
 object DirArgs {
