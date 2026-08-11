@@ -671,17 +671,19 @@ class MultiWorkspaceBspServer(
           s"${request.to} already has state at ${toPaths.projectsDir} — copy-state is for freshly created worktrees"
         )
 
+      // project state dirs are `.bleep/projects/<crossName.value>/builds/<variant>` where crossName.value may contain
+      // slashes (`dfmt/main`) and therefore nest — a flat listing silently skips every hierarchical project
       val projects: List[CrossProjectName] = Files
-        .list(fromPaths.projectsDir)
+        .walk(fromPaths.projectsDir, 8)
         .iterator()
         .asScala
-        .flatMap { dir =>
-          CrossProjectName.fromString(dir.getFileName.toString) match {
-            case Some(crossName) => Some(crossName)
-            case None            => throw BspException(JsonRpcErrorCodes.InvalidParams, s"not a valid project directory name: ${dir.getFileName}")
-          }
+        .filter(dir => Files.isDirectory(dir.resolve("builds").resolve(model.BuildVariant.Normal.name)))
+        .map { dir =>
+          val rel = fromPaths.projectsDir.relativize(dir).toString.replace(java.io.File.separatorChar, '/')
+          CrossProjectName
+            .fromString(rel)
+            .getOrElse(throw BspException(JsonRpcErrorCodes.InvalidParams, s"not a valid project directory name: $rel"))
         }
-        .filter(crossName => Files.isDirectory(fromPaths.variantBuildDir(crossName)))
         .toList
         .sortBy(_.value)
       (fromPaths, toPaths, projects)

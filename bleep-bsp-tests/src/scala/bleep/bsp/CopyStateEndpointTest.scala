@@ -189,14 +189,14 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
 
   test("clones classes, analysis and generated sources; never the noop manifest or the lock file") {
     withServer { f =>
-      val from = workspace("proj-a", "proj-b")
+      val from = workspace("proj-a", "proj-b", "nested/main")
       val to = freshWorkspace()
 
       val response = result(f.copyState(from, to))
-      response.projects shouldBe List("proj-a", "proj-b")
+      response.projects shouldBe List("nested/main", "proj-a", "proj-b")
 
       val toPaths = bleep.BuildPaths(to, bleep.BuildLoader.find(to), model.BuildVariant.Normal)
-      List("proj-a", "proj-b").foreach { name =>
+      List("proj-a", "proj-b", "nested/main").foreach { name =>
         val crossName = model.CrossProjectName.fromString(name).get
         val classFile = toPaths.variantBuildDir(crossName).resolve("classes/com/example/Main.class")
         withClue(s"$name classes must be cloned byte-for-byte: ") {
