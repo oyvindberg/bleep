@@ -1255,6 +1255,58 @@
   margin-top: 2rem;
 }
 
+.installStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: center;
+  margin-top: 2rem;
+}
+.installStack .installFrame {
+  margin: 0;
+}
+
+/* ============================================================
+   Agents section — hero stat + worktree vignette
+   ============================================================ */
+.mcpStat {
+  margin: 2.4rem auto 0;
+  text-align: center;
+  max-width: 640px;
+}
+.mcpStatFigure {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  color: var(--red-400);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.mcpStatRest {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--ink-300);
+  font-size: 1rem;
+}
+
+.vignette {
+  display: block;
+  margin: 2.1rem auto 0;
+  max-width: 880px;
+  background: var(--ink-950);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  padding: 1.1rem 1.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.85;
+  color: var(--ink-100);
+  overflow-x: auto;
+  white-space: pre;
+  box-shadow: 0 28px 56px -24px rgba(0, 0, 0, 0.65);
+}
+
 /* ============================================================
    Light mode — paper + ink
    ============================================================ */

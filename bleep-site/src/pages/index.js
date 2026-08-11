@@ -113,7 +113,8 @@ function Hero() {
           Bleep does precisely what a build is for: compile, test, sourcegen,
           then package, link, publish what comes out. It refuses the rest.
           Your container build is code you write. So is your doc generation,
-          your sidecar boot, your CI orchestration. All of it.
+          your sidecar boot, your CI orchestration. All of it. And it&rsquo;s
+          the build tool your agents have been asking for.
         </p>
 
         <div className={styles.heroButtons}>
@@ -122,6 +123,9 @@ function Hero() {
           </Link>
           <Link className={styles.btnSecondary} to="/docs/tutorials/your-first-project/">
             Your first project
+          </Link>
+          <Link className={styles.btnSecondary} to="/#agents">
+            Bleep for agents
           </Link>
           <Link className={styles.btnSecondary} to="https://github.com/oyvindberg/bleep">
             GitHub
@@ -276,7 +280,9 @@ function SpecimenSection() {
         >
           A real <code>bleep.yaml</code>. Not pseudocode. Not a
           marketing render. Plain YAML you can read, grep, diff, and
-          rewrite. The same model bleep itself uses.
+          rewrite. The same model bleep itself uses. And because
+          it&rsquo;s data, your agent can read it in one pass, edit it
+          safely, and verify the result — try that with a build script.
         </SectionHeader>
 
         <Reveal>
@@ -424,7 +430,9 @@ function PerformanceSection() {
           }
         >
           Cut the code, the build plugins, the scopes, the task graph.
-          The inner loop stops being something you wait for.
+          The inner loop stops being something you wait for. That
+          matters double now: an agent compiles fifty times a session,
+          and a slow build taxes every single one.
         </SectionHeader>
 
         <Reveal>
@@ -533,7 +541,9 @@ function CISection() {
                 No transparent freshness checks across the network.
                 You push when you want a cache populated, you pull
                 when you want to use it. The fail-hard error model
-                stays clean, your CI logs stay grep-able.
+                stays clean, your CI logs stay grep-able — and agents
+                benefit most of all: nothing degrades silently, so
+                there&rsquo;s nothing to chase.
               </p>
             </article>
           </div>
@@ -816,7 +826,7 @@ function TestRunnerSection() {
    ------------------------------------------------------------------ */
 function McpSection() {
   return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
+    <section id="agents" className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="Tooling for the future"
@@ -836,6 +846,24 @@ function McpSection() {
           many worktrees at once, tight token budgets: that&rsquo;s the
           design target, not an edge case.
         </SectionHeader>
+
+        <Reveal>
+          <p className={styles.mcpStat}>
+            <span className={styles.mcpStatFigure}>~200 tokens</span>
+            <span className={styles.mcpStatRest}>
+              instead of a 30,000-token build log. Per call. That&rsquo;s
+              the whole idea.
+            </span>
+          </p>
+        </Reveal>
+
+        <Reveal delay={80}>
+          <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
+agent[auth]   bleep.compile { directory: ~/wt/auth }              → { requestId: 12, success: true }
+agent[api]    bleep.test    { directory: ~/wt/api }               → { requestId: 13, failed: 2 }
+agent[api]    bleep.details { requestId: 13, query: "Timeout" }   → the two stack traces that matter
+agent[ui]     bleep.compile { directory: ~/wt/ui }                → warm — the daemon already knows these deps`}</pre>
+        </Reveal>
 
         <Reveal>
           <div className={styles.mcpGrid}>
@@ -884,6 +912,16 @@ function McpSection() {
               </p>
             </article>
           </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "2.25rem", textAlign: "center" }}
+          >
+            Bleep is developed this way — sessions of parallel agents in
+            git worktrees, building bleep with bleep.
+          </p>
         </Reveal>
 
         <Reveal delay={140}>
@@ -987,12 +1025,19 @@ function MigrationSection() {
    ------------------------------------------------------------------ */
 function InstallCTA() {
   const [copied, setCopied] = useState(false);
+  const [copiedMcp, setCopiedMcp] = useState(false);
   const installCmd = "curl -fsSL https://bleep.build/install | sh";
+  const mcpCmd = "claude mcp add --scope user bleep -- bleep mcp-server";
 
   const onCopy = () => {
     navigator.clipboard?.writeText(installCmd);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
+  };
+  const onCopyMcp = () => {
+    navigator.clipboard?.writeText(mcpCmd);
+    setCopiedMcp(true);
+    setTimeout(() => setCopiedMcp(false), 1600);
   };
 
   return (
@@ -1002,25 +1047,40 @@ function InstallCTA() {
           eyebrow="Stop fighting your build"
           title={
             <>
-              One line. One <em>file</em>. Get on with your day.
+              Two lines. One <em>file</em>. Get on with your day.
             </>
           }
         >
           Bleep is open source under Apache 2.0. Java, Kotlin, and Scala on the JVM.
-          Cross-build to JS and Native if you want. Or don&rsquo;t.
+          Cross-build to JS and Native if you want. Or don&rsquo;t. The
+          second line gives every agent on your machine a build tool
+          that answers in 200 tokens.
         </SectionHeader>
 
         <Reveal>
-          <div className={styles.installFrame}>
-            <span className={styles.installPrompt}>$</span>
-            <span className={styles.installCmd}>{installCmd}</span>
-            <button
-              type="button"
-              onClick={onCopy}
-              className={`${styles.installCopy} ${copied ? styles.copied : ""}`}
-            >
-              {copied ? "Copied" : "Copy"}
-            </button>
+          <div className={styles.installStack}>
+            <div className={styles.installFrame}>
+              <span className={styles.installPrompt}>$</span>
+              <span className={styles.installCmd}>{installCmd}</span>
+              <button
+                type="button"
+                onClick={onCopy}
+                className={`${styles.installCopy} ${copied ? styles.copied : ""}`}
+              >
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className={styles.installFrame}>
+              <span className={styles.installPrompt}>$</span>
+              <span className={styles.installCmd}>{mcpCmd}</span>
+              <button
+                type="button"
+                onClick={onCopyMcp}
+                className={`${styles.installCopy} ${copiedMcp ? styles.copied : ""}`}
+              >
+                {copiedMcp ? "Copied" : "Copy"}
+              </button>
+            </div>
           </div>
         </Reveal>
 
@@ -1049,7 +1109,7 @@ export default function Home() {
   return (
     <Layout
       title="A build tool that gives a damn"
-      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. No code in your build. No project scopes, no XML, no build plugin acrobatics."
+      description="Bleep is a JVM build tool for Java, Kotlin, and Scala. One YAML file. Native CLI. One-second IDE imports. MCP-native and built for agentic development: structured tool calls, token-compact output, first-class git worktrees. No code in your build, no project scopes, no build plugin acrobatics."
     >
       <div className={styles.page}>
         <Hero />
