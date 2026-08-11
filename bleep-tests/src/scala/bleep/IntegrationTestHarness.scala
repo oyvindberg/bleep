@@ -54,7 +54,7 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
     // process are tiny, so a few hundred megs is plenty.
     bspServerConfig = Some(
       model.BspServerConfig.default.copy(
-        testRunnerMaxMemory = Some("512m"),
+        testRunnerHeap = Some("512m"),
         kspRunnerMaxMemory = Some("384m"),
         // Pin in-process BSP parallelism to 1 for ITs. The outer `bleep test bleep-tests` already runs `effectiveParallelism = cores` ForkedTestRunner JVMs in
         // parallel; without this cap each IT's in-process BSP would also fork up to `cores` JVMs (`JvmPool.create(maxParallelism, …)` in MultiWorkspaceBspServer

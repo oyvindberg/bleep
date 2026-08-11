@@ -688,7 +688,7 @@ class MultiWorkspaceBspServer(
       config = ServerConfigDto(
         parallelism = config.effectiveParallelism,
         compileServerMaxMemory = config.compileServerMaxMemory,
-        testRunnerMaxMemory = config.testRunnerMaxMemory,
+        testRunnerHeap = config.testRunnerHeap,
         maxCachedWorkspaces = config.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()),
         bspReadTimeoutMillis = config.effectiveBspReadTimeoutMillis.toLong,
         compileServerIdleTimeoutMillis = config.effectiveCompileServerIdleTimeoutMillis,
@@ -2378,7 +2378,11 @@ class MultiWorkspaceBspServer(
                     pool = jvmPool,
                     eventQueue = eventQueue,
                     options = TestRunner.Options(
-                      jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ projectJvmOptions ++ testOptions.jvmOptions,
+                      // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
+                      // prepended here — it goes in as the default the pool falls back to, so a fork carries exactly one `-Xmx` and it is the one that
+                      // decided the heap. See MachineResources.withHeapBound.
+                      jvmOptions = projectJvmOptions ++ testOptions.jvmOptions,
+                      defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
                       testArgs = testOptions.testArgs,
                       idleTimeout = idleTimeout,
                       environment = testEnv,

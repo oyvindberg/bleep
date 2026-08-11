@@ -415,8 +415,8 @@ object MachineResources {
     * So bleep states a bound rather than inheriting one. Every comparable tool does: Gradle defaults `Test.maxHeapSize` to 512m, Maven Surefire runs a single
     * fork, sbt runs tests in-process. 2GB is comfortable for ordinary JVM test suites and small enough that CPU, not memory, decides how wide a build runs.
     *
-    * A fork that genuinely needs more says so — `testRunnerMaxMemory` / `sourcegenMaxMemory` / `kspRunnerMaxMemory`, or the project's own `jvmOptions` — and if
-    * it then exceeds that, it gets an `OutOfMemoryError` naming the limit: attributable to the code that caused it, instead of a SIGKILL landing on whichever
+    * A fork that genuinely needs more says so — `testRunnerHeap` / `sourcegenMaxMemory` / `kspRunnerMaxMemory`, or the project's own `jvmOptions` — and if it
+    * then exceeds that, it gets an `OutOfMemoryError` naming the limit: attributable to the code that caused it, instead of a SIGKILL landing on whichever
     * process the kernel happened to pick.
     */
   val DefaultForkHeapMb: Long = 2048L
@@ -427,14 +427,18 @@ object MachineResources {
   def forkHeapMb(configured: Option[String]): Long =
     configured.flatMap(parseMemoryMb).getOrElse(DefaultForkHeapMb)
 
-  /** The options a fork is actually started with: whatever the build asked for, plus [[DefaultForkHeapMb]] if it stated no `-Xmx`.
+  /** The options a fork is actually started with: whatever the build asked for, plus `defaultHeapMb` if it stated no `-Xmx`.
+    *
+    * A fork ends up with exactly one `-Xmx`, which is the point. Configured heaps used to be prepended to the build's own options and left to JVM last-one-wins
+    * to resolve, so `java -Xmx1g … -Xmx3g` was a normal argv and the number a fork ran with could not be read off either source alone. It also made the config
+    * knob look like a ceiling while behaving as a default. Now the choice is made here, once, and the argv states the answer.
     *
     * Returned rather than applied in place because for pooled forks these options are also the pool key — a JVM started with an imposed bound must not be
     * handed to a caller who asked for a different one.
     */
-  def withHeapBound(jvmOptions: List[String]): List[String] =
+  def withHeapBound(jvmOptions: List[String], defaultHeapMb: Long): List[String] =
     if (jvmOptions.exists(_.startsWith("-Xmx"))) jvmOptions
-    else jvmOptions :+ s"-Xmx${DefaultForkHeapMb}m"
+    else jvmOptions :+ s"-Xmx${defaultHeapMb}m"
 
   /** What a forked JVM whose heap is capped at `heapMb` costs the machine.
     *
@@ -458,8 +462,8 @@ object MachineResources {
     * very nearly the binding constraint anyway. Being stingy costs a SIGKILL.
     *
     * This is only where the budget STARTS; [[retuneLoop]] then tracks what the machine can actually spare. There is deliberately no user knob for it: users
-    * already bound how many forks run (`parallelism`/`parallelismRatio`) and how big each one is (`testRunnerMaxMemory`, or a project's jvmOptions), which
-    * between them are the two things a fork-memory budget would be expressing.
+    * already bound how many forks run (`parallelism`/`parallelismRatio`) and how big each one is (`testRunnerHeap`, or a project's jvmOptions), which between
+    * them are the two things a fork-memory budget would be expressing.
     *
     * The server's FOOTPRINT is subtracted rather than its bare `-Xmx`, since it is a JVM too: an `-Xmx8g` daemon sits at ~8.9GB RSS, and counting it as 8GB
     * quietly handed the difference to the fork budget.

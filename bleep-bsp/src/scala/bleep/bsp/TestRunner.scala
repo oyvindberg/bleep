@@ -1,5 +1,6 @@
 package bleep.bsp
 
+import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
@@ -21,6 +22,10 @@ object TestRunner {
   /** Options for the test runner */
   case class Options(
       jvmOptions: List[String],
+      /** Heap for a fork whose `jvmOptions` state no `-Xmx` — the `testRunnerHeap` user setting, or bleep's default when it is unset. A project that states its
+        * own `-Xmx` runs with that instead; this number is a default, not a ceiling over it.
+        */
+      defaultHeapMb: Long,
       testArgs: List[String],
       idleTimeout: FiniteDuration,
       environment: Map[String, String],
@@ -30,6 +35,7 @@ object TestRunner {
   object Options {
     val default: Options = Options(
       jvmOptions = Nil,
+      defaultHeapMb = MachineResources.DefaultForkHeapMb,
       testArgs = Nil,
       idleTimeout = 2.minutes,
       environment = Map.empty,
@@ -74,7 +80,7 @@ object TestRunner {
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
-    pool.acquire(suiteName, classpath, options.jvmOptions, runnerClass, options.environment, options.workingDirectory).use { jvm =>
+    pool.acquire(suiteName, classpath, options.jvmOptions, options.defaultHeapMb, runnerClass, options.environment, options.workingDirectory).use { jvm =>
       // Recorded here rather than in the pool because this is the only place that knows both which JVM was handed out and what is about to run on it. The pid
       // joins these to the fork_start/fork_end pair, which is what lets a test run be reconstructed: which suites shared a JVM, and which JVM was killed
       // under which suite.

@@ -93,7 +93,7 @@ case class ServerConfigShow(
       row("read-timeout", config.bspReadTimeoutMinutes, status.map(_.config.bspReadTimeoutMillis / 60000)),
       row("idle-timeout", config.compileServerIdleTimeoutMinutes, status.map(_.config.compileServerIdleTimeoutMillis / 60000)),
       row("heap-pressure-threshold", config.heapPressureThreshold, status.map(_.config.heapPressureThreshold)),
-      row("test-runner-max-memory", config.testRunnerMaxMemory, status.flatMap(_.config.testRunnerMaxMemory)),
+      row("test-runner-heap", config.testRunnerHeap, status.flatMap(_.config.testRunnerHeap)),
       row("test-idle-timeout", config.testIdleTimeoutMinutes, status.map(_.config.testIdleTimeoutMinutes)),
       row("sourcegen-max-memory", config.sourcegenMaxMemory, None),
       row("ksp-runner-max-memory", config.kspRunnerMaxMemory, None)

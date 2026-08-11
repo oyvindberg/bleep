@@ -79,7 +79,7 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
         s"heap pressure ${config.heapPressureThreshold}"
     )
     config.compileServerMaxMemory.foreach(m => logger.info(s"           compile server max memory $m"))
-    config.testRunnerMaxMemory.foreach(m => logger.info(s"           test runner max memory $m"))
+    config.testRunnerHeap.foreach(m => logger.info(s"           test runner heap $m per fork, unless the project states its own"))
     logger.info("           (as booted — edits on disk apply on restart)")
   }
 

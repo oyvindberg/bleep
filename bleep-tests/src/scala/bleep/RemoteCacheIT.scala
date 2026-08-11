@@ -18,7 +18,7 @@ class RemoteCacheIT extends IntegrationTestHarness {
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
-    bspServerConfig = Some(model.BspServerConfig.default.copy(testRunnerMaxMemory = Some("512m"))),
+    bspServerConfig = Some(model.BspServerConfig.default.copy(testRunnerHeap = Some("512m"))),
     remoteCacheCredentials = Some(model.RemoteCacheCredentials(accessKeyId = "test-access-key", secretAccessKey = "test-secret-key"))
   )
 

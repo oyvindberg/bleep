@@ -35,14 +35,27 @@ class BspServerConfigTest extends AnyFunSuite with Matchers {
   // setting does nothing — which is exactly how `bspServer:` survived in the docs for so long.
   test("the YAML shape documented in compile-servers.mdx actually decodes") {
     val documented =
-      """{"compileServerMode":{"mode":"shared"},"bspServerConfig":{"compileServerMaxMemory":"4g","heapPressureThreshold":0.85,"testRunnerMaxMemory":"2g","bspReadTimeoutMinutes":30}}"""
+      """{"compileServerMode":{"mode":"shared"},"bspServerConfig":{"compileServerMaxMemory":"4g","heapPressureThreshold":0.85,"testRunnerHeap":"2g","bspReadTimeoutMinutes":30}}"""
     val config = decode[bleep.model.BleepConfig](documented).fold(throw _, identity)
     config.compileServerModeOrDefault shouldBe bleep.model.CompileServerMode.Shared
     val bsp = config.bspServerConfigOrDefault
     bsp.compileServerMaxMemory shouldBe Some("4g")
     bsp.heapPressureThreshold shouldBe Some(0.85)
-    bsp.testRunnerMaxMemory shouldBe Some("2g")
+    bsp.testRunnerHeap shouldBe Some("2g")
     bsp.bspReadTimeoutMinutes shouldBe Some(30)
+  }
+
+  // The rename is only safe if it is invisible to people who already set the old key: their config file
+  // is not rewritten by an upgrade, so a decoder that only knew the new name would silently drop the
+  // setting and start their test forks on a different heap than they configured.
+  test("a config written before the rename still sets the test fork heap") {
+    val legacy = """{"bspServerConfig":{"testRunnerMaxMemory":"2g"}}"""
+    decode[bleep.model.BleepConfig](legacy).fold(throw _, identity).bspServerConfigOrDefault.testRunnerHeap shouldBe Some("2g")
+  }
+
+  test("when both names are present the current one wins") {
+    val both = """{"bspServerConfig":{"testRunnerMaxMemory":"2g","testRunnerHeap":"3g"}}"""
+    decode[bleep.model.BleepConfig](both).fold(throw _, identity).bspServerConfigOrDefault.testRunnerHeap shouldBe Some("3g")
   }
 
   test("the key the docs used to name (bspServer) really is silently ignored") {

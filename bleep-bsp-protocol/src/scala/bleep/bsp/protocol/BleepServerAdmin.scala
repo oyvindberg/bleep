@@ -115,7 +115,8 @@ case class ServerConfigDto(
     parallelism: Int,
     /** As written in config — `"4g"`, `"512m"` — or absent when the computed default applies. */
     compileServerMaxMemory: Option[String],
-    testRunnerMaxMemory: Option[String],
+    /** Default heap for test forks; a project's own `-Xmx` overrides it. Absent when bleep's own default applies. */
+    testRunnerHeap: Option[String],
     maxCachedWorkspaces: Int,
     bspReadTimeoutMillis: Long,
     compileServerIdleTimeoutMillis: Long,

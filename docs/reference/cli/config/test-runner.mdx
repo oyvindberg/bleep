@@ -18,7 +18,7 @@ bleep config test-runner <subcommand>
 
 ## `bleep config test-runner max-memory`
 
-<p>(deprecated: use `bleep server config test-runner-max-memory`) set max heap for test runner JVMs (e.g. 512m, 2g)</p>
+<p>(deprecated: use `bleep server config test-runner-heap`) set default heap for test runner JVMs (e.g. 512m, 2g)</p>
 
 ### Synopsis
 
@@ -34,5 +34,5 @@ bleep config test-runner max-memory <size>
 
 ## `bleep config test-runner max-memory-clear`
 
-<p>(deprecated: use `bleep server config test-runner-max-memory-clear`) remove test runner max heap setting (use JVM default)</p>
+<p>(deprecated: use `bleep server config test-runner-heap-clear`) remove the test runner heap setting (use bleep's default)</p>
 

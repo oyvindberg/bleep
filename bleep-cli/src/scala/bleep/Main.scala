@@ -178,6 +178,24 @@ object Main {
         }
       )
 
+    /** A knob that was renamed: the old spelling keeps working, writes the same field, and says what to type instead. */
+    def renamedValue[A](oldKnob: String, newKnob: String, metavar: String)(
+        update: (model.BspServerConfig, A) => model.BspServerConfig
+    )(using argument: Argument[A]): Opts[Logger => BleepCommand] =
+      Opts.subcommand(oldKnob, s"(deprecated: use `bleep server config $newKnob`)")(
+        Opts.argument[A](metavar).map { value => (logger: Logger) =>
+          commands.server
+            .ServerConfigSet(logger, userPaths, newKnob, config => update(config, value), deprecatedAlias = Some(s"bleep server config $oldKnob"))
+        }
+      )
+
+    def renamed(oldKnob: String, newKnob: String)(update: model.BspServerConfig => model.BspServerConfig): Opts[Logger => BleepCommand] =
+      Opts.subcommand(oldKnob, s"(deprecated: use `bleep server config $newKnob`)")(
+        Opts.unit.map(_ =>
+          (logger: Logger) => commands.server.ServerConfigSet(logger, userPaths, newKnob, update, deprecatedAlias = Some(s"bleep server config $oldKnob"))
+        )
+      )
+
     def positive(knob: String)(n: Int): Unit =
       if (n < 1) throw new BleepException.Text(s"$knob must be >= 1, got $n")
 
@@ -233,10 +251,18 @@ object Main {
           if (fraction <= 0 || fraction > 1) throw new BleepException.Text(s"heap-pressure-threshold must be in (0, 1], got $fraction")
       }((config, fraction) => config.copy(heapPressureThreshold = Some(fraction))),
       set("heap-pressure-threshold-clear", "remove the setting (back to default: 0.80)")(_.copy(heapPressureThreshold = None)),
-      setValue[String]("test-runner-max-memory", "max heap for forked test runner JVMs (e.g. 512m, 2g)", "size")(_ => ())((config, size) =>
-        config.copy(testRunnerMaxMemory = Some(size))
+      setValue[String](
+        "test-runner-heap",
+        "default heap for forked test runner JVMs (e.g. 512m, 2g). A project's own platform.jvmOptions -Xmx overrides it",
+        "size"
+      )(_ => ())((config, size) => config.copy(testRunnerHeap = Some(size))),
+      set("test-runner-heap-clear", s"remove the setting (back to bleep's default: ${MachineResources.DefaultForkHeapMb}m per test fork)")(
+        _.copy(testRunnerHeap = None)
       ),
-      set("test-runner-max-memory-clear", "remove the test runner max heap setting (back to the JVM default)")(_.copy(testRunnerMaxMemory = None)),
+      // Renamed because it never was a maximum: a project's own -Xmx has always outranked it, and calling it `max` had people believing a per-project heap
+      // could not exceed it.
+      renamedValue[String]("test-runner-max-memory", "test-runner-heap", "size")((config, size) => config.copy(testRunnerHeap = Some(size))),
+      renamed("test-runner-max-memory-clear", "test-runner-heap-clear")(_.copy(testRunnerHeap = None)),
       setValue[Int]("test-idle-timeout", "minutes a test suite may go without emitting an event before it is considered stuck (default: 2)", "minutes")(
         positive("test-idle-timeout")
       )((config, n) => config.copy(testIdleTimeoutMinutes = Some(n))),
@@ -1009,17 +1035,17 @@ object Main {
           List(
             Opts.subcommand[Logger => BleepCommand](
               "max-memory",
-              "(deprecated: use `bleep server config test-runner-max-memory`) set max heap for test runner JVMs (e.g. 512m, 2g)"
+              "(deprecated: use `bleep server config test-runner-heap`) set default heap for test runner JVMs (e.g. 512m, 2g)"
             )(
               Opts.argument[String]("size").map { size => (logger: Logger) => () =>
-                deprecatedKnob(logger, userPaths, "test-runner-max-memory", _.copy(testRunnerMaxMemory = Some(size)))
+                deprecatedKnob(logger, userPaths, "test-runner-heap", _.copy(testRunnerHeap = Some(size)))
               }
             ),
             Opts.subcommand[Logger => BleepCommand](
               "max-memory-clear",
-              "(deprecated: use `bleep server config test-runner-max-memory-clear`) remove test runner max heap setting (use JVM default)"
+              "(deprecated: use `bleep server config test-runner-heap-clear`) remove the test runner heap setting (use bleep's default)"
             )(
-              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "test-runner-max-memory-clear", _.copy(testRunnerMaxMemory = None)))
+              Opts((logger: Logger) => () => deprecatedKnob(logger, userPaths, "test-runner-heap-clear", _.copy(testRunnerHeap = None)))
             )
           ).foldK
         ),

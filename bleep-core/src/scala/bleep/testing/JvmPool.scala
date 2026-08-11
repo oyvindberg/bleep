@@ -29,12 +29,16 @@ trait JvmPool {
 
   /** Acquire a JVM suitable for the given classpath and options.
     *
+    * `defaultHeapMb` is the heap this fork gets if `jvmOptions` states no `-Xmx` of its own — the caller's configured default, not a ceiling over what the
+    * caller asked for. See [[MachineResources.withHeapBound]].
+    *
     * Returns a Resource that will release the JVM back to the pool when done.
     */
   def acquire(
       label: String,
       classpath: List[Path],
       jvmOptions: List[String],
+      defaultHeapMb: Long,
       runnerClass: String,
       environment: Map[String, String],
       workingDirectory: Option[Path]
@@ -391,6 +395,7 @@ object JvmPool {
         label: String,
         classpath: List[Path],
         jvmOptions: List[String],
+        defaultHeapMb: Long,
         runnerClass: String,
         environment: Map[String, String],
         workingDirectory: Option[Path]
@@ -398,7 +403,7 @@ object JvmPool {
       // Bound the fork before anything else looks at these options. Everything downstream — the pool
       // key, the spawn, and what the governor is told this costs — must agree on the heap the JVM
       // will actually run with, and that is only true if the bound is applied once, here.
-      val boundedOptions = MachineResources.withHeapBound(jvmOptions)
+      val boundedOptions = MachineResources.withHeapBound(jvmOptions, defaultHeapMb)
       val key = JvmKey(classpath, boundedOptions, environment, workingDirectory)
 
       // NO machine CPU reservation here. The caller already holds one.
