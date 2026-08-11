@@ -843,8 +843,8 @@ function McpSection() {
           bleep mcp-server</code>) and every session — and every
           subagent it sends into a worktree — can compile, test, run,
           and inspect any checkout on the machine. Many agents at once,
-          many worktrees at once, tight token budgets: that&rsquo;s the
-          design target, not an edge case.
+          many worktrees at once, small token budgets — bleep was built
+          for this, and it shows.
         </SectionHeader>
 
         <Reveal>
