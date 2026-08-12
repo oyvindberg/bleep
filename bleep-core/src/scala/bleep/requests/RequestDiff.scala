@@ -1,11 +1,11 @@
-package bleep.mcp
+package bleep.requests
 
 import bleep.BleepException
 import bleep.bsp.protocol.{BleepBspProtocol, SuiteOutcome, TestStatus}
 import io.circe.Json
 
-/** Diffs between two completed request transcripts, answering "what changed between run A and run B?" without any daemon call and without any staleness: both
-  * inputs are immutable records of their own runs.
+/** Diffs between two request [[Transcript]]s, answering "what changed between run A and run B?" without any daemon call and without any staleness: both inputs
+  * are immutable records of their own runs. The transcripts may come from different worktrees — see the identity rules below.
   *
   * Two deliberately separate operations:
   *
@@ -17,6 +17,14 @@ import io.circe.Json
   *
   * Test identity is `(project, suite, test)`; compile identity is the project. Diagnostic identity is `(severity, path, message)` — the line number is an
   * attribute, not identity, so an edit that only shifts a diagnostic down the file does not report it as new + resolved.
+  *
+  * ==Path identity across worktrees==
+  *
+  * Transcripts store paths ABSOLUTE (greppable, clickable), but identity is computed against each side's own workspace root: a path under the root is
+  * relativized, and occurrences of the root embedded in a diagnostic's message are replaced with a `BASE` marker — ephemerally, per side, never serialized and
+  * never shown. This makes the same diagnostic in a parent and its fork compare as the same, while paths OUTSIDE any workspace (coursier jars, the JDK) stay
+  * absolute for identity too, which is correct on one machine: the same jar genuinely is the same file in both worktrees. For a single-workspace diff the
+  * relativization is applied to both sides against the same root, so it is an identity-preserving no-op.
   */
 object RequestDiff {
 
@@ -24,20 +32,34 @@ object RequestDiff {
   // Shared
   // ==========================================================================
 
-  private def require2(log: RequestLog, baseId: Long, targetId: Long): (CompletedRequest, CompletedRequest) = {
-    def get(id: Long): CompletedRequest =
-      log.byId(id).getOrElse(throw new BleepException.Text(s"No request with id $id. Kept: last ${RequestLog.MaxEntries} requests."))
-    val base = get(baseId)
-    val target = get(targetId)
-    if (base.mode != target.mode)
-      throw new BleepException.Text(s"Cannot diff a ${base.mode} request (#$baseId) against a ${target.mode} request (#$targetId).")
-    (base, target)
+  private val AnsiPattern = java.util.regex.Pattern.compile("\u001b\\[[0-9;]*[a-zA-Z]")
+  private def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAll("")
+
+  private val BaseMarker = "${BASE}"
+
+  /** Relativize `p` against this side's workspace root — identity only, never display. */
+  private def relPath(workspace: String, p: String): String = {
+    val sep = java.io.File.separator
+    val root = if (workspace.endsWith(sep)) workspace else workspace + sep
+    if (p.startsWith(root)) p.substring(root.length).replace('\\', '/')
+    else p
   }
 
-  private def header(base: CompletedRequest, target: CompletedRequest): List[(String, Json)] = {
+  /** Replace occurrences of this side's workspace root embedded in free text — identity only, never display. */
+  private def relMessage(workspace: String, message: String): String = {
+    val sep = java.io.File.separator
+    val root = if (workspace.endsWith(sep)) workspace.dropRight(sep.length) else workspace
+    message.replace(root + sep, BaseMarker + "/").replace(root, BaseMarker)
+  }
+
+  private def requireSameMode(base: Transcript, target: Transcript): Unit =
+    if (base.mode != target.mode)
+      throw new BleepException.Text(s"Cannot diff a ${base.mode} request (#${base.id}) against a ${target.mode} request (#${target.id}).")
+
+  private def header(base: Transcript, target: Transcript): List[(String, Json)] = {
     val fields = List.newBuilder[(String, Json)]
-    fields += "base" -> Json.obj("requestId" -> Json.fromLong(base.requestId), "workspace" -> Json.fromString(base.workspace))
-    fields += "target" -> Json.obj("requestId" -> Json.fromLong(target.requestId), "workspace" -> Json.fromString(target.workspace))
+    fields += "base" -> Json.obj("requestId" -> Json.fromLong(base.id), "workspace" -> Json.fromString(base.workspace))
+    fields += "target" -> Json.obj("requestId" -> Json.fromLong(target.id), "workspace" -> Json.fromString(target.workspace))
     fields += "mode" -> Json.fromString(base.mode)
     if (base.workspace != target.workspace)
       fields += "crossWorkspace" -> Json.fromBoolean(true)
@@ -58,12 +80,12 @@ object RequestDiff {
   /** Everything the mechanical diff compares about a test. No durations, no timestamps — by type, not by convention. */
   private case class TestFacts(status: TestStatus, message: Option[String])
 
-  private def testFacts(entry: CompletedRequest): Map[TestKey, TestFacts] =
+  private def testFacts(entry: Transcript): Map[TestKey, TestFacts] =
     entry.events.collect { case e: BleepBspProtocol.Event.TestFinished =>
       TestKey(e.project.value, e.suite.value, e.test.value) -> TestFacts(e.status, e.message.map(stripAnsi))
     }.toMap // a rerun of the same test within one request: last event wins
 
-  private def testDurations(entry: CompletedRequest): Map[TestKey, Long] =
+  private def testDurations(entry: Transcript): Map[TestKey, Long] =
     entry.events.collect { case e: BleepBspProtocol.Event.TestFinished =>
       TestKey(e.project.value, e.suite.value, e.test.value) -> e.durationMs
     }.toMap
@@ -71,7 +93,7 @@ object RequestDiff {
   /** Suite-level terminal outcome KIND. Per-test transitions already cover pass/fail counts inside an executed suite, so only the kind — executed, empty,
     * no-framework-matched, errored, timed-out, cancelled — is compared at suite level.
     */
-  private def suiteOutcomeKinds(entry: CompletedRequest): Map[(String, String), String] =
+  private def suiteOutcomeKinds(entry: Transcript): Map[(String, String), String] =
     entry.events.collect {
       case e: BleepBspProtocol.Event.SuiteFinished =>
         val kind = e.outcome match {
@@ -86,14 +108,16 @@ object RequestDiff {
       case e: BleepBspProtocol.Event.SuiteCancelled => (e.project.value, e.suite.value) -> "cancelled"
     }.toMap
 
-  /** Everything the mechanical diff compares about a compiled project. No durations, no timestamps. */
+  /** Everything the mechanical diff compares about a compiled project. No durations, no timestamps. Diagnostic identity is relativized against this
+    * transcript's own workspace; the display form kept alongside is the original absolute one.
+    */
   private case class CompileFacts(
       reason: Option[String],
       invalidatedFiles: Set[String],
       changedDependencies: Set[String],
       status: Option[String],
       skippedBecause: Option[String],
-      diagnostics: Map[DiagKey, List[Int]] // identity -> lines it appears on (line is an attribute, not identity)
+      diagnostics: Map[DiagKey, DiagDisplay]
   )
 
   private case class DiagKey(severity: String, path: Option[String], message: String)
@@ -101,7 +125,10 @@ object RequestDiff {
     implicit val ordering: Ordering[DiagKey] = Ordering.by(k => (k.severity, k.path.getOrElse(""), k.message))
   }
 
-  private def compileFacts(entry: CompletedRequest): Map[String, CompileFacts] = {
+  /** The presentation half of a diagnostic: this side's absolute path and the lines it appeared on. */
+  private case class DiagDisplay(path: Option[String], message: String, lines: List[Int])
+
+  private def compileFacts(entry: Transcript): Map[String, CompileFacts] = {
     import BleepBspProtocol.{Event => E}
     val empty = CompileFacts(None, Set.empty, Set.empty, None, None, Map.empty)
     entry.events.foldLeft(Map.empty[String, CompileFacts]) {
@@ -113,14 +140,21 @@ object RequestDiff {
         )
       case (acc, e: E.CompileFinished) =>
         val prev = acc.getOrElse(e.project.value, empty)
-        val diags =
-          e.diagnostics.groupBy(d => DiagKey(d.severity.wireValue, d.path, stripAnsi(d.message))).view.mapValues(_.flatMap(_.line).sorted.toList).toMap
+        val diags: Map[DiagKey, DiagDisplay] =
+          e.diagnostics
+            .groupBy { d =>
+              val message = stripAnsi(d.message)
+              DiagKey(d.severity.wireValue, d.path.map(relPath(entry.workspace, _)), relMessage(entry.workspace, message))
+            }
+            .map { case (key, ds) =>
+              key -> DiagDisplay(ds.head.path, stripAnsi(ds.head.message), ds.flatMap(_.line).sorted)
+            }
         acc.updated(e.project.value, prev.copy(status = Some(e.status.wireValue), skippedBecause = e.skippedBecause.map(_.value), diagnostics = diags))
       case (acc, _) => acc
     }
   }
 
-  private def compileDurations(entry: CompletedRequest): Map[String, Long] =
+  private def compileDurations(entry: Transcript): Map[String, Long] =
     entry.events.collect { case e: BleepBspProtocol.Event.CompileFinished => e.project.value -> e.durationMs }.toMap
 
   // ==========================================================================
@@ -133,8 +167,8 @@ object RequestDiff {
     case TestStatus.Skipped | TestStatus.Ignored | TestStatus.AssumptionFailed | TestStatus.Pending => "skip"
   }
 
-  def mechanical(log: RequestLog, baseId: Long, targetId: Long): Json = {
-    val (base, target) = require2(log, baseId, targetId)
+  def mechanical(base: Transcript, target: Transcript): Json = {
+    requireSameMode(base, target)
     if (base.mode == "test") mechanicalTest(base, target) else mechanicalCompile(base, target)
   }
 
@@ -147,7 +181,7 @@ object RequestDiff {
       ) ++ extra.toList)*
     )
 
-  private def mechanicalTest(base: CompletedRequest, target: CompletedRequest): Json = {
+  private def mechanicalTest(base: Transcript, target: Transcript): Json = {
     val b = testFacts(base)
     val t = testFacts(target)
     val keys = (b.keySet ++ t.keySet).toList.sorted
@@ -178,7 +212,8 @@ object RequestDiff {
             case ("skip", "pass") =>
               unskipped += testEntry(key, transition*)
             case ("fail", "fail") =>
-              val messageChanged = bf.message != tf.message || bf.status != tf.status
+              val messageChanged =
+                bf.message.map(relMessage(base.workspace, _)) != tf.message.map(relMessage(target.workspace, _)) || bf.status != tf.status
               if (messageChanged) stillFailingChangedCount += 1
               stillFailing += testEntry(
                 key,
@@ -249,7 +284,7 @@ object RequestDiff {
     )
   }
 
-  private def mechanicalCompile(base: CompletedRequest, target: CompletedRequest): Json = {
+  private def mechanicalCompile(base: Transcript, target: Transcript): Json = {
     val b = compileFacts(base)
     val t = compileFacts(target)
     val keys = (b.keySet ++ t.keySet).toList.sorted
@@ -258,11 +293,12 @@ object RequestDiff {
     val projectsRemoved = List.newBuilder[Json]
     val changed = List.newBuilder[Json]
 
-    def diagJson(key: DiagKey, lines: List[Int]): Json =
+    // Display uses each side's own absolute path — new diagnostics the target's, resolved ones the base's — so diff output stays greppable and clickable.
+    def diagJson(key: DiagKey, display: DiagDisplay): Json =
       Json.obj(
-        (List("severity" -> Json.fromString(key.severity), "message" -> Json.fromString(key.message))
-          ++ key.path.map(p => "path" -> Json.fromString(p))
-          ++ (if (lines.nonEmpty) List("lines" -> Json.arr(lines.map(Json.fromInt)*)) else Nil))*
+        (List("severity" -> Json.fromString(key.severity), "message" -> Json.fromString(display.message))
+          ++ display.path.map(p => "path" -> Json.fromString(p))
+          ++ (if (display.lines.nonEmpty) List("lines" -> Json.arr(display.lines.map(Json.fromInt)*)) else Nil))*
       )
 
     keys.foreach { project =>
@@ -346,8 +382,8 @@ object RequestDiff {
 
   val DefaultTimingLimit = 15
 
-  def timing(log: RequestLog, baseId: Long, targetId: Long, limit: Int): Json = {
-    val (base, target) = require2(log, baseId, targetId)
+  def timing(base: Transcript, target: Transcript, limit: Int): Json = {
+    requireSameMode(base, target)
     if (base.mode == "test")
       timingFor(
         base,
@@ -362,8 +398,8 @@ object RequestDiff {
   }
 
   private def timingFor[K](
-      base: CompletedRequest,
-      target: CompletedRequest,
+      base: Transcript,
+      target: Transcript,
       baseDurations: Map[K, Long],
       targetDurations: Map[K, Long],
       itemJson: K => List[(String, Json)],

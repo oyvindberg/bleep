@@ -56,6 +56,12 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   /** `<workspace>/.bleep/builds/<variant>/last.log` — the build log from the most recent compile in this variant. */
   lazy val logFile: Path = workspaceVariantDir / "last.log"
 
+  /** `<workspace>/.bleep/builds/<variant>/requests/` — one JSON transcript per completed compile/test request, written by the daemon, read by every client
+    * (`bleep details`, `bleep diff`, the MCP tools). Workspace-local on purpose: it survives daemon restarts (the socket dir does not), and removing a worktree
+    * removes its history. NEVER copied by copy-state or the remote cache — a transcript describes THIS workspace's runs.
+    */
+  lazy val requestsDir: Path = workspaceVariantDir / "requests"
+
   /** `<workspace>/.bleep/import/` — scratch for one-shot import commands (`bleep import`, `bleep import-maven`). */
   lazy val bleepImportDir: Path = dotBleepDir / "import"
   lazy val bleepImportBloopDir: Path = bleepImportDir / "bloop"

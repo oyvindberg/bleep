@@ -277,7 +277,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, _) => requestLog.get.map(log => RequestDiff.mechanical(log, args.base, args.target).noSpaces),
+      (args, _) => requestLog.get.map(log => bleep.requests.RequestDiff.mechanical(transcriptOf(log, args.base), transcriptOf(log, args.target)).noSpaces),
       None
     )
 
@@ -291,9 +291,32 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, _) => requestLog.get.map(log => RequestDiff.timing(log, args.base, args.target, args.limit.getOrElse(RequestDiff.DefaultTimingLimit)).noSpaces),
+      (args, _) =>
+        requestLog.get.map { log =>
+          bleep.requests.RequestDiff
+            .timing(transcriptOf(log, args.base), transcriptOf(log, args.target), args.limit.getOrElse(bleep.requests.RequestDiff.DefaultTimingLimit))
+            .noSpaces
+        },
       None
     )
+
+    /** Bridge from the in-session ring to the shared transcript model the diff engine consumes. The daemon-side transcript store will replace this ring
+      * entirely; until then, session-local entries carry no target list and identify their client as "mcp".
+      */
+    private def transcriptOf(log: RequestLog, id: Long): bleep.requests.Transcript = {
+      val entry = log.byId(id).getOrElse(throw new BleepException.Text(s"No request with id $id. Kept: last ${RequestLog.MaxEntries} requests."))
+      bleep.requests.Transcript(
+        id = entry.requestId,
+        timestampMs = entry.timestampMs,
+        workspace = entry.workspace,
+        variant = model.BuildVariant.Normal.name,
+        mode = entry.mode,
+        targets = Nil,
+        client = "mcp",
+        events = entry.events,
+        testRunResult = entry.testRunResult
+      )
+    }
 
     private def testSuitesTool: ToolFunction[IO] = textTool[ProjectsArgs](
       ToolFunction.Info(
