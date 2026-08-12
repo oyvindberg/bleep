@@ -179,6 +179,11 @@ object BspTestHarness {
 
     /** Query javac options for targets */
     def javacOptions(targets: List[BuildTargetIdentifier]): JavacOptionsResult
+
+    /** Send a raw JSON-RPC request outside the typed BSP surface — the bleep admin endpoints (`bleep/copyState`, ...) which need no `build/initialize`
+      * handshake. Returns the raw bytes of the `result` field; throws on a JSON-RPC error response.
+      */
+    def rawRequest(method: String, paramsJson: String): Array[Byte]
   }
 }
 
@@ -502,6 +507,43 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
 
         response.result match {
           case Some(result) => readFromArray[R](result.value)
+          case None         => throw new RuntimeException(s"No result in response to $method")
+        }
+      } finally pendingRequests.remove(id)
+    }
+
+    override def rawRequest(method: String, paramsJson: String): Array[Byte] = {
+      val id = requestId.incrementAndGet()
+      val queue = new ArrayBlockingQueue[JsonRpcResponse](1)
+      pendingRequests.put(id, queue)
+
+      val request = JsonRpcRequest(
+        jsonrpc = "2.0",
+        id = Some(RpcId.IntId(id)),
+        method = method,
+        params = Some(RawJson(paramsJson.getBytes("UTF-8")))
+      )
+
+      val content = writeToArray(request)
+      val header = s"Content-Length: ${content.length}\r\n\r\n"
+      synchronized {
+        out.write(header.getBytes("UTF-8"))
+        out.write(content)
+        out.flush()
+      }
+
+      try {
+        val response = queue.poll(120, TimeUnit.SECONDS)
+        if (response == null) {
+          throw new RuntimeException(s"Timeout waiting for response to $method")
+        }
+
+        response.error.foreach { err =>
+          throw new RuntimeException(s"BSP error ${err.code}: ${err.message}")
+        }
+
+        response.result match {
+          case Some(result) => result.value
           case None         => throw new RuntimeException(s"No result in response to $method")
         }
       } finally pendingRequests.remove(id)
