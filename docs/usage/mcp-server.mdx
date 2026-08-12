@@ -57,6 +57,8 @@ than the native binary, useful when iterating on bleep itself.
 | `bleep.compile`         | read-only   | Compile selected projects. Returns error counts and a `requestId`.                    |
 | `bleep.test`            | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `requestId`.            |
 | `bleep.details`         | read-only   | The full transcript of a completed compile/test request, by `requestId`. Searchable (regex) and paginated. |
+| `bleep.diff`            | read-only   | What logically changed between two requests: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
+| `bleep.diff-timing`     | read-only   | What got slower or faster between two requests, jitter suppressed, plus the target run's slowest items. |
 | `bleep.test.suites`     | read-only   | List test suite class names without running them. Requires projects to be compiled.   |
 | `bleep.sourcegen`       | additive    | Run sourcegen scripts for selected projects.                                          |
 | `bleep.fmt`             | additive    | Format Scala and Java sources via scalafmt and google-java-format.                    |
@@ -73,10 +75,12 @@ than the native binary, useful when iterating on bleep itself.
 `Effect` mirrors the MCP spec's tool semantics, clients use it
 to decide whether a tool can run unattended.
 
-Every tool except `bleep.details` and `bleep.restart` requires
-`directory`: the absolute path of the checkout to act on. An agent's
-current working directory works — bleep finds the build root from any
-directory inside it.
+Every tool except `bleep.restart` requires `directory`: the absolute
+path of the checkout to act on. An agent's current working directory
+works — bleep finds the build root from any directory inside it. Even
+`bleep.details` and `bleep.diff` take it: request ids are
+per-workspace, so an id means nothing without saying whose history to
+look in.
 
 ## Output shape
 
@@ -94,16 +98,20 @@ Compile and test return a *summary*, not a transcript:
 }
 ```
 
-The transcript of every completed request is kept in memory (the last
-32 requests), keyed by that `requestId`. When the agent decides to
-drill in:
+The transcript of every completed request is written by the compile
+daemon into the workspace itself
+(`.bleep/builds/normal/requests/<id>.json`, the last 32 kept), keyed
+by that `requestId`. History is per-worktree, shared with the CLI
+(`bleep requests`, `bleep details`, `bleep diff`) and IDE builds, and
+survives MCP server restarts — the server itself keeps nothing in
+memory. When the agent decides to drill in:
 
 ```
-agent: bleep.details { requestId: 7 }
+agent: bleep.details { directory: "/checkout", requestId: 7 }
        → every diagnostic, every failing test with its stack trace;
          project/limit/offset parameters paginate large results
 
-agent: bleep.details { requestId: 7, query: "NullPointer|timed out" }
+agent: bleep.details { directory: "/checkout", requestId: 7, query: "NullPointer|timed out" }
        → only the matching diagnostics or failures — a case-insensitive
          regex over messages, paths, suite/test names and stack traces
 ```
