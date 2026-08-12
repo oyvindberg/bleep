@@ -695,15 +695,20 @@ class MultiWorkspaceBspServer(
 
       val srcVariantDir = fromPaths.variantBuildDir(crossName)
       val destVariantDir = toPaths.variantBuildDir(crossName)
-      // both names, unconditionally: the daemon has no resolved build here, so it cannot know which of the two a project uses
-      List("classes", "test-classes").foreach(dirName => cloneIfPresent(srcVariantDir.resolve(dirName), destVariantDir.resolve(dirName)))
-
-      val srcAnalysis = fromPaths.zincAnalysisFile(crossName)
-      if (Files.isRegularFile(srcAnalysis)) {
-        val destAnalysis = toPaths.zincAnalysisFile(crossName)
-        Files.createDirectories(destAnalysis.getParent)
-        Files.copy(srcAnalysis, destAnalysis)
-        ()
+      // What crosses the workspace boundary is decided by bleep.StateSharing — the same allow-list the remote cache packs by — never a local list that can
+      // drift out of sync with it. (Both dir names apply unconditionally: the daemon has no resolved build here, so it cannot know which of the two a
+      // project uses.)
+      bleep.StateSharing.variantDirEntries.foreach {
+        case bleep.StateSharing.SharedDir(rel) =>
+          cloneIfPresent(srcVariantDir.resolve(rel), destVariantDir.resolve(rel))
+        case bleep.StateSharing.SharedFile(rel) =>
+          val src = srcVariantDir.resolve(rel)
+          if (Files.isRegularFile(src)) {
+            val dest = destVariantDir.resolve(rel)
+            Files.createDirectories(dest.getParent)
+            Files.copy(src, dest)
+            ()
+          }
       }
 
       cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName))

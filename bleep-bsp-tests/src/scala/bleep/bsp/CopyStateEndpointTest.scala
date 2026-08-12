@@ -162,10 +162,16 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
       Files.createDirectories(analysis.getParent)
       Files.write(analysis, s"analysis-$name".getBytes(StandardCharsets.UTF_8))
       Files.write(analysis.getParent.resolve("noop-manifest.bin"), s"manifest-$name".getBytes(StandardCharsets.UTF_8))
+      Files.createDirectories(analysis.getParent.resolve("cache"))
+      Files.write(analysis.getParent.resolve("cache/junk.bin"), s"zinc-cache-$name".getBytes(StandardCharsets.UTF_8))
       val generated = paths.generatedSourcesBaseDir(crossName).resolve("scripts")
       Files.createDirectories(generated)
       Files.write(generated.resolve("Gen.scala"), s"generated-$name".getBytes(StandardCharsets.UTF_8))
     }
+    // workspace-level state: request transcripts describe THIS workspace's runs and must never seed a fork
+    val requests = bleep.BuildPaths(dir, bleep.BuildLoader.find(dir), model.BuildVariant.Normal).requestsDir
+    Files.createDirectories(requests)
+    Files.write(requests.resolve("1.json"), "{}".getBytes(StandardCharsets.UTF_8))
     dir
   }
 
@@ -211,6 +217,12 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
         withClue("a lock file must never be inherited: ") {
           Files.exists(toPaths.variantBuildDir(crossName).resolve(".bleep-lock")) shouldBe false
         }
+        withClue("zinc's cache dir is per-workspace state and regenerates — sharing it is decided by StateSharing's allow-list, not a local deny-list: ") {
+          Files.exists(toPaths.zincDir(crossName).resolve("cache")) shouldBe false
+        }
+      }
+      withClue("request transcripts describe the SOURCE workspace's runs; a fork claiming them would be lying: ") {
+        Files.exists(toPaths.requestsDir) shouldBe false
       }
     }
   }
