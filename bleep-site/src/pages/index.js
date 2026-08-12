@@ -283,6 +283,9 @@ function SpecimenSection() {
           rewrite. The same model bleep itself uses. And because
           it&rsquo;s data, your agent can read it in one pass, edit it
           safely, and verify the result — try that with a build script.
+          The YAML is just the first layer: the same discipline runs
+          through the whole tool, all the way to{" "}
+          <Link to="/#answers">build runs you can diff</Link>.
         </SectionHeader>
 
         <Reveal>
@@ -922,7 +925,7 @@ function AgentAnswersSection() {
     <section id="answers" className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Small token budgets"
+          eyebrow="Data all the way down"
           title={
             <>
               The build that <em>answers</em> questions.
@@ -930,9 +933,15 @@ function AgentAnswersSection() {
           }
         >
           An agent&rsquo;s loop is edit, rerun, ask what changed. Bleep
-          answers each step in data: a compact summary now, the full
-          transcript of any past run on demand, and a diff between any
-          two runs that timing noise can never touch.
+          can answer because every layer is a value:{" "}
+          <code>bleep.yaml</code> is data, the resolved build model is
+          immutable data, everything the daemon does is emitted as typed
+          events, and a completed run is a transcript — an immutable
+          value written into the worktree, surviving every restart. And
+          values compose: diffing two runs is a pure function over two
+          files. Build logs you can diff isn&rsquo;t a feature bolted
+          on; it falls out of the architecture. No other build tool has
+          this shape.
         </SectionHeader>
 
         <Reveal>
@@ -994,6 +1003,20 @@ agent  bleep.diff { base: 18, target: 20 }
               </p>
             </article>
           </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "2.25rem", textAlign: "center" }}
+          >
+            Transcripts live in the worktree — written once by the
+            daemon, read by every client. The same history from the
+            terminal: <code>bleep requests</code>,{" "}
+            <code>bleep details</code>, <code>bleep diff</code> — pure
+            reads over files, no daemon required, and{" "}
+            <code>--base-dir</code> diffs runs across worktrees.
+          </p>
         </Reveal>
 
         <Reveal delay={140}>
