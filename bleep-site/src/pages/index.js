@@ -822,9 +822,9 @@ function TestRunnerSection() {
 }
 
 /* ------------------------------------------------------------------
-   MCP server, tooling for the future, agent-aware
+   Agents 1/2 — orchestration: one server, every worktree
    ------------------------------------------------------------------ */
-function McpSection() {
+function AgentWorktreesSection() {
   return (
     <section id="agents" className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
@@ -843,19 +843,9 @@ function McpSection() {
           bleep mcp-server</code>) and every session — and every
           subagent it sends into a worktree — can compile, test, run,
           and inspect any checkout on the machine. Many agents at once,
-          many worktrees at once, small token budgets — it all just
-          works, and it&rsquo;s fast.
+          many worktrees at once — it all just works, and it&rsquo;s
+          fast.
         </SectionHeader>
-
-        <Reveal>
-          <p className={styles.mcpStat}>
-            <span className={styles.mcpStatFigure}>~200 tokens</span>
-            <span className={styles.mcpStatRest}>
-              instead of a 30,000-token build log. Per call. That&rsquo;s
-              the whole idea.
-            </span>
-          </p>
-        </Reveal>
 
         <Reveal delay={80}>
           <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
@@ -870,15 +860,29 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon k
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                Worktrees are <em>first-class</em>
+                Every call names its <em>workspace</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                The server pins nothing at boot; each call carries its{" "}
+                <code>directory</code> and sees the build as it is right
+                now. A subagent in a worktree can&rsquo;t silently build
+                the parent checkout, and there is no cached workspace
+                state to go stale. One user-scope registration, every
+                checkout, forever.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Forks start <em>warm</em>
               </h3>
               <p className={styles.mcpCardBody}>
                 <code>git worktree add</code>, one{" "}
                 <code>bleep.copy-state</code> call to clone the parent
                 worktree&rsquo;s compiled state — clonefile-fast, under
-                the compile server&rsquo;s locks — and the first build
-                compiles a few files instead of a few hundred. No other
-                setup, no teardown, no per-checkout config.
+                the compile server&rsquo;s locks, safe even while the
+                parent compiles — and the first build compiles a few
+                files instead of a few hundred. No other setup, no
+                teardown.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -893,6 +897,65 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon k
                 and a fresh worktree skips what a sibling already built.
               </p>
             </article>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "2.25rem", textAlign: "center" }}
+          >
+            Bleep is developed this way — sessions of parallel agents in
+            git worktrees, building bleep with bleep.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Agents 2/2 — observability: the build that answers questions
+   ------------------------------------------------------------------ */
+function AgentAnswersSection() {
+  return (
+    <section id="answers" className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Small token budgets"
+          title={
+            <>
+              The build that <em>answers</em> questions.
+            </>
+          }
+        >
+          An agent&rsquo;s loop is edit, rerun, ask what changed. Bleep
+          answers each step in data: a compact summary now, the full
+          transcript of any past run on demand, and a diff between any
+          two runs that timing noise can never touch.
+        </SectionHeader>
+
+        <Reveal>
+          <p className={styles.mcpStat}>
+            <span className={styles.mcpStatFigure}>~200 tokens</span>
+            <span className={styles.mcpStatRest}>
+              instead of a 30,000-token build log. Per call. That&rsquo;s
+              the whole idea.
+            </span>
+          </p>
+        </Reveal>
+
+        <Reveal delay={80}>
+          <pre className={styles.vignette}>{`agent  breaks a test, reruns   bleep.test → { requestId: 19, failed: 1 }
+agent  bleep.diff { base: 18, target: 19 }
+       → { identical: false, summary: "1 newlyFailing", newlyFailing: [{ from: "passed", to: "failed", … }] }
+agent  reverts, reruns         bleep.test → { requestId: 20, passed: 14 }
+agent  bleep.diff { base: 18, target: 20 }
+       → { identical: true, summary: "No logical differences." }   ← ~800ms of timing noise, zero false diffs`}</pre>
+        </Reveal>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
                 Answers, not <em>transcripts</em>
@@ -905,17 +968,32 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon k
                 diagnostics.
               </p>
             </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Ask what <em>changed</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                <code>bleep.diff</code> compares any two runs: newly
+                failing, fixed, newly skipped with reasons, new and
+                resolved diagnostics. Deterministic by construction —
+                durations never enter the compared data, so timing
+                can&rsquo;t fake a difference, and a diagnostic that
+                only moved lines is neither new nor resolved.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Timing is its own <em>question</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                <code>bleep.diff-timing</code> answers what got slower
+                or faster, with jitter suppressed under a threshold, and
+                names the slowest suites and projects in the run. Speed
+                regressions can&rsquo;t hide in the logical diff, and
+                jitter never cries wolf.
+              </p>
+            </article>
           </div>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <p
-            className={styles.sectionLede}
-            style={{ marginTop: "2.25rem", textAlign: "center" }}
-          >
-            Bleep is developed this way — sessions of parallel agents in
-            git worktrees, building bleep with bleep.
-          </p>
         </Reveal>
 
         <Reveal delay={140}>
@@ -938,7 +1016,7 @@ agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon k
    ------------------------------------------------------------------ */
 function MigrationSection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="Already have a project?"
@@ -1116,7 +1194,8 @@ export default function Home() {
           <CISection />
           <RoundtripSection />
           <TestRunnerSection />
-          <McpSection />
+          <AgentWorktreesSection />
+          <AgentAnswersSection />
           <MigrationSection />
           <InstallCTA />
         </main>
