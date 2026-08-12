@@ -37,19 +37,28 @@ object RequestDiff {
 
   private val BaseMarker = "${BASE}"
 
-  /** Relativize `p` against this side's workspace root — identity only, never display. */
+  /** Relativize `p` against this side's workspace root — identity only, never display. Separator-agnostic: the workspace root comes from BuildPaths (native
+    * separators) while compiler-reported paths may use either style on Windows, and `File.separator` of the machine READING the transcript is irrelevant to the
+    * machine that wrote it. Everything is normalized to forward slashes before comparison — for the ephemeral identity key only.
+    */
   private def relPath(workspace: String, p: String): String = {
-    val sep = java.io.File.separator
-    val root = if (workspace.endsWith(sep)) workspace else workspace + sep
-    if (p.startsWith(root)) p.substring(root.length).replace('\\', '/')
-    else p
+    val ws = workspace.replace('\\', '/')
+    val root = if (ws.endsWith("/")) ws else ws + "/"
+    val pn = p.replace('\\', '/')
+    if (pn.startsWith(root)) pn.substring(root.length) else pn
   }
 
-  /** Replace occurrences of this side's workspace root embedded in free text — identity only, never display. */
+  /** Replace occurrences of this side's workspace root embedded in free text — identity only, never display. Both separator spellings of the root are replaced:
+    * messages quote paths in whatever style the compiler printed them.
+    */
   private def relMessage(workspace: String, message: String): String = {
-    val sep = java.io.File.separator
-    val root = if (workspace.endsWith(sep)) workspace.dropRight(sep.length) else workspace
-    message.replace(root + sep, BaseMarker + "/").replace(root, BaseMarker)
+    val fwd = workspace.replace('\\', '/').reverse.dropWhile(_ == '/').reverse
+    val back = fwd.replace('/', '\\')
+    message
+      .replace(back + "\\", BaseMarker + "/")
+      .replace(back, BaseMarker)
+      .replace(fwd + "/", BaseMarker + "/")
+      .replace(fwd, BaseMarker)
   }
 
   private def requireSameMode(base: Transcript, target: Transcript): Unit =
@@ -397,7 +406,7 @@ object RequestDiff {
       timingFor(base, target, compileDurations(base), compileDurations(target), (p: String) => List("project" -> Json.fromString(p)), limit)
   }
 
-  private def timingFor[K](
+  private def timingFor[K: Ordering](
       base: Transcript,
       target: Transcript,
       baseDurations: Map[K, Long],
@@ -421,11 +430,12 @@ object RequestDiff {
       )
     }
 
-    val regressions = significantDeltas.filter(_._4 > 0).sortBy(-_._4).take(limit)
-    val improvements = significantDeltas.filter(_._4 < 0).sortBy(_._4).take(limit)
+    // Ties break on the item key, never on hash-set iteration order: the same two transcripts must render the same JSON on every run of the diff.
+    val regressions = significantDeltas.filter(_._4 > 0).sortBy { case (k, _, _, d) => (-d, k) }.take(limit)
+    val improvements = significantDeltas.filter(_._4 < 0).sortBy { case (k, _, _, d) => (d, k) }.take(limit)
 
     val slowestInTarget = targetDurations.toList
-      .sortBy(-_._2)
+      .sortBy { case (k, ms) => (-ms, k) }
       .take(limit)
       .map { case (key, ms) => Json.obj((itemJson(key) ++ List("durationMs" -> Json.fromLong(ms)))*) }
 

@@ -357,6 +357,65 @@ class RequestDiffTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("cross-worktree: Windows-style roots and paths relativize like unix ones — identity never depends on the reading machine's separator") {
+    // Reproduces the CI failure on windows-latest: relativization used File.separator of the machine READING the transcript, so unix-style test data never
+    // matched on Windows. The contract is same-machine cross-WORKTREE identity: both sides spell paths the way their OS does, consistently. (A Windows parent
+    // diffed against a unix fork is a cross-MACHINE diff and out of scope — message tails keep their native spelling.)
+    def winWs(root: String) = transcript(
+      "compile",
+      compiled(
+        "app",
+        CompileReason.Incremental,
+        List("A.scala"),
+        diagnostics = List(diag(DiagnosticSeverity.Error, s"stale reference to $root\\target\\Foo.class", s"$root\\src\\A.scala", 5))
+      ),
+      workspace = root
+    )
+    val d = RequestDiff.mechanical(winWs("C:\\ws\\parent"), winWs("C:\\ws\\fork"))
+    withClue(s"two Windows worktrees with the same diagnostic must compare identical: ${d.noSpaces} ") {
+      isIdentical(d) shouldBe true
+    }
+  }
+
+  // ==========================================================================
+  // Order independence
+  // ==========================================================================
+
+  test("mechanical compile: concurrent-project event interleaving is invisible — permuted streams diff as identical") {
+    // Two projects compiling concurrently interleave their events arbitrarily in the recorded stream. Same facts, opposite interleaving:
+    val (coreEvents, appEvents) = (
+      compiled("core", CompileReason.Incremental, List("Core.scala"), tookMs = 100),
+      compiled("app", CompileReason.Incremental, List("App.scala"), tookMs = 200)
+    )
+    val run1 = transcript("compile", List(coreEvents(0), appEvents(0), coreEvents(1), appEvents(1)))
+    val run2 = transcript("compile", List(appEvents(0), coreEvents(0), appEvents(1), coreEvents(1)))
+    val d = RequestDiff.mechanical(run1, run2)
+    withClue(s"interleaving is not information: ${d.noSpaces} ") {
+      isIdentical(d) shouldBe true
+    }
+  }
+
+  test("timing: equal deltas and equal durations order by key, and the same inputs render byte-identical JSON every time") {
+    def run(base: Boolean) = transcript(
+      "test",
+      List(
+        test("app", "S", "zeta", TestStatus.Passed, tookMs = if (base) 100 else 400),
+        test("app", "S", "alpha", TestStatus.Passed, tookMs = if (base) 100 else 400),
+        test("app", "S", "mid", TestStatus.Passed, tookMs = if (base) 100 else 400)
+      )
+    )
+    val (b, t) = (run(base = true), run(base = false))
+    val d1 = RequestDiff.timing(b, t, limit = 10)
+    val d2 = RequestDiff.timing(b, t, limit = 10)
+    withClue("determinism: same transcripts, same JSON, every time: ") {
+      d1.noSpaces shouldBe d2.noSpaces
+    }
+    withClue("ties (+300ms each) break on the item key, not hash order: ") {
+      arrayNames(d1, "slower", "test") shouldBe List("alpha", "mid", "zeta")
+      arrayNames(d1, "slowestInTarget", "test") shouldBe List("alpha", "mid", "zeta")
+    }
+  }
+
   // ==========================================================================
   // Errors
   // ==========================================================================
