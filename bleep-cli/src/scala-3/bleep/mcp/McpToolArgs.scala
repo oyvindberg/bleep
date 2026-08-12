@@ -110,27 +110,31 @@ object TestArgs {
   ).asInstanceOf[JsonSchemaEncoder[TestArgs]]
 }
 
-/** Args for bleep.details: full results of a completed request by id. */
-case class DetailsArgs(requestId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
+/** Args for bleep.details: full results of a completed request by id. Requires `directory` like every other tool — request ids are per-workspace, so an id
+  * means nothing without saying whose history to look in.
+  */
+case class DetailsArgs(directory: String, requestId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
 object DetailsArgs {
-  private val knownFields = Set("requestId", "project", "query", "limit", "offset")
+  private val knownFields = Set("directory", "requestId", "project", "query", "limit", "offset")
   given Decoder[DetailsArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
       requestId <- decodeOptional[Long](c, "requestId")
       project <- decodeOptional[String](c, "project")
       query <- decodeOptional[String](c, "query")
       limit <- decodeOptional[Int](c, "limit")
       offset <- decodeOptional[Int](c, "offset")
-    } yield DetailsArgs(requestId, project, query, limit, offset)
+    } yield DetailsArgs(directory, requestId, project, query, limit, offset)
   }
   given JsonSchemaEncoder[DetailsArgs] = schema(
     Json.obj(
       "type" -> Json.fromString("object"),
       "properties" -> Json.obj(
+        directoryProperty,
         "requestId" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("The requestId from a compile/test response. Omit for the most recent request.")
+          "description" -> Json.fromString("The requestId from a compile/test response. Omit for the workspace's most recent request.")
         ),
         "project" -> Json.obj(
           "type" -> Json.fromString("string"),
@@ -150,7 +154,8 @@ object DetailsArgs {
           "type" -> Json.fromString("integer"),
           "description" -> Json.fromString("Skip the first N items before applying limit.")
         )
-      )
+      ),
+      "required" -> Json.arr(Json.fromString("directory"))
     )
   ).asInstanceOf[JsonSchemaEncoder[DetailsArgs]]
 }
@@ -211,23 +216,27 @@ object CopyStateArgs {
 }
 
 /** Args for bleep.diff / bleep.diff-timing: compare two completed requests. Both ids are required and explicit — no defaulting to "latest", because diffing the
-  * wrong pair silently is worse than asking the caller to say what they mean.
+  * wrong pair silently is worse than asking the caller to say what they mean. `directory` names the workspace whose history holds the ids; `baseDirectory`
+  * optionally resolves `base` in a different worktree (the copy-state verification flow).
   */
-case class DiffArgs(base: Long, target: Long, limit: Option[Int])
+case class DiffArgs(directory: String, base: Long, target: Long, limit: Option[Int], baseDirectory: Option[String])
 object DiffArgs {
-  private val knownFields = Set("base", "target", "limit")
+  private val knownFields = Set("directory", "base", "target", "limit", "baseDirectory")
   given Decoder[DiffArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
       base <- c.downField("base").as[Long]
       target <- c.downField("target").as[Long]
       limit <- decodeOptional[Int](c, "limit")
-    } yield DiffArgs(base, target, limit)
+      baseDirectory <- decodeOptional[String](c, "baseDirectory")
+    } yield DiffArgs(directory, base, target, limit, baseDirectory)
   }
   given JsonSchemaEncoder[DiffArgs] = schema(
     Json.obj(
       "type" -> Json.fromString("object"),
       "properties" -> Json.obj(
+        directoryProperty,
         "base" -> Json.obj(
           "type" -> Json.fromString("integer"),
           "description" -> Json.fromString("requestId of the run to compare FROM (the earlier/reference run).")
@@ -239,9 +248,15 @@ object DiffArgs {
         "limit" -> Json.obj(
           "type" -> Json.fromString("integer"),
           "description" -> Json.fromString("bleep.diff-timing only: max entries per list (slower/faster/slowestInTarget). Default 15.")
+        ),
+        "baseDirectory" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString(
+            "Resolve `base` in this other worktree's history instead of `directory`'s — e.g. the worktree this one was forked from, to verify a copy-state seed. Cross-worktree diagnostic identity is path-relativized automatically."
+          )
         )
       ),
-      "required" -> Json.arr(Json.fromString("base"), Json.fromString("target"))
+      "required" -> Json.arr(Json.fromString("directory"), Json.fromString("base"), Json.fromString("target"))
     )
   ).asInstanceOf[JsonSchemaEncoder[DiffArgs]]
 }

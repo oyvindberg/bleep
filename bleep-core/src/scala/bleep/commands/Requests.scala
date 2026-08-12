@@ -65,7 +65,7 @@ object Requests {
     override def run(started: Started): Either[BleepException, Unit] = {
       val targetPaths = started.buildPaths
       val basePaths = baseDir match {
-        case Some(dir) => Diff.workspacePaths(dir)
+        case Some(dir) => Requests.workspacePaths(dir, what = "--base-dir")
         case None      => targetPaths
       }
       val baseTranscript: Transcript = TranscriptStore.read(basePaths, base)
@@ -78,14 +78,18 @@ object Requests {
     }
   }
 
-  object Diff {
-
-    /** Resolve another workspace's BuildPaths the way the daemon's copy-state endpoint does: from its root directory, Normal variant. */
-    def workspacePaths(dir: Path): BuildPaths = {
-      val abs = dir.toAbsolutePath.normalize()
-      if (!Files.isDirectory(abs)) throw new BleepException.Text(s"--base-dir is not an existing directory: $abs")
-      val buildLoader = BuildLoader.find(abs)
-      BuildPaths(abs, buildLoader, model.BuildVariant.Normal)
+  /** Resolve a workspace's BuildPaths from a directory inside it, Normal variant — the variant the CLI and MCP write. Fails loudly when the directory does not
+    * exist or holds no bleep build: pointing the transcript reads at a wrong path must not degrade into "no request with that id". Shared by `--base-dir` here
+    * and the MCP `directory`/`baseDirectory` arguments; `what` names the argument in error messages.
+    */
+  def workspacePaths(dir: Path, what: String): BuildPaths = {
+    val abs = dir.toAbsolutePath.normalize()
+    if (!Files.isDirectory(abs)) throw new BleepException.Text(s"$what is not an existing directory: $abs")
+    val buildLoader = BuildLoader.find(abs)
+    buildLoader.existing match {
+      case Left(be) => throw be
+      case Right(_) => ()
     }
+    BuildPaths(abs, buildLoader, model.BuildVariant.Normal)
   }
 }
