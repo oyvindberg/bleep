@@ -104,6 +104,11 @@ class MultiWorkspaceBspServer(
   /** Whether the connected client is an IDE (Metals, IntelliJ) — set during initialize */
   private val ideClient = AtomicBoolean(false)
 
+  /** The connected client's self-declared name ("bleep", "bleep-mcp", "Metals", ...) from the initialize handshake. Recorded in transcripts as display
+    * metadata. Requests cannot run before initialize (the dispatcher rejects them), so this is always set by the time a transcript is written.
+    */
+  private val clientDisplayName = AtomicReference[Option[String]](None)
+
   /** Resolved path to com.sourcegraph:semanticdb-javac JAR for Java semanticdb support (set during initialize for IDE clients) */
   private val javaSemanticdbPlugin = AtomicReference[Option[Path]](None)
 
@@ -523,6 +528,7 @@ class MultiWorkspaceBspServer(
       parsedInitData.flatMap(_.hcursor.get[String]("javaSemanticdbVersion").toOption)
 
     ideClient.set(isIdeClient)
+    clientDisplayName.set(Some(params.displayName))
 
     val variant = parsedPayload
       .map(_.variantName)
@@ -831,7 +837,8 @@ class MultiWorkspaceBspServer(
       operation: String,
       projects: Set[String],
       cancellation: CancellationToken,
-      originId: Option[String]
+      originId: Option[String],
+      recorder: TranscriptRecorder
   ): Unit = {
     // Notify client about concurrent operations (informational)
     val concurrent = SharedWorkspaceState.getActiveOperations(workspace)
@@ -844,7 +851,8 @@ class MultiWorkspaceBspServer(
           projects = active.projects.toList.sorted.map(s => CrossProjectName.fromString(s).get),
           startedAgoMs = System.currentTimeMillis() - active.startTimeMs,
           timestamp = System.currentTimeMillis()
-        )
+        ),
+        recorder
       )
     }
 
@@ -1748,7 +1756,9 @@ class MultiWorkspaceBspServer(
     val opLabel = if (args.exists(_.contains("link"))) "link" else "compile"
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-    registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId)
+    // Accumulates every event this request streams to the client, so completion can persist the transcript. Strictly request-scoped.
+    val recorder = new TranscriptRecorder
+    registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -1907,7 +1917,7 @@ class MultiWorkspaceBspServer(
         // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
         val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-        val compileHandler = makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker)
+        val compileHandler = makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
@@ -1943,7 +1953,7 @@ class MultiWorkspaceBspServer(
             sourcegen = sourcegenHandler,
             annotationProcessor = apHandler,
             symbolProcessor = kspHandler,
-            mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold)
+            mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold, recorder)
           )
         )
 
@@ -1953,7 +1963,7 @@ class MultiWorkspaceBspServer(
 
           // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
           consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
-          eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder).compile.drain.handleErrorWith { e =>
+          eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder, recorder).compile.drain.handleErrorWith { e =>
             // Capture consumer error for later inspection
             IO(logger.withContext("error", e.getMessage).error("Compile event consumer error")) >>
               consumerErrorRef.set(Some(e))
@@ -1988,80 +1998,96 @@ class MultiWorkspaceBspServer(
           // Clear stale diagnostics for files that had errors last cycle but not this one
           _ <- IO(clearStaleDiagnostics(diagnosticTracker))
 
-          result <- IO(ioResult match {
-            case Right(dag) =>
-              val durationMs = System.currentTimeMillis() - startTime
-              val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
-              BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
-              val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
-              val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
-              val compileCompleted = compileTasks.count(dag.completed.contains)
-              val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-              val linkCompleted = linkTasks.count(dag.completed.contains)
-              val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-              // Count how many links were actually executed vs up-to-date
-              val linksUpToDate = dag.linkResults.values.count {
-                case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
-                case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
-                case _                                                  => false
-              }
-              val linksActuallyLinked = linkCompleted - linksUpToDate
-
-              if (cancellation.isCancelled) {
-                bspWarn(s"Compilation cancelled (${durationMs}ms)")
-                CompileResult(
-                  originId = params.originId,
-                  statusCode = StatusCode.Cancelled,
-                  dataKind = None,
-                  data = None
+          result <- IO {
+            // Persist the transcript before building the response, whatever the outcome — a failed or cancelled run's transcript is exactly what a diff wants
+            // to see. The consumer fiber has been joined by now, so the recorder holds the complete event stream. `None` means the write failed (logged, never
+            // fails the build) and the response carries no id.
+            val requestId: Option[Long] =
+              recordTranscript(started, mode = "compile", targets = projectsToCompile.map(_.value).toList.sorted, recorder = recorder, testRunResult = None)
+            val (responseDataKind, responseData) = requestId match {
+              case Some(id) =>
+                (
+                  Some(BleepBspProtocol.RequestIdDataKind),
+                  Some(RawJson(BleepBspProtocol.RequestIdPayload.encode(BleepBspProtocol.RequestIdPayload(id)).getBytes("UTF-8")))
                 )
-              } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
-                val failedIds = (dag.failed ++ dag.errored).mkString(", ")
-                bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
-                debugLog(s"Failed tasks: $failedIds")
+              case None => (None, None)
+            }
+
+            ioResult match {
+              case Right(dag) =>
+                val durationMs = System.currentTimeMillis() - startTime
+                val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
+                BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
+                val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
+                val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
+                val compileCompleted = compileTasks.count(dag.completed.contains)
+                val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+                val linkCompleted = linkTasks.count(dag.completed.contains)
+                val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+                // Count how many links were actually executed vs up-to-date
+                val linksUpToDate = dag.linkResults.values.count {
+                  case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
+                  case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
+                  case _                                                  => false
+                }
+                val linksActuallyLinked = linkCompleted - linksUpToDate
+
+                if (cancellation.isCancelled) {
+                  bspWarn(s"Compilation cancelled (${durationMs}ms)")
+                  CompileResult(
+                    originId = params.originId,
+                    statusCode = StatusCode.Cancelled,
+                    dataKind = responseDataKind,
+                    data = responseData
+                  )
+                } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
+                  val failedIds = (dag.failed ++ dag.errored).mkString(", ")
+                  bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
+                  debugLog(s"Failed tasks: $failedIds")
+                  CompileResult(
+                    originId = params.originId,
+                    statusCode = StatusCode.Error,
+                    dataKind = responseDataKind,
+                    data = responseData
+                  )
+                } else {
+                  val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
+                    s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
+                  } else if (linksUpToDate > 0) {
+                    s"$linksUpToDate up-to-date"
+                  } else if (linksActuallyLinked > 0) {
+                    s"$linksActuallyLinked linked"
+                  } else if (linkCompleted > 0) {
+                    s"$linkCompleted linked"
+                  } else {
+                    ""
+                  }
+                  val fullSummary = if (linkSummary.nonEmpty) {
+                    s"$compileCompleted compiled, $linkSummary"
+                  } else {
+                    s"$compileCompleted compiled"
+                  }
+                  bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
+                  CompileResult(
+                    originId = params.originId,
+                    statusCode = StatusCode.Ok,
+                    dataKind = responseDataKind,
+                    data = responseData
+                  )
+                }
+
+              case Left(ex) =>
+                val durationMs = System.currentTimeMillis() - startTime
+                BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
+                bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
                 CompileResult(
                   originId = params.originId,
                   statusCode = StatusCode.Error,
-                  dataKind = None,
-                  data = None
+                  dataKind = responseDataKind,
+                  data = responseData
                 )
-              } else {
-                val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
-                  s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
-                } else if (linksUpToDate > 0) {
-                  s"$linksUpToDate up-to-date"
-                } else if (linksActuallyLinked > 0) {
-                  s"$linksActuallyLinked linked"
-                } else if (linkCompleted > 0) {
-                  s"$linkCompleted linked"
-                } else {
-                  ""
-                }
-                val fullSummary = if (linkSummary.nonEmpty) {
-                  s"$compileCompleted compiled, $linkSummary"
-                } else {
-                  s"$compileCompleted compiled"
-                }
-                bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
-                CompileResult(
-                  originId = params.originId,
-                  statusCode = StatusCode.Ok,
-                  dataKind = None,
-                  data = None
-                )
-              }
-
-            case Left(ex) =>
-              val durationMs = System.currentTimeMillis() - startTime
-              BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
-              bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
-              CompileResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = None,
-                data = None
-              )
-          })
+            }
+          }
         } yield result
       }
     }.guarantee(IO(unregisterOperation(workspace, taskId)))
@@ -2102,14 +2128,15 @@ class MultiWorkspaceBspServer(
   }
 
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
-  private def makeHeapPressureListener(originId: Option[String]): HeapPressureGate.Listener =
+  private def makeHeapPressureListener(originId: Option[String], recorder: TranscriptRecorder): HeapPressureGate.Listener =
     new HeapPressureGate.Listener {
       def onWait(project: String, used: HeapMb, max: HeapMb, delayMs: Long, now: EpochMs): Unit = {
         val retryAt = EpochMs(now.value + delayMs)
         sendEvent(
           originId,
           s"compile:$project",
-          BleepBspProtocol.Event.CompileStalled(CrossProjectName.fromString(project).get, used.value, max.value, retryAt.value, now.value)
+          BleepBspProtocol.Event.CompileStalled(CrossProjectName.fromString(project).get, used.value, max.value, retryAt.value, now.value),
+          recorder
         )
         logger
           .withContext("project", project)
@@ -2121,7 +2148,8 @@ class MultiWorkspaceBspServer(
         sendEvent(
           originId,
           s"compile:$project",
-          BleepBspProtocol.Event.CompileResumed(CrossProjectName.fromString(project).get, used.value, max.value, waitedFor.value, now.value)
+          BleepBspProtocol.Event.CompileResumed(CrossProjectName.fromString(project).get, used.value, max.value, waitedFor.value, now.value),
+          recorder
         )
         logger.withContext("project", project).info(s"resuming after ${waitedFor.value}ms wait (heap: ${used.value}MB/${max.value}MB)")
       }
@@ -2138,8 +2166,8 @@ class MultiWorkspaceBspServer(
     *
     * `othersCompiling` is `> 0`, not `> 1` as the old in-task gate used: this runs BEFORE the reservation, so this compile is not in the count yet.
     */
-  private def makeCompileAdmission(originId: Option[String], threshold: Double): TaskDag.CompileTask => IO[Boolean] = {
-    val listener = makeHeapPressureListener(originId)
+  private def makeCompileAdmission(originId: Option[String], threshold: Double, recorder: TranscriptRecorder): TaskDag.CompileTask => IO[Boolean] = {
+    val listener = makeHeapPressureListener(originId, recorder)
     val firstRefusedAt = Ref.unsafe[IO, Map[String, EpochMs]](Map.empty)
 
     compileTask => {
@@ -2184,8 +2212,48 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Send a structured event via BSP notification. Used for compile, link, and test events. */
-  private def sendEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
+  /** Persist the transcript of a completed compile/test request to `<workspace>/.bleep/builds/<variant>/requests/` and return the assigned id.
+    *
+    * SANCTIONED EXCEPTION to fail-loudly: a transcript-write failure must never fail a build that already ran — the compile output and test results are real
+    * regardless of whether their record made it to disk. Log the error, return None, and the response simply carries no id.
+    */
+  private def recordTranscript(
+      started: Started,
+      mode: String,
+      targets: List[String],
+      recorder: TranscriptRecorder,
+      testRunResult: Option[BleepBspProtocol.TestRunResult]
+  ): Option[Long] =
+    try {
+      val client = clientDisplayName.get().getOrElse(sys.error("client displayName not set — build/initialize has not run"))
+      val transcript = bleep.requests.TranscriptStore.write(
+        buildPaths = started.buildPaths,
+        timestampMs = System.currentTimeMillis(),
+        mode = mode,
+        targets = targets,
+        client = client,
+        events = recorder.events,
+        testRunResult = testRunResult
+      )
+      logger
+        .withContext("requestId", transcript.id)
+        .withContext("mode", mode)
+        .withContext("events", transcript.events.size)
+        .debug("Request transcript written")
+      Some(transcript.id)
+    } catch {
+      case scala.util.control.NonFatal(e) =>
+        logger.withContext("error", e.getMessage).withContext("mode", mode).warn("Failed to write request transcript (build result unaffected)")
+        None
+    }
+
+  /** Send a structured event via BSP notification. Used for compile, link, and test events.
+    *
+    * This is the choke point every request event passes through, so it also feeds the request's [[TranscriptRecorder]] — what the client sees and what the
+    * transcript stores are the same stream by construction.
+    */
+  private def sendEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event, recorder: TranscriptRecorder): Unit = {
+    recorder.record(event)
     val eventJson = BleepBspProtocol.encode(event)
     sendNotification(
       "build/taskProgress",
@@ -2223,7 +2291,9 @@ class MultiWorkspaceBspServer(
 
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-    registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId)
+    // Accumulates every event this request streams to the client, so completion can persist the transcript. Strictly request-scoped.
+    val recorder = new TranscriptRecorder
+    registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -2377,7 +2447,7 @@ class MultiWorkspaceBspServer(
           val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
           val compileHandler =
-            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker)
+            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val includeTagsSet = testOptions.includeTags.toSet
@@ -2538,7 +2608,7 @@ class MultiWorkspaceBspServer(
               sourcegen = sourcegenHandler,
               annotationProcessor = apHandler,
               symbolProcessor = kspHandler,
-              mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold)
+              mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold, recorder)
             )
           )
 
@@ -2559,7 +2629,8 @@ class MultiWorkspaceBspServer(
               totalSkippedRef,
               totalIgnoredRef,
               killSignal,
-              traceRecorder
+              traceRecorder,
+              recorder
             ).compile.drain.handleErrorWith { e =>
               // Capture consumer error for later inspection
               IO(logger.withContext("error", e.getMessage).error("Test event consumer error")) >>
@@ -2654,7 +2725,8 @@ class MultiWorkspaceBspServer(
             sendTestEvent(
               params.originId,
               "test-run",
-              BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp)
+              BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp),
+              recorder
             )
 
             // Determine final status
@@ -2671,8 +2743,9 @@ class MultiWorkspaceBspServer(
 
             bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
 
-            // Include authoritative test results in TestResult.data for reliable delivery
-            val runResult = BleepBspProtocol.TestRunResult(
+            // Include authoritative test results in TestResult.data for reliable delivery. The copy stored in the transcript carries requestId=None — the
+            // transcript's own id is authoritative there; the copy returned to the client carries the freshly assigned id (None iff the write failed).
+            val storedRunResult = BleepBspProtocol.TestRunResult(
               totalPassed = totalPassed,
               totalFailed = totalFailed,
               totalSkipped = totalSkipped,
@@ -2681,8 +2754,18 @@ class MultiWorkspaceBspServer(
               suitesCompleted = suitesCompleted,
               suitesFailed = suitesFailed,
               suitesCancelled = suitesCancelled,
-              durationMs = durationMs
+              durationMs = durationMs,
+              requestId = None
             )
+            val requestId: Option[Long] =
+              recordTranscript(
+                started,
+                mode = "test",
+                targets = testProjects.map(_.value).toList.sorted,
+                recorder = recorder,
+                testRunResult = Some(storedRunResult)
+              )
+            val runResult = storedRunResult.copy(requestId = requestId)
 
             TestResult(
               originId = params.originId,
@@ -2708,12 +2791,14 @@ class MultiWorkspaceBspServer(
                   message = s"Test execution failed: ${ex.getMessage}",
                   details = Some(ex.getStackTrace.take(10).mkString("\n")),
                   timestamp = timestamp
-                )
+                ),
+                recorder
               )
               sendTestEvent(
                 params.originId,
                 "test-run",
-                BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp)
+                BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp),
+                recorder
               )
             } catch {
               case _: java.io.IOException =>
@@ -2723,7 +2808,7 @@ class MultiWorkspaceBspServer(
             }
 
             // Include zero-valued authoritative result even on failure
-            val failRunResult = BleepBspProtocol.TestRunResult(
+            val storedFailRunResult = BleepBspProtocol.TestRunResult(
               totalPassed = 0,
               totalFailed = 0,
               totalSkipped = 0,
@@ -2732,8 +2817,18 @@ class MultiWorkspaceBspServer(
               suitesCompleted = 0,
               suitesFailed = 0,
               suitesCancelled = 0,
-              durationMs = durationMs
+              durationMs = durationMs,
+              requestId = None
             )
+            val requestId: Option[Long] =
+              recordTranscript(
+                started,
+                mode = "test",
+                targets = testProjects.map(_.value).toList.sorted,
+                recorder = recorder,
+                testRunResult = Some(storedFailRunResult)
+              )
+            val failRunResult = storedFailRunResult.copy(requestId = requestId)
 
             TestResult(
               originId = params.originId,
@@ -2772,7 +2867,8 @@ class MultiWorkspaceBspServer(
       workspace: Path,
       originId: Option[String],
       apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult],
-      diagnosticTracker: BspDiagnosticTracker
+      diagnosticTracker: BspDiagnosticTracker,
+      recorder: TranscriptRecorder
   ): (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
     (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
@@ -2795,6 +2891,22 @@ class MultiWorkspaceBspServer(
             case _                             => None
           }
           if (noopResult.isDefined) {
+            // Say WHY nothing happened: without this event a noop's transcript is just Started/Finished, indistinguishable from a compile whose reason was
+            // lost. With it, two noop runs of the same project carry identical logical facts — which is what lets a mechanical diff of two noop transcripts
+            // report `identical` (the copy-state verification flow depends on exactly that).
+            sendEvent(
+              originId,
+              s"compile:$projectName",
+              BleepBspProtocol.Event.CompilationReason(
+                project = compileTask.project,
+                reason = bleep.bsp.protocol.CompileReason.UpToDate,
+                totalFiles = 0,
+                invalidatedFiles = Nil,
+                changedDependencies = Nil,
+                timestamp = System.currentTimeMillis()
+              ),
+              recorder
+            )
             IO.pure(TaskDag.TaskResult.Success)
           } else {
             // Cooperative cancellation: a background fiber waits for the task-level kill signal and trips the CancellationToken so the inner compile's
@@ -2815,7 +2927,7 @@ class MultiWorkspaceBspServer(
                 // which is not the quantity anything wants to know.
                 val compileStartTime = System.currentTimeMillis()
                 IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker)
+                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker, recorder)
                     .guaranteeCase {
                       case cats.effect.Outcome.Succeeded(resultIO) =>
                         resultIO.flatMap { result =>
@@ -2846,7 +2958,8 @@ class MultiWorkspaceBspServer(
       cancellation: CancellationToken,
       dependencyAnalyses: Map[Path, Path],
       additionalJavaOptions: List[String],
-      diagnosticTracker: BspDiagnosticTracker
+      diagnosticTracker: BspDiagnosticTracker,
+      recorder: TranscriptRecorder
   ): IO[TaskDag.TaskResult] = {
     val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
     val compiler = ProjectCompiler.forLanguage(config.language)
@@ -2912,7 +3025,8 @@ class MultiWorkspaceBspServer(
               bleep.bsp.protocol.CompilePhase.fromString(phase.name),
               trackedApis,
               System.currentTimeMillis()
-            )
+            ),
+          recorder
         )
       }
 
@@ -2948,7 +3062,8 @@ class MultiWorkspaceBspServer(
             invalidatedFiles = invalidatedFiles,
             changedDependencies = changedDeps,
             timestamp = now
-          )
+          ),
+          recorder
         )
       }
     }
@@ -2969,7 +3084,8 @@ class MultiWorkspaceBspServer(
             sendEvent(
               originId,
               s"compile:${project.value}",
-              BleepBspProtocol.Event.CompileProgress(project, percent, now)
+              BleepBspProtocol.Event.CompileProgress(project, percent, now),
+              recorder
             )
           }
         }
@@ -3001,7 +3117,8 @@ class MultiWorkspaceBspServer(
           sendEvent(
             originId,
             s"compile:${project.value}",
-            BleepBspProtocol.Event.LockContention(project, 0, System.currentTimeMillis())
+            BleepBspProtocol.Event.LockContention(project, 0, System.currentTimeMillis()),
+            recorder
           )
         } else { () => () }
 
@@ -3014,7 +3131,8 @@ class MultiWorkspaceBspServer(
                 sendEvent(
                   originId,
                   s"compile:${project.value}",
-                  BleepBspProtocol.Event.LockAcquired(project, waited, System.currentTimeMillis())
+                  BleepBspProtocol.Event.LockAcquired(project, waited, System.currentTimeMillis()),
+                  recorder
                 )
               }
             }
@@ -3620,33 +3738,35 @@ class MultiWorkspaceBspServer(
   private def processLinkEvent(
       event: TaskDag.DagEvent,
       originId: Option[String],
-      traceRecorder: TraceRecorder
+      traceRecorder: TraceRecorder,
+      recorder: TranscriptRecorder
   ): IO[Unit] = event match {
     case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
       val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
       traceRecorder.recordStart(TraceCategory.Link, project.value) >>
-        IO(sendEvent(originId, s"link:${project.value}", protocolEvent))
+        IO(sendEvent(originId, s"link:${project.value}", protocolEvent, recorder))
     case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
       val protocolEvent = BleepBspProtocol.Event.LinkProgress(project, phase, timestamp)
-      IO(sendEvent(originId, s"link:${project.value}", protocolEvent))
+      IO(sendEvent(originId, s"link:${project.value}", protocolEvent, recorder))
     case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
       val protocolEvent = linkFinishedEvent(project, result, durationMs, timestamp)
       traceRecorder.recordEnd(TraceCategory.Link, project.value) >>
-        IO(sendEvent(originId, s"link:${project.value}", protocolEvent))
+        IO(sendEvent(originId, s"link:${project.value}", protocolEvent, recorder))
     case _ => IO.unit
   }
 
   /** Process sourcegen-specific DagEvents shared between consumeEvents and consumeCompileEvents. */
   private def processSourcegenEvent(
       event: TaskDag.DagEvent,
-      originId: Option[String]
+      originId: Option[String],
+      recorder: TranscriptRecorder
   ): IO[Unit] = event match {
     case TaskDag.DagEvent.SourcegenStarted(_, scriptMain, forProjects, timestamp) =>
       val protocolEvent = BleepBspProtocol.Event.SourcegenStarted(scriptMain, forProjects, timestamp)
-      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent))
+      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent, recorder))
     case TaskDag.DagEvent.SourcegenFinished(_, scriptMain, success, durationMs, error, timestamp) =>
       val protocolEvent = BleepBspProtocol.Event.SourcegenFinished(scriptMain, success, durationMs, error, timestamp)
-      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent))
+      IO(sendEvent(originId, s"sourcegen-$scriptMain", protocolEvent, recorder))
     case _ => IO.unit
   }
 
@@ -3657,14 +3777,15 @@ class MultiWorkspaceBspServer(
   private def processAnnotationProcessorEvent(
       event: TaskDag.DagEvent,
       originId: Option[String],
-      traceRecorder: TraceRecorder
+      traceRecorder: TraceRecorder,
+      recorder: TranscriptRecorder
   ): IO[Unit] =
     event match {
       case TaskDag.DagEvent.ResolveAnnotationProcessorsStarted(project, timestamp) =>
         val protocolEvent = BleepBspProtocol.Event.ResolveAnnotationProcessorsStarted(project, timestamp)
         IO(logger.withContext("project", project.value).debug("Annotation processor resolution starting")) >>
           traceRecorder.recordStart(TraceCategory.ResolveAnnotationProcessors, project.value) >>
-          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent, recorder))
       case TaskDag.DagEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp) =>
         val msg =
           if (success) s"Annotation processor resolution finished (${discoveredJarCount} jars, ${durationMs}ms)"
@@ -3673,7 +3794,7 @@ class MultiWorkspaceBspServer(
           BleepBspProtocol.Event.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp)
         IO(logger.withContext("project", project.value).info(msg)) >>
           traceRecorder.recordEnd(TraceCategory.ResolveAnnotationProcessors, project.value) >>
-          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent))
+          IO(sendEvent(originId, s"resolve-ap:${project.value}", protocolEvent, recorder))
       case _ => IO.unit
     }
 
@@ -3683,14 +3804,15 @@ class MultiWorkspaceBspServer(
   private def processSymbolProcessorEvent(
       event: TaskDag.DagEvent,
       originId: Option[String],
-      traceRecorder: TraceRecorder
+      traceRecorder: TraceRecorder,
+      recorder: TranscriptRecorder
   ): IO[Unit] =
     event match {
       case TaskDag.DagEvent.RunSymbolProcessorsStarted(project, timestamp) =>
         val protocolEvent = BleepBspProtocol.Event.RunSymbolProcessorsStarted(project, timestamp)
         IO(logger.withContext("project", project.value).debug("KSP starting")) >>
           traceRecorder.recordStart(TraceCategory.RunSymbolProcessors, project.value) >>
-          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent))
+          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent, recorder))
       case TaskDag.DagEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp) =>
         val msg =
           if (success) s"KSP run finished (${discoveredJarCount} processor jars, ${durationMs}ms)"
@@ -3699,7 +3821,7 @@ class MultiWorkspaceBspServer(
           BleepBspProtocol.Event.RunSymbolProcessorsFinished(project, success, durationMs, error, discoveredJarCount, timestamp)
         IO(logger.withContext("project", project.value).info(msg)) >>
           traceRecorder.recordEnd(TraceCategory.RunSymbolProcessors, project.value) >>
-          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent))
+          IO(sendEvent(originId, s"run-ksp:${project.value}", protocolEvent, recorder))
       case _ => IO.unit
     }
 
@@ -3741,7 +3863,8 @@ class MultiWorkspaceBspServer(
       totalSkippedRef: Ref[IO, Int],
       totalIgnoredRef: Ref[IO, Int],
       killSignal: Deferred[IO, KillReason],
-      traceRecorder: TraceRecorder
+      traceRecorder: TraceRecorder,
+      recorder: TranscriptRecorder
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       def processEvent: IO[Unit] =
@@ -3765,7 +3888,7 @@ class MultiWorkspaceBspServer(
                 None // KSP execution is reported via DagEvent.RunSymbolProcessors{Started,Finished}
             }
             traceRecorder.recordStart(cat, name) >>
-              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
+              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e, recorder)))
 
           case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
             val (cat, name) = taskCatName(task)
@@ -3827,37 +3950,38 @@ class MultiWorkspaceBspServer(
                 IO.unit
             }
             traceRecorder.recordEnd(cat, name) >> failureRefUpdate >>
-              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
+              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e, recorder)))
 
           case TaskDag.DagEvent.TestStarted(project, suite, test, timestamp) =>
             val protocolEvent = BleepBspProtocol.Event.TestStarted(project, suite, test, timestamp)
-            IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
+            IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent, recorder))
 
           case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
             IO(
               sendTestEvent(
                 originId,
                 s"test:$project:$suite",
-                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location)
+                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location),
+                recorder
               )
             )
 
           case TaskDag.DagEvent.SuitesDiscovered(project, suites, timestamp) =>
             for {
               total <- totalSuitesRef.updateAndGet(_ + suites.size)
-              _ <- IO(sendTestEvent(originId, s"discover:$project", BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, timestamp)))
+              _ <- IO(sendTestEvent(originId, s"discover:$project", BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, timestamp), recorder))
             } yield ()
 
           case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>
             task match {
               case ct: TaskDag.CompileTask =>
-                IO(sendTestEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project, percent, timestamp)))
+                IO(sendTestEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project, percent, timestamp), recorder))
               case _ =>
                 IO.unit
             }
 
           case TaskDag.DagEvent.Output(project, suite, line, channel, timestamp) =>
-            IO(sendTestEvent(originId, s"output:$project:$suite", BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp)))
+            IO(sendTestEvent(originId, s"output:$project:$suite", BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp), recorder))
 
           case TaskDag.DagEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
             val protocolEvent = BleepBspProtocol.Event.SuiteFinished(project, suite, outcome, durationMs, timestamp)
@@ -3869,17 +3993,17 @@ class MultiWorkspaceBspServer(
               totalFailedRef.update(_ + failedContribution) >>
               totalSkippedRef.update(_ + outcome.skippedCount) >>
               totalIgnoredRef.update(_ + outcome.ignoredCount) >>
-              IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
+              IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent, recorder))
 
-          case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
-          case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
-          case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
-          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
-          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
-          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
-          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+          case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId, recorder)
+          case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId, recorder)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder, recorder)
+          case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder, recorder)
+          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder, recorder)
+          case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder, recorder)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -3894,7 +4018,8 @@ class MultiWorkspaceBspServer(
       queue: Queue[IO, Option[TaskDag.DagEvent]],
       originId: Option[String],
       killSignal: Deferred[IO, KillReason],
-      traceRecorder: TraceRecorder
+      traceRecorder: TraceRecorder,
+      recorder: TranscriptRecorder
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       def processEvent: IO[Unit] = event match {
@@ -3907,7 +4032,7 @@ class MultiWorkspaceBspServer(
             case _ => None
           }
           traceRecorder.recordStart(cat, name) >>
-            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e)))
+            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e, recorder)))
 
         case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
           val (cat, name) = taskCatName(task)
@@ -3918,24 +4043,24 @@ class MultiWorkspaceBspServer(
             case _ => None
           }
           traceRecorder.recordEnd(cat, name) >>
-            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e)))
+            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e, recorder)))
 
         case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>
           task match {
             case ct: TaskDag.CompileTask =>
-              IO(sendEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project, percent, timestamp)))
+              IO(sendEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project, percent, timestamp), recorder))
             case _ => IO.unit
           }
 
-        case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder)
-        case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId)
-        case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId)
-        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
-        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder)
-        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
-        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
+        case sgEvent: TaskDag.DagEvent.SourcegenStarted                    => processSourcegenEvent(sgEvent, originId, recorder)
+        case sgEvent: TaskDag.DagEvent.SourcegenFinished                   => processSourcegenEvent(sgEvent, originId, recorder)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsStarted  => processAnnotationProcessorEvent(apEvent, originId, traceRecorder, recorder)
+        case apEvent: TaskDag.DagEvent.ResolveAnnotationProcessorsFinished => processAnnotationProcessorEvent(apEvent, originId, traceRecorder, recorder)
+        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsStarted         => processSymbolProcessorEvent(kspEvent, originId, traceRecorder, recorder)
+        case kspEvent: TaskDag.DagEvent.RunSymbolProcessorsFinished        => processSymbolProcessorEvent(kspEvent, originId, traceRecorder, recorder)
 
         case _ => IO.unit
       }
@@ -3959,7 +4084,7 @@ class MultiWorkspaceBspServer(
   private val sendEventCounter = new java.util.concurrent.atomic.AtomicInteger(0)
 
   /** Send a test event via BSP notification with structured data */
-  private def sendTestEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
+  private def sendTestEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event, recorder: TranscriptRecorder): Unit = {
     import BleepBspProtocol.{Event => E}
     val n = sendEventCounter.incrementAndGet()
     event match {
@@ -4019,7 +4144,7 @@ class MultiWorkspaceBspServer(
       case _                                  =>
         logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).debug("sendTestEvent")
     }
-    sendEvent(originId, taskId, event)
+    sendEvent(originId, taskId, event, recorder)
   }
 
   /** Send a notification to the client.
