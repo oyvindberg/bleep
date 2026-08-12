@@ -210,6 +210,42 @@ object CopyStateArgs {
   ).asInstanceOf[JsonSchemaEncoder[CopyStateArgs]]
 }
 
+/** Args for bleep.diff / bleep.diff-timing: compare two completed requests. Both ids are required and explicit — no defaulting to "latest", because diffing the
+  * wrong pair silently is worse than asking the caller to say what they mean.
+  */
+case class DiffArgs(base: Long, target: Long, limit: Option[Int])
+object DiffArgs {
+  private val knownFields = Set("base", "target", "limit")
+  given Decoder[DiffArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      base <- c.downField("base").as[Long]
+      target <- c.downField("target").as[Long]
+      limit <- decodeOptional[Int](c, "limit")
+    } yield DiffArgs(base, target, limit)
+  }
+  given JsonSchemaEncoder[DiffArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "base" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("requestId of the run to compare FROM (the earlier/reference run).")
+        ),
+        "target" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("requestId of the run to compare TO (the later run).")
+        ),
+        "limit" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("bleep.diff-timing only: max entries per list (slower/faster/slowestInTarget). Default 15.")
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("base"), Json.fromString("target"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[DiffArgs]]
+}
+
 /** Args for tools that need only a workspace: projects, programs, scripts. */
 case class DirArgs(directory: String)
 object DirArgs {

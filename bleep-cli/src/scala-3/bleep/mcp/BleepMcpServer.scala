@@ -147,6 +147,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           |- bleep.compile — compile projects. Returns compact summary + requestId. Streams errors per-project as they occur.
           |- bleep.test — run tests. Returns compact summary + requestId with pass/fail counts.
           |- bleep.details — full transcript of a completed compile/test request by requestId. Search it with `query` (regex); project/limit/offset paginate.
+          |- bleep.diff — what logically changed between two requests (base, target): newly failing/fixed/skipped tests, compile invalidations, new/resolved diagnostics. Timing-free and deterministic.
+          |- bleep.diff-timing — what got slower/faster between two requests, jitter suppressed, plus the target run's slowest items.
           |- bleep.test.suites — discover test suites without running them (requires compiled code)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
@@ -165,6 +167,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         compileTool,
         testTool,
         detailsTool,
+        diffTool,
+        diffTimingTool,
         testSuitesTool,
         sourcegenTool,
         fmtTool,
@@ -260,6 +264,34 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         false
       ),
       (args, _) => requestDetails(args),
+      None
+    )
+
+    private def diffTool: ToolFunction[IO] = textTool[DiffArgs](
+      ToolFunction.Info(
+        "bleep.diff",
+        Some("Diff Two Runs"),
+        Some(
+          "Mechanical diff between two completed compile/test requests: what LOGICALLY changed. Tests: newly failing/fixed/skipped/added/removed, still-failing with changed messages. Compiles: per-project reason and status transitions, invalidated files, new/resolved diagnostics. Durations never enter the comparison — two runs with the same outcome diff as identical regardless of timing jitter. Use bleep.diff-timing for duration comparisons. The canonical after-edit question: rerun, then diff the two requestIds."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => requestLog.get.map(log => RequestDiff.mechanical(log, args.base, args.target).noSpaces),
+      None
+    )
+
+    private def diffTimingTool: ToolFunction[IO] = textTool[DiffArgs](
+      ToolFunction.Info(
+        "bleep.diff-timing",
+        Some("Diff Run Timings"),
+        Some(
+          "Duration comparison between two completed compile/test requests: which tests/projects got slower or faster (deltas below max(50ms, 20% of base) are suppressed as jitter), plus the slowest items of the target run in absolute terms. Timing lives here, separate from bleep.diff, so the mechanical diff stays deterministic."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => requestLog.get.map(log => RequestDiff.timing(log, args.base, args.target, args.limit.getOrElse(RequestDiff.DefaultTimingLimit)).noSpaces),
       None
     )
 
