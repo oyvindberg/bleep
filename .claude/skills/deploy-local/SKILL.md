@@ -101,8 +101,16 @@ All from the workspace root. Always `--no-color` (and `--no-tui` where accepted)
    The daemon's classpath version must equal step 1's version.
 
 9. **Restart long-lived processes that pin jars at startup**: any `bleep mcp-server`
-   (use the `bleep_restart` MCP tool from a live session, or kill the process — the
+   (use the `bleep.restart` MCP tool from a live session, or kill the process — the
    host respawns it). IDE BSP sessions reconnect on their own next action.
+
+   **Expected side effect:** `bleep.restart` drops the CALLING session's MCP
+   connection — the bleep tools are delisted the moment the process exits, and the
+   respawn is lazy: it can take several use attempts or a turn boundary before the
+   tools come back on their own (`/mcp` reconnects immediately; a brand-new session
+   always gets the new binary via the user-scope registration). So sequence the
+   deploy: finish any MCP-dependent work first, call `bleep.restart` last, and be
+   ready to fall back to the CLI for the rest of the turn.
 
 ## Failure modes seen in the wild
 
