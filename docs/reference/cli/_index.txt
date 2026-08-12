@@ -24,6 +24,9 @@
   - bleep config test-runner
   - bleep config auth
   - bleep config remote-cache
+- bleep copy-state
+- bleep details
+- bleep diff
 - bleep dist
 - bleep extract-info
   - bleep extract-info all
@@ -48,6 +51,7 @@
 - bleep remote-cache
   - bleep remote-cache pull
   - bleep remote-cache push
+- bleep requests
 - bleep run
 - bleep server
   - bleep server top

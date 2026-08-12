@@ -316,4 +316,13 @@ object BuildEvent {
       durationMs: Long,
       timestamp: Long
   ) extends BuildEvent
+
+  /** The daemon persisted a transcript for this request and returned its id in the response (compile: dataKind "bleep-request-id"; test:
+    * `TestRunResult.requestId`). Carried into the summary so the closing lines can point at `bleep details <id>` / `bleep diff`. Absent entirely when the
+    * daemon's transcript write failed — the sanctioned, logged absence.
+    */
+  case class RequestRecorded(
+      requestId: Long,
+      timestamp: Long
+  ) extends BuildEvent
 }

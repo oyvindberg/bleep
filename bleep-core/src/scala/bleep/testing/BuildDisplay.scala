@@ -94,7 +94,9 @@ case class BuildSummary(
       * that reads as clean while the command fails is a summary the reader has to reconcile against the error below it.
       */
     serverCrashed: Boolean,
-    filterContext: Option[FilterContext]
+    filterContext: Option[FilterContext],
+    /** Id of the transcript the daemon persisted for this request (`bleep details <id>` expands it). None when the response carried none. */
+    requestId: Option[Long]
 ) {
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
@@ -205,6 +207,7 @@ object BuildSummary {
       f" (total task time: ${totalSec}%.1fs, ${parallelism}%.1fx parallelism)"
     } else ""
     lines += s"  Duration: $durationStr$parallelismStr"
+    summary.requestId.foreach(id => lines += s"  Request:  #$id (bleep details $id)")
 
     // --- Filter accounting (test mode only; only when something was filtered) ---
     mode match {
@@ -523,7 +526,8 @@ object BuildSummary {
     totalTaskTimeMs = 0L,
     wasCancelled = false,
     serverCrashed = false,
-    filterContext = None
+    filterContext = None,
+    requestId = None
   )
 }
 
@@ -857,6 +861,9 @@ object BuildDisplay {
 
       case _: BuildEvent.TestRunCompleted =>
         IO.unit // State updated via BuildStateReducer; no side effects needed
+
+      case _: BuildEvent.RequestRecorded =>
+        IO.unit // Surfaces in the summary via BuildStateReducer; nothing to print mid-run
     }
 
     private def printStatus: IO[Unit] =
@@ -952,6 +959,7 @@ object BuildDisplay {
         _ <- if (s.kspResolutionFailed > 0) log(s"KSP: ${s.kspResolutionFailed} project(s) failed to resolve") else IO.unit
         wallTimeSeconds = s.durationMs / 1000.0
         _ <- log(f"Time:     ${wallTimeSeconds}%.1fs")
+        _ <- s.requestId.fold(IO.unit)(id => log(s"Request:  #$id (bleep details $id)"))
         _ <- if (s.compileFailures.nonEmpty) printCompileFailures(s.compileFailures) else IO.unit
         _ <- log("=" * 60)
       } yield ()
