@@ -34,6 +34,7 @@ import java.nio.file.{Files, Path}
 class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
 
   private val Marker = "copyStateDirtyMarker12345"
+  private val ApiMarker = "coreApiMarker67890"
   private val ScalaV = "3.3.3"
 
   private lazy val scalaLib: List[Path] = CompilerResolver.resolveScalaLibrary(ScalaV).toList
@@ -53,6 +54,20 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
       |  def appValue: Int = c.coreValue
       |}
       |""".stripMargin
+
+  /** Dirty variant of `core` with an API change `app` is sensitive to: an added overload of `coreValue`, the very name `app` calls. Zinc's name-hashing
+    * invalidation only invalidates dependents that USE an affected name, so a marker method alone would recompile `core` without touching `app` — the overload
+    * is what makes the edit propagate.
+    */
+  private val coreSourceDirty =
+    s"""package corelib
+       |
+       |class Core {
+       |  def coreValue: Int = 1
+       |  def coreValue(bump: Int): Int = $ApiMarker + bump
+       |  def $ApiMarker: Int = 2
+       |}
+       |""".stripMargin
 
   private val appSourceDirty =
     s"""package applib
@@ -108,6 +123,14 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
     client.compile(targets).statusCode.value
   }
 
+  private def copyState(client: BspTestHarness.BspClient, from: Path, to: Path): CopyStateResponse = {
+    def q(p: Path) = io.circe.Json.fromString(p.toString).noSpaces
+    val resultBytes = client.rawRequest(BleepServerAdmin.CopyStateMethod, s"""{"from":${q(from)},"to":${q(to)},"variant":"normal"}""")
+    io.circe.parser
+      .decode[CopyStateResponse](new String(resultBytes, StandardCharsets.UTF_8))
+      .fold(err => fail(s"could not decode CopyStateResponse: $err"), identity)
+  }
+
   test("dirty parent: seeded state recompiles where sources differ, noops where they match, and zinc purges the inherited marker") {
     failAfter(Span(300, Seconds)) {
       val wsA = createWorkspace("copy-state-dirty-a-")
@@ -127,15 +150,7 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
 
         // Phase B: a fresh workspace with the ORIGINAL sources inherits A's dirty state, then compiles.
         BspTestHarness.withProjects(wsB, configs(wsB)) { client =>
-          val copyParams = {
-            def q(p: Path) = io.circe.Json.fromString(p.toString).noSpaces
-            s"""{"from":${q(wsA)},"to":${q(wsB)},"variant":"normal"}"""
-          }
-          val resultBytes = client.rawRequest(BleepServerAdmin.CopyStateMethod, copyParams)
-          val response = io.circe.parser
-            .decode[CopyStateResponse](new String(resultBytes, StandardCharsets.UTF_8))
-            .fold(err => fail(s"could not decode CopyStateResponse: $err"), identity)
-          response.projects shouldBe List("app", "core")
+          copyState(client, wsA, wsB).projects shouldBe List("app", "core")
 
           withClue("copy-state must clone A's classfiles verbatim, dirty marker included: ") {
             classBytesContain(appClass(wsB), Marker) shouldBe true
@@ -162,6 +177,62 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
           withClue("(1) core's source matches the inherited analysis, so it must noop — classfile untouched by B's compile: ") {
             Files.getLastModifiedTime(coreClass(wsB)) shouldBe coreMtimeAfterCopy
             Files.readAllBytes(coreClass(wsB)) shouldBe coreBytesAfterCopy
+          }
+        }
+      } finally {
+        deleteRecursively(wsA)
+        deleteRecursively(wsB)
+      }
+    }
+  }
+
+  /** The inverse direction of the test above: the uncommitted edit is in the UPSTREAM project. The first test pins "dirty project recompiles, clean dependency
+    * noops"; this one pins that the invalidation PROPAGATES — B's `core` recompile changes `Core`'s API back (the overload disappears), and `app`, whose own
+    * source is identical to what the inherited analysis recorded, must be recompiled anyway because the API it was compiled against no longer exists. If the
+    * copied analyses did not carry cross-project (external) API hashes correctly, `app` would silently keep linking against the phantom overload.
+    *
+    * `app`'s recompile is asserted via mtime, not bytes: its source never changed, so a correct recompile produces byte-identical output — the rewrite itself
+    * is the observable.
+    */
+  test("dirty upstream: an API edit in core propagates through the copied dependency analyses and recompiles the dependent in B") {
+    failAfter(Span(300, Seconds)) {
+      val wsA = createWorkspace("copy-state-dirty-up-a-")
+      val wsB = createWorkspace("copy-state-dirty-up-b-")
+      try {
+        // Phase A: compile clean, then compile an uncommitted API edit in core — app recompiles against the dirty API there too.
+        BspTestHarness.withProjects(wsA, configs(wsA)) { client =>
+          client.initialize()
+          compileAll(client) shouldBe 1
+
+          Files.writeString(wsA.resolve("core/src/Core.scala"), coreSourceDirty)
+          compileAll(client) shouldBe 1
+        }
+        withClue("precondition: A's recompile must have baked the API marker into Core.class: ") {
+          classBytesContain(coreClass(wsA), ApiMarker) shouldBe true
+        }
+
+        // Phase B: original sources inherit A's dirty state.
+        BspTestHarness.withProjects(wsB, configs(wsB)) { client =>
+          copyState(client, wsA, wsB).projects shouldBe List("app", "core")
+
+          withClue("copy-state must clone A's dirty core classfiles verbatim: ") {
+            classBytesContain(coreClass(wsB), ApiMarker) shouldBe true
+          }
+
+          val appMtimeAfterCopy = Files.getLastModifiedTime(appClass(wsB))
+
+          client.initialize()
+          withClue("B's compile over inherited state must succeed: ") {
+            compileAll(client) shouldBe 1
+          }
+
+          withClue("zinc must reconcile core to B's actual sources — the API marker (and the overload) must be purged from Core.class: ") {
+            classBytesContain(coreClass(wsB), ApiMarker) shouldBe false
+          }
+          withClue(
+            "app must be recompiled in B even though its own source matches the inherited analysis — the core API it was compiled against changed back: "
+          ) {
+            Files.getLastModifiedTime(appClass(wsB)) should not be appMtimeAfterCopy
           }
         }
       } finally {
