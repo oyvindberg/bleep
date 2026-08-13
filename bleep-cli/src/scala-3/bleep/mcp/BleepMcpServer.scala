@@ -661,7 +661,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         client = new McpBspClient(eventQueue, started.logger)
 
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
-        heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
+        heartbeatFiber <- heartbeat(collectedEvents, done, "compile", internal.TransitiveProjects(started.build, targetProjects).all.length, context).start
 
         // The daemon persists the transcript and returns its id in the response; the streamed events are only collected for the compact summary below.
         historyId <- diagnoseOomOnFailure(bspConfig) {
@@ -728,7 +728,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         client = new McpBspClient(eventQueue, started.logger)
 
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
-        heartbeatFiber <- heartbeat(collectedEvents, done, "test", context).start
+        heartbeatFiber <- heartbeat(collectedEvents, done, "test", internal.TransitiveProjects(started.build, targetProjects).all.length, context).start
 
         _ <- diagnoseOomOnFailure(bspConfig) {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
@@ -1075,6 +1075,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         collectedEvents: Ref[IO, List[BleepBspProtocol.Event]],
         done: Ref[IO, Boolean],
         operation: String,
+        totalProjects: Int,
         context: CallContext[IO]
     ): IO[Unit] = {
       import BleepBspProtocol.{Event => E}
@@ -1094,8 +1095,11 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
               val failed = finished.count(_.status.isFailure)
               val suites = events.collect { case e: E.SuiteFinished => e }
 
+              val suitesDiscovered = events.collect { case e: E.SuitesDiscovered => e.totalSuitesDiscovered }.maxOption.getOrElse(0)
+              val testsRun = events.count { case _: E.TestFinished => true; case _ => false }
+
               val parts = List.newBuilder[String]
-              if (finished.nonEmpty) parts += s"${finished.size} compiled"
+              if (finished.nonEmpty || startedEvents.nonEmpty) parts += s"${finished.size}/$totalProjects compiled"
               if (failed > 0) parts += s"$failed failed"
               if (inProgressEvents.nonEmpty) {
                 val details = inProgressEvents.map { e =>
@@ -1104,7 +1108,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
                 }
                 parts += s"in progress: ${details.mkString(", ")}"
               }
-              if (suites.nonEmpty) parts += s"${suites.size} suites done"
+              if (suitesDiscovered > 0) parts += s"${suites.size}/$suitesDiscovered suites done"
+              else if (suites.nonEmpty) parts += s"${suites.size} suites done"
+              if (testsRun > 0) parts += s"$testsRun tests run"
               val status = if (parts.result().nonEmpty) parts.result().mkString(", ") else "starting"
 
               streamNotification(context, protocol.LoggingLevel.Info, s"[$operation] $status...")
