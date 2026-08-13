@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.protocol.BleepBspProtocol
-import bleep.requests.{RequestDiff, TranscriptStore}
+import bleep.history.{TranscriptDiff, TranscriptStore}
 import bleep.{model, BuildPaths}
 import org.scalatest.concurrent.TimeLimits
 import org.scalatest.funsuite.AnyFunSuite
@@ -10,9 +10,9 @@ import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.Files
 
-/** End-to-end proof that the daemon records request transcripts: two compiles through the REAL server (the same `MultiWorkspaceBspServer` production runs),
-  * over the real protocol, must leave `requests/1.json` and `requests/2.json` in the workspace, return their ids in the responses, and — the flagship
-  * determinism property — mechanically diff as identical, because the second compile is a noop and durations never enter the mechanical comparison.
+/** End-to-end proof that the daemon records run transcripts: two compiles through the REAL server (the same `MultiWorkspaceBspServer` production runs), over
+  * the real protocol, must leave `history/1.json` and `history/2.json` in the workspace, return their ids in the responses, and — the flagship determinism
+  * property — mechanically diff as identical, because the second compile is a noop and durations never enter the mechanical comparison.
   */
 class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
 
@@ -47,12 +47,12 @@ class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with Time
           wantedBleepVersion = Some(model.BleepVersion.current)
         )
 
-        def requestIdOf(result: ch.epfl.scala.bsp.CompileResult): Long = {
-          result.dataKind shouldBe Some(BleepBspProtocol.RequestIdDataKind)
-          val raw = result.data.getOrElse(fail("compile response carried no data despite the request-id dataKind"))
-          BleepBspProtocol.RequestIdPayload.decode(new String(raw.value, "UTF-8")) match {
-            case Right(payload) => payload.requestId
-            case Left(err)      => fail(s"could not decode request-id payload: ${err.getMessage}")
+        def historyIdOf(result: ch.epfl.scala.bsp.CompileResult): Long = {
+          result.dataKind shouldBe Some(BleepBspProtocol.HistoryIdDataKind)
+          val raw = result.data.getOrElse(fail("compile response carried no data despite the history-id dataKind"))
+          BleepBspProtocol.HistoryIdPayload.decode(new String(raw.value, "UTF-8")) match {
+            case Right(payload) => payload.historyId
+            case Left(err)      => fail(s"could not decode history-id payload: ${err.getMessage}")
           }
         }
 
@@ -62,20 +62,20 @@ class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with Time
 
           val first = client.compile(targets)
           first.statusCode shouldBe ch.epfl.scala.bsp.StatusCode.Ok
-          requestIdOf(first) shouldBe 1L
+          historyIdOf(first) shouldBe 1L
 
           val second = client.compile(targets)
           second.statusCode shouldBe ch.epfl.scala.bsp.StatusCode.Ok
-          requestIdOf(second) shouldBe 2L
+          historyIdOf(second) shouldBe 2L
 
           val third = client.compile(targets)
           third.statusCode shouldBe ch.epfl.scala.bsp.StatusCode.Ok
-          requestIdOf(third) shouldBe 3L
+          historyIdOf(third) shouldBe 3L
         }
 
         // The files exist where every client will look for them.
-        Files.isRegularFile(buildPaths.requestsDir.resolve("1.json")) shouldBe true
-        Files.isRegularFile(buildPaths.requestsDir.resolve("2.json")) shouldBe true
+        Files.isRegularFile(buildPaths.historyDir.resolve("1.json")) shouldBe true
+        Files.isRegularFile(buildPaths.historyDir.resolve("2.json")) shouldBe true
         TranscriptStore.list(buildPaths) shouldBe List(1L, 2L, 3L)
 
         // Roundtrip through the store.
@@ -95,14 +95,14 @@ class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with Time
         finished1 should not be empty
 
         // A clean build and a noop are logically DIFFERENT runs, and the mechanical diff says so — as exactly one fact, the reason transition.
-        val cleanVsNoop = RequestDiff.mechanical(t1, t2)
+        val cleanVsNoop = TranscriptDiff.mechanical(t1, t2)
         cleanVsNoop.hcursor.get[Boolean]("identical") shouldBe Right(false)
         val reasonChange = cleanVsNoop.hcursor.downField("changed").downArray.downField("reason")
         reasonChange.get[String]("to") shouldBe Right("up-to-date")
 
         // Flagship determinism property, end-to-end through the real daemon: two noop runs have the same logical outcome,
         // so their mechanical diff is identical even though every duration differs between them.
-        val noopVsNoop = RequestDiff.mechanical(t2, t3)
+        val noopVsNoop = TranscriptDiff.mechanical(t2, t3)
         noopVsNoop.hcursor.get[Boolean]("identical") shouldBe Right(true)
       } finally deleteRecursively(workspace)
     }

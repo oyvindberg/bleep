@@ -51,7 +51,7 @@ case class BuildState(
     serverCrashed: Boolean,
     /** Id of the transcript the daemon persisted for this request, from the response. None when the response carried none (older daemon, or the write failed).
       */
-    requestId: Option[Long]
+    historyId: Option[Long]
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
@@ -100,7 +100,7 @@ case class BuildState(
       wasCancelled = wasCancelled,
       serverCrashed = serverCrashed,
       filterContext = None,
-      requestId = requestId
+      historyId = historyId
     )
   }
 }
@@ -144,7 +144,7 @@ object BuildState {
     pendingOutput = Map.empty,
     totalTaskTimeMs = 0,
     serverCrashed = false,
-    requestId = None
+    historyId = None
   )
 }
 
@@ -494,7 +494,7 @@ object BuildStateReducer {
         cancelledSuites = authoritativeCancelled
       )
 
-    case BuildEvent.RequestRecorded(requestId, _) =>
-      state.copy(requestId = Some(requestId))
+    case BuildEvent.HistoryRecorded(historyId, _) =>
+      state.copy(historyId = Some(historyId))
   }
 }

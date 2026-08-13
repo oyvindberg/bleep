@@ -1,4 +1,4 @@
-package bleep.requests
+package bleep.history
 
 import bleep.{BleepException, BuildPaths}
 import bleep.bsp.protocol.BleepBspProtocol
@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters.*
   * A transcript describes its own run, never current state — that is what makes it immune to staleness, safe to persist, and safe to diff against any other
   * transcript, including one from a different worktree. Paths inside `events` are stored ABSOLUTE, exactly as the compiler reported them: transcripts are
   * grepped and their paths clicked, and absolute + [[workspace]] can always derive relative while the reverse loses paths outside the workspace. Only
-  * [[RequestDiff]]'s identity computation relativizes, ephemerally.
+  * [[TranscriptDiff]]'s identity computation relativizes, ephemerally.
   */
 case class Transcript(
     id: Long,
@@ -34,7 +34,7 @@ object Transcript {
   implicit val codec: Codec[Transcript] = deriveCodec
 }
 
-/** Per-workspace, per-variant transcript files: `<workspace>/.bleep/builds/<variant>/requests/<id>.json`.
+/** Per-workspace, per-variant transcript files: `<workspace>/.bleep/builds/<variant>/history/<id>.json`.
   *
   * The daemon writes; everyone reads. Ids are monotonically increasing per workspace+variant and never reused — eviction leaves gaps. Writes are atomic (tmp +
   * rename) so a reader never sees a torn file, and id assignment happens under a file lock so two daemons racing on one workspace cannot mint the same id.
@@ -49,7 +49,7 @@ object TranscriptStore {
 
   private val FileName = raw"(\d+)\.json".r
 
-  def dir(buildPaths: BuildPaths): Path = buildPaths.requestsDir
+  def dir(buildPaths: BuildPaths): Path = buildPaths.historyDir
 
   /** `Files.list` holds an open directory handle until closed — materialize inside try/finally, never leak the stream. */
   private def listEntries(d: Path): List[(Long, Path)] =
@@ -73,7 +73,7 @@ object TranscriptStore {
   def read(buildPaths: BuildPaths, id: Long): Transcript = {
     val file = dir(buildPaths).resolve(s"$id.json")
     if (!Files.isRegularFile(file))
-      throw new BleepException.Text(s"No request with id $id in ${dir(buildPaths)}. Kept: last $MaxEntries requests per workspace.")
+      throw new BleepException.Text(s"No history entry #$id in ${dir(buildPaths)}. Kept: last $MaxEntries entries per workspace.")
     io.circe.parser.decode[Transcript](new String(Files.readAllBytes(file), StandardCharsets.UTF_8)) match {
       case Right(t)  => t
       case Left(err) => throw new BleepException.Text(s"Could not parse transcript $file: ${err.getMessage}")
@@ -83,7 +83,7 @@ object TranscriptStore {
   def readLatest(buildPaths: BuildPaths): Transcript =
     latestId(buildPaths) match {
       case Some(id) => read(buildPaths, id)
-      case None     => throw new BleepException.Text(s"No completed requests recorded in ${dir(buildPaths)}. Run a compile or test first.")
+      case None     => throw new BleepException.Text(s"No history recorded in ${dir(buildPaths)}. Run a compile or test first.")
     }
 
   /** Assign the next id and persist the transcript atomically. Returns the stored transcript, its id filled in. */
@@ -136,7 +136,7 @@ object TranscriptStore {
     }
   }
 
-  /** Exclusive advisory lock on `<requests>/.lock`, held only while assigning an id + renaming. Readers never take it. */
+  /** Exclusive advisory lock on `<history>/.lock`, held only while assigning an id + renaming. Readers never take it. */
   private def withLock[A](d: Path)(body: => A): A = {
     val channel = FileChannel.open(d.resolve(".lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
     try {

@@ -853,9 +853,9 @@ function AgentWorktreesSection() {
         <Reveal delay={80}>
           <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
 agent[auth]   bleep.copy-state { directory: ~/wt/auth, from: ~/main }  → parent's compiled state, cloned
-agent[auth]   bleep.compile { directory: ~/wt/auth }  → { requestId: 12, success: true }
-agent[api]    bleep.test { directory: ~/wt/api }  → { requestId: 13, failed: 2 }
-agent[api]    bleep.details { requestId: 13, query: "Timeout" }  → the two stack traces that matter
+agent[auth]   bleep.compile { directory: ~/wt/auth }  → { historyId: 12, success: true }
+agent[api]    bleep.test { directory: ~/wt/api }  → { historyId: 13, failed: 2 }
+agent[api]    bleep.history.show { historyId: 13, query: "Timeout" }  → the two stack traces that matter
 agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon knows these deps`}</pre>
         </Reveal>
 
@@ -955,11 +955,11 @@ function AgentAnswersSection() {
         </Reveal>
 
         <Reveal delay={80}>
-          <pre className={styles.vignette}>{`agent  breaks a test, reruns   bleep.test → { requestId: 19, failed: 1 }
-agent  bleep.diff { base: 18, target: 19 }
+          <pre className={styles.vignette}>{`agent  breaks a test, reruns   bleep.test → { historyId: 19, failed: 1 }
+agent  bleep.history.diff { base: 18, target: 19 }
        → { identical: false, summary: "1 newlyFailing", newlyFailing: [{ from: "passed", to: "failed", … }] }
-agent  reverts, reruns         bleep.test → { requestId: 20, passed: 14 }
-agent  bleep.diff { base: 18, target: 20 }
+agent  reverts, reruns         bleep.test → { historyId: 20, passed: 14 }
+agent  bleep.history.diff { base: 18, target: 20 }
        → { identical: true, summary: "No logical differences." }   ← ~800ms of timing noise, zero false diffs`}</pre>
         </Reveal>
 
@@ -972,7 +972,7 @@ agent  bleep.diff { base: 18, target: 20 }
               <p className={styles.mcpCardBody}>
                 Success, counts, and the first errors as data; failures
                 stream the moment they happen; the full transcript is
-                searchable with a regex via <code>bleep.details</code>.
+                searchable with a regex via <code>bleep.history.show</code>.
                 No log files, no grep expeditions, no missed
                 diagnostics.
               </p>
@@ -982,7 +982,7 @@ agent  bleep.diff { base: 18, target: 20 }
                 Ask what <em>changed</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep.diff</code> compares any two runs: newly
+                <code>bleep.history.diff</code> compares any two runs: newly
                 failing, fixed, newly skipped with reasons, new and
                 resolved diagnostics. Deterministic by construction —
                 durations never enter the compared data, so timing
@@ -995,7 +995,7 @@ agent  bleep.diff { base: 18, target: 20 }
                 Timing is its own <em>question</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep.diff-timing</code> answers what got slower
+                <code>bleep.history.diff-timing</code> answers what got slower
                 or faster, with jitter suppressed under a threshold, and
                 names the slowest suites and projects in the run. Speed
                 regressions can&rsquo;t hide in the logical diff, and
@@ -1012,10 +1012,11 @@ agent  bleep.diff { base: 18, target: 20 }
           >
             Transcripts live in the worktree — written once by the
             daemon, read by every client. The same history from the
-            terminal: <code>bleep requests</code>,{" "}
-            <code>bleep details</code>, <code>bleep diff</code> — pure
-            reads over files, no daemon required, and{" "}
-            <code>--base-dir</code> diffs runs across worktrees.
+            terminal: <code>bleep history</code>,{" "}
+            <code>bleep history show</code>,{" "}
+            <code>bleep history diff</code> — pure reads over files, no
+            daemon required, and <code>--base-dir</code> diffs runs
+            across worktrees.
           </p>
         </Reveal>
 

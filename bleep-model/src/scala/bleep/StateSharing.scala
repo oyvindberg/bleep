@@ -21,8 +21,8 @@ import java.nio.file.Path
   *   - `.bleep-lock` — a lock file must never be inherited
   *   - `bloop.json` and anything else that regenerates on the next compile
   *
-  * Workspace-level state (`.bleep/builds/<variant>/` — request transcripts, logs) is ALL private and outside this classification entirely: both sharing
-  * mechanisms operate per-project and never touch it. [[BuildPaths.requestsDir]] documents why transcripts must stay put.
+  * Workspace-level state (`.bleep/builds/<variant>/` — run history transcripts, logs) is ALL private and outside this classification entirely: both sharing
+  * mechanisms operate per-project and never touch it. [[BuildPaths.historyDir]] documents why transcripts must stay put.
   *
   * Generated sources/resources (`.bleep/projects/<cross>/generated-*`) live outside the variant dir; copy-state clones them wholesale (they are outputs keyed
   * by the build, portable by construction) and the remote cache deliberately does not archive them — that asymmetry is intentional and encoded at the call

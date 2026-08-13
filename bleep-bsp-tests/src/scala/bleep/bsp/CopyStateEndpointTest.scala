@@ -168,10 +168,10 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
       Files.createDirectories(generated)
       Files.write(generated.resolve("Gen.scala"), s"generated-$name".getBytes(StandardCharsets.UTF_8))
     }
-    // workspace-level state: request transcripts describe THIS workspace's runs and must never seed a fork
-    val requests = bleep.BuildPaths(dir, bleep.BuildLoader.find(dir), model.BuildVariant.Normal).requestsDir
-    Files.createDirectories(requests)
-    Files.write(requests.resolve("1.json"), "{}".getBytes(StandardCharsets.UTF_8))
+    // workspace-level state: history transcripts describe THIS workspace's runs and must never seed a fork
+    val history = bleep.BuildPaths(dir, bleep.BuildLoader.find(dir), model.BuildVariant.Normal).historyDir
+    Files.createDirectories(history)
+    Files.write(history.resolve("1.json"), "{}".getBytes(StandardCharsets.UTF_8))
     dir
   }
 
@@ -221,8 +221,8 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
           Files.exists(toPaths.zincDir(crossName).resolve("cache")) shouldBe false
         }
       }
-      withClue("request transcripts describe the SOURCE workspace's runs; a fork claiming them would be lying: ") {
-        Files.exists(toPaths.requestsDir) shouldBe false
+      withClue("history transcripts describe the SOURCE workspace's runs; a fork claiming them would be lying: ") {
+        Files.exists(toPaths.historyDir) shouldBe false
       }
     }
   }

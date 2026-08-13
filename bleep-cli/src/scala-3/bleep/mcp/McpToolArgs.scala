@@ -110,31 +110,31 @@ object TestArgs {
   ).asInstanceOf[JsonSchemaEncoder[TestArgs]]
 }
 
-/** Args for bleep.details: full results of a completed request by id. Requires `directory` like every other tool — request ids are per-workspace, so an id
+/** Args for bleep.history.show: full transcript of a completed run by id. Requires `directory` like every other tool — history ids are per-workspace, so an id
   * means nothing without saying whose history to look in.
   */
-case class DetailsArgs(directory: String, requestId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
-object DetailsArgs {
-  private val knownFields = Set("directory", "requestId", "project", "query", "limit", "offset")
-  given Decoder[DetailsArgs] = Decoder.instance { c =>
+case class HistoryShowArgs(directory: String, historyId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
+object HistoryShowArgs {
+  private val knownFields = Set("directory", "historyId", "project", "query", "limit", "offset")
+  given Decoder[HistoryShowArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
       directory <- c.downField("directory").as[String]
-      requestId <- decodeOptional[Long](c, "requestId")
+      historyId <- decodeOptional[Long](c, "historyId")
       project <- decodeOptional[String](c, "project")
       query <- decodeOptional[String](c, "query")
       limit <- decodeOptional[Int](c, "limit")
       offset <- decodeOptional[Int](c, "offset")
-    } yield DetailsArgs(directory, requestId, project, query, limit, offset)
+    } yield HistoryShowArgs(directory, historyId, project, query, limit, offset)
   }
-  given JsonSchemaEncoder[DetailsArgs] = schema(
+  given JsonSchemaEncoder[HistoryShowArgs] = schema(
     Json.obj(
       "type" -> Json.fromString("object"),
       "properties" -> Json.obj(
         directoryProperty,
-        "requestId" -> Json.obj(
+        "historyId" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("The requestId from a compile/test response. Omit for the workspace's most recent request.")
+          "description" -> Json.fromString("The historyId from a compile/test response. Omit for the workspace's most recent run.")
         ),
         "project" -> Json.obj(
           "type" -> Json.fromString("string"),
@@ -157,7 +157,7 @@ object DetailsArgs {
       ),
       "required" -> Json.arr(Json.fromString("directory"))
     )
-  ).asInstanceOf[JsonSchemaEncoder[DetailsArgs]]
+  ).asInstanceOf[JsonSchemaEncoder[HistoryShowArgs]]
 }
 
 /** Args for bleep.build.effective / bleep.build.resolved (project config inspection). */
@@ -215,9 +215,9 @@ object CopyStateArgs {
   ).asInstanceOf[JsonSchemaEncoder[CopyStateArgs]]
 }
 
-/** Args for bleep.diff / bleep.diff-timing: compare two completed requests. Both ids are required and explicit — no defaulting to "latest", because diffing the
-  * wrong pair silently is worse than asking the caller to say what they mean. `directory` names the workspace whose history holds the ids; `baseDirectory`
-  * optionally resolves `base` in a different worktree (the copy-state verification flow).
+/** Args for bleep.history.diff / bleep.history.diff-timing: compare two completed runs. Both ids are required and explicit — no defaulting to "latest", because
+  * diffing the wrong pair silently is worse than asking the caller to say what they mean. `directory` names the workspace whose history holds the ids;
+  * `baseDirectory` optionally resolves `base` in a different worktree (the copy-state verification flow).
   */
 case class DiffArgs(directory: String, base: Long, target: Long, limit: Option[Int], baseDirectory: Option[String])
 object DiffArgs {
@@ -239,15 +239,15 @@ object DiffArgs {
         directoryProperty,
         "base" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("requestId of the run to compare FROM (the earlier/reference run).")
+          "description" -> Json.fromString("historyId of the run to compare FROM (the earlier/reference run).")
         ),
         "target" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("requestId of the run to compare TO (the later run).")
+          "description" -> Json.fromString("historyId of the run to compare TO (the later run).")
         ),
         "limit" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("bleep.diff-timing only: max entries per list (slower/faster/slowestInTarget). Default 15.")
+          "description" -> Json.fromString("bleep.history.diff-timing only: max entries per list (slower/faster/slowestInTarget). Default 15.")
         ),
         "baseDirectory" -> Json.obj(
           "type" -> Json.fromString("string"),

@@ -20,8 +20,8 @@ multiple checkouts of the same build at the same time:
   subagents working in other git worktrees — and holds nothing that
   can go stale or leak when a worktree is removed.
 - **Compact by default.** Compile and test return a small JSON summary
-  (error counts, failure suites) plus a `requestId`. The full
-  transcript of that exact run is one `bleep.details` call away.
+  (error counts, failure suites) plus a `historyId`. The full
+  transcript of that exact run is one `bleep.history.show` call away.
 - **Errors stream.** Per-project compile errors land as MCP
   notifications the instant that project finishes, not at the end of
   the whole build. The latency floor for a real failure is
@@ -52,14 +52,15 @@ than the native binary, useful when iterating on bleep itself.
 
 ## The tool surface
 
-| Tool                    | Effect      | What it does                                                                          |
-| ----------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `bleep.compile`         | read-only   | Compile selected projects. Returns error counts and a `requestId`.                    |
-| `bleep.test`            | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `requestId`.            |
-| `bleep.details`         | read-only   | The full transcript of a completed compile/test request, by `requestId`. Searchable (regex) and paginated. |
-| `bleep.diff`            | read-only   | What logically changed between two requests: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
-| `bleep.diff-timing`     | read-only   | What got slower or faster between two requests, jitter suppressed, plus the target run's slowest items. |
-| `bleep.test.suites`     | read-only   | List test suite class names without running them. Requires projects to be compiled.   |
+| Tool                        | Effect      | What it does                                                                          |
+| --------------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| `bleep.compile`             | read-only   | Compile selected projects. Returns error counts and a `historyId`.                    |
+| `bleep.test`                | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`.            |
+| `bleep.history.list`        | read-only   | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
+| `bleep.history.show`        | read-only   | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
+| `bleep.history.diff`        | read-only   | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
+| `bleep.history.diff-timing` | read-only   | What got slower or faster between two runs, jitter suppressed, plus the target run's slowest items. |
+| `bleep.test.suites`         | read-only   | List test suite class names without running them. Requires projects to be compiled.   |
 | `bleep.sourcegen`       | additive    | Run sourcegen scripts for selected projects.                                          |
 | `bleep.fmt`             | additive    | Format Scala and Java sources via scalafmt and google-java-format.                    |
 | `bleep.clean`           | destructive | Delete compile output for selected projects.                                          |
@@ -78,9 +79,8 @@ to decide whether a tool can run unattended.
 Every tool except `bleep.restart` requires `directory`: the absolute
 path of the checkout to act on. An agent's current working directory
 works — bleep finds the build root from any directory inside it. Even
-`bleep.details` and `bleep.diff` take it: request ids are
-per-workspace, so an id means nothing without saying whose history to
-look in.
+the `bleep.history.*` tools take it: history ids are per-workspace, so
+an id means nothing without saying whose history to look in.
 
 ## Output shape
 
@@ -91,27 +91,27 @@ Compile and test return a *summary*, not a transcript:
   "success": false,
   "errors": 2,
   "warnings": 3,
-  "summary": "Build failed: 2 errors in 1 project. 3 warnings. Use bleep.details with this requestId for all diagnostics",
+  "summary": "Build failed: 2 errors in 1 project. 3 warnings. Use bleep.history.show with this historyId for all diagnostics",
   "failedProjects": ["myapp"],
   "topErrors": [{"message": "...", "path": "Main.scala", "line": 42}],
-  "requestId": 7
+  "historyId": 7
 }
 ```
 
-The transcript of every completed request is written by the compile
+The transcript of every completed run is written by the compile
 daemon into the workspace itself
-(`.bleep/builds/normal/requests/<id>.json`, the last 32 kept), keyed
-by that `requestId`. History is per-worktree, shared with the CLI
-(`bleep requests`, `bleep details`, `bleep diff`) and IDE builds, and
+(`.bleep/builds/normal/history/<id>.json`, the last 32 kept), keyed
+by that `historyId`. History is per-worktree, shared with the CLI
+(`bleep history`, `bleep history show`, `bleep history diff`) and IDE builds, and
 survives MCP server restarts — the server itself keeps nothing in
 memory. When the agent decides to drill in:
 
 ```
-agent: bleep.details { directory: "/checkout", requestId: 7 }
+agent: bleep.history.show { directory: "/checkout", historyId: 7 }
        → every diagnostic, every failing test with its stack trace;
          project/limit/offset parameters paginate large results
 
-agent: bleep.details { directory: "/checkout", requestId: 7, query: "NullPointer|timed out" }
+agent: bleep.history.show { directory: "/checkout", historyId: 7, query: "NullPointer|timed out" }
        → only the matching diagnostics or failures — a case-insensitive
          regex over messages, paths, suite/test names and stack traces
 ```
@@ -182,7 +182,7 @@ redirecting logs to files, grepping them, paging through noise — and
 frequently never finds the line that mattered. Structured data
 removes that entire class of failure. The agent gets *did anything go
 wrong* as a boolean, counts, and the first errors in a couple hundred
-tokens; everything deeper is a targeted `bleep.details` call —
+tokens; everything deeper is a targeted `bleep.history.show` call —
 paginated, or searched with a regex — that returns exactly the items
 asked for, still as data.
 

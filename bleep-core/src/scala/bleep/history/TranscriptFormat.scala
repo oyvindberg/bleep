@@ -1,12 +1,12 @@
-package bleep.requests
+package bleep.history
 
 import bleep.BleepException
 import bleep.bsp.protocol.{BleepBspProtocol, DiagnosticSeverity, TestStatus}
 import io.circe.Json
 
 /** Renders a request [[Transcript]] (or its raw event stream) as agent/human-consumable JSON: compact summaries after a run, and the full "details" view with
-  * every diagnostic and stack trace. Shared verbatim between `bleep details` (CLI) and `bleep.details` (MCP) so the two surfaces cannot drift; moved here from
-  * the MCP server, mechanically, when the CLI grew the same commands.
+  * every diagnostic and stack trace. Shared verbatim between `bleep history show` (CLI) and `bleep.history.show` (MCP) so the two surfaces cannot drift; moved
+  * here from the MCP server, mechanically, when the CLI grew the same commands.
   */
 object TranscriptFormat {
 
@@ -35,7 +35,7 @@ object TranscriptFormat {
       else formatCompileResult(events, verbose = true, pattern, limit, offset)
     result.deepMerge(
       Json.obj(
-        "requestId" -> Json.fromLong(transcript.id),
+        "historyId" -> Json.fromLong(transcript.id),
         "mode" -> Json.fromString(transcript.mode),
         "workspace" -> Json.fromString(transcript.workspace),
         "timestampMs" -> Json.fromLong(transcript.timestampMs),
@@ -136,7 +136,7 @@ object TranscriptFormat {
       if (success) summaryParts += s"Build succeeded (${plural(compileEvents.size, "project")})"
       else summaryParts += s"Build failed: ${plural(errorCount, "error")} in ${plural(failedProjects.map(_.project).distinct.size, "project")}"
       if (warningCount > 0) summaryParts += plural(warningCount, "warning")
-      if (!success) summaryParts += "Use bleep.details with this requestId for all diagnostics"
+      if (!success) summaryParts += "Use bleep.history.show with this historyId for all diagnostics"
       fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
 
       if (failedProjects.nonEmpty) {
@@ -196,7 +196,7 @@ object TranscriptFormat {
     val summaryParts = List.newBuilder[String]
     if (failed == 0) summaryParts += s"${plural(passed, "test")} passed"
     else summaryParts += s"${plural(failed, "test")} failed, $passed passed"
-    if (failed > 0) summaryParts += "Use bleep.details with this requestId for failure details"
+    if (failed > 0) summaryParts += "Use bleep.history.show with this historyId for failure details"
     fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
 
     // Include failure details: always include message, never inline full stack traces in compact mode
@@ -219,7 +219,7 @@ object TranscriptFormat {
           if (includeThrowables) {
             val collapsed = bleep.testing.StackTraceCycles.collapse(stripAnsi(t)).mkString("\n")
             df += "throwable" -> Json.fromString(collapsed)
-          } else df += "throwable" -> Json.fromString("present. Use bleep.details with this requestId for the full stack trace")
+          } else df += "throwable" -> Json.fromString("present. Use bleep.history.show with this historyId for the full stack trace")
         }
         Json.obj(df.result()*)
       }

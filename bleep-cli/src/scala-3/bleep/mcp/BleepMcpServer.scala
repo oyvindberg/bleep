@@ -5,7 +5,7 @@ import bleep.bsp.{BspBuildData, BspRequestHelper, BspRifle, BspRifleConfig, BspS
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.DiagnosticSeverity
 import bleep.internal.BspClientDisplayProgress
-import bleep.requests.{TranscriptFormat, TranscriptStore}
+import bleep.history.{TranscriptFormat, TranscriptStore}
 import cats.effect._
 import cats.effect.std.Queue
 import ch.epfl.scala.bsp4j
@@ -29,9 +29,9 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   * bleep-bsp daemon, and disconnects when done — exactly what a CLI invocation does, at the same cost. One MCP server therefore serves every git worktree a
   * session touches, always against current configuration, and holds nothing that can go stale or leak when a worktree is removed.
   *
-  * Nothing is kept in memory between calls — not even request history. The bleep-bsp daemon persists a transcript of every compile/test request into the
-  * workspace itself (`<workspace>/.bleep/builds/<variant>/requests/`), and `bleep.details` / `bleep.diff` read those files directly (no daemon connection, no
-  * bootstrap). History is therefore per-worktree, shared with the CLI and IDEs, and survives MCP server restarts.
+  * Nothing is kept in memory between calls — not even run history. The bleep-bsp daemon persists a transcript of every compile/test request into the workspace
+  * itself (`<workspace>/.bleep/builds/<variant>/history/`), and `bleep.history.list` / `bleep.history.show` / `bleep.history.diff` read those files directly
+  * (no daemon connection, no bootstrap). History is therefore per-worktree, shared with the CLI and IDEs, and survives MCP server restarts.
   */
 class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext) extends McpServer[IO] {
 
@@ -137,19 +137,20 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           |Nothing is cached between calls; every call sees the current build configuration.
           |
           |## Response model
-          |Compile and test return a compact summary (error/warning or pass/fail counts) plus a requestId.
+          |Compile and test return a compact summary (error/warning or pass/fail counts) plus a historyId.
           |Errors stream as log notifications during the build so you see failures immediately.
-          |For full diagnostics or stack traces, call bleep.details with that requestId.
-          |Request history is per-worktree: the compile daemon writes a transcript of every compile/test into the
-          |workspace itself, shared with the CLI (`bleep requests`) and IDEs, surviving MCP server restarts.
-          |Ids therefore only mean something together with the workspace — details/diff take `directory` too.
+          |For full diagnostics or stack traces, call bleep.history.show with that historyId.
+          |Run history is per-worktree: the compile daemon writes a transcript of every compile/test into the
+          |workspace itself, shared with the CLI (`bleep history`) and IDEs, surviving MCP server restarts.
+          |Ids therefore only mean something together with the workspace — history.show/diff take `directory` too.
           |
           |## Tools
-          |- bleep.compile — compile projects. Returns compact summary + requestId. Streams errors per-project as they occur.
-          |- bleep.test — run tests. Returns compact summary + requestId with pass/fail counts.
-          |- bleep.details — full transcript of a completed compile/test request by requestId, read from `directory`'s per-worktree history. Search it with `query` (regex); project/limit/offset paginate.
-          |- bleep.diff — what logically changed between two requests (base, target) in `directory`'s history: newly failing/fixed/skipped tests, compile invalidations, new/resolved diagnostics. Timing-free and deterministic. `baseDirectory` resolves base in another worktree (copy-state verification).
-          |- bleep.diff-timing — what got slower/faster between two requests, jitter suppressed, plus the target run's slowest items. Same `directory`/`baseDirectory` semantics as bleep.diff.
+          |- bleep.compile — compile projects. Returns compact summary + historyId. Streams errors per-project as they occur.
+          |- bleep.test — run tests. Returns compact summary + historyId with pass/fail counts.
+          |- bleep.history.list — list `directory`'s recorded compile/test runs: historyId, time, mode, targets, client. Pure file read.
+          |- bleep.history.show — full transcript of a completed compile/test run by historyId, read from `directory`'s per-worktree history. Search it with `query` (regex); project/limit/offset paginate.
+          |- bleep.history.diff — what logically changed between two runs (base, target) in `directory`'s history: newly failing/fixed/skipped tests, compile invalidations, new/resolved diagnostics. Timing-free and deterministic. `baseDirectory` resolves base in another worktree (copy-state verification).
+          |- bleep.history.diff-timing — what got slower/faster between two runs, jitter suppressed, plus the target run's slowest items. Same `directory`/`baseDirectory` semantics as bleep.history.diff.
           |- bleep.test.suites — discover test suites without running them (requires compiled code)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
@@ -167,9 +168,10 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       List(
         compileTool,
         testTool,
-        detailsTool,
-        diffTool,
-        diffTimingTool,
+        historyListTool,
+        historyShowTool,
+        historyDiffTool,
+        historyDiffTimingTool,
         testSuitesTool,
         sourcegenTool,
         fmtTool,
@@ -231,7 +233,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.compile",
         Some("Compile"),
         Some(
-          "Compile bleep projects. Returns compact summary (error counts) plus a requestId. Errors stream per-project as they finish. Call bleep.details with the requestId for full diagnostics."
+          "Compile bleep projects. Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -245,7 +247,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.test",
         Some("Test"),
         Some(
-          "Run tests for bleep projects. Returns compact summary (pass/fail counts) plus a requestId. Failures stream as they occur. Call bleep.details with the requestId for full failure messages/stacktraces."
+          "Run tests for bleep projects. Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -254,26 +256,40 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       None
     )
 
-    private def detailsTool: ToolFunction[IO] = textTool[DetailsArgs](
+    private def historyListTool: ToolFunction[IO] = textTool[DirArgs](
       ToolFunction.Info(
-        "bleep.details",
-        Some("Request Details"),
+        "bleep.history.list",
+        Some("List Run History"),
         Some(
-          "Full transcript of a completed compile/test request in `directory`'s per-worktree history: every diagnostic, every test failure with stack trace. Pass the requestId from a compile/test response, or omit it for the workspace's most recent request. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate. Pure file read — no build, no daemon."
+          "List `directory`'s recorded compile/test runs, oldest first: historyId, timestamp, mode, targets and which client ran it — the same listing `bleep history` prints, as JSON. Pure file read — no build, no daemon."
         ),
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, _) => requestDetails(args),
+      (args, _) => historyList(args),
       None
     )
 
-    private def diffTool: ToolFunction[IO] = textTool[DiffArgs](
+    private def historyShowTool: ToolFunction[IO] = textTool[HistoryShowArgs](
       ToolFunction.Info(
-        "bleep.diff",
+        "bleep.history.show",
+        Some("Show History Entry"),
+        Some(
+          "Full transcript of a completed compile/test run in `directory`'s per-worktree history: every diagnostic, every test failure with stack trace. Pass the historyId from a compile/test response, or omit it for the workspace's most recent run. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate. Pure file read — no build, no daemon."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => historyShow(args),
+      None
+    )
+
+    private def historyDiffTool: ToolFunction[IO] = textTool[DiffArgs](
+      ToolFunction.Info(
+        "bleep.history.diff",
         Some("Diff Two Runs"),
         Some(
-          "Mechanical diff between two completed compile/test requests in `directory`'s history: what LOGICALLY changed. Tests: newly failing/fixed/skipped/added/removed, still-failing with changed messages. Compiles: per-project reason and status transitions, invalidated files, new/resolved diagnostics. Durations never enter the comparison — two runs with the same outcome diff as identical regardless of timing jitter. `baseDirectory` resolves base in another worktree (copy-state verification). Use bleep.diff-timing for duration comparisons. The canonical after-edit question: rerun, then diff the two requestIds."
+          "Mechanical diff between two completed compile/test runs in `directory`'s history: what LOGICALLY changed. Tests: newly failing/fixed/skipped/added/removed, still-failing with changed messages. Compiles: per-project reason and status transitions, invalidated files, new/resolved diagnostics. Durations never enter the comparison — two runs with the same outcome diff as identical regardless of timing jitter. `baseDirectory` resolves base in another worktree (copy-state verification). Use bleep.history.diff-timing for duration comparisons. The canonical after-edit question: rerun, then diff the two historyIds."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -281,17 +297,17 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       (args, _) =>
         IO.blocking {
           val (baseTranscript, targetTranscript) = diffTranscripts(args)
-          bleep.requests.RequestDiff.mechanical(baseTranscript, targetTranscript).noSpaces
+          bleep.history.TranscriptDiff.mechanical(baseTranscript, targetTranscript).noSpaces
         },
       None
     )
 
-    private def diffTimingTool: ToolFunction[IO] = textTool[DiffArgs](
+    private def historyDiffTimingTool: ToolFunction[IO] = textTool[DiffArgs](
       ToolFunction.Info(
-        "bleep.diff-timing",
+        "bleep.history.diff-timing",
         Some("Diff Run Timings"),
         Some(
-          "Duration comparison between two completed compile/test requests in `directory`'s history: which tests/projects got slower or faster (deltas below max(50ms, 20% of base) are suppressed as jitter), plus the slowest items of the target run in absolute terms. Timing lives here, separate from bleep.diff, so the mechanical diff stays deterministic. Same `directory`/`baseDirectory` semantics as bleep.diff."
+          "Duration comparison between two completed compile/test runs in `directory`'s history: which tests/projects got slower or faster (deltas below max(50ms, 20% of base) are suppressed as jitter), plus the slowest items of the target run in absolute terms. Timing lives here, separate from bleep.history.diff, so the mechanical diff stays deterministic. Same `directory`/`baseDirectory` semantics as bleep.history.diff."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -299,18 +315,18 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       (args, _) =>
         IO.blocking {
           val (baseTranscript, targetTranscript) = diffTranscripts(args)
-          bleep.requests.RequestDiff
-            .timing(baseTranscript, targetTranscript, args.limit.getOrElse(bleep.requests.RequestDiff.DefaultTimingLimit))
+          bleep.history.TranscriptDiff
+            .timing(baseTranscript, targetTranscript, args.limit.getOrElse(bleep.history.TranscriptDiff.DefaultTimingLimit))
             .noSpaces
         },
       None
     )
 
     /** Both sides of a diff, read from the per-worktree store(s). `baseDirectory` resolves the base id in another worktree's history. */
-    private def diffTranscripts(args: DiffArgs): (bleep.requests.Transcript, bleep.requests.Transcript) = {
-      val targetPaths = requestsWorkspacePaths(args.directory, what = "directory")
+    private def diffTranscripts(args: DiffArgs): (bleep.history.Transcript, bleep.history.Transcript) = {
+      val targetPaths = historyWorkspacePaths(args.directory, what = "directory")
       val basePaths = args.baseDirectory match {
-        case Some(dir) => requestsWorkspacePaths(dir, what = "baseDirectory")
+        case Some(dir) => historyWorkspacePaths(dir, what = "baseDirectory")
         case None      => targetPaths
       }
       (TranscriptStore.read(basePaths, args.base), TranscriptStore.read(targetPaths, args.target))
@@ -319,10 +335,10 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     /** BuildPaths for the transcript store of the workspace at `directory` — a pure path derivation (find bleep.yaml, Normal variant), deliberately NOT a
       * bootstrap: reading history must not resolve a build or spawn a daemon.
       */
-    private def requestsWorkspacePaths(directory: String, what: String): BuildPaths = {
+    private def historyWorkspacePaths(directory: String, what: String): BuildPaths = {
       val dir = Path.of(directory)
       if (!dir.isAbsolute) throw new BleepException.Text(s"$what must be an absolute path, got: $directory")
-      commands.Requests.workspacePaths(dir, what)
+      commands.History.workspacePaths(dir, what)
     }
 
     private def testSuitesTool: ToolFunction[IO] = textTool[ProjectsArgs](
@@ -597,7 +613,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         }
       }
 
-    /** Execute a compile on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + requestId. */
+    /** Execute a compile on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + historyId. */
     private def executeCompile(
         started: Started,
         projectNames: List[String],
@@ -620,7 +636,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
 
         // The daemon persists the transcript and returns its id in the response; the streamed events are only collected for the compact summary below.
-        requestId <- diagnoseOomOnFailure(bspConfig) {
+        historyId <- diagnoseOomOnFailure(bspConfig) {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
           bspSession(started, bspConfig, client)
             .use { lifecycle =>
@@ -633,7 +649,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
                 lifecycle.listening
               )
             }
-            .map(requestIdFromCompileResult)
+            .map(historyIdFromCompileResult)
         }.guarantee(
           eventQueue.offer(None) >>
             consumerFiber.joinWithNever >>
@@ -642,19 +658,19 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         )
 
         events <- collectedEvents.get.map(_.reverse)
-      } yield withRequestId(TranscriptFormat.formatCompileResult(events, verbose = false, query = None, limit = None, offset = None), requestId)
+      } yield withHistoryId(TranscriptFormat.formatCompileResult(events, verbose = false, query = None, limit = None, offset = None), historyId)
     }
 
     /** The daemon-assigned transcript id from a compile response. None when the daemon carried none (transcript write failed, or older daemon). */
-    private def requestIdFromCompileResult(result: bsp4j.CompileResult): Option[Long] =
+    private def historyIdFromCompileResult(result: bsp4j.CompileResult): Option[Long] =
       for {
         dataKind <- Option(result.getDataKind)
-        if dataKind == BleepBspProtocol.RequestIdDataKind
+        if dataKind == BleepBspProtocol.HistoryIdDataKind
         data <- Option(result.getData)
-        payload <- BleepBspProtocol.RequestIdPayload.decode(data.toString).toOption
-      } yield payload.requestId
+        payload <- BleepBspProtocol.HistoryIdPayload.decode(data.toString).toOption
+      } yield payload.historyId
 
-    /** Execute a test run on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + requestId. */
+    /** Execute a test run on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + historyId. */
     private def executeTest(
         started: Started,
         projectNames: List[String],
@@ -716,26 +732,43 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
 
         events <- collectedEvents.get.map(_.reverse)
         trr <- testRunResult.get
-      } yield withRequestId(
+      } yield withHistoryId(
         TranscriptFormat.formatTestResult(events, trr, includeThrowables = false, query = None, limit = None, offset = None),
-        trr.flatMap(_.requestId)
+        trr.flatMap(_.historyId)
       )
     }
 
     /** Attach the daemon-assigned transcript id when the response carried one; its absence (failed transcript write, older daemon) is sanctioned and simply
-      * means the summary cannot be expanded via bleep.details later.
+      * means the summary cannot be expanded via bleep.history.show later.
       */
-    private def withRequestId(json: Json, requestId: Option[Long]): String =
-      requestId match {
-        case Some(id) => json.deepMerge(Json.obj("requestId" -> Json.fromLong(id))).noSpaces
+    private def withHistoryId(json: Json, historyId: Option[Long]): String =
+      historyId match {
+        case Some(id) => json.deepMerge(Json.obj("historyId" -> Json.fromLong(id))).noSpaces
         case None     => json.noSpaces
       }
 
-    /** Full transcript of a completed request, by id or most recent — a pure read of `directory`'s per-worktree history. */
-    private def requestDetails(args: DetailsArgs): IO[String] =
+    /** The workspace's recorded runs, oldest first — the same listing `bleep history` prints, as JSON. A pure read of `directory`'s per-worktree history. */
+    private def historyList(args: DirArgs): IO[String] =
       IO.blocking {
-        val buildPaths = requestsWorkspacePaths(args.directory, what = "directory")
-        val transcript = args.requestId match {
+        val buildPaths = historyWorkspacePaths(args.directory, what = "directory")
+        val entries = TranscriptStore.list(buildPaths).map { id =>
+          val t = TranscriptStore.read(buildPaths, id)
+          Json.obj(
+            "historyId" -> Json.fromLong(t.id),
+            "timestampMs" -> Json.fromLong(t.timestampMs),
+            "mode" -> Json.fromString(t.mode),
+            "targets" -> Json.arr(t.targets.map(Json.fromString)*),
+            "client" -> Json.fromString(t.client)
+          )
+        }
+        Json.obj("entries" -> Json.arr(entries*)).noSpaces
+      }
+
+    /** Full transcript of one history entry, by id or most recent — a pure read of `directory`'s per-worktree history. */
+    private def historyShow(args: HistoryShowArgs): IO[String] =
+      IO.blocking {
+        val buildPaths = historyWorkspacePaths(args.directory, what = "directory")
+        val transcript = args.historyId match {
           case Some(id) => TranscriptStore.read(buildPaths, id)
           case None     => TranscriptStore.readLatest(buildPaths)
         }

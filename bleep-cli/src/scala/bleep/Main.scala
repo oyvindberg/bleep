@@ -680,32 +680,35 @@ object Main {
               .argument[String]("source worktree")
               .map(fromStr => commands.CopyState(from = fromStr))
           ),
-          Opts.subcommand("requests", "list this workspace's recorded compile/test requests (written by the compile server, kept per worktree)")(
-            Opts(commands.Requests.ListRequests)
-          ),
-          Opts.subcommand("details", "print the full transcript of a recorded compile/test request as JSON (latest when no id is given)")(
-            (
-              Opts.argument[Long]("request id").orNone,
-              Opts.option[String]("project", "only events belonging to this project").orNone,
-              Opts
-                .option[String]("query", "case-insensitive regex over messages, paths, suite/test names and stack traces; only matching items are returned")
-                .orNone,
-              Opts.option[Int]("limit", "max number of items (diagnostics for compile, failures for test) to return").orNone,
-              Opts.option[Int]("offset", "skip the first N items before applying limit").orNone
-            ).mapN { case (id, project, query, limit, offset) =>
-              commands.Requests.Details(id, project, query, limit, offset)
-            }
-          ),
-          Opts.subcommand("diff", "diff two recorded requests: what logically changed (or, with --timing, what got slower/faster)")(
-            (
-              Opts.argument[Long]("base request id"),
-              Opts.argument[Long]("target request id"),
-              Opts.flag("timing", "compare durations (jitter-suppressed) instead of logical outcome").orFalse,
-              Opts.option[Int]("limit", "--timing only: max entries per list (slower/faster/slowestInTarget)").orNone,
-              Opts.option[String]("base-dir", "resolve the base id in another workspace's history (e.g. the worktree this one was forked from)").orNone
-            ).mapN { case (base, target, timing, limit, baseDir) =>
-              commands.Requests.Diff(base, target, timing, limit, baseDir.map(java.nio.file.Paths.get(_)))
-            }
+          Opts.subcommand("history", "list this workspace's recorded compile/test runs (written by the compile server, kept per worktree)")(
+            Opts
+              .subcommand("show", "print the full transcript of a recorded compile/test run as JSON (latest when no id is given)")(
+                (
+                  Opts.argument[Long]("history id").orNone,
+                  Opts.option[String]("project", "only events belonging to this project").orNone,
+                  Opts
+                    .option[String]("query", "case-insensitive regex over messages, paths, suite/test names and stack traces; only matching items are returned")
+                    .orNone,
+                  Opts.option[Int]("limit", "max number of items (diagnostics for compile, failures for test) to return").orNone,
+                  Opts.option[Int]("offset", "skip the first N items before applying limit").orNone
+                ).mapN { case (id, project, query, limit, offset) =>
+                  commands.History.Show(id, project, query, limit, offset): BleepBuildCommand
+                }
+              )
+              .orElse(
+                Opts.subcommand("diff", "diff two recorded runs: what logically changed (or, with --timing, what got slower/faster)")(
+                  (
+                    Opts.argument[Long]("base history id"),
+                    Opts.argument[Long]("target history id"),
+                    Opts.flag("timing", "compare durations (jitter-suppressed) instead of logical outcome").orFalse,
+                    Opts.option[Int]("limit", "--timing only: max entries per list (slower/faster/slowestInTarget)").orNone,
+                    Opts.option[String]("base-dir", "resolve the base id in another workspace's history (e.g. the worktree this one was forked from)").orNone
+                  ).mapN { case (base, target, timing, limit, baseDir) =>
+                    commands.History.Diff(base, target, timing, limit, baseDir.map(java.nio.file.Paths.get(_))): BleepBuildCommand
+                  }
+                )
+              )
+              .orElse(Opts(commands.History.ListEntries: BleepBuildCommand))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
             (projectNames, outputMode).mapN { (projectNames, mode) =>

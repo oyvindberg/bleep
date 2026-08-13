@@ -1,26 +1,26 @@
 package bleep
 package commands
 
-import bleep.requests.{RequestDiff, Transcript, TranscriptFormat, TranscriptStore}
+import bleep.history.{Transcript, TranscriptDiff, TranscriptFormat, TranscriptStore}
 
 import java.nio.file.{Files, Path}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId}
 
-/** CLI surface over the per-workspace request transcripts the daemon writes (`<workspace>/.bleep/builds/<variant>/requests/`). Pure file reads — no daemon
-  * connection is made, which is the point: history survives daemon restarts and can be inspected from a machine where no daemon runs at all.
+/** CLI surface over the per-workspace run history the daemon writes (`<workspace>/.bleep/builds/<variant>/history/`). Pure file reads — no daemon connection is
+  * made, which is the point: history survives daemon restarts and can be inspected from a machine where no daemon runs at all.
   *
   * Output goes to stdout via println, not the logger: these commands emit data (JSON, aligned rows) meant for piping and grepping.
   */
-object Requests {
+object History {
 
-  /** `bleep requests` — list recorded request transcripts in this workspace, oldest first. */
-  case object ListRequests extends BleepBuildCommand {
+  /** `bleep history` — list this workspace's recorded compile/test runs, oldest first. */
+  case object ListEntries extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       val buildPaths = started.buildPaths
       val ids = TranscriptStore.list(buildPaths)
       if (ids.isEmpty)
-        println(s"No requests recorded in ${TranscriptStore.dir(buildPaths)}. Run a compile or test first.")
+        println(s"No history recorded in ${TranscriptStore.dir(buildPaths)}. Run a compile or test first.")
       else {
         val timestampFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault())
         ids.foreach { id =>
@@ -33,8 +33,8 @@ object Requests {
     }
   }
 
-  /** `bleep details [id]` — the full transcript of one request (latest when omitted), as JSON on stdout. */
-  case class Details(
+  /** `bleep history show [id]` — the full transcript of one history entry (latest when omitted), as JSON on stdout. */
+  case class Show(
       id: Option[Long],
       project: Option[String],
       query: Option[String],
@@ -52,8 +52,8 @@ object Requests {
     }
   }
 
-  /** `bleep diff <base> <target>` — what changed between two requests, as JSON on stdout. `--timing` compares durations instead of logical outcome;
-    * `--base-dir` resolves the base id in another workspace (the copy-state verification flow: parent's run vs this worktree's run).
+  /** `bleep history diff <base> <target>` — what changed between two history entries, as JSON on stdout. `--timing` compares durations instead of logical
+    * outcome; `--base-dir` resolves the base id in another workspace (the copy-state verification flow: parent's run vs this worktree's run).
     */
   case class Diff(
       base: Long,
@@ -65,22 +65,22 @@ object Requests {
     override def run(started: Started): Either[BleepException, Unit] = {
       val targetPaths = started.buildPaths
       val basePaths = baseDir match {
-        case Some(dir) => Requests.workspacePaths(dir, what = "--base-dir")
+        case Some(dir) => History.workspacePaths(dir, what = "--base-dir")
         case None      => targetPaths
       }
       val baseTranscript: Transcript = TranscriptStore.read(basePaths, base)
       val targetTranscript: Transcript = TranscriptStore.read(targetPaths, target)
       val json =
-        if (timing) RequestDiff.timing(baseTranscript, targetTranscript, limit.getOrElse(RequestDiff.DefaultTimingLimit))
-        else RequestDiff.mechanical(baseTranscript, targetTranscript)
+        if (timing) TranscriptDiff.timing(baseTranscript, targetTranscript, limit.getOrElse(TranscriptDiff.DefaultTimingLimit))
+        else TranscriptDiff.mechanical(baseTranscript, targetTranscript)
       println(json.spaces2)
       Right(())
     }
   }
 
   /** Resolve a workspace's BuildPaths from a directory inside it, Normal variant — the variant the CLI and MCP write. Fails loudly when the directory does not
-    * exist or holds no bleep build: pointing the transcript reads at a wrong path must not degrade into "no request with that id". Shared by `--base-dir` here
-    * and the MCP `directory`/`baseDirectory` arguments; `what` names the argument in error messages.
+    * exist or holds no bleep build: pointing the transcript reads at a wrong path must not degrade into "no history entry with that id". Shared by `--base-dir`
+    * here and the MCP `directory`/`baseDirectory` arguments; `what` names the argument in error messages.
     */
   def workspacePaths(dir: Path, what: String): BuildPaths = {
     val abs = dir.toAbsolutePath.normalize()

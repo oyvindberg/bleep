@@ -1,4 +1,4 @@
-package bleep.requests
+package bleep.history
 
 import bleep.BleepException
 import bleep.bsp.protocol.{BleepBspProtocol, SuiteOutcome, TestStatus}
@@ -26,7 +26,7 @@ import io.circe.Json
   * absolute for identity too, which is correct on one machine: the same jar genuinely is the same file in both worktrees. For a single-workspace diff the
   * relativization is applied to both sides against the same root, so it is an identity-preserving no-op.
   */
-object RequestDiff {
+object TranscriptDiff {
 
   // ==========================================================================
   // Shared
@@ -67,8 +67,8 @@ object RequestDiff {
 
   private def header(base: Transcript, target: Transcript): List[(String, Json)] = {
     val fields = List.newBuilder[(String, Json)]
-    fields += "base" -> Json.obj("requestId" -> Json.fromLong(base.id), "workspace" -> Json.fromString(base.workspace))
-    fields += "target" -> Json.obj("requestId" -> Json.fromLong(target.id), "workspace" -> Json.fromString(target.workspace))
+    fields += "base" -> Json.obj("historyId" -> Json.fromLong(base.id), "workspace" -> Json.fromString(base.workspace))
+    fields += "target" -> Json.obj("historyId" -> Json.fromLong(target.id), "workspace" -> Json.fromString(target.workspace))
     fields += "mode" -> Json.fromString(base.mode)
     if (base.workspace != target.workspace)
       fields += "crossWorkspace" -> Json.fromBoolean(true)

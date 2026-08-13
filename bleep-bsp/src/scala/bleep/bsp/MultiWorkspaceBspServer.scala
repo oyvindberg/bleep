@@ -226,19 +226,19 @@ class MultiWorkspaceBspServer(
     * messages (e.g. $/cancelRequest, build/shutdown) while the request runs. The fiber self-cleans from activeFibers via guarantee.
     */
   private def spawnRequest(request: JsonRpcRequest): IO[Unit] = {
-    val requestId = request.id.map(_.key).getOrElse("unknown")
+    val rpcId = request.id.map(_.key).getOrElse("unknown")
 
     Deferred[IO, Unit].flatMap { registered =>
       val handler: IO[Unit] =
         registered.get >>
           handleRequest(request)
             .onError { err =>
-              IO.delay(logger.withContext("request", requestId).error(s"Request handler failed: ${err.getClass.getName}: ${err.getMessage}", err))
+              IO.delay(logger.withContext("request", rpcId).error(s"Request handler failed: ${err.getClass.getName}: ${err.getMessage}", err))
             }
-            .guarantee(IO.blocking(activeFibers.remove(requestId)).void)
+            .guarantee(IO.blocking(activeFibers.remove(rpcId)).void)
 
       handler.start.flatMap { fiber =>
-        IO.blocking(activeFibers.put(requestId, fiber)) >> registered.complete(()).void
+        IO.blocking(activeFibers.put(rpcId, fiber)) >> registered.complete(()).void
       }
     }
   }
@@ -2002,13 +2002,13 @@ class MultiWorkspaceBspServer(
             // Persist the transcript before building the response, whatever the outcome — a failed or cancelled run's transcript is exactly what a diff wants
             // to see. The consumer fiber has been joined by now, so the recorder holds the complete event stream. `None` means the write failed (logged, never
             // fails the build) and the response carries no id.
-            val requestId: Option[Long] =
+            val historyId: Option[Long] =
               recordTranscript(started, mode = "compile", targets = projectsToCompile.map(_.value).toList.sorted, recorder = recorder, testRunResult = None)
-            val (responseDataKind, responseData) = requestId match {
+            val (responseDataKind, responseData) = historyId match {
               case Some(id) =>
                 (
-                  Some(BleepBspProtocol.RequestIdDataKind),
-                  Some(RawJson(BleepBspProtocol.RequestIdPayload.encode(BleepBspProtocol.RequestIdPayload(id)).getBytes("UTF-8")))
+                  Some(BleepBspProtocol.HistoryIdDataKind),
+                  Some(RawJson(BleepBspProtocol.HistoryIdPayload.encode(BleepBspProtocol.HistoryIdPayload(id)).getBytes("UTF-8")))
                 )
               case None => (None, None)
             }
@@ -2212,7 +2212,7 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Persist the transcript of a completed compile/test request to `<workspace>/.bleep/builds/<variant>/requests/` and return the assigned id.
+  /** Persist the transcript of a completed compile/test request to `<workspace>/.bleep/builds/<variant>/history/` and return the assigned id.
     *
     * SANCTIONED EXCEPTION to fail-loudly: a transcript-write failure must never fail a build that already ran — the compile output and test results are real
     * regardless of whether their record made it to disk. Log the error, return None, and the response simply carries no id.
@@ -2226,7 +2226,7 @@ class MultiWorkspaceBspServer(
   ): Option[Long] =
     try {
       val client = clientDisplayName.get().getOrElse(sys.error("client displayName not set — build/initialize has not run"))
-      val transcript = bleep.requests.TranscriptStore.write(
+      val transcript = bleep.history.TranscriptStore.write(
         buildPaths = started.buildPaths,
         timestampMs = System.currentTimeMillis(),
         mode = mode,
@@ -2236,10 +2236,10 @@ class MultiWorkspaceBspServer(
         testRunResult = testRunResult
       )
       logger
-        .withContext("requestId", transcript.id)
+        .withContext("historyId", transcript.id)
         .withContext("mode", mode)
         .withContext("events", transcript.events.size)
-        .debug("Request transcript written")
+        .debug("History transcript written")
       Some(transcript.id)
     } catch {
       case scala.util.control.NonFatal(e) =>
@@ -2743,7 +2743,7 @@ class MultiWorkspaceBspServer(
 
             bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
 
-            // Include authoritative test results in TestResult.data for reliable delivery. The copy stored in the transcript carries requestId=None — the
+            // Include authoritative test results in TestResult.data for reliable delivery. The copy stored in the transcript carries historyId=None — the
             // transcript's own id is authoritative there; the copy returned to the client carries the freshly assigned id (None iff the write failed).
             val storedRunResult = BleepBspProtocol.TestRunResult(
               totalPassed = totalPassed,
@@ -2755,9 +2755,9 @@ class MultiWorkspaceBspServer(
               suitesFailed = suitesFailed,
               suitesCancelled = suitesCancelled,
               durationMs = durationMs,
-              requestId = None
+              historyId = None
             )
-            val requestId: Option[Long] =
+            val historyId: Option[Long] =
               recordTranscript(
                 started,
                 mode = "test",
@@ -2765,7 +2765,7 @@ class MultiWorkspaceBspServer(
                 recorder = recorder,
                 testRunResult = Some(storedRunResult)
               )
-            val runResult = storedRunResult.copy(requestId = requestId)
+            val runResult = storedRunResult.copy(historyId = historyId)
 
             TestResult(
               originId = params.originId,
@@ -2818,9 +2818,9 @@ class MultiWorkspaceBspServer(
               suitesFailed = 0,
               suitesCancelled = 0,
               durationMs = durationMs,
-              requestId = None
+              historyId = None
             )
-            val requestId: Option[Long] =
+            val historyId: Option[Long] =
               recordTranscript(
                 started,
                 mode = "test",
@@ -2828,7 +2828,7 @@ class MultiWorkspaceBspServer(
                 recorder = recorder,
                 testRunResult = Some(storedFailRunResult)
               )
-            val failRunResult = storedFailRunResult.copy(requestId = requestId)
+            val failRunResult = storedFailRunResult.copy(historyId = historyId)
 
             TestResult(
               originId = params.originId,

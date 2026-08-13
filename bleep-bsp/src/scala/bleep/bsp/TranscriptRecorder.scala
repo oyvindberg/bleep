@@ -8,7 +8,7 @@ import scala.jdk.CollectionConverters.*
   *
   * Created at the top of the request handler and passed structurally through the call chain — the compile handler, the heap-pressure listener, the DAG event
   * consumers — so every event that goes out to the client as a `build/taskProgress` notification is also captured server-side, in send order. At request
-  * completion the accumulated stream becomes the body of the [[bleep.requests.Transcript]] the daemon persists.
+  * completion the accumulated stream becomes the body of the [[bleep.history.Transcript]] the daemon persists.
   *
   * Thread-safe because a request's events are produced concurrently (compiler callbacks, DAG consumer fiber, lock-contention callbacks); scope stays strictly
   * per-request — this is a parameter, never shared state.

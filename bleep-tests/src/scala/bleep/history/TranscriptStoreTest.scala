@@ -1,4 +1,4 @@
-package bleep.requests
+package bleep.history
 
 import bleep.{model, BleepException, BuildPaths}
 import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, TestStatus}
@@ -8,9 +8,9 @@ import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.Files
 
-/** The transcript store is the durable half of the diff story: what the daemon writes per completed request, what `bleep details` / `bleep diff` and the MCP
-  * tools read. These tests pin the storage contract: ids are per-workspace monotonic and never reused, files roundtrip the full event model, and retention is
-  * bounded while eviction only ever eats the oldest.
+/** The transcript store is the durable half of the diff story: what the daemon writes per completed run, what `bleep history show` / `bleep history diff` and
+  * the MCP tools read. These tests pin the storage contract: ids are per-workspace monotonic and never reused, files roundtrip the full event model, and
+  * retention is bounded while eviction only ever eats the oldest.
   */
 class TranscriptStoreTest extends AnyFunSuite with Matchers {
 
@@ -69,9 +69,9 @@ class TranscriptStoreTest extends AnyFunSuite with Matchers {
     val paths = freshPaths()
     write(paths)
     val e = intercept[BleepException.Text](TranscriptStore.read(paths, 999L))
-    e.getMessage should include("No request with id 999")
+    e.getMessage should include("No history entry #999")
     val empty = intercept[BleepException.Text](TranscriptStore.readLatest(freshPaths()))
-    empty.getMessage should include("No completed requests")
+    empty.getMessage should include("No history recorded")
   }
 
   test("retention keeps the newest MaxEntries; ids keep increasing past eviction, never reused") {

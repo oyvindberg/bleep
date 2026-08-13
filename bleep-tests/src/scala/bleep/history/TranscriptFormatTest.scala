@@ -1,4 +1,4 @@
-package bleep.requests
+package bleep.history
 
 import bleep.BleepException
 import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, DiagnosticSeverity, TestStatus}
@@ -6,8 +6,8 @@ import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-/** The details view is now one implementation shared by `bleep details` (CLI) and `bleep.details` (MCP). These tests pin its contract: the transcript header
-  * always rides along, project/query narrowing filters items while summary counts keep describing the full run, and a bad regex fails loudly.
+/** The details view is now one implementation shared by `bleep history show` (CLI) and `bleep.history.show` (MCP). These tests pin its contract: the transcript
+  * header always rides along, project/query narrowing filters items while summary counts keep describing the full run, and a bad regex fails loudly.
   */
 class TranscriptFormatTest extends AnyFunSuite with Matchers {
 
@@ -58,7 +58,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
 
   test("details carries the transcript header alongside the formatted result") {
     val json = TranscriptFormat.details(compileTranscript, project = None, query = None, limit = None, offset = None)
-    json.hcursor.get[Long]("requestId") shouldBe Right(7L)
+    json.hcursor.get[Long]("historyId") shouldBe Right(7L)
     json.hcursor.get[String]("mode") shouldBe Right("compile")
     json.hcursor.get[String]("workspace") shouldBe Right("/ws")
     json.hcursor.get[String]("client") shouldBe Right("bleep")

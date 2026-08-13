@@ -60,9 +60,9 @@ object BleepBspProtocol {
   val TestRunResultDataKind: String = "bleep-test-run-result"
 
   /** The dataKind used in CompileResult.data to return the id of the transcript the daemon persisted for the request. Test responses carry the id inside
-    * [[TestRunResult.requestId]] instead — TestResult.data is already claimed by [[TestRunResultDataKind]].
+    * [[TestRunResult.historyId]] instead — TestResult.data is already claimed by [[TestRunResultDataKind]].
     */
-  val RequestIdDataKind: String = "bleep-request-id"
+  val HistoryIdDataKind: String = "bleep-history-id"
 
   // ==========================================================================
   // Response Extensions (server -> client, in TestResult.data)
@@ -83,13 +83,13 @@ object BleepBspProtocol {
       suitesFailed: Int,
       suitesCancelled: Int,
       durationMs: Long,
-      /** Id of the transcript the daemon persisted for this request (`<workspace>/.bleep/builds/<variant>/requests/<id>.json`).
+      /** Id of the transcript the daemon persisted for this request (`<workspace>/.bleep/builds/<variant>/history/<id>.json`).
         *
         * `None` is the sanctioned absence: exactly when the transcript write failed (which never fails the build — the daemon logs and continues), and in the
         * copy of this result embedded inside the transcript itself, whose own `Transcript.id` is authoritative. A missing field on the wire also decodes as
         * `None`, so responses from older daemons keep decoding.
         */
-      requestId: Option[Long]
+      historyId: Option[Long]
   )
 
   object TestRunResult {
@@ -101,18 +101,18 @@ object BleepBspProtocol {
       io.circe.parser.decode[TestRunResult](json)
   }
 
-  /** Payload for [[RequestIdDataKind]]: `{"requestId": <id>}` in CompileResult.data. Only attached when the transcript write succeeded — a failed write is the
+  /** Payload for [[HistoryIdDataKind]]: `{"historyId": <id>}` in CompileResult.data. Only attached when the transcript write succeeded — a failed write is the
     * sanctioned absence (the daemon logs and returns the result without data rather than failing the build).
     */
-  case class RequestIdPayload(requestId: Long)
+  case class HistoryIdPayload(historyId: Long)
 
-  object RequestIdPayload {
-    implicit val codec: Codec[RequestIdPayload] = deriveCodec
+  object HistoryIdPayload {
+    implicit val codec: Codec[HistoryIdPayload] = deriveCodec
 
-    def encode(payload: RequestIdPayload): String = payload.asJson.noSpaces
+    def encode(payload: HistoryIdPayload): String = payload.asJson.noSpaces
 
-    def decode(json: String): Either[io.circe.Error, RequestIdPayload] =
-      io.circe.parser.decode[RequestIdPayload](json)
+    def decode(json: String): Either[io.circe.Error, HistoryIdPayload] =
+      io.circe.parser.decode[HistoryIdPayload](json)
   }
 
   // ==========================================================================

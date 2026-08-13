@@ -602,42 +602,42 @@ case class ReactiveBsp(
   ): IO[Unit] = {
     val commonArgs = if (flamegraph) List("--flamegraph") else Nil
 
-    // The daemon persisted a transcript for this request and put its id in the response — surface it so the summary can point at `bleep details <id>`.
+    // The daemon persisted a transcript for this request and put its id in the response — surface it so the summary can point at `bleep history show <id>`.
     // Absence (older daemon, failed write) is sanctioned: no event, no summary line.
-    def emitRequestRecorded(requestId: Option[Long]): IO[Unit] =
-      requestId match {
-        case Some(id) => eventQueue.offer(Some(BuildEvent.RequestRecorded(id, System.currentTimeMillis())))
+    def emitHistoryRecorded(historyId: Option[Long]): IO[Unit] =
+      historyId match {
+        case Some(id) => eventQueue.offer(Some(BuildEvent.HistoryRecorded(id, System.currentTimeMillis())))
         case None     => IO.unit
       }
 
-    def requestIdFromCompileResult(result: bsp4j.CompileResult): Option[Long] =
+    def historyIdFromCompileResult(result: bsp4j.CompileResult): Option[Long] =
       for {
         dataKind <- Option(result.getDataKind)
-        if dataKind == BleepBspProtocol.RequestIdDataKind
+        if dataKind == BleepBspProtocol.HistoryIdDataKind
         data <- Option(result.getData)
-        payload <- BleepBspProtocol.RequestIdPayload.decode(data.toString) match {
+        payload <- BleepBspProtocol.HistoryIdPayload.decode(data.toString) match {
           case Right(p)  => Some(p)
           case Left(err) =>
-            bspLogger.warn(s"Failed to decode request-id payload: ${err.getMessage}")
+            bspLogger.warn(s"Failed to decode history-id payload: ${err.getMessage}")
             None
         }
-      } yield payload.requestId
+      } yield payload.historyId
 
-    def compileEmittingRequestId(mkParams: => bsp4j.CompileParams): IO[Unit] =
+    def compileEmittingHistoryId(mkParams: => bsp4j.CompileParams): IO[Unit] =
       BspRequestHelper
         .callCancellable(server.buildTargetCompile(mkParams))
-        .flatMap(result => emitRequestRecorded(requestIdFromCompileResult(result)))
+        .flatMap(result => emitHistoryRecorded(historyIdFromCompileResult(result)))
 
     mode match {
       case BuildMode.Compile =>
-        compileEmittingRequestId {
+        compileEmittingHistoryId {
           val params = new bsp4j.CompileParams(targets.asJava)
           if (commonArgs.nonEmpty) params.setArguments(commonArgs.asJava)
           params
         }
 
       case BuildMode.Link(_) =>
-        compileEmittingRequestId {
+        compileEmittingHistoryId {
           val params = new bsp4j.CompileParams(targets.asJava)
           val args = linkOptions.map(_.toArgs).getOrElse(List("--link")) ++ commonArgs
           params.setArguments(args.asJava)
@@ -693,7 +693,7 @@ case class ReactiveBsp(
                       )
                     )
                   ) >>
-                  emitRequestRecorded(result.requestId)
+                  emitHistoryRecorded(result.historyId)
               case None =>
                 IO(diagLog("[TestRunResult] NOT decoded - None"))
             }.handleErrorWith { e =>
