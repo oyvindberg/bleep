@@ -54,23 +54,13 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     }
 
     // the demo workspaces must pin `$version` to exactly the recorded binary, or bleep relaunches/warns on camera
-    val bleepVersion = {
-      val helpOutput = cli(
-        "bleep --help",
-        FileUtils.TempDir,
-        List(bleepBinary.toString, "--no-color", "--help"),
-        logger = logger,
-        out = cli.Out.ViaLogger(logger.withPath("version-probe")),
-        env = sys.env.toList
-      )
-      val VersionRegex = """.*\(version ([^)]+)\).*""".r
-      helpOutput.stdout.collectFirst { case VersionRegex(version) => version } match {
-        case Some(version) =>
-          logger.info(s"Recording with bleep version $version")
-          version
-        case None => sys.error(s"Could not determine version of $bleepBinary from its --help output")
-      }
-    }
+    val bleepVersion = detectBleepVersion(bleepBinary, logger)
+
+    // `bleep import` shells out to sbt, which needs a JVM: the machine may have no system JVM. older sbt releases
+    // (scala 2.12 compiler) crash on very new JDKs, so fetch an LTS one instead of lending it the build's
+    val javaHome = started.pre.fetchJvm(model.Jvm("temurin:17", None)).javaBin.getParent.getParent
+
+    ensureSbtExportDependenciesInIvyLocal(logger)
 
     val env = sys.env
       .updated("BAT_PAGER", "")
@@ -79,14 +69,16 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       // typing-simulation pacing for asciinema-rec_script
       .updated("PROMPT_PAUSE", "1")
       .updated("TYPING_PAUSE", "0.02")
+      .updated("JAVA_HOME", javaHome.toString)
       .updated(
         "PATH", {
           // this whole exercise is really to make any provided binary look like "bleep" in the videos
           val tempDir = Files.createTempDirectory("bleep-videos")
           Files.createSymbolicLink(tempDir / "bleep", bleepBinary)
+          val javaBin = javaHome / "bin"
           sys.env.get("PATH") match {
-            case Some(existingPath) => s"$tempDir:$existingPath"
-            case None               => tempDir.toString
+            case Some(existingPath) => s"$tempDir:$javaBin:$existingPath"
+            case None               => s"$tempDir:$javaBin"
           }
         }
       )
@@ -117,6 +109,72 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       .log(started.logger, "wrote videos")
   }
 
+  /** `bleep import` makes the imported sbt build resolve `sbt-export-dependencies`, which was published to Maven Central with maven-style artifact filenames
+    * (`sbt-export-dependencies_2.12_1.0-0.4.0.jar`). sbt older than 1.9 only knows the legacy sbt-plugin filename convention and cannot resolve that — and the
+    * import demo clones a build pinned to sbt 1.7. Seed the local ivy repository (which old sbt checks with its own layout) with the artifact, so the demo
+    * records the same import experience users with modern sbt get. Idempotent: does nothing when the artifact is already there.
+    */
+  def ensureSbtExportDependenciesInIvyLocal(logger: Logger): Unit = {
+    val version = "0.4.0"
+    val base = Path.of(sys.props("user.home")) / ".ivy2" / "local" / "build.bleep" / "sbt-export-dependencies" / "scala_2.12" / "sbt_1.0" / version
+    val jarFile = base / "jars" / "sbt-export-dependencies.jar"
+    val ivyFile = base / "ivys" / "ivy.xml"
+
+    if (!FileUtils.exists(jarFile)) {
+      val uri = java.net.URI.create(
+        s"https://repo1.maven.org/maven2/build/bleep/sbt-export-dependencies_2.12_1.0/$version/sbt-export-dependencies_2.12_1.0-$version.jar"
+      )
+      logger.info(s"seeding $jarFile from $uri so the import demo's old sbt can resolve it")
+      Files.createDirectories(jarFile.getParent)
+      val in = uri.toURL.openStream()
+      try Files.copy(in, jarFile).discard()
+      finally in.close()
+    }
+
+    if (!FileUtils.exists(ivyFile)) {
+      val ivyXml =
+        s"""<?xml version="1.0" encoding="UTF-8"?>
+           |<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+           |	<info organisation="build.bleep" module="sbt-export-dependencies" revision="$version" status="release" e:scalaVersion="2.12" e:sbtVersion="1.0">
+           |		<description>sbt-export-dependencies</description>
+           |	</info>
+           |	<configurations>
+           |		<conf name="compile" visibility="public" description=""/>
+           |		<conf name="runtime" visibility="public" description="" extends="compile"/>
+           |		<conf name="test" visibility="public" description="" extends="runtime"/>
+           |		<conf name="provided" visibility="public" description=""/>
+           |		<conf name="optional" visibility="public" description=""/>
+           |		<conf name="default" visibility="public" description="" extends="runtime"/>
+           |	</configurations>
+           |	<publications>
+           |		<artifact name="sbt-export-dependencies" type="jar" ext="jar" conf="compile"/>
+           |	</publications>
+           |	<dependencies></dependencies>
+           |</ivy-module>
+           |""".stripMargin
+      FileUtils.writeString(logger, None, ivyFile, ivyXml)
+    }
+  }
+
+  /** the version a given bleep binary reports in its `--help` output */
+  def detectBleepVersion(bleepBinary: Path, logger: Logger): String = {
+    val helpOutput = cli(
+      "bleep --help",
+      FileUtils.TempDir,
+      List(bleepBinary.toString, "--no-color", "--help"),
+      logger = logger,
+      out = cli.Out.ViaLogger(logger.withPath("version-probe")),
+      env = sys.env.toList
+    )
+    val VersionRegex = """.*\(version ([^)]+)\).*""".r
+    helpOutput.stdout.collectFirst { case VersionRegex(version) => version } match {
+      case Some(version) =>
+        logger.info(s"bleep binary $bleepBinary has version $version")
+        version
+      case None => sys.error(s"Could not determine version of $bleepBinary from its --help output")
+    }
+  }
+
   def findOnPath(name: String): Option[Path] =
     sys.env
       .get("PATH")
@@ -144,7 +202,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     }
 
     val scriptFile = tempDir / "script"
-    FileUtils.writeString(logger, None, scriptFile, demo.script(Path.of("bleep")))
+    FileUtils.writeString(logger, None, scriptFile, demo.script(Path.of("bleep"), bleepVersion))
     Files.setPosixFilePermissions(scriptFile, Exec)
 
     val outputFile = tempDir / "output"
@@ -168,12 +226,14 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     cli("asciinema-rec_script", workDir, cmd, logger = logger, out = cli.Out.ViaLogger(logger), env = env).discard()
 
-    // scrub machine-specific paths from the recording
+    // scrub machine-specific paths from the recording. the trailing regex catches temp paths the exact replaces
+    // cannot: the TUI truncates long paths at the panel edge, leaving a prefix of the real path on screen
     val scrubbed = Files
       .readString(outputFile)
       .replace(tempDir.toRealPath().toString, "~")
       .replace(tempDir.toString, "~")
       .replace(sys.props("user.home"), "~")
+      .replaceAll("(?:/private)?/var/folders/[A-Za-z0-9_./-]*", "~")
 
     // the asciicast header records the (temporary) command it ran. drop it, it's machine-specific noise
     val video = scrubbed.split("\n", 2) match {

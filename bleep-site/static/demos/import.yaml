@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.12
+$version: 1.0.0-M12+29-a156d968-SNAPSHOT
 projects:
   example:
     dependencies: com.github.jwt-scala::jwt-core:9.1.0
@@ -12,7 +12,7 @@ projects:
     platform:
       name: jvm
     scala:
-      version: 3.3.0
+      version: 3.8.4
   zhttp:
     cross:
       jvm212:
@@ -106,11 +106,14 @@ projects:
     folder: ./zio-http-benchmarks
 templates:
   template-common:
+    ignoreEvictionErrors: no
     platform:
       jvmOptions: -DZHttpLogLevel=INFO -Dio.netty.leakDetectionLevel=paranoid -Duser.dir=${PROJECT_DIR}
       name: jvm
     scala:
       options: -deprecation -encoding UTF-8 -feature -language:postfixOps -unchecked
+      setup:
+        order: mixed
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -156,3 +159,5 @@ templates:
     scala:
       options: -source:3.0-migration
       version: 3.1.3
+jvm:
+  name: graalvm-community:25.0.1

@@ -65,7 +65,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
         // Single-file leaf command
         val mdx = renderPage(cmd, parentPath = s"bleep ${cmd.name}", topLevel = true)
         val outFile = outDir.resolve(s"${cmd.name}.mdx")
-        Files.writeString(outFile, mdx)
+        Files.writeString(outFile, withHandWritten(s"${cmd.name}.mdx", mdx))
         started.logger.info(s"wrote ${cmd.name}.mdx")
         pageCount += 1
       } else {
@@ -74,14 +74,14 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
         Files.createDirectories(subdir)
 
         val indexMdx = renderIndex(cmd)
-        Files.writeString(subdir.resolve("index.mdx"), indexMdx)
+        Files.writeString(subdir.resolve("index.mdx"), withHandWritten(s"${cmd.name}/index.mdx", indexMdx))
         started.logger.info(s"wrote ${cmd.name}/index.mdx")
         pageCount += 1
 
         cmd.subcommands.foreach { sub =>
           val parentPath = s"bleep ${cmd.name} ${sub.name}"
           val mdx = renderPage(sub, parentPath, topLevel = false)
-          Files.writeString(subdir.resolve(s"${sub.name}.mdx"), mdx)
+          Files.writeString(subdir.resolve(s"${sub.name}.mdx"), withHandWritten(s"${cmd.name}/${sub.name}.mdx", mdx))
           started.logger.info(s"wrote ${cmd.name}/${sub.name}.mdx")
           pageCount += 1
         }
@@ -97,6 +97,41 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     Files.writeString(outDir.resolve("_index.txt"), index)
     started.logger.info(s"wrote $pageCount pages to $outDir")
   }
+
+  // ----------------------------------------------------------------
+  // Hand-written extras
+  // ----------------------------------------------------------------
+
+  case class HandWritten(imports: String, body: String)
+
+  /** Hand-written MDX injected into otherwise generated pages, keyed by output path relative to `cli/`. MDX requires imports at module scope, so they go right
+    * after the frontmatter; the body is appended to the end of the page. By living in the generator, this content survives regeneration by construction.
+    */
+  private val handWritten: Map[String, HandWritten] =
+    Map(
+      "history/index.mdx" -> HandWritten(
+        imports = """import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+                    |import diffCast from "!!file-loader!@site/static/demos/diff.cast";""".stripMargin,
+        body = """## Demo
+                 |
+                 |An already-warm workspace: break a function, let [`bleep test --diff`](/docs/reference/cli/test/)
+                 |pinpoint the newly failing test, fix it, and compare any two runs after the fact with
+                 |[`bleep history diff`](./diff):
+                 |
+                 |<AsciinemaPlayer src={diffCast} cols={100} rows={30} fit="width" />""".stripMargin
+      )
+    )
+
+  private def withHandWritten(relPath: String, mdx: String): String =
+    handWritten.get(relPath) match {
+      case None        => mdx
+      case Some(extra) =>
+        val frontMatterEnd = "\n---\n\n"
+        val idx = mdx.indexOf(frontMatterEnd)
+        if (idx < 0) sys.error(s"$relPath: no frontmatter found to insert hand-written imports after")
+        val insertAt = idx + frontMatterEnd.length
+        mdx.substring(0, insertAt) + extra.imports + "\n\n" + mdx.substring(insertAt) + extra.body + "\n"
+    }
 
   // ----------------------------------------------------------------
   // Rendering

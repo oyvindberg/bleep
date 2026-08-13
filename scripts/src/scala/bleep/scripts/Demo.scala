@@ -6,8 +6,10 @@ import java.nio.file.Path
 
 abstract class Demo(val name: String, val rows: Int = 40, val columns: Int = 100) {
 
-  /** the script which is recorded. lines starting with `#` render as comments, other lines are typed out and executed */
-  def script(bleep: Path): String
+  /** the script which is recorded. lines starting with `#` render as comments, lines starting with `:` run silently, other lines are typed out and executed.
+    * `bleepVersion` is the version reported by the recorded binary, see [[Demo.pinVersion]]
+    */
+  def script(bleep: Path, bleepVersion: String): String
 
   /** files written into the workspace before anything runs. `bleepVersion` is the version reported by the recorded binary */
   def files(bleepVersion: String): Map[RelPath, String] = {
@@ -23,11 +25,18 @@ abstract class Demo(val name: String, val rows: Int = 40, val columns: Int = 100
 
 object Demo {
 
+  /** a silently-executed script line which pins the freshly generated build's `$version` to the recorded binary's, so subsequent on-camera commands don't log a
+    * "Not launching ..." notice or relaunch another version
+    */
+  def pinVersion(bleepVersion: String): String =
+    s""": perl -pi -e 's/^\\$$version:.*/\\$$version: $bleepVersion/' bleep.yaml"""
+
   object runNativeNew extends Demo("run-native") {
-    override def script(bleep: Path): String =
+    override def script(bleep: Path, bleepVersion: String): String =
       s"""
          |# create build
          |$bleep build new -p native mycli
+         |${pinVersion(bleepVersion)}
          |
          |# show files
          |find . -type f
@@ -36,7 +45,7 @@ object Demo {
          |$bleep projects
          |
          |# show generated main file
-         |bat mycli/src/scala/com/foo/App.scala
+         |bat mycli/src/scala/com/example/Main.scala
          |
          |# link
          |$bleep link mycli
@@ -46,11 +55,16 @@ object Demo {
          |""".stripMargin
   }
 
+  /** NOT in [[all]]: `bleep build new` currently scaffolds only the *first* `--platform`/`--scala` value (BuildCreateNew.scalaRecipe picks
+    * `platforms.head`/`scalas.head` and never fills the `cross` map, despite its comment promising to model all of them), so the cross variants this demo runs
+    * don't exist. Re-add once cross scaffolding is restored.
+    */
   object runCrossNativeNew extends Demo("run-cross-native-jvm") {
-    override def script(bleep: Path): String =
+    override def script(bleep: Path, bleepVersion: String): String =
       s"""
          |# create build
          |$bleep build new --platform native --platform jvm --scala 2.13 --scala 3 mycli
+         |${pinVersion(bleepVersion)}
          |
          |# show files
          |find . -type f
@@ -64,7 +78,7 @@ object Demo {
          |bat --line-range $rows: bleep.yaml
          |
          |# show generated main file
-         |bat mycli/shared/src/scala/com/foo/App.scala
+         |bat mycli/shared/src/scala/com/example/Main.scala
          |
          |# run
          |$bleep run mycli@native213
@@ -78,7 +92,7 @@ object Demo {
     override val expectedYaml: Option[RelPath] =
       Some(RelPath.force("./zio-http/bleep.yaml"))
 
-    override def script(bleep: Path): String =
+    override def script(bleep: Path, bleepVersion: String): String =
       s"""
          |# git clone an existing build
          |git clone https://github.com/zio/zio-http.git
@@ -89,12 +103,14 @@ object Demo {
          |
          |# import into bleep. note that this is a one-time, slow step
          |$bleep import
+         |${pinVersion(bleepVersion)}
+         |: printf 'jvm:\\n  name: graalvm-community:25.0.1\\n' >> bleep.yaml
          |
          |# list projects
          |$bleep projects
          |
-         |# run tests for one scala 3 module
-         |$bleep test zhttp-logging-test@jvm3
+         |# the generated build file
+         |bat --line-range :24 bleep.yaml
          |""".stripMargin
   }
 
@@ -180,7 +196,8 @@ object Demo {
            |""".stripMargin
       )
 
-    override def script(bleep: Path): String =
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleepVersion.discard() // the workspace is generated with the right version in `files`
       s"""
          |# every compile and test run in this workspace is recorded
          |$bleep history
@@ -205,11 +222,11 @@ object Demo {
          |# compare any two runs after the fact - timing jitter is suppressed
          |$bleep history diff 5 6 --timing
          |""".stripMargin
+    }
   }
 
   val all = List(
     runNativeNew,
-    runCrossNativeNew,
     importNew,
     diff
   )
