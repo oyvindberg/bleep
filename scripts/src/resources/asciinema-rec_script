@@ -18,10 +18,15 @@ set -uo pipefail
 REC_ARGS="${RECORD_ARGS:---idle-time-limit 1 --overwrite --output-format asciicast-v2}"
 
 
+# ANSI escapes written with $'\e' quoting on purpose: a literal ESC byte in this file is invisible
+# and gets silently lost when the file is edited by tools that strip control characters
+ESC=$'\e'
+export RESET="${ESC}[0m"
+
 # Nb. these can all be overriden from the command line if you don't like the defaults..
-export PROMPT="${PROMPT:-"[32;1m❯[0m "}"
-export COMMENT="${COMMENT:-"💭 [3;1m"}"
-export ECHO="${ECHO:-"💬 [3;1m"}"
+export PROMPT="${PROMPT:-"${ESC}[32;1m❯${RESET} "}"
+export COMMENT="${COMMENT:-"💭 ${ESC}[3;1m"}"
+export ECHO="${ECHO:-"💬 ${ESC}[3;1m"}"
 
 build_augmented_script() { local script="$1"
   comment() {
@@ -30,7 +35,7 @@ build_augmented_script() { local script="$1"
         : # skip the "#!/usr/bin ..." line, as that's not a comment
       ;;
       *)
-        echo "${COMMENT}$(echo "${1}" | $MARKDOWN)[0m"
+        echo "${COMMENT}$(echo "${1}" | $MARKDOWN)${RESET}"
       ;;
     esac
   }
@@ -50,7 +55,7 @@ build_augmented_script() { local script="$1"
         sleep "$TYPING_PAUSE"
       done
       sleep "$PROMPT_PAUSE"
-      echo "[0m"
+      echo "${RESET}"
     }
 
     case $1 in
