@@ -40,7 +40,7 @@ private val directoryProperty: (String, Json) =
   "directory" -> Json.obj(
     "type" -> Json.fromString("string"),
     "description" -> Json.fromString(
-      "Absolute path of the checkout to act on — your current working directory works. Required on every call: this MCP server serves the whole session, including subagents working in other git worktrees."
+      "Absolute path of the checkout to act on — your current working directory works. Required on every call: this MCP server serves the whole session, including subagents working in other git worktrees. The target must be a bleep build (bleep.yaml there or in a parent directory); projects built with Maven/Gradle/sbt are out of scope — use their own build tool."
     )
   )
 

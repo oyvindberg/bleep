@@ -50,6 +50,25 @@ the client (or trigger a re-scan) and the bleep tools appear.
 The flag `--force-jvm` runs the MCP server through the JVM rather
 than the native binary, useful when iterating on bleep itself.
 
+### Non-bleep projects
+
+A user-scoped registration advertises the bleep tools in *every*
+session — including sessions on Maven, Gradle, or sbt projects that
+bleep cannot build. An agent whose "compile" intent pattern-matches to
+`bleep.compile` in such a project gets a fast, definitive answer: the
+call fails in milliseconds with *"&lt;directory&gt; is not part of a bleep
+build: no bleep.yaml exists there or in any parent directory"*, and
+the error text redirects to the project's own build system rather than
+reading like a transient bleep failure.
+
+The inverse deserves stating because agents get it wrong: bleep tool
+availability never identifies a project's build system. If the bleep
+tools disappear mid-session, the MCP connection dropped (commonly
+because the bleep binary was reinstalled underneath the server) —
+reconnect with `/mcp` or fall back to the `bleep` CLI. Whether a
+project is a bleep project is decided by `bleep.yaml` on disk, and by
+nothing else.
+
 ## The tool surface
 
 | Tool                        | Effect      | What it does                                                                          |

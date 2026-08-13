@@ -62,8 +62,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
 
     val buildLoader = BuildLoader.find(dir)
     val existing = buildLoader.existing match {
-      case Left(be)        => throw be
-      case Right(existing) => existing
+      case Left(_: BleepException.BuildNotFound) => throw BleepMcpServer.notABleepBuild(directory)
+      case Left(be)                              => throw be
+      case Right(existing)                       => existing
     }
 
     existing.wantedVersion.forceGet match {
@@ -126,48 +127,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       protocol.Initialize.PartyInfo("bleep", model.BleepVersion.current.value)
 
     override def instructions: IO[Option[String]] =
-      IO.pure(
-        Some(
-          """Bleep build tool MCP server.
-          |
-          |## Workspaces
-          |Every tool that acts on a build requires `directory`: the absolute path of the checkout you are working in
-          |(your current working directory works — bleep finds the build root from any directory inside it).
-          |One MCP server serves the whole session, including subagents in other git worktrees, so each call states its target.
-          |Nothing is cached between calls; every call sees the current build configuration.
-          |
-          |## Response model
-          |Compile and test return a compact summary (error/warning or pass/fail counts) plus a historyId.
-          |Errors stream as log notifications during the build so you see failures immediately.
-          |For full diagnostics or stack traces, call bleep.history.show with that historyId.
-          |Run history is per-worktree: the compile daemon writes a transcript of every compile/test into the
-          |workspace itself, shared with the CLI (`bleep history`) and IDEs, surviving MCP server restarts.
-          |Ids therefore only mean something together with the workspace — history.show/diff take `directory` too.
-          |
-          |The agent inner loop: after an edit, pass diffBase:"previous" to bleep.compile/bleep.test to get a "diff"
-          |section — newly failing/fixed tests, new/resolved diagnostics — instead of re-reading full results.
-          |"previous" means the most recent run of the same mode; a numeric historyId pins a fixed base (e.g. the
-          |last green run). The base is validated before the build starts, so a bad id fails without costing a build.
-          |
-          |## Tools
-          |- bleep.compile — compile projects. Returns compact summary + historyId. Streams errors per-project as they occur. Optional diffBase ("previous" or a historyId) adds a "diff" section: what changed vs that run.
-          |- bleep.test — run tests. Returns compact summary + historyId with pass/fail counts. Optional diffBase ("previous" or a historyId) adds a "diff" section: newly failing/fixed vs that run.
-          |- bleep.history.list — list `directory`'s recorded compile/test runs: historyId, time, mode, targets, client. Pure file read.
-          |- bleep.history.show — full transcript of a completed compile/test run by historyId, read from `directory`'s per-worktree history. Search it with `query` (regex); project/limit/offset paginate.
-          |- bleep.history.diff — what logically changed between two runs (base, target) in `directory`'s history: newly failing/fixed/skipped tests, compile invalidations, new/resolved diagnostics. Timing-free and deterministic. `baseDirectory` resolves base in another worktree (copy-state verification).
-          |- bleep.history.diff-timing — what got slower/faster between two runs, jitter suppressed, plus the target run's slowest items. Same `directory`/`baseDirectory` semantics as bleep.history.diff.
-          |- bleep.test.suites — discover test suites without running them (requires compiled code)
-          |- bleep.sourcegen — run source generators for projects
-          |- bleep.fmt — format Scala and Java source files
-          |- bleep.clean — delete build outputs for projects
-          |- bleep.copy-state — seed a fresh git worktree with the parent worktree's compiled state; call once after forking, before compiling
-          |- bleep.projects — list all projects with dependencies
-          |- bleep.programs — list projects that have a mainClass (runnable programs)
-          |- bleep.scripts — list scripts defined in the build
-          |- bleep.run — compile and run a project or script, returns stdout/stderr
-          |- bleep.restart — restart the MCP server process (e.g. after producing a new bleep binary)""".stripMargin
-        )
-      )
+      IO.pure(Some(BleepMcpServer.instructionsText))
 
     override val tools: IO[List[ToolFunction[IO]]] = IO(
       List(
@@ -238,7 +198,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.compile",
         Some("Compile"),
         Some(
-          "Compile bleep projects. Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with what changed — new/resolved diagnostics — instead of you re-reading full results."
+          "Compile bleep projects. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with what changed — new/resolved diagnostics — instead of you re-reading full results."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -252,7 +212,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.test",
         Some("Test"),
         Some(
-          "Run tests for bleep projects. Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with newly failing/fixed tests instead of you re-reading full results."
+          "Run tests for bleep projects. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with newly failing/fixed tests instead of you re-reading full results."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -343,7 +303,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     private def historyWorkspacePaths(directory: String, what: String): BuildPaths = {
       val dir = Path.of(directory)
       if (!dir.isAbsolute) throw new BleepException.Text(s"$what must be an absolute path, got: $directory")
-      commands.History.workspacePaths(dir, what)
+      try commands.History.workspacePaths(dir, what)
+      catch { case _: BleepException.BuildNotFound => throw BleepMcpServer.notABleepBuild(directory) }
     }
 
     private def testSuitesTool: ToolFunction[IO] = textTool[ProjectsArgs](
@@ -1167,6 +1128,60 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
 
 object BleepMcpServer {
   def apply(logger: Logger, userPaths: UserPaths, ec: ExecutionContext): BleepMcpServer = new BleepMcpServer(logger, userPaths, ec)
+
+  /** Claude Code truncates MCP server instructions to this many characters ("Server instructions truncated from 3384 to 2048 chars" in its logs) — anything
+    * beyond the limit is silently invisible to the agent. `instructionsText` must stay within it, guarded by a test, and the scope guidance goes FIRST so it
+    * survives any client's truncation.
+    */
+  val InstructionsCharLimit = 2048
+
+  /** Server instructions, shown to the agent once per session.
+    *
+    * The scope section leads for a reason: this server is typically registered user-scope, so its tools are advertised in EVERY session — including sessions on
+    * Maven/Gradle/sbt projects that bleep cannot build. An agent whose "compile" intent pattern-matches to bleep.compile in such a project must be redirected
+    * in words it actually reads, and must never conclude anything about a project from bleep tool availability. The per-tool details live in the tool
+    * descriptions, not here (see InstructionsCharLimit).
+    */
+  val instructionsText: String =
+    """Bleep build tool MCP server.
+      |
+      |## Scope: bleep builds only
+      |These tools only apply to bleep builds: workspaces with a bleep.yaml in the target directory or a parent.
+      |If there is no bleep.yaml, bleep is not this project's build tool — use the project's own build system
+      |(pom.xml -> Maven, build.gradle -> Gradle, build.sbt -> sbt). A "not part of a bleep build" error is a
+      |definitive answer about the project, not a transient failure; do not retry. The reverse also holds:
+      |missing or failing bleep tools say NOTHING about what kind of project this is — only bleep.yaml on disk
+      |decides. If these tools vanish mid-session the MCP connection dropped (e.g. the bleep binary was
+      |reinstalled): reconnect (/mcp) or fall back to the `bleep` CLI, which always works.
+      |
+      |## Workspaces
+      |Every tool that acts on a build requires `directory`: the absolute path of the checkout you are working
+      |in (any directory inside it works). One MCP server serves the whole session, including subagents in
+      |other git worktrees, so each call states its target. Nothing is cached between calls; every call sees
+      |the current build configuration.
+      |
+      |## Response model
+      |Compile and test return a compact summary (error or pass/fail counts) plus a historyId; errors stream
+      |as notifications while the build runs. For full diagnostics or stack traces call bleep.history.show
+      |with that historyId. Run history is per-worktree: the compile daemon writes a transcript of every run
+      |into the workspace itself, shared with the CLI (`bleep history`) and surviving MCP server restarts —
+      |so the bleep.history.* tools take `directory` too.
+      |
+      |The agent inner loop: after an edit, pass diffBase:"previous" to bleep.compile/bleep.test to get a
+      |"diff" section — newly failing/fixed tests, new/resolved diagnostics — instead of re-reading full
+      |results. A numeric historyId pins a fixed base (e.g. the last green run); the base is validated before
+      |the build starts, so a bad id fails without costing a build.""".stripMargin
+
+  /** The definitive redirect for a `directory` that is not inside any bleep build. Worded for an agent mid-task: it must read as a final answer about the
+    * project (so the agent switches to the right build tool immediately) and never as a transient bleep failure worth retrying.
+    */
+  def notABleepBuild(directory: String): BleepException =
+    new BleepException.Text(
+      s"$directory is not part of a bleep build: no ${BuildLoader.BuildFileName} exists there or in any parent directory. " +
+        "This is a definitive answer about the project, not a transient failure — do not retry. " +
+        "Build it with the project's own build system instead (pom.xml -> Maven, build.gradle -> Gradle, build.sbt -> sbt). " +
+        "If you expected a bleep build here, the path is wrong: pass the checkout you meant."
+    )
 }
 
 /** BSP client for one tool call's connection: decodes bleep protocol events into the call's queue, delegates everything else to progress display. Only one

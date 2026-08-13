@@ -112,6 +112,11 @@ All from the workspace root. Always `--no-color` (and `--no-tui` where accepted)
    deploy: finish any MCP-dependent work first, call `bleep.restart` last, and be
    ready to fall back to the CLI for the rest of the turn.
 
+   While the tools are delisted, "No such tool available" says NOTHING about any
+   project — never conclude from it that a checkout isn't a bleep build, and never
+   switch build tools because of it. `bleep.yaml` on disk decides what builds a
+   project; the CLI works throughout.
+
 ## Failure modes seen in the wild
 
 - Binary runs old code, build was green → step 2 skipped, or verified exit code

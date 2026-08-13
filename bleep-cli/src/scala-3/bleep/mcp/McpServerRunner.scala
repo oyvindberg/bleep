@@ -13,39 +13,32 @@ import scala.concurrent.ExecutionContext
   * Deliberately workspace-free: no build is loaded at boot, so the server starts from any directory — every tool call names its workspace and bootstraps it
   * fresh. This is what lets one user-scoped MCP registration serve every checkout and git worktree.
   *
-  * Automatically restarts the server if it crashes, with exponential backoff up to 30 seconds. Interrupted exceptions (clean shutdown) are not retried.
+  * Runs the server exactly once and exits when the connection ends — cleanly on client shutdown, nonzero on a crash. There is deliberately no in-process
+  * restart: on stdio the client holds the session state and will not re-send `initialize` to a restarted server, so a respawned instance on the same pipes
+  * would reject every subsequent request while the process looks healthy — and if the pipes themselves are dead (client gone, binary replaced underneath us), a
+  * restart loop just spins forever as an orphan. Exiting is the honest signal: the client sees the disconnect and relaunches a fresh process.
   */
 object McpServerRunner {
 
-  private val InitialBackoffMs: Long = 1000
-  private val MaxBackoffMs: Long = 30000
-
   def run(logger: Logger, userPaths: UserPaths, ec: ExecutionContext): bleep.ExitCode = {
-    var backoffMs = InitialBackoffMs
+    val server = new BleepMcpServer(logger, userPaths, ec)
+    val program = server
+      .start(
+        StdioJsonRpcConnection.create[IO],
+        e => IO(logger.error(s"MCP server error: $e", e))
+      )
+      .useForever
+      .as(bleep.ExitCode.Success)
 
-    while (true) {
-      val server = new BleepMcpServer(logger, userPaths, ec)
-      val program = server
-        .start(
-          StdioJsonRpcConnection.create[IO],
-          e => IO(logger.error(s"MCP server error: $e", e))
-        )
-        .useForever
-        .as(bleep.ExitCode.Success)
-
-      try {
-        program.unsafeRunSync(): Unit
-        return bleep.ExitCode.Success
-      } catch {
-        case _: InterruptedException =>
-          return bleep.ExitCode.Success
-        case ex: Exception =>
-          logger.error(s"MCP server crashed, restarting in ${backoffMs}ms: ${ex.getMessage}")
-          Thread.sleep(backoffMs)
-          backoffMs = math.min(backoffMs * 2, MaxBackoffMs)
-      }
+    try {
+      program.unsafeRunSync(): Unit
+      bleep.ExitCode.Success
+    } catch {
+      case _: InterruptedException =>
+        bleep.ExitCode.Success
+      case ex: Exception =>
+        logger.error(s"MCP server crashed, exiting so the client can relaunch a fresh process: ${ex.getMessage}", ex)
+        bleep.ExitCode.Failure
     }
-
-    bleep.ExitCode.Success // unreachable, satisfies compiler
   }
 }
