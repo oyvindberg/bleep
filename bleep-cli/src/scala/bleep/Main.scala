@@ -377,6 +377,23 @@ object Main {
 
     val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
 
+    /** `--diff [id]` for compile/test: run as normal, then print only the mechanical diff against a base history entry. Bare `--diff` resolves the most recent
+      * same-mode entry (`modeName` names it in the help text); `--diff=<id>` names one explicitly.
+      */
+    def diffOpt(modeName: String): Opts[Option[bleep.history.DiffBase]] =
+      Opts
+        .flagOption[Long](
+          "diff",
+          s"after the run, print only what changed (as JSON) vs a recorded run: bare --diff compares against the most recent $modeName (with --watch: the previous cycle), --diff=<id> against that history entry (with --watch: a fixed baseline for every cycle)",
+          metavar = "history id"
+        )
+        .orNone
+        .map {
+          case None           => None
+          case Some(None)     => Some(bleep.history.DiffBase.Previous)
+          case Some(Some(id)) => Some(bleep.history.DiffBase.Id(id))
+        }
+
     val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
       (
         Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
@@ -541,12 +558,13 @@ object Main {
               ).mapN(_ || _),
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel) =>
+              cancel,
+              diffOpt("compile")
+            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, diffBase) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase)
             }
           ),
           Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
@@ -601,26 +619,44 @@ object Main {
               excludeTag,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
-              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, onlyTag, excludeTag, flamegraph, cancel, junitReportDir) =>
-              val (effectiveWatch, effectiveDisplayMode) =
-                if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.test(
-                watch = effectiveWatch,
-                projects = projectNames,
-                displayMode = effectiveDisplayMode,
-                jvmOptions = jvmOpts.toList,
-                testArgs = testArgs.toList,
-                only = only.map(_.toList).getOrElse(Nil),
-                exclude = exclude.map(_.toList).getOrElse(Nil),
-                includeTags = onlyTag.map(_.toList).getOrElse(Nil),
-                excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
-                flamegraph = flamegraph,
-                cancel = cancel,
-                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
-                clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
-              )
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              diffOpt("test run")
+            ).mapN {
+              case (
+                    watch,
+                    projectNames,
+                    noTui,
+                    diffWatch,
+                    jvmOpts,
+                    testArgs,
+                    only,
+                    exclude,
+                    onlyTag,
+                    excludeTag,
+                    flamegraph,
+                    cancel,
+                    junitReportDir,
+                    diffBase
+                  ) =>
+                val (effectiveWatch, effectiveDisplayMode) =
+                  if (diffWatch) (true, commands.DisplayMode.DiffWatch)
+                  else (watch, commands.DisplayMode.fromFlags(noTui))
+                commands.ReactiveBsp.test(
+                  watch = effectiveWatch,
+                  projects = projectNames,
+                  displayMode = effectiveDisplayMode,
+                  jvmOptions = jvmOpts.toList,
+                  testArgs = testArgs.toList,
+                  only = only.map(_.toList).getOrElse(Nil),
+                  exclude = exclude.map(_.toList).getOrElse(Nil),
+                  includeTags = onlyTag.map(_.toList).getOrElse(Nil),
+                  excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
+                  flamegraph = flamegraph,
+                  cancel = cancel,
+                  junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  diffBase = diffBase,
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+                )
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(

@@ -54,8 +54,8 @@ than the native binary, useful when iterating on bleep itself.
 
 | Tool                        | Effect      | What it does                                                                          |
 | --------------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `bleep.compile`             | read-only   | Compile selected projects. Returns error counts and a `historyId`.                    |
-| `bleep.test`                | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`.            |
+| `bleep.compile`             | read-only   | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
+| `bleep.test`                | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
 | `bleep.history.list`        | read-only   | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
 | `bleep.history.show`        | read-only   | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
 | `bleep.history.diff`        | read-only   | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
@@ -121,6 +121,15 @@ do. Given a long log they will divert it to a file and grep it —
 losing structure, and often the answer. Searching the structured
 transcript server-side returns exactly the matching items, still as
 data.
+
+For the edit–run loop, `bleep.compile` and `bleep.test` take an
+optional `diffBase` (`"previous"` for the most recent run of the same
+mode, or a `historyId` to pin a base such as the last green run):
+the base is validated before the build starts, and the response gains
+a `"diff"` section — newly failing/fixed tests, new/resolved
+diagnostics — so the agent reads what its edit changed instead of
+re-reading full results. The CLI mirror is `bleep compile --diff` /
+`bleep test --diff`.
 
 A transcript describes its own run, never current state — so it cannot
 go stale when someone compiles from the CLI in between. The current

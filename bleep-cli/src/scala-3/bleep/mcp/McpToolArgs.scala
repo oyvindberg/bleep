@@ -51,7 +51,36 @@ private val projectsProperty: (String, Json) =
     "description" -> Json.fromString("Project names. Omit or empty for all projects.")
   )
 
-/** Args for compile, test.suites, sourcegen, fmt, clean. */
+private val diffBaseProperty: (String, Json) =
+  "diffBase" -> Json.obj(
+    "type" -> Json.fromString("string"),
+    "description" -> Json.fromString(
+      "The agent inner loop: pass \"previous\" after an edit to get what CHANGED (newly failing/fixed tests, new/resolved diagnostics) instead of re-reading full results, or a numeric historyId to pin a specific base run. Same-mode only (compile diffs against compile, test against test); validated before the build starts, and the response gains a \"diff\" section with the mechanical diff."
+    )
+  )
+
+/** Args for bleep.compile: projects plus the optional inner-loop `diffBase`. */
+case class CompileArgs(directory: String, projects: List[String], diffBase: Option[String])
+object CompileArgs {
+  private val knownFields = Set("directory", "projects", "diffBase")
+  given Decoder[CompileArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
+      projects <- decodeList(c, "projects")
+      diffBase <- decodeOptional[String](c, "diffBase")
+    } yield CompileArgs(directory, projects, diffBase)
+  }
+  given JsonSchemaEncoder[CompileArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(directoryProperty, projectsProperty, diffBaseProperty),
+      "required" -> Json.arr(Json.fromString("directory"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[CompileArgs]]
+}
+
+/** Args for test.suites, sourcegen, fmt, clean. */
 case class ProjectsArgs(directory: String, projects: List[String])
 object ProjectsArgs {
   private val knownFields = Set("directory", "projects")
@@ -71,10 +100,10 @@ object ProjectsArgs {
   ).asInstanceOf[JsonSchemaEncoder[ProjectsArgs]]
 }
 
-/** Args for test (with test filtering). */
-case class TestArgs(directory: String, projects: List[String], only: List[String], exclude: List[String])
+/** Args for test (with test filtering, plus the optional inner-loop `diffBase`). */
+case class TestArgs(directory: String, projects: List[String], only: List[String], exclude: List[String], diffBase: Option[String])
 object TestArgs {
-  private val knownFields = Set("directory", "projects", "only", "exclude")
+  private val knownFields = Set("directory", "projects", "only", "exclude", "diffBase")
   given Decoder[TestArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
@@ -82,7 +111,8 @@ object TestArgs {
       projects <- decodeList(c, "projects")
       only <- decodeList(c, "only")
       exclude <- decodeList(c, "exclude")
-    } yield TestArgs(directory, projects, only, exclude)
+      diffBase <- decodeOptional[String](c, "diffBase")
+    } yield TestArgs(directory, projects, only, exclude, diffBase)
   }
   given JsonSchemaEncoder[TestArgs] = schema(
     Json.obj(
@@ -103,7 +133,8 @@ object TestArgs {
           "type" -> Json.fromString("array"),
           "items" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString("Exclude these test class names.")
-        )
+        ),
+        diffBaseProperty
       ),
       "required" -> Json.arr(Json.fromString("directory"))
     )

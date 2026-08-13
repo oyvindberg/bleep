@@ -18,7 +18,7 @@ class Commands(started: Started) {
     force(commands.Clean(projects.toArray))
 
   def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.ReactiveBsp.compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false))
+    force(commands.ReactiveBsp.compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false, diffBase = None))
 
   def run(
       project: model.CrossProjectName,
@@ -51,6 +51,7 @@ class Commands(started: Started) {
         flamegraph = false,
         cancel = false,
         junitReportDir = None,
+        diffBase = None,
         clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
       )
     )

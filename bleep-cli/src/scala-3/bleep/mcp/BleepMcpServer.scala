@@ -5,7 +5,7 @@ import bleep.bsp.{BspBuildData, BspRequestHelper, BspRifle, BspRifleConfig, BspS
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.DiagnosticSeverity
 import bleep.internal.BspClientDisplayProgress
-import bleep.history.{TranscriptFormat, TranscriptStore}
+import bleep.history.{DiffBase, Transcript, TranscriptDiff, TranscriptFormat, TranscriptStore}
 import cats.effect._
 import cats.effect.std.Queue
 import ch.epfl.scala.bsp4j
@@ -144,9 +144,14 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           |workspace itself, shared with the CLI (`bleep history`) and IDEs, surviving MCP server restarts.
           |Ids therefore only mean something together with the workspace — history.show/diff take `directory` too.
           |
+          |The agent inner loop: after an edit, pass diffBase:"previous" to bleep.compile/bleep.test to get a "diff"
+          |section — newly failing/fixed tests, new/resolved diagnostics — instead of re-reading full results.
+          |"previous" means the most recent run of the same mode; a numeric historyId pins a fixed base (e.g. the
+          |last green run). The base is validated before the build starts, so a bad id fails without costing a build.
+          |
           |## Tools
-          |- bleep.compile — compile projects. Returns compact summary + historyId. Streams errors per-project as they occur.
-          |- bleep.test — run tests. Returns compact summary + historyId with pass/fail counts.
+          |- bleep.compile — compile projects. Returns compact summary + historyId. Streams errors per-project as they occur. Optional diffBase ("previous" or a historyId) adds a "diff" section: what changed vs that run.
+          |- bleep.test — run tests. Returns compact summary + historyId with pass/fail counts. Optional diffBase ("previous" or a historyId) adds a "diff" section: newly failing/fixed vs that run.
           |- bleep.history.list — list `directory`'s recorded compile/test runs: historyId, time, mode, targets, client. Pure file read.
           |- bleep.history.show — full transcript of a completed compile/test run by historyId, read from `directory`'s per-worktree history. Search it with `query` (regex); project/limit/offset paginate.
           |- bleep.history.diff — what logically changed between two runs (base, target) in `directory`'s history: newly failing/fixed/skipped tests, compile invalidations, new/resolved diagnostics. Timing-free and deterministic. `baseDirectory` resolves base in another worktree (copy-state verification).
@@ -228,17 +233,17 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         .distinct
         .mkString("; caused by: ")
 
-    private def compileTool: ToolFunction[IO] = textTool[ProjectsArgs](
+    private def compileTool: ToolFunction[IO] = textTool[CompileArgs](
       ToolFunction.Info(
         "bleep.compile",
         Some("Compile"),
         Some(
-          "Compile bleep projects. Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics."
+          "Compile bleep projects. Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with what changed — new/resolved diagnostics — instead of you re-reading full results."
         ),
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, context) => bootstrapFor(args.directory).flatMap(started => executeCompile(started, args.projects, context)),
+      (args, context) => bootstrapFor(args.directory).flatMap(started => executeCompile(started, args.projects, args.diffBase, context)),
       None
     )
 
@@ -247,12 +252,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.test",
         Some("Test"),
         Some(
-          "Run tests for bleep projects. Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces."
+          "Run tests for bleep projects. Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with newly failing/fixed tests instead of you re-reading full results."
         ),
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, context) => bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, context)),
+      (args, context) => bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, args.diffBase, context)),
       None
     )
 
@@ -613,10 +618,32 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         }
       }
 
+    /** Resolve and validate `diffBase` BEFORE the build starts: a bad base is a tool error that never costs a compile, and resolving up front pins the base so
+      * concurrent clients writing history entries mid-run cannot shift what "previous" meant.
+      */
+    private def resolveDiffBase(started: Started, mode: String, diffBase: Option[String]): IO[Option[Transcript]] =
+      IO.blocking(diffBase.map(s => DiffBase.resolve(started.buildPaths, mode, DiffBase.parse(s))))
+
+    /** Attach the mechanical diff against the pre-resolved base. `historyId == None` is the sanctioned transcript-write failure: the build already ran, so the
+      * tool call must not fail over a missing diff — the section says so instead.
+      */
+    private def withDiff(json: Json, diffBaseTranscript: Option[Transcript], historyId: Option[Long], started: Started): Json =
+      diffBaseTranscript match {
+        case None       => json
+        case Some(base) =>
+          val diff = historyId match {
+            case Some(id) => TranscriptDiff.mechanical(base, TranscriptStore.read(started.buildPaths, id))
+            case None     =>
+              Json.obj("unavailable" -> Json.fromString("this run produced no history entry (transcript write failed); the diff could not be computed"))
+          }
+          json.deepMerge(Json.obj("diff" -> diff))
+      }
+
     /** Execute a compile on its own BSP connection. Reports progress heartbeat, streams failures, returns compact summary + historyId. */
     private def executeCompile(
         started: Started,
         projectNames: List[String],
+        diffBase: Option[String],
         context: CallContext[IO]
     ): IO[String] = {
       val targetProjects = resolveProjects(started, projectNames)
@@ -626,6 +653,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       }
 
       for {
+        diffBaseTranscript <- resolveDiffBase(started, "compile", diffBase)
         bspConfig <- IO.fromEither(setupBspConfig(started))
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
@@ -658,7 +686,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         )
 
         events <- collectedEvents.get.map(_.reverse)
-      } yield withHistoryId(TranscriptFormat.formatCompileResult(events, verbose = false, query = None, limit = None, offset = None), historyId)
+      } yield withDiff(
+        withHistoryId(TranscriptFormat.formatCompileResult(events, verbose = false, query = None, limit = None, offset = None), historyId),
+        diffBaseTranscript,
+        historyId,
+        started
+      ).noSpaces
     }
 
     /** The daemon-assigned transcript id from a compile response. None when the daemon carried none (transcript write failed, or older daemon). */
@@ -676,6 +709,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         projectNames: List[String],
         only: List[String],
         exclude: List[String],
+        diffBase: Option[String],
         context: CallContext[IO]
     ): IO[String] = {
       val targetProjects = resolveTestProjects(started, projectNames)
@@ -685,6 +719,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       }
 
       for {
+        diffBaseTranscript <- resolveDiffBase(started, "test", diffBase)
         bspConfig <- IO.fromEither(setupBspConfig(started))
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
@@ -732,19 +767,24 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
 
         events <- collectedEvents.get.map(_.reverse)
         trr <- testRunResult.get
-      } yield withHistoryId(
-        TranscriptFormat.formatTestResult(events, trr, includeThrowables = false, query = None, limit = None, offset = None),
-        trr.flatMap(_.historyId)
-      )
+      } yield withDiff(
+        withHistoryId(
+          TranscriptFormat.formatTestResult(events, trr, includeThrowables = false, query = None, limit = None, offset = None),
+          trr.flatMap(_.historyId)
+        ),
+        diffBaseTranscript,
+        trr.flatMap(_.historyId),
+        started
+      ).noSpaces
     }
 
     /** Attach the daemon-assigned transcript id when the response carried one; its absence (failed transcript write, older daemon) is sanctioned and simply
       * means the summary cannot be expanded via bleep.history.show later.
       */
-    private def withHistoryId(json: Json, historyId: Option[Long]): String =
+    private def withHistoryId(json: Json, historyId: Option[Long]): Json =
       historyId match {
-        case Some(id) => json.deepMerge(Json.obj("historyId" -> Json.fromLong(id))).noSpaces
-        case None     => json.noSpaces
+        case Some(id) => json.deepMerge(Json.obj("historyId" -> Json.fromLong(id)))
+        case None     => json
       }
 
     /** The workspace's recorded runs, oldest first — the same listing `bleep history` prints, as JSON. A pure read of `directory`'s per-worktree history. */

@@ -66,6 +66,7 @@ class TestEnvPropagationIT extends IntegrationTestHarness {
         flamegraph = false,
         cancel = false,
         junitReportDir = None,
+        diffBase = None,
         clientEnv = clientEnv
       )
       .run(started)
