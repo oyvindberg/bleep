@@ -905,7 +905,7 @@ function AgentWorktreesSection() {
                 actor: "agent[auth]",
                 call: "bleep.copy-state { directory: ~/repo/wt/auth, from: ~/repo }",
                 result: "parent's compiled state, cloned",
-                note: "forks start warm, not cold",
+                note: "1.8 GB in 14 s — forks start warm, not cold",
               },
               {
                 actor: "agent[auth]",
@@ -961,9 +961,10 @@ function AgentWorktreesSection() {
                 <code>bleep.copy-state</code> call to clone the parent
                 worktree&rsquo;s compiled state — clonefile-fast, under
                 the compile server&rsquo;s locks, safe even while the
-                parent compiles — and the first build compiles a few
-                files instead of a few hundred. No other setup, no
-                teardown.
+                parent compiles. Measured on a 5.1-million-line build:
+                fork to verified green in 54 seconds, against 4½ minutes
+                cold. <Link to="/docs/guides/worktrees">Recipe and
+                numbers</Link>.
               </p>
             </article>
             <article className={styles.mcpCard}>
