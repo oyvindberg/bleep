@@ -20,7 +20,7 @@
     "@docusaurus/plugin-client-redirects": "^3.10.1",
     "@docusaurus/preset-classic": "^3.10.1",
     "@mdx-js/react": "^3.0.0",
-    "asciinema-player": "^3.0.1",
+    "asciinema-player": "^3.17.0",
     "clsx": "^2.1.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.2.0",
