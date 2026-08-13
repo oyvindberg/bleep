@@ -1045,9 +1045,9 @@ function AgentAnswersSection() {
                 actor: "",
                 call: "bleep.history.diff { base: 18, target: 19 }",
                 result:
-                  '{ identical: false, summary: "1 newlyFailing", newlyFailing: [{ from: "passed", to: "failed", … }] }',
+                  '{ identical: false, summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] }',
                 bad: true,
-                note: "the one break, named — with its failure message",
+                note: "the break — name and assertion, nothing else",
               },
               { gap: true },
               { actor: "agent", deed: "reverts, reruns" },
