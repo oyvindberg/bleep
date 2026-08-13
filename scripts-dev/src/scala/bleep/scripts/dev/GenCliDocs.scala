@@ -177,7 +177,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       sb.append("## Flags\n\n")
       sb.append("| Flag | Description |\n")
       sb.append("|------|-------------|\n")
-      parentFlags.foreach(f => sb.append(s"| ${formatFlagInvocation(f)} | ${escapePipes(f.description)} |\n"))
+      parentFlags.foreach(f => sb.append(s"| ${formatFlagInvocation(f)} | ${escapeMdInline(f.description.trim)} |\n"))
       sb.append("\n")
     }
 
@@ -225,7 +225,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       sb.append(s"$h Flags\n\n")
       sb.append("| Flag | Description |\n")
       sb.append("|------|-------------|\n")
-      visibleFlags.foreach(f => sb.append(s"| ${formatFlagInvocation(f)} | ${escapePipes(f.description)} |\n"))
+      visibleFlags.foreach(f => sb.append(s"| ${formatFlagInvocation(f)} | ${escapeMdInline(f.description.trim)} |\n"))
       sb.append("\n")
     }
 
@@ -274,8 +274,6 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     val rep = if (f.repeated) " (repeatable)" else ""
     s"`$long$short$mv`$rep"
   }
-
-  private def escapePipes(s: String): String = s.replace("|", "\\|").trim
 
   /** Recursively delete every entry under `dir`, but keep `dir` itself. */
   private def deleteTreeContents(dir: Path): Unit = {
