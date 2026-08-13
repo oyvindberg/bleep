@@ -902,19 +902,19 @@ function AgentWorktreesSection() {
               { gap: true },
               {
                 actor: "agent[auth]",
-                call: "bleep.copy-state { directory: ~/wt/auth, from: ~/main }",
+                call: "bleep.copy-state { directory: ~/repo/wt/auth, from: ~/repo }",
                 result: "parent's compiled state, cloned",
                 note: "forks start warm, not cold",
               },
               {
                 actor: "agent[auth]",
-                call: "bleep.compile { directory: ~/wt/auth }",
+                call: "bleep.compile { directory: ~/repo/wt/auth }",
                 result: "{ historyId: 12, success: true }",
                 good: true,
               },
               {
                 actor: "agent[api]",
-                call: "bleep.test { directory: ~/wt/api }",
+                call: "bleep.test { directory: ~/repo/wt/api }",
                 result: "{ historyId: 13, failed: 2 }",
                 bad: true,
                 note: "failures streamed the moment they happened",
@@ -927,7 +927,7 @@ function AgentWorktreesSection() {
               },
               {
                 actor: "agent[ui]",
-                call: "bleep.compile { directory: ~/wt/ui }",
+                call: "bleep.compile { directory: ~/repo/wt/ui }",
                 result: "instant",
                 good: true,
                 note: "same daemon — these deps are already hot",
@@ -1037,7 +1037,7 @@ function AgentAnswersSection() {
               { actor: "agent", deed: "breaks a test, reruns" },
               {
                 actor: "",
-                call: "bleep.test { directory: ~/wt/api }",
+                call: "bleep.test { directory: ~/repo/wt/api }",
                 result: "{ historyId: 19, failed: 1 }",
                 bad: true,
               },
@@ -1053,7 +1053,7 @@ function AgentAnswersSection() {
               { actor: "agent", deed: "reverts, reruns" },
               {
                 actor: "",
-                call: "bleep.test { directory: ~/wt/api }",
+                call: "bleep.test { directory: ~/repo/wt/api }",
                 result: "{ historyId: 20, passed: 14 }",
                 good: true,
               },
