@@ -123,7 +123,9 @@ daemon into the workspace itself
 by that `historyId`. History is per-worktree, shared with the CLI
 (`bleep history`, `bleep history show`, `bleep history diff`) and IDE builds, and
 survives MCP server restarts — the server itself keeps nothing in
-memory. When the agent decides to drill in:
+memory. The [run history & diffs guide](/docs/usage/run-history)
+covers the recording and diffing model in depth. When the agent
+decides to drill in:
 
 ```
 agent: bleep.history.show { directory: "/checkout", historyId: 7 }

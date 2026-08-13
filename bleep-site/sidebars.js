@@ -307,6 +307,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Run history & diffs",
+          id: "usage/run-history",
+        },
+        {
+          type: "doc",
           label: "Resource Filtering",
           id: "guides/resource-filtering",
         },

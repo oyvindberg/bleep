@@ -107,30 +107,39 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
   /** Hand-written MDX injected into otherwise generated pages, keyed by output path relative to `cli/`. MDX requires imports at module scope, so they go right
     * after the frontmatter; the body is appended to the end of the page. By living in the generator, this content survives regeneration by construction.
     */
+  private val seeRunHistoryGuide: HandWritten =
+    HandWritten(
+      imports = "",
+      body = """## See also
+               |
+               |The [run history & diffs guide](/docs/usage/run-history) tells the whole story — what
+               |gets recorded, diffing runs, the `--diff` edit loop, cross-worktree comparisons — with
+               |a demo video.""".stripMargin
+    )
+
   private val handWritten: Map[String, HandWritten] =
     Map(
-      "history/index.mdx" -> HandWritten(
-        imports = """import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
-                    |import diffCast from "!!file-loader!@site/static/demos/diff.cast";""".stripMargin,
-        body = """## Demo
-                 |
-                 |An already-warm workspace: break a function, let [`bleep test --diff`](/docs/reference/cli/test/)
-                 |pinpoint the newly failing test, fix it, and compare any two runs after the fact with
-                 |[`bleep history diff`](./diff):
-                 |
-                 |<AsciinemaPlayer src={diffCast} cols={100} rows={30} fit="width" />""".stripMargin
-      )
+      "history/index.mdx" -> seeRunHistoryGuide,
+      "history/show.mdx" -> seeRunHistoryGuide,
+      "history/diff.mdx" -> seeRunHistoryGuide,
+      "compile.mdx" -> seeRunHistoryGuide,
+      "test.mdx" -> seeRunHistoryGuide
     )
 
   private def withHandWritten(relPath: String, mdx: String): String =
     handWritten.get(relPath) match {
       case None        => mdx
       case Some(extra) =>
-        val frontMatterEnd = "\n---\n\n"
-        val idx = mdx.indexOf(frontMatterEnd)
-        if (idx < 0) sys.error(s"$relPath: no frontmatter found to insert hand-written imports after")
-        val insertAt = idx + frontMatterEnd.length
-        mdx.substring(0, insertAt) + extra.imports + "\n\n" + mdx.substring(insertAt) + extra.body + "\n"
+        val withImports =
+          if (extra.imports.isEmpty) mdx
+          else {
+            val frontMatterEnd = "\n---\n\n"
+            val idx = mdx.indexOf(frontMatterEnd)
+            if (idx < 0) sys.error(s"$relPath: no frontmatter found to insert hand-written imports after")
+            val insertAt = idx + frontMatterEnd.length
+            mdx.substring(0, insertAt) + extra.imports + "\n\n" + mdx.substring(insertAt)
+          }
+        withImports + extra.body + "\n"
     }
 
   // ----------------------------------------------------------------
