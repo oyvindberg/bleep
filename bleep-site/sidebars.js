@@ -320,6 +320,11 @@ const sidebars = {
           label: "Unmanaged Jars",
           id: "usage/unmanaged-jars",
         },
+        {
+          type: "doc",
+          label: "Worktrees",
+          id: "guides/worktrees",
+        },
       ],
     },
 
