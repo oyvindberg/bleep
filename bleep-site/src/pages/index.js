@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
-import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
-import diffCast from "!!file-loader!@site/static/demos/diff.cast";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -21,7 +19,9 @@ function Vignette({ rows }) {
               {r.actor}
             </span>
             <span className={styles.vgLines}>
-              <span className={styles.vgCall}>{r.call}</span>
+              <span className={r.deed ? styles.vgDeed : styles.vgCall}>
+                {r.deed || r.call}
+              </span>
               {r.result && (
                 <span className={styles.vgResult}>
                   {"→ "}
@@ -1032,23 +1032,41 @@ function AgentAnswersSection() {
         </Reveal>
 
         <Reveal delay={80}>
-          <div className={styles.demoFrame}>
-            <AsciinemaPlayer
-              src={diffCast}
-              cols={100}
-              rows={30}
-              fit="width"
-              autoPlay
-              loop
-            />
-          </div>
-          <p className={styles.demoCaption}>
-            Break a test and <code>bleep test --diff</code> names exactly it.
-            Fix it: <code>1 fixed</code>. Rerun: two runs hundreds of
-            milliseconds apart in wall time compare{" "}
-            <code>identical: true</code> — timing noise never fakes a
-            difference. Agents get the same answers as JSON over MCP.
-          </p>
+          <Vignette
+            rows={[
+              { actor: "agent", deed: "breaks a test, reruns" },
+              {
+                actor: "",
+                call: "bleep.test { directory: ~/wt/api }",
+                result: "{ historyId: 19, failed: 1 }",
+                bad: true,
+              },
+              {
+                actor: "",
+                call: "bleep.history.diff { base: 18, target: 19 }",
+                result:
+                  '{ identical: false, summary: "1 newlyFailing", newlyFailing: [{ from: "passed", to: "failed", … }] }',
+                bad: true,
+                note: "the one break, named — with its failure message",
+              },
+              { gap: true },
+              { actor: "agent", deed: "reverts, reruns" },
+              {
+                actor: "",
+                call: "bleep.test { directory: ~/wt/api }",
+                result: "{ historyId: 20, passed: 14 }",
+                good: true,
+              },
+              {
+                actor: "",
+                call: "bleep.history.diff { base: 18, target: 20 }",
+                result:
+                  '{ identical: true, summary: "No logical differences." }',
+                good: true,
+                note: "~800ms of timing noise between the runs, zero false diffs",
+              },
+            ]}
+          />
         </Reveal>
 
         <Reveal>

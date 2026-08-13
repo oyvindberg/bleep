@@ -1332,23 +1332,11 @@
   color: var(--ink-500);
   font-style: italic;
 }
-
-.demoFrame {
-  margin: 2.1rem auto 0;
-  max-width: 940px;
-  border: 1px solid var(--hairline-strong);
-  box-shadow: 0 28px 56px -24px rgba(0, 0, 0, 0.65);
-  overflow: hidden;
+.vgDeed {
+  color: var(--ink-400);
+  font-style: italic;
+  display: block;
 }
-.demoCaption {
-  margin: 1rem auto 2.75rem;
-  max-width: 700px;
-  text-align: center;
-  color: var(--ink-300);
-  font-size: 0.92rem;
-  line-height: 1.7;
-}
-[data-theme='light'] .demoCaption { color: #6c6359; }
 
 /* ============================================================
    Light mode — paper + ink
