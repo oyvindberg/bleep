@@ -1338,6 +1338,33 @@
   display: block;
 }
 
+.toolRoster {
+  margin: 1.7rem auto 0;
+  max-width: 880px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 2;
+  color: var(--ink-400);
+}
+.toolRosterLabel {
+  font-family: var(--font-sans);
+  font-style: italic;
+  color: var(--ink-500);
+}
+.toolRoster a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
+}
+.toolRoster a:hover {
+  color: var(--red-400);
+  border-bottom-color: var(--red-400);
+}
+[data-theme='light'] .toolRoster { color: #6c6359; }
+[data-theme='light'] .toolRoster a:hover { color: var(--red-700); border-bottom-color: var(--red-700); }
+
 /* ============================================================
    Light mode — paper + ink
    ============================================================ */

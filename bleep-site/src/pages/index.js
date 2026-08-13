@@ -851,10 +851,11 @@ function TestRunnerSection() {
                 Precise <em>summary</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                When the run ends, you get exact suite and test names,
-                pass/fail counts per project, and the diff against the
-                previous run, not a wall of stdout you have to
-                grep through. JUnit XML is one flag away (
+                When the run ends, you get exact suite and test names and
+                pass/fail counts per project — and{" "}
+                <code>bleep test --diff</code> prints only what changed
+                since the previous run, not a wall of stdout to grep
+                through. JUnit XML is one flag away (
                 <code>--junit-report</code>).
               </p>
             </article>
@@ -980,6 +981,20 @@ function AgentWorktreesSection() {
           </div>
         </Reveal>
 
+        <Reveal delay={60}>
+          <p className={styles.toolRoster}>
+            <span className={styles.toolRosterLabel}>
+              the whole surface, 18 tools —{" "}
+            </span>
+            <Link to="/docs/usage/mcp-server/">
+              bleep.compile · test · run · projects · test.suites ·
+              build.effective/resolved · history.list/show/diff/diff-timing ·
+              copy-state · fmt · clean · sourcegen · scripts · programs ·
+              restart
+            </Link>
+          </p>
+        </Reveal>
+
         <Reveal delay={100}>
           <p
             className={styles.sectionLede}
@@ -1034,34 +1049,25 @@ function AgentAnswersSection() {
         <Reveal delay={80}>
           <Vignette
             rows={[
-              { actor: "agent", deed: "breaks a test, reruns" },
               {
-                actor: "",
-                call: "bleep.test { directory: ~/repo/wt/api }",
-                result: "{ historyId: 19, failed: 1 }",
-                bad: true,
+                actor: "agent",
+                deed: "breaks a test, reruns — diffBase pins the last green run, so the answer rides along",
               },
               {
                 actor: "",
-                call: "bleep.history.diff { base: 18, target: 19 }",
+                call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
                 result:
-                  '{ identical: false, summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] }',
+                  '{ historyId: 19, failed: 1, diff: { summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] } }',
                 bad: true,
-                note: "the break — name and assertion, nothing else",
+                note: "run + what-changed in one call: the break, name and assertion, nothing else",
               },
               { gap: true },
               { actor: "agent", deed: "reverts, reruns" },
               {
                 actor: "",
-                call: "bleep.test { directory: ~/repo/wt/api }",
-                result: "{ historyId: 20, passed: 14 }",
-                good: true,
-              },
-              {
-                actor: "",
-                call: "bleep.history.diff { base: 18, target: 20 }",
+                call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
                 result:
-                  '{ identical: true, summary: "No logical differences." }',
+                  '{ historyId: 20, passed: 14, diff: { identical: true, summary: "No logical differences." } }',
                 good: true,
                 note: "~800ms of timing noise between the runs, zero false diffs",
               },
@@ -1122,7 +1128,9 @@ function AgentAnswersSection() {
             <code>bleep history show</code>,{" "}
             <code>bleep history diff</code> — pure reads over files, no
             daemon required, and <code>--base-dir</code> diffs runs
-            across worktrees.
+            across worktrees. The{" "}
+            <Link to="/docs/usage/run-history">run history guide</Link>{" "}
+            tells the whole story.
           </p>
         </Reveal>
 
