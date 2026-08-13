@@ -2,7 +2,48 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import diffCast from "!!file-loader!@site/static/demos/diff.cast";
 import styles from "./index.module.css";
+
+/* ------------------------------------------------------------------
+   Vignette — an annotated agent-session transcript
+   ------------------------------------------------------------------ */
+function Vignette({ rows }) {
+  return (
+    <div className={styles.vignette}>
+      {rows.map((r, i) =>
+        r.gap ? (
+          <div key={i} className={styles.vgGap} />
+        ) : (
+          <div key={i} className={styles.vgRow}>
+            <span className={r.hot ? styles.vgActorHot : styles.vgActor}>
+              {r.actor}
+            </span>
+            <span className={styles.vgLines}>
+              <span className={styles.vgCall}>{r.call}</span>
+              {r.result && (
+                <span className={styles.vgResult}>
+                  {"→ "}
+                  <span
+                    className={
+                      r.bad ? styles.vgBad : r.good ? styles.vgGood : undefined
+                    }
+                  >
+                    {r.result}
+                  </span>
+                  {r.note && (
+                    <span className={styles.vgNote}>{"  ← " + r.note}</span>
+                  )}
+                </span>
+              )}
+            </span>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------
    Reveal, scroll-triggered fade + rise
@@ -851,12 +892,48 @@ function AgentWorktreesSection() {
         </SectionHeader>
 
         <Reveal delay={80}>
-          <pre className={styles.vignette}>{`orchestrator  spawns 4 subagents into git worktrees
-agent[auth]   bleep.copy-state { directory: ~/wt/auth, from: ~/main }  → parent's compiled state, cloned
-agent[auth]   bleep.compile { directory: ~/wt/auth }  → { historyId: 12, success: true }
-agent[api]    bleep.test { directory: ~/wt/api }  → { historyId: 13, failed: 2 }
-agent[api]    bleep.history.show { historyId: 13, query: "Timeout" }  → the two stack traces that matter
-agent[ui]     bleep.compile { directory: ~/wt/ui }  → instant — the daemon knows these deps`}</pre>
+          <Vignette
+            rows={[
+              {
+                actor: "orchestrator",
+                hot: true,
+                call: "spawns 4 subagents into git worktrees",
+              },
+              { gap: true },
+              {
+                actor: "agent[auth]",
+                call: "bleep.copy-state { directory: ~/wt/auth, from: ~/main }",
+                result: "parent's compiled state, cloned",
+                note: "forks start warm, not cold",
+              },
+              {
+                actor: "agent[auth]",
+                call: "bleep.compile { directory: ~/wt/auth }",
+                result: "{ historyId: 12, success: true }",
+                good: true,
+              },
+              {
+                actor: "agent[api]",
+                call: "bleep.test { directory: ~/wt/api }",
+                result: "{ historyId: 13, failed: 2 }",
+                bad: true,
+                note: "failures streamed the moment they happened",
+              },
+              {
+                actor: "agent[api]",
+                call: 'bleep.history.show { historyId: 13, query: "Timeout" }',
+                result: "the two stack traces that matter",
+                note: "a regex over the transcript, not a 30k-token log",
+              },
+              {
+                actor: "agent[ui]",
+                call: "bleep.compile { directory: ~/wt/ui }",
+                result: "instant",
+                good: true,
+                note: "same daemon — these deps are already hot",
+              },
+            ]}
+          />
         </Reveal>
 
         <Reveal>
@@ -955,12 +1032,23 @@ function AgentAnswersSection() {
         </Reveal>
 
         <Reveal delay={80}>
-          <pre className={styles.vignette}>{`agent  breaks a test, reruns   bleep.test → { historyId: 19, failed: 1 }
-agent  bleep.history.diff { base: 18, target: 19 }
-       → { identical: false, summary: "1 newlyFailing", newlyFailing: [{ from: "passed", to: "failed", … }] }
-agent  reverts, reruns         bleep.test → { historyId: 20, passed: 14 }
-agent  bleep.history.diff { base: 18, target: 20 }
-       → { identical: true, summary: "No logical differences." }   ← ~800ms of timing noise, zero false diffs`}</pre>
+          <div className={styles.demoFrame}>
+            <AsciinemaPlayer
+              src={diffCast}
+              cols={100}
+              rows={30}
+              fit="width"
+              autoPlay
+              loop
+            />
+          </div>
+          <p className={styles.demoCaption}>
+            Break a test and <code>bleep test --diff</code> names exactly it.
+            Fix it: <code>1 fixed</code>. Rerun: two runs hundreds of
+            milliseconds apart in wall time compare{" "}
+            <code>identical: true</code> — timing noise never fakes a
+            difference. Agents get the same answers as JSON over MCP.
+          </p>
         </Reveal>
 
         <Reveal>

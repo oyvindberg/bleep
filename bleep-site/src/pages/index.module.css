@@ -1304,9 +1304,51 @@
   line-height: 1.85;
   color: var(--ink-100);
   overflow-x: auto;
-  white-space: pre;
   box-shadow: 0 28px 56px -24px rgba(0, 0, 0, 0.65);
 }
+.vgRow {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr;
+  column-gap: 0.5rem;
+  align-items: baseline;
+}
+.vgGap { height: 0.9em; }
+.vgActor,
+.vgActorHot {
+  color: var(--ink-500);
+  white-space: nowrap;
+}
+.vgActorHot { color: var(--red-400); }
+.vgLines {
+  display: block;
+  white-space: pre-wrap;
+  min-width: 0;
+}
+.vgCall { color: var(--ink-100); display: block; }
+.vgResult { color: var(--ink-400); display: block; }
+.vgGood { color: var(--good-300); }
+.vgBad { color: var(--red-400); }
+.vgNote {
+  color: var(--ink-500);
+  font-style: italic;
+}
+
+.demoFrame {
+  margin: 2.1rem auto 0;
+  max-width: 940px;
+  border: 1px solid var(--hairline-strong);
+  box-shadow: 0 28px 56px -24px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+.demoCaption {
+  margin: 1rem auto 2.75rem;
+  max-width: 700px;
+  text-align: center;
+  color: var(--ink-300);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+[data-theme='light'] .demoCaption { color: #6c6359; }
 
 /* ============================================================
    Light mode — paper + ink
