@@ -325,6 +325,11 @@ const sidebars = {
           label: "Worktrees",
           id: "guides/worktrees",
         },
+        {
+          type: "doc",
+          label: "Exit strategy",
+          id: "guides/exit-strategy",
+        },
       ],
     },
 

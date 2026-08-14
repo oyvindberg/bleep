@@ -1,0 +1,81 @@
+---
+title: Exit strategy
+---
+
+# Exit strategy
+
+A build tool is one of the highest-switching-cost dependencies in your
+stack — usually second only to the language. Most tools answer the
+question "what if we ever need to leave?" with silence, because the
+honest answer is a rewrite: years of plugins, conventions, and task
+wiring with no machine-readable representation outside the tool itself.
+
+Bleep's answer is structural: **the build is data**, so leaving is a
+mechanical translation, not an archaeology project. This page spells
+out exactly what you hold, what leaving looks like, and why the cost
+of exit is capped by design.
+
+## What you hold
+
+Everything bleep knows about your build exists as portable data you
+own:
+
+- **`bleep.yaml`** — the entire build definition: projects, their
+  dependency graph, compiler options, platforms. Dependencies are
+  plain Maven coordinates, the lingua franca every JVM build tool
+  reads. There is no plugin state, no code, no tool-internal database
+  behind it.
+- **The fully expanded model** — templates keep the file short, but
+  [`bleep build show`](/docs/reference/cli/build/show/) prints every
+  project with all templates applied: the complete, denormalized
+  build as YAML, ready to feed to any translator.
+- **Your sources, laid out conventionally on disk.** Generated
+  sources are ordinary files in known directories.
+- **Your build logic as programs.** Scripts and sourcegen are plain
+  Scala or Java `main` classes in your repo. They are code you keep
+  either way — in a migration they change how they're invoked, not
+  what they are. Compare that to the plugin you'd rewrite from
+  scratch.
+
+## What leaving looks like
+
+Because the model is data, the translation per target is direct:
+
+- **To Maven**: each project becomes a `pom.xml`; dependencies map
+  one-to-one (they already *are* Maven coordinates); templates
+  flatten into parent POMs or simply expand in place.
+- **To sbt**: projects become subprojects; `cross:` becomes
+  `crossScalaVersions` / platform plugins; dependency and compiler
+  options carry over field by field.
+- **To Gradle**: projects become modules; the dependency graph and
+  options translate the same way.
+
+What needs hands-on work in any direction: re-wiring scripts and
+sourcegen into the target tool's invocation model, and re-expressing
+compiler-plugin configuration in the target's dialect. That is
+days-shaped work, not quarters-shaped — and it is bounded, because
+nothing about your build exists *only* as bleep behavior.
+
+## An exporter is a small program, not a project
+
+The build model is a published library
+([`bleep-model`](https://github.com/oyvindberg/bleep)), and loading a
+build from disk is a few lines. A proof-of-concept `export-sbt` is a
+script: load the exploded build, walk the projects, emit
+`build.sbt` and `project/` files. It could even live in your own
+repo as an ordinary bleep script, so the escape hatch is code you
+control. If enough people want it, it can ship as a supported
+command — the point is that nothing about bleep's design stands in
+its way.
+
+## What you'd actually lose
+
+Honesty section: the things that don't port are the things that were
+never yours to port. Incremental compile state and the analysis cache
+are rebuildable artifacts. [Run history](/docs/usage/run-history)
+transcripts describe past runs of a tool you're leaving. And the
+speed — the ten-millisecond CLI, the one-second IDE import, the
+warm [worktree forks](/docs/guides/worktrees) — stays behind,
+because it lives in the tool, not the data. That is the trade, stated
+plainly: the exit is cheap precisely because everything durable about
+your build was kept as data all along.

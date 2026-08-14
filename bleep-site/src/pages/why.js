@@ -237,7 +237,7 @@ function AttentionSection() {
           <Link to="https://github.blog/engineering/infrastructure/experiment-the-hidden-costs-of-waiting-on-slow-build-times/">
             GitHub priced the waiting
           </Link>{" "}
-          at $389.98 of developer time per slow build. And the agent era
+          at roughly $400 of developer time per slow build. And the agent era
           sharpened it: code generation exploded while merged throughput
           didn&rsquo;t — validation is the bottleneck now, and the build
           sits in the middle of every validation.{" "}
@@ -355,9 +355,9 @@ function ReceiptsSection() {
             </>
           }
         >
-          Measured on the repo bleep is developed in — 5.1 million lines
-          of JVM code across 130 projects — on the laptop it was typed
-          on, against today&rsquo;s master. We can measure this any day,
+          Measured on the repo bleep&rsquo;s authors work in daily — 5.1
+          million lines of JVM code across 130 projects — on the laptop
+          it was typed on, against today&rsquo;s master. We can measure this any day,
           because the build{" "}
           <Link to="/docs/usage/run-history">records its own runs</Link>{" "}
           and diffs its own timing. A build tool that couldn&rsquo;t
@@ -427,11 +427,107 @@ function ReceiptsSection() {
 }
 
 /* ------------------------------------------------------------------
+   Per-language maturity — "is MY stack first-class?"
+   ------------------------------------------------------------------ */
+function MaturitySection() {
+  return (
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Is your stack in?"
+          title={
+            <>
+              Java, Kotlin, Scala — <em>first-class</em>.
+            </>
+          }
+        >
+          The question right after the numbers: is <em>my</em> thing
+          supported? Compile, test, run, publish, IDE import, cross-build,
+          scripts and sourcegen are first-class for all three languages.
+          The details, honestly labeled:
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Java</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: javac and ECJ, annotation
+                processors (Lombok, MapStruct, Dagger, Immutables, …),
+                Spring Boot via{" "}
+                <Link to="/docs/spring-boot-proves-the-model/">
+                  bleep-plugin-spring-boot
+                </Link>
+                , Maven import.
+                <br />
+                <strong>Partial</strong>: BOM /{" "}
+                <code>dependencyManagement</code> not yet, every
+                dependency declares its own version explicitly.
+                <br />
+                <strong>Not in scope</strong>: Android.
+              </p>
+            </article>
+
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Kotlin</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: kotlinc 2.x, compiler
+                plugins (<code>allopen</code>, <code>jpa</code>,{" "}
+                <code>spring</code>, <code>noarg</code>,{" "}
+                <code>serialization</code>),{" "}
+                <Link to="/docs/usage/annotation-processing#kotlin-ksp">
+                  KSP processors
+                </Link>{" "}
+                (Room, Hilt, Moshi codegen, Koin KSP, kotlin-inject, …),
+                Kotlin/JS via <code>cross:</code>.
+                <br />
+                <strong>Partial</strong>: KSP runs from scratch each
+                compile; Kotlin/Native targets exist but the ecosystem
+                expects Gradle.
+                <br />
+                <strong>Not in scope</strong>: KAPT (migrate to KSP),
+                Android, Gradle import.
+              </p>
+            </article>
+
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>Scala</h3>
+              <p className={styles.mcpCardBody}>
+                <strong>First-class</strong>: Scala 2.13 + Scala 3
+                cross-builds, Scala.js, Scala Native, scalafmt,
+                scalafix, Zinc incremental, sbt import, ports of
+                sbt-ci-release / sbt-sonatype / sbt-pgp / sbt-dynver /
+                sbt-native-image / mdoc.
+                <br />
+                <strong>Partial</strong>:{" "}
+                <code>projectMatrix</code>-style third axes beyond
+                JVM/JS/Native × 2.13/3.
+                <br />
+                <strong>Not in scope</strong>: publishing as an sbt
+                plugin artifact (consuming sbt plugins works).
+              </p>
+            </article>
+          </div>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <p className={styles.compareCta}>
+            <Link className={styles.compareCtaLink} to="/docs/appendix/status/">
+              Full project status &amp; what&rsquo;s not yet covered &nbsp;&rarr;
+            </Link>
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
    Simplicity
    ------------------------------------------------------------------ */
 function SimplicitySection() {
   return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
+    <section className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="How it can be this fast"
@@ -575,7 +671,7 @@ function SimplicitySection() {
    ------------------------------------------------------------------ */
 function HumansSection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="Also: you"
@@ -615,8 +711,8 @@ function HumansSection() {
                 IDE imports in <em>seconds</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                First import: a second or two. Branch reload:
-                milliseconds. In Gradle or sbt the same actions cost a
+                First import into IntelliJ or any BSP editor: a second
+                or two. Branch reload: milliseconds. In Gradle or sbt the same actions cost a
                 configuration phase, plugin loading, and an IDE model
                 rebuild — minutes, on real projects, several times a
                 day.
@@ -657,7 +753,7 @@ function HumansSection() {
    ------------------------------------------------------------------ */
 function ScaleSection() {
   return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
+    <section className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="Where it matters most"
@@ -667,18 +763,17 @@ function ScaleSection() {
             </>
           }
         >
-          Big repos are where the important software lives — the
-          exchanges, the banks, the systems with twenty years of
-          history and no appetite for adventure. They are also where
-          build pain compounds hardest: every wart multiplied by a
-          thousand modules and a hundred engineers. The industrial
-          alternatives demand tribute up front —{" "}
+          Big repos are where the important software lives — systems
+          with twenty years of history and no appetite for adventure —
+          and where build pain compounds hardest: every wart multiplied
+          by a thousand modules and a hundred engineers. The
+          industrial-strength alternative has a price tag on the record:{" "}
           <Link to="https://news.ycombinator.com/item?id=41975870">
             &ldquo;Rolling out Bazel at my prior employer took about
             one person decade of engineering time&rdquo;
-          </Link>{" "}
-          — and a dedicated priesthood after. Bleep is designed at that
-          scale and lives at that scale, daily, with no priesthood.
+          </Link>
+          . Bleep is designed at scale and lives at scale, daily — with
+          no dedicated build team required.
         </SectionHeader>
 
         <Reveal>
@@ -703,8 +798,8 @@ function ScaleSection() {
                 projects a diff touched — both build loads are instant,
                 because the build is data. The{" "}
                 <Link to="/docs/usage/remote-cache">remote cache</Link>{" "}
-                pulls everything a previous run already compiled. Your
-                CI bill stops being a personality trait.
+                pulls everything a previous run already compiled. You
+                pay to build the change, not the repo.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -731,7 +826,7 @@ function ScaleSection() {
    ------------------------------------------------------------------ */
 function AgentEraSection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="The agent era"
@@ -757,7 +852,9 @@ function AgentEraSection() {
             <span className={styles.mcpStatFigure}>build runs you can diff</span>
             <span className={styles.mcpStatRest}>
               &ldquo;what changed since the last green run?&rdquo; is one
-              call, answered as data. No other build tool has this shape.
+              call, answered as data. No other build tool has this shape —
+              the nearest attempt, Develocity&rsquo;s build-scan comparison,
+              is paid analytics in someone else&rsquo;s cloud.
             </span>
           </p>
         </Reveal>
@@ -856,8 +953,7 @@ function AgentEraSection() {
           >
             Bleep is developed by sessions of parallel agents in git
             worktrees, building bleep with bleep. Everything above is
-            how this tool gets maintained, daily — the demo is the
-            development process.
+            how this tool gets maintained, daily.
           </p>
         </Reveal>
       </div>
@@ -870,7 +966,7 @@ function AgentEraSection() {
    ------------------------------------------------------------------ */
 function HonestySection() {
   return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
+    <section className={styles.section}>
       <div className={styles.containerNarrow}>
         <SectionHeader
           eyebrow="The part where we admit things"
@@ -889,7 +985,13 @@ function HonestySection() {
           <Link to="/docs/appendix/status/">status page</Link> keeps the
           full account. If your dealbreaker is on it, we&rsquo;d rather
           you find out here than three days in — and if it isn&rsquo;t,
-          everything above is waiting.
+          everything above is waiting. One more, in reverse: if bleep
+          ever stops being right for you, your whole build is portable
+          YAML and Maven coordinates — leaving is a mechanical
+          translation, and we wrote the{" "}
+          <Link to="/docs/guides/exit-strategy">exit strategy</Link>{" "}
+          down. Betting on a young tool should never mean betting the
+          repo.
         </SectionHeader>
       </div>
     </section>
@@ -992,6 +1094,7 @@ export default function Why() {
           <AttentionSection />
           <FieldNotesSection />
           <ReceiptsSection />
+          <MaturitySection />
           <SimplicitySection />
           <HumansSection />
           <ScaleSection />
