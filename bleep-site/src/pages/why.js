@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
+import Snippet from "@site/src/components/Snippet";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -8,6 +9,44 @@ import styles from "./index.module.css";
    A parallel front page: same design system as index.js, different
    register. The regular front page explains; this one argues.
    ------------------------------------------------------------------ */
+
+function Vignette({ rows }) {
+  return (
+    <div className={styles.vignette}>
+      {rows.map((r, i) =>
+        r.gap ? (
+          <div key={i} className={styles.vgGap} />
+        ) : (
+          <div key={i} className={styles.vgRow}>
+            <span className={r.hot ? styles.vgActorHot : styles.vgActor}>
+              {r.actor}
+            </span>
+            <span className={styles.vgLines}>
+              <span className={r.deed ? styles.vgDeed : styles.vgCall}>
+                {r.deed || r.call}
+              </span>
+              {r.result && (
+                <span className={styles.vgResult}>
+                  {"→ "}
+                  <span
+                    className={
+                      r.bad ? styles.vgBad : r.good ? styles.vgGood : undefined
+                    }
+                  >
+                    {r.result}
+                  </span>
+                  {r.note && (
+                    <span className={styles.vgNote}>{"  ← " + r.note}</span>
+                  )}
+                </span>
+              )}
+            </span>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
 
 function Reveal({ children, delay, as: Tag, className, ...rest }) {
   const Component = Tag || "div";
@@ -422,6 +461,23 @@ function SimplicitySection() {
           </ul>
         </Reveal>
 
+        <Reveal delay={80}>
+          <div className={styles.specimenFrame} style={{ marginTop: "2.5rem" }}>
+            <div className={styles.specimenHead}>
+              <span className={styles.specimenHeadAside}>
+                a complete, working build — from the docs&rsquo; own
+                integration tests
+              </span>
+            </div>
+            <div className={styles.specimenSnippet}>
+              <Snippet
+                path="docs-snippets-from-tests/your-first-kotlin-project/bleep.yaml"
+                lang="yaml"
+              />
+            </div>
+          </div>
+        </Reveal>
+
         <Reveal delay={100}>
           <div className={styles.dossierGrid} style={{ marginTop: "2.5rem" }}>
             <article className={`${styles.dossierCard} ${styles.dossierCardTenet}`}>
@@ -484,6 +540,28 @@ function SimplicitySection() {
               <div className={styles.dossierAccent} aria-hidden="true" />
             </article>
           </div>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "2.25rem", textAlign: "center" }}
+          >
+            &ldquo;But my build plugin!&rdquo; We checked. We analyzed
+            each of the{" "}
+            <Link to="/docs/compared-to-other-build-tools/maven-plugin-coverage/">
+              top 50 Maven plugins
+            </Link>
+            , implemented the hardest case (
+            <Link to="/docs/spring-boot-proves-the-model/">
+              Spring Boot
+            </Link>
+            ), and ship{" "}
+            <Link to="/docs/appendix/status/">
+              codebases of millions of lines
+            </Link>{" "}
+            on this model.
+          </p>
         </Reveal>
       </div>
     </section>
@@ -682,6 +760,35 @@ function AgentEraSection() {
           </p>
         </Reveal>
 
+        <Reveal delay={60}>
+          <Vignette
+            rows={[
+              {
+                actor: "agent",
+                deed: "breaks a test, reruns — diffBase pins the last green run, so the answer rides along",
+              },
+              {
+                actor: "",
+                call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
+                result:
+                  '{ historyId: 19, failed: 1, diff: { summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] } }',
+                bad: true,
+                note: "run + what-changed in one call: the break, name and assertion, nothing else",
+              },
+              { gap: true },
+              { actor: "agent", deed: "reverts, reruns" },
+              {
+                actor: "",
+                call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
+                result:
+                  '{ historyId: 20, passed: 14, diff: { identical: true, summary: "No logical differences." } }',
+                good: true,
+                note: "~800ms of timing noise between the runs, zero false diffs",
+              },
+            ]}
+          />
+        </Reveal>
+
         <Reveal delay={80}>
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
@@ -724,6 +831,20 @@ function AgentEraSection() {
               </p>
             </article>
           </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p className={styles.toolRoster}>
+            <span className={styles.toolRosterLabel}>
+              the whole surface, 18 tools —{" "}
+            </span>
+            <Link to="/docs/usage/mcp-server/">
+              bleep.compile · test · run · projects · test.suites ·
+              build.effective/resolved · history.list/show/diff/diff-timing ·
+              copy-state · fmt · clean · sourcegen · scripts · programs ·
+              restart
+            </Link>
+          </p>
         </Reveal>
 
         <Reveal delay={120}>
