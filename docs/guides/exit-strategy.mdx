@@ -58,15 +58,26 @@ nothing about your build exists *only* as bleep behavior.
 
 ## An exporter is a small program, not a project
 
-The build model is a published library
-([`bleep-model`](https://github.com/oyvindberg/bleep)), and loading a
-build from disk is a few lines. A proof-of-concept `export-sbt` is a
-script: load the exploded build, walk the projects, emit
-`build.sbt` and `project/` files. It could even live in your own
-repo as an ordinary bleep script, so the escape hatch is code you
-control. If enough people want it, it can ship as a supported
-command — the point is that nothing about bleep's design stands in
-its way.
+We didn't leave that as a thought experiment. Bleep's own repo
+carries `bleep export-maven <output-dir>` — an ordinary bleep script
+that loads the exploded build, walks the projects, and writes an
+aggregator `pom.xml` plus one POM per module: external dependencies
+with their exact `_2.13`/`_3` artifact suffixes rendered by the
+model's own machinery, inter-project dependencies as real Maven
+coordinates, source directories wired up, and the Scala/Java compiler
+plugins configured from each project's options. Run against bleep's
+own build it exports 22 modules whose output passes `mvn validate`,
+and spot-checked modules — one pure Java, one Scala 3 under
+`-Werror` — compile green under stock Maven.
+
+It is a proof of concept and scoped honestly: no Maven test scoping,
+no publish config, sourcegen output has to exist on disk, and
+Kotlin/JS/Native modules are skipped. But it proves the sentence
+above: the exporter is a small program *because the build was data
+all along*. An sbt or Gradle target is the same walk with different
+serialization — and because the model is a published library, you can
+write yours in your own repo, so the escape hatch is code you
+control.
 
 ## What you'd actually lose
 
