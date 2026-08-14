@@ -182,10 +182,10 @@ function Hero() {
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>fork → verified green</span>
             <span className={styles.heroFactValue}>
-              54 <em>s</em>
+              268 <em>→</em> 54 s
             </span>
             <span className={styles.heroFactSub}>
-              worktree + copy + compile, 5.1M lines
+              naive cp + compile vs copy-state, 5.1M lines
             </span>
           </div>
           <div className={styles.heroFact}>
