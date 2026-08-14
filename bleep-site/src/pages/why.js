@@ -114,7 +114,7 @@ function Hero() {
           six git worktrees, and then sit there, watching a build tool
           configure itself. We build five million lines of JVM code for
           a living and we got tired of waiting too. So we built a build
-          tool with a native binary that starts in zero milliseconds,
+          tool with a native binary that bootstraps in ten milliseconds,
           answers an agent in two hundred tokens, and forks a warm copy
           of your entire compiled world in under a minute. This page is
           the sales pitch. Every number on it is measured.
@@ -136,7 +136,7 @@ function Hero() {
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>CLI startup</span>
             <span className={styles.heroFactValue}>
-              0 <em>ms</em>
+              10 <em>ms</em>
             </span>
             <span className={styles.heroFactSub}>native binary, no JVM</span>
           </div>
@@ -328,7 +328,7 @@ function ReceiptsSection() {
             <div className={styles.numberCell}>
               <span className={styles.numberKicker}>CLI startup</span>
               <span className={styles.numberValue}>
-                0<span className={styles.numberValueUnit}>ms</span>
+                10<span className={styles.numberValueUnit}>ms</span>
               </span>
               <p className={styles.numberCaption}>
                 Native binary. Build model loaded, dependencies resolved
@@ -779,7 +779,7 @@ export default function Why() {
   return (
     <Layout
       title="Why bleep"
-      description="The case for bleep at full volume: zero-millisecond startup, one-file builds, 200-token agent answers, and warm worktree forks on five-million-line repos. Every number measured."
+      description="The case for bleep at full volume: ten-millisecond startup, one-file builds, 200-token agent answers, and warm worktree forks on five-million-line repos. Every number measured."
     >
       <div className={styles.page}>
         <Hero />
