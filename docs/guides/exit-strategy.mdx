@@ -64,17 +64,27 @@ that loads the exploded build, walks the projects, and writes an
 aggregator `pom.xml` plus one POM per module: external dependencies
 with their exact `_2.13`/`_3` artifact suffixes rendered by the
 model's own machinery, inter-project dependencies as real Maven
-coordinates, source directories wired up, and the Scala/Java compiler
-plugins configured from each project's options. Run against bleep's
-own build it exports 22 modules whose output passes `mvn validate`,
-and spot-checked modules — one pure Java, one Scala 3 under
-`-Werror` — compile green under stock Maven.
+coordinates, source and resource directories wired up, and the
+Scala, Kotlin, and Java compilers configured from each project's
+options. Run against bleep's own build it exports all 25 modules —
+Scala 3 under `-Werror`, pure Java, and Kotlin alike — and one
+`mvn install` of the result ends BUILD SUCCESS under stock Maven.
+Tests run too, not just compile: bleep's test projects are wired as
+Maven test sources with ScalaTest execution, translating the forked
+JVM's options and working directory from the model, and `bleep-tests`
+runs its 42 unit suites — 332 tests — green inside that same
+`mvn install`.
 
-It is a proof of concept and scoped honestly: no Maven test scoping,
-no publish config, sourcegen output has to exist on disk, and
-Kotlin/JS/Native modules are skipped. But it proves the sentence
-above: the exporter is a small program *because the build was data
-all along*. An sbt or Gradle target is the same walk with different
+It is a proof of concept and scoped honestly. Bleep's end-to-end
+integration suites (the `*IT` suites, and `bleep-bsp-tests`, which
+drives bleep's own compile server and platform linkers in-process)
+don't run under stock Maven; the exporter marks them skipped, with a
+comment in the generated POM saying exactly why — they still
+compile. Sourcegen output has to exist on disk, publish config is
+not translated, and Scala.js/Native modules would be skipped
+(bleep's own build has none). But it proves the sentence above: the
+exporter is a small program *because the build was data all along*.
+An sbt or Gradle target is the same walk with different
 serialization — and because the model is a published library, you can
 write yours in your own repo, so the escape hatch is code you
 control.
