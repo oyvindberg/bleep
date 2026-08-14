@@ -180,12 +180,14 @@ function Hero() {
             <span className={styles.heroFactSub}>native binary, no JVM</span>
           </div>
           <div className={styles.heroFact}>
-            <span className={styles.heroFactLabel}>fork → verified green</span>
+            <span className={styles.heroFactLabel}>
+              new worktree, compiled
+            </span>
             <span className={styles.heroFactValue}>
               268 <em>→</em> 54 s
             </span>
             <span className={styles.heroFactSub}>
-              naive cp + compile vs copy-state, 5.1M lines
+              cold rebuild vs copy-state, 5.1M lines
             </span>
           </div>
           <div className={styles.heroFact}>
