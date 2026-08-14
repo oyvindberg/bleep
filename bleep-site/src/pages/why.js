@@ -491,11 +491,93 @@ function SimplicitySection() {
 }
 
 /* ------------------------------------------------------------------
+   The human loop — IDE + test runner DX
+   ------------------------------------------------------------------ */
+function HumansSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Also: you"
+          title={
+            <>
+              The same speed in your <em>IDE</em> and terminal.
+            </>
+          }
+        >
+          Agents run headless. You don&rsquo;t. Open the project and the
+          IDE import takes a second or two, because bleep reads{" "}
+          <code>bleep.yaml</code> and hands the model straight over BSP —
+          no configuration phase, no plugin resolution, no progress bar
+          with your afternoon on it. Switch to a branch with a different
+          Kotlin version and the reload is milliseconds. And when you
+          run tests, you watch them run.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.testRunnerVideo}>
+            <video
+              src="https://github.com/user-attachments/assets/06ba4fa0-2ab0-4199-ac24-3806d6c80206"
+              controls
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-label="bleep test runner showing parallel execution and live progress"
+            />
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                IDE imports in <em>seconds</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                First import: a second or two. Branch reload:
+                milliseconds. In Gradle or sbt the same actions cost a
+                configuration phase, plugin loading, and an IDE model
+                rebuild — minutes, on real projects, several times a
+                day.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Tests run <em>everywhere</em> at once
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Suites compile and run in parallel across every CPU, in
+                forked JVMs with their own classpaths. The terminal
+                stays live: which suites are compiling, which are
+                running, which failed — the moment it happens, not at
+                the end.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                A summary you can <em>act on</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Exact suite and test names, pass/fail counts per
+                project, and <code>bleep test --diff</code> prints only
+                what changed since the previous run. JUnit XML is one
+                flag away for CI.
+              </p>
+            </article>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
    Huge projects
    ------------------------------------------------------------------ */
 function ScaleSection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="Where it matters most"
@@ -569,7 +651,7 @@ function ScaleSection() {
    ------------------------------------------------------------------ */
 function AgentEraSection() {
   return (
-    <section className={`${styles.section} ${styles.sectionPaper}`}>
+    <section className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
           eyebrow="The agent era"
@@ -665,7 +747,7 @@ function AgentEraSection() {
    ------------------------------------------------------------------ */
 function HonestySection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.containerNarrow}>
         <SectionHeader
           eyebrow="The part where we admit things"
@@ -788,6 +870,7 @@ export default function Why() {
           <FieldNotesSection />
           <ReceiptsSection />
           <SimplicitySection />
+          <HumansSection />
           <ScaleSection />
           <AgentEraSection />
           <HonestySection />
