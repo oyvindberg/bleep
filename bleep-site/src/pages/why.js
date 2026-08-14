@@ -101,7 +101,7 @@ function Hero() {
 
       <div className={`${styles.heroInner} ${styles.heroEnter}`}>
         <div className={styles.heroMeta}>
-          <span>The case for bleep, at full volume</span>
+          <span>Bleep — a build tool for Java, Kotlin &amp; Scala</span>
         </div>
 
         <h1 className={styles.heroTitle}>
