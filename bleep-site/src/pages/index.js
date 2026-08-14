@@ -414,10 +414,11 @@ function MaturitySection() {
                 <strong>Partial</strong>: KSP runs from scratch each
                 compile, per-file change tracking is a planned
                 follow-up. Kotlin/Native targets exist but the
-                ecosystem expects Gradle.
+                ecosystem expects Gradle. No Gradle import yet —
+                hand-port today.
                 <br />
                 <strong>Not in scope</strong>: KAPT (migrate to KSP),
-                Android, Gradle import.
+                Android.
               </p>
             </article>
 
@@ -1209,10 +1210,11 @@ function MigrationSection() {
         <Reveal delay={100}>
           <p
             className={styles.sectionLede}
-            style={{ marginTop: "1.75rem", textAlign: "center", fontSize: "0.88rem", opacity: 0.75 }}
+            style={{ marginTop: "1.75rem", textAlign: "center" }}
           >
-            Coming from Gradle? Gradle import may come later;
-            hand-porting is the path today.
+            Coming from Gradle? No importer yet — hand-porting is the
+            path today. We&rsquo;d rather say it at full size than have
+            you find out three days in.
           </p>
         </Reveal>
 

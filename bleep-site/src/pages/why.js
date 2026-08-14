@@ -154,7 +154,7 @@ function Hero() {
           configure itself. We build five million lines of JVM code for
           a living and we got tired of waiting too. So we built a build
           tool with a native binary that bootstraps in ten milliseconds,
-          answers an agent in two hundred tokens, and forks a warm copy
+          answers an agent in 265 tokens at worst, and forks a warm copy
           of your entire compiled world in under a minute. This page is
           the sales pitch. Every number on it is measured.
         </p>
@@ -193,9 +193,11 @@ function Hero() {
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>tokens per answer</span>
             <span className={styles.heroFactValue}>
-              ~<em>200</em>
+              25<em>–</em>265
             </span>
-            <span className={styles.heroFactSub}>not a 30k-token log</span>
+            <span className={styles.heroFactSub}>
+              green → failure with full diff
+            </span>
           </div>
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>build files</span>
@@ -313,8 +315,8 @@ function FieldNotesSection() {
                 so Maven and Gradle logs (&ldquo;notoriously
                 verbose&rdquo;, their words) stop shredding agent
                 context. An entire product category exists to apologize
-                for build output. Bleep answers in ~200 tokens because
-                that&rsquo;s all it says.
+                for build output. Bleep&rsquo;s worst answer measures
+                265 tokens, because that&rsquo;s all it says.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -404,11 +406,13 @@ function ReceiptsSection() {
             <div className={styles.numberCell}>
               <span className={styles.numberKicker}>tokens per agent answer</span>
               <span className={styles.numberValue}>
-                ~200<span className={styles.numberValueUnit}>tok</span>
+                265<span className={styles.numberValueUnit}>tok max</span>
               </span>
               <p className={styles.numberCaption}>
-                Counts, first errors, a <code>historyId</code>. The full
-                transcript is one regex-searchable call away.
+                Measured over the live MCP server: a green compile
+                answers in 25 tokens; a failure with its full
+                what-changed diff is 265. A raw build log is tens of
+                thousands.
               </p>
             </div>
           </div>
@@ -483,10 +487,10 @@ function MaturitySection() {
                 <br />
                 <strong>Partial</strong>: KSP runs from scratch each
                 compile; Kotlin/Native targets exist but the ecosystem
-                expects Gradle.
+                expects Gradle; no Gradle import yet — hand-port today.
                 <br />
                 <strong>Not in scope</strong>: KAPT (migrate to KSP),
-                Android, Gradle import.
+                Android.
               </p>
             </article>
 
@@ -1031,7 +1035,7 @@ function InstallCTA() {
         >
           Open source, Apache 2.0. The first line installs the binary.
           The second gives every agent on your machine a build tool that
-          answers in two hundred tokens. There is no third line.
+          answers in 265 tokens or fewer. There is no third line.
         </SectionHeader>
 
         <Reveal>
@@ -1086,7 +1090,7 @@ export default function Why() {
   return (
     <Layout
       title="Why bleep"
-      description="The case for bleep at full volume: ten-millisecond startup, one-file builds, 200-token agent answers, and warm worktree forks on five-million-line repos. Every number measured."
+      description="The case for bleep at full volume: ten-millisecond startup, one-file builds, agent answers measured in hundreds of tokens, and warm worktree forks on five-million-line repos. Every number measured."
     >
       <div className={styles.page}>
         <Hero />
