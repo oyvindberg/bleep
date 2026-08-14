@@ -438,6 +438,9 @@ scripts:
   bsp-stress:
     main: bleep.scripts.dev.BspStress
     project: scripts-dev
+  export-maven:
+    main: bleep.scripts.ExportMaven
+    project: scripts
   generate-docs:
     main: bleep.scripts.GenDocumentation
     project: scripts
