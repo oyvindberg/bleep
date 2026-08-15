@@ -41,7 +41,11 @@ object CopyStateRequest {
 /** @param projects
   *   cross-project names whose state was copied
   */
-case class CopyStateResponse(projects: List[String], durationMs: Long)
+/** @param bytesCopied
+  *   logical size of the state that landed in the target worktree (apparent file sizes, summed after the clone). On APFS the clone shares blocks with the
+  *   source, so this measures how much compiled state the new worktree starts with — not extra disk consumed.
+  */
+case class CopyStateResponse(projects: List[String], durationMs: Long, bytesCopied: Long)
 
 object CopyStateResponse {
   implicit val codec: Codec[CopyStateResponse] = deriveCodec

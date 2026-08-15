@@ -420,7 +420,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
             Json
               .obj(
                 "projects" -> Json.arr(response.projects.map(Json.fromString)*),
-                "durationMs" -> Json.fromLong(response.durationMs)
+                "durationMs" -> Json.fromLong(response.durationMs),
+                "bytesCopied" -> Json.fromLong(response.bytesCopied)
               )
               .noSpaces
           }

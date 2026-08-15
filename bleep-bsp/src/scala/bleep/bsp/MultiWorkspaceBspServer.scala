@@ -695,36 +695,49 @@ class MultiWorkspaceBspServer(
       (fromPaths, toPaths, projects)
     }
 
-    def copyProject(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Unit = {
-      def cloneIfPresent(src: Path, dest: Path): Unit =
-        if (Files.isDirectory(src)) CloneDir.clone(src, dest)
+    /** Copies one project's state and returns the logical bytes that landed (apparent file sizes of the cloned trees — a metadata-only walk, the clone itself
+      * shares blocks on APFS). Counted on the destination, so the number reports what the new worktree actually starts with.
+      */
+    def copyProject(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Long = {
+      def dirBytes(dir: Path): Long =
+        if (!Files.isDirectory(dir)) 0L
+        else {
+          val stream = Files.walk(dir)
+          try stream.iterator().asScala.foldLeft(0L)((acc, p) => if (Files.isRegularFile(p)) acc + Files.size(p) else acc)
+          finally stream.close()
+        }
+
+      def cloneIfPresent(src: Path, dest: Path): Long =
+        if (Files.isDirectory(src)) { CloneDir.clone(src, dest); dirBytes(dest) }
+        else 0L
 
       val srcVariantDir = fromPaths.variantBuildDir(crossName)
       val destVariantDir = toPaths.variantBuildDir(crossName)
       // What crosses the workspace boundary is decided by bleep.StateSharing — the same allow-list the remote cache packs by — never a local list that can
       // drift out of sync with it. (Both dir names apply unconditionally: the daemon has no resolved build here, so it cannot know which of the two a
       // project uses.)
-      bleep.StateSharing.variantDirEntries.foreach {
-        case bleep.StateSharing.SharedDir(rel) =>
-          cloneIfPresent(srcVariantDir.resolve(rel), destVariantDir.resolve(rel))
-        case bleep.StateSharing.SharedFile(rel) =>
+      val variantBytes = bleep.StateSharing.variantDirEntries.foldLeft(0L) {
+        case (acc, bleep.StateSharing.SharedDir(rel)) =>
+          acc + cloneIfPresent(srcVariantDir.resolve(rel), destVariantDir.resolve(rel))
+        case (acc, bleep.StateSharing.SharedFile(rel)) =>
           val src = srcVariantDir.resolve(rel)
           if (Files.isRegularFile(src)) {
             val dest = destVariantDir.resolve(rel)
             Files.createDirectories(dest.getParent)
             Files.copy(src, dest)
-            ()
-          }
+            acc + Files.size(dest)
+          } else acc
       }
 
-      cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName))
-      cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+      variantBytes +
+        cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName)) +
+        cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
     }
 
     IO.blocking(validated).flatMap { case (fromPaths, toPaths, projects) =>
       projects
-        .foldLeft(IO.pure(List.empty[String])) { case (acc, crossName) =>
-          acc.flatMap { copied =>
+        .foldLeft(IO.pure((List.empty[String], 0L))) { case (acc, crossName) =>
+          acc.flatMap { case (copied, bytes) =>
             ProjectLock
               .acquire(
                 project = crossName,
@@ -734,10 +747,12 @@ class MultiWorkspaceBspServer(
                 onContention = () => logger.info(s"copy-state waiting for in-flight compile of ${crossName.value}")
               )
               .use(_ => IO.blocking(copyProject(fromPaths, toPaths, crossName)))
-              .as(crossName.value :: copied)
+              .map(projectBytes => (crossName.value :: copied, bytes + projectBytes))
           }
         }
-        .map(copied => CopyStateResponse(projects = copied.reverse, durationMs = System.currentTimeMillis() - startMs))
+        .map { case (copied, bytes) =>
+          CopyStateResponse(projects = copied.reverse, durationMs = System.currentTimeMillis() - startMs, bytesCopied = bytes)
+        }
     }
   }
 

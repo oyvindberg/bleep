@@ -120,7 +120,8 @@ per-worktree [history](/docs/usage/run-history), and
 `bleep history diff --base-dir ../main` diffs a fork's run against its
 parent's.
 
-Three agents fanning out, each seeded in milliseconds, one proving its change
-with `test --diff` instead of a log dump:
+The payoff, in one sitting: an agent proves its change as a diff — first
+against its own previous run (`test --diff`), then against the worktree it was
+forked from (`history diff --base-dir`):
 
-<AsciinemaPlayer src={agentsCast} cols={100} rows={40} fit="width" />
+<AsciinemaPlayer src={agentsCast} cols={100} rows={32} fit="width" />

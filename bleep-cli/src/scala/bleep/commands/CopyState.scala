@@ -14,7 +14,8 @@ case class CopyState(from: String) extends BleepBuildCommand {
 
   override def run(started: Started): Either[BleepException, Unit] =
     exec(started).map { response =>
-      started.logger.info(s"copied compiled state for ${response.projects.length} projects from $from in ${response.durationMs}ms")
+      val size = CopyState.humanBytes(response.bytesCopied)
+      started.logger.info(s"copied $size of compiled state for ${response.projects.length} projects from $from in ${response.durationMs}ms")
       started.logger.info(response.projects.mkString(", "))
     }
 
@@ -45,5 +46,17 @@ case class CopyState(from: String) extends BleepBuildCommand {
           }
         }
     }
+  }
+}
+
+object CopyState {
+
+  /** human-readable byte count: `842 B`, `12.3 KB`, `1.8 GB` */
+  def humanBytes(bytes: Long): String = {
+    val abs = math.abs(bytes)
+    if (abs < 1024L) s"$bytes B"
+    else if (abs < 1024L * 1024) f"${bytes / 1024.0}%.1f KB"
+    else if (abs < 1024L * 1024 * 1024) f"${bytes / (1024.0 * 1024)}%.1f MB"
+    else f"${bytes / (1024.0 * 1024 * 1024)}%.1f GB"
   }
 }

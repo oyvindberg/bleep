@@ -342,40 +342,43 @@ object Demo {
     }
   }
 
-  /** The subagent story: three agents fan out into three seeded worktrees, one adds a test and asks `test --diff` exactly what it changed vs the baseline it
-    * was forked from, the others' first builds are no-ops. Isolation without duplicate work.
+  /** The subagent story, one concept only: an agent proves its change as a DIFF — first against its own previous run (`test --diff`), then against the parent
+    * worktree's baseline (`history diff --base-dir`). The fan-out mechanics (worktrees + copy-state) are the copy-state demo's job and happen off-camera here:
+    * prepare creates three seeded worktrees, runs agent auth's baseline test, and stages its edit, so the camera opens on the question that matters.
     */
-  object agents extends Demo("agents", rows = 40, columns = 100) {
+  object agents extends Demo("agents", rows = 32, columns = 100) {
     override val expectedYaml: Option[RelPath] = None
     override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
-    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+
+    override def prepareScript(bleep: Path): Option[String] = Some(
+      s"""set -euo pipefail
+         |git init -q
+         |git add -A
+         |git -c user.email=demo@bleep.build -c user.name=demo commit -qm 'initial'
+         |$bleep test --no-tui --no-color
+         |for t in auth search export; do
+         |  git worktree add -q ../$$t -b agent-$$t
+         |  (cd ../$$t && $bleep copy-state ../demo --no-color && $bleep test --no-tui --no-color)
+         |done
+         |printf 'package com.example\\n\\nclass AuthTest extends munit.FunSuite:\\n  test("sample ids are positive") {\\n    assert(Record3.sample.id > 0)\\n  }\\n' > ../auth/core-test/src/scala/com/example/AuthTest.scala
+         |""".stripMargin
+    )
 
     override def script(bleep: Path, bleepVersion: String): String = {
       bleepVersion.discard()
-      val authTest =
-        """package com.example\n\nclass AuthTest extends munit.FunSuite:\n  test("sample ids are positive") {\n    assert(Record3.sample.id > 0)\n  }\n"""
       s"""
-         |# one warm checkout - and three agents about to work in parallel
-         |for t in auth search export; do git worktree add -q ../$$t -b agent-$$t; (cd ../$$t && $bleep copy-state ../demo); done
-         |
-         |# three isolated worktrees, each seeded with main's compiled state in milliseconds
-         |# agent 'auth' starts from green - nothing to rebuild, just run the tests
-         |cd ../auth
-         |$bleep test --quiet
-         |
-         |# it writes a test in its own worktree...
-         |: printf '$authTest' > core-test/src/scala/com/example/AuthTest.scala
-         |bat core-test/src/scala/com/example/AuthTest.scala
-         |
-         |# ...and asks what changed, instead of re-reading the whole log
-         |$bleep test --diff --no-tui
-         |
-         |# '1 added', passed: the diff is the review. the other agents' first builds?
-         |(cd ../search && $bleep compile --quiet)
-         |(cd ../export && $bleep compile --quiet)
-         |
-         |# already up to date. three agents, private state and history, zero duplicate work
+         |# three agents work this build in parallel, each in a seeded worktree
          |git worktree list
+         |
+         |# agent 'auth' just wrote a test in its worktree
+         |bat ../auth/core-test/src/scala/com/example/AuthTest.scala
+         |
+         |# did it work? run - and get the answer as a diff, not a log to re-read
+         |cd ../auth
+         |$bleep test --diff --quiet
+         |
+         |# same question against the PARENT worktree's baseline: a diff across worktrees
+         |$bleep history diff 1 2 --base-dir ../demo
          |""".stripMargin
     }
   }
