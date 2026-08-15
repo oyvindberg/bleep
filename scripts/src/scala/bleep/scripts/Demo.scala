@@ -17,8 +17,22 @@ abstract class Demo(val name: String, val rows: Int = 40, val columns: Int = 100
     Map.empty
   }
 
-  /** commands run in the workspace *before* recording starts, so the camera opens on an already-warm workspace */
-  def prepareScript(bleep: Path): Option[String] = None
+  /** commands run in the workspace *before* recording starts, so the camera opens on an already-warm workspace. `repoDir` is the bleep repository the demo is
+    * being recorded from, for demos that record against the real build rather than a staged fixture
+    */
+  def prepareScript(bleep: Path, repoDir: Path): Option[String] = {
+    repoDir.discard()
+    None
+  }
+
+  /** commands run in the workspace *after* recording, before the temp dir is deleted — for demos whose prepare borrowed resources from `repoDir` (e.g. a git
+    * worktree registration) that must be returned
+    */
+  def cleanupScript(bleep: Path, repoDir: Path): Option[String] = {
+    bleep.discard()
+    repoDir.discard()
+    None
+  }
 
   val expectedYaml: Option[RelPath] = Some(RelPath.force("bleep.yaml"))
 }
@@ -184,7 +198,8 @@ object Demo {
         RelPath.force("mathy-test/src/scala/com/example/PricingTest.scala") -> pricingTestScala
       )
 
-    override def prepareScript(bleep: Path): Option[String] =
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = {
+      repoDir.discard()
       Some(
         s"""set -euo pipefail
            |git init -q
@@ -195,6 +210,7 @@ object Demo {
            |$bleep test --no-tui --no-color
            |""".stripMargin
       )
+    }
 
     override def script(bleep: Path, bleepVersion: String): String = {
       bleepVersion.discard() // the workspace is generated with the right version in `files`
@@ -313,7 +329,7 @@ object Demo {
   object copyState extends Demo("copy-state", rows = 34, columns = 100) {
     override val expectedYaml: Option[RelPath] = None
     override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
-    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = { repoDir.discard(); Some(records.prepare(bleep)) }
 
     override def script(bleep: Path, bleepVersion: String): String = {
       bleepVersion.discard()
@@ -350,8 +366,10 @@ object Demo {
     override val expectedYaml: Option[RelPath] = None
     override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
 
-    override def prepareScript(bleep: Path): Option[String] = Some(
-      s"""set -euo pipefail
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = {
+      repoDir.discard()
+      Some(
+        s"""set -euo pipefail
          |git init -q
          |git add -A
          |git -c user.email=demo@bleep.build -c user.name=demo commit -qm 'initial'
@@ -362,7 +380,8 @@ object Demo {
          |done
          |printf 'package com.example\\n\\nclass AuthTest extends munit.FunSuite:\\n  test("sample ids are positive") {\\n    assert(Record3.sample.id > 0)\\n  }\\n' > ../auth/core-test/src/scala/com/example/AuthTest.scala
          |""".stripMargin
-    )
+      )
+    }
 
     override def script(bleep: Path, bleepVersion: String): String = {
       bleepVersion.discard()
@@ -389,7 +408,7 @@ object Demo {
   object historyApi extends Demo("history-api", rows = 40, columns = 100) {
     override val expectedYaml: Option[RelPath] = None
     override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
-    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = { repoDir.discard(); Some(records.prepare(bleep)) }
 
     override def script(bleep: Path, bleepVersion: String): String = {
       bleepVersion.discard()
@@ -415,12 +434,47 @@ object Demo {
     }
   }
 
+  /** Bleep running its own test suite — the real repo, not a fixture. Prepare borrows a detached git worktree from the recording repo (instant, shares the
+    * object store), populates submodules from the local module store, and seeds compiled state with `copy-state`, so the camera opens directly on
+    * `bleep test bleep-tests`: every suite, integration builds included, live TUI. The borrowed worktree registration is returned in [[cleanupScript]].
+    */
+  object ownTests extends Demo("own-tests", rows = 40, columns = 100) {
+    override val expectedYaml: Option[RelPath] = None
+
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = Some(
+      s"""set -euo pipefail
+         |git -C $repoDir worktree add --detach "$$PWD/repo" HEAD
+         |cd repo
+         |git submodule update --init
+         |$bleep copy-state $repoDir --no-color
+         |""".stripMargin
+    )
+
+    override def cleanupScript(bleep: Path, repoDir: Path): Option[String] = {
+      bleep.discard()
+      Some(
+        s"""git -C $repoDir worktree remove --force "$$PWD/repo" || git -C $repoDir worktree prune
+           |""".stripMargin
+      )
+    }
+
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleepVersion.discard()
+      s"""
+         |: cd repo
+         |# bleep testing itself: the real repo, every suite, integration builds included
+         |$bleep test bleep-tests
+         |""".stripMargin
+    }
+  }
+
   val all = List(
     runNativeNew,
     importNew,
     diff,
     copyState,
     agents,
-    historyApi
+    historyApi,
+    ownTests
   )
 }

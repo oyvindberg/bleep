@@ -4,6 +4,7 @@ import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
 import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
+import ownTestsCast from "!!file-loader!@site/static/demos/own-tests.cast";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -808,20 +809,15 @@ function TestRunnerSection() {
           Failures show up the moment they happen. Suites compile and run
           in parallel across every CPU, the terminal stays live, and the
           summary at the end is short enough to act on. No two-minute
-          pause. No fifty-thousand-line transcript.
+          pause. No fifty-thousand-line transcript. Below, recorded:
+          bleep running its own suite — 86 suites, 439 tests, real
+          integration builds included — green in 65 seconds at 9&times;
+          parallelism.
         </SectionHeader>
 
         <Reveal>
           <div className={styles.testRunnerVideo}>
-            <video
-              src="https://github.com/user-attachments/assets/06ba4fa0-2ab0-4199-ac24-3806d6c80206"
-              controls
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              aria-label="bleep test runner showing parallel execution and live progress"
-            />
+            <AsciinemaPlayer src={ownTestsCast} cols={100} rows={40} fit="width" />
           </div>
         </Reveal>
 
@@ -953,7 +949,9 @@ function AgentWorktreesSection() {
               <code>copy-state</code> and its first build recompiles
               nothing.
             </p>
-            <AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
+            <div className={styles.testRunnerVideo}>
+              <AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
+            </div>
           </div>
         </Reveal>
 

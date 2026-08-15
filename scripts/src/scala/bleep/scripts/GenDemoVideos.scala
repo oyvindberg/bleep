@@ -85,10 +85,12 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     implicit val ec: ExecutionContext = started.executionContext
 
+    val repoDir = started.buildPaths.buildDir
+
     val generating: List[Future[Map[RelPath, String]]] =
       demos.map { demo =>
         Future {
-          val generated = genVideo(demo, bleepVersion, env.toList, logger.withPath(demo.name))
+          val generated = genVideo(demo, bleepVersion, repoDir, env.toList, logger.withPath(demo.name))
           Map(
             RelPath.force(s"${demo.name}.cast") -> Some(generated.video),
             RelPath.force(s"${demo.name}.yaml") -> generated.yaml
@@ -185,7 +187,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
   case class Generated(video: String, yaml: Option[String])
 
-  def genVideo(demo: Demo, bleepVersion: String, env: List[(String, String)], logger: Logger): Generated = {
+  def genVideo(demo: Demo, bleepVersion: String, repoDir: Path, env: List[(String, String)], logger: Logger): Generated = {
     val tempDir = Files.createTempDirectory(s"bleep-videos-${demo.name}")
     // nest one level to not include script and output file in file listings
     val workDir = tempDir / "demo"
@@ -194,7 +196,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     // stage files, then run off-camera setup so recording starts in a prepared workspace
     demo.files(bleepVersion).foreach { case (relPath, content) => FileUtils.writeString(logger, None, workDir / relPath, content) }
-    demo.prepareScript(Path.of("bleep")).foreach { prepare =>
+    demo.prepareScript(Path.of("bleep"), repoDir).foreach { prepare =>
       val prepareFile = tempDir / "prepare"
       FileUtils.writeString(logger, None, prepareFile, prepare)
       Files.setPosixFilePermissions(prepareFile, Exec)
@@ -246,6 +248,14 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       case other => sys.error(s"unexpected cast file with ${other.length} lines")
     }
     val maybeYaml = demo.expectedYaml.map(yamlRelPath => Files.readString(workDir / yamlRelPath))
+
+    // return anything prepare borrowed from the repo (e.g. a git worktree registration) before the temp dir vanishes
+    demo.cleanupScript(Path.of("bleep"), repoDir).foreach { cleanup =>
+      val cleanupFile = tempDir / "cleanup"
+      FileUtils.writeString(logger, None, cleanupFile, cleanup)
+      Files.setPosixFilePermissions(cleanupFile, Exec)
+      cli("cleanup", workDir, List("bash", cleanupFile.toString), logger = logger, out = cli.Out.ViaLogger(logger), env = env).discard()
+    }
 
     FileUtils.deleteDirectory(tempDir)
 
