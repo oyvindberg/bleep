@@ -809,10 +809,9 @@ function TestRunnerSection() {
           Failures show up the moment they happen. Suites compile and run
           in parallel across every CPU, the terminal stays live, and the
           summary at the end is short enough to act on. No two-minute
-          pause. No fifty-thousand-line transcript. Below, recorded:
-          bleep running its own suite — 86 suites, 439 tests, real
-          integration builds included — green in 65 seconds at 9&times;
-          parallelism.
+          pause, no fifty-thousand-line transcript. The recording below is
+          bleep testing itself — 86 suites, 439 tests, integration builds
+          and all — green in 65 seconds at 9&times; parallelism.
         </SectionHeader>
 
         <Reveal>
@@ -875,91 +874,48 @@ function AgentWorktreesSection() {
     <section id="agents" className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Tooling for the future"
+          eyebrow="Agents"
           title={
             <>
               Built for the <em>agents</em>.
             </>
           }
         >
-          Agentic development has a shape: an orchestrating session fans
-          subagents out into git worktrees, each working a branch in
-          parallel. Bleep is built for exactly that shape. Register the
-          MCP server once (<code>claude mcp add --scope user bleep --
-          bleep mcp-server</code>) and every session — and every
-          subagent it sends into a worktree — can compile, test, run,
-          and inspect any checkout on the machine. Many agents at once,
-          many worktrees at once — it all just works, and it&rsquo;s
-          fast.
+          Agent work has a shape by now. An orchestrator splits a job across
+          git worktrees, drops a subagent in each one, and every subagent
+          starts by rebuilding a world its siblings already built. Bleep is
+          built for that shape. Register the MCP server once and every
+          session — plus every subagent it spawns — can compile, test and
+          inspect any checkout on the machine. Fresh worktrees start warm.
+          One daemon serves all of them.
         </SectionHeader>
 
-        <Reveal delay={80}>
-          <Vignette
-            rows={[
-              {
-                actor: "orchestrator",
-                hot: true,
-                call: "spawns 4 subagents into git worktrees",
-              },
-              { gap: true },
-              {
-                actor: "agent[auth]",
-                call: "bleep.copy-state { directory: ~/repo/wt/auth, from: ~/repo }",
-                result: "parent's compiled state, cloned",
-                note: "1.8 GB in 14 s — forks start warm, not cold",
-              },
-              {
-                actor: "agent[auth]",
-                call: "bleep.compile { directory: ~/repo/wt/auth }",
-                result: "{ historyId: 12, success: true }",
-                good: true,
-              },
-              {
-                actor: "agent[api]",
-                call: "bleep.test { directory: ~/repo/wt/api }",
-                result: "{ historyId: 13, failed: 2 }",
-                bad: true,
-                note: "failures streamed the moment they happened",
-              },
-              {
-                actor: "agent[api]",
-                call: 'bleep.history.show { historyId: 13, query: "Timeout" }',
-                result: "the two stack traces that matter",
-                note: "a regex over the transcript, not a 30k-token log",
-              },
-              {
-                actor: "agent[ui]",
-                call: "bleep.compile { directory: ~/repo/wt/ui }",
-                result: "instant",
-                good: true,
-                note: "same daemon — these deps are already hot",
-              },
-            ]}
-          />
-        </Reveal>
-
         <Reveal delay={60}>
-          <div style={{ marginTop: "2rem" }}>
+          <div style={{ marginTop: "2.25rem" }}>
             <p
               className={styles.sectionLede}
-              style={{ textAlign: "center", marginBottom: "1rem" }}
+              style={{ textAlign: "center", marginBottom: "1.25rem" }}
             >
-              This transcript is not a mock-up. Below is a real Claude Code
-              session, its own interactive UI, recorded start to finish:
-              two subagents fan out into fresh worktrees over the MCP
-              tools, one seeds itself with <code>copy-state</code> and one
-              deliberately compiles cold, and the session closes by asking
-              bleep for the cross-worktree timing diff. The model never
-              invents a number — the durations come out of the tool. The
-              exact prompt it was given, and the script that runs it, are{" "}
-              <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
-                in the repo
-              </Link>{" "}
-              — run it yourself and you get your own numbers.
+              Here is one, recorded start to finish — Claude Code&rsquo;s own
+              screen, nothing staged. Two subagents go into fresh worktrees.
+              One seeds itself from the parent with{" "}
+              <code>bleep.copy-state</code>; the other starts cold on
+              purpose. Then the session asks bleep to compare their two
+              first builds, and reads the answer straight off the tool.
             </p>
             <div className={styles.testRunnerVideo}>
               <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={40} fit="width" />
             </div>
+            <p
+              className={styles.sectionLede}
+              style={{ textAlign: "center", marginTop: "-1rem" }}
+            >
+              The prompt, and the script that types it in, live{" "}
+              <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
+                in the repo
+              </Link>
+              . Run it on your own build and you get your own numbers.
+            </p>
           </div>
         </Reveal>
 
@@ -970,12 +926,12 @@ function AgentWorktreesSection() {
                 Every call names its <em>workspace</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                The server pins nothing at boot; each call carries its{" "}
-                <code>directory</code> and sees the build as it is right
-                now. A subagent in a worktree can&rsquo;t silently build
-                the parent checkout, and there is no cached workspace
-                state to go stale. One user-scope registration, every
-                checkout, forever.
+                The server pins nothing at startup. Each call carries its{" "}
+                <code>directory</code> and reads the build as it is right
+                now, so a subagent in a worktree cannot quietly build the
+                parent checkout, and there is no cached workspace state to
+                go stale. One registration covers every checkout you will
+                ever make.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -983,14 +939,13 @@ function AgentWorktreesSection() {
                 Forks start <em>warm</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>git worktree add</code>, one{" "}
-                <code>bleep.copy-state</code> call to clone the parent
-                worktree&rsquo;s compiled state — clonefile-fast, under
-                the compile server&rsquo;s locks, safe even while the
-                parent compiles. Measured on a 5.1-million-line build:
-                fork to verified green in 54 seconds, against 4½ minutes
-                cold. <Link to="/docs/guides/worktrees">Recipe and
-                numbers</Link>.
+                <code>git worktree add</code>, then one{" "}
+                <code>bleep.copy-state</code> call clones the parent&rsquo;s
+                compiled state. It runs inside the compile server under the
+                same locks a compile takes, so it is safe even while the
+                parent is building. On a 5.1-million-line repo: fork to
+                verified green in 54 seconds, against 4½ minutes cold.{" "}
+                <Link to="/docs/guides/worktrees">Recipe and numbers</Link>.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -998,11 +953,12 @@ function AgentWorktreesSection() {
                 One <em>hot daemon</em>, every checkout
               </h3>
               <p className={styles.mcpCardBody}>
-                All checkouts share one compile server that keeps
+                Every checkout shares one compile server, which keeps
                 incremental state hot and stores identical dependency
-                analyses once. Add the{" "}
+                analyses once instead of once per worktree. Ten worktrees do
+                not cost ten JVMs. Add the{" "}
                 <Link to="/docs/usage/remote-cache/#local-directory-cache">local build cache</Link>{" "}
-                and a fresh worktree skips what a sibling already built.
+                and a fresh worktree skips whatever a sibling already built.
               </p>
             </article>
           </div>
@@ -1027,8 +983,8 @@ function AgentWorktreesSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            Bleep is developed this way — sessions of parallel agents in
-            git worktrees, building bleep with bleep.
+            We build bleep this way every day: parallel agents in git
+            worktrees, building bleep with bleep.
           </p>
         </Reveal>
       </div>
@@ -1044,33 +1000,33 @@ function AgentAnswersSection() {
     <section id="answers" className={styles.section}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Data all the way down"
+          eyebrow="Run history"
           title={
             <>
               The build that <em>answers</em> questions.
             </>
           }
         >
-          An agent&rsquo;s loop is edit, rerun, ask what changed. Bleep
-          can answer because every layer is a value:{" "}
-          <code>bleep.yaml</code> is data, the resolved build model is
-          immutable data, everything the daemon does is emitted as typed
-          events, and a completed run is a transcript — an immutable
-          value written into the worktree, surviving every restart. And
-          values compose: diffing two runs is a pure function over two
-          files. Build logs you can diff isn&rsquo;t a feature bolted
-          on; it falls out of the architecture. No other build tool
-          ships this locally, free, as data.
+          The loop is always the same: change something, run it, work out
+          what changed. Most build tools answer that last part with a log
+          and leave the reading to you. Bleep answers it directly, because
+          every layer is already data. <code>bleep.yaml</code> is data. The
+          resolved model is data. The daemon reports what it does as typed
+          events, and a finished run is a transcript — one immutable file,
+          written into the worktree, outliving the daemon that wrote it.
+          Once runs are files, comparing two of them is a function over two
+          files. That is the whole trick, and everything below falls out of
+          it.
         </SectionHeader>
 
         <Reveal>
           <p className={styles.mcpStat}>
             <span className={styles.mcpStatFigure}>25&ndash;265 tokens</span>
             <span className={styles.mcpStatRest}>
-              measured over the live MCP server: a green compile answers
-              in 25 tokens, a failure with its full what-changed diff in
-              265. A raw build log is tens of thousands. That&rsquo;s the
-              whole idea.
+              measured over the live MCP server: a green compile answers in
+              25, a failure with its full what-changed diff in 265. A raw
+              build log runs to tens of thousands — and the agent has to
+              read all of them to find the one line that matters.
             </span>
           </p>
         </Reveal>
@@ -1088,7 +1044,7 @@ function AgentAnswersSection() {
                 result:
                   '{ historyId: 19, failed: 1, diff: { summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] } }',
                 bad: true,
-                note: "run + what-changed in one call: the break, name and assertion, nothing else",
+                note: "run and what-changed in one call: the break, its name, its assertion, nothing else",
               },
               { gap: true },
               { actor: "agent", deed: "reverts, reruns" },
@@ -1111,11 +1067,13 @@ function AgentAnswersSection() {
                 Answers, not <em>transcripts</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Success, counts, and the first errors as data; failures
-                stream the moment they happen; the full transcript is
-                searchable with a regex via <code>bleep.history.show</code>.
-                No log files, no grep expeditions, no missed
-                diagnostics.
+                Compile and test come back as counts, the first errors, and
+                an id. Failures stream the moment they happen rather than at
+                the end. When an agent does want the detail, it searches the
+                stored transcript with a regex through{" "}
+                <code>bleep.history.show</code> — server-side, so the
+                matching lines come back instead of the whole run. No log
+                files, no grep expeditions, no missed diagnostics.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -1124,11 +1082,11 @@ function AgentAnswersSection() {
               </h3>
               <p className={styles.mcpCardBody}>
                 <code>bleep.history.diff</code> compares any two runs: newly
-                failing, fixed, newly skipped with reasons, new and
-                resolved diagnostics. Deterministic by construction —
-                durations never enter the compared data, so timing
-                can&rsquo;t fake a difference, and a diagnostic that
-                only moved lines is neither new nor resolved.
+                failing, fixed, newly skipped and why, new and resolved
+                diagnostics. Durations never enter the comparison, so a slow
+                machine cannot invent a difference, and a diagnostic that
+                only moved down the file is neither new nor resolved. Rerun
+                without editing and it says so.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -1136,11 +1094,11 @@ function AgentAnswersSection() {
                 Timing is its own <em>question</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep.history.diff-timing</code> answers what got slower
-                or faster, with jitter suppressed under a threshold, and
-                names the slowest suites and projects in the run. Speed
-                regressions can&rsquo;t hide in the logical diff, and
-                jitter never cries wolf.
+                Speed gets its own comparison, so it cannot hide inside the
+                logical one. <code>bleep.history.diff-timing</code> reports
+                what got slower or faster and names the slowest suites and
+                projects, with jitter below a threshold suppressed — so the
+                answer is a real regression, not a busy laptop.
               </p>
             </article>
           </div>
@@ -1151,15 +1109,14 @@ function AgentAnswersSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            Transcripts live in the worktree — written once by the
-            daemon, read by every client. The same history from the
-            terminal: <code>bleep history</code>,{" "}
-            <code>bleep history show</code>,{" "}
-            <code>bleep history diff</code> — pure reads over files, no
-            daemon required, and <code>--base-dir</code> diffs runs
-            across worktrees. The{" "}
-            <Link to="/docs/usage/run-history">run history guide</Link>{" "}
-            tells the whole story.
+            None of this is agent-only. Transcripts sit in the worktree,
+            written once by the daemon and read by everyone:{" "}
+            <code>bleep history</code>, <code>bleep history show</code>,{" "}
+            <code>bleep history diff</code> are plain file reads that work
+            with no daemon running at all, and <code>--base-dir</code>{" "}
+            compares a fork&rsquo;s run against the worktree it came from.
+            The <Link to="/docs/usage/run-history">run history guide</Link>{" "}
+            has the rest.
           </p>
         </Reveal>
 
