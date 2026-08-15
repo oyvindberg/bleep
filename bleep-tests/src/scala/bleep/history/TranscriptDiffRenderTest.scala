@@ -65,6 +65,34 @@ class TranscriptDiffRenderTest extends AnyFunSuite with Matchers {
     text should include("+ app  (clean-build)")
   }
 
+  test("mechanical test: identical with still-failing tests is not a green all-clear") {
+    val doc =
+      """{
+        |  "base": {"historyId": 4, "workspace": "/ws/main"},
+        |  "target": {"historyId": 5, "workspace": "/ws/main"},
+        |  "mode": "test",
+        |  "identical": true,
+        |  "summary": "No logical differences.",
+        |  "stillFailing": [
+        |    {
+        |      "project": "mathy-test",
+        |      "suite": "com.example.PricingTest",
+        |      "test": "com.example.PricingTest.10 percent off at 100 and above",
+        |      "from": "failed",
+        |      "to": "failed",
+        |      "messageChanged": false,
+        |      "message": "expected 216, got 204"
+        |    }
+        |  ]
+        |}""".stripMargin
+
+    val text = render(doc)
+    println(text)
+
+    text should include("identical — no logical differences, but 1 test is still failing:")
+    text should include("x com.example.PricingTest.10 percent off at 100 and above  (mathy-test)")
+  }
+
   test("mechanical compile: identical renders a single calm line") {
     val doc =
       """{

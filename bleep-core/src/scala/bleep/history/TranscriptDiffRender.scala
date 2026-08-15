@@ -191,7 +191,17 @@ object TranscriptDiffRender {
     lines ++= header(c, "test diff")
 
     if (get[Boolean](c, "identical")) {
-      lines += s"${C.GREEN}identical${C.RESET} — no logical differences"
+      // identical must not read as an all-clear when both runs are identically broken: the document carries the
+      // still-failing tests as context, so name them instead of printing a green checkline next to a red build
+      val stillFailing = arr(c, "stillFailing")
+      if (stillFailing.isEmpty) lines += s"${C.GREEN}identical${C.RESET} — no logical differences"
+      else {
+        val n = stillFailing.size
+        lines += s"${C.YELLOW}identical${C.RESET} — no logical differences, but ${if (n == 1) "1 test is" else s"$n tests are"} still failing:"
+        stillFailing.foreach { tc =>
+          lines += s"  ${C.RED}x${C.RESET} ${get[String](tc, "test")}  ${C.CYAN}(${get[String](tc, "project")})${C.RESET}"
+        }
+      }
       return lines.result().mkString("\n")
     }
 

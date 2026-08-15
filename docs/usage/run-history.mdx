@@ -132,8 +132,14 @@ bleep compile --diff          # same, for diagnostics
 bleep test --diff=12          # pin a fixed baseline, e.g. the last green run
 ```
 
-Bare `--diff` compares against the most recent run of the same mode. With
-`--watch`, bare `--diff` compares each cycle against the previous cycle, while
+Bare `--diff` compares against the most recent run of the same mode — a
+*sliding* baseline, which is exactly the edit-loop question. The corollary:
+rerunning without an edit reports `identical`, because nothing did change
+since the last run (the header always names the two ids being compared, and
+when both runs are identically red the diff says so instead of reading like
+an all-clear). When you want a *fixed* reference — "compare everything I do
+against the last green run" — pin it with `--diff=<id>`. With `--watch`,
+bare `--diff` compares each cycle against the previous cycle, while
 `--diff=<id>` keeps a fixed baseline for every cycle. Every `--diff` output
 ends with a hint (`timing: bleep history diff 5 6 --timing`) so the duration
 comparison of the exact same pair is one paste away. `--diff-watch` is the
