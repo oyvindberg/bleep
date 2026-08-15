@@ -1035,56 +1035,68 @@ function AgentsSection() {
 }
 
 /* ------------------------------------------------------------------
-   Migration, import Maven / sbt builds in one command.
+   Migration — the same story from both directions: getting in, and
+   getting out again. Both work, neither is magic, and saying so is
+   the point.
    ------------------------------------------------------------------ */
 function MigrationSection() {
   return (
     <section className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Already have a project?"
+          eyebrow="Getting in, getting out"
           title={
             <>
-              Import Maven and sbt. <em>One command.</em>
+              The door swings <em>both ways</em>.
             </>
           }
         >
-          Bleep reads your existing build and writes the equivalent{" "}
-          <code>bleep.yaml</code>. Project graph derived, dependencies
-          preserved, common configuration lifted into templates. You
-          should have a compiling, testing build after one command.
+          Adopting a build tool is a bet, so bleep works to make it a small
+          one. <code>bleep import</code> reads an sbt build,{" "}
+          <code>bleep import-maven</code> a Maven one, and writes the
+          equivalent <code>bleep.yaml</code> — project graph derived,
+          templates inferred from whatever repeats. You should be compiling
+          and testing after one command. And when you want out,{" "}
+          <code>bleep export-maven</code> walks the same model the other way
+          and writes POMs.
         </SectionHeader>
 
         <Reveal>
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                <em>One command</em> in
+                One command <em>in</em>
               </h3>
               <p className={styles.mcpCardBody}>
                 <Link to="/docs/reference/cli/import/"><code>bleep import</code></Link>{" "}
-                for sbt projects,{" "}
+                for sbt,{" "}
                 <Link to="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></Link>{" "}
-                for Maven. Both load your existing build, derive the
-                project graph, infer templates from repeated
-                configuration, and write <code>bleep.yaml</code>.
-                Compile and test run immediately.
+                for Maven. Multi-module reactors included: the project
+                graph is derived, repeated configuration lifted into
+                templates, and compile and test run immediately.{" "}
+                <Link to="/docs/demos/importing-maven-build">Watch one</Link>.
               </p>
             </article>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                Codegen carries over as a <em>stub</em>
+                One command <em>out</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Import takes the generated files it finds on disk and
-                freezes them as static sourcegen output. Compile
-                works on day one. But once your schemas, grammars, or
-                templates change, the frozen output is stale; you
-                write a real{" "}
-                <Link to="/docs/concepts/sourcegen/">sourcegen script</Link>{" "}
-                then, calling the generator (<code>protoc</code>,{" "}
-                <code>antlr</code>, <code>openapi-generator</code>,
-                JAXB) directly. Typically tens of lines.
+                <code>bleep export-maven</code> is a script, not a product:
+                it walks the build model and writes POMs. Run against
+                bleep&rsquo;s own build, every module compiles and the tests
+                pass under stock Maven — source generators included.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Worst case, you hold <em>data</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Your build is portable YAML and plain Maven coordinates. No
+                plugin state, no tool-internal database, nothing that exists
+                only inside bleep. Betting on a young tool should never mean
+                betting the repo.
               </p>
             </article>
           </div>
@@ -1095,104 +1107,27 @@ function MigrationSection() {
             className={styles.sectionLede}
             style={{ marginTop: "1.75rem", textAlign: "center" }}
           >
-            Coming from Gradle? No importer yet — hand-porting is the
-            path today. We&rsquo;d rather say it at full size than have
-            you find out three days in.
+            Neither direction is magic, and we would rather say so than have
+            you find out on day three. Import gets you green and then leaves
+            the parts that were always going to need a person: source
+            generation arrives as a frozen snapshot that works immediately
+            and goes stale the day your schemas change, so you replace it
+            with a real{" "}
+            <Link to="/docs/concepts/sourcegen/">sourcegen script</Link> —
+            usually tens of lines. Coming from Gradle there is no importer
+            at all yet; that is a hand-port. Export has its own edges:
+            publish configuration does not translate, and the integration
+            suites that drive bleep&rsquo;s own compile server cannot run
+            under Maven. What both directions do give you is a build that
+            compiles and tests on the other side, which is the hard part.
           </p>
         </Reveal>
 
-        <Reveal delay={180}>
+        <Reveal delay={140}>
           <p className={styles.compareCta}>
-            <Link
-              className={styles.compareCtaLink}
-              to="/docs/demos/importing-maven-build"
-            >
-              Importing from Maven, end-to-end &nbsp;&rarr;
+            <Link className={styles.compareCtaLink} to="/docs/guides/exit-strategy">
+              The exit strategy, written down &nbsp;&rarr;
             </Link>
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------
-   Exit — the survivability answer. Bleep is young and says so; the
-   counterweight is that build-as-data is exit insurance, and the
-   exporter is code in the repo, tested against bleep's own build.
-   ------------------------------------------------------------------ */
-function ExitSection() {
-  return (
-    <section className={styles.section}>
-      <div className={styles.container}>
-        <SectionHeader
-          eyebrow="Before you commit"
-          title={
-            <>
-              Leaving is a <em>command</em>. We wrote it.
-            </>
-          }
-        >
-          The question every build-tool pitch dodges: what happens to
-          your repo if the tool goes away, or stops being right for you?
-          Bleep is young, and you should price that in. Here&rsquo;s the
-          counterweight: adopting a build tool usually means feeding a
-          decade of configuration into plugin formats only that tool can
-          read. Build-as-data reverses the bet.
-        </SectionHeader>
-
-        <Reveal>
-          <div className={styles.mcpGrid}>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                Worst case, you hold <em>data</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                Your entire build is portable YAML and plain Maven
-                coordinates — no plugin state, no tool-internal
-                database, no code that only runs inside bleep. If bleep
-                vanished tomorrow, you&rsquo;d be holding a complete,
-                readable model of your build. That is the lowest
-                lock-in of any tool in the category.
-              </p>
-            </article>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                The exporter is <em>code</em>, and it&rsquo;s tested
-              </h3>
-              <p className={styles.mcpCardBody}>
-                The repo carries <code>bleep export-maven</code>: it
-                walks the build model and writes Maven POMs. Run
-                against bleep&rsquo;s own build, the export compiles
-                every module and passes the tests under stock Maven —
-                source generators included. Not a promise about
-                portability; a program you can run.
-              </p>
-            </article>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                The strategy is <em>written down</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                What you hold, what leaving looks like per target
-                (Maven, sbt, Gradle), and what you&rsquo;d actually
-                lose — stated plainly in the{" "}
-                <Link to="/docs/guides/exit-strategy">exit
-                strategy</Link>. Migration off bleep is days-shaped
-                work, not quarters-shaped, because nothing about your
-                build exists only as bleep behavior.
-              </p>
-            </article>
-          </div>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <p
-            className={styles.sectionLede}
-            style={{ marginTop: "2.25rem", textAlign: "center" }}
-          >
-            Betting on a young tool should never mean betting the repo.
-            With bleep, it doesn&rsquo;t.
           </p>
         </Reveal>
       </div>
@@ -1304,7 +1239,6 @@ export default function Home() {
           <RoundtripSection />
           <AgentsSection />
           <MigrationSection />
-          <ExitSection />
           <InstallCTA />
         </main>
       </div>
