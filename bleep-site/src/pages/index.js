@@ -329,7 +329,7 @@ function SpecimenSection() {
           safely, and verify the result — try that with a build script.
           The YAML is just the first layer: the same discipline runs
           through the whole tool, all the way to{" "}
-          <Link to="/#answers">build runs you can diff</Link>.
+          <Link to="/#agents">build runs you can diff</Link>.
         </SectionHeader>
 
         <Reveal>
@@ -867,25 +867,31 @@ function TestRunnerSection() {
 }
 
 /* ------------------------------------------------------------------
-   Agents 1/2 — orchestration: one server, every worktree
+   Agents — one section, three beats: a subagent in a worktree got
+   cheap, the answers are tiny, and diffing runs opens loops that
+   weren't practical before.
    ------------------------------------------------------------------ */
-function AgentWorktreesSection() {
+function AgentsSection() {
   return (
     <section id="agents" className={`${styles.section} ${styles.sectionPaper}`}>
       <div className={styles.container}>
         <SectionHeader
-          eyebrow="Agents"
+          eyebrow="Agentic development"
           title={
             <>
-              Built for the <em>agents</em>.
+              The best build tool for <em>agents</em>. By a mile.
             </>
           }
         >
-          Every fresh worktree is a cold build. Four and a half minutes on
-          our repo, for every agent, every time. Bleep copies the
-          parent&rsquo;s compiled state instead — 54 seconds to verified
-          green — and one MCP server covers every checkout on the machine,
-          so the sixth agent starts as fast as the first.
+          An orchestrator, a handful of subagents, each one off in its own
+          git worktree — that is what a working day looks like now. The build
+          is what makes it expensive: every fresh worktree starts cold, and
+          on a big codebase that is minutes of nothing, per agent, every
+          time. Bleep collapses that price. A new worktree clones the
+          parent&rsquo;s compiled state and hits verified green in{" "}
+          <strong>54 seconds on 5.1 million lines</strong>, against 4½
+          minutes cold. Spawn six agents and the sixth starts as fast as the
+          first.
         </SectionHeader>
 
         <Reveal delay={60}>
@@ -907,99 +913,37 @@ function AgentWorktreesSection() {
           </div>
         </Reveal>
 
-        <Reveal>
-          <div className={styles.mcpGrid}>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                One registration, every <em>checkout</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                Every call carries its own <code>directory</code>, so a
-                subagent can&rsquo;t quietly build the parent checkout and
-                nothing goes stale between calls.
-              </p>
-            </article>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                Forks start <em>warm</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                One <code>bleep.copy-state</code> call clones the
-                parent&rsquo;s compiled state, safely, mid-compile. On 5.1
-                million lines: fork to verified green in 54 seconds, against
-                4½ minutes cold.{" "}
-                <Link to="/docs/guides/worktrees">Recipe and numbers</Link>.
-              </p>
-            </article>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                One <em>hot daemon</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                Every checkout shares one compile server. Ten worktrees
-                don&rsquo;t cost ten JVMs, and a fresh one can skip what a
-                sibling already built.
-              </p>
-            </article>
-          </div>
-        </Reveal>
-
-        <Reveal delay={60}>
-          <p className={styles.toolRoster}>
-            <span className={styles.toolRosterLabel}>
-              18 tools —{" "}
-            </span>
-            <Link to="/docs/usage/mcp-server/">
-              compile · test · run · projects · test.suites ·
-              build.effective/resolved · history.list/show/diff/diff-timing ·
-              copy-state · fmt · clean · sourcegen · scripts · programs ·
-              restart
-            </Link>
-          </p>
-        </Reveal>
-
-        <Reveal delay={100}>
+        <Reveal delay={80}>
           <p
             className={styles.sectionLede}
-            style={{ marginTop: "2.25rem", textAlign: "center" }}
+            style={{ textAlign: "center", marginTop: "0.5rem" }}
           >
-            We build bleep this way every day: parallel agents in git
-            worktrees, building bleep with bleep.
+            Then there is what it costs to <em>ask</em>. Build tools are
+            famous for burying an agent in output; bleep answers in
+            sentences.
           </p>
         </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------
-   Agents 2/2 — observability: the build that answers questions
-   ------------------------------------------------------------------ */
-function AgentAnswersSection() {
-  return (
-    <section id="answers" className={styles.section}>
-      <div className={styles.container}>
-        <SectionHeader
-          eyebrow="Run history"
-          title={
-            <>
-              The build that <em>answers</em> questions.
-            </>
-          }
-        >
-          Your agent changes one line. Which test broke? That answer
-          normally sits somewhere inside thirty thousand tokens of build
-          log. Bleep hands back the test, the assertion, and nothing else.
-        </SectionHeader>
 
         <Reveal>
           <p className={styles.mcpStat}>
             <span className={styles.mcpStatFigure}>25&ndash;265 tokens</span>
             <span className={styles.mcpStatRest}>
-              measured: a green compile answers in 25, a failure with its
-              full what-changed diff in 265. A build log is tens of
-              thousands.
+              measured over the live MCP server: a green compile answers in
+              25, a failing test with its full what-changed diff in 265. A
+              raw build log runs to tens of thousands, and every one of them
+              costs the agent attention it could spend on your code.
             </span>
+          </p>
+        </Reveal>
+
+        <Reveal delay={60}>
+          <p
+            className={styles.sectionLede}
+            style={{ textAlign: "center", marginTop: "2.25rem" }}
+          >
+            And because every run is written down as a file, an agent can ask
+            what changed instead of reading everything again. That is a loop
+            other build tools cannot offer at any token price.
           </p>
         </Reveal>
 
@@ -1035,7 +979,19 @@ function AgentAnswersSection() {
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                Answers, not <em>transcripts</em>
+                Forks start <em>warm</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                One <code>bleep.copy-state</code> call clones the
+                parent&rsquo;s compiled state, safely, even mid-compile. One
+                daemon serves every checkout, so ten worktrees don&rsquo;t
+                cost ten JVMs.{" "}
+                <Link to="/docs/guides/worktrees">Recipe and numbers</Link>.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Answers, not <em>logs</em>
               </h3>
               <p className={styles.mcpCardBody}>
                 Counts, the first errors, an id — and failures stream the
@@ -1049,22 +1005,28 @@ function AgentAnswersSection() {
                 Ask what <em>changed</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>history.diff</code> compares any two runs: newly
-                failing, fixed, new and resolved diagnostics. Durations never
-                enter it, so a slow machine can&rsquo;t invent a difference.
-              </p>
-            </article>
-            <article className={styles.mcpCard}>
-              <h3 className={styles.mcpCardTitle}>
-                Timing is its own <em>question</em>
-              </h3>
-              <p className={styles.mcpCardBody}>
-                <code>history.diff-timing</code> answers what got slower,
-                with jitter suppressed — so it&rsquo;s a real regression, not
-                a busy laptop.
+                <code>history.diff</code> compares any two runs — newly
+                failing, fixed, new and resolved diagnostics — and{" "}
+                <code>diff-timing</code> answers what got slower. Durations
+                never enter the logical diff, so a busy laptop can&rsquo;t
+                invent a difference.
               </p>
             </article>
           </div>
+        </Reveal>
+
+        <Reveal delay={60}>
+          <p className={styles.toolRoster}>
+            <span className={styles.toolRosterLabel}>
+              18 tools —{" "}
+            </span>
+            <Link to="/docs/usage/mcp-server/">
+              compile · test · run · projects · test.suites ·
+              build.effective/resolved · history.list/show/diff/diff-timing ·
+              copy-state · fmt · clean · sourcegen · scripts · programs ·
+              restart
+            </Link>
+          </p>
         </Reveal>
 
         <Reveal delay={100}>
@@ -1072,11 +1034,8 @@ function AgentAnswersSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            None of it is agent-only: <code>bleep history</code>,{" "}
-            <code>show</code> and <code>diff</code> are plain file reads that
-            work with no daemon running.{" "}
-            <Link to="/docs/usage/run-history">The run history guide</Link>{" "}
-            has the rest.
+            We build bleep this way every day: parallel agents in git
+            worktrees, building bleep with bleep.
           </p>
         </Reveal>
       </div>
@@ -1352,8 +1311,7 @@ export default function Home() {
           <CISection />
           <RoundtripSection />
           <TestRunnerSection />
-          <AgentWorktreesSection />
-          <AgentAnswersSection />
+          <AgentsSection />
           <MigrationSection />
           <ExitSection />
           <InstallCTA />
