@@ -468,6 +468,38 @@ object Demo {
     }
   }
 
+  /** A REAL guided Claude session running the landing page's agent vignette: the orchestrator fans two subagents into fresh worktrees over bleep's MCP tools —
+    * one seeds with copy-state, one deliberately compiles cold — and closes by asking bleep for the cross-worktree `history diff-timing`. The session's
+    * stream-json is rendered live by `demo-claude-agents/render-stream.py`, so the camera shows the actual tool calls and results as they happen.
+    *
+    * On-demand only (see [[onDemand]]): recording spends model tokens and needs an authenticated `claude` CLI with the bleep MCP server registered user-scope,
+    * so `bleep generate-videos` without arguments never runs it — regenerate explicitly with `bleep generate-videos claude-agents`.
+    */
+  object claudeAgents extends Demo("claude-agents", rows = 34, columns = 110) {
+    override val expectedYaml: Option[RelPath] = None
+    override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
+
+    override def prepareScript(bleep: Path, repoDir: Path): Option[String] = Some(
+      s"""set -euo pipefail
+         |git init -q
+         |git add -A
+         |git -c user.email=demo@bleep.build -c user.name=demo commit -qm 'demo fixture'
+         |$bleep compile --no-tui --no-color
+         |cp $repoDir/demo-claude-agents/prompt.txt $repoDir/demo-claude-agents/render-stream.py .
+         |""".stripMargin
+    )
+
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleep.discard()
+      bleepVersion.discard()
+      s"""
+         |: export DEMO_SCRATCH="$$(dirname "$$PWD")"
+         |# a claude session drives two subagents into fresh worktrees over bleep's mcp tools
+         |claude -p "$$(cat prompt.txt)" --model sonnet --allowedTools "Agent" "Task" "Bash(git worktree:*)" "Bash(pwd)" "mcp__bleep__*" --output-format stream-json --verbose 2>/dev/null | python3 render-stream.py
+         |""".stripMargin
+    }
+  }
+
   val all = List(
     runNativeNew,
     importNew,
@@ -476,5 +508,10 @@ object Demo {
     agents,
     historyApi,
     ownTests
+  )
+
+  /** demos that cost money or need external auth to record: reachable by name, never part of the no-args "record everything" run */
+  val onDemand = List(
+    claudeAgents
   )
 }

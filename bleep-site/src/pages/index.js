@@ -3,7 +3,7 @@ import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
-import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
+import claudeAgentsCast from "!!file-loader!@site/static/demos/claude-agents.cast";
 import ownTestsCast from "!!file-loader!@site/static/demos/own-tests.cast";
 import styles from "./index.module.css";
 
@@ -944,13 +944,16 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1rem" }}
             >
-              Recorded, not narrated — two fresh worktrees side by side:
-              one pays for a full rebuild, the other seeds itself with{" "}
-              <code>copy-state</code> and its first build recompiles
-              nothing.
+              This transcript is not a mock-up. Below, recorded: a real
+              Claude session fans two subagents into fresh worktrees over
+              the MCP tools — one seeds with <code>copy-state</code>, one
+              deliberately compiles cold — and closes by asking bleep for
+              the cross-worktree timing diff. The model never invents a
+              number; the ratio comes out of the tool. Rerunnable from{" "}
+              <code>demo-claude-agents/</code> in the repo.
             </p>
             <div className={styles.testRunnerVideo}>
-              <AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
+              <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={34} fit="width" />
             </div>
           </div>
         </Reveal>

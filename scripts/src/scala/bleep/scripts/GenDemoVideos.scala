@@ -34,13 +34,15 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     val (binaryArgs, demoNames) = args.partition(arg => FileUtils.exists(Path.of(arg)))
 
+    // no-args records Demo.all; on-demand demos (token-spending, external auth) are reachable by name only
+    val byName = Demo.all ++ Demo.onDemand
     val demos = demoNames match {
       case Nil   => Demo.all
       case names =>
         names.map { name =>
-          Demo.all.find(_.name == name) match {
+          byName.find(_.name == name) match {
             case Some(demo) => demo
-            case None       => sys.error(s"unknown demo '$name'. available: ${Demo.all.map(_.name).mkString(", ")}")
+            case None       => sys.error(s"unknown demo '$name'. available: ${byName.map(_.name).mkString(", ")}")
           }
         }
     }

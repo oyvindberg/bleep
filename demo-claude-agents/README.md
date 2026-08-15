@@ -25,8 +25,15 @@ mechanism is 4½ minutes vs 54 seconds (see the worktrees guide).
 Run it yourself:
 
 ```bash
-./run.sh /tmp/bleep-agent-demo
+./run.sh /tmp/bleep-agent-demo          # plain text, final verdict only
+bleep generate-videos claude-agents     # record it as the site's asciinema cast
 ```
+
+The recording goes through the same demo harness as every other cast
+(`GenDemoVideos`), with the session's stream-json rendered live by
+`render-stream.py`. It is on-demand only: `bleep generate-videos` without
+arguments never runs it, because recording spends model tokens and needs an
+authenticated `claude` CLI.
 
 - `fixture.sh` builds a small-but-real build (30 circe-derived case classes)
   and compiles it, so the daemon and caches are warm and the demo measures
