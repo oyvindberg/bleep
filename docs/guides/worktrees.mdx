@@ -125,3 +125,18 @@ against its own previous run (`test --diff`), then against the worktree it was
 forked from (`history diff --base-dir`):
 
 <AsciinemaPlayer src={agentsCast} cols={100} rows={32} fit="width" />
+
+Nor is the fan-out hypothetical: the repo carries a scripted, rerunnable
+Claude session (`demo-claude-agents/` at the repo root) in which an
+orchestrator spawns two parallel subagents into fresh worktrees over the MCP
+tools — one seeds with `copy-state`, one deliberately compiles cold — and
+closes by asking bleep for the cross-worktree timing diff. The model never
+invents a number; the ratio comes out of the tool. A captured run
+(sonnet, $0.34, 17 s wall):
+
+```
+agent[seeded]  copy-state: 580554 bytes in 40ms  ->  first compile: success
+agent[cold]    first compile: success (compiled everything from scratch)
+bleep history diff-timing (cold -> seeded): total 2893ms -> 251ms
+verdict: the seeded worktree compiled about 11.5x faster than the cold one
+```

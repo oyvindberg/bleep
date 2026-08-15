@@ -1,0 +1,24 @@
+Scripted demo: prove what bleep's copy-state does for a fresh git worktree, using two parallel subagents, and let bleep itself measure the difference. Follow EXACTLY. Do not edit files. Do not improvise.
+
+The current directory is a compiled bleep repo (MAIN); its absolute path is the output of pwd.
+
+Step 1. Create two fresh git worktrees with Bash:
+  git worktree add -b seeded ../wt-seeded
+  git worktree add -b cold ../wt-cold
+
+Step 2. Spawn TWO subagents IN PARALLEL (both Agent calls in one single message). Instructions:
+
+- seeded: "Using the bleep MCP tools only: (1) call the copy-state tool with directory=<ABS>/../wt-seeded and from=<ABS>; (2) call the compile tool with directory=<ABS>/../wt-seeded. Report compactly: bytesCopied and durationMs from copy-state, and the compile result verbatim (historyId, success)."
+
+- cold: "Using the bleep MCP tools only: call the compile tool with directory=<ABS>/../wt-cold - do NOT call copy-state, this worktree deliberately starts cold. Report the compile result verbatim (historyId, success)."
+
+where <ABS> is MAIN's absolute path.
+
+Step 3. Both agents will report historyId=1 in their own worktrees. Now ask bleep to compare the two runs across worktrees: call the history diff-timing tool with directory=<ABS>/../wt-seeded, base=1, target=1, and baseDirectory=<ABS>/../wt-cold. This diffs the cold worktree's compile (base) against the seeded worktree's compile (target), jitter-suppressed.
+
+Step 4. Print exactly this shape, filling in real numbers from the tool results:
+  agent[seeded]  copy-state: <bytesCopied> bytes in <ms>  ->  first compile: success
+  agent[cold]    first compile: success (compiled everything from scratch)
+  bleep history diff-timing (cold -> seeded): total <totalBaseMs>ms -> <totalTargetMs>ms
+  verdict: <one sentence with the ratio, computed from totalBaseMs/totalTargetMs>
+Then stop.
