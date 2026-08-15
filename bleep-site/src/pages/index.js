@@ -175,6 +175,43 @@ function Hero() {
             GitHub
           </Link>
         </div>
+
+        <div className={styles.heroFacts}>
+          <div className={styles.heroFact}>
+            <span className={styles.heroFactLabel}>CLI startup</span>
+            <span className={styles.heroFactValue}>
+              10 <em>ms</em>
+            </span>
+            <span className={styles.heroFactSub}>native binary, no JVM</span>
+          </div>
+          <div className={styles.heroFact}>
+            <span className={styles.heroFactLabel}>
+              new worktree, compiled
+            </span>
+            <span className={styles.heroFactValue}>
+              268 <em>&rarr;</em> 54 s
+            </span>
+            <span className={styles.heroFactSub}>
+              cold rebuild vs copy-state, 5.1M lines
+            </span>
+          </div>
+          <div className={styles.heroFact}>
+            <span className={styles.heroFactLabel}>tokens per answer</span>
+            <span className={styles.heroFactValue}>
+              25<em>&ndash;</em>265
+            </span>
+            <span className={styles.heroFactSub}>
+              green &rarr; failure with full diff
+            </span>
+          </div>
+          <div className={styles.heroFact}>
+            <span className={styles.heroFactLabel}>build files</span>
+            <span className={styles.heroFactValue}>
+              <em>1</em>
+            </span>
+            <span className={styles.heroFactSub}>plain YAML, whole repo</span>
+          </div>
+        </div>
       </div>
 
     </header>
@@ -477,26 +514,36 @@ function PerformanceSection() {
             </>
           }
         >
-          Cut the code, the build plugins, the scopes, the task graph.
-          The inner loop stops being something you wait for. That
-          matters more than ever: an agent compiles fifty times a
-          session, and a slow build taxes every single one.
+          Cut the code, the build plugins, the scopes, the task graph,
+          and the inner loop stops being something you wait for. The
+          numbers below are measured on the repo bleep&rsquo;s authors
+          work in daily &mdash; 5.1 million lines across 130 projects
+          &mdash; and we can re-measure them any day, because the build{" "}
+          <Link to="/docs/usage/run-history">records its own runs</Link>.
+          It matters more than ever, too:{" "}
+          <Link to="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report">
+            DORA&rsquo;s 2025 report
+          </Link>{" "}
+          found AI multiplies whatever loop you already have. Fast
+          feedback turned agents into real gains. Slow feedback got a
+          faster way to wait.
         </SectionHeader>
 
         <Reveal>
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                Load <em>everything</em> in milliseconds
+                Load <em>everything</em> in 10 ms
               </h3>
               <p className={styles.mcpCardBody}>
                 Native CLI binary. Reads <code>bleep.yaml</code>,
                 resolves dependencies through Coursier&rsquo;s local
-                cache, builds the full project model. Done. No JVM
-                startup, no configuration phase, no &ldquo;loading
-                projects&hellip;&rdquo; progress bar. The compile
-                daemon (<code>bleep-bsp</code>) is the JVM-heavy
-                bit, and it stays hot between invocations.
+                cache, builds the full project model &mdash; all 130
+                projects, done in ten milliseconds, before a JVM would
+                have finished saying hello. No configuration phase, no
+                &ldquo;loading projects&hellip;&rdquo; progress bar. The
+                compile daemon (<code>bleep-bsp</code>) is the
+                JVM-heavy bit, and it stays hot between invocations.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -521,8 +568,10 @@ function PerformanceSection() {
                 One file changed in a 200-class module. Maven
                 recompiles all 200, slowly. Bleep does file-level
                 incremental compilation: one file changed, one (or
-                two) recompiled, in milliseconds. The save-to-result
-                loop stays tight.
+                two) recompiled, in milliseconds. And asking the big
+                question &mdash; <em>is everything still green?</em>{" "}
+                &mdash; costs 9 seconds across all 130 projects and 5.1
+                million lines. That is the whole tax for asking.
               </p>
             </article>
           </div>
@@ -915,9 +964,13 @@ function AgentsSection() {
             className={styles.sectionLede}
             style={{ textAlign: "center", marginTop: "0.5rem" }}
           >
-            Then there is what it costs to <em>ask</em>. Build tools are
-            famous for burying an agent in output; bleep answers in
-            sentences.
+            Then there is what it costs to <em>ask</em>. Maven and Gradle
+            bury an agent in output so reliably that agent companies{" "}
+            <Link to="https://www.humanlayer.dev/blog/context-efficient-backpressure">
+              ship wrappers
+            </Link>{" "}
+            whose whole job is stopping build logs from shredding
+            context. Bleep just answers in sentences.
           </p>
         </Reveal>
 
