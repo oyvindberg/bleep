@@ -17,15 +17,25 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       dependsOn = model.JsonSet(SortedSet.from(deps.map(model.ProjectName.apply)))
     )
 
-  private def makeBuild(projects: (String, model.Project)*): model.Build.Exploded =
+  /** The toolchain every test build is pinned to unless it is testing what happens when that changes. */
+  private val testJvm: model.Jvm = model.Jvm("temurin:17", None)
+
+  private def makeBuildWith(
+      jvm: Option[model.Jvm],
+      resolvers: model.JsonList[model.Repository],
+      projects: Seq[(String, model.Project)]
+  ): model.Build.Exploded =
     model.Build.Exploded(
       $version = model.BleepVersion("test"),
       explodedProjects = projects.map { case (name, p) => cpn(name) -> p }.toMap,
-      resolvers = model.JsonList.empty,
-      jvm = None,
+      resolvers = resolvers,
+      jvm = jvm,
       scripts = Map.empty,
       remoteCache = None
     )
+
+  private def makeBuild(projects: (String, model.Project)*): model.Build.Exploded =
+    makeBuildWith(Some(testJvm), model.JsonList.empty, projects)
 
   private def createTempWorkspace(): Path = {
     val dir = Files.createTempDirectory("bleep-digest-test-")
@@ -55,8 +65,9 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       // This value must remain stable across platforms and versions.
       // If it changes, remote cache entries become invalid.
+      // It covers the build-level toolchain (`testJvm`) and the index url it resolves to, as well as the project itself.
       info(s"empty project digest: $digest")
-      digest shouldBe "16ea4ae6513b95a99268b71c93bf4a99fbda9cbb2d55cee6945e960b7b847eac"
+      digest shouldBe "e853707cc6d078301e5ceeae2bab87b0e83801f9a1fcc6c1911470ec7c61980a"
     } finally deleteRecursively(workspace)
   }
 
@@ -71,7 +82,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
       info(s"project-with-dep digest: $digest")
-      digest shouldBe "64cfbf35cc787c673827f4fb553b5690355de91987c9618e81315c350defe2c3"
+      digest shouldBe "5f65e20cccda0e0d1fd1dd7a34e600edf5aaf4788a8d2d0b44ef01b5bb64f74a"
     } finally deleteRecursively(workspace)
   }
 
@@ -247,7 +258,78 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
       info(s"nested-paths digest: $digest")
-      digest shouldBe "07b5f8295cb4dee3988c29c46e674d380fd70c29c71e23949c49941a424357ae"
+      digest shouldBe "0e468fae76ec8911f251c149e65bf9c02772cd3bb3c48765b2e7e6c9f2e1edf3"
+    } finally deleteRecursively(workspace)
+  }
+
+  test("build-level jvm changes produce different digests") {
+    // `jvm:` lives on the build, not on any project, so nothing in the project config YAML moves when the toolchain is bumped.
+    // Before this was hashed, a JDK bump left every digest identical and the cache served classes compiled by the old JDK.
+    val workspace = createTempWorkspace()
+    try {
+      val projects = Seq("a" -> model.Project.empty)
+      val build17 = makeBuildWith(Some(model.Jvm("temurin:17", None)), model.JsonList.empty, projects)
+      val build21 = makeBuildWith(Some(model.Jvm("temurin:21", None)), model.JsonList.empty, projects)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digest17 = ProjectDigest.computeAll(build17, buildPaths)(cpn("a"))
+      val digest21 = ProjectDigest.computeAll(build21, buildPaths)(cpn("a"))
+
+      digest17 should not be digest21
+    } finally deleteRecursively(workspace)
+  }
+
+  test("jvm index is part of the digest, and the default index is not a change") {
+    val workspace = createTempWorkspace()
+    try {
+      val projects = Seq("a" -> model.Project.empty)
+      val defaultIndex = makeBuildWith(Some(model.Jvm("temurin:17", None)), model.JsonList.empty, projects)
+      val explicitDefaultIndex =
+        makeBuildWith(Some(model.Jvm("temurin:17", Some(coursier.jvm.JvmChannel.gitHubIndexUrl))), model.JsonList.empty, projects)
+      val otherIndex = makeBuildWith(Some(model.Jvm("temurin:17", Some("https://corp.example.com/jvm-index.json"))), model.JsonList.empty, projects)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digestDefault = ProjectDigest.computeAll(defaultIndex, buildPaths)(cpn("a"))
+      val digestExplicitDefault = ProjectDigest.computeAll(explicitDefaultIndex, buildPaths)(cpn("a"))
+      val digestOther = ProjectDigest.computeAll(otherIndex, buildPaths)(cpn("a"))
+
+      // Spelling out the index coursier would have used anyway describes the same toolchain
+      digestExplicitDefault shouldBe digestDefault
+      // A different index can map the same name to a different JDK
+      digestOther should not be digestDefault
+    } finally deleteRecursively(workspace)
+  }
+
+  test("a build without a jvm cannot be digested") {
+    val workspace = createTempWorkspace()
+    try {
+      val build = makeBuildWith(None, model.JsonList.empty, Seq("a" -> model.Project.empty))
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val th = the[BleepException] thrownBy ProjectDigest.computeAll(build, buildPaths)
+      th.getMessage should include("jvm:")
+    } finally deleteRecursively(workspace)
+  }
+
+  test("resolvers do not affect digest") {
+    // Deliberate: a coordinate resolves to the same bytes from any repository, and a missing artifact fails resolution
+    // hard rather than compiling something else. Hashing resolvers would invalidate the whole build whenever someone
+    // adds a repository for one dependency. See the ProjectDigest scaladoc before changing this.
+    val workspace = createTempWorkspace()
+    try {
+      val projects = Seq("a" -> model.Project.empty)
+      val noResolvers = makeBuildWith(Some(testJvm), model.JsonList.empty, projects)
+      val withResolvers = makeBuildWith(
+        Some(testJvm),
+        model.JsonList(List(model.Repository.Maven(None, new java.net.URI("https://corp.example.com/maven")): model.Repository)),
+        projects
+      )
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digestWithout = ProjectDigest.computeAll(noResolvers, buildPaths)(cpn("a"))
+      val digestWith = ProjectDigest.computeAll(withResolvers, buildPaths)(cpn("a"))
+
+      digestWith shouldBe digestWithout
     } finally deleteRecursively(workspace)
   }
 
