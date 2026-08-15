@@ -223,6 +223,20 @@ bleep --no-color --no-bsp-progress compile
 
 Both are appropriate for any non-interactive run.
 
+On `compile`, `test`, `run`, `link` and `dist`, three flags control how much
+of the run is printed:
+
+| Flag | Effect |
+|---|---|
+| `--no-tui` | Full streaming trace without the TUI: one log line per project and test event. For CI logs you want to read afterwards. |
+| `--quiet`, `-q` | Only failures and the final summary. Per-event streaming and daemon-connection chatter are suppressed; a red build still prints the full failure section and exits non-zero. |
+| `--summary-only` | Alias for `--quiet` (`test` only). |
+
+Quiet success, loud failure: `--quiet` is the right default for agents and
+for CI jobs where the log only matters when something broke. Combined with
+`--diff` it prints just the summary and
+[what changed](/docs/usage/run-history) — nothing else.
+
 ## Matrix builds
 
 Test multiple Scala versions in parallel jobs:
