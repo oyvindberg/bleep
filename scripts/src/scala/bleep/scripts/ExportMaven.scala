@@ -4,6 +4,7 @@ package scripts
 import bleep.model.VersionCombo
 
 import java.nio.file.{Files, Path, Paths}
+import scala.collection.immutable.SortedSet
 
 /** Proof-of-concept Maven exporter: walks the exploded build model and writes a buildable Maven layout.
   *
@@ -43,9 +44,12 @@ import java.nio.file.{Files, Path, Paths}
   *     `scalatest-maven-plugin`, with bleep's forked-test JVM options translated to `argLine` and bleep's fork cwd (the project directory) translated to
   *     `workingDirectory`.
   *
-  * Known limitations beyond the above: sourcegen is not executed by Maven (generated source dirs are referenced but only populated if bleep ran first),
-  * unmanaged `jars` are ignored, Scala `compilerPlugins` are not translated, KSP symbol processing is not wired (fail-hard if a module needs it at build time),
-  * and publish/assembly configuration is not emitted.
+  * Sourcegen runs under Maven: each generator is the same main class bleep forks, executed at the `generate-sources` phase via `exec-maven-plugin` with the
+  * host script project as a plugin-level dependency (classpath + reactor ordering) and `user.dir` pointed at the workspace, since generators discover the build
+  * from their cwd. The generator writes into the same `.bleep/projects/<name>/generated-sources/<mainClass>` dirs the pom references as sources.
+  *
+  * Known limitations beyond the above: unmanaged `jars` are ignored, Scala `compilerPlugins` are not translated, KSP symbol processing is not wired (fail-hard
+  * if a module needs it at build time), and publish/assembly configuration is not emitted.
   */
 object ExportMaven extends BleepScript("ExportMaven") {
 
@@ -60,6 +64,7 @@ object ExportMaven extends BleepScript("ExportMaven") {
   val ScalaMavenPluginVersion = "4.9.2"
   val SurefirePluginVersion = "3.2.5"
   val ScalaTestMavenPluginVersion = "2.2.0"
+  val ExecMavenPluginVersion = "3.1.1"
 
   private val MavenScopes = Set("compile", "provided", "runtime", "test")
 
@@ -353,6 +358,124 @@ object ExportMaven extends BleepScript("ExportMaven") {
           El("executions", buildHelperExecutions)
         )
 
+      // sourcegen: bleep runs each generator as a forked JVM (main class from a host project's classpath, cwd = the
+      // workspace, args `--project <crossName>`; the script bootstraps the build itself and writes into
+      // `.bleep/projects/<crossName>/generated-sources/<mainClass>` — exactly the dirs this pom references as sources).
+      // Under Maven the same main runs at generate-sources via exec:java: the host project is a plugin-level dependency
+      // (which both supplies the classpath and orders the reactor so the host builds first), and `user.dir` is pointed
+      // at the workspace since the generator discovers the build from its cwd.
+      val sourcegenPlugins: List[Xml] = {
+        val scriptDefs: List[(model.CrossProjectName, String)] =
+          project.sourcegen.values.toList.map { case model.ScriptDef.Main(hostProject, mainClass, _) => (hostProject, mainClass) }
+        if (scriptDefs.isEmpty) Nil
+        else {
+          val host = scriptDefs.map { case (host, _) => host }.distinct match {
+            case List(one) => one
+            case more      =>
+              sys.error(
+                s"${crossName.value}: sourcegen scripts live in multiple host projects ${more.map(_.value).mkString(", ")} — " +
+                  "not supported by this PoC (one exec-maven-plugin classpath per module)"
+              )
+          }
+          // The generator's classpath must be bleep's OWN resolution of the host project, not Maven's: Maven's
+          // nearest-wins can pick different transitive versions than coursier's highest-wins (observed: circe-core 0.14.10
+          // beside circe-generic 0.14.15, breaking the generator at runtime). So we resolve the host's dependency closure
+          // through started.resolver — exactly what bleep runs the generator with — and emit every artifact as a DIRECT
+          // plugin dependency with wildcard exclusions, so Maven fetches precisely that closed set and resolves nothing.
+          val execClasspathDeps: List[El] = {
+            val hostProjectDef = started.build.explodedProjects(host)
+            val hostCombo = VersionCombo.fromExplodedProject(hostProjectDef) match {
+              case Right(combo) => combo
+              case Left(msg)    => sys.error(s"${host.value}: cannot determine version combo for sourcegen host: $msg")
+            }
+            val hostClosure: List[(model.CrossProjectName, model.Project)] =
+              (host, hostProjectDef) :: started.build.transitiveDependenciesFor(host).toList
+            val hostReplacements =
+              model.Replacements.versions(
+                Some(started.build.$version),
+                hostCombo,
+                includeEpoch = true,
+                includeBinVersion = true,
+                buildDir = Some(started.buildPaths.buildDir)
+              )
+            val externalDeps: Set[model.Dep] =
+              (hostClosure.flatMap { case (_, p) => p.dependencies.values } ++ hostCombo.libraries(isTest = false))
+                .map(dep => hostReplacements.fill.dep(dep))
+                .toSet
+            val schemes = SortedSet.empty[model.LibraryVersionScheme] ++ hostClosure.flatMap { case (_, p) => p.libraryVersionSchemes.values }
+            val resolved = started.resolver.force(
+              externalDeps,
+              hostCombo,
+              schemes,
+              context = s"export-maven: sourcegen classpath for ${host.value}",
+              // mirrors bleep's own default for project resolution (see ResolveProjects)
+              ignoreEvictionErrors = hostProjectDef.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
+            )
+            val externalCoords: List[(String, String, String)] =
+              resolved.detailedArtifacts
+                .collect {
+                  case (dep, pub, _, _)
+                      if pub.ext == coursier.core.Extension.jar &&
+                        pub.classifier != coursier.core.Classifier.sources &&
+                        pub.classifier != coursier.core.Classifier.javadoc =>
+                    (dep.module.organization.value, dep.module.name.value, dep.versionConstraint.asString)
+                }
+                .distinct
+                .sorted
+                .toList
+            val moduleCoords: List[(String, String, String)] = hostClosure.map { case (moduleName, _) =>
+              coordsByName.get(moduleName) match {
+                case Some(coords) => (coords.groupId, coords.artifactId, coords.version)
+                case None => sys.error(s"${crossName.value}: sourcegen host closure project ${moduleName.value} was not exported — cannot run its generator")
+              }
+            }
+            (moduleCoords ++ externalCoords).map { case (groupId, artifactId, version) =>
+              el("dependency")(
+                leaf("groupId", groupId),
+                leaf("artifactId", artifactId),
+                leaf("version", version),
+                el("exclusions")(el("exclusion")(leaf("groupId", "*"), leaf("artifactId", "*")))
+              )
+            }
+          }
+          val executions = scriptDefs.map { case (_, mainClass) =>
+            el("execution")(
+              leaf("id", s"sourcegen-${sanitizeArtifactId(mainClass)}"),
+              leaf("phase", "generate-sources"),
+              el("goals")(leaf("goal", "java")),
+              el("configuration")(
+                leaf("mainClass", mainClass),
+                el("arguments")(leaf("argument", "--project"), leaf("argument", crossName.value)),
+                leaf("includeProjectDependencies", "false"),
+                leaf("includePluginDependencies", "true"),
+                leaf("cleanupDaemonThreads", "false"),
+                el("systemProperties")(
+                  el("systemProperty")(
+                    leaf("key", "user.dir"),
+                    leaf("value", s"$${project.basedir}/${relativeTo(started.buildPaths.buildDir)}")
+                  )
+                )
+              )
+            )
+          }
+          List(
+            Comment(
+              "bleep sourcegen: the same generator main bleep forks runs here before compile. It bootstraps the bleep build " +
+                "from user.dir and writes the generated sources this pom references. The plugin dependencies are bleep's own " +
+                "resolution of the generator's classpath, emitted as a closed set (wildcard exclusions) so Maven fetches " +
+                "exactly those artifacts; the host module entry also orders the reactor so the host builds first"
+            ),
+            el("plugin")(
+              leaf("groupId", "org.codehaus.mojo"),
+              leaf("artifactId", "exec-maven-plugin"),
+              leaf("version", ExecMavenPluginVersion),
+              El("dependencies", execClasspathDeps),
+              El("executions", executions)
+            )
+          )
+        }
+      }
+
       // javac configuration applies regardless of combo: Scala/Kotlin modules can still hold java sources and always
       // carry javac options in bleep (e.g. scripts-java is a `scala:`-configured project whose sources are pure java)
       val mavenCompilerXml: List[El] = {
@@ -518,7 +641,7 @@ object ExportMaven extends BleepScript("ExportMaven") {
           leaf("version", coords.version),
           leaf("packaging", "jar")
         ) ++ dependenciesXml ++ List(
-          el("build")(El("plugins", (buildHelperPlugin :: compilerPlugins) ++ testPlugins))
+          el("build")(El("plugins", sourcegenPlugins ++ (buildHelperPlugin :: compilerPlugins) ++ testPlugins))
         )
       )
 
