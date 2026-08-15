@@ -1013,15 +1013,9 @@ function AgentsSection() {
         </Reveal>
 
         <Reveal delay={60}>
-          <p className={styles.toolRoster}>
-            <span className={styles.toolRosterLabel}>
-              18 tools —{" "}
-            </span>
-            <Link to="/docs/usage/mcp-server/">
-              compile · test · run · projects · test.suites ·
-              build.effective/resolved · history.list/show/diff/diff-timing ·
-              copy-state · fmt · clean · sourcegen · scripts · programs ·
-              restart
+          <p className={styles.compareCta}>
+            <Link className={styles.compareCtaLink} to="/docs/usage/mcp-server/">
+              All 18 MCP tools &nbsp;&rarr;
             </Link>
           </p>
         </Reveal>
