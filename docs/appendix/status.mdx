@@ -2,6 +2,8 @@
 title: Project status
 ---
 
+import stats from '@site/src/data/build-stats.json';
+
 # Project status
 
 Bleep exists because the existing JVM build tools couldn't keep up
@@ -24,13 +26,24 @@ real users.
 
 ## The workload bleep is developed against
 
-The daily driver is a private repository of **12.9M lines across
-57,941 files**. Of that, bleep compiles **4.1M lines of Java and
-Scala across 11,896 files in 67 projects** — and **3.7M of those
-Java lines (92%) are generated and checked in**, a SQL parser and
-AST family spanning a dozen database dialects. Roughly **2,300
-declared tests** run against a corpus of **44,127 SQL files**, and
+The daily driver is a private repository of **{stats.repo.trackedLines.toLocaleString('en-US')} tracked
+lines across {stats.repo.trackedFiles.toLocaleString('en-US')} files**. Of that, bleep compiles
+**{stats.compiled.java.linesLabel} lines of Java and {stats.compiled.scala.linesLabel} lines of
+Scala — {stats.compiled.lines.toLocaleString('en-US')} lines across {stats.compiled.files.toLocaleString('en-US')} files
+in {stats.compiled.projects} projects**. **{stats.compiled.java.generatedLabel} of those Java
+lines are generated and checked in** — a SQL parser and AST family spanning a
+dozen database dialects — leaving {stats.compiled.java.handWrittenLabel} of hand-written Java.
+Roughly **2,300 declared tests** run against a corpus of **44,127 SQL files**, and
 several suites are heavy enough to need their own heap.
+
+<small>
+
+Measured {stats.measuredAt} at commit `{stats.repo.commit}` with
+[`bleep-site/measure-daily-driver.sh`](https://github.com/oyvindberg/bleep/blob/master/bleep-site/measure-daily-driver.sh).
+Every figure the site quotes about this repository comes from one file,
+`bleep-site/src/data/build-stats.json`, so the pages cannot drift apart.
+
+</small>
 
 It is never one build at a time. Development runs across **a dozen
 or more git worktrees concurrently**, each an independent client of
@@ -80,13 +93,24 @@ on Linux) is the first thing to attach to a bug report.
 ## What's not yet covered
 
 - **No BOM / `dependencyManagement`**: every dependency declares its
-  version explicitly. Spring Boot users feel this most.
+  version explicitly. Spring Boot users feel this most, and it is worth
+  being blunt about the cost: adopting a Spring Boot release means
+  writing out the versions that `spring-boot-dependencies` would have
+  chosen for you, and revisiting them on every Boot upgrade. Templates
+  take the sting out — put the versions in one template and every
+  project that extends it inherits them, so it is one edit rather than
+  one per project — but that is a workaround, not the feature. If your
+  build leans on imported BOMs, this is the gap most likely to stop you.
 - **No KAPT** for Kotlin. KAPT is legacy; migrate to KSP1, which is
   supported (see [annotation processing](/docs/usage/annotation-processing#kotlin-ksp)).
   KSP runs from scratch on every compile today; per-file change
   tracking for incremental mode is a planned follow-up.
-- **No Gradle import**: Maven and sbt are imported via [`bleep import`](/docs/reference/cli/import/)
-  / [`bleep import-maven`](/docs/reference/cli/import-maven/).
+- **No Gradle import, and no Gradle export**: Maven and sbt are imported
+  via [`bleep import`](/docs/reference/cli/import/) /
+  [`bleep import-maven`](/docs/reference/cli/import-maven/), and
+  `bleep export-maven` writes a Maven build back out. Gradle has neither
+  direction, so a Gradle shop hand-ports in and would hand-port out.
+  There is no timeline for a Gradle importer.
 - **Single-host caching only**: remote cache works via
   [`bleep remote-cache pull`](/docs/reference/cli/remote-cache/pull/) / `push`; not transparent on every
   invocation.

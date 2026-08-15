@@ -5,6 +5,7 @@ title: Worktrees
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
 import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
 import agentsCast from "!!file-loader!@site/static/demos/agents.cast";
+import stats from '@site/src/data/build-stats.json';
 
 # Worktrees
 
@@ -37,19 +38,24 @@ other seeds itself and its first build recompiles nothing:
 
 ## The numbers
 
-Measured on the repo bleep's authors work in daily — **5.1 million lines of
-JVM code** (169k Scala, 4.9M generated Java) in **130 projects**, out of 17M
-tracked lines. Apple M5 Pro, 18 cores, APFS. Bleep snapshot of current
-`master` (2026-08-13). Each step timed with `/usr/bin/time`:
+Measured on the repo bleep's authors work in daily — **{stats.compiled.java.linesLabel} lines of
+Java and {stats.compiled.scala.linesLabel} of Scala** ({stats.compiled.java.generatedLabel} of the
+Java is generated and checked in) in **{stats.compiled.projects} projects**, out of
+{stats.repo.trackedLinesLabel} tracked lines. Apple M5 Pro, 18 cores, APFS. Bleep snapshot of
+current `master`. Each step timed with `/usr/bin/time`:
 
 | Step | Time |
 |------|-----:|
-| `git worktree add` (materialize the 17M-line checkout) | 6.2 s |
-| `bleep copy-state ../main` (131 projects, 1.8 GB of compiled state) | 14.5 s |
-| `bleep compile` — first build: verifies all 130 projects green | 33 s |
-| **Fork → verified green** | **~54 s** |
-| The same `bleep compile` in a worktree without `copy-state` (cold) | 4 min 22 s |
-| Every subsequent `bleep compile` (up-to-date check, 130 projects) | 9 s |
+| `git worktree add` (materialize the {stats.repo.trackedLinesLabel}-line checkout) | {stats.timings.worktreeAddSeconds} s |
+| `bleep copy-state ../main` ({stats.compiled.projects} projects, {stats.timings.copyStateGigabytes} GB of compiled state) | {stats.timings.copyStateSeconds} s |
+| `bleep compile` — first build: verifies all {stats.compiled.projects} projects green | {stats.timings.firstCompileAfterCopyStateSeconds} s |
+| **Fork → verified green** | **~{stats.timings.forkToVerifiedGreenSeconds} s** |
+| The same `bleep compile` in a worktree without `copy-state` (cold) | {stats.timings.forkToVerifiedGreenColdLabel} |
+| Every subsequent `bleep compile` (up-to-date check, {stats.compiled.projects} projects) | {stats.timings.noopCompileSeconds} s |
+
+Code sizes measured {stats.measuredAt} at commit `{stats.repo.commit}`; timings are from the run
+described above. Both come from `bleep-site/src/data/build-stats.json`, which is the only place
+the site keeps these figures.
 
 The cold build is not slow because bleep is slow — five million lines is
 simply a lot of compiler work. The point is that **no fork ever needs to do

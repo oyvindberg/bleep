@@ -1,0 +1,70 @@
+{
+  "$comment": [
+    "SINGLE SOURCE OF TRUTH for every measured number quoted on the site.",
+    "Nothing may hardcode these figures in prose. Import from here instead:",
+    "  JS  : import stats from '@site/src/data/build-stats.json'",
+    "  MDX : import stats from '@site/src/data/build-stats.json'",
+    "Regenerate the code sizes with bleep-site/measure-daily-driver.sh, then update",
+    "measuredAt and commit. Timings are re-measured by hand, see timings.source."
+  ],
+  "measuredAt": "2026-08-15",
+  "repo": {
+    "name": "the daily driver",
+    "description": "a private repository the bleep authors work in every day",
+    "commit": "71e9979a41",
+    "trackedLines": 17072788,
+    "trackedLinesLabel": "17M",
+    "trackedFiles": 64707
+  },
+  "compiled": {
+    "$comment": "What bleep actually compiles: Java + Scala under the build's source roots.",
+    "lines": 5131841,
+    "linesLabel": "5.1 million",
+    "linesShort": "5.1M",
+    "files": 11928,
+    "projects": 132,
+    "java": {
+      "lines": 4962730,
+      "linesLabel": "4.9M",
+      "files": 11514,
+      "generatedLines": 4609507,
+      "generatedLabel": "4.6M",
+      "handWrittenLines": 353223,
+      "handWrittenLabel": "353k"
+    },
+    "scala": {
+      "lines": 169111,
+      "linesLabel": "169k",
+      "files": 414
+    }
+  },
+  "timings": {
+    "$comment": "Measured on an M5 Pro laptop against the repo above. Not re-measured on 2026-08-15 — carried from the worktree benchmark run recorded in docs/guides/worktrees.mdx.",
+    "source": "docs/guides/worktrees.mdx",
+    "cliStartupMs": 10,
+    "noopCompileSeconds": 9,
+    "worktreeAddSeconds": 6.2,
+    "copyStateSeconds": 14.5,
+    "copyStateGigabytes": 1.8,
+    "firstCompileAfterCopyStateSeconds": 33,
+    "forkToVerifiedGreenSeconds": 54,
+    "forkToVerifiedGreenColdSeconds": 268,
+    "forkToVerifiedGreenColdLabel": "4 min 22 s"
+  },
+  "tokens": {
+    "$comment": "Measured over the live MCP server.",
+    "greenCompile": 25,
+    "failingTestWithDiff": 265,
+    "rangeLabel": "25–265"
+  },
+  "ownTests": {
+    "$comment": "bleep testing itself, the recording in static/demos/own-tests.cast.",
+    "suites": 86,
+    "tests": 439,
+    "wallClockSeconds": 60,
+    "serialisedMinutes": 9
+  },
+  "mcp": {
+    "toolCount": 18
+  }
+}

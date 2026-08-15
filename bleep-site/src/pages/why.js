@@ -4,6 +4,7 @@ import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
 import agentsCast from "!!file-loader!@site/static/demos/agents.cast";
+import stats from "@site/src/data/build-stats.json";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -156,7 +157,8 @@ function Hero() {
           configure itself. We build five million lines of JVM code for
           a living and we got tired of waiting too. So we built a build
           tool with a native binary that bootstraps in ten milliseconds,
-          answers an agent in 265 tokens at worst, and forks a warm copy
+          answers an agent in {stats.tokens.failingTestWithDiff} tokens at worst,
+          and forks a warm copy
           of your entire compiled world in under a minute. This page is
           the sales pitch. Every number on it is measured.
         </p>
@@ -177,7 +179,7 @@ function Hero() {
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>CLI startup</span>
             <span className={styles.heroFactValue}>
-              10 <em>ms</em>
+              {stats.timings.cliStartupMs} <em>ms</em>
             </span>
             <span className={styles.heroFactSub}>native binary, no JVM</span>
           </div>
@@ -186,16 +188,18 @@ function Hero() {
               new worktree, compiled
             </span>
             <span className={styles.heroFactValue}>
-              268 <em>→</em> 54 s
+              {stats.timings.forkToVerifiedGreenColdSeconds} <em>→</em>{" "}
+              {stats.timings.forkToVerifiedGreenSeconds} s
             </span>
             <span className={styles.heroFactSub}>
-              cold rebuild vs copy-state, 5.1M lines
+              cold rebuild vs copy-state, {stats.compiled.linesShort} lines
             </span>
           </div>
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>tokens per answer</span>
             <span className={styles.heroFactValue}>
-              25<em>–</em>265
+              {stats.tokens.greenCompile}<em>–</em>
+              {stats.tokens.failingTestWithDiff}
             </span>
             <span className={styles.heroFactSub}>
               green → failure with full diff
@@ -318,7 +322,8 @@ function FieldNotesSection() {
                 verbose&rdquo;, their words) stop shredding agent
                 context. An entire product category exists to apologize
                 for build output. Bleep&rsquo;s worst answer measures
-                265 tokens, because that&rsquo;s all it says.
+                {stats.tokens.failingTestWithDiff} tokens, because
+                that&rsquo;s all it says.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -359,8 +364,10 @@ function ReceiptsSection() {
             </>
           }
         >
-          Measured on the repo bleep&rsquo;s authors work in daily — 5.1
-          million lines of JVM code across 130 projects — on the laptop
+          Measured on the repo bleep&rsquo;s authors work in daily —{" "}
+          {stats.compiled.java.linesLabel} lines of Java and{" "}
+          {stats.compiled.scala.linesLabel} of Scala across{" "}
+          {stats.compiled.projects} projects — on the laptop
           it was typed on, against today&rsquo;s master. We can measure this any day,
           because the build{" "}
           <Link to="/docs/usage/run-history">records its own runs</Link>{" "}
@@ -385,36 +392,41 @@ function ReceiptsSection() {
                 &ldquo;is everything green?&rdquo;
               </span>
               <span className={styles.numberValue}>
-                9<span className={styles.numberValueUnit}>s</span>
+                {stats.timings.noopCompileSeconds}
+                <span className={styles.numberValueUnit}>s</span>
               </span>
               <p className={styles.numberCaption}>
-                A no-op compile across all 130 projects, 5.1 million
+                A no-op compile across all {stats.compiled.projects}{" "}
+                projects, {stats.compiled.linesLabel}
                 lines. That&rsquo;s the whole tax for asking.
               </p>
             </div>
             <div className={styles.numberCell}>
               <span className={styles.numberKicker}>fork → verified green</span>
               <span className={styles.numberValue}>
-                54<span className={styles.numberValueUnit}>s</span>
+                {stats.timings.forkToVerifiedGreenSeconds}
+                <span className={styles.numberValueUnit}>s</span>
               </span>
               <p className={styles.numberCaption}>
                 The whole fork: <code>git worktree add</code>, then{" "}
-                <code>bleep copy-state</code> — 1.8&nbsp;GB of compiled
-                state, cloned in 14.5&nbsp;s — then a full compile
-                verifying all 130 projects green. The same fork without
-                copy-state compiles cold for 4&nbsp;min&nbsp;22&nbsp;s —
+                <code>bleep copy-state</code> — {stats.timings.copyStateGigabytes}&nbsp;GB of
+                compiled state, cloned in {stats.timings.copyStateSeconds}&nbsp;s — then a full
+                compile verifying all {stats.compiled.projects} projects green.
+                The same fork without copy-state compiles cold for{" "}
+                {stats.timings.forkToVerifiedGreenColdLabel} —
                 five times longer. No fork pays cold twice.
               </p>
             </div>
             <div className={styles.numberCell}>
               <span className={styles.numberKicker}>tokens per agent answer</span>
               <span className={styles.numberValue}>
-                265<span className={styles.numberValueUnit}>tok max</span>
+                {stats.tokens.failingTestWithDiff}
+                <span className={styles.numberValueUnit}>tok max</span>
               </span>
               <p className={styles.numberCaption}>
                 Measured over the live MCP server: a green compile
-                answers in 25 tokens; a failure with its full
-                what-changed diff is 265. A raw build log is tens of
+                answers in {stats.tokens.greenCompile} tokens; a failure with its full
+                what-changed diff is {stats.tokens.failingTestWithDiff}. A raw build log is tens of
                 thousands.
               </p>
             </div>
@@ -935,8 +947,9 @@ function AgentEraSection() {
                 <code>bleep.copy-state</code> clones the parent
                 worktree&rsquo;s compiled state under the compile
                 server&rsquo;s own locks — clonefile-fast, safe
-                mid-compile. Fork to verified green in 54 seconds on
-                5.1 million lines. Subagents earn their keep from the
+                mid-compile. Fork to verified green in{" "}
+                {stats.timings.forkToVerifiedGreenSeconds} seconds on{" "}
+                {stats.compiled.linesLabel} lines. Subagents earn their keep from the
                 first minute.
               </p>
             </article>
@@ -1059,7 +1072,7 @@ function InstallCTA() {
         >
           Open source, Apache 2.0. The first line installs the binary.
           The second gives every agent on your machine a build tool that
-          answers in 265 tokens or fewer. There is no third line.
+          answers in {stats.tokens.failingTestWithDiff} tokens or fewer. There is no third line.
         </SectionHeader>
 
         <Reveal>

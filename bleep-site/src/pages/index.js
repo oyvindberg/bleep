@@ -5,6 +5,7 @@ import Snippet from "@site/src/components/Snippet";
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
 import claudeAgentsCast from "!!file-loader!@site/static/demos/claude-agents.cast";
 import ownTestsCast from "!!file-loader!@site/static/demos/own-tests.cast";
+import stats from "@site/src/data/build-stats.json";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -180,7 +181,7 @@ function Hero() {
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>CLI startup</span>
             <span className={styles.heroFactValue}>
-              10 <em>ms</em>
+              {stats.timings.cliStartupMs} <em>ms</em>
             </span>
             <span className={styles.heroFactSub}>native binary, no JVM</span>
           </div>
@@ -189,16 +190,18 @@ function Hero() {
               new worktree, compiled
             </span>
             <span className={styles.heroFactValue}>
-              268 <em>&rarr;</em> 54 s
+              {stats.timings.forkToVerifiedGreenColdSeconds} <em>&rarr;</em>{" "}
+              {stats.timings.forkToVerifiedGreenSeconds} s
             </span>
             <span className={styles.heroFactSub}>
-              cold rebuild vs copy-state, 5.1M lines
+              cold rebuild vs copy-state, {stats.compiled.linesShort} lines
             </span>
           </div>
           <div className={styles.heroFact}>
             <span className={styles.heroFactLabel}>tokens per answer</span>
             <span className={styles.heroFactValue}>
-              25<em>&ndash;</em>265
+              {stats.tokens.greenCompile}<em>&ndash;</em>
+              {stats.tokens.failingTestWithDiff}
             </span>
             <span className={styles.heroFactSub}>
               green &rarr; failure with full diff
@@ -517,8 +520,10 @@ function PerformanceSection() {
           Cut the code, the build plugins, the scopes, the task graph,
           and the inner loop stops being something you wait for. The
           numbers below are measured on the repo bleep&rsquo;s authors
-          work in daily &mdash; 5.1 million lines across 130 projects
-          &mdash; and we can re-measure them any day, because the build{" "}
+          work in daily &mdash; {stats.compiled.java.linesLabel} lines of
+          Java and {stats.compiled.scala.linesLabel} of Scala across{" "}
+          {stats.compiled.projects} projects &mdash; and we can re-measure
+          them any day, because the build{" "}
           <Link to="/docs/usage/run-history">records its own runs</Link>.
           It matters more than ever, too:{" "}
           <Link to="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report">
@@ -538,8 +543,9 @@ function PerformanceSection() {
               <p className={styles.mcpCardBody}>
                 Native CLI binary. Reads <code>bleep.yaml</code>,
                 resolves dependencies through Coursier&rsquo;s local
-                cache, builds the full project model &mdash; all 130
-                projects, done in ten milliseconds, before a JVM would
+                cache, builds the full project model &mdash; all{" "}
+                {stats.compiled.projects} projects, done in ten
+                milliseconds, before a JVM would
                 have finished saying hello. No configuration phase, no
                 &ldquo;loading projects&hellip;&rdquo; progress bar. The
                 compile daemon (<code>bleep-bsp</code>) is the
@@ -570,8 +576,10 @@ function PerformanceSection() {
                 incremental compilation: one file changed, one (or
                 two) recompiled, in milliseconds. And asking the big
                 question &mdash; <em>is everything still green?</em>{" "}
-                &mdash; costs 9 seconds across all 130 projects and 5.1
-                million lines. That is the whole tax for asking.
+                &mdash; costs {stats.timings.noopCompileSeconds} seconds
+                across all {stats.compiled.projects} projects and{" "}
+                {stats.compiled.linesLabel} lines. That is the whole tax
+                for asking.
               </p>
             </article>
           </div>
@@ -856,8 +864,10 @@ function TestRunnerSection() {
           }
         >
           Nine minutes of test work, done in one. That is bleep testing
-          itself below — 86 suites, 439 tests, integration builds and all,
-          green in 60 seconds. Suites compile and run in parallel across
+          itself below — {stats.ownTests.suites} suites,{" "}
+          {stats.ownTests.tests} tests, integration builds and all, green in{" "}
+          {stats.ownTests.wallClockSeconds} seconds. Suites compile and run
+          in parallel across
           every CPU, and you watch it happen: which suite is running, which
           just failed, the moment it fails. No staring at a dead terminal
           wondering how far along it is.
@@ -935,9 +945,12 @@ function AgentsSection() {
           on a big codebase that is minutes of nothing, per agent, every
           time. Bleep collapses that price. A new worktree clones the
           parent&rsquo;s compiled state and hits verified green in{" "}
-          <strong>54 seconds on 5.1 million lines</strong>, against 4½
-          minutes cold. Spawn six agents and the sixth starts as fast as the
-          first.
+          <strong>
+            {stats.timings.forkToVerifiedGreenSeconds} seconds on{" "}
+            {stats.compiled.linesLabel} lines
+          </strong>
+          , against {stats.timings.forkToVerifiedGreenColdLabel} cold. Spawn
+          six agents and the sixth starts as fast as the first.
         </SectionHeader>
 
         <Reveal delay={60}>
@@ -951,7 +964,10 @@ function AgentsSection() {
               <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
                 The prompt is in the repo
               </Link>
-              .
+              . It runs against a toy build so it fits in half a minute &mdash;
+              watch the mechanism, not the magnitude. The magnitude is the{" "}
+              {stats.timings.forkToVerifiedGreenSeconds}&nbsp;s above, on{" "}
+              {stats.compiled.linesLabel} lines.
             </p>
             <div className={styles.testRunnerVideo}>
               <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={40} fit="width" />
@@ -976,10 +992,13 @@ function AgentsSection() {
 
         <Reveal>
           <p className={styles.mcpStat}>
-            <span className={styles.mcpStatFigure}>25&ndash;265 tokens</span>
+            <span className={styles.mcpStatFigure}>
+              {stats.tokens.rangeLabel} tokens
+            </span>
             <span className={styles.mcpStatRest}>
-              measured over the live MCP server: a green compile answers in
-              25, a failing test with its full what-changed diff in 265. A
+              measured over the live MCP server: a green compile answers in{" "}
+              {stats.tokens.greenCompile}, a failing test with its full
+              what-changed diff in {stats.tokens.failingTestWithDiff}. A
               raw build log runs to tens of thousands, and every one of them
               costs the agent attention it could spend on your code.
             </span>
@@ -1222,7 +1241,7 @@ function InstallCTA() {
           Bleep is open source under Apache 2.0. Java, Kotlin, and Scala on the JVM.
           Cross-build to JS and Native if you want. Or don&rsquo;t. The
           second line gives every agent on your machine a build tool
-          that answers in 265 tokens or fewer.
+          that answers in {stats.tokens.failingTestWithDiff} tokens or fewer.
         </SectionHeader>
 
         <Reveal>
