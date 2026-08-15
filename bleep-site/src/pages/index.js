@@ -881,13 +881,10 @@ function AgentWorktreesSection() {
             </>
           }
         >
-          Agent work has a shape by now. An orchestrator splits a job across
-          git worktrees, drops a subagent in each one, and every subagent
-          starts by rebuilding a world its siblings already built. Bleep is
-          built for that shape. Register the MCP server once and every
-          session — plus every subagent it spawns — can compile, test and
-          inspect any checkout on the machine. Fresh worktrees start warm.
-          One daemon serves all of them.
+          An orchestrator splits a job across git worktrees and drops a
+          subagent in each one. Register the MCP server once, and every
+          session — plus every subagent it spawns — can build any checkout
+          on the machine.
         </SectionHeader>
 
         <Reveal delay={60}>
@@ -896,15 +893,11 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1.25rem" }}
             >
-              Here is one, recorded start to finish — Claude Code&rsquo;s own
-              screen, nothing staged. Two subagents go into fresh worktrees.
-              One seeds itself from the parent with{" "}
-              <code>bleep.copy-state</code>; the other starts cold on
-              purpose. Then the session asks bleep to compare their two
-              first builds, and reads the answer straight off the tool. The
-              prompt it was given is{" "}
+              Two subagents, two fresh worktrees. One seeds itself from the
+              parent with <code>copy-state</code>, the other starts cold on
+              purpose. Real session, real screen, and the{" "}
               <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
-                in the repo
+                prompt is in the repo
               </Link>
               .
             </p>
@@ -918,14 +911,12 @@ function AgentWorktreesSection() {
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                Every call names its <em>workspace</em>
+                One registration, every <em>checkout</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                One registration serves every checkout, because the server
-                keeps no workspace state of its own. Each call carries its{" "}
-                <code>directory</code> and reads that build as it is right
-                now — so a subagent cannot quietly build the parent
-                checkout, and nothing goes stale between calls.
+                Every call carries its own <code>directory</code>, so a
+                subagent can&rsquo;t quietly build the parent checkout and
+                nothing goes stale between calls.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -933,26 +924,21 @@ function AgentWorktreesSection() {
                 Forks start <em>warm</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>git worktree add</code>, then one{" "}
-                <code>bleep.copy-state</code> call clones the parent&rsquo;s
-                compiled state — inside the compile server, under the same
-                locks a compile takes, so it is safe while the parent is
-                still building. On a 5.1-million-line repo: fork to verified
-                green in 54 seconds, against 4½ minutes cold.{" "}
+                One <code>bleep.copy-state</code> call clones the
+                parent&rsquo;s compiled state, safely, mid-compile. On 5.1
+                million lines: fork to verified green in 54 seconds, against
+                4½ minutes cold.{" "}
                 <Link to="/docs/guides/worktrees">Recipe and numbers</Link>.
               </p>
             </article>
             <article className={styles.mcpCard}>
               <h3 className={styles.mcpCardTitle}>
-                One <em>hot daemon</em>, every checkout
+                One <em>hot daemon</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Every checkout shares one compile server, so ten worktrees
-                do not cost ten JVMs. It keeps incremental state hot and
-                stores identical dependency analyses once instead of once
-                per worktree. Add the{" "}
-                <Link to="/docs/usage/remote-cache/#local-directory-cache">local build cache</Link>{" "}
-                and a fresh worktree skips what a sibling already built.
+                Every checkout shares one compile server. Ten worktrees
+                don&rsquo;t cost ten JVMs, and a fresh one can skip what a
+                sibling already built.
               </p>
             </article>
           </div>
@@ -961,10 +947,10 @@ function AgentWorktreesSection() {
         <Reveal delay={60}>
           <p className={styles.toolRoster}>
             <span className={styles.toolRosterLabel}>
-              the whole surface, 18 tools —{" "}
+              18 tools —{" "}
             </span>
             <Link to="/docs/usage/mcp-server/">
-              bleep.compile · test · run · projects · test.suites ·
+              compile · test · run · projects · test.suites ·
               build.effective/resolved · history.list/show/diff/diff-timing ·
               copy-state · fmt · clean · sourcegen · scripts · programs ·
               restart
@@ -1001,26 +987,20 @@ function AgentAnswersSection() {
             </>
           }
         >
-          The loop is always the same: change something, run it, work out
-          what changed. Most build tools answer that last part with a log
-          and leave the reading to you. Bleep answers it directly, because
-          every layer is already data. <code>bleep.yaml</code> is data. The
-          resolved model is data. The daemon reports what it does as typed
-          events, and a finished run is a transcript — one immutable file,
-          written into the worktree, outliving the daemon that wrote it.
-          Once runs are files, comparing two of them is a function over two
-          files. That is the whole trick, and everything below falls out of
-          it.
+          Change something, run it, work out what changed. Most build tools
+          answer that last part with a log and leave the reading to you. A
+          finished run in bleep is one immutable file in the worktree — so
+          comparing two runs is a function over two files, and the answer is
+          small.
         </SectionHeader>
 
         <Reveal>
           <p className={styles.mcpStat}>
             <span className={styles.mcpStatFigure}>25&ndash;265 tokens</span>
             <span className={styles.mcpStatRest}>
-              measured over the live MCP server: a green compile answers in
-              25, a failure with its full what-changed diff in 265. A raw
-              build log runs to tens of thousands — and the agent has to
-              read all of them to find the one line that matters.
+              measured: a green compile answers in 25, a failure with its
+              full what-changed diff in 265. A build log is tens of
+              thousands.
             </span>
           </p>
         </Reveal>
@@ -1030,25 +1010,24 @@ function AgentAnswersSection() {
             rows={[
               {
                 actor: "agent",
-                deed: "breaks a test, reruns — diffBase pins the last green run, so the answer rides along",
+                deed: "breaks a test, reruns — diffBase pinned to the last green run",
               },
               {
                 actor: "",
                 call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
                 result:
-                  '{ historyId: 19, failed: 1, diff: { summary: "1 newlyFailing", newlyFailing: [{ test: "PricingTest.10 percent off at 100 and above", from: "passed", to: "failed", message: "expected 216, obtained 204" }] } }',
+                  '{ failed: 1, diff: { summary: "1 newlyFailing", test: "PricingTest.10 percent off at 100 and above", message: "expected 216, obtained 204" } }',
                 bad: true,
-                note: "run and what-changed in one call: the break, its name, its assertion, nothing else",
+                note: "the run and what changed, in one call",
               },
               { gap: true },
               { actor: "agent", deed: "reverts, reruns" },
               {
                 actor: "",
                 call: "bleep.test { directory: ~/repo/wt/api, diffBase: 18 }",
-                result:
-                  '{ historyId: 20, passed: 14, diff: { identical: true, summary: "No logical differences." } }',
+                result: '{ passed: 14, diff: { identical: true } }',
                 good: true,
-                note: "~800ms of timing noise between the runs, zero false diffs",
+                note: "800ms of timing noise between the runs, zero false diffs",
               },
             ]}
           />
@@ -1061,13 +1040,10 @@ function AgentAnswersSection() {
                 Answers, not <em>transcripts</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Compile and test come back as counts, the first errors, and
-                an id. Failures stream the moment they happen rather than at
-                the end. When an agent does want the detail, it searches the
-                stored transcript with a regex through{" "}
-                <code>bleep.history.show</code> — server-side, so the
-                matching lines come back instead of the whole run. No log
-                files, no grep expeditions, no missed diagnostics.
+                Counts, the first errors, an id — and failures stream the
+                moment they happen. Want the detail?{" "}
+                <code>history.show</code> greps the stored run server-side
+                and hands back the matching lines.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -1075,12 +1051,9 @@ function AgentAnswersSection() {
                 Ask what <em>changed</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep.history.diff</code> compares any two runs: newly
-                failing, fixed, newly skipped and why, new and resolved
-                diagnostics. Durations never enter the comparison, so a slow
-                machine cannot invent a difference, and a diagnostic that
-                only moved down the file is neither new nor resolved. Rerun
-                without editing and it says so.
+                <code>history.diff</code> compares any two runs: newly
+                failing, fixed, new and resolved diagnostics. Durations never
+                enter it, so a slow machine can&rsquo;t invent a difference.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -1088,11 +1061,9 @@ function AgentAnswersSection() {
                 Timing is its own <em>question</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                Speed gets its own comparison, so it cannot hide inside the
-                logical one. <code>bleep.history.diff-timing</code> reports
-                what got slower or faster and names the slowest suites and
-                projects, with jitter below a threshold suppressed — so the
-                answer is a real regression, not a busy laptop.
+                <code>history.diff-timing</code> answers what got slower,
+                with jitter suppressed — so it&rsquo;s a real regression, not
+                a busy laptop.
               </p>
             </article>
           </div>
@@ -1103,25 +1074,11 @@ function AgentAnswersSection() {
             className={styles.sectionLede}
             style={{ marginTop: "2.25rem", textAlign: "center" }}
           >
-            None of this is agent-only. Transcripts sit in the worktree,
-            written once by the daemon and read by everyone:{" "}
-            <code>bleep history</code>, <code>bleep history show</code>,{" "}
-            <code>bleep history diff</code> are plain file reads that work
-            with no daemon running at all, and <code>--base-dir</code>{" "}
-            compares a fork&rsquo;s run against the worktree it came from.
-            The <Link to="/docs/usage/run-history">run history guide</Link>{" "}
+            None of it is agent-only: <code>bleep history</code>,{" "}
+            <code>show</code> and <code>diff</code> are plain file reads that
+            work with no daemon running.{" "}
+            <Link to="/docs/usage/run-history">The run history guide</Link>{" "}
             has the rest.
-          </p>
-        </Reveal>
-
-        <Reveal delay={140}>
-          <p className={styles.compareCta}>
-            <Link
-              className={styles.compareCtaLink}
-              to="/docs/usage/mcp-server/"
-            >
-              MCP server docs &nbsp;→
-            </Link>
           </p>
         </Reveal>
       </div>
