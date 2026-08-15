@@ -310,6 +310,8 @@ case class ReactiveBsp(
         bleepLoggers.silent
       case DisplayMode.NoTui     => started.logger
       case DisplayMode.DiffWatch => started.logger
+      // --quiet promises less output: the daemon-connection chatter (classpath, ensuring, connecting) is not part of failures-and-summary
+      case DisplayMode.Quiet => started.logger.withMinLogLevel(ryddig.LogLevel.warn)
     }
 
     // Pre-create diagnostic log writer OUTSIDE IO monad for faster startup
@@ -348,6 +350,8 @@ case class ReactiveBsp(
       displayAndCompletionAndQuit <- effectiveMode match {
         case DisplayMode.NoTui =>
           BuildDisplay.create(false, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
+        case DisplayMode.Quiet =>
+          BuildDisplay.create(true, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
         case DisplayMode.DiffWatch =>
           BuildDisplay
             .createDiffWatch(started.logger, mode, previousRunState.get())

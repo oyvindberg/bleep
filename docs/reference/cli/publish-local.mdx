@@ -30,8 +30,8 @@ bleep publish-local <project name...> [flags]
 | `--version <string>` | version you will publish |
 | `--to <path>` | publish to a maven repository at given path |
 | `--watch, -w` | start in watch mode |
-| `--no-tui` | disable TUI, show summary only (for CI/agents) |
-| `--quiet, -q` | alias for --no-tui |
+| `--no-tui` | disable TUI, keep the full streaming trace (for CI/agents that read logs) |
+| `--quiet, -q` | only failures and the final summary |
 | `--flamegraph` | generate execution trace (open in chrome://tracing or ui.perfetto.dev) |
 | `--cancel` | cancel any running build before starting |
 

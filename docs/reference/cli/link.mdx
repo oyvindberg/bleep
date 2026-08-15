@@ -38,8 +38,8 @@ bleep link <project name...> [flags]
 | `--no-optimize` | disable optimizations/DCE (all non-JVM platforms) |
 | `--debug-info` | include debug info (native platforms) |
 | `--no-debug-info` | exclude debug info (native platforms) |
-| `--no-tui` | disable TUI, show summary only (for CI/agents) |
-| `--quiet, -q` | alias for --no-tui |
+| `--no-tui` | disable TUI, keep the full streaming trace (for CI/agents that read logs) |
+| `--quiet, -q` | only failures and the final summary |
 | `--flamegraph` | generate execution trace (open in chrome://tracing or ui.perfetto.dev) |
 | `--cancel` | cancel any running build before starting |
 

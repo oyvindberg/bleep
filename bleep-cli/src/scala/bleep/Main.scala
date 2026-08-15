@@ -407,14 +407,14 @@ object Main {
 
     val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
       (
-        Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-        Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-      ).mapN(_ || _),
+        Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+        Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+      ).tupled,
       Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
       cancel
-    ).mapN { case (noTui, flamegraph, cancel) =>
+    ).mapN { case ((noTui, quiet), flamegraph, cancel) =>
       commands.CommonBuildOpts(
-        displayMode = commands.DisplayMode.fromFlags(noTui),
+        displayMode = commands.DisplayMode.fromFlags(noTui, quiet),
         flamegraph = flamegraph,
         cancel = cancel
       )
@@ -564,18 +564,18 @@ object Main {
               watch,
               projectNames,
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-              ).mapN(_ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+              ).tupled,
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               diffOpt("compile"),
               diffOutputOpt
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
+            ).mapN { case (watch, projectNames, (noTui, quiet), diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                else (watch, commands.DisplayMode.fromFlags(noTui))
+                else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
               commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase, diffOutput)
             }
           ),
@@ -591,12 +591,12 @@ object Main {
               optimizeOpt,
               debugInfoOpt,
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-              ).mapN(_ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+              ).tupled,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel
-            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel) =>
+            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, (noTui, quiet), flamegraph, cancel) =>
               val linkOptions = commands.LinkOptions(
                 releaseMode = release,
                 sourceMaps = sourceMaps,
@@ -606,7 +606,7 @@ object Main {
                 optimize = optimize,
                 debugInfo = debugInfo
               )
-              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel)
+              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui, quiet), linkOptions, flamegraph, cancel)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
@@ -616,12 +616,13 @@ object Main {
             (
               watch,
               testProjectNames,
-              // Multiple aliases for disabling TUI - for different use cases
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse,
-                Opts.flag("summary-only", "alias for --no-tui").orFalse
-              ).mapN(_ || _ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                (
+                  Opts.flag("quiet", "only failures and the final summary", "q").orFalse,
+                  Opts.flag("summary-only", "alias for --quiet").orFalse
+                ).mapN(_ || _)
+              ).tupled,
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
               Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
@@ -638,7 +639,7 @@ object Main {
               case (
                     watch,
                     projectNames,
-                    noTui,
+                    (noTui, quiet),
                     diffWatch,
                     jvmOpts,
                     testArgs,
@@ -654,7 +655,7 @@ object Main {
                   ) =>
                 val (effectiveWatch, effectiveDisplayMode) =
                   if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                  else (watch, commands.DisplayMode.fromFlags(noTui))
+                  else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
                 commands.ReactiveBsp.test(
                   watch = effectiveWatch,
                   projects = projectNames,
