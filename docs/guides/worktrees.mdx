@@ -2,6 +2,10 @@
 title: Worktrees
 ---
 
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
+import agentsCast from "!!file-loader!@site/static/demos/agents.cast";
+
 # Worktrees
 
 Agentic development has a shape: an orchestrating session fans subagents out
@@ -25,6 +29,11 @@ bleep compile               # verifies everything, compiles nothing
 That's all of it. No per-worktree daemon, no per-worktree configuration, no
 cache server. Agents do the same over MCP with
 [`bleep.copy-state`](/docs/usage/mcp-server/).
+
+Watch two fresh worktrees side by side — one pays for a full rebuild, the
+other seeds itself and its first build recompiles nothing:
+
+<AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
 
 ## The numbers
 
@@ -110,3 +119,8 @@ mcp-server`) and every session and subagent can call
 per-worktree [history](/docs/usage/run-history), and
 `bleep history diff --base-dir ../main` diffs a fork's run against its
 parent's.
+
+Three agents fanning out, each seeded in milliseconds, one proving its change
+with `test --diff` instead of a log dump:
+
+<AsciinemaPlayer src={agentsCast} cols={100} rows={40} fit="width" />

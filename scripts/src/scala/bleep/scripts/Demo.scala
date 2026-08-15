@@ -225,9 +225,199 @@ object Demo {
     }
   }
 
+  /** Shared fixture for the worktree/agent/history demos: a build with enough real compilation work (40 circe-derived case classes) that a cold rebuild visibly
+    * costs seconds, while a seeded one is a no-op. `core` + `app` + a munit `core-test`.
+    */
+  private object records {
+    def bleepYaml(bleepVersion: String): String =
+      s"""$$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+         |$$version: $bleepVersion
+         |jvm:
+         |  name: graalvm-community:25.0.1
+         |projects:
+         |  core:
+         |    dependencies: io.circe::circe-generic:0.14.15
+         |    extends: template-common
+         |  app:
+         |    dependsOn: core
+         |    extends: template-common
+         |    platform:
+         |      mainClass: com.example.Main
+         |  core-test:
+         |    dependencies: org.scalameta::munit:1.3.4
+         |    dependsOn: core
+         |    extends: template-common
+         |    isTestProject: true
+         |templates:
+         |  template-common:
+         |    platform:
+         |      name: jvm
+         |    scala:
+         |      version: 3.8.4
+         |""".stripMargin
+
+    def recordSource(i: Int): String =
+      s"""package com.example
+         |
+         |import io.circe.Codec
+         |
+         |case class Record$i(id: Int, name: String, tags: List[String] = Nil) derives Codec:
+         |  def describe: String = s"Record$i($$id, $$name)"
+         |  def withTag(t: String): Record$i = copy(tags = t :: tags)
+         |
+         |object Record$i:
+         |  def sample: Record$i = Record$i($i, "sample").withTag("t$i")
+         |""".stripMargin
+
+    val mainScala: String =
+      """package com.example
+        |
+        |object Main:
+        |  def main(args: Array[String]): Unit =
+        |    println(Record1(1, "hello").describe)
+        |""".stripMargin
+
+    val testScala: String =
+      """package com.example
+        |
+        |class RecordTest extends munit.FunSuite:
+        |  test("withTag prepends") {
+        |    assertEquals(Record1(1, "a").withTag("x").tags, List("x"))
+        |  }
+        |
+        |  test("describe mentions the name") {
+        |    assert(Record2(2, "two").describe.contains("two"))
+        |  }
+        |""".stripMargin
+
+    def files(bleepVersion: String): Map[RelPath, String] =
+      Map(
+        RelPath.force("bleep.yaml") -> bleepYaml(bleepVersion),
+        RelPath.force("app/src/scala/com/example/Main.scala") -> mainScala,
+        RelPath.force("core-test/src/scala/com/example/RecordTest.scala") -> testScala
+      ) ++ (1 to 40).map(i => RelPath.force(s"core/src/scala/com/example/Record$i.scala") -> recordSource(i))
+
+    def prepare(bleep: Path): String =
+      s"""set -euo pipefail
+         |git init -q
+         |git add -A
+         |git -c user.email=demo@bleep.build -c user.name=demo commit -qm 'initial'
+         |$bleep compile --no-tui --no-color
+         |$bleep test --no-tui --no-color
+         |""".stripMargin
+  }
+
+  /** The copy-state story: two fresh worktrees, one pays for a full rebuild, the other seeds itself from the main worktree in milliseconds and its first build
+    * is a no-op. Closes on the seeded worktree's history, which travelled with the state — it knows the baseline it was forked from.
+    */
+  object copyState extends Demo("copy-state", rows = 34, columns = 100) {
+    override val expectedYaml: Option[RelPath] = None
+    override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
+    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleepVersion.discard()
+      s"""
+         |# a warm checkout: 42 sources compiled, tests green, every run recorded
+         |$bleep history
+         |
+         |# two fresh git worktrees for two parallel tasks
+         |git worktree add ../task-a -b task-a
+         |git worktree add ../task-b -b task-b
+         |
+         |# a fresh worktree starts from nothing: task-a pays with a full rebuild
+         |cd ../task-a
+         |$bleep compile --no-tui
+         |
+         |# task-b seeds itself from the main worktree first
+         |cd ../task-b
+         |$bleep copy-state ../demo
+         |
+         |# the same first build - starting from main's incremental baseline
+         |$bleep compile --no-tui
+         |
+         |# 'up to date' everywhere, zero recompiles. the worktree is ready to work:
+         |$bleep test --quiet
+         |""".stripMargin
+    }
+  }
+
+  /** The subagent story: three agents fan out into three seeded worktrees, one adds a test and asks `test --diff` exactly what it changed vs the baseline it
+    * was forked from, the others' first builds are no-ops. Isolation without duplicate work.
+    */
+  object agents extends Demo("agents", rows = 40, columns = 100) {
+    override val expectedYaml: Option[RelPath] = None
+    override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
+    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleepVersion.discard()
+      val authTest =
+        """package com.example\n\nclass AuthTest extends munit.FunSuite:\n  test("sample ids are positive") {\n    assert(Record3.sample.id > 0)\n  }\n"""
+      s"""
+         |# one warm checkout - and three agents about to work in parallel
+         |for t in auth search export; do git worktree add -q ../$$t -b agent-$$t; (cd ../$$t && $bleep copy-state ../demo); done
+         |
+         |# three isolated worktrees, each seeded with main's compiled state in milliseconds
+         |# agent 'auth' starts from green - nothing to rebuild, just run the tests
+         |cd ../auth
+         |$bleep test --quiet
+         |
+         |# it writes a test in its own worktree...
+         |: printf '$authTest' > core-test/src/scala/com/example/AuthTest.scala
+         |bat core-test/src/scala/com/example/AuthTest.scala
+         |
+         |# ...and asks what changed, instead of re-reading the whole log
+         |$bleep test --diff --no-tui
+         |
+         |# '1 added', passed: the diff is the review. the other agents' first builds?
+         |(cd ../search && $bleep compile --quiet)
+         |(cd ../export && $bleep compile --quiet)
+         |
+         |# already up to date. three agents, private state and history, zero duplicate work
+         |git worktree list
+         |""".stripMargin
+    }
+  }
+
+  /** The history-as-api story: runs are recorded transcripts, a transcript is JSON you can fetch, and `compile --diff` turns the agent inner loop into "edit,
+    * then ask exactly what changed" instead of re-reading logs. Closes on the ledger with the failed run in it.
+    */
+  object historyApi extends Demo("history-api", rows = 40, columns = 100) {
+    override val expectedYaml: Option[RelPath] = None
+    override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
+    override def prepareScript(bleep: Path): Option[String] = Some(records.prepare(bleep))
+
+    override def script(bleep: Path, bleepVersion: String): String = {
+      bleepVersion.discard()
+      s"""
+         |# every compile and test run is recorded in the workspace - the build has a memory
+         |$bleep history
+         |
+         |# a run is data, not scrollback: fetch any transcript as json
+         |$bleep history show 2 | head -18
+         |
+         |# the agent inner loop: edit, then ask exactly what changed
+         |sed -i '' 's|def withTag|def withTagg|' core/src/scala/com/example/Record7.scala
+         |$bleep compile --diff --no-tui
+         |
+         |# one new diagnostic, named and located - no log spelunking. fix it:
+         |sed -i '' 's|def withTagg|def withTag|' core/src/scala/com/example/Record7.scala
+         |$bleep compile --diff --no-tui
+         |
+         |# four runs, recorded forever, diffable in any pair - and agents query
+         |# exactly this api over mcp instead of re-reading logs
+         |$bleep history
+         |""".stripMargin
+    }
+  }
+
   val all = List(
     runNativeNew,
     importNew,
-    diff
+    diff,
+    copyState,
+    agents,
+    historyApi
   )
 }

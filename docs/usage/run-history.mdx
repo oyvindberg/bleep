@@ -4,6 +4,7 @@ title: Run history & diffs
 
 import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
 import diffCast from "!!file-loader!@site/static/demos/diff.cast";
+import historyApiCast from "!!file-loader!@site/static/demos/history-api.cast";
 
 # Run history & diffs
 
@@ -125,6 +126,11 @@ Bare `--diff` compares against the most recent run of the same mode. With
 ends with a hint (`timing: bleep history diff 5 6 --timing`) so the duration
 comparison of the exact same pair is one paste away. `--diff-watch` is the
 terse variant: watch mode printing only the per-project diffs between cycles.
+
+The whole loop in one sitting — a transcript fetched as JSON, a break
+pinpointed by `compile --diff`, the fix confirmed the same way:
+
+<AsciinemaPlayer src={historyApiCast} cols={100} rows={40} fit="width" />
 
 ## Across worktrees: `--base-dir`
 
