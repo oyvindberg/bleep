@@ -944,13 +944,16 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1rem" }}
             >
-              This transcript is not a mock-up. Below, recorded: a real
-              Claude session fans two subagents into fresh worktrees over
-              the MCP tools — one seeds with <code>copy-state</code>, one
-              deliberately compiles cold — and closes by asking bleep for
-              the cross-worktree timing diff. The model never invents a
-              number; the ratio comes out of the tool. Rerunnable from{" "}
-              <code>demo-claude-agents/</code> in the repo.
+              This transcript is not a mock-up. Below, recorded: the
+              recording opens by printing the <em>entire</em> instruction
+              set the session gets — nothing up our sleeve — and then runs
+              it. A real Claude session fans two subagents into fresh
+              worktrees over the MCP tools; one seeds with{" "}
+              <code>copy-state</code>, one deliberately compiles cold, and
+              it closes by asking bleep for the cross-worktree timing
+              diff. The model never invents a number; the ratio comes out
+              of the tool. Rerunnable from <code>demo-claude-agents/</code>{" "}
+              in the repo.
             </p>
             <div className={styles.testRunnerVideo}>
               <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={34} fit="width" />

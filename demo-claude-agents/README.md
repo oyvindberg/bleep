@@ -19,8 +19,14 @@ verdict: the seeded worktree compiled about 11.5x faster than the cold one
 state instead of recompiling from scratch.
 ```
 
-On the toy fixture the ratio is ~11x; on the 5.1M-line repo the same
-mechanism is 4½ minutes vs 54 seconds (see the worktrees guide).
+Ratios move with daemon warmth and machine load — captured runs on this
+toy fixture have landed between 6x and 28x; the structure never changes.
+On the 5.1M-line repo the same mechanism is 4½ minutes vs 54 seconds (see
+the worktrees guide).
+
+`prompt.txt` is deliberately short enough to read on screen: the recorded
+cast opens by printing it in full with `bat`, so a viewer sees every
+instruction the session is given before watching it run.
 
 Run it yourself:
 

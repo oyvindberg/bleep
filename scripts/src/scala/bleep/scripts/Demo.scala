@@ -494,7 +494,10 @@ object Demo {
       bleepVersion.discard()
       s"""
          |: export DEMO_SCRATCH="$$(dirname "$$PWD")"
-         |# a claude session drives two subagents into fresh worktrees over bleep's mcp tools
+         |# the entire instruction set the session gets - nothing up our sleeve
+         |bat prompt.txt
+         |
+         |# now run it: a claude session drives two subagents over bleep's mcp tools
          |claude -p "$$(cat prompt.txt)" --model sonnet --allowedTools "Agent" "Task" "Bash(git worktree:*)" "Bash(pwd)" "mcp__bleep__*" --output-format stream-json --verbose 2>/dev/null | python3 render-stream.py
          |""".stripMargin
     }
