@@ -28,7 +28,8 @@ case class Dist(watch: Boolean, options: Dist.Options, buildOpts: CommonBuildOpt
           displayMode = buildOpts.displayMode,
           flamegraph = buildOpts.flamegraph,
           cancel = buildOpts.cancel,
-          diffBase = None
+          diffBase = None,
+          diffOutput = OutputMode.Text
         )
         .run(started)
       mainClass <- options.overrideMain match {

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.history.{Transcript, TranscriptDiff, TranscriptFormat, TranscriptStore}
+import bleep.history.{Transcript, TranscriptDiff, TranscriptDiffRender, TranscriptFormat, TranscriptStore}
 
 import java.nio.file.{Files, Path}
 import java.time.format.DateTimeFormatter
@@ -52,15 +52,17 @@ object History {
     }
   }
 
-  /** `bleep history diff <base> <target>` — what changed between two history entries, as JSON on stdout. `--timing` compares durations instead of logical
-    * outcome; `--base-dir` resolves the base id in another workspace (the copy-state verification flow: parent's run vs this worktree's run).
+  /** `bleep history diff <base> <target>` — what changed between two history entries: rendered for humans by default, the underlying diff document with
+    * `--output json`. `--timing` compares durations instead of logical outcome; `--base-dir` resolves the base id in another workspace (the copy-state
+    * verification flow: parent's run vs this worktree's run).
     */
   case class Diff(
       base: Long,
       target: Long,
       timing: Boolean,
       limit: Option[Int],
-      baseDir: Option[Path]
+      baseDir: Option[Path],
+      output: OutputMode
   ) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       val targetPaths = started.buildPaths
@@ -73,7 +75,16 @@ object History {
       val json =
         if (timing) TranscriptDiff.timing(baseTranscript, targetTranscript, limit.getOrElse(TranscriptDiff.DefaultTimingLimit))
         else TranscriptDiff.mechanical(baseTranscript, targetTranscript)
-      println(json.spaces2)
+      output match {
+        case OutputMode.Json => println(json.spaces2)
+        case OutputMode.Text =>
+          println(TranscriptDiffRender.text(json))
+          if (!timing) {
+            val baseDirArg = baseDir.fold("")(dir => s" --base-dir $dir")
+            println(s"timing: bleep history diff $base $target$baseDirArg --timing")
+          }
+        case OutputMode.Raw => throw new BleepException.Text("--output raw is not supported for diffs; use text or json")
+      }
       Right(())
     }
   }

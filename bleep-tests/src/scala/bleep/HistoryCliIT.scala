@@ -31,11 +31,14 @@ class HistoryCliIT extends IntegrationTestHarness {
     bleep.commands.History.ListEntries.run(started).orThrow
     bleep.commands.History.Show(id = Some(2L), project = None, query = None, limit = None, offset = None).run(started).orThrow
     bleep.commands.History.Show(id = None, project = Some("myapp"), query = None, limit = None, offset = None).run(started).orThrow
-    bleep.commands.History.Diff(base = 1L, target = 2L, timing = false, limit = None, baseDir = None).run(started).orThrow
-    bleep.commands.History.Diff(base = 1L, target = 2L, timing = true, limit = Some(5), baseDir = None).run(started).orThrow
+    bleep.commands.History.Diff(base = 1L, target = 2L, timing = false, limit = None, baseDir = None, output = bleep.OutputMode.Json).run(started).orThrow
+    bleep.commands.History.Diff(base = 1L, target = 2L, timing = true, limit = Some(5), baseDir = None, output = bleep.OutputMode.Json).run(started).orThrow
 
     // `--base-dir` resolves the base id in an explicitly named workspace — here the same one, proving the path-based resolution.
-    bleep.commands.History.Diff(base = 1L, target = 2L, timing = false, limit = None, baseDir = Some(started.buildPaths.buildDir)).run(started).orThrow
+    bleep.commands.History
+      .Diff(base = 1L, target = 2L, timing = false, limit = None, baseDir = Some(started.buildPaths.buildDir), output = bleep.OutputMode.Json)
+      .run(started)
+      .orThrow
 
     // And the underlying diff distinguishes the runs honestly: clean build vs noop is a reason transition, nothing more.
     val diff = TranscriptDiff.mechanical(t1, TranscriptStore.read(started.buildPaths, 2L))

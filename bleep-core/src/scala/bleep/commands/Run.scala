@@ -69,7 +69,8 @@ case class Run(
         displayMode = buildOpts.displayMode,
         flamegraph = buildOpts.flamegraph,
         cancel = buildOpts.cancel,
-        diffBase = None
+        diffBase = None,
+        diffOutput = OutputMode.Text
       )
       .run(started)
 

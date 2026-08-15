@@ -62,8 +62,20 @@ a run with hundreds.
 
 `bleep history diff <base> <target>` compares the *logical outcome* of two
 runs. Time never enters the comparison — durations are not part of the compared
-data — so two runs with the same outcome diff as `identical` no matter how
-their timings jittered:
+data — so two runs with the same outcome diff as identical no matter how
+their timings jittered. The result renders for humans by default:
+
+```text
+compile diff  #3 → #4
+1 project changed
+
+  core  success → failed
+    + error value withTag is not a member of com.example.Record7
+      core/src/scala/com/example/Record7.scala:10
+```
+
+Pass `--output json` (`-o json`) to get the underlying diff document instead —
+the same structure the MCP server returns, for scripts and agents:
 
 ```json
 {
@@ -98,17 +110,17 @@ counted in `insignificantDeltasSuppressed` rather than listed. You get
 `slower`, `faster`, and the target run's `slowestInTarget` (at most `--limit`
 entries each, default 15), plus totals:
 
-```json
-{
-  "totalBaseMs" : 15, "totalTargetMs" : 14, "totalDeltaMs" : -1,
-  "threshold" : "max(50ms, 20% of base)",
-  "insignificantDeltasSuppressed" : 2,
-  "summary" : "total 15ms -> 14ms, no significant per-item changes"
-}
+```text
+timing diff (compile)  #1 → #3
+total 2608ms → 3845ms (+1237ms)
+threshold max(50ms, 20% of base), 12 insignificant deltas suppressed
+
+slower
+     2403ms →    3750ms  (+1347ms)  core
 ```
 
-The same two transcripts always render the same JSON: ordering ties break on
-item identity, never on hash order.
+`--output json` applies here too. The same two transcripts always render the
+same result: ordering ties break on item identity, never on hash order.
 
 ## The edit loop: `compile --diff` and `test --diff`
 

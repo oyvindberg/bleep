@@ -47,6 +47,8 @@ case class ReactiveBsp(
       * against the previous cycle's entry) while an explicit id stays a fixed baseline for every cycle.
       */
     diffBase: Option[DiffBase],
+    /** How the `--diff` result is printed: rendered for humans ([[OutputMode.Text]], the default) or the underlying diff document ([[OutputMode.Json]]). */
+    diffOutput: OutputMode,
     /** Environment forwarded to forked test processes, in [[BuildMode.Test]] only. Normally `BleepBspProtocol.ClientEnv.current()`; a field rather than a
       * `sys.env` read at the send site so tests can inject values that are provably not in the running JVM's own environment — the only way to prove the value
       * travelled over BSP rather than being inherited by the fork.
@@ -113,7 +115,12 @@ case class ReactiveBsp(
       cycleBase.foreach { base =>
         target match {
           case Some(t) =>
-            println(TranscriptDiff.mechanical(base, t).spaces2)
+            val diff = TranscriptDiff.mechanical(base, t)
+            diffOutput match {
+              case OutputMode.Json => println(diff.spaces2)
+              case OutputMode.Text => println(bleep.history.TranscriptDiffRender.text(diff))
+              case OutputMode.Raw  => throw new BleepException.Text("--output raw is not supported for diffs; use text or json")
+            }
             println(s"timing: bleep history diff ${base.id} ${t.id} --timing")
           case None =>
             started.logger.warn("--diff: this run produced no history entry (transcript write failed or older compile server); the diff could not be computed")
@@ -1085,7 +1092,8 @@ object ReactiveBsp {
       displayMode: DisplayMode,
       flamegraph: Boolean,
       cancel: Boolean,
-      diffBase: Option[DiffBase]
+      diffBase: Option[DiffBase],
+      diffOutput: OutputMode
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -1102,6 +1110,7 @@ object ReactiveBsp {
     cancel = cancel,
     junitReportDir = None,
     diffBase = diffBase,
+    diffOutput = diffOutput,
     clientEnv = Map.empty
   )
 
@@ -1120,6 +1129,7 @@ object ReactiveBsp {
       cancel: Boolean,
       junitReportDir: Option[Path],
       diffBase: Option[DiffBase],
+      diffOutput: OutputMode,
       clientEnv: Map[String, String]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
@@ -1137,6 +1147,7 @@ object ReactiveBsp {
     cancel = cancel,
     junitReportDir = junitReportDir,
     diffBase = diffBase,
+    diffOutput = diffOutput,
     clientEnv = clientEnv
   )
 
@@ -1164,6 +1175,7 @@ object ReactiveBsp {
     cancel = cancel,
     junitReportDir = None,
     diffBase = None,
+    diffOutput = OutputMode.Text,
     clientEnv = Map.empty
   )
 }

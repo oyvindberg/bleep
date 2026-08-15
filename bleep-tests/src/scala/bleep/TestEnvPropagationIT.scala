@@ -67,6 +67,7 @@ class TestEnvPropagationIT extends IntegrationTestHarness {
         cancel = false,
         junitReportDir = None,
         diffBase = None,
+        diffOutput = bleep.OutputMode.Text,
         clientEnv = clientEnv
       )
       .run(started)

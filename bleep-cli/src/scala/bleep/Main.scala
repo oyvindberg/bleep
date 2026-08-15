@@ -384,7 +384,7 @@ object Main {
       Opts
         .flagOption[Long](
           "diff",
-          s"after the run, print only what changed (as JSON) vs a recorded run: bare --diff compares against the most recent $modeName (with --watch: the previous cycle), --diff=<id> against that history entry (with --watch: a fixed baseline for every cycle)",
+          s"after the run, print only what changed vs a recorded run: bare --diff compares against the most recent $modeName (with --watch: the previous cycle), --diff=<id> against that history entry (with --watch: a fixed baseline for every cycle)",
           metavar = "history id"
         )
         .orNone
@@ -393,6 +393,17 @@ object Main {
           case Some(None)     => Some(bleep.history.DiffBase.Previous)
           case Some(Some(id)) => Some(bleep.history.DiffBase.Id(id))
         }
+
+    /** diff results render for humans by default; `--output json` prints the underlying diff document (the same structure the MCP server returns) */
+    val diffOutputOpt: Opts[OutputMode] =
+      Opts
+        .option[String]("output", "with --diff: 'text' renders the diff for humans (default), 'json' prints the diff document", "o")
+        .mapValidated {
+          case "text" => cats.data.Validated.valid(OutputMode.Text: OutputMode)
+          case "json" => cats.data.Validated.valid(OutputMode.Json: OutputMode)
+          case other  => cats.data.Validated.invalidNel(s"Invalid diff output format: $other. Valid values: text, json")
+        }
+        .withDefault(OutputMode.Text: OutputMode)
 
     val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
       (
@@ -559,12 +570,13 @@ object Main {
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
-              diffOpt("compile")
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, diffBase) =>
+              diffOpt("compile"),
+              diffOutputOpt
+            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase)
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase, diffOutput)
             }
           ),
           Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
@@ -620,7 +632,8 @@ object Main {
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
-              diffOpt("test run")
+              diffOpt("test run"),
+              diffOutputOpt
             ).mapN {
               case (
                     watch,
@@ -636,7 +649,8 @@ object Main {
                     flamegraph,
                     cancel,
                     junitReportDir,
-                    diffBase
+                    diffBase,
+                    diffOutput
                   ) =>
                 val (effectiveWatch, effectiveDisplayMode) =
                   if (diffWatch) (true, commands.DisplayMode.DiffWatch)
@@ -655,6 +669,7 @@ object Main {
                   cancel = cancel,
                   junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
                   diffBase = diffBase,
+                  diffOutput = diffOutput,
                   clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
                 )
             }
@@ -738,9 +753,10 @@ object Main {
                     Opts.argument[Long]("target history id"),
                     Opts.flag("timing", "compare durations (jitter-suppressed) instead of logical outcome").orFalse,
                     Opts.option[Int]("limit", "--timing only: max entries per list (slower/faster/slowestInTarget)").orNone,
-                    Opts.option[String]("base-dir", "resolve the base id in another workspace's history (e.g. the worktree this one was forked from)").orNone
-                  ).mapN { case (base, target, timing, limit, baseDir) =>
-                    commands.History.Diff(base, target, timing, limit, baseDir.map(java.nio.file.Paths.get(_))): BleepBuildCommand
+                    Opts.option[String]("base-dir", "resolve the base id in another workspace's history (e.g. the worktree this one was forked from)").orNone,
+                    diffOutputOpt
+                  ).mapN { case (base, target, timing, limit, baseDir, diffOutput) =>
+                    commands.History.Diff(base, target, timing, limit, baseDir.map(java.nio.file.Paths.get(_)), diffOutput): BleepBuildCommand
                   }
                 )
               )

@@ -20,7 +20,8 @@ class DiffFlagCliIT extends IntegrationTestHarness {
       displayMode = commands.DisplayMode.NoTui,
       flamegraph = false,
       cancel = false,
-      diffBase = diffBase
+      diffBase = diffBase,
+      diffOutput = bleep.OutputMode.Json
     )
 
   private def testCmd(diffBase: Option[DiffBase]): commands.ReactiveBsp =
@@ -38,6 +39,7 @@ class DiffFlagCliIT extends IntegrationTestHarness {
       cancel = false,
       junitReportDir = None,
       diffBase = diffBase,
+      diffOutput = bleep.OutputMode.Json,
       clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
     )
 
