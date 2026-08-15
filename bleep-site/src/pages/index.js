@@ -806,12 +806,12 @@ function TestRunnerSection() {
             </>
           }
         >
-          Failures show up the moment they happen. Suites compile and run
-          in parallel across every CPU, the terminal stays live, and the
-          summary at the end is short enough to act on. No two-minute
-          pause, no fifty-thousand-line transcript. The recording below is
-          bleep testing itself — 86 suites, 439 tests, integration builds
-          and all — green in 65 seconds at 9&times; parallelism.
+          Nine minutes of test work, done in one. That is bleep testing
+          itself below — 86 suites, 439 tests, integration builds and all,
+          green in 60 seconds. Suites compile and run in parallel across
+          every CPU, and you watch it happen: which suite is running, which
+          just failed, the moment it fails. No staring at a dead terminal
+          wondering how far along it is.
         </SectionHeader>
 
         <Reveal>
@@ -849,14 +849,11 @@ function TestRunnerSection() {
                 Precise <em>summary</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                When the run ends, you get exact suite and test names and
-                pass/fail counts per project — and{" "}
-                <code>bleep test --diff</code> prints only what changed
-                since the previous run: the newly failing test, named,
-                with its assertion. Rendered as prose for your eyes;{" "}
-                <code>--output json</code> hands agents the same diff as
-                data. JUnit XML is one flag away (
-                <code>--junit-report</code>).
+                Exact suite and test names, pass/fail counts per project,
+                and the failures written out with their assertions — short
+                enough to act on without scrolling. <code>--diff</code>{" "}
+                narrows it to what changed since your last run, and JUnit
+                XML is one flag away.
               </p>
             </article>
           </div>
@@ -1308,9 +1305,9 @@ export default function Home() {
           <RefusalsSection />
           <BuildExtensionsSection />
           <PerformanceSection />
+          <TestRunnerSection />
           <CISection />
           <RoundtripSection />
-          <TestRunnerSection />
           <AgentsSection />
           <MigrationSection />
           <ExitSection />
