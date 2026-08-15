@@ -168,6 +168,9 @@ function Hero() {
           <Link className={styles.btnSecondary} to="/#agents">
             Bleep for agents
           </Link>
+          <Link className={styles.btnSecondary} to="/why">
+            The loud version
+          </Link>
           <Link className={styles.btnSecondary} to="https://github.com/oyvindberg/bleep">
             GitHub
           </Link>

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import agentsCast from "!!file-loader!@site/static/demos/agents.cast";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -397,7 +399,8 @@ function ReceiptsSection() {
               </span>
               <p className={styles.numberCaption}>
                 The whole fork: <code>git worktree add</code>, then{" "}
-                <code>bleep copy-state</code>, then a full compile
+                <code>bleep copy-state</code> — 1.8&nbsp;GB of compiled
+                state, cloned in 14.5&nbsp;s — then a full compile
                 verifying all 130 projects green. The same fork without
                 copy-state compiles cold for 4&nbsp;min&nbsp;22&nbsp;s —
                 five times longer. No fork pays cold twice.
@@ -741,8 +744,11 @@ function HumansSection() {
               <p className={styles.mcpCardBody}>
                 Exact suite and test names, pass/fail counts per
                 project, and <code>bleep test --diff</code> prints only
-                what changed since the previous run. JUnit XML is one
-                flag away for CI.
+                what changed since the previous run — rendered as prose
+                for your eyes, the newly failing test named with its
+                assertion; agents get the same diff as data with{" "}
+                <code>--output json</code>. JUnit XML is one flag away
+                for CI.
               </p>
             </article>
           </div>
@@ -892,6 +898,20 @@ function AgentEraSection() {
           />
         </Reveal>
 
+        <Reveal delay={70}>
+          <div style={{ marginTop: "2rem" }}>
+            <p
+              className={styles.sectionLede}
+              style={{ textAlign: "center", marginBottom: "1rem" }}
+            >
+              Or just watch it. Twenty-seven seconds: an agent in its own
+              worktree proves its change as a diff — against its previous
+              run, then against the worktree it was forked from.
+            </p>
+            <AsciinemaPlayer src={agentsCast} cols={100} rows={32} fit="width" />
+          </div>
+        </Reveal>
+
         <Reveal delay={80}>
           <div className={styles.mcpGrid}>
             <article className={styles.mcpCard}>
@@ -992,10 +1012,14 @@ function HonestySection() {
           everything above is waiting. One more, in reverse: if bleep
           ever stops being right for you, your whole build is portable
           YAML and Maven coordinates — leaving is a mechanical
-          translation, and we wrote the{" "}
+          translation, and we didn&rsquo;t just write the{" "}
           <Link to="/docs/guides/exit-strategy">exit strategy</Link>{" "}
-          down. Betting on a young tool should never mean betting the
-          repo.
+          down, we implemented it: the repo carries{" "}
+          <code>bleep export-maven</code>, and run against bleep&rsquo;s
+          own build it emits POMs that compile every module and pass the
+          tests under stock Maven — source generators included. Betting
+          on a young tool should never mean betting the repo, so the
+          escape hatch is code, and it&rsquo;s tested.
         </SectionHeader>
       </div>
     </section>

@@ -75,6 +75,11 @@ const config = {
         },
         items: [
           {
+            to: "/why",
+            position: "left",
+            label: "Why bleep",
+          },
+          {
             type: "docSidebar",
             sidebarId: "learn",
             position: "left",
