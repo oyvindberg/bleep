@@ -901,21 +901,16 @@ function AgentWorktreesSection() {
               One seeds itself from the parent with{" "}
               <code>bleep.copy-state</code>; the other starts cold on
               purpose. Then the session asks bleep to compare their two
-              first builds, and reads the answer straight off the tool.
+              first builds, and reads the answer straight off the tool. The
+              prompt it was given is{" "}
+              <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
+                in the repo
+              </Link>
+              .
             </p>
             <div className={styles.testRunnerVideo}>
               <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={40} fit="width" />
             </div>
-            <p
-              className={styles.sectionLede}
-              style={{ textAlign: "center", marginTop: "-1rem" }}
-            >
-              The prompt, and the script that types it in, live{" "}
-              <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
-                in the repo
-              </Link>
-              . Run it on your own build and you get your own numbers.
-            </p>
           </div>
         </Reveal>
 
@@ -926,12 +921,11 @@ function AgentWorktreesSection() {
                 Every call names its <em>workspace</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                The server pins nothing at startup. Each call carries its{" "}
-                <code>directory</code> and reads the build as it is right
-                now, so a subagent in a worktree cannot quietly build the
-                parent checkout, and there is no cached workspace state to
-                go stale. One registration covers every checkout you will
-                ever make.
+                One registration serves every checkout, because the server
+                keeps no workspace state of its own. Each call carries its{" "}
+                <code>directory</code> and reads that build as it is right
+                now — so a subagent cannot quietly build the parent
+                checkout, and nothing goes stale between calls.
               </p>
             </article>
             <article className={styles.mcpCard}>
@@ -941,10 +935,10 @@ function AgentWorktreesSection() {
               <p className={styles.mcpCardBody}>
                 <code>git worktree add</code>, then one{" "}
                 <code>bleep.copy-state</code> call clones the parent&rsquo;s
-                compiled state. It runs inside the compile server under the
-                same locks a compile takes, so it is safe even while the
-                parent is building. On a 5.1-million-line repo: fork to
-                verified green in 54 seconds, against 4½ minutes cold.{" "}
+                compiled state — inside the compile server, under the same
+                locks a compile takes, so it is safe while the parent is
+                still building. On a 5.1-million-line repo: fork to verified
+                green in 54 seconds, against 4½ minutes cold.{" "}
                 <Link to="/docs/guides/worktrees">Recipe and numbers</Link>.
               </p>
             </article>
@@ -953,12 +947,12 @@ function AgentWorktreesSection() {
                 One <em>hot daemon</em>, every checkout
               </h3>
               <p className={styles.mcpCardBody}>
-                Every checkout shares one compile server, which keeps
-                incremental state hot and stores identical dependency
-                analyses once instead of once per worktree. Ten worktrees do
-                not cost ten JVMs. Add the{" "}
+                Every checkout shares one compile server, so ten worktrees
+                do not cost ten JVMs. It keeps incremental state hot and
+                stores identical dependency analyses once instead of once
+                per worktree. Add the{" "}
                 <Link to="/docs/usage/remote-cache/#local-directory-cache">local build cache</Link>{" "}
-                and a fresh worktree skips whatever a sibling already built.
+                and a fresh worktree skips what a sibling already built.
               </p>
             </article>
           </div>
