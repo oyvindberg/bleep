@@ -881,11 +881,11 @@ function AgentWorktreesSection() {
             </>
           }
         >
-          Six subagents in six worktrees, every one of them rebuilding what
-          the others just built. That is the tax agent work pays today, and
-          bleep does not charge it. One registration covers every checkout
-          on the machine, and a new worktree starts from a sibling&rsquo;s
-          compiled state instead of from nothing.
+          Every fresh worktree is a cold build. Four and a half minutes on
+          our repo, for every agent, every time. Bleep copies the
+          parent&rsquo;s compiled state instead — 54 seconds to verified
+          green — and one MCP server covers every checkout on the machine,
+          so the sixth agent starts as fast as the first.
         </SectionHeader>
 
         <Reveal delay={60}>
@@ -894,11 +894,10 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1.25rem" }}
             >
-              Watch it happen. Two subagents fan out, one seeds its worktree
-              from the parent, one starts cold — then bleep tells them what
-              that was worth. Nothing staged;{" "}
+              Below, two subagents go into fresh worktrees. One seeds itself,
+              one doesn&rsquo;t, and bleep times them both.{" "}
               <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
-                the prompt is in the repo
+                The prompt is in the repo
               </Link>
               .
             </p>
@@ -988,10 +987,9 @@ function AgentAnswersSection() {
             </>
           }
         >
-          Every loop ends with the same question: what changed? Every other
-          build tool answers with a log and lets you go find out. Bleep just
-          tells you — because a finished run is a file, and comparing two
-          files is easy.
+          Your agent changes one line. Which test broke? That answer
+          normally sits somewhere inside thirty thousand tokens of build
+          log. Bleep hands back the test, the assertion, and nothing else.
         </SectionHeader>
 
         <Reveal>
