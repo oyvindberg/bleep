@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import Snippet from "@site/src/components/Snippet";
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
 import styles from "./index.module.css";
 
 /* ------------------------------------------------------------------
@@ -855,8 +857,10 @@ function TestRunnerSection() {
                 When the run ends, you get exact suite and test names and
                 pass/fail counts per project — and{" "}
                 <code>bleep test --diff</code> prints only what changed
-                since the previous run, not a wall of stdout to grep
-                through. JUnit XML is one flag away (
+                since the previous run: the newly failing test, named,
+                with its assertion. Rendered as prose for your eyes;{" "}
+                <code>--output json</code> hands agents the same diff as
+                data. JUnit XML is one flag away (
                 <code>--junit-report</code>).
               </p>
             </article>
@@ -936,6 +940,21 @@ function AgentWorktreesSection() {
               },
             ]}
           />
+        </Reveal>
+
+        <Reveal delay={60}>
+          <div style={{ marginTop: "2rem" }}>
+            <p
+              className={styles.sectionLede}
+              style={{ textAlign: "center", marginBottom: "1rem" }}
+            >
+              Recorded, not narrated — two fresh worktrees side by side:
+              one pays for a full rebuild, the other seeds itself with{" "}
+              <code>copy-state</code> and its first build recompiles
+              nothing.
+            </p>
+            <AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
+          </div>
         </Reveal>
 
         <Reveal>
@@ -1034,16 +1053,18 @@ function AgentAnswersSection() {
           value written into the worktree, surviving every restart. And
           values compose: diffing two runs is a pure function over two
           files. Build logs you can diff isn&rsquo;t a feature bolted
-          on; it falls out of the architecture. No other build tool has
-          this shape.
+          on; it falls out of the architecture. No other build tool
+          ships this locally, free, as data.
         </SectionHeader>
 
         <Reveal>
           <p className={styles.mcpStat}>
-            <span className={styles.mcpStatFigure}>~200 tokens</span>
+            <span className={styles.mcpStatFigure}>25&ndash;265 tokens</span>
             <span className={styles.mcpStatRest}>
-              instead of a 30,000-token build log. Per call. That&rsquo;s
-              the whole idea.
+              measured over the live MCP server: a green compile answers
+              in 25 tokens, a failure with its full what-changed diff in
+              265. A raw build log is tens of thousands. That&rsquo;s the
+              whole idea.
             </span>
           </p>
         </Reveal>
@@ -1234,6 +1255,90 @@ function MigrationSection() {
 }
 
 /* ------------------------------------------------------------------
+   Exit — the survivability answer. Bleep is young and says so; the
+   counterweight is that build-as-data is exit insurance, and the
+   exporter is code in the repo, tested against bleep's own build.
+   ------------------------------------------------------------------ */
+function ExitSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.container}>
+        <SectionHeader
+          eyebrow="Before you commit"
+          title={
+            <>
+              Leaving is a <em>command</em>. We wrote it.
+            </>
+          }
+        >
+          The question every build-tool pitch dodges: what happens to
+          your repo if the tool goes away, or stops being right for you?
+          Bleep is young, and you should price that in. Here&rsquo;s the
+          counterweight: adopting a build tool usually means feeding a
+          decade of configuration into plugin formats only that tool can
+          read. Build-as-data reverses the bet.
+        </SectionHeader>
+
+        <Reveal>
+          <div className={styles.mcpGrid}>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                Worst case, you hold <em>data</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                Your entire build is portable YAML and plain Maven
+                coordinates — no plugin state, no tool-internal
+                database, no code that only runs inside bleep. If bleep
+                vanished tomorrow, you&rsquo;d be holding a complete,
+                readable model of your build. That is the lowest
+                lock-in of any tool in the category.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                The exporter is <em>code</em>, and it&rsquo;s tested
+              </h3>
+              <p className={styles.mcpCardBody}>
+                The repo carries <code>bleep export-maven</code>: it
+                walks the build model and writes Maven POMs. Run
+                against bleep&rsquo;s own build, the export compiles
+                every module and passes the tests under stock Maven —
+                source generators included. Not a promise about
+                portability; a program you can run.
+              </p>
+            </article>
+            <article className={styles.mcpCard}>
+              <h3 className={styles.mcpCardTitle}>
+                The strategy is <em>written down</em>
+              </h3>
+              <p className={styles.mcpCardBody}>
+                What you hold, what leaving looks like per target
+                (Maven, sbt, Gradle), and what you&rsquo;d actually
+                lose — stated plainly in the{" "}
+                <Link to="/docs/guides/exit-strategy">exit
+                strategy</Link>. Migration off bleep is days-shaped
+                work, not quarters-shaped, because nothing about your
+                build exists only as bleep behavior.
+              </p>
+            </article>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <p
+            className={styles.sectionLede}
+            style={{ marginTop: "2.25rem", textAlign: "center" }}
+          >
+            Betting on a young tool should never mean betting the repo.
+            With bleep, it doesn&rsquo;t.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------
    Install + CTA
    ------------------------------------------------------------------ */
 function InstallCTA() {
@@ -1267,7 +1372,7 @@ function InstallCTA() {
           Bleep is open source under Apache 2.0. Java, Kotlin, and Scala on the JVM.
           Cross-build to JS and Native if you want. Or don&rsquo;t. The
           second line gives every agent on your machine a build tool
-          that answers in 200 tokens.
+          that answers in 265 tokens or fewer.
         </SectionHeader>
 
         <Reveal>
@@ -1338,6 +1443,7 @@ export default function Home() {
           <AgentWorktreesSection />
           <AgentAnswersSection />
           <MigrationSection />
+          <ExitSection />
           <InstallCTA />
         </main>
       </div>
