@@ -881,10 +881,11 @@ function AgentWorktreesSection() {
             </>
           }
         >
-          An orchestrator splits a job across git worktrees and drops a
-          subagent in each one. Register the MCP server once, and every
-          session — plus every subagent it spawns — can build any checkout
-          on the machine.
+          Six subagents in six worktrees, every one of them rebuilding what
+          the others just built. That is the tax agent work pays today, and
+          bleep does not charge it. One registration covers every checkout
+          on the machine, and a new worktree starts from a sibling&rsquo;s
+          compiled state instead of from nothing.
         </SectionHeader>
 
         <Reveal delay={60}>
@@ -893,11 +894,11 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1.25rem" }}
             >
-              Two subagents, two fresh worktrees. One seeds itself from the
-              parent with <code>copy-state</code>, the other starts cold on
-              purpose. Real session, real screen, and the{" "}
+              Watch it happen. Two subagents fan out, one seeds its worktree
+              from the parent, one starts cold — then bleep tells them what
+              that was worth. Nothing staged;{" "}
               <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
-                prompt is in the repo
+                the prompt is in the repo
               </Link>
               .
             </p>
@@ -987,11 +988,10 @@ function AgentAnswersSection() {
             </>
           }
         >
-          Change something, run it, work out what changed. Most build tools
-          answer that last part with a log and leave the reading to you. A
-          finished run in bleep is one immutable file in the worktree — so
-          comparing two runs is a function over two files, and the answer is
-          small.
+          Every loop ends with the same question: what changed? Every other
+          build tool answers with a log and lets you go find out. Bleep just
+          tells you — because a finished run is a file, and comparing two
+          files is easy.
         </SectionHeader>
 
         <Reveal>
