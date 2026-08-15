@@ -2,10 +2,10 @@
 
 Bleep's CI story has two parts:
 
-1. **A basic workflow** that runs [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/) on
+1. **A basic workflow** that runs [`bleep ci`](/docs/reference/cli/ci/) on
    every push. This page covers it.
 2. **Two features that make CI fast**: build only what changed
-   ([`bleep build invalidated`](/docs/usage/ci-invalidation)) and
+   (`--invalidated`, see [CI project invalidation](/docs/usage/ci-invalidation)) and
    reuse compiled classes across runs and machines
    ([remote build cache](/docs/usage/remote-cache)). The
    consolidated workflow at the end of this page combines both.
@@ -35,9 +35,14 @@ jobs:
 
       - uses: bleep-build/bleep-setup-action@v1
 
-      - run: bleep --no-color --no-bsp-progress compile
-      - run: bleep --no-color --no-bsp-progress test
+      - run: bleep --no-color --no-bsp-progress ci --no-tui
 ```
+
+[`bleep ci`](/docs/reference/cli/ci/) compiles every project and runs
+every test — in one build pass, not a compile run followed by a test
+run. One task graph, one summary, full parallelism, and a library
+upstream of a test project is compiled once. It does exactly those two
+things: no formatting check, no publish, nothing you did not ask for.
 
 `bleep-setup-action` reads `$version` out of `bleep.yaml` and
 installs that exact bleep build. `--no-color` and `--no-bsp-progress`
@@ -66,24 +71,41 @@ caches *compiled classes*, not downloads). See
 
 ## Build only what changed
 
-[`bleep build invalidated --base origin/main`](/docs/reference/cli/build/invalidated/)
-returns the projects whose source or config changed vs a base
-commit, plus every project transitively depending on them. Pipe
-that into [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/) and CI does the minimum
-amount of work.
+`--invalidated=<ref>` scopes a build to the projects whose source or
+config changed vs a base commit, plus every project transitively
+depending on them. CI then does the minimum amount of work:
 
 ```yaml
-      - name: Compile only what changed
-        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
-
-      - name: Test only what changed
-        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep test
+      - name: Build and test only what changed
+        run: bleep --no-color --no-bsp-progress ci --no-tui --invalidated=origin/${{ github.event.pull_request.base.ref }}
 ```
 
 `fetch-depth: 0` on the checkout step is required so `git diff`
 against the base ref works.
 
-For the full pattern (no-op when nothing matches, GitLab CI
+The flag needs no guard around it. When nothing is invalidated it
+prints `Nothing invalidated vs origin/main. Nothing to compile and
+test.` and exits 0.
+
+That is worth stating loudly, because the recipe this replaces did
+the opposite. It used to read:
+
+```yaml
+      # DON'T. This fails open.
+      - run: bleep build invalidated --base origin/main | xargs bleep compile
+```
+
+With nothing invalidated, `bleep build invalidated` prints nothing,
+`xargs` runs the command anyway with no arguments, and `bleep
+compile` with no arguments compiles **every project**. The pipeline
+you added to make CI fast turned into a full build exactly in the
+case where the right answer was to do nothing at all — silently, with
+a green check at the end. If you ever do pipe project names into a
+command, use `xargs -r`, which runs nothing on empty input.
+
+`--invalidated` works on [`bleep compile`](/docs/reference/cli/compile/)
+and [`bleep test`](/docs/reference/cli/test/) too, when you want just
+one half. For the full pattern (bare `--invalidated`, GitLab CI
 example, JSON output for matrix expansion), see
 [CI project invalidation](/docs/usage/ci-invalidation).
 
@@ -168,7 +190,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # required for `bleep build invalidated`
+          fetch-depth: 0     # required for `--invalidated`
 
       - uses: bleep-build/bleep-setup-action@v1
 
@@ -185,15 +207,8 @@ jobs:
           BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
           BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
-      - name: Compile invalidated projects
-        run: |
-          BASE=origin/${{ github.event.pull_request.base.ref }}
-          bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress compile
-
-      - name: Test invalidated projects
-        run: |
-          BASE=origin/${{ github.event.pull_request.base.ref }}
-          bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress test
+      - name: Build and test invalidated projects
+        run: bleep --no-color --no-bsp-progress ci --no-tui --invalidated=origin/${{ github.event.pull_request.base.ref }}
 
   # Trusted: reachable only after merge to main, and the write credential
   # lives in an Environment whose deployment-branch rule allows only main.
@@ -222,9 +237,7 @@ jobs:
           BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
       - name: Compile and test
-        run: |
-          bleep --no-color --no-bsp-progress compile
-          bleep --no-color --no-bsp-progress test
+        run: bleep --no-color --no-bsp-progress ci --no-tui
 
       - name: Push remote cache
         if: success()
@@ -272,7 +285,7 @@ for the full release-pipeline story.
 ## CI flags
 
 ```bash
-bleep --no-color --no-bsp-progress compile
+bleep --no-color --no-bsp-progress ci --no-tui
 ```
 
 | Flag | Effect |
