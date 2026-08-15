@@ -944,19 +944,21 @@ function AgentWorktreesSection() {
               className={styles.sectionLede}
               style={{ textAlign: "center", marginBottom: "1rem" }}
             >
-              This transcript is not a mock-up. Below, recorded: the
-              recording opens by printing the <em>entire</em> instruction
-              set the session gets — nothing up our sleeve — and then runs
-              it. A real Claude session fans two subagents into fresh
-              worktrees over the MCP tools; one seeds with{" "}
-              <code>copy-state</code>, one deliberately compiles cold, and
-              it closes by asking bleep for the cross-worktree timing
-              diff. The model never invents a number; the ratio comes out
-              of the tool. Rerunnable from <code>demo-claude-agents/</code>{" "}
-              in the repo.
+              This transcript is not a mock-up. Below is a real Claude Code
+              session, its own interactive UI, recorded start to finish:
+              two subagents fan out into fresh worktrees over the MCP
+              tools, one seeds itself with <code>copy-state</code> and one
+              deliberately compiles cold, and the session closes by asking
+              bleep for the cross-worktree timing diff. The model never
+              invents a number — the durations come out of the tool. The
+              exact prompt it was given, and the script that runs it, are{" "}
+              <Link to="https://github.com/oyvindberg/bleep/tree/master/demo-claude-agents">
+                in the repo
+              </Link>{" "}
+              — run it yourself and you get your own numbers.
             </p>
             <div className={styles.testRunnerVideo}>
-              <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={34} fit="width" />
+              <AsciinemaPlayer src={claudeAgentsCast} cols={110} rows={40} fit="width" />
             </div>
           </div>
         </Reveal>

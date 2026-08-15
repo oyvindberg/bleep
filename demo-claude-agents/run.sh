@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Guides a real Claude Code session through the seeded-vs-cold worktree demo:
+# Builds the fixture, then runs demo.sh in it: a real Claude Code session
+# driving the seeded-vs-cold worktree demo.
+#
 # the orchestrator spawns two parallel subagents over bleep's MCP tools - one
 # seeds its fresh worktree with copy-state, one compiles cold - then asks bleep
 # itself for the cross-worktree timing diff and states the ratio.
@@ -18,6 +20,4 @@ here="$(cd "$(dirname "$0")" && pwd)"
 "$here/fixture.sh" "$scratch/repo"
 
 cd "$scratch/repo"
-claude -p "$(cat "$here/prompt.txt")" \
-  --model sonnet \
-  --allowedTools "Agent" "Task" "Bash(git worktree:*)" "Bash(pwd)" "mcp__bleep__*"
+"$here/demo.sh"

@@ -36,14 +36,29 @@ bleep generate-videos claude-agents     # record it as the site's asciinema cast
 ```
 
 The recording goes through the same demo harness as every other cast
-(`GenDemoVideos`), with the session's stream-json rendered live by
-`render-stream.py`. It is on-demand only: `bleep generate-videos` without
+(`GenDemoVideos`), and it is on-demand only: `bleep generate-videos` without
 arguments never runs it, because recording spends model tokens and needs an
 authenticated `claude` CLI.
 
-- `fixture.sh` builds a small-but-real build (30 circe-derived case classes)
-  and compiles it, so the daemon and caches are warm and the demo measures
-  worktree seeding, not dependency downloads.
-- `prompt.txt` is the exact orchestrator script the session follows.
-- `run.sh` wires it together with a tool whitelist (`Agent`,
-  `git worktree`, and the bleep MCP tools - nothing else).
+## How the recording drives a real session
+
+`drive.exp` types into an interactive Claude Code session over a pty, so the
+cast is the tool's own UI rather than a rendering of a log. Two things about
+that were learned the hard way and are worth keeping:
+
+- **Match single words.** The TUI paints justified text with cursor-positioning
+  escapes between words (`trust\033[29Gthis\033[37Gfolder`), so multi-word
+  patterns never match the raw stream even though the words are plainly on
+  screen.
+- **Submit, then verify.** An Enter that arrives while a modal dialog is up is
+  consumed by the dialog, leaving the prompt sitting in the input box. The
+  driver retries until the session is visibly working.
+
+The harness trims the cast down to the demo itself (`Demo.trim`): the head is
+the harness getting the session going, the tail is a spinner winding down after
+the answer landed. Deterministic, so regenerating cuts in the same place.
+
+Known cosmetic wart: Claude Code paints a rotating "Tip:" line while working,
+and it lands *before* the verdict, so no tail trim can remove it. Suppressing it
+would mean writing `tipsHistory` / `tipLifetimeShownCounts` into the recording
+user's `~/.claude.json`, which the harness deliberately does not do.

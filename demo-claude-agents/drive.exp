@@ -1,0 +1,94 @@
+#!/usr/bin/expect -f
+# Drives an INTERACTIVE Claude Code session so a recording shows the real UI —
+# tool cards, spinners, subagents — instead of a piped rendering of a log.
+#
+# Two things make this tricky, both learned the hard way:
+#
+#   * MATCH SINGLE WORDS ONLY. The TUI paints justified text with cursor-
+#     positioning escapes between words ("trust\033[29Gthis\033[37Gfolder"), so
+#     a multi-word pattern never matches the raw stream even though the words are
+#     plainly there on screen.
+#   * A fresh git repository is an unknown workspace and the bleep MCP server is
+#     new to it, so modal dialogs appear before — and sometimes after — the first
+#     keystroke. Enter takes the affirmative default on both. Whichever `expect`
+#     block happens to be active consumes the dialog, so every wait handles them.
+#
+# The prompt arrives as a bracketed paste (a multi-line prompt typed literally
+# would submit on its first newline). Reads $PROMPT. Exits once the verdict's
+# ratio appears, so the recording's last frame is the answer.
+
+set timeout 120
+set prompt $env(PROMPT)
+
+# Give the spawned pty the recording's dimensions. Without this it defaults to
+# 80x24 while asciinema records 110x40, and the TUI's cursor-addressed redraws
+# land in the wrong columns - the recording fills up with overlapping text.
+set stty_init "rows 40 columns 110"
+
+# Drop only the child-session marker: it makes the session announce that
+# transcript saving is off. The other CLAUDE_* vars stay.
+spawn -noecho env -u CLAUDE_CODE_CHILD_SESSION \
+    claude --model sonnet \
+    --allowedTools Agent Task "Bash(git worktree:*)" "Bash(pwd)" "mcp__bleep__*"
+
+# 1. wait for the input box, answering whatever stands in the way
+expect {
+    "trust" { sleep 1; send "\r"; exp_continue }
+    "MCP"   { sleep 1; send "\r"; exp_continue }
+    "shift+tab" { }
+    timeout { puts "\n(the session never finished starting)"; exit 1 }
+}
+sleep 1
+
+# 2. paste, and confirm the text actually landed
+send "\033\[200~$prompt\033\[201~"
+set timeout 25
+set pasted 0
+expect {
+    "trust"  { sleep 1; send "\r"; exp_continue }
+    "MCP"    { sleep 1; send "\r"; exp_continue }
+    "Pasted" { set pasted 1 }
+    timeout  { }
+}
+if {!$pasted} {
+    send "\033\[200~$prompt\033\[201~"
+    expect {
+        "trust"  { sleep 1; send "\r"; exp_continue }
+        "Pasted" { }
+        timeout  { puts "\n(the prompt never reached the input box)"; exit 1 }
+    }
+}
+
+# 3. submit, and make sure it took: an Enter that arrives while a dialog is up is
+#    consumed by the dialog, leaving the prompt sitting in the box forever
+set submitted 0
+for {set attempt 0} {$attempt < 4 && !$submitted} {incr attempt} {
+    sleep 1
+    send "\r"
+    set timeout 25
+    expect {
+        "trust"     { sleep 1; send "\r"; exp_continue }
+        "MCP"       { sleep 1; send "\r"; exp_continue }
+        "Esc"       { sleep 1; send "\033"; exp_continue }
+        "interrupt" { set submitted 1 }
+        timeout     { }
+    }
+}
+if {!$submitted} { puts "\n(the prompt was never submitted)"; exit 1 }
+
+# 4. wait for the answer. The ratio ("23.3x") is a single token, and the prompt's
+#    own template carries placeholders rather than digits, so it cannot match the
+#    instructions echoed back.
+set timeout 420
+expect {
+    "trust" { sleep 1; send "\r"; exp_continue }
+    "MCP"   { sleep 1; send "\r"; exp_continue }
+    # anything else that pops up (the auto-mode nag at idle) gets cancelled.
+    # "Esc" only ever appears in a dialog footer; the status bar's is lowercase
+    "Esc"   { sleep 1; send "\033"; exp_continue }
+    -re {[0-9]+(\.[0-9]+)?x} { }
+    timeout { puts "\n(timed out waiting for the verdict)" }
+}
+
+# let the finished screen sit still long enough to read
+sleep 6

@@ -35,9 +35,29 @@ abstract class Demo(val name: String, val rows: Int = 40, val columns: Int = 100
   }
 
   val expectedYaml: Option[RelPath] = Some(RelPath.force("bleep.yaml"))
+
+  /** Trim the recording down to the part that is the demo. Frames before the first [[Trim.startMarker]] are dropped and the rest rebased to start at zero;
+    * frames after the LAST [[Trim.endMarker]] (plus [[Trim.dwellSeconds]]) are dropped too.
+    *
+    * Both ends earn their keep. The head is the harness getting the session going, which is stagecraft, not the demo — and showing it invites the fair question
+    * of what else is off-camera. The tail is a spinner winding down after the answer already landed. Deterministic: a pure function of the frame list, so
+    * regenerating cuts in the same place.
+    *
+    * The LAST end match matters: a marker like `verdict` also appears wherever the demo's own instructions are echoed.
+    */
+  val trim: Option[Demo.Trim] = None
+
+  /** Record inside the bleep repository rather than the system temp dir. Only matters for demos that drive a real Claude Code session: a session started in an
+    * untrusted directory stops on a workspace-trust dialog, and the repo you are recording from is already trusted, so its subdirectories are too. The
+    * directory is temporary either way — created per recording, deleted after.
+    */
+  val recordInsideRepo: Boolean = false
 }
 
 object Demo {
+
+  /** see [[Demo.trim]] */
+  case class Trim(startMarker: String, endMarker: String, dwellSeconds: Double)
 
   /** a silently-executed script line which pins the freshly generated build's `$version` to the recorded binary's, so subsequent on-camera commands don't log a
     * "Not launching ..." notice or relaunch another version
@@ -475,8 +495,11 @@ object Demo {
     * On-demand only (see [[onDemand]]): recording spends model tokens and needs an authenticated `claude` CLI with the bleep MCP server registered user-scope,
     * so `bleep generate-videos` without arguments never runs it — regenerate explicitly with `bleep generate-videos claude-agents`.
     */
-  object claudeAgents extends Demo("claude-agents", rows = 34, columns = 110) {
+  object claudeAgents extends Demo("claude-agents", rows = 40, columns = 110) {
     override val expectedYaml: Option[RelPath] = None
+    override val recordInsideRepo: Boolean = true
+    override val trim: Option[Demo.Trim] =
+      Some(Demo.Trim(startMarker = "Welcome back", endMarker = "verdict", dwellSeconds = 2.5))
     override def files(bleepVersion: String): Map[RelPath, String] = records.files(bleepVersion)
 
     override def prepareScript(bleep: Path, repoDir: Path): Option[String] = Some(
@@ -485,7 +508,7 @@ object Demo {
          |git add -A
          |git -c user.email=demo@bleep.build -c user.name=demo commit -qm 'demo fixture'
          |$bleep compile --no-tui --no-color
-         |cp $repoDir/demo-claude-agents/prompt.txt $repoDir/demo-claude-agents/render-stream.py .
+         |cp $repoDir/demo-claude-agents/demo.sh $repoDir/demo-claude-agents/drive.exp .
          |""".stripMargin
     )
 
@@ -494,11 +517,7 @@ object Demo {
       bleepVersion.discard()
       s"""
          |: export DEMO_SCRATCH="$$(dirname "$$PWD")"
-         |# the entire instruction set the session gets - nothing up our sleeve
-         |bat prompt.txt
-         |
-         |# now run it: a claude session drives two subagents over bleep's mcp tools
-         |claude -p "$$(cat prompt.txt)" --model sonnet --allowedTools "Agent" "Task" "Bash(git worktree:*)" "Bash(pwd)" "mcp__bleep__*" --output-format stream-json --verbose 2>/dev/null | python3 render-stream.py
+         |./demo.sh
          |""".stripMargin
     }
   }

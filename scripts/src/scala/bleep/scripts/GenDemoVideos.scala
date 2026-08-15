@@ -189,8 +189,48 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
   case class Generated(video: String, yaml: Option[String])
 
+  /** Cut a recording down to the demo itself: drop frames before the first `startMarker`, rebase what remains to start at zero, and drop frames after the LAST
+    * `endMarker` plus a dwell. See [[Demo.trim]] for why. Fails loudly when a marker is absent — a recording that does not contain what the demo says it does
+    * is not one to publish quietly.
+    */
+  def trimCast(cast: String, trim: Demo.Trim, demoName: String): String = {
+    val lines = cast.split("\n").toList
+    val header = lines.head
+    val frames = lines.tail.filter(_.nonEmpty)
+
+    def timeOf(frame: String): Double =
+      io.circe.parser.parse(frame).flatMap(_.as[List[io.circe.Json]]) match {
+        case Right(first :: _) => first.asNumber.map(_.toDouble).getOrElse(sys.error(s"$demoName: frame does not start with a timestamp: $frame"))
+        case _                 => sys.error(s"$demoName: not an asciicast frame: $frame")
+      }
+
+    val startIdx = frames.indexWhere(_.contains(trim.startMarker))
+    if (startIdx < 0) sys.error(s"$demoName: recording never showed the start marker '${trim.startMarker}', so it cannot be trimmed")
+    val endIdx = frames.lastIndexWhere(_.contains(trim.endMarker))
+    if (endIdx < startIdx) sys.error(s"$demoName: recording never showed the end marker '${trim.endMarker}' after the start, so it cannot be trimmed")
+
+    val startTime = timeOf(frames(startIdx))
+    val cutoff = timeOf(frames(endIdx)) + trim.dwellSeconds
+    val kept = frames.zipWithIndex.collect {
+      case (frame, idx) if idx >= startIdx && (idx <= endIdx || timeOf(frame) <= cutoff) =>
+        io.circe.parser.parse(frame).flatMap(_.as[List[io.circe.Json]]) match {
+          case Right(time :: rest) =>
+            val rebased = time.asNumber.map(_.toDouble).getOrElse(0.0) - startTime
+            io.circe.Json.arr(io.circe.Json.fromDoubleOrNull(rebased) :: rest*).noSpaces
+          case _ => sys.error(s"$demoName: not an asciicast frame: $frame")
+        }
+    }
+
+    // the player starts mid-stream now, so hand it a clean screen to paint onto
+    val clearScreen =
+      io.circe.Json.arr(io.circe.Json.fromDoubleOrNull(0.0), io.circe.Json.fromString("o"), io.circe.Json.fromString("\u001b[2J\u001b[H")).noSpaces
+    (header :: clearScreen :: kept).mkString("\n") + "\n"
+  }
+
   def genVideo(demo: Demo, bleepVersion: String, repoDir: Path, env: List[(String, String)], logger: Logger): Generated = {
-    val tempDir = Files.createTempDirectory(s"bleep-videos-${demo.name}")
+    val tempDir =
+      if (demo.recordInsideRepo) Files.createTempDirectory(repoDir, s".bleep-videos-${demo.name}")
+      else Files.createTempDirectory(s"bleep-videos-${demo.name}")
     // nest one level to not include script and output file in file listings
     val workDir = tempDir / "demo"
     Files.createDirectories(workDir)
@@ -249,6 +289,12 @@ object GenDemoVideos extends BleepScript("GenVideos") {
         s"$header\n$rest"
       case other => sys.error(s"unexpected cast file with ${other.length} lines")
     }
+
+    val trimmed = demo.trim match {
+      case None       => video
+      case Some(trim) => trimCast(video, trim, demo.name)
+    }
+
     val maybeYaml = demo.expectedYaml.map(yamlRelPath => Files.readString(workDir / yamlRelPath))
 
     // return anything prepare borrowed from the repo (e.g. a git worktree registration) before the temp dir vanishes
@@ -261,6 +307,6 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     FileUtils.deleteDirectory(tempDir)
 
-    Generated(video = video, yaml = maybeYaml)
+    Generated(video = trimmed, yaml = maybeYaml)
   }
 }
