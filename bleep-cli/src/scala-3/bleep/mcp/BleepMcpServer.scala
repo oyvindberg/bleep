@@ -121,6 +121,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       )
     } yield lifecycle
 
+  /** The advertised tool list, built without a client connection. `ToolFunction.Info.effect` is a security control, not documentation: MCP clients read
+    * `readOnlyHint` to decide what may run unattended, so a tool that executes anything from the checkout must never claim it. Pinned by tests in
+    * `bleep.McpToolEffectTest`.
+    */
+  private[bleep] def declaredTools: List[ToolFunction[IO]] = new BleepMcpSession().toolList
+
   private class BleepMcpSession extends McpServer.Session[IO] with McpServer.ToolProvider[IO] {
 
     override val serverInfo: protocol.Initialize.PartyInfo =
@@ -129,7 +135,11 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     override def instructions: IO[Option[String]] =
       IO.pure(Some(BleepMcpServer.instructionsText))
 
-    override val tools: IO[List[ToolFunction[IO]]] = IO(
+    /** Effect annotations here are load-bearing. `ReadOnly` is only for tools that read files and build model — never for a tool that compiles, tests, runs,
+      * generates sources, formats or deletes, because those either execute code the checkout controls (macros, annotation processors, sourcegen scripts, test
+      * bodies, main methods) or write to disk. Each declaration below states which of the two it is.
+      */
+    private[mcp] val toolList: List[ToolFunction[IO]] =
       List(
         compileTool,
         testTool,
@@ -150,7 +160,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         runTool,
         restartTool
       )
-    )
+
+    override val tools: IO[List[ToolFunction[IO]]] = IO.pure(toolList)
 
     // ========================================================================
     // Tools
@@ -198,10 +209,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.compile",
         Some("Compile"),
         Some(
-          "Compile bleep projects. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with what changed — new/resolved diagnostics — instead of you re-reading full results."
+          "Compile bleep projects. Executes build-supplied code: sourcegen scripts, annotation processors, symbol processors and macros all run during a compile, and it writes generated sources and compile output into the workspace. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (error counts) plus a historyId. Errors stream per-project as they finish. Call bleep.history.show with the historyId for full diagnostics. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with what changed — new/resolved diagnostics — instead of you re-reading full results."
         ),
-        ToolFunction.Effect.ReadOnly,
-        false
+        // NOT read-only: a compile runs sourcegen scripts, annotation processors, KSP and macros — arbitrary code from the checkout, with the user's
+        // privileges — and rewrites generated sources and compile output. Never idempotent: that code runs again on every call.
+        ToolFunction.Effect.Destructive(idempotent = false),
+        isOpenWorld = true
       ),
       (args, context) => bootstrapFor(args.directory).flatMap(started => executeCompile(started, args.projects, args.diffBase, context)),
       None
@@ -212,10 +225,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.test",
         Some("Test"),
         Some(
-          "Run tests for bleep projects. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with newly failing/fixed tests instead of you re-reading full results."
+          "Run tests for bleep projects. Executes the test bodies in the checkout — arbitrary code with your privileges, which can touch the filesystem, the network and any system the tests reach — after compiling, which itself runs sourcegen scripts, annotation processors and macros. Only for bleep builds — if there is no bleep.yaml in or above the directory, this is not the project's build tool; use its own build system (Maven/Gradle/sbt/...). Returns compact summary (pass/fail counts) plus a historyId. Failures stream as they occur. Call bleep.history.show with the historyId for full failure messages/stacktraces. The inner loop after an edit: pass diffBase:\"previous\" (or a pinned historyId) and the response gains a \"diff\" section with newly failing/fixed tests instead of you re-reading full results."
         ),
-        ToolFunction.Effect.ReadOnly,
-        false
+        // NOT read-only: running tests is executing the checkout's code. Test bodies write files, mutate databases, call services — bleep neither knows nor
+        // constrains what they do — and the compile that precedes them runs sourcegen/annotation processors/macros too.
+        ToolFunction.Effect.Destructive(idempotent = false),
+        isOpenWorld = true
       ),
       (args, context) => bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, args.diffBase, context)),
       None
@@ -228,8 +243,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "List `directory`'s recorded compile/test runs, oldest first: historyId, timestamp, mode, targets and which client ran it — the same listing `bleep history` prints, as JSON. Pure file read — no build, no daemon."
         ),
+        // Genuinely read-only: reads `<workspace>/.bleep/builds/<variant>/history/*.json` and nothing else. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => historyList(args),
       None
@@ -242,8 +258,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Full transcript of a completed compile/test run in `directory`'s per-worktree history: every diagnostic, every test failure with stack trace. Pass the historyId from a compile/test response, or omit it for the workspace's most recent run. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate. Pure file read — no build, no daemon."
         ),
+        // Genuinely read-only: one transcript file, parsed and filtered. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => historyShow(args),
       None
@@ -256,8 +273,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Mechanical diff between two completed compile/test runs in `directory`'s history: what LOGICALLY changed. Tests: newly failing/fixed/skipped/added/removed, still-failing with changed messages. Compiles: per-project reason and status transitions, invalidated files, new/resolved diagnostics. Durations never enter the comparison — two runs with the same outcome diff as identical regardless of timing jitter. `baseDirectory` resolves base in another worktree (copy-state verification). Use bleep.history.diff-timing for duration comparisons. The canonical after-edit question: rerun, then diff the two historyIds."
         ),
+        // Genuinely read-only: two transcript files, compared in memory. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) =>
         IO.blocking {
@@ -274,8 +292,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Duration comparison between two completed compile/test runs in `directory`'s history: which tests/projects got slower or faster (deltas below max(50ms, 20% of base) are suppressed as jitter), plus the slowest items of the target run in absolute terms. Timing lives here, separate from bleep.history.diff, so the mechanical diff stays deterministic. Same `directory`/`baseDirectory` semantics as bleep.history.diff."
         ),
+        // Genuinely read-only: two transcript files, compared in memory. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) =>
         IO.blocking {
@@ -312,10 +331,13 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.test.suites",
         Some("Test Suites"),
         Some(
-          "Discover test suites in compiled test projects without running them. Projects must be compiled first. Returns test class names grouped by project."
+          "Discover test suites in compiled test projects without running them. No test body runs, but discovery loads classes from the build's classpath and instantiates its test frameworks inside the compile daemon, so it is not a pure read. Projects must be compiled first. Returns test class names grouped by project."
         ),
-        ToolFunction.Effect.ReadOnly,
-        false
+        // NOT read-only: ClasspathTestDiscovery builds a URLClassLoader over the project's classpath, loads classes from it and instantiates the test
+        // framework classes it finds (`munit.Framework` and friends) — code from the checkout's dependencies, running in the daemon. It writes nothing of its
+        // own, hence Additive rather than Destructive, and repeating it discovers the same suites.
+        ToolFunction.Effect.Additive(idempotent = true),
+        isOpenWorld = true
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => discoverTestSuites(started, args.projects)),
       None
@@ -325,9 +347,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       ToolFunction.Info(
         "bleep.sourcegen",
         Some("Source Generate"),
-        Some("Run source generators for bleep projects. Only affects projects that have sourcegen scripts defined."),
-        ToolFunction.Effect.Additive(false),
-        false
+        Some(
+          "Run source generators for bleep projects. Only affects projects that have sourcegen scripts defined. A sourcegen script is a program from the checkout: it runs with your privileges and overwrites the generated sources it owns."
+        ),
+        // NOT read-only, and not merely additive: sourcegen forks the build's own scripts (arbitrary code) and overwrites previously generated sources.
+        ToolFunction.Effect.Destructive(idempotent = false),
+        isOpenWorld = true
       ),
       (args, _) =>
         bootstrapFor(args.directory).flatMap { started =>
@@ -356,9 +381,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       ToolFunction.Info(
         "bleep.fmt",
         Some("Format"),
-        Some("Format Scala and Java source files using scalafmt and google-java-format. Optionally limit to specific projects."),
-        ToolFunction.Effect.Additive(false),
-        false
+        Some(
+          "Format Scala and Java source files using scalafmt and google-java-format. Rewrites the source files in place — run it on a clean or committed tree if you want the change to be reviewable."
+        ),
+        // NOT read-only: it rewrites existing files in the working tree. Idempotent — formatting formatted sources changes nothing further.
+        ToolFunction.Effect.Destructive(idempotent = true),
+        isOpenWorld = true
       ),
       (args, _) =>
         bootstrapFor(args.directory).flatMap { started =>
@@ -381,8 +409,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.clean",
         Some("Clean"),
         Some("Delete build outputs for bleep projects. Removes compiled classes and other build artifacts."),
-        ToolFunction.Effect.Destructive(true),
-        false
+        // Deletes files it did not create in this call. Idempotent: cleaning a clean project changes nothing.
+        ToolFunction.Effect.Destructive(idempotent = true),
+        isOpenWorld = false
       ),
       (args, _) =>
         bootstrapFor(args.directory).flatMap { started =>
@@ -411,8 +440,10 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Seed a freshly created git worktree with compiled state from the worktree it was forked off, so its first build compiles only the diff instead of everything. Call this once, right after creating a worktree, before compiling in it. The copy runs in the compile daemon under per-project locks, so it is safe while the parent keeps compiling."
         ),
-        ToolFunction.Effect.Additive(false),
-        false
+        // Writes into the target workspace, but only into a workspace that has no state yet — the daemon refuses when `.bleep/projects` already exists, so
+        // nothing is ever overwritten. That refusal is also why it is not idempotent: the second call fails.
+        ToolFunction.Effect.Additive(idempotent = false),
+        isOpenWorld = true
       ),
       (args, _) =>
         bootstrapFor(args.directory).flatMap { started =>
@@ -436,8 +467,10 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Show the effective project configuration after all templates have been applied. Shows dependencies, scala/java/kotlin version, platform, source layout, test frameworks — everything from bleep.yaml fully expanded. Does NOT include resolved classpaths or compiled output paths. Use bleep.projects for a quick dependency overview instead."
         ),
+        // Read-only: bootstrapping parses bleep.yaml and expands templates. Dependency resolution is lazy and is not forced here, so nothing is fetched,
+        // nothing is written, and no build code runs.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => showBuildConfig(started, args.projects)),
       None
@@ -450,8 +483,10 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Show the fully resolved project configuration: actual classpath JARs, source directories, compiler JARs, classes output directory, and all compilation inputs. This is what the compiler sees. Requires projects to be compiled first (classpath resolution happens during compilation)."
         ),
+        // Read-only for the workspace and runs no build code, but forcing the resolved projects makes coursier resolve — and, on a cold cache, download —
+        // the declared dependencies from the build's repositories. Hence open-world.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = true
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => showResolvedConfig(started, args.projects)),
       None
@@ -462,8 +497,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.projects",
         Some("List Projects"),
         Some("List all projects in the build with their dependencies and whether they are test projects."),
+        // Read-only: bleep.yaml parsed and expanded in memory. No fetching, no writing, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => listProjects(started)),
       None
@@ -474,8 +510,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.programs",
         Some("List Programs"),
         Some("List projects that have a mainClass defined (runnable programs). Shows project name, main class, and platform."),
+        // Read-only: bleep.yaml parsed and expanded in memory. No fetching, no writing, no build code.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => listPrograms(started)),
       None
@@ -486,8 +523,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.scripts",
         Some("List Scripts"),
         Some("List scripts defined in the build. Scripts are named entry points that compile and run a specific main class."),
+        // Read-only: lists the `scripts:` entries from bleep.yaml. Listing a script never runs it — that is bleep.run.
         ToolFunction.Effect.ReadOnly,
-        false
+        isOpenWorld = false
       ),
       (args, _) => bootstrapFor(args.directory).flatMap(started => listScripts(started)),
       None
@@ -498,10 +536,11 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.run",
         Some("Run"),
         Some(
-          "Compile and run a project or script. Checks scripts first, then projects. Returns stdout/stderr and exit code. Has a timeout to prevent hanging on long-running processes."
+          "Compile and run a project or script. Executes that program in a forked JVM with your privileges — whatever it does to the filesystem, the network or any system it reaches, it does for real. Checks scripts first, then projects. Returns stdout/stderr and exit code. Has a timeout to prevent hanging on long-running processes."
         ),
-        ToolFunction.Effect.Additive(false),
-        false
+        // NOT read-only: this is arbitrary code execution by definition, preceded by a compile (which runs sourcegen/annotation processors/macros).
+        ToolFunction.Effect.Destructive(idempotent = false),
+        isOpenWorld = true
       ),
       (args, context) =>
         bootstrapFor(args.directory).flatMap { started =>
@@ -518,8 +557,9 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         Some(
           "Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and Claude Code will relaunch it. Wait a few seconds before calling other tools."
         ),
-        ToolFunction.Effect.Destructive(true),
-        false
+        // Kills this process, which drops every in-flight tool call on the connection. Idempotent: a second restart lands in the same place.
+        ToolFunction.Effect.Destructive(idempotent = true),
+        isOpenWorld = false
       ),
       (_, _) =>
         IO {

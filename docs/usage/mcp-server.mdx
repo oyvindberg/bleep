@@ -71,29 +71,64 @@ nothing else.
 
 ## The tool surface
 
-| Tool                        | Effect      | What it does                                                                          |
-| --------------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `bleep.compile`             | read-only   | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
-| `bleep.test`                | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
-| `bleep.history.list`        | read-only   | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
-| `bleep.history.show`        | read-only   | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
-| `bleep.history.diff`        | read-only   | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
-| `bleep.history.diff-timing` | read-only   | What got slower or faster between two runs, jitter suppressed, plus the target run's slowest items. |
-| `bleep.test.suites`         | read-only   | List test suite class names without running them. Requires projects to be compiled.   |
-| `bleep.sourcegen`       | additive    | Run sourcegen scripts for selected projects.                                          |
-| `bleep.fmt`             | additive    | Format Scala and Java sources via scalafmt and google-java-format.                    |
-| `bleep.clean`           | destructive | Delete compile output for selected projects.                                          |
-| `bleep.copy-state`      | additive    | Seed a fresh git worktree with the parent worktree's compiled state. Call once after forking. |
-| `bleep.build.effective` | read-only   | The project config after templates apply, what bleep sees.                            |
-| `bleep.build.resolved`  | read-only   | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.         |
-| `bleep.projects`        | read-only   | List projects with their dependencies and test-project flag.                          |
-| `bleep.programs`        | read-only   | List projects with a `mainClass` (runnable programs).                                 |
-| `bleep.scripts`         | read-only   | List the named scripts under `scripts:` in `bleep.yaml`.                              |
-| `bleep.run`             | additive    | Compile and run a project or script. Returns stdout/stderr and exit code.             |
-| `bleep.restart`         | destructive | Exit the MCP server process. The client will relaunch it.                             |
+| Tool                        | Effect      | Runs code from the checkout | What it does                                             |
+| --------------------------- | ----------- | --------------------------- | -------------------------------------------------------- |
+| `bleep.compile`             | destructive | yes                         | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
+| `bleep.test`                | destructive | yes                         | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
+| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Returns stdout/stderr and exit code.             |
+| `bleep.sourcegen`       | destructive | yes                         | Run sourcegen scripts for selected projects.                                          |
+| `bleep.test.suites`         | additive    | yes                         | List test suite class names without running them. Requires projects to be compiled.   |
+| `bleep.fmt`             | destructive | no                          | Format Scala and Java sources via scalafmt and google-java-format. Rewrites files in place. |
+| `bleep.clean`           | destructive | no                          | Delete compile output for selected projects.                                          |
+| `bleep.copy-state`      | additive    | no                          | Seed a fresh git worktree with the parent worktree's compiled state. Call once after forking. |
+| `bleep.restart`         | destructive | no                          | Exit the MCP server process. The client will relaunch it.                             |
+| `bleep.history.list`        | read-only   | no                          | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
+| `bleep.history.show`        | read-only   | no                          | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
+| `bleep.history.diff`        | read-only   | no                          | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
+| `bleep.history.diff-timing` | read-only   | no                          | What got slower or faster between two runs, jitter suppressed, plus the target run's slowest items. |
+| `bleep.build.effective` | read-only   | no                          | The project config after templates apply, what bleep sees.                            |
+| `bleep.build.resolved`  | read-only   | no                          | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.         |
+| `bleep.projects`        | read-only   | no                          | List projects with their dependencies and test-project flag.                          |
+| `bleep.programs`        | read-only   | no                          | List projects with a `mainClass` (runnable programs).                                 |
+| `bleep.scripts`         | read-only   | no                          | List the named scripts under `scripts:` in `bleep.yaml`.                              |
 
-`Effect` mirrors the MCP spec's tool semantics, clients use it
-to decide whether a tool can run unattended.
+### What the effect column means
+
+`Effect` mirrors the MCP spec's tool annotations — `read-only` maps to
+`readOnlyHint`, `destructive` to `destructiveHint` — and clients use
+them to decide what may run **unattended**, without asking the user.
+So the column is a security statement, not a description of intent,
+and bleep sets it accordingly:
+
+- **`read-only` means bleep reads files and its own build model, and
+  nothing else happens.** Only the nine tools above qualify: the
+  history tools read transcript JSON off disk, and the listing tools
+  parse `bleep.yaml` and expand templates. No build code runs, nothing
+  is written.
+- **Building is not read-only.** A compile runs sourcegen scripts,
+  annotation processors, KSP and macros; `bleep.test` additionally
+  runs the test bodies; `bleep.run` runs the program you name. That is
+  arbitrary code from the checkout, executing with your privileges —
+  it can write files, reach the network, and touch anything your user
+  can. A tool that does this must never be advertised as safe to run
+  without asking, however read-only "compile" sounds. `bleep.fmt`
+  rewrites your sources in place and `bleep.clean` deletes output, so
+  they are destructive for the ordinary reason.
+- **`bleep.test.suites` runs no test body, but it is not a pure read
+  either.** Discovery builds a classloader over the project's
+  classpath and instantiates the test frameworks it finds there, so
+  code from the checkout's dependencies executes in the compile
+  daemon. It writes nothing, hence `additive` rather than
+  `destructive`.
+
+The practical consequence: if you point an agent at a checkout you do
+not trust (a contributor's pull request, a repository you just
+cloned), auto-approving `bleep.compile` is equivalent to auto-approving
+`run whatever this branch says`. The annotations are pinned by tests
+(`bleep.McpToolEffectTest`) so they cannot quietly drift back.
+
+Tools that reach the network — anything that resolves dependencies or
+starts the compile daemon — additionally set `openWorldHint`.
 
 Every tool except `bleep.restart` requires `directory`: the absolute
 path of the checkout to act on. An agent's current working directory
