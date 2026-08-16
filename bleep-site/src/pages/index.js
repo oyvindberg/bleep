@@ -1238,7 +1238,7 @@ function InstallCTA() {
             </>
           }
         >
-          Bleep is open source under Apache 2.0. Java, Kotlin, and Scala on the JVM.
+          Bleep is open source under the MIT licence. Java, Kotlin, and Scala on the JVM.
           Cross-build to JS and Native if you want. Or don&rsquo;t. The
           second line gives every agent on your machine a build tool
           that answers in {stats.tokens.failingTestWithDiff} tokens or fewer.

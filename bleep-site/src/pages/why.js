@@ -1073,7 +1073,7 @@ function InstallCTA() {
             </>
           }
         >
-          Open source, Apache 2.0. The first line installs the binary.
+          Open source, MIT. The first line installs the binary.
           The second gives every agent on your machine a build tool that
           answers in {stats.tokens.failingTestWithDiff} tokens or fewer. There is no third line.
         </SectionHeader>
