@@ -1,0 +1,173 @@
+---
+title: vs Bazel
+---
+
+# Comparison with Bazel
+
+Bazel is the serious one. Every other tool on this comparison list is a
+JVM build tool arguing with other JVM build tools about syntax. Bazel
+is a general-purpose build system with a genuinely different thesis:
+declare every action's inputs and outputs exactly, run it in a sandbox
+so the declaration can't lie, cache and distribute on that basis, and
+get correctness and scale as a consequence.
+
+That thesis works. It is why Bazel owns the large-monorepo segment, and
+bleep is not going to argue it away. This page is about the price of
+admission and who should pay it.
+
+## Where Bazel wins
+
+Not hedged. These are real, and bleep has no answer for most of them.
+
+**Hermeticity.** A Bazel action declares its inputs, runs sandboxed
+with only those inputs visible, and produces declared outputs. An
+undeclared dependency fails rather than silently working on the machine
+that happens to have the file. Bleep has no sandbox at all: a
+[script](/docs/concepts/scripts) is an ordinary `main` that can read
+any file on disk and open any socket, and bleep will neither know nor
+care. Bleep's correctness story is "the model is data and the compiler
+is incremental", which is a weaker claim than Bazel's and honestly so.
+
+**Remote execution.** Bazel farms actions out to a cluster, so a
+sufficiently large build gets thousands of cores. Bleep compiles on one
+machine, on one warm daemon. Its
+[build cache](/docs/usage/remote-cache) is S3-backed but explicit —
+`bleep remote-cache pull` before, `push` after — not transparent
+per-action lookup, and there is no remote execution at all. This is
+listed as a known limitation on the [status page](/docs/appendix/status).
+
+**Polyglot scale.** Bazel puts Go, C++, Rust, Python, protobuf,
+TypeScript, and container images in one dependency graph with one
+model. Bleep builds Java, Kotlin, and Scala, targeting JVM, JS, and
+native. If your monorepo's hard problem is that the Java service and
+the Go sidecar and the generated protobuf clients need to move
+together, bleep does not solve your problem, and no amount of YAML
+will change that.
+
+**Action-level granularity.** Bazel's cache key is per action over its
+exact declared inputs. Bleep's remote-cache digest is
+[per project](/docs/usage/remote-cache#how-it-works): change one file
+in a 500-file project and that project's cache entry misses. (Zinc
+still does incremental compilation within the project, so the local
+rebuild is small — but the shared cache entry is not reused.)
+
+**Enforcement primitives.** Visibility rules, strict deps, aspects that
+walk the graph and generate new actions. If your organization needs to
+mechanically prevent team A from depending on team B's internals,
+Bazel has a designed answer and bleep has code review.
+
+## Where bleep wins
+
+**Setup and ongoing cost.** The most-quoted number on this comes from a
+Hacker News thread, where an engineer reported that
+["rolling out Bazel at my prior employer took about one person decade
+of engineering time"](https://news.ycombinator.com/item?id=41975870).
+Treat that as one anecdote about one organization, not a benchmark —
+but the shape it describes is not controversial among people who have
+done a migration. What that decade buys is a corpus of `BUILD` files, a
+Starlark ruleset your team now maintains, an external-dependency story
+(`rules_jvm_external` plus a lockfile) that has to stay in sync with
+Maven Central, a toolchain configuration, and usually a remote cache
+and executor cluster to operate. Most of it is not one-time.
+
+Bleep's equivalent is [`bleep import`](/docs/demos/importing-sbt-build)
+or [`bleep import-maven`](/docs/demos/importing-maven-build), and if
+the result compiles and tests you are done. There is no Gradle importer
+yet.
+
+**No BUILD files, and no third language.** Bazel adds Starlark to your
+codebase. Every module gets a `BUILD` file listing its sources, deps,
+and visibility, and those files drift from reality until somebody
+writes a generator (Gazelle) to keep them honest. Bleep's build is one
+`bleep.yaml` with a [JSON schema](https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json),
+dependencies are plain Maven coordinates, and because it's data the
+tool edits it for you:
+[`bleep build project-rename`](/docs/reference/cli/build/project-rename/),
+[`bleep build update-deps`](/docs/reference/cli/build/update-deps/),
+[`bleep build templates-reapply`](/docs/reference/cli/build/templates-reapply/).
+There is no file to keep in sync with your source tree, because
+[project layout](/docs/concepts/project-layout) is convention.
+
+**JVM-native compilation.** Bleep's compile server is a long-lived
+daemon that holds Zinc's incremental analysis in memory and shares one
+instance per machine across every checkout, worktree, and IDE window.
+That's the whole design: incremental Scala and Java compilation with
+warm state is what makes the inner loop fast, and it's exactly the
+thing a hermetic per-action sandbox makes awkward. Bazel's JVM rules
+have to work harder for this, through persistent workers and
+rules_scala's Zinc support, and the default experience is coarser.
+
+**IDE integration is the product, not an add-on.** Bleep *is* a BSP
+server; [`bleep setup-ide`](/docs/reference/cli/setup-ide/) writes
+`.bsp/bleep.json` and IntelliJ or Metals imports through the same code
+path that runs your builds. With Bazel the IDE is a separate project
+(the IntelliJ Bazel plugin, or `bazel-bsp`) with its own sync step and
+its own failure modes.
+
+**No build team.** This is the claim the person-decade quote is really
+about. Bleep's daily driver is a private repository of
+[12.9M lines across 57,941 files](/docs/appendix/status), of which
+bleep compiles 4.1M lines across 67 projects, developed across a dozen
+concurrent git worktrees. Nobody's full-time job is the build.
+
+**Exit cost.** `bleep.yaml` is data, and
+[`bleep build show`](/docs/reference/cli/build/show/) prints the fully
+expanded model as YAML. Translating that into another tool is a
+mechanical job. See [exit strategy](/docs/guides/exit-strategy). A
+corpus of Starlark is a rewrite.
+
+## What they actually agree on
+
+More than the framing suggests. Both tools believe the build should be
+an explicit, inspectable graph rather than a pile of imperative
+lifecycle hooks. Both refuse the Maven/Gradle/sbt bargain where a
+plugin you installed mutates your build in ways you can only discover
+by running it. Both make "what will this build do?" a question you can
+answer by reading.
+
+The disagreement is about the boundary. Bazel draws it around every
+action in every language, and pays for that with Starlark and
+sandboxing. Bleep draws it around the JVM build model and reduces it to
+[four primitives](/docs/spring-boot-proves-the-model) — projects,
+dependencies, scripts, sourcegen — leaving everything else an ordinary
+program it makes no attempt to model.
+
+## Who should pick which
+
+**Pick Bazel if:**
+
+- Your repo is genuinely polyglot and the cross-language edges are the
+  hard part.
+- You need remote execution — the build is big enough that one
+  machine's cores are the binding constraint.
+- Correctness under a large, distributed cache matters more than inner
+  loop ergonomics, e.g. you ship from a monorepo where a wrong
+  incremental result is a production incident.
+- You need mechanically enforced dependency boundaries between teams.
+- You can staff it. This is the real gate.
+
+**Pick bleep if:**
+
+- You're on the JVM — Java, Kotlin, Scala, or a mix.
+- You want a build that's fast today and imported this afternoon, not
+  one that's fast after a migration project.
+- Nobody on your team wants to be the build engineer.
+- Your IDE experience matters as much as your CI time.
+- You want the exit cost bounded, because the build is data you own.
+
+**The honest middle.** If you're a JVM shop currently evaluating Bazel
+*because your build is slow*, that's the case where this page has an
+opinion: try [`bleep import`](/docs/demos/importing-maven-build) first.
+It's an afternoon, and if the imported build compiles and tests you've
+learned something cheap. If you're evaluating Bazel because you have
+four languages and a correctness problem, bleep is the wrong tool and
+we'd rather say so here than waste your afternoon.
+
+## See also
+
+- [Project status](/docs/appendix/status) — what bleep does and doesn't cover
+- [Build cache](/docs/usage/remote-cache) — what bleep's caching is and isn't
+- [CI project invalidation](/docs/usage/ci-invalidation) — the "only build what changed" story without an action graph
+- [Exit strategy](/docs/guides/exit-strategy)
+- [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Comparison with Gradle](/docs/compared-to-other-build-tools/gradle)

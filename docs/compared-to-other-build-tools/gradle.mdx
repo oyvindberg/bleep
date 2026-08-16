@@ -203,6 +203,15 @@ versioned alongside the rest of your code.
 
 ## Honest trade-offs
 
+- **No importer, and no exporter.** This is the first thing a Gradle
+  shop should know: there is no `bleep import-gradle`, and nothing
+  writes a `build.gradle.kts` back out either. `bleep import` reads sbt
+  and [`bleep import-maven`](/docs/reference/cli/import-maven/) reads
+  Maven; coming from Gradle you hand-write `bleep.yaml`, and leaving
+  for Gradle you would hand-write the Gradle build. The mechanical way
+  out of bleep goes to Maven —
+  [`bleep export-maven`](/docs/reference/cli/export-maven/), see the
+  [exit strategy](/docs/guides/exit-strategy) — not to Gradle.
 - **Android.** Gradle is the only practical choice for Android builds.
   Bleep doesn't target Android.
 - **Kotlin/Multiplatform.** Gradle's KMP support is mature; bleep supports
@@ -221,5 +230,6 @@ versioned alongside the rest of your code.
 ## See also
 
 - [Comparison with Maven](/docs/compared-to-other-build-tools/maven)
+- [Comparison with Bazel](/docs/compared-to-other-build-tools/bazel)
 - [Your first project](/docs/tutorials/your-first-project)
 - [Scripts](/docs/concepts/scripts)

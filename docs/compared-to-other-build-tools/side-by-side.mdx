@@ -18,13 +18,44 @@ plain data versus XML versus a DSL with hidden state versus a Kotlin
 program that mutates a build graph. Read each one with that question in
 mind.
 
+## Where these snippets come from
+
+The two sides of this page do not have equal standing, and you should
+know which is which before you read them.
+
+**The `bleep.yaml` files were not written for this page.** Each one is
+the literal output of `bleep new myapp --lang <language>`, captured by
+an integration test that then bootstraps the build, runs the app, and
+runs its tests in-process —
+[`YourFirstKotlinProjectIT.scala`](https://github.com/oyvindberg/bleep/blob/master/bleep-tests/src/scala/bleep/YourFirstKotlinProjectIT.scala)
+and its Java and Scala siblings. The test mirrors the file into
+`docs-snippets-from-tests/`, the `Build` workflow runs
+`git diff --exit-code` on that directory so a stale snippet fails CI,
+and this page includes the result verbatim. If one of them were wrong,
+the build would be red.
+
+**The `pom.xml`, `build.sbt`, and `build.gradle.kts` have no such
+backing.** We wrote them by hand, and nothing executes them. They are
+our best attempt at the smallest thing a competent user of each tool
+would actually write for this exact project — same language, same
+dependency versions, same main class, same test framework, no plugin
+present unless the bleep build does the same job. That's a claim, not
+evidence, and we're the interested party. If you'd write it shorter or
+cleaner, [tell us](https://github.com/oyvindberg/bleep/issues) and
+we'll fix the page.
+
+Two things we've deliberately held constant so nothing is rigged: every
+side uses the same versions the bleep scaffold picks (Kotlin 2.4.10,
+Kotest 6.2.3, Scala 3.8.4, MUnit 1.3.4, JDK 25), and every side is
+minimal rather than realistic. A production `pom.xml` is much longer
+than the one below — so is a production `bleep.yaml`.
+
 ## bleep.yaml, plain data
 
 Same shape across all three languages. The only thing that changes between
 tabs is the per-language fields (`scala:`, `kotlin:`, dep coordinates) and
-the test framework. Each snippet is a real workspace from bleep's own
-integration tests; the bleep build server compiles and runs each one on
-every commit.
+the test framework. The `$version` you see is substituted from the
+newest release tag when this site is built, so it is never stale.
 
 <Tabs groupId="language" defaultValue="kotlin" values={[
   { label: "Kotlin", value: "kotlin" },
@@ -61,7 +92,14 @@ For the per-feature breakdown of each comparison, see the dedicated pages:
 [vs Maven](/docs/compared-to-other-build-tools/maven),
 [vs Gradle](/docs/compared-to-other-build-tools/gradle),
 [vs sbt](/docs/compared-to-other-build-tools/sbt),
-[vs Mill](/docs/compared-to-other-build-tools/mill).
+[vs Mill](/docs/compared-to-other-build-tools/mill),
+[vs Bazel](/docs/compared-to-other-build-tools/bazel).
+
+Bazel has no snippet on this page on purpose. A `BUILD` file for this
+project would be short and unremarkable, and it would tell you nothing
+about what Bazel actually costs or buys — that argument is about
+hermeticity, remote execution, and staffing, so it
+[gets its own page](/docs/compared-to-other-build-tools/bazel).
 
 ## pom.xml. XML
 
@@ -81,10 +119,9 @@ plugin section and dep coordinates, same XML.
     <version>0.1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>2.3.0</kotlin.version>
+        <kotlin.version>2.4.10</kotlin.version>
+        <kotlin.compiler.jvmTarget>25</kotlin.compiler.jvmTarget>
     </properties>
 
     <dependencies>
@@ -96,7 +133,7 @@ plugin section and dep coordinates, same XML.
         <dependency>
             <groupId>io.kotest</groupId>
             <artifactId>kotest-runner-junit5-jvm</artifactId>
-            <version>5.8.0</version>
+            <version>6.2.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -109,63 +146,97 @@ plugin section and dep coordinates, same XML.
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals><goal>compile</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals><goal>test-compile</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Pinned rather than inherited: which Surefire the super-POM
+                 gives you depends on your Maven version, and the JUnit 5
+                 platform that Kotest runs on needs a 3.x. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
         </plugins>
     </build>
 </project>
 ```
 
+The `<executions>` block is not padding: `kotlin-maven-plugin` binds no
+goals by default, so without it Maven compiles nothing. This `pom.xml`
+also stops one job short of the `bleep.yaml` above — bleep's
+`mainClass: com.example.MainKt` makes `bleep run` work, and the Maven
+equivalent is another plugin (`exec-maven-plugin`, or a manifest entry
+via `maven-jar-plugin`).
+
 It is 2026. We are still typing closing tags by hand. There is no need.
 
 ## build.sbt + project/, a DSL across three files
 
-The Scala variant. Sbt is rarely used outside Scala, the Java/Kotlin
-flavors exist but nobody actually picks sbt for them.
+The Scala variant, matching the Scala tab above. Sbt is rarely used
+outside Scala; the Java/Kotlin flavors exist but nobody actually picks
+sbt for them.
 
 `build.sbt`:
 
 ```scala
-ThisBuild / scalaVersion := "3.8.3"
-ThisBuild / organization := "com.example"
+ThisBuild / scalaVersion := "3.8.4"
 
 lazy val myapp = (project in file("."))
-  .enablePlugins(JavaAppPackaging)
   .settings(
     name := "myapp",
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "fansi" % "0.5.0"
-    ),
-    Compile / mainClass := Some("com.example.Main")
+    scalacOptions ++= Seq("-encoding", "utf8", "-feature", "-unchecked"),
+    libraryDependencies += "org.scalameta" %% "munit" % "1.3.4" % Test,
+    Compile / mainClass := Some("com.example.helloMain")
   )
 ```
 
 `project/build.properties`:
 
 ```properties
-sbt.version=1.10.0
+sbt.version=1.11.2
 ```
 
 `project/plugins.sbt`:
 
 ```scala
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.0")
+addSbtPlugin("org.typelevel" % "sbt-tpolecat" % "0.5.0")
 ```
 
-Three files, three default configurations (`Compile`, `Test`, `Runtime`)
-plus user-defined ones, and a DSL whose every keyword is a global side
-effect on a hidden settings graph. `sbt-native-packager` is enabled
-by name; what it does to your build is documented separately on the
-plugin's own site.
+That third file is there because the bleep build sets `strict: true`,
+and bleep implements `strict` by applying sbt-tpolecat's dev-mode
+option set (bleep vendors the plugin as
+[`liberated/sbt-tpolecat`](https://github.com/oyvindberg/bleep/tree/master/liberated/sbt-tpolecat)).
+Same behaviour, so it belongs on both sides of the comparison. Drop
+`strict` from the `bleep.yaml` and you can drop `plugins.sbt` here.
+
+This is a tight sbt build, and it comes in shorter than the
+`bleep.yaml`. The difference isn't length. It's three default
+configurations (`Compile`, `Test`, `Runtime`) plus any you define, a
+DSL whose every keyword is a global side effect on a hidden settings
+graph, and a plugin enabled by name whose effect on your build is
+documented on somebody else's website. Nothing here can be read as
+data: to know what this build does you have to run it and ask.
 
 ## build.gradle.kts, a Kotlin program
 
 The Kotlin variant. Gradle's Java DSL is similar shape; the Scala flavor
 exists but isn't widely used.
 
+`build.gradle.kts`:
+
 ```kotlin
 plugins {
     application
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.4.10"
 }
 
 group = "com.example"
@@ -173,22 +244,37 @@ version = "0.1.0-SNAPSHOT"
 
 repositories { mavenCentral() }
 
+kotlin { jvmToolchain(25) }
+
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.0")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:6.2.3")
 }
 
 application {
     mainClass.set("com.example.MainKt")
 }
 
-tasks.withType<JavaCompile> {
-    sourceCompatibility = "21"
-    targetCompatibility = "21"
-}
+tasks.test { useJUnitPlatform() }
 ```
 
-A real Kotlin program that side-effects the build graph. Plus
-`settings.gradle.kts`, `gradle.properties`, and the wrapper. Renaming
-the project means editing `rootProject.name` in `settings.gradle.kts`
-plus a directory rename; there's no `gradle rename-project`.
+`settings.gradle.kts`:
+
+```kotlin
+rootProject.name = "myapp"
+```
+
+This is the short, correct version. `kotlin-stdlib` is omitted because
+the Kotlin plugin adds it for you; `jvmToolchain(25)` is the Kotlin
+plugin's own knob rather than a `JavaCompile` tweak that a pure-Kotlin
+project would never hit; and `useJUnitPlatform()` is required, because
+without it Gradle runs Kotest's JUnit 5 suites with JUnit 4 and reports
+zero tests, green.
+
+It's a real Kotlin program that side-effects the build graph, in two
+files, plus the wrapper (`gradlew`, `gradlew.bat`,
+`gradle/wrapper/*`) and usually a `gradle.properties` to give the
+daemon enough heap. Renaming the project means editing
+`rootProject.name` in `settings.gradle.kts` plus a directory rename;
+there's no `gradle rename-project`. Bleep has
+[`bleep build project-rename`](/docs/reference/cli/build/project-rename/),
+which is only possible because the build is data.
