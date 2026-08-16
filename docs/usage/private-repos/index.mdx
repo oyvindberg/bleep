@@ -103,13 +103,59 @@ Named resolvers appear as subcommands automatically, with tab completion and hel
 
 | Provider | Resolver scheme | CLI tool | Auth config needed |
 |----------|----------------|----------|-------------------|
-| [Artifactory / generic Maven](artifactory) | plain `https://` |, | User + token in `~/.config/bleep/config.yaml` |
+| [Artifactory / Nexus / generic Maven](artifactory) | plain `https://` | none | User + token in `~/.config/bleep/config.yaml` |
 | [Google Artifact Registry](artifact-registry) | `artifactregistry://` | `gcloud` | Account (if multiple) |
 | [GitHub Packages](github-packages) | `github://` | `gh` | None |
 | [GitLab Package Registry](gitlab-packages) | `gitlab://` | `glab` | None |
-| [Sonatype / Maven Central](sonatype) | built-in |, | Env vars + GPG |
+| [Sonatype / Maven Central](sonatype) | built-in | none | Env vars + GPG |
 
 Each provider page covers both resolving and publishing in detail.
+
+### How the provider schemes work
+
+When bleep encounters a private repository scheme in `resolvers`:
+
+1. The URI scheme identifies the provider (`artifactregistry://`, `github://`, `gitlab://`)
+2. The scheme is rewritten to `https://` for the actual Maven HTTP requests
+3. A token is acquired by shelling out to the provider's CLI tool (`gcloud auth print-access-token`, `gh auth token`, `glab auth token`)
+4. The token is attached as HTTP authentication to the Coursier repository
+5. Tokens are cached in-memory, so only one CLI invocation per provider per build
+
+Token acquisition is lazy — it only happens when Coursier actually needs to resolve against the private repository, not at bleep startup.
+
+Plain `https://` resolvers (Artifactory, Nexus) shell out to nothing; their credentials come from the `authentications:` block in your bleep config file.
+
+### Maven Central is always in the list
+
+Whatever you declare in `resolvers:`, bleep appends `~/.ivy2/local` and Maven Central
+(`CoursierResolver.coursierRepos` does `repos ++ constants.DefaultRepos`). Your own resolvers are
+consulted first, but **there is no way to remove Maven Central from the resolver list**. If your
+network cannot reach `repo1.maven.org` at all, a Coursier mirror is the supported redirect — see
+[Proxies, TLS & air-gapped networks](/docs/usage/networking#you-cannot-remove-maven-central).
+
+## Managing authentication
+
+```bash
+bleep config auth setup                 # interactive setup wizard
+bleep config auth list                  # list configured authentications
+bleep config auth remove <uri-prefix>   # remove one
+```
+
+### Troubleshooting the provider CLIs
+
+**"gcloud not found" / "gh not found" / "glab not found"** — the provider CLI tool is not installed
+or not on your `PATH`. Install it and re-run.
+
+**"credentials expired"** — run `gcloud auth login`, `gh auth login` or `glab auth login` to
+re-authenticate.
+
+**"Failed to get credentials for account X"** — the configured GCP account has no valid
+credentials. Either `gcloud auth login <account>`, or update the config with
+[`bleep config auth setup`](/docs/reference/cli/config/auth/#bleep-config-auth-setup).
+
+**Token acquisition is slow** — `gcloud` takes ~2s (it is Python). This only happens on a cache
+miss, and the token is cached in-memory for the lifetime of the bleep process. `gh` and `glab` are
+~70ms.
 
 ## The `publish` config
 
@@ -157,14 +203,6 @@ bleep publish setup
 ```
 
 Walks you through configuring auth for private repos and (for Sonatype) generating GPG keys.
-
-## Managing auth
-
-```bash
-bleep config auth setup    # interactive setup
-bleep config auth list     # list configured authentications
-bleep config auth remove <uri-prefix>
-```
 
 ## Troubleshooting
 

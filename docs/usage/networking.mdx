@@ -1,0 +1,339 @@
+---
+title: Proxies, TLS & air-gapped networks
+---
+
+# Proxies, TLS & air-gapped networks
+
+Bleep downloads a lot: your dependencies, the compile server, a JVM, the scalafmt binary, node,
+sometimes a newer copy of itself. On a corporate network that means a proxy, a TLS-intercepting
+firewall, or no internet at all.
+
+**Bleep contains no proxy or TLS code of its own.** There is no `proxy:` field in `bleep.yaml`, no
+`bleep config proxy`, no CA bundle setting. Every byte goes out through either Coursier
+(`HttpURLConnection`) or `java.net.http.HttpClient`, and both take their configuration from **JVM
+system properties**. That is the whole story, and everything below is about how to get those
+properties into the right process.
+
+Everything on this page was measured against a bleep binary, not inferred. Where something does
+**not** work, it says so plainly rather than offering a workaround that doesn't exist.
+
+## The one thing to know first
+
+> **`http_proxy` / `HTTPS_PROXY` / `NO_PROXY` environment variables do nothing.**
+
+Measured: with `https_proxy=http://127.0.0.1:1 HTTP_PROXY=http://127.0.0.1:1` exported and a cold
+cache, `bleep build update-deps` downloaded from `repo1.maven.org` exactly as if nothing were set.
+This is not a bleep bug — the JDK has never read those variables — but it is the first thing
+everyone tries, and it fails silently rather than loudly.
+
+Use system properties instead.
+
+## Four processes, four ways in
+
+Bleep is not one process. Configuration has to reach whichever one is doing the download.
+
+| Process | What it downloads | How to configure it |
+| --- | --- | --- |
+| **The `bleep` binary** (GraalVM native image) | your dependencies, the JVM, the compile-server jars, scalafmt/ktfmt/google-java-format, node, a different bleep release | `-D…` flags **before** the subcommand |
+| **The compile server** (long-lived BSP daemon, a real JVM) | compiler bridges, Kotlin compiler plugins, KSP processors, annotation processors, the Scala.js linker, Kotlin/Native prebuilts | `JAVA_TOOL_OPTIONS` in the shell that **first spawns** it |
+| **Forked test / run JVMs** | whatever your code downloads | `platform.jvmOptions` in `bleep.yaml`, or your shell env |
+| **The install script / `cs`** | the bleep binary itself | `curl`'s and Coursier's own proxy handling — outside bleep |
+
+### The `bleep` binary takes `-D` flags
+
+The native image accepts JVM system properties on the command line, ahead of the subcommand, and
+strips them before bleep's own argument parser sees them:
+
+```bash
+bleep -Dhttps.proxyHost=proxy.corp.example -Dhttps.proxyPort=8080 compile
+```
+
+Measured, in both directions: pointing at a dead proxy (`-Dhttps.proxyHost=127.0.0.1
+-Dhttps.proxyPort=1`) turns every Maven Central fetch into `could not download`, and removing it
+makes them succeed again. Same for `-Djavax.net.ssl.trustStore` (see [Custom CA](#custom-ca--tls-interception)).
+
+Note that `JAVA_TOOL_OPTIONS` does **not** work on the binary — native images do not read it.
+Measured: `JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/does/not/exist bleep build update-deps`
+downloaded normally, i.e. the variable was ignored.
+
+If you always want these, wrap bleep in a shell function or a small script on `PATH`:
+
+```sh
+#!/bin/sh
+exec /usr/local/bin/bleep.real \
+  -Dhttps.proxyHost=proxy.corp.example -Dhttps.proxyPort=8080 \
+  -Dhttp.proxyHost=proxy.corp.example  -Dhttp.proxyPort=8080 \
+  -Dhttp.nonProxyHosts='localhost|127.0.0.1|*.corp.example' \
+  "$@"
+```
+
+### The compile server has no configuration hook
+
+This is the sharp edge, so it gets stated bluntly: **there is no way to add JVM options to the
+compile server.** Its command line is assembled in `SetupBleepBsp.apply` as
+`BspRifleConfig.defaultJavaOpts ++ Seq(maxHeapOpt) ++ jdkVersionOpts(major)`. The only user input
+anywhere in it is `compileServerMaxMemory`. `BspServerConfig` has no field for arbitrary flags, and
+bleep reads no `BLEEP_JVM_OPTS` or `JAVA_OPTS`.
+
+What does work is the JVM's own env-var hook. The daemon is started with
+`ProcessBuilder`, which copies the spawning client's environment (bleep strips only `BLEEP_*`
+variables, deliberately leaving `PATH`, `HOME`, `JAVA_HOME` and proxy-ish variables alone), so:
+
+```bash
+export JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=proxy.corp.example -Dhttps.proxyPort=8080"
+bleep server stop-all                  # the running daemon has the OLD environment
+bleep compile
+```
+
+**The `stop-all` is not optional.** The daemon is long-lived and shared across workspaces, and its
+environment is frozen at spawn time — possibly by a shell you opened days ago in another directory.
+Setting `JAVA_TOOL_OPTIONS` and not restarting changes nothing. Every JVM started this way also
+prints one `Picked up JAVA_TOOL_OPTIONS:` line per process.
+
+If your CI or shell profile exports `JAVA_TOOL_OPTIONS` globally, this is automatic and you will
+never notice the problem.
+
+### Forked test and run JVMs
+
+`platform.jvmOptions` reaches forked test JVMs and `bleep run`, so build-owned network settings
+belong there:
+
+```yaml
+projects:
+  mytests:
+    isTestProject: true
+    platform:
+      name: jvm
+      jvmOptions:
+        - -Dhttps.proxyHost=proxy.corp.example
+        - -Dhttps.proxyPort=8080
+```
+
+For `bleep run`, `platform.jvmRuntimeOptions` takes precedence over `jvmOptions` when it is set.
+Your shell environment is also forwarded to forked processes — see
+[Environment variables](/docs/usage/environment-variables).
+
+## Custom CA / TLS interception
+
+If your firewall terminates TLS and re-signs with a corporate CA, bleep will fail with a
+certificate error until it trusts that CA. The lever is the standard JDK truststore property:
+
+```bash
+bleep -Djavax.net.ssl.trustStore=/etc/pki/corp-truststore.jks \
+      -Djavax.net.ssl.trustStorePassword=changeit \
+      compile
+```
+
+Measured, both directions, on the native binary: pointing `javax.net.ssl.trustStore` at a
+non-existent file breaks every HTTPS fetch (`could not download`), and pointing it at a real JDK
+`cacerts` file makes them succeed. So the GraalVM image's embedded build-time truststore **is**
+overridable at run time — you do not need a special bleep build.
+
+The same property works for the compile server and forked JVMs, via `JAVA_TOOL_OPTIONS` and
+`platform.jvmOptions` respectively, as above.
+
+### Building the truststore
+
+Start from a JDK's `cacerts` (so you keep the public roots) and add your CA:
+
+```bash
+cp "$JAVA_HOME/lib/security/cacerts" /etc/pki/corp-truststore.jks
+keytool -importcert -noprompt \
+  -keystore /etc/pki/corp-truststore.jks -storepass changeit \
+  -alias corp-root -file corp-root.crt
+```
+
+A `.p12`/PKCS#12 store works too; add `-Djavax.net.ssl.trustStoreType=PKCS12`.
+
+Do **not** start from an empty keystore unless you have also mirrored every host bleep talks to —
+Maven Central, `github.com` and `nodejs.org` all need to validate (see [What bleep still reaches
+out to](#what-bleep-still-reaches-out-to)).
+
+### What is *not* configurable
+
+`GenNativeImage` builds the binary with `--enable-http --enable-https` and nothing security-related
+beyond that: no baked-in truststore, no pinned certificates, no `EnableAllSecurityServices`
+(removed from modern GraalVM). Client certificates (`javax.net.ssl.keyStore`) are untested — the
+properties reach the JDK the same way, but nothing in bleep or its tests exercises mutual TLS.
+
+## Repositories, mirrors, and the Maven Central problem
+
+### You cannot remove Maven Central
+
+`CoursierResolver.coursierRepos` builds the repository list as `repos ++ constants.DefaultRepos`,
+and `constants.DefaultRepos` is hardcoded to `~/.ivy2/local` followed by Maven Central. Nothing in
+`bleep.yaml` replaces that list. Your own `resolvers:` are consulted first, so a complete internal
+mirror means Central is never actually contacted — but the entry is always there, and any artifact
+your mirror does not serve falls through to `repo1.maven.org`.
+
+### Coursier mirrors do redirect Central
+
+The supported way to make Central point somewhere else is Coursier's mirror file, which bleep
+inherits by using Coursier's defaults:
+
+```properties
+# /etc/coursier/mirror.properties
+central.from=https://repo1.maven.org/maven2
+central.to=https://artifactory.corp.example/artifactory/maven-virtual
+central.type=maven
+```
+
+```bash
+export COURSIER_MIRRORS=/etc/coursier/mirror.properties
+```
+
+Measured: with that file in place, `bleep compile` on a cold cache tried
+`https://artifactory.corp.example/…/fansi_3-0.3.1.pom` — the Central URL never appeared. Without
+it, the same build went to `repo1.maven.org`.
+
+Two caveats, both measured:
+
+- `bleep build update-deps` is **not** mirrored. It asks each repository for its version listing
+  directly rather than going through Coursier's `Resolve`, so it still queries `repo1.maven.org`.
+- Mirrors only rewrite *Maven repository roots*. They do not affect the hardcoded download URLs
+  listed [below](#what-bleep-still-reaches-out-to).
+
+Coursier reads its credentials the same way — `COURSIER_CREDENTIALS`, or
+`~/.config/coursier/credentials.properties` — in addition to bleep's own `authentications:` block
+(see [Private repositories](/docs/usage/private-repos/)).
+
+### A local directory as a repository
+
+`type: maven-folder` points at a Maven layout on disk, which is the simplest fully-offline source:
+
+```yaml
+resolvers:
+  - name: offline-mirror
+    type: maven-folder
+    path: /opt/maven-mirror
+```
+
+## Air-gapped operation
+
+There is **no `--offline` flag in bleep**. What exists is Coursier's cache mode, which bleep
+inherits:
+
+```bash
+export COURSIER_MODE=offline
+```
+
+Measured: with `COURSIER_MODE=offline` and an empty cache, bleep made no network requests at all —
+it failed on missing artifacts instead of trying to fetch them. That is the behaviour you want in
+an air-gapped image: a fast, loud failure naming the artifact you forgot to seed, rather than a
+10-second connect timeout per file.
+
+### What has to be pre-seeded
+
+| Thing | Where it lands | How to seed it |
+| --- | --- | --- |
+| Dependencies, compile-server jars, compiler bridges | Coursier artifact cache (`COURSIER_CACHE`, default `v1/` under the platform cache dir) | run a full `bleep compile` + `bleep test` on a connected machine and copy the directory |
+| JVM, node, Kotlin/Native prebuilts, scalafmt (zipped arches), a downloaded bleep release | Coursier **archive** cache (`COURSIER_ARCHIVE_CACHE`, default `arc/`) — a *separate* directory | same, and copy `arc/` too |
+| The JVM index (`index.json`) | artifact cache | seeded by the same run, or replaced with `jvm.index` |
+| The `bleep` binary | wherever you installed it | see [Install](/docs/installing) |
+
+The two cache directories are siblings and are configured by two different variables. Seeding only
+`COURSIER_CACHE` and forgetting `COURSIER_ARCHIVE_CACHE` is the usual mistake: the build resolves
+fine and then tries to download a 250MB JDK.
+
+Default locations are Coursier's, not bleep's, and are platform-specific — macOS is
+`~/Library/Caches/Coursier/{v1,arc}`, Linux `~/.cache/coursier/{v1,arc}`. For a reproducible image,
+do not rely on the default at all: set `COURSIER_CACHE` and `COURSIER_ARCHIVE_CACHE` explicitly, in
+the same place on the seeding machine and the target.
+
+(Bleep keeps a separate, small cache of its own — resolution memos and sockets, under
+`~/.cache/bleep` or the platform equivalent. `COURSIER_CACHE` does not move it, and it holds no
+downloaded artifacts, so it does not need seeding.)
+
+### Avoid the JVM download entirely
+
+```yaml
+jvm:
+  name: system
+```
+
+bypasses Coursier's JVM cache and uses the JDK already on the machine (`JAVA_HOME` / `PATH`). Bleep
+warns that a system JVM can change under you, which is a real trade-off — but on an air-gapped image
+where the JDK is baked in, it is usually the right one. There is **no field for an explicit JDK
+path**; `name` and `index` are the only two fields the `jvm:` block has.
+
+If you have your own JVM distribution, mirror Coursier's index and point at it:
+
+```yaml
+jvm:
+  name: corp-jdk:21
+  index: https://artifactory.corp.example/artifactory/generic/jvm-index.json
+```
+
+The string is handed to Coursier's `JvmCache.withIndex` verbatim, so a `file:` URL works too. The
+index only redirects the *lookup* — the download URLs inside it must also be reachable.
+
+### What bleep still reaches out to
+
+These URLs are hardcoded in bleep's source. A Maven mirror does not redirect them; a Coursier mirror
+does not redirect them; the only way to satisfy them offline is a pre-seeded cache.
+
+| Trigger | URL |
+| --- | --- |
+| Scala.js or Kotlin/JS **test or run** | `https://nodejs.org/dist/v<version>/node-…` |
+| Kotlin/Native compile | `https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/…` (~200MB) |
+| `bleep fmt` on Scala | `https://github.com/scalameta/scalafmt/releases/download/…` |
+| `bleep fmt` on Java | `https://github.com/google/google-java-format/releases/download/…` |
+| `bleep fmt` on Kotlin | `https://repo1.maven.org/maven2/com/facebook/ktfmt/…` |
+| A build whose `$version:` differs from your binary | `https://github.com/oyvindberg/bleep/releases/download/…` |
+
+Three things about that list are worth stating explicitly rather than leaving you to discover:
+
+- **Node is not optional and not configurable.** For any JS test or run, the compile server calls
+  `fetchNode(jsNodeVersion.getOrElse(constants.Node))` — even if you never set `jsNodeVersion`, and
+  even if `node` is already installed. There is no `nodePath` setting (the field exists in the model
+  source, commented out). Pre-seeding the archive cache is the only answer.
+  Inconsistently, `bleep run` on a JS project runs the bare command `node` from `PATH` instead.
+- **The formatter downloads ignore your `resolvers:`.** `FetchKtfmt` and `FetchGoogleJavaFormat`
+  construct their URL as a string; they do not resolve through the build's repositories.
+- **Version drift costs you a 100MB download.** Pin your installed binary to the `$version:` in
+  `bleep.yaml`, or the binary will fetch that release from GitHub and re-execute it.
+
+## Timeouts
+
+`BleepFileCache` sets `sun.net.client.defaultConnectTimeout=10000` and
+`sun.net.client.defaultReadTimeout=30000` JVM-wide, but only if you have not set them yourself — so
+`-Dsun.net.client.defaultConnectTimeout=…` wins. These apply to Coursier traffic
+(`HttpURLConnection`). They exist because Coursier's `FileCache` in this version exposes no timeout
+API and the JDK default is *infinite*, which once wedged a whole CI suite.
+
+The `java.net.http.HttpClient` used by the remote build cache and by Maven publishing sets **no
+timeout at all**, on the client or on individual requests. A black-holed connection there will hang
+rather than fail.
+
+## Verifying your setup
+
+```bash
+# does resolution work at all, with your flags?
+bleep -Dhttps.proxyHost=… -Djavax.net.ssl.trustStore=… build update-deps
+```
+
+`build update-deps` is the cheapest real network exercise: it runs in the binary, hits your
+repositories, and does not need the compile server. It logs every URL it touches, so a wrong proxy
+or a wrong mirror is visible immediately. Bear in mind it is the one path that ignores
+`COURSIER_MIRRORS`, so use `bleep compile` to test a mirror.
+
+To check the compile server picked up your settings:
+
+```bash
+bleep server stop-all
+bleep compile          # look for "Picked up JAVA_TOOL_OPTIONS" in the server log
+bleep server top       # the JVM OPTIONS panel shows what the daemon actually booted with
+```
+
+## Summary of what bleep does not have
+
+Stated once, plainly, so nobody goes looking:
+
+- no `proxy:` configuration in `bleep.yaml` or the user config
+- no reading of `http_proxy` / `HTTPS_PROXY` / `NO_PROXY`
+- no `--offline` flag (use `COURSIER_MODE=offline`)
+- no way to pass JVM options to the compile server (use `JAVA_TOOL_OPTIONS` + restart)
+- no way to remove Maven Central from the resolver list (use a Coursier mirror)
+- no way to point at a node or a JDK by path (`jvm: name: system` covers the JDK case; node has no
+  equivalent)
+- no timeout configuration for the remote build cache or Maven publishing
