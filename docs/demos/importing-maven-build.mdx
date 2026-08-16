@@ -98,9 +98,14 @@ hit gaps:
 
 ## Limits today
 
-- **Gradle import is not yet implemented.** Multi-tool repos that mix
-  Maven and Gradle modules can import the Maven half today; the
-  Gradle half is manual.
+- **Gradle import is not yet implemented, and there is no Gradle
+  exporter either.** Multi-tool repos that mix Maven and Gradle
+  modules can import the Maven half today; the Gradle half is a hand
+  port, in both directions. The only mechanical paths are `bleep
+  import` (sbt), [`bleep import-maven`](/docs/reference/cli/import-maven/),
+  and out again via
+  [`bleep export-maven`](/docs/reference/cli/export-maven/) — see the
+  [exit strategy](/docs/guides/exit-strategy).
 - **BOMs are inlined** at import time; bleep has no `dependencyManagement`
   equivalent yet, so dependencies imported through `spring-boot-dependencies`
   or similar will end up with explicit versions in `bleep.yaml`.

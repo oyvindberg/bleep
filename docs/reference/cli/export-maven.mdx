@@ -1,0 +1,55 @@
+---
+title: bleep export-maven
+---
+
+{/* HAND-WRITTEN, but still generated: this page lives in `extraPages` in
+    scripts-dev/src/scala/bleep/scripts/dev/GenCliDocs.scala, because
+    `bleep gen-cli-docs` wipes this directory. Edit it there, not here. */}
+
+# `bleep export-maven`
+
+<p>Walk the exploded build model and write a buildable Maven layout: an aggregator POM plus one POM per project.</p>
+
+:::note Not a built-in command
+`export-maven` is a [bleep script](/docs/concepts/bleep-scripts), not part of the bleep CLI. It ships in bleep's own repository as
+`scripts/src/scala/bleep/scripts/ExportMaven.scala` and is registered under `scripts:` in bleep's `bleep.yaml`, so `bleep export-maven`
+works in a checkout of bleep. To get it in your own build, copy that one file into a scripts project — it only uses the published
+`bleep-core` / `bleep-model` API. It is a proof of concept: see [what it does not translate](#not-translated).
+:::
+
+## Synopsis
+
+```bash
+bleep export-maven <output-directory> [--skip-tests <test-project-name>]...
+```
+
+## Arguments
+
+| Argument | Type |
+|----------|------|
+| `output-directory` | one, required — there is no default. Created if missing. POMs reference your sources by paths relative to each module, so put it inside the workspace |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--skip-tests <test-project-name>` (repeatable) | mark that test project's suite *execution* skipped in its generated POM, with a comment saying why; the suites still compile. Must name an exported test project, or the export fails |
+
+## What it writes
+
+- an aggregator `pom.xml` in the output directory, `packaging` `pom`, listing every exported project as a `<module>`
+- per project a `<artifactId>/pom.xml` with coordinates, dependencies, source and resource directories (via `build-helper-maven-plugin`, since bleep's layout is not Maven's default) and compiler setup: `scala-maven-plugin` for Scala, `kotlin-maven-plugin` for Kotlin, `maven-compiler-plugin` for javac options
+- for test projects: sources wired as Maven *test* sources, with `scalatest-maven-plugin` running the suites during `mvn test` / `mvn install`. Surefire is skipped (these are ScalaTest suites, not JUnit). Bleep's forked-test JVM options become `argLine`, bleep's fork working directory becomes `workingDirectory`
+- for projects with `sourcegen:`, an `exec-maven-plugin` execution bound to `generate-sources` that runs the same `main` class bleep forks, on a classpath bleep's own resolver computed
+
+Coordinates: `groupId` from the project's `publish.groupId`, else `build.bleep.exported`; `artifactId` from the cross project name; every module at a fixed version `0.1.0-SNAPSHOT`.
+
+## Not translated
+
+Silently: unmanaged `jars`, Scala `compilerPlugins`, and publish/assembly configuration. Loudly (the export fails): Kotlin compiler plugins, KSP symbol processing, test projects on a framework other than ScalaTest, and dependencies with a classifier or a configuration that has no Maven scope. Scala.js and Scala Native projects are skipped, and the skip cascades to their dependents. Suite discovery is narrowed to the `*Test` suffix, so `*IT` integration suites compile but do not run.
+
+There is **no exporter for sbt or Gradle**, and no Gradle importer either — [`bleep import`](/docs/reference/cli/import/) covers sbt and [`bleep import-maven`](/docs/reference/cli/import-maven/) covers Maven.
+
+## See also
+
+The [exit strategy guide](/docs/guides/exit-strategy) runs this exporter against bleep's own build and shows the verification output — 25 modules, `mvn install`, tests executing.

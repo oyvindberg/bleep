@@ -12,8 +12,8 @@ wiring with no machine-readable representation outside the tool itself.
 
 Bleep's answer is structural: **the build is data**, so leaving is a
 mechanical translation, not an archaeology project. This page spells
-out exactly what you hold, what leaving looks like, and why the cost
-of exit is capped by design.
+out exactly what you hold, what leaving looks like, what the working
+exporter actually produces, and what it does not translate.
 
 ## What you hold
 
@@ -43,55 +43,235 @@ Because the model is data, the translation per target is direct:
 
 - **To Maven**: each project becomes a `pom.xml`; dependencies map
   one-to-one (they already *are* Maven coordinates); templates
-  flatten into parent POMs or simply expand in place.
+  flatten in place. There is a working exporter for this — the rest
+  of this page is what it does.
 - **To sbt**: projects become subprojects; `cross:` becomes
   `crossScalaVersions` / platform plugins; dependency and compiler
-  options carry over field by field.
+  options carry over field by field. **No exporter exists**; this is
+  a hand-port.
 - **To Gradle**: projects become modules; the dependency graph and
-  options translate the same way.
+  options translate the same way. **No exporter exists**, and there
+  is no Gradle *importer* either — the door to Gradle is closed in
+  both directions today, and coming from a Gradle shop means
+  hand-writing your `bleep.yaml` (`bleep import` covers sbt,
+  [`bleep import-maven`](/docs/reference/cli/import-maven/) covers
+  Maven).
 
 What needs hands-on work in any direction: re-wiring scripts and
 sourcegen into the target tool's invocation model, and re-expressing
-compiler-plugin configuration in the target's dialect. That is
-days-shaped work, not quarters-shaped — and it is bounded, because
-nothing about your build exists *only* as bleep behavior.
+compiler-plugin configuration in the target's dialect. Nothing about
+your build exists *only* as bleep behavior, so the job is bounded —
+but the only size we can honestly quote is our own, below.
 
-## An exporter is a small program, not a project
+## The exporter, run for real
 
-We didn't leave that as a thought experiment. Bleep's own repo
-carries `bleep export-maven <output-dir>` — an ordinary bleep script
-that loads the exploded build, walks the projects, and writes an
-aggregator `pom.xml` plus one POM per module: external dependencies
-with their exact `_2.13`/`_3` artifact suffixes rendered by the
-model's own machinery, inter-project dependencies as real Maven
-coordinates, source and resource directories wired up, and the
-Scala, Kotlin, and Java compilers configured from each project's
-options. Even sourcegen ports: generators are plain `main` classes,
-so the exporter binds them to Maven's `generate-sources` phase with
-a classpath bleep's own resolver computed — delete the generated
-sources and `mvn install` regenerates them, no bleep in the loop.
-Run against bleep's own build it exports all 25 modules — Scala 3
-under `-Werror`, pure Java, and Kotlin alike — and one `mvn install`
-of the result ends BUILD SUCCESS under stock Maven. Tests run too,
-not just compile: bleep's test projects are wired as Maven test
-sources with ScalaTest execution, translating the forked JVM's
-options and working directory from the model, and `bleep-tests` runs
-its 42 unit suites — 332 tests — green inside that same
-`mvn install`.
+`bleep export-maven` is not a product and not a built-in command.
+It's an ordinary [bleep script](/docs/concepts/bleep-scripts) living
+in this repo — one file,
+[`scripts/src/scala/bleep/scripts/ExportMaven.scala`](https://github.com/oyvindberg/bleep/blob/master/scripts/src/scala/bleep/scripts/ExportMaven.scala),
+roughly 670 lines of Scala — registered in bleep's own `bleep.yaml`:
 
-It is a proof of concept and scoped honestly. Bleep's end-to-end
-integration suites (the `*IT` suites, and `bleep-bsp-tests`, which
-drives bleep's own compile server and platform linkers in-process)
-don't run under stock Maven; the exporter marks them skipped, with a
-comment in the generated POM saying exactly why — they still
-compile. Publish config is not translated, and Scala.js/Native
-modules would be skipped (bleep's own build has none). But it proves
-the sentence above: the
-exporter is a small program *because the build was data all along*.
-An sbt or Gradle target is the same walk with different
-serialization — and because the model is a published library, you can
-write yours in your own repo, so the escape hatch is code you
-control.
+```yaml
+scripts:
+  export-maven:
+    main: bleep.scripts.ExportMaven
+    project: scripts
+```
+
+It loads the exploded build model and writes POMs. See the
+[reference page](/docs/reference/cli/export-maven/) for arguments and
+flags. Run against bleep's own build:
+
+```bash
+$ bleep export-maven maven-export --skip-tests bleep-bsp-tests
+[script ExportMaven]: wrote .../maven-export/bleep-bsp/pom.xml for bleep-bsp
+[script ExportMaven]: wrote .../maven-export/bleep-bsp-protocol/pom.xml for bleep-bsp-protocol
+...
+[script ExportMaven]: wrote .../maven-export/scripts-java/pom.xml for scripts-java
+[script ExportMaven]: wrote aggregator .../maven-export/pom.xml: 25 modules exported, 0 projects skipped
+```
+
+That takes about a second. `--skip-tests <project>` is explicit and
+has no default — it marks one test project's suite *execution*
+skipped (the suites still compile), and the reason is spelled out in
+the generated POM. Bleep passes it for `bleep-bsp-tests`, whose
+suites drive bleep's own compile server and platform linkers
+in-process and therefore cannot run under stock Maven.
+
+The output is an aggregator plus one directory per module:
+
+```
+maven-export/
+├── pom.xml               # <packaging>pom</packaging>, 25 <module> entries
+├── bleep-bsp/pom.xml
+├── bleep-bsp-protocol/pom.xml
+├── bleep-bsp-tests/pom.xml
+├── bleep-cli/pom.xml
+├── bleep-core/pom.xml
+├── bleep-model/pom.xml
+├── ...
+└── scripts-java/pom.xml
+```
+
+**Sources are referenced, not copied.** Each POM points
+`build-helper-maven-plugin` at the real source directories via paths
+relative to the module, because bleep's layout (`src/scala`,
+`src/java`, shared dirs, `.bleep/projects/<name>/generated-sources/…`)
+is not Maven's default. The export is a build overlay on your repo,
+not a copy of it — the example above exports into `maven-export/` at
+the workspace root, which is why the source paths below are two
+levels up. A module comes out like this:
+
+```xml
+<project ...>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>build.bleep</groupId>
+  <artifactId>bleep-plugin-dynver</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala3-library_3</artifactId>
+      <version>3.8.3</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        ...
+            <sources>
+              <source>../../bleep-plugin-dynver/src/scala</source>
+              <source>../../liberated/sbt-dynver/dynver/src/main/scala</source>
+              ...
+            </sources>
+        ...
+      </plugin>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>4.9.2</version>
+        <configuration>
+          <scalaVersion>3.8.3</scalaVersion>
+          <args>
+            <arg>-Werror</arg>
+            ...
+          </args>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+
+Nothing is reimplemented by string concatenation: external
+dependencies are concretized through the model's own machinery
+(`Dep.asJava` with the project's `VersionCombo`, versions and options
+filled through `Replacements` exactly as bleep's resolver does), so
+Scala `::` deps get the same `_2.13` / `_3` suffix bleep itself
+resolves. `dependsOn` edges become `<dependency>` entries on the
+sibling modules. Scala, Kotlin and pure-Java modules get
+`scala-maven-plugin`, `kotlin-maven-plugin` and
+`maven-compiler-plugin` respectively, configured from each project's
+own options.
+
+Sourcegen ports too, because generators are just `main` classes: each
+one binds to Maven's `generate-sources` phase via `exec-maven-plugin`,
+with the classpath bleep's own resolver computed emitted as a closed
+set. Delete the generated sources and `mvn install` regenerates them,
+no bleep in the loop.
+
+## The verification run
+
+From that export, with stock Apache Maven 3.9.16 and nothing else
+installed:
+
+```bash
+$ cd maven-export && mvn install
+[INFO] Reactor Summary for aggregator 0.1.0-SNAPSHOT:
+[INFO]
+[INFO] scripts-init ....................................... SUCCESS [  3.287 s]
+[INFO] bleep-model ........................................ SUCCESS [  8.364 s]
+[INFO] bleep-core ......................................... SUCCESS [ 14.447 s]
+[INFO] bleep-bsp .......................................... SUCCESS [ 14.122 s]
+[INFO] bleep-bsp-tests .................................... SUCCESS [ 23.396 s]
+[INFO] bleep-cli .......................................... SUCCESS [  9.692 s]
+[INFO] bleep-tests ........................................ SUCCESS [ 20.316 s]
+[INFO] ... 26 reactor entries, every one SUCCESS ...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:19 min
+```
+
+Tests run inside that same `mvn install` — they are not skipped to
+make the number pretty. `bleep-tests` is wired as Maven test sources
+with `scalatest-maven-plugin`, bleep's forked-test JVM options
+translated to `argLine` and its fork working directory to
+`workingDirectory`:
+
+```
+Run completed in 7 seconds, 436 milliseconds.
+Total number of tests run: 344
+Suites: completed 45, aborted 0
+Tests: succeeded 344, failed 0, canceled 0, ignored 0, pending 0
+All tests passed.
+```
+
+(Suite and test counts are whatever `bleep-tests` holds on the day you
+run it — that transcript is from one run, not a fixed number we
+promise.)
+
+That is Scala 3 under `-Werror`, pure Java, and Kotlin (including the
+KSP-processor fixture module) — 25 of 25 projects exported, zero
+skipped, compiling and testing green under a build tool that has
+never heard of bleep.
+
+## What the exporter does not do
+
+It is a proof of concept, and the list of what it leaves on the floor
+is short but real. Some of these are silent, some fail the export
+loudly — noted either way:
+
+- **Publish and assembly configuration is not emitted.** No
+  `distributionManagement`, no signing, no shading, no
+  `maven-assembly-plugin`. If you publish artifacts, that wiring is
+  yours to write on the other side.
+- **Unmanaged `jars` are ignored** — silently. A project depending on
+  a checked-in jar will export a POM that is missing it.
+- **Scala `compilerPlugins` are not translated** (silently dropped);
+  **Kotlin compiler plugins and KSP symbol processing fail the export
+  loudly** rather than producing a POM that quietly compiles the
+  wrong thing.
+- **Scala.js and Scala Native projects are skipped**, and the skip
+  cascades to anything that depends on them, since their coordinates
+  would be wrong. Bleep's own build has none, so this path is
+  untested beyond the skip itself.
+- **Integration suites don't run.** Suite discovery is narrowed to
+  the `*Test` suffix; bleep's `*IT` suites drive bleep's own
+  toolchain end-to-end and cannot run under stock Maven. Every
+  generated test POM says so in a comment. They still compile.
+  `bleep-bsp-tests` goes further and is passed to `--skip-tests` for
+  the same reason.
+- **Only ScalaTest is wired** for test execution. A test project on
+  another framework fails the export.
+- **Versions and coordinates are placeholders.** Every module is
+  exported at a fixed `0.1.0-SNAPSHOT`; `groupId` comes from
+  `publish.groupId` or defaults to `build.bleep.exported`; artifactIds
+  are the bleep project names and carry no `_3` / `_2.13` suffix,
+  because they're only consumed inside the exported reactor.
+
+This matches what the front page claims and adds the detail: the
+export gets you a build that compiles and tests on the other side,
+which is the hard part, and leaves publishing and a handful of
+compiler integrations as the part a person finishes.
+
+How big is "a person finishes it"? The only number we can honestly
+quote is our own: this exporter is one ~670-line file, and it carries
+a 25-module, three-language build to a green `mvn install`. We have no
+measurement for anyone else's build, and won't invent one.
 
 ## What you'd actually lose
 

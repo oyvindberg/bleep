@@ -88,12 +88,28 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       }
     }
 
-    val index = docs
-      .flatMap { c =>
-        if (c.subcommands.isEmpty) List(s"- bleep ${c.name}")
-        else s"- bleep ${c.name}" :: c.subcommands.map(s => s"  - bleep ${c.name} ${s.name}")
+    // Hand-written pages for surface that is not in the decline tree (build-local
+    // scripts). They live here so regeneration recreates them instead of deleting them.
+    extraPages.foreach { page =>
+      val outFile = outDir.resolve(s"${page.name}.mdx")
+      if (Files.exists(outFile))
+        sys.error(s"extra page ${page.name}.mdx collides with a generated page — it is a real command now, drop the hand-written one")
+      Files.writeString(outFile, page.mdx)
+      started.logger.info(s"wrote ${page.name}.mdx (hand-written)")
+      pageCount += 1
+    }
+
+    val generatedIndexEntries: List[(String, List[String])] =
+      docs.map { c =>
+        val lines =
+          if (c.subcommands.isEmpty) List(s"- bleep ${c.name}")
+          else s"- bleep ${c.name}" :: c.subcommands.map(s => s"  - bleep ${c.name} ${s.name}")
+        (c.name, lines)
       }
-      .mkString("\n") + "\n"
+    val extraIndexEntries: List[(String, List[String])] =
+      extraPages.map(page => (page.name, List(s"- bleep ${page.name}")))
+
+    val index = (generatedIndexEntries ++ extraIndexEntries).sortBy { case (name, _) => name }.flatMap { case (_, lines) => lines }.mkString("\n") + "\n"
     Files.writeString(outDir.resolve("_index.txt"), index)
     started.logger.info(s"wrote $pageCount pages to $outDir")
   }
@@ -117,14 +133,102 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
                |a demo video.""".stripMargin
     )
 
+  /** The importers are where a reader asks "can I get in — and back out?". Both answers, including the one that is "no", belong on those pages. */
+  private val importExportMatrix: HandWritten =
+    HandWritten(
+      imports = "",
+      body = """## Getting in and out
+               |
+               |Mechanical paths in: [`bleep import`](/docs/reference/cli/import/) (sbt) and
+               |[`bleep import-maven`](/docs/reference/cli/import-maven/) (Maven). Mechanical path out:
+               |[`bleep export-maven`](/docs/reference/cli/export-maven/), a proof-of-concept script — see the
+               |[exit strategy](/docs/guides/exit-strategy).
+               |
+               |**Gradle has neither.** There is no Gradle importer and no Gradle exporter, so a Gradle build is
+               |hand-ported in, and would be hand-ported out. There is no sbt exporter either.""".stripMargin
+    )
+
   private val handWritten: Map[String, HandWritten] =
     Map(
+      "import.mdx" -> importExportMatrix,
+      "import-maven.mdx" -> importExportMatrix,
       "history/index.mdx" -> seeRunHistoryGuide,
       "history/show.mdx" -> seeRunHistoryGuide,
       "history/diff.mdx" -> seeRunHistoryGuide,
       "compile.mdx" -> seeRunHistoryGuide,
       "test.mdx" -> seeRunHistoryGuide
     )
+
+  /** A whole page that is not in the decline tree. The generator wipes `docs/reference/cli/` on every run, so any page that must exist there has to be produced
+    * here or it disappears on the next regeneration.
+    *
+    * The one case today is `export-maven`: it is a build-local script in bleep's own `bleep.yaml` (and therefore filtered out of the generated pages along with
+    * every other user script), but readers looking for the documented way out of bleep expect to find it in the reference. The page says out loud that it is a
+    * script, not a built-in command.
+    */
+  case class ExtraPage(name: String, mdx: String)
+
+  private val exportMavenPage: ExtraPage = ExtraPage(
+    name = "export-maven",
+    mdx = """---
+title: bleep export-maven
+---
+
+{/* HAND-WRITTEN, but still generated: this page lives in `extraPages` in
+    scripts-dev/src/scala/bleep/scripts/dev/GenCliDocs.scala, because
+    `bleep gen-cli-docs` wipes this directory. Edit it there, not here. */}
+
+# `bleep export-maven`
+
+<p>Walk the exploded build model and write a buildable Maven layout: an aggregator POM plus one POM per project.</p>
+
+:::note Not a built-in command
+`export-maven` is a [bleep script](/docs/concepts/bleep-scripts), not part of the bleep CLI. It ships in bleep's own repository as
+`scripts/src/scala/bleep/scripts/ExportMaven.scala` and is registered under `scripts:` in bleep's `bleep.yaml`, so `bleep export-maven`
+works in a checkout of bleep. To get it in your own build, copy that one file into a scripts project — it only uses the published
+`bleep-core` / `bleep-model` API. It is a proof of concept: see [what it does not translate](#not-translated).
+:::
+
+## Synopsis
+
+```bash
+bleep export-maven <output-directory> [--skip-tests <test-project-name>]...
+```
+
+## Arguments
+
+| Argument | Type |
+|----------|------|
+| `output-directory` | one, required — there is no default. Created if missing. POMs reference your sources by paths relative to each module, so put it inside the workspace |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--skip-tests <test-project-name>` (repeatable) | mark that test project's suite *execution* skipped in its generated POM, with a comment saying why; the suites still compile. Must name an exported test project, or the export fails |
+
+## What it writes
+
+- an aggregator `pom.xml` in the output directory, `packaging` `pom`, listing every exported project as a `<module>`
+- per project a `<artifactId>/pom.xml` with coordinates, dependencies, source and resource directories (via `build-helper-maven-plugin`, since bleep's layout is not Maven's default) and compiler setup: `scala-maven-plugin` for Scala, `kotlin-maven-plugin` for Kotlin, `maven-compiler-plugin` for javac options
+- for test projects: sources wired as Maven *test* sources, with `scalatest-maven-plugin` running the suites during `mvn test` / `mvn install`. Surefire is skipped (these are ScalaTest suites, not JUnit). Bleep's forked-test JVM options become `argLine`, bleep's fork working directory becomes `workingDirectory`
+- for projects with `sourcegen:`, an `exec-maven-plugin` execution bound to `generate-sources` that runs the same `main` class bleep forks, on a classpath bleep's own resolver computed
+
+Coordinates: `groupId` from the project's `publish.groupId`, else `build.bleep.exported`; `artifactId` from the cross project name; every module at a fixed version `0.1.0-SNAPSHOT`.
+
+## Not translated
+
+Silently: unmanaged `jars`, Scala `compilerPlugins`, and publish/assembly configuration. Loudly (the export fails): Kotlin compiler plugins, KSP symbol processing, test projects on a framework other than ScalaTest, and dependencies with a classifier or a configuration that has no Maven scope. Scala.js and Scala Native projects are skipped, and the skip cascades to their dependents. Suite discovery is narrowed to the `*Test` suffix, so `*IT` integration suites compile but do not run.
+
+There is **no exporter for sbt or Gradle**, and no Gradle importer either — [`bleep import`](/docs/reference/cli/import/) covers sbt and [`bleep import-maven`](/docs/reference/cli/import-maven/) covers Maven.
+
+## See also
+
+The [exit strategy guide](/docs/guides/exit-strategy) runs this exporter against bleep's own build and shows the verification output — 25 modules, `mvn install`, tests executing.
+"""
+  )
+
+  private val extraPages: List[ExtraPage] = List(exportMavenPage)
 
   private def withHandWritten(relPath: String, mdx: String): String =
     handWritten.get(relPath) match {

@@ -26,6 +26,7 @@
   - bleep config remote-cache
 - bleep copy-state
 - bleep dist
+- bleep export-maven
 - bleep extract-info
   - bleep extract-info all
   - bleep extract-info project-graph

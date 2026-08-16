@@ -624,7 +624,10 @@ object ExportMaven extends BleepScript("ExportMaven") {
                     leaf("junitxml", "."),
                     leaf("filereports", "TestSuite.txt"),
                     leaf("suffixes", "Test"),
-                    leaf("workingDirectory", relativeTo(projectPaths.dir))
+                    // anchored at ${project.basedir}: scalatest-maven-plugin resolves a relative workingDirectory against the
+                    // JVM's cwd (where `mvn` was invoked), not against the module, so a bare relative path breaks as soon as
+                    // the export directory lives anywhere but a deep temp path
+                    leaf("workingDirectory", s"$${project.basedir}/${relativeTo(projectPaths.dir)}")
                   ) ++ argLineXml ++ skipTestsXml
                 ),
                 el("executions")(el("execution")(leaf("id", "test"), el("goals")(leaf("goal", "test"))))
