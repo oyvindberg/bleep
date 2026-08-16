@@ -211,20 +211,27 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     val startTime = timeOf(frames(startIdx))
     val cutoff = timeOf(frames(endIdx)) + trim.dwellSeconds
+    // Do NOT drop the frames before the start marker. The recorded program is a
+    // full-screen TUI: it paints with cursor addressing and then repaints
+    // incrementally, so every later frame assumes the screen the earlier frames
+    // built. Dropping them — even followed by a clear-screen — leaves the player
+    // painting updates onto a screen that was never drawn, and the result is
+    // interleaved garbage from the first repaint onwards.
+    //
+    // Keep every byte instead and collapse the lead-in to t=0. The player
+    // replays it instantly, the terminal reaches exactly the state the rest of
+    // the recording expects, and the viewer never sees the intro.
     val kept = frames.zipWithIndex.collect {
-      case (frame, idx) if idx >= startIdx && (idx <= endIdx || timeOf(frame) <= cutoff) =>
+      case (frame, idx) if idx <= endIdx || timeOf(frame) <= cutoff =>
         io.circe.parser.parse(frame).flatMap(_.as[List[io.circe.Json]]) match {
           case Right(time :: rest) =>
-            val rebased = time.asNumber.map(_.toDouble).getOrElse(0.0) - startTime
+            val rebased = math.max(0.0, time.asNumber.map(_.toDouble).getOrElse(0.0) - startTime)
             io.circe.Json.arr(io.circe.Json.fromDoubleOrNull(rebased) :: rest*).noSpaces
           case _ => sys.error(s"$demoName: not an asciicast frame: $frame")
         }
     }
 
-    // the player starts mid-stream now, so hand it a clean screen to paint onto
-    val clearScreen =
-      io.circe.Json.arr(io.circe.Json.fromDoubleOrNull(0.0), io.circe.Json.fromString("o"), io.circe.Json.fromString("\u001b[2J\u001b[H")).noSpaces
-    (header :: clearScreen :: kept).mkString("\n") + "\n"
+    (header :: kept).mkString("\n") + "\n"
   }
 
   def genVideo(demo: Demo, bleepVersion: String, repoDir: Path, env: List[(String, String)], logger: Logger): Generated = {

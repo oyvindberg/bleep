@@ -1030,9 +1030,12 @@ function HonestySection() {
           down, we implemented it: the repo carries{" "}
           <code>bleep export-maven</code>, and run against bleep&rsquo;s
           own build it emits POMs that compile every module and pass the
-          tests under stock Maven — source generators included. Betting
-          on a young tool should never mean betting the repo, so the
-          escape hatch is code, and it&rsquo;s tested.
+          tests under stock Maven — source generators included. That is a
+          run we do by hand, not an automated test, and the{" "}
+          <Link to="/docs/guides/exit-strategy">guide</Link> lists what
+          the exporter does not translate. Betting on a young tool should
+          never mean betting the repo, so the escape hatch is code you
+          can read and run.
         </SectionHeader>
       </div>
     </section>
