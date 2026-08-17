@@ -285,6 +285,9 @@ object ResolveProjects {
       def providedOrOptional(dep: model.Dep): Boolean =
         dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
+      // Inherited `provided`/`optional` deps are dropped from BOTH classpaths, which is Maven's rule: those scopes do not travel to a consumer. A project that
+      // needs one says so itself. Deliberate, and load-bearing — `bleep-test-runner` declares a `provided` junit-platform-launcher precisely so that
+      // `bleep-bsp`, which dependsOn it, does not end up carrying junit classes that would then shadow a project's own via classloader delegation.
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
       val deps = explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)
@@ -296,8 +299,11 @@ object ResolveProjects {
         explodedProject.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
       )
 
+      // Only the project's OWN provided/optional deps come back at runtime. This used to also trigger on an inherited one having been filtered out, but the
+      // body below still built from `filteredInherited`, so that case recomputed a dep set identical to `normal` — a second full coursier resolution for a
+      // result already in hand, on every project whose dependsOn graph contains a provided dep anywhere.
       val runtime =
-        if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
+        if (explodedProject.dependencies.values.exists(providedOrOptional)) {
           val (optionalsFromProject, restFromProject) =
             explodedProject.dependencies.values.partition(providedOrOptional)
 

@@ -91,20 +91,28 @@ dependencies:
 Most builds don't set `configuration:`; the default is the
 compile-and-runtime classpath. The cases that matter:
 
-- `provided`, on the **compile** classpath but not the
-  **runtime** classpath. Servlet APIs, etc.
-- `optional`, same effect as `provided` for downstream
-  consumers; on this project's compile classpath but filtered out
-  of inherited transitive resolution.
-- `runtime`, the opposite of `provided`: present at runtime,
-  not at compile time.
+- `provided`, on **this project's** compile and runtime
+  classpaths, but **not inherited** by anything that depends on it.
+  Servlet APIs, and any library a container or host supplies.
+- `optional`, treated exactly like `provided` inside a bleep
+  build. The two differ only in the POM bleep publishes, which
+  carries whichever you wrote.
+- `runtime`, present at runtime, not at compile time.
 - `test`, only resolves when the project is a test project.
 
 Worth calling out: when project A `dependsOn:` project B, deps that
-B declared with `configuration: provided` (or `optional`) are
-**dropped** from A's compile classpath, then **re-added** to A's
-runtime classpath. You can model "provided at this layer, needed at
-the leaf" without re-declaring the dep at every level.
+B declared `provided` or `optional` are dropped from **both** of A's
+classpaths — Maven's rule, that those scopes don't travel to a
+consumer. If A needs the library, A declares it. There is no way to
+say "provided at this layer, needed at the leaf" and have it
+propagate; that is the point of the scope, not a limitation of it.
+
+Bleep's own build relies on this. `bleep-test-runner` declares
+`junit-platform-launcher` as `provided`, because it compiles against
+the Launcher API but the junit version a test fork runs is chosen
+per project. Were that inherited, every project depending on
+`bleep-test-runner` would carry junit classes that shadow the ones
+the project actually resolved.
 
 ## What this page doesn't cover
 
