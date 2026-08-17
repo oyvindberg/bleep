@@ -3268,30 +3268,41 @@ class MultiWorkspaceBspServer(
 
     val testRunnerClasses = testRunnerFromBuild match {
       case Some(path) => List(path)
-      case None       => fetchTestRunnerViaCoursier(started, dependencyClasspath)
+      case None       => fetchTestRunnerViaCoursier(started, project, resolved)
     }
 
-    (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
+    val classpath = (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
+    MultiWorkspaceBspServer.assertCoherentJunitClasspath(project, classpath)
+    classpath
   }
 
-  /** Fetch bleep-test-runner and its dependencies.
+  /** Fetch bleep-test-runner and whatever test runtime the project's dependencies call for.
     *
     * Two parts:
     *
-    *   1. `bleep-test-runner` itself — see [[fetchBleepTestRunnerOnly]] for how its version is chosen (`${BLEEP_VERSION}` for a `dev` build so it
-    *      short-circuits to BleepDevDeps class dirs, otherwise pinned to this server's version).
-    *   2. Four external test-framework deps (test-interface, jupiter-interface, junit-platform-launcher, junit-vintage-engine). The junit pair is resolved at
-    *      the junit-platform version already on the project's classpath when there is one — modern junit hard-fails on any version skew between the launcher
-    *      and engine jars ("OutputDirectoryCreator not available") — and at bleep's default otherwise. Cached per (resolver, platform version) — see
-    *      `MultiWorkspaceBspServer.cachedExternalTestRunnerJars`. Without the cache, every inner-bleep `commands.test` re-runs Coursier for the same four deps;
-    *      under CI's contention that's enough to trip the suite-idle timeout in #580.
+    *   1. `bleep-test-runner` itself, and *only* itself — see [[fetchBleepTestRunnerOnly]] for how its version is chosen (`${BLEEP_VERSION}` for a `dev` build
+    *      so it short-circuits to BleepDevDeps class dirs, otherwise pinned to this server's version). Not expressible as a rule in
+    *      `MultiWorkspaceBspServer.testRuntimeRules` precisely because that version comes from the server rather than from the project's dependency graph.
+    *   2. Whatever `MultiWorkspaceBspServer.testRuntimeRules` says this project needs — the sbt test interface always, the junit launcher and engines only when
+    *      the project resolved a junit-platform of its own, at that version. Cached per (resolver, evaluated deps); without the cache, every inner-bleep
+    *      `commands.test` re-runs Coursier for the same deps, and under CI's contention that's enough to trip the suite-idle timeout in #580.
+    *
+    * The split only works if part 1 contributes no junit of its own. It is enforced twice, on purpose. At the source, `bleep-test-runner` no longer declares a
+    * junit runtime at all: `junit-platform-launcher` is `provided` there (it compiles against the Launcher API and nothing more), and `jupiter-interface` and
+    * `junit-vintage-engine` are gone. At the point of use, [[ExcludeTestRuntime]] excludes them anyway, so a POM that reacquires one cannot silently change
+    * what a fork runs — the failure would be a resolution error here rather than a wrong engine on a classpath.
+    *
+    * What that costs when it is wrong: the runner used to declare 1.9.1/5.9.1, coursier reconciles to the *highest* version rather than to ours, and a stale
+    * `junit-jupiter-engine` landed ahead of the aligned one — a kotest 6 project then died in discovery with `NoSuchMethodError: ReflectionUtils.returnsVoid`.
     */
-  private def fetchTestRunnerViaCoursier(started: Started, dependencyClasspath: List[Path]): List[Path] = {
-    val externalJars = MultiWorkspaceBspServer.fetchExternalTestRunnerDeps(started, dependencyClasspath)
+  private def fetchTestRunnerViaCoursier(started: Started, project: CrossProjectName, resolved: ResolvedProject): List[Path] = {
+    val testRuntimeJars = MultiWorkspaceBspServer.fetchTestRuntimeDeps(started, project, resolved)
     val testRunnerJars = fetchBleepTestRunnerOnly(started)
     if (testRunnerJars.isEmpty)
       throw new RuntimeException("bleep-test-runner resolution returned no jars")
-    testRunnerJars ++ externalJars
+    // `distinct` because these are two independent resolutions and `test-interface` is in both: rule 1 always contributes it, and a *published*
+    // `bleep-test-runner` also declares it at compile scope. Exact-path equality, so two genuinely different jars that share a filename both survive.
+    (testRunnerJars ++ testRuntimeJars).distinct
   }
 
   /** The forked runner speaks this server's `TestProtocol` over the fork's stdin/stdout, so it must be built from the same code as the server. Two ways to get
@@ -3309,7 +3320,10 @@ class MultiWorkspaceBspServer(
     val version =
       if (started.build.$version == model.BleepVersion.dev) model.Replacements.known.BleepVersion
       else model.BleepVersion.current.value
-    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", version)
+    // The test runtime is `testRuntimeRules`' job, at the version the project calls for, so the runner is resolved for itself alone. Its POM agrees today —
+    // it declares only `test-interface` and a `provided` launcher — and this exclusion keeps that true for POMs published before that was so, and for any
+    // future one that regains a junit line: those versions would win the coursier reconciliation and land ahead of the aligned jars.
+    val testRunnerDep = model.Dep.Java("build.bleep", "bleep-test-runner", version).copy(exclusions = MultiWorkspaceBspServer.ExcludeTestRuntime)
     val result = started.resolver.force(
       Set(testRunnerDep),
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
@@ -4706,66 +4720,281 @@ object MultiWorkspaceBspServer {
   /** Enable debug logging to stderr (for development only) */
   val DebugLogging: Boolean = sys.env.get("BLEEP_BSP_DEBUG").contains("true")
 
-  /** External test-framework dependencies that bleep-test-runner needs at runtime.
+  /** Translate a junit-platform version to the junit-jupiter/junit-vintage version it belongs with.
     *
-    * The junit-platform launcher and vintage engine are version-sensitive: junit hard-fails when the launcher and the engine jars on the classpath disagree
-    * ("OutputDirectoryCreator not available … unaligned versions"), in both directions. So when the project's own classpath already carries a junit-platform
-    * (any project using junit-jupiter or kotest does), the injected pair is resolved at THAT version; only a project with no junit-platform at all gets bleep's
-    * defaults, which are then internally consistent by construction.
+    * junit-platform 1.x pairs with jupiter/vintage 5.x at the same minor.patch; from junit 6 the two version lines are unified.
     */
-  private def externalTestRunnerDeps(junitPlatformVersion: Option[String]): SortedSet[model.Dep] = {
-    val launcherVersion = junitPlatformVersion.getOrElse(model.Versions.JunitPlatformLauncher)
-    // junit-platform 1.x pairs with jupiter/vintage 5.x at the same minor.patch; from junit 6 the version lines are unified.
-    val engineVersion = junitPlatformVersion match {
-      case Some(v) if v.startsWith("1.") => "5" + v.stripPrefix("1")
-      case Some(v)                       => v
-      case None                          => model.Versions.JunitVintageEngine
-    }
-    SortedSet[model.Dep](
-      model.Dep.Java("org.scala-sbt", "test-interface", model.Versions.TestInterface),
-      model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
-      // jupiter-interface drags in a stale junit-jupiter-engine (5.9.1) transitively; pinning the engine here makes coursier evict it to the aligned
-      // version, otherwise it NoSuchMethodErrors against the matched junit-platform-commons during discovery.
-      model.Dep.Java("org.junit.jupiter", "junit-jupiter-engine", engineVersion),
-      model.Dep.Java("org.junit.platform", "junit-platform-launcher", launcherVersion),
-      model.Dep.Java("org.junit.vintage", "junit-vintage-engine", engineVersion)
-    )
+  private[bsp] def junitEngineVersionFor(junitPlatformVersion: String): String =
+    if (junitPlatformVersion.startsWith("1.")) "5" + junitPlatformVersion.stripPrefix("1") else junitPlatformVersion
+
+  /** `final` is load-bearing here, not decoration. A plain `val` referenced by another `val` earlier in the same object is still `null` when that one
+    * initializes, and a rule triggering on `null` never fires — silently, with no junit reaching any fork. That was originally avoided by declaring this
+    * *above* [[testRuntimeRules]], which is a property of the file that any later edit can undo without anyone noticing. `final val` on a string literal is
+    * constant-folded into each use site, so declaration order cannot matter.
+    */
+  private final val JunitPlatformOrg = "org.junit.platform"
+
+  /** One row of [[testRuntimeRules]]: something bleep adds to a test project's fork classpath, and the condition under which it adds it.
+    *
+    * A rule reads only the project's resolved dependency graph, so the whole policy is inspectable as data. Supporting a new framework bridge should be a new
+    * row here and nothing else.
+    */
+  private[bsp] sealed trait TestRuntimeRule {
+    def name: String
+
+    /** The deps this rule contributes, empty when it does not fire. Java deps throughout: every artifact bleep injects into a test fork is a plain JVM library.
+      */
+    def contributes(project: CrossProjectName, modules: List[ResolvedProject.ResolvedModule]): List[model.Dep.JavaDependency]
   }
 
-  private val JunitPlatformEngineJar = "junit-platform-engine-(\\d[\\w.\\-]*)\\.jar".r
+  private[bsp] object TestRuntimeRule {
 
-  /** The junit-platform version already on the project's test classpath, detected from the engine jar's filename. */
-  private def detectJunitPlatformVersion(classpath: List[Path]): Option[String] =
-    classpath.iterator.map(_.getFileName.toString).collectFirst { case JunitPlatformEngineJar(version) => version }
+    /** Fires for every test project, whatever it depends on. */
+    final case class Always(name: String, deps: List[model.Dep.JavaDependency]) extends TestRuntimeRule {
+      override def contributes(project: CrossProjectName, modules: List[ResolvedProject.ResolvedModule]): List[model.Dep.JavaDependency] = deps
+    }
 
-  /** Per-(resolver, junit-platform version) memoization of the [[externalTestRunnerDeps]] resolution.
+    /** Fires when the project resolved at least one module in `organization`, and hands `at` the single version they all agree on.
+      *
+      * Disagreement is a hard failure rather than a pick-one heuristic — see [[singleResolvedVersionOf]].
+      */
+    final case class WhenResolved(name: String, organization: String, at: String => List[model.Dep.JavaDependency]) extends TestRuntimeRule {
+      override def contributes(project: CrossProjectName, modules: List[ResolvedProject.ResolvedModule]): List[model.Dep.JavaDependency] =
+        singleResolvedVersionOf(project, organization, modules) match {
+          case None          => Nil
+          case Some(version) => at(version)
+        }
+    }
+
+    /** Fires when the project resolved `organization` and nothing at all from `butNot`.
+      *
+      * The negative half is what makes a fixed version safe to inject. A rule that supplies a version the project has no opinion about supplies the *only*
+      * opinion; a rule that supplies one alongside the project's own creates two, and coursier reconciles those per module to the highest — which is the exact
+      * mechanism that made kotest 5 pass by luck and kotest 6 fail. Mutually exclusive triggers keep that from ever arising.
+      */
+    final case class WhenResolvedWithout(name: String, organization: String, butNot: String, deps: List[model.Dep.JavaDependency]) extends TestRuntimeRule {
+      override def contributes(project: CrossProjectName, modules: List[ResolvedProject.ResolvedModule]): List[model.Dep.JavaDependency] =
+        if (modules.exists(_.organization == organization) && !modules.exists(_.organization == butNot)) deps else Nil
+    }
+  }
+
+  /** What bleep adds to a test project's fork classpath, as a table.
+    *
+    * The invariant every row is built around: **bleep never supplies a junit-platform version when the project has one of its own.**
+    *
+    * That is the precise form of the rule this table replaced. bleep used to add the junit launcher and both engines to *every* test project, at bleep's own
+    * version — so a project that already resolved a junit-platform got two opinions, and coursier reconciles per module to the highest. kotest 5 (1.8.2) lost
+    * to the injected line and passed by luck; kotest 6 (1.13.4) won and still ended up with a stale engine from elsewhere on the classpath. The hazard was
+    * never that a default existed, it was that a default *competed*. So a version bleep chooses is only ever injected where the project expressed none, and the
+    * triggers below are mutually exclusive by construction: the JUnit Platform row fires on `org.junit.platform` being present, the JUnit 4 row on it being
+    * absent. Nothing bleep injects can ever be reconciled against a version the project picked. [[assertCoherentJunitClasspath]] still catches it if that
+    * reasoning is ever wrong.
+    *
+    * The other half is that injection is conditional at all: a pure ScalaTest, munit or utest build used to carry five junit artifacts it would never load, and
+    * a conflict surface conjured out of nothing. `ForkedTestRunner` dispatches on the framework name and only constructs `JUnitPlatformRunner` inside that
+    * branch, and `loadFramework` probes with `Class.forName` and catches `ClassNotFoundException`, so a project with no junit needs no junit.
+    *
+    * `bleep-test-runner` itself is deliberately not a row: its version comes from the *server*, not from the project's graph (see [[fetchBleepTestRunnerOnly]]
+    * for why, and for the `dev:` short-circuit), so it has no trigger to express here.
+    *
+    * Nothing here carries an exclusion, and nothing here should. Every dep the table injects is a junit artifact that has to resolve its own
+    * `junit-platform-engine` and `junit-platform-commons` transitively — muzzle those and the fork loses exactly the classes the row exists to provide. The one
+    * dep that ever needed muzzling was the sbt adapter, which is no longer injected. Exclusions do still apply to `bleep-test-runner`, which is not a row; see
+    * [[ExcludeTestRuntime]].
+    */
+  private[bsp] val testRuntimeRules: List[TestRuntimeRule] = List(
+    TestRuntimeRule.Always(
+      name = "sbt test interface — the SPI every framework's Runner is loaded through",
+      deps = List(model.Dep.Java("org.scala-sbt", "test-interface", model.Versions.TestInterface))
+    ),
+    TestRuntimeRule.WhenResolved(
+      name = "JUnit Platform — junit-jupiter, kotest, spock and anything else with a TestEngine",
+      organization = JunitPlatformOrg,
+      at = { platformVersion =>
+        // The junit-platform jars are version-sensitive in both directions: junit hard-fails when the launcher and the engine jars disagree
+        // ("OutputDirectoryCreator not available … unaligned versions"), and an engine paired with a foreign `junit-platform-commons` blows up during
+        // discovery (`NoSuchMethodError: ReflectionUtils.returnsVoid`, which 1.13 dropped in favour of `returnsPrimitiveVoid`). So everything here is
+        // pinned to the version the project itself resolved.
+        val engineVersion = junitEngineVersionFor(platformVersion)
+        // No sbt adapter here. `jupiter-interface` used to be injected alongside these, from when junit ran through `sbt.testing.Framework` like every other
+        // framework — but `ForkedTestRunner` routes every junit name to `JUnitPlatformRunner`, which drives the Launcher itself, so `loadFramework`'s junit
+        // branch is unreachable and the adapter was never loaded. A project that declares it for its own reasons still has it, from its own classpath.
+        List(
+          model.Dep.Java("org.junit.platform", "junit-platform-launcher", platformVersion),
+          model.Dep.Java("org.junit.jupiter", "junit-jupiter-engine", engineVersion),
+          model.Dep.Java("org.junit.vintage", "junit-vintage-engine", engineVersion)
+        )
+      }
+    ),
+    TestRuntimeRule.WhenResolvedWithout(
+      name = "JUnit 4 without the platform — run through the vintage engine, which the project cannot supply itself",
+      organization = "junit",
+      butNot = JunitPlatformOrg,
+      // JUnit 4 predates the JUnit Platform and depends on none of it, but bleep runs its suites through the vintage engine anyway: test discovery reports
+      // the framework as the display name "JUnit", and `ForkedTestRunner.isJUnitPlatformFramework` matches that, so `JUnitPlatformRunner` — and therefore
+      // `junit-platform-launcher` — is on the path for every JUnit 4 suite. A project depending on `com.github.sbt:junit-interface` resolves `junit:junit`
+      // and nothing from `org.junit.platform`, so without this row the fork dies before the protocol handshake with NoClassDefFoundError. This used to be
+      // supplied by accident, by injecting junit into every project whether it wanted it or not.
+      //
+      // These are bleep's own versions rather than the project's because the project has none — that is what `butNot` guarantees. See the invariant above:
+      // the only opinion, never a competing one. The pair is internally consistent by construction since both come from `model.Versions`.
+      deps = List(
+        model.Dep.Java("org.junit.platform", "junit-platform-launcher", model.Versions.JunitPlatformLauncher),
+        model.Dep.Java("org.junit.vintage", "junit-vintage-engine", model.Versions.JunitVintageEngine)
+      )
+    )
+  )
+
+  /** Evaluate [[testRuntimeRules]] against a test project's resolved dependency graph. The one place rules are applied. */
+  private[bsp] def testRuntimeDeps(project: CrossProjectName, resolved: ResolvedProject): SortedSet[model.Dep] = {
+    val modules = resolvedModulesOf(project, resolved)
+    SortedSet.empty[model.Dep] ++ testRuntimeRules.flatMap(_.contributes(project, modules))
+  }
+
+  private def excludeAllOf(organizations: String*): model.JsonMap[coursier.core.Organization, model.JsonSet[coursier.core.ModuleName]] =
+    model.JsonMap(organizations.map(org => (coursier.core.Organization(org), model.JsonSet(coursier.core.ModuleName("*")))).toMap)
+
+  /** Every module of every junit organization, wildcarded so a POM that later adds a junit dependency bleep does not know about is excluded too — plus
+    * `jupiter-interface`. Applied to `bleep-test-runner` so it contributes nothing but itself and [[testRuntimeRules]] stays the only source of the test
+    * runtime. Redundant against the POM bleep publishes today, which declares neither — deliberately so, since this is the point where a wrong answer becomes a
+    * fork running the wrong engine, and it also covers runner POMs published before that was cleaned up.
+    *
+    * `jupiter-interface` specifically, because letting a runner POM supply it breaks the invariant that it is on the classpath exactly when junit is.
+    * `ForkedTestRunner.loadFramework` probes `net.aichler.jupiter.api.JupiterFramework` by name for any framework whose name contains "junit", and catches only
+    * `ClassNotFoundException`. A jar that is present but whose junit classes are not resolves the name and then throws `NoClassDefFoundError` out of the
+    * constructor, which nothing catches and which kills the fork — instead of falling through to the JUnit 4 adapter the project actually declared.
+    */
+  private val ExcludeTestRuntime: model.JsonMap[coursier.core.Organization, model.JsonSet[coursier.core.ModuleName]] =
+    excludeAllOf("org.junit.platform", "org.junit.jupiter", "org.junit.vintage", "net.aichler")
+
+  /** `junit-platform-<module>-<version>.jar`, `junit-jupiter-<module>-<version>.jar`, `junit-vintage-<module>-<version>.jar`. Captures the module name and the
+    * version, both of which are needed to tell "same module twice at two versions" from "two different modules".
+    *
+    * Filenames, unlike [[detectJunitPlatformVersion]], and on purpose: this is the last check before the list of paths is handed to `java -cp`, and its whole
+    * value is that it inspects what actually gets executed rather than a model of it. The classpath is assembled from the project's *runtime* resolution while
+    * the version above is chosen from its *compile* resolution — a check that read the same model as the decision could not catch the two drifting apart.
+    */
+  private val JunitJar = "(junit-(?:platform|jupiter|vintage)(?:-[a-z]+)+)-(\\d[\\w.\\-]*)\\.jar".r
+
+  /** Every junit module on a classpath, as module name -> (version, jar) in classpath order, one entry per distinct version. */
+  private def junitModuleVersions(classpath: List[Path]): Map[String, List[(String, Path)]] =
+    classpath
+      .flatMap { jar =>
+        jar.getFileName.toString match {
+          case JunitJar(module, version) => Some((module, version, jar))
+          case _                         => None
+        }
+      }
+      .groupBy { case (module, _, _) => module }
+      .map { case (module, triples) =>
+        (module, triples.map { case (_, version, jar) => (version, jar) }.distinctBy { case (version, _) => version })
+      }
+
+  /** A test project's resolved dependency graph, which is what [[testRuntimeRules]] read.
+    *
+    * Read from [[ResolvedProject.Resolution]] rather than by pattern-matching jar filenames: which version bleep aligns to is a *decision*, and it should be
+    * made from the resolution coursier already produced, not from a string that happens to appear in a path. `ResolveProjects` builds this for every project,
+    * so it is always there — an absent resolution means a `ResolvedProject` was constructed by something that does not resolve, which is a bug worth hearing
+    * about rather than silently guessing and shipping a mismatched engine.
+    */
+  private def resolvedModulesOf(project: CrossProjectName, resolved: ResolvedProject): List[ResolvedProject.ResolvedModule] =
+    resolved.resolution
+      .getOrElse(throw new BleepException.Text(project, "cannot decide what the test runner needs: this project was resolved without a dependency graph"))
+      .modules
+
+  /** The one version every module of `organization` resolved to, or `None` when the project resolved none of them.
+    *
+    * Reads every module in the organization rather than a nominated one: a project depending on `junit-jupiter-api` alone resolves `junit-platform-commons` and
+    * no engine, and commons is precisely the artifact an injected engine must agree with.
+    *
+    * Throws when they disagree. bleep cannot align to two versions at once, and picking one silently is how you get a `NoSuchMethodError` in a test report
+    * instead of an error naming the conflict.
+    */
+  private[bsp] def singleResolvedVersionOf(
+      project: CrossProjectName,
+      organization: String,
+      modules: List[ResolvedProject.ResolvedModule]
+  ): Option[String] = {
+    val inOrg = modules.filter(_.organization == organization)
+    inOrg.map(_.version).distinct.sorted match {
+      case Nil            => None
+      case version :: Nil => Some(version)
+      case several        =>
+        throw new BleepException.Text(
+          project,
+          s"""conflicting $organization versions in this project's dependencies: ${several.mkString(", ")}.
+             |${inOrg.sortBy(_.name).map(m => s"  ${m.organization}:${m.name}:${m.version}").mkString("\n")}
+             |bleep injects a test runtime matching the project's own $organization, and cannot match two of them at once.
+             |Pin one $organization version in this project's dependencies.""".stripMargin
+        )
+    }
+  }
+
+  /** One line per (module, version) with the jar it came from — the jar path is what tells you *which* resolution contributed it, which is the first thing you
+    * want to know when two of them disagree.
+    */
+  private def describeJunitModules(modules: Map[String, List[(String, Path)]]): String =
+    modules.toList
+      .sortBy { case (module, _) => module }
+      .flatMap { case (module, versions) =>
+        versions.map { case (version, jar) => s"  ${junitOrganizationOf(module)}:$module:$version — $jar" }
+      }
+      .mkString("\n")
+
+  /** The assembled test classpath must carry at most one version of each junit module.
+    *
+    * The forked runner classpath is the concatenation of two independent coursier resolutions — the project's own dependencies and [[fetchTestRuntimeDeps]] —
+    * so nothing in coursier guarantees they agree; only [[detectJunitPlatformVersion]] does. When they disagree, the JVM picks per class whichever jar comes
+    * first, which is how a junit-jupiter-engine ends up calling a method its junit-platform-commons no longer has. Fail here, naming the coordinates, rather
+    * than let that surface as a `NoSuchMethodError` attributed to the user's test.
+    */
+  private[bsp] def assertCoherentJunitClasspath(project: CrossProjectName, classpath: List[Path]): Unit = {
+    val conflicts = junitModuleVersions(classpath).filter { case (_, versions) => versions.sizeIs > 1 }
+    if (conflicts.nonEmpty)
+      throw new BleepException.Text(
+        project,
+        s"""bleep assembled an incoherent JUnit classpath for the forked test runner (listed in classpath order — the first of each module is what the JVM loads):
+           |${describeJunitModules(conflicts)}
+           |This is a bug in bleep's test-runner dependency alignment, not in your build. Please report it.""".stripMargin
+      )
+  }
+
+  private def junitOrganizationOf(module: String): String =
+    if (module.startsWith("junit-platform-")) "org.junit.platform"
+    else if (module.startsWith("junit-vintage-")) "org.junit.vintage"
+    else "org.junit.jupiter"
+
+  /** Per-(resolver, evaluated rule set) memoization of the [[testRuntimeRules]] resolution.
     *
     * Resolving once per key avoids re-running Coursier on every inner-bleep `commands.test`. Without this cache, each test workspace's [[InProcessBspServer]]
     * (a fresh [[MultiWorkspaceBspServer]] per `commands.test` call) re-fetches the same artifacts; under CI's CPU contention with two parallel test JVMs that's
     * enough to trip the 120 s suite-idle timeout in #580.
     *
-    * Keyed by resolver-instance identity (not process-wide) so two BSP servers configured with different resolver settings — different mirrors, repositories,
-    * credentials — don't share jars resolved against the wrong config. Same resolver instance reused across calls within a server still hits the cache.
+    * Keyed by the evaluated deps rather than by a junit version, so any future rule participates in the cache correctly without anyone remembering to widen the
+    * key. Keyed by resolver-instance identity (not process-wide) so two BSP servers configured with different resolver settings — different mirrors,
+    * repositories, credentials — don't share jars resolved against the wrong config. Same resolver instance reused across calls within a server still hits the
+    * cache.
     */
-  private val cachedExternalTestRunnerJars: java.util.concurrent.ConcurrentHashMap[(CoursierResolver, Option[String]), List[Path]] =
-    new java.util.concurrent.ConcurrentHashMap[(CoursierResolver, Option[String]), List[Path]]()
+  private val cachedTestRuntimeJars: java.util.concurrent.ConcurrentHashMap[(CoursierResolver, SortedSet[model.Dep]), List[Path]] =
+    new java.util.concurrent.ConcurrentHashMap[(CoursierResolver, SortedSet[model.Dep]), List[Path]]()
 
-  private def fetchExternalTestRunnerDeps(started: Started, dependencyClasspath: List[Path]): List[Path] = {
+  private def fetchTestRuntimeDeps(started: Started, project: CrossProjectName, resolved: ResolvedProject): List[Path] = {
     val resolver = started.resolver
-    val junitPlatformVersion = detectJunitPlatformVersion(dependencyClasspath)
-    val key = (resolver, junitPlatformVersion)
-    val cached = cachedExternalTestRunnerJars.get(key)
+    val deps = testRuntimeDeps(project, resolved)
+    if (deps.isEmpty) return Nil
+    val key = (resolver, deps)
+    val cached = cachedTestRuntimeJars.get(key)
     if (cached != null) return cached
     val result = resolver.force(
-      externalTestRunnerDeps(junitPlatformVersion),
+      deps,
       model.VersionCombo.Jvm(model.VersionScala.Scala3),
       libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme],
-      context = "resolving bleep-test-runner external deps",
+      context = s"resolving the test runtime for ${project.value}",
       model.IgnoreEvictionErrors.No
     )
     // putIfAbsent: identical resolver from two threads is harmless (Coursier's disk cache handles
     // concurrent downloads, and the jars resolved against the same config are identical).
-    val existing = cachedExternalTestRunnerJars.putIfAbsent(key, result.jars)
+    val existing = cachedTestRuntimeJars.putIfAbsent(key, result.jars)
     if (existing != null) existing else result.jars
   }
 }

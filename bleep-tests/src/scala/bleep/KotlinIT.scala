@@ -69,7 +69,7 @@ class KotlinIT extends IntegrationTestHarness {
         |}
         |""".stripMargin
     )
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
@@ -78,7 +78,7 @@ class KotlinIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "test.HelloTest", tests = 1)
   }
 
   integrationTest("kotlin internal visibility with friend-paths") { ws =>
@@ -126,7 +126,7 @@ class KotlinIT extends IntegrationTestHarness {
         |}
         |""".stripMargin
     )
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(model.CrossProjectName(model.ProjectName("mylib-test"), None)),
       watch = false,
@@ -135,7 +135,7 @@ class KotlinIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "mylib.InternalTest", tests = 1)
   }
 
   integrationTest("kotlin compiler plugins (allopen)") { ws =>
@@ -199,7 +199,7 @@ class KotlinIT extends IntegrationTestHarness {
         |}
         |""".stripMargin
     )
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
@@ -208,6 +208,6 @@ class KotlinIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "myapp.TestService", tests = 1)
   }
 }

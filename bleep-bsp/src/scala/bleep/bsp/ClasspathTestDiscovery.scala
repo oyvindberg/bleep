@@ -244,7 +244,7 @@ object ClasspathTestDiscovery {
   private def discoverViaFrameworks(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
     val frameworks = loadFrameworks(classLoader)
 
@@ -264,9 +264,15 @@ object ClasspathTestDiscovery {
     }
   }
 
-  /** Load all available test frameworks from the classpath */
-  private def loadFrameworks(classLoader: ClassLoader): List[Framework] =
-    knownFrameworks.flatMap { fqn =>
+  /** Load the test frameworks the *project* brings.
+    *
+    * Two steps on purpose. [[onProjectClasspath]] decides whether a framework is the project's, since a bare `loadClass` would also find one that only bleep
+    * happens to depend on and offer it to every project on the machine — see the note there for how that played out. The load itself then goes through the
+    * delegating loader, because a `Framework` implements `sbt.testing.Framework` and that interface has to come from bleep's own classloader for the cast on
+    * the next line to succeed.
+    */
+  private def loadFrameworks(classLoader: URLClassLoader): List[Framework] =
+    knownFrameworks.filter(fqn => onProjectClasspath(classLoader, fqn)).flatMap { fqn =>
       Try {
         val cls = classLoader.loadClass(fqn)
         cls.getDeclaredConstructor().newInstance().asInstanceOf[Framework]
@@ -329,7 +335,8 @@ object ClasspathTestDiscovery {
   private def discoverViaAnnotations(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      // URLClassLoader, not ClassLoader: [[detectAvailableRuntimes]] needs to ask what is on *these* URLs, not what the parent can also reach.
+      classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
     // Check which framework runtimes are actually available
     val availableRuntimes = detectAvailableRuntimes(classLoader)
@@ -350,31 +357,51 @@ object ClasspathTestDiscovery {
     }
   }
 
-  /** Check which test framework runtimes are available on the classpath */
-  private def detectAvailableRuntimes(classLoader: ClassLoader): Set[String] = {
+  /** Is this class on the classloader's *own* URLs — the project's classpath — rather than anywhere its parent can reach?
+    *
+    * `findResource` does not delegate to the parent, and that is the entire point. [[discover]] parents its loader on bleep's own so that `sbt.testing.*` comes
+    * from one place and a `Framework` loaded out of a project can be cast to it, but that also means a plain `loadClass` probe answers "is this class anywhere
+    * on bleep's classpath" — the same answer for every project on the machine.
+    *
+    * Not hypothetical. These probes used to name sbt adapter classes, and they reported "junit5 available" for every project ever compiled: not because the
+    * project had junit, but because `bleep-test-runner` declared `jupiter-interface` and `bleep-bsp` depends on `bleep-test-runner`, so the class sat on the
+    * server's own classloader. Dropping that unused dependency from the POM turned junit discovery off everywhere, which is how this was found.
+    */
+  private def onProjectClasspath(classLoader: URLClassLoader, className: String): Boolean =
+    classLoader.findResource(className.replace('.', '/') + ".class") != null
+
+  /** Which test runtimes the project itself brings, so [[discoverViaAnnotations]] does not report suites nothing can execute.
+    *
+    * Deliberately the same signal `MultiWorkspaceBspServer.testRuntimeRules` triggers on, because the two have to agree: that table decides what lands on the
+    * fork classpath, and this decides whether a suite is offered to it. Ask different questions and they drift — either a suite is discovered that no runtime
+    * will run, or a runnable one is silently dropped.
+    *
+    * So these name what the *project* must supply, not what bleep adds on top. `junit-platform-launcher` is deliberately absent: bleep injects it, at the
+    * project's own platform version, and demanding it up front would reject every project that table exists to serve.
+    */
+  private def detectAvailableRuntimes(classLoader: URLClassLoader): Set[String] = {
     val runtimes = scala.collection.mutable.Set[String]()
 
-    // JUnit 5 (Jupiter) runtimes
-    val junit5Classes = List(
-      "com.github.sbt.junit.jupiter.api.JupiterFramework",
-      "com.github.sbt.junit.JupiterFramework",
-      "net.aichler.jupiter.api.JupiterFramework"
+    // Anything with a TestEngine runs through the JUnit Platform: jupiter, kotest, spock, jqwik, cucumber. `junit-platform-commons` comes with
+    // `junit-jupiter-api` and `junit-platform-engine` with any engine, so one of the two is present for every such project.
+    val junitPlatformClasses = List(
+      "org.junit.platform.commons.JUnitException",
+      "org.junit.platform.engine.TestEngine"
     )
-    if (junit5Classes.exists(c => Try(classLoader.loadClass(c)).isSuccess)) {
+    if (junitPlatformClasses.exists(c => onProjectClasspath(classLoader, c))) {
       runtimes += "junit5"
     }
 
-    // JUnit 4 runtime
-    if (Try(classLoader.loadClass("com.novocode.junit.JUnitFramework")).isSuccess) {
+    // JUnit 4 and 3 — `junit:junit` carries both namespaces, and bleep supplies the vintage engine that runs them.
+    val junit4Classes = List(
+      "org.junit.Test",
+      "junit.framework.TestCase"
+    )
+    if (junit4Classes.exists(c => onProjectClasspath(classLoader, c))) {
       runtimes += "junit4"
     }
 
-    // TestNG runtime (try both Mill package names)
-    val testngClasses = List(
-      "mill.testng.TestNGFramework",
-      "mill.contrib.testng.TestNGFramework"
-    )
-    if (testngClasses.exists(c => Try(classLoader.loadClass(c)).isSuccess)) {
+    if (onProjectClasspath(classLoader, "org.testng.annotations.Test")) {
       runtimes += "testng"
     }
 

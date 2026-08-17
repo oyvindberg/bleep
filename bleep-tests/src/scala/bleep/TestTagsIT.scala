@@ -73,6 +73,9 @@ class TestTagsIT extends IntegrationTestHarness {
     // Summary always carries the filter accounting when filters are active.
     val log = storingLogger.underlying.iterator.map(_.message.plainText).mkString("\n")
     assert(log.contains("Filters active: --only-tag slow"), s"expected 'Filters active: --only-tag slow' in summary log, got:\n$log")
+    // The filter accounting says what was dropped; this says the surviving suite actually ran, which an empty run would also satisfy without it.
+    assertSuitePassed(storingLogger, "example.HeavyIT", tests = 1)
+    assert(!log.contains("example.FastTest"), s"untagged FastTest must not have run, got:\n$log")
   }
 
   integrationTest("--exclude-tag slow skips **IT suites, keeps untagged ones running") { ws =>
@@ -80,7 +83,7 @@ class TestTagsIT extends IntegrationTestHarness {
     ws.file("mytest/src/scala/FastTest.scala", FastTest)
     // FailingIT would fail if it ran. Tag filter must drop it before dispatch — that is the assertion.
     ws.file("mytest/src/scala/FailingIT.scala", FailingIT)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(mytest),
       watch = false,
@@ -89,14 +92,14 @@ class TestTagsIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = Some(NonEmptyList.of("slow"))
     )
-    succeed
+    assertSuitePassed(storingLogger, "example.FastTest", tests = 1)
   }
 
   integrationTest("--only-tag combined with --only narrows by both: AND semantics") { ws =>
     ws.yaml(TaggedYaml)
     ws.file("mytest/src/scala/FastTest.scala", FastTest)
     ws.file("mytest/src/scala/HeavyIT.scala", SlowIT)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     // --only matches HeavyIT; --only-tag slow also accepts HeavyIT. Intersection runs HeavyIT only.
     commands.test(
       projects = List(mytest),
@@ -106,7 +109,7 @@ class TestTagsIT extends IntegrationTestHarness {
       includeTags = Some(NonEmptyList.of("slow")),
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "example.HeavyIT", tests = 1)
   }
 
   integrationTest("--only-tag matching nothing in project fails with a clear pipeline message") { ws =>

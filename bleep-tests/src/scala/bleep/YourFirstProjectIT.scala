@@ -21,6 +21,6 @@ class YourFirstProjectIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "com.example.MainTest", tests = 1)
   }
 }

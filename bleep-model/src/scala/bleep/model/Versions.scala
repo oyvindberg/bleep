@@ -58,15 +58,21 @@ object Versions {
   val JupiterInterface: String = "0.11.1"
   val JunitInterface: String = "0.13.3"
 
-  /** Fallback only: when the project's own classpath already carries a junit-platform, the injected launcher/vintage pair is resolved at THAT version instead
-    * (junit hard-fails on any version skew between launcher and engine jars — see externalTestRunnerDeps in MultiWorkspaceBspServer). These defaults apply only
-    * to projects with no junit-platform at all, where the pair is internally consistent by construction.
+  /** Not fallbacks. These are used only where the project expressed *no* junit-platform opinion at all — today that means a JUnit 4 project, whose suites bleep
+    * runs through the vintage engine (see the JUnit 4 row of `testRuntimeRules` in MultiWorkspaceBspServer). A project that resolves a junit-platform of its
+    * own gets the launcher and engines at THAT version and never sees these. That is the invariant: bleep never supplies a junit-platform version when the
+    * project has one, so these can never become a competing second opinion for coursier to reconcile. The two must stay on the same junit release line as each
+    * other.
     */
   val JunitPlatformLauncher: String = "1.14.4"
   val JunitVintageEngine: String = "5.14.4"
 
   // ── Dependencies written into generated builds (bleep build new) ──
   val JunitJupiter: String = "5.14.4"
-  val Kotest: String = "6.2.3"
+
+  /** kotest 6 brings junit-platform 1.13.4, a different line from what [[JunitJupiter]] resolves — which is fine, and is the case the test runtime's junit
+    * alignment exists to handle. It is also the case that alignment got wrong: see YourFirstKotlinProjectIT.
+    */
+  val Kotest: String = "6.2.4"
   val Munit: String = "1.3.4"
 }

@@ -93,7 +93,10 @@ class SpringBootMyappIT extends IntegrationTestHarness {
     // which gets clobbered by the test runner's prior in-process main. Forking the JVM would
     // work but the harness deliberately runs in-process for GHA memory reasons.
 
-    succeed
+    // "The 6-test suite" above is only substantive if it ran. `commands.test` throws on a failing suite but is perfectly happy with a suite that discovered
+    // nothing, so the counts are the assertion.
+    assertSuitePassed(storingLogger, "com.example.myapp.ItemServiceTest", tests = 4)
+    assertSuitePassed(storingLogger, "com.example.myapp.ItemControllerTest", tests = 2)
   }
 
   /** Walks every file under `fixtureRoot` (excluding the file named by `skip`), reads the content, writes it into the workspace at the same relative path, and
