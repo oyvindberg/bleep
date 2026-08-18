@@ -1,5 +1,8 @@
 package bleep.analysis
 
+import bleep.testing.FrameworkSelection
+import bleep.testing.runner.TestProtocol.RunnerKind
+
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
@@ -37,10 +40,20 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
   )
 
   /** Launch ForkedTestRunner as a subprocess and run a single test suite via protocol */
+  // The execution decision the server would have made, stated outright. These tests are the contract between the two: the fork is told which runner and, for
+  // the sbt path, exactly which `Framework` class — it no longer infers either from the display name.
+  private val junit4 = FrameworkSelection.JUnitPlatform("JUnit")
+  private val junitJupiter = FrameworkSelection.JUnitPlatform("JUnit Jupiter")
+  private val kotest = FrameworkSelection.JUnitPlatform("Kotest")
+  private val scalaTest = FrameworkSelection.SbtTestInterface("ScalaTest", "org.scalatest.tools.Framework")
+  private val munit = FrameworkSelection.SbtTestInterface("MUnit", "munit.Framework")
+  private val utest = FrameworkSelection.SbtTestInterface("utest", "utest.runner.Framework")
+  private val testng = FrameworkSelection.SbtTestInterface("TestNG", "mill.testng.TestNGFramework")
+
   def runSuiteViaProtocol(
       classpathEntries: Seq[Path],
       className: String,
-      frameworkName: String
+      selection: FrameworkSelection
   ): SuiteRunResult = {
     val classpath = classpathEntries.map(_.toString).mkString(java.io.File.pathSeparator)
     val javaHome = System.getProperty("java.home")
@@ -58,7 +71,14 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       readyLine should include("\"type\":\"Ready\"")
 
       // Send RunSuite command
-      val command = bleep.testing.runner.TestProtocol.encodeRunSuite(className, frameworkName, java.util.List.of())
+      val command = selection match {
+        case FrameworkSelection.JUnitPlatform(displayName) =>
+          bleep.testing.runner.TestProtocol.encodeRunSuite(className, displayName, RunnerKind.JUNIT_PLATFORM, null, java.util.List.of())
+        case FrameworkSelection.SbtTestInterface(displayName, frameworkClass) =>
+          bleep.testing.runner.TestProtocol.encodeRunSuite(className, displayName, RunnerKind.SBT_TEST_INTERFACE, frameworkClass, java.util.List.of())
+        case other =>
+          fail(s"$other is never sent over the protocol")
+      }
       writer.println(command)
 
       // Collect all protocol output until SuiteDone
@@ -385,7 +405,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4Success), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4SuccessTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4SuccessTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -400,7 +420,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4Failure), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4FailureTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4FailureTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -415,7 +435,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4Throwing), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4ThrowingTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4ThrowingTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -434,7 +454,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5Success), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5SuccessTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5SuccessTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -449,7 +469,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5Failure), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5FailureTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5FailureTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -464,7 +484,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5Throwing), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5ThrowingTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5ThrowingTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -485,7 +505,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(scalaTestSuccess), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.scalaTestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.SuccessfulScalaTest", "ScalaTest")
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulScalaTest", scalaTest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -502,7 +522,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(scalaTestFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.scalaTestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.FailingScalaTest", "ScalaTest")
+      val result = runSuiteViaProtocol(cp, "example.FailingScalaTest", scalaTest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -519,7 +539,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(scalaTestThrowing), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.scalaTestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.ThrowingScalaTest", "ScalaTest")
+      val result = runSuiteViaProtocol(cp, "example.ThrowingScalaTest", scalaTest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -540,7 +560,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(munitSuccess), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.SuccessfulMUnitTest", "MUnit")
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulMUnitTest", munit)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -557,7 +577,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(munitFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.FailingMUnitTest", "MUnit")
+      val result = runSuiteViaProtocol(cp, "example.FailingMUnitTest", munit)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -574,7 +594,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(munitThrowing), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.ThrowingMUnitTest", "MUnit")
+      val result = runSuiteViaProtocol(cp, "example.ThrowingMUnitTest", munit)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -781,7 +801,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(utestSuccess), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.SuccessfulUTest", "utest")
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulUTest", utest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -798,7 +818,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(utestFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.FailingUTest", "utest")
+      val result = runSuiteViaProtocol(cp, "example.FailingUTest", utest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -815,7 +835,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(utestThrowing), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.ThrowingUTest", "utest")
+      val result = runSuiteViaProtocol(cp, "example.ThrowingUTest", utest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -836,7 +856,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileKotlin(Seq(kotestSuccess), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
-      val result = runSuiteViaProtocol(cp, "example.SuccessfulKotest", "Kotest")
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulKotest", kotest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -853,7 +873,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileKotlin(Seq(kotestFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
-      val result = runSuiteViaProtocol(cp, "example.FailingKotest", "Kotest")
+      val result = runSuiteViaProtocol(cp, "example.FailingKotest", kotest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -870,7 +890,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileKotlin(Seq(kotestThrowing), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
-      val result = runSuiteViaProtocol(cp, "example.ThrowingKotest", "Kotest")
+      val result = runSuiteViaProtocol(cp, "example.ThrowingKotest", kotest)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -890,7 +910,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileJava(Seq(testngSuccess), CompilerTestLibraries.testngLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.TestNGSuccessTest", "TestNG")
+      val result = runSuiteViaProtocol(cp, "example.TestNGSuccessTest", testng)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -906,7 +926,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileJava(Seq(testngFailure), CompilerTestLibraries.testngLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.TestNGFailureTest", "TestNG")
+      val result = runSuiteViaProtocol(cp, "example.TestNGFailureTest", testng)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -922,7 +942,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileJava(Seq(testngThrowing), CompilerTestLibraries.testngLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.TestNGThrowingTest", "TestNG")
+      val result = runSuiteViaProtocol(cp, "example.TestNGThrowingTest", testng)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -1061,7 +1081,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4AfterClassFailure), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4AfterClassFailureTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4AfterClassFailureTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -1079,7 +1099,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4ParameterizedAfterClassFailure), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4ParameterizedAfterClassTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4ParameterizedAfterClassTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 2
@@ -1094,7 +1114,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5AfterAllFailure), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5AfterAllFailureTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5AfterAllFailureTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
@@ -1112,7 +1132,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5BeforeAllFailure), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5BeforeAllFailureTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5BeforeAllFailureTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 0
@@ -1127,7 +1147,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit5DisabledClass), CompilerTestLibraries.junit5Library, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junit5Library
-      val result = runSuiteViaProtocol(cp, "example.Junit5DisabledClassTest", "JUnit Jupiter")
+      val result = runSuiteViaProtocol(cp, "example.Junit5DisabledClassTest", junitJupiter)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 0
@@ -1168,7 +1188,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     try {
       compileJava(Seq(junit4EmptyParams), CompilerTestLibraries.junitLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.junitLibrary
-      val result = runSuiteViaProtocol(cp, "example.Junit4EmptyParamsTest", "JUnit")
+      val result = runSuiteViaProtocol(cp, "example.Junit4EmptyParamsTest", junit4)
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 0
@@ -1283,7 +1303,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(scalaTestAfterAllFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.scalaTestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingScalaTest", "ScalaTest")
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingScalaTest", scalaTest)
 
       info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
       withClue(result.protocolLines.mkString("\n")) {
@@ -1299,7 +1319,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(munitAfterAllFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingMUnitTest", "MUnit")
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingMUnitTest", munit)
 
       info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
       withClue(result.protocolLines.mkString("\n")) {
@@ -1315,7 +1335,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileScala(Seq(utestAfterAllFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingUTest", "utest")
+      val result = runSuiteViaProtocol(cp, "example.AfterAllFailingUTest", utest)
 
       info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
       withClue(result.protocolLines.mkString("\n")) {
@@ -1331,7 +1351,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileKotlin(Seq(kotestAfterSpecFailure), compileClasspath, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
-      val result = runSuiteViaProtocol(cp, "example.AfterSpecFailingKotest", "Kotest")
+      val result = runSuiteViaProtocol(cp, "example.AfterSpecFailingKotest", kotest)
 
       info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
       withClue(result.protocolLines.mkString("\n")) {
@@ -1356,7 +1376,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       compileJava(Seq(testngAfterClassFailure), CompilerTestLibraries.testngLibrary, outputDir)
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
-      val result = runSuiteViaProtocol(cp, "example.TestNGAfterClassFailureTest", "TestNG")
+      val result = runSuiteViaProtocol(cp, "example.TestNGAfterClassFailureTest", testng)
 
       info(s"outcome=${result.outcome} passed=${result.passed} failed=${result.failed} results=${result.testResults}")
       withClue(result.protocolLines.mkString("\n")) {

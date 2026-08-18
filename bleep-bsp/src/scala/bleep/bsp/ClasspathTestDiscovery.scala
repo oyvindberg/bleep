@@ -1,6 +1,7 @@
 package bleep.bsp
 
 import bleep.model.CrossProjectName
+import bleep.testing.FrameworkSelection
 import sbt.testing._
 
 import java.io.File
@@ -10,12 +11,18 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-/** Discovered test suite ready for execution */
+/** Discovered test suite ready for execution.
+  *
+  * `selection` is the execution decision — which runner, and for the sbt path which `Framework` class — made here because this is where the classpath is. The
+  * display name remains available as [[framework]] for reporting, BSP's `ScalaTestClassesItem` and metrics; nothing dispatches on it.
+  */
 case class DiscoveredTestSuite(
     project: CrossProjectName,
     className: String,
-    framework: String
-)
+    selection: FrameworkSelection
+) {
+  def framework: String = selection.displayName
+}
 
 /** Discovers test suites by scanning compiled class files.
   *
@@ -230,9 +237,26 @@ object ClasspathTestDiscovery {
 
     classNames.flatMap { className =>
       matchFingerprint(className, classLoader, fingerprintsByFramework).map { case (fw, _) =>
-        DiscoveredTestSuite(project, className, fw.name())
+        DiscoveredTestSuite(project, className, selectionForFramework(fw))
       }
     }
+  }
+
+  /** sbt adapters that bridge junit *down* to `sbt.testing.Framework`. When one of these is what matched, the suite still goes to the Launcher: bleep drives
+    * the JUnit Platform itself, and running junit through the bridge would lose the `LauncherSession` lifecycle that Quarkus and Spring Boot hook into.
+    */
+  private val junitAdapterClasses: Set[String] = Set(
+    "com.github.sbt.junit.jupiter.api.JupiterFramework",
+    "com.github.sbt.junit.JupiterFramework",
+    "net.aichler.jupiter.api.JupiterFramework",
+    "com.novocode.junit.JUnitFramework"
+  )
+
+  /** The framework instance is in hand here, so its implementation class is exact rather than inferred — the whole point of carrying it instead of a name. */
+  private def selectionForFramework(fw: Framework): FrameworkSelection = {
+    val cls = fw.getClass.getName
+    if (junitAdapterClasses.contains(cls)) FrameworkSelection.JUnitPlatform(fw.name())
+    else FrameworkSelection.SbtTestInterface(fw.name(), cls)
   }
 
   /** Load the test frameworks the *project* brings.
@@ -306,27 +330,42 @@ object ClasspathTestDiscovery {
   private def discoverViaAnnotations(
       project: CrossProjectName,
       classNames: List[String],
-      // URLClassLoader, not ClassLoader: [[detectAvailableRuntimes]] needs to ask what is on *these* URLs, not what the parent can also reach.
+      // URLClassLoader, not ClassLoader: the runtime probes need to ask what is on *these* URLs, not what the parent can also reach.
       classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
-    // Check which framework runtimes are actually available
-    val availableRuntimes = detectAvailableRuntimes(classLoader)
+    val junitAvailable = junitRuntimeOnClasspath(classLoader)
+    val testngBridge = testngBridgeClasses.find(c => onProjectClasspath(classLoader, c))
 
     classNames.flatMap { className =>
-      detectFrameworkByAnnotation(className, classLoader).flatMap { framework =>
-        // Only include if we can actually run this framework
-        val runtimeAvailable = framework match {
-          case "JUnit Jupiter" => availableRuntimes.contains("junit5") || availableRuntimes.contains("junit4")
-          case "JUnit"         => availableRuntimes.contains("junit4") || availableRuntimes.contains("junit5")
-          case "TestNG"        => availableRuntimes.contains("testng")
-          case "kotlin.test"   => availableRuntimes.contains("junit5") || availableRuntimes.contains("junit4")
-          case _               => true // Unknown framework, let it try
-        }
-        if (runtimeAvailable) Some(DiscoveredTestSuite(project, className, framework))
-        else None
+      detectFrameworkByAnnotation(className, classLoader).flatMap { displayName =>
+        selectionForAnnotation(displayName, junitAvailable, testngBridge)
+          .map(selection => DiscoveredTestSuite(project, className, selection))
       }
     }
   }
+
+  /** TestNG has no sbt adapter of its own; Mill's bridge is what implements `sbt.testing.Framework` for it, and it has moved package once. */
+  private val testngBridgeClasses: List[String] = List(
+    "mill.testng.TestNGFramework",
+    "mill.contrib.testng.TestNGFramework"
+  )
+
+  /** Turn an annotation-derived name into an execution decision, or None when the project cannot run it.
+    *
+    * Everything junit-shaped goes to the Launcher, `kotlin.test` included — on the JVM it delegates to junit, and it previously fell through to the sbt path
+    * where the fork tried `Class.forName("kotlin.test")` and died. TestNG is the one annotation-detected framework that really is an sbt-interface framework,
+    * and it is offered only when the bridge that implements that interface is actually present: gating on the *annotation* would have discovered suites whose
+    * fork then had nothing to run them with.
+    */
+  private def selectionForAnnotation(
+      displayName: String,
+      junitAvailable: Boolean,
+      testngBridge: Option[String]
+  ): Option[FrameworkSelection] =
+    displayName match {
+      case "TestNG" => testngBridge.map(cls => FrameworkSelection.SbtTestInterface(displayName, cls))
+      case _        => if (junitAvailable) Some(FrameworkSelection.JUnitPlatform(displayName)) else None
+    }
 
   /** Is this class on the classloader's *own* URLs — the project's classpath — rather than anywhere its parent can reach?
     *
@@ -341,42 +380,26 @@ object ClasspathTestDiscovery {
   private def onProjectClasspath(classLoader: URLClassLoader, className: String): Boolean =
     classLoader.findResource(className.replace('.', '/') + ".class") != null
 
-  /** Which test runtimes the project itself brings, so [[discoverViaAnnotations]] does not report suites nothing can execute.
+  /** Does the project bring a JUnit Platform runtime of its own, so a junit-shaped suite can actually be run?
     *
     * Deliberately the same signal `MultiWorkspaceBspServer.testRuntimeRules` triggers on, because the two have to agree: that table decides what lands on the
     * fork classpath, and this decides whether a suite is offered to it. Ask different questions and they drift — either a suite is discovered that no runtime
     * will run, or a runnable one is silently dropped.
     *
     * So these name what the *project* must supply, not what bleep adds on top. `junit-platform-launcher` is deliberately absent: bleep injects it, at the
-    * project's own platform version, and demanding it up front would reject every project that table exists to serve.
+    * project's own platform version, and demanding it up front would reject every project that table exists to serve. Likewise the engines — kotest's, spock's,
+    * jupiter's — are found by the Launcher through SPI at run time, so the platform's presence is the question, not any particular engine's.
     */
-  private def detectAvailableRuntimes(classLoader: URLClassLoader): Set[String] = {
-    val runtimes = scala.collection.mutable.Set[String]()
-
-    // Anything with a TestEngine runs through the JUnit Platform: jupiter, kotest, spock, jqwik, cucumber. `junit-platform-commons` comes with
-    // `junit-jupiter-api` and `junit-platform-engine` with any engine, so one of the two is present for every such project.
-    val junitPlatformClasses = List(
+  private def junitRuntimeOnClasspath(classLoader: URLClassLoader): Boolean = {
+    val classes = List(
+      // Anything with a TestEngine: `junit-platform-commons` comes with `junit-jupiter-api`, `junit-platform-engine` with any engine.
       "org.junit.platform.commons.JUnitException",
-      "org.junit.platform.engine.TestEngine"
-    )
-    if (junitPlatformClasses.exists(c => onProjectClasspath(classLoader, c))) {
-      runtimes += "junit5"
-    }
-
-    // JUnit 4 and 3 — `junit:junit` carries both namespaces, and bleep supplies the vintage engine that runs them.
-    val junit4Classes = List(
+      "org.junit.platform.engine.TestEngine",
+      // JUnit 4 and 3 — `junit:junit` carries both namespaces, and bleep supplies the vintage engine that runs them.
       "org.junit.Test",
       "junit.framework.TestCase"
     )
-    if (junit4Classes.exists(c => onProjectClasspath(classLoader, c))) {
-      runtimes += "junit4"
-    }
-
-    if (onProjectClasspath(classLoader, "org.testng.annotations.Test")) {
-      runtimes += "testng"
-    }
-
-    runtimes.toSet
+    classes.exists(c => onProjectClasspath(classLoader, c))
   }
 
   /** Detect test framework by scanning for test annotations */
@@ -425,43 +448,54 @@ object ClasspathTestDiscovery {
   private def discoverViaBaseClasses(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
-    // For base class detection, the base class itself being loadable means
-    // the framework is on classpath. But we still need to verify the runtime
-    // (sbt-testing Framework) is available to actually run the tests.
-    val frameworkRuntimes = Map(
-      "Kotest" -> List("io.kotest.runner.junit.platform.KotestJunitPlatformTestEngine"),
-      "Spock" -> List("org.spockframework.runtime.SpockEngine"),
-      "ScalaTest" -> List("org.scalatest.tools.Framework"),
-      "ZIO Test" -> List("zio.test.sbt.ZTestFramework"),
-      "MUnit" -> List("munit.Framework"),
-      "uTest" -> List("utest.runner.Framework"),
-      "specs2" -> List("org.specs2.runner.Specs2Framework"),
-      "Weaver" -> List("weaver.sbt.WeaverFramework"),
-      "ScalaCheck" -> List("org.scalacheck.ScalaCheckFramework"),
-      "JUnit" -> List("com.novocode.junit.JUnitFramework", "com.github.sbt.junit.jupiter.api.JupiterFramework", "com.github.sbt.junit.JupiterFramework")
-    )
-
-    // Pre-check which frameworks have their runtime available
-    val availableFrameworks = frameworkRuntimes.collect {
-      case (framework, runtimeClasses) if runtimeClasses.exists(c => Try(classLoader.loadClass(c)).isSuccess) =>
-        framework
-    }.toSet
+    val junitAvailable = junitRuntimeOnClasspath(classLoader)
 
     classNames.flatMap { className =>
-      detectFrameworkByBaseClass(className, classLoader).flatMap { framework =>
-        // Kotest and Spock use JUnit Platform, so they might work without explicit runtime
-        // if JUnit 5 is available
-        val canRun = availableFrameworks.contains(framework) ||
-          (framework == "Kotest" && availableFrameworks.exists(f => f.contains("JUnit"))) ||
-          (framework == "Spock" && availableFrameworks.exists(f => f.contains("JUnit")))
-
-        if (canRun) Some(DiscoveredTestSuite(project, className, framework))
-        else None
+      detectFrameworkByBaseClass(className, classLoader).flatMap { displayName =>
+        selectionForBaseClass(displayName, junitAvailable, classLoader)
+          .map(selection => DiscoveredTestSuite(project, className, selection))
       }
     }
   }
+
+  /** Base-class-detected frameworks that run as a JUnit Platform engine rather than through `sbt.testing.Framework`.
+    *
+    * The engine class itself is not probed. Kotest and Spock register theirs through the platform's `ServiceLoader` SPI, so the Launcher finds it without being
+    * told, and naming the class here would break the moment either project moved it. What must be true is that the project has the platform at all, which is
+    * exactly [[junitRuntimeOnClasspath]] and exactly what the injection table triggers on.
+    */
+  private val baseClassJUnitPlatformFrameworks: Set[String] = Set("Kotest", "Spock", "JUnit")
+
+  /** The `sbt.testing.Framework` implementation behind each base-class-detected framework. Several candidates where a framework has renamed it.
+    *
+    * This mapping is the reason "Spock", "ScalaCheck" and "uTest" used to die in the fork: the display name went over the wire and was looked up in a
+    * *different* table on the other side, which had no entry for them, so it fell through to `Class.forName("Spock")`. The lookup now happens once, here, where
+    * the answer is checkable against the classpath.
+    */
+  private val baseClassSbtFrameworks: Map[String, List[String]] = Map(
+    "ScalaTest" -> List("org.scalatest.tools.Framework"),
+    "ZIO Test" -> List("zio.test.sbt.ZTestFramework"),
+    "MUnit" -> List("munit.Framework"),
+    "uTest" -> List("utest.runner.Framework"),
+    "specs2" -> List("org.specs2.runner.Specs2Framework"),
+    "Weaver" -> List("weaver.sbt.WeaverFramework", "weaver.framework.CatsEffect"),
+    "ScalaCheck" -> List("org.scalacheck.ScalaCheckFramework")
+  )
+
+  private def selectionForBaseClass(
+      displayName: String,
+      junitAvailable: Boolean,
+      classLoader: URLClassLoader
+  ): Option[FrameworkSelection] =
+    if (baseClassJUnitPlatformFrameworks.contains(displayName))
+      if (junitAvailable) Some(FrameworkSelection.JUnitPlatform(displayName)) else None
+    else
+      baseClassSbtFrameworks
+        .getOrElse(displayName, Nil)
+        .find(c => onProjectClasspath(classLoader, c))
+        .map(cls => FrameworkSelection.SbtTestInterface(displayName, cls))
 
   /** Detect test framework by checking base class inheritance */
   private def detectFrameworkByBaseClass(

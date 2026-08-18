@@ -1949,7 +1949,7 @@ class MultiWorkspaceBspServer(
         }
 
         // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
-        val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
+        val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] =
           (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
         val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
@@ -2470,7 +2470,7 @@ class MultiWorkspaceBspServer(
           val tagsActive = includeTagsSet.nonEmpty || excludeTagsSet.nonEmpty
           val regexActive = testOptions.only.nonEmpty || testOptions.exclude.nonEmpty
 
-          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
+          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] =
             (discoverTask, _) =>
               discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
                 val projectName = discoverTask.project.value
@@ -2571,7 +2571,7 @@ class MultiWorkspaceBspServer(
                   TestRunner.runSuite(
                     project = testTask.project,
                     suiteName = testTask.suiteName.value,
-                    framework = testTask.framework,
+                    selection = testTask.selection,
                     classpath = classpath,
                     pool = jvmPool,
                     eventQueue = eventQueue,
@@ -3190,11 +3190,11 @@ class MultiWorkspaceBspServer(
     *
     * Patterns match against either the fully qualified class name or the simple class name (last segment after '.'). --exclude takes precedence over --only.
     */
-  private def filterSuites(
-      suites: List[(String, String)],
+  private def filterSuites[A](
+      suites: List[(String, A)],
       only: List[String],
       exclude: List[String]
-  ): List[(String, String)] = {
+  ): List[(String, A)] = {
     if (only.isEmpty && exclude.isEmpty) return suites
 
     def simpleName(fqcn: String): String = fqcn.split('.').last
@@ -3212,7 +3212,7 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  private def discoverTestSuites(started: Started, project: CrossProjectName): IO[(TaskDag.TaskResult, List[(String, String)])] = IO {
+  private def discoverTestSuites(started: Started, project: CrossProjectName): IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] = IO {
     val projectConfig = started.build.explodedProjects(project)
     val platformOpt = projectConfig.platform.flatMap(_.name)
     val isKotlin = projectConfig.kotlin.flatMap(_.version).isDefined
@@ -3224,13 +3224,13 @@ class MultiWorkspaceBspServer(
         // Kotlin/JS: return a synthetic suite that will run all tests via Node.js
         val suiteName = s"${project.value}:KotlinJsTests"
         debugLog(s"Discovered Kotlin/JS test project: ${project.value}")
-        (TaskDag.TaskResult.Success, List((suiteName, "kotlin-test-js")))
+        (TaskDag.TaskResult.Success, List((suiteName, bleep.testing.FrameworkSelection.PlatformRunner("kotlin-test-js"))))
 
       case (Some(model.PlatformId.Native), true) =>
         // Kotlin/Native: return a synthetic suite that will run all tests via binary
         val suiteName = s"${project.value}:KotlinNativeTests"
         debugLog(s"Discovered Kotlin/Native test project: ${project.value}")
-        (TaskDag.TaskResult.Success, List((suiteName, "kotlin-test-native")))
+        (TaskDag.TaskResult.Success, List((suiteName, bleep.testing.FrameworkSelection.PlatformRunner("kotlin-test-native"))))
 
       case _ =>
         // JVM: use classpath scanning
@@ -3246,7 +3246,7 @@ class MultiWorkspaceBspServer(
           (TaskDag.TaskResult.Success, Nil)
         } else {
           debugLog(s"Discovered ${suites.size} test suites in ${project.value}: ${suites.map(_.className).mkString(", ")}")
-          (TaskDag.TaskResult.Success, suites.map(s => (s.className, s.framework)))
+          (TaskDag.TaskResult.Success, suites.map(s => (s.className, s.selection)))
         }
     }
   }

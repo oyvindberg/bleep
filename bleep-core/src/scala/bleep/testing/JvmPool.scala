@@ -60,10 +60,10 @@ trait TestJvm {
   /** Process ID of this JVM */
   def pid: Long
 
-  /** Run a test suite and stream back responses */
+  /** Run a test suite and stream back responses. `selection` says *how* to run it, decided where the classpath is known; see [[FrameworkSelection]]. */
   def runSuite(
       className: String,
-      framework: String,
+      selection: FrameworkSelection,
       args: List[String]
   ): Stream[IO, TestProtocol.TestResponse]
 
@@ -736,10 +736,10 @@ object JvmPool {
 
       override def runSuite(
           className: String,
-          framework: String,
+          selection: FrameworkSelection,
           args: List[String]
       ): Stream[IO, TestProtocol.TestResponse] = {
-        val command = TestProtocol.TestCommand.RunSuite(className, framework, args)
+        val command = TestProtocol.TestCommand.RunSuite(className, selection, args)
 
         val body =
           Stream.eval(IO(jvm.markSuiteStarted()) >> sendCommand(command)) >>

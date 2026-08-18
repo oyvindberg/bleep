@@ -3,7 +3,6 @@ package bleep.testing.runner;
 import java.io.*;
 import java.security.Permission;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,40 +34,6 @@ public class ForkedTestRunner {
 
   // Currently running suite name (for output tagging)
   private static volatile String currentSuite = null;
-
-  // Common framework class name mappings
-  private static final Map<String, String> FRAMEWORK_CLASSES = new HashMap<>();
-
-  // JUnit can be either JUnit 4 (junit-interface) or JUnit 5 (jupiter-interface)
-  // We try jupiter first, then fall back to junit-interface
-  private static final String[] JUNIT_FRAMEWORKS = {
-    "com.github.sbt.junit.jupiter.api.JupiterFramework", // JUnit 5 (sbt-jupiter-interface)
-    "net.aichler.jupiter.api.JupiterFramework", // JUnit 5 (jupiter-interface)
-    "com.novocode.junit.JUnitFramework" // JUnit 4 (junit-interface)
-  };
-
-  // TestNG bridge - try multiple package names (different Mill versions)
-  private static final String[] TESTNG_FRAMEWORKS = {
-    "mill.testng.TestNGFramework", // Mill 0.9.x
-    "mill.contrib.testng.TestNGFramework" // Mill 0.10+
-  };
-
-  static {
-    FRAMEWORK_CLASSES.put("ScalaTest", "org.scalatest.tools.Framework");
-    FRAMEWORK_CLASSES.put("scalatest", "org.scalatest.tools.Framework");
-    FRAMEWORK_CLASSES.put("MUnit", "munit.Framework");
-    FRAMEWORK_CLASSES.put("munit", "munit.Framework");
-    FRAMEWORK_CLASSES.put("utest", "utest.runner.Framework");
-    FRAMEWORK_CLASSES.put("ZIO Test", "zio.test.sbt.ZTestFramework");
-    FRAMEWORK_CLASSES.put("zio-test", "zio.test.sbt.ZTestFramework");
-    FRAMEWORK_CLASSES.put("Specs2", "org.specs2.runner.Specs2Framework");
-    FRAMEWORK_CLASSES.put("specs2", "org.specs2.runner.Specs2Framework");
-    // JUnit is handled specially in loadFramework() to try multiple implementations
-    FRAMEWORK_CLASSES.put("Weaver", "weaver.sbt.WeaverFramework");
-    FRAMEWORK_CLASSES.put("weaver", "weaver.sbt.WeaverFramework");
-    // TestNG has two possible framework classes depending on the Mill version
-    // We try both in loadFramework()
-  }
 
   public static void main(String[] args) {
     // Save original streams for protocol communication
@@ -114,6 +79,8 @@ public class ForkedTestRunner {
                 runSuite(
                     runSuite.className,
                     runSuite.framework,
+                    runSuite.runner,
+                    runSuite.frameworkClass,
                     runSuite.args,
                     capturedOut,
                     capturedErr);
@@ -196,6 +163,8 @@ public class ForkedTestRunner {
   private static void runSuite(
       String className,
       String frameworkName,
+      TestProtocol.RunnerKind runnerKind,
+      String frameworkClass,
       List<String> args,
       OutputStream capturedOut,
       OutputStream capturedErr) {
@@ -208,10 +177,9 @@ public class ForkedTestRunner {
             "info",
             "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
 
-    // Use JUnit Platform Launcher directly for JUnit 5 tests.
-    // This enables proper JUnit 5 lifecycle including LauncherSessionListener SPI,
-    // parallel execution, and extension support (Spring Boot, etc.).
-    if (isJUnitPlatformFramework(frameworkName)) {
+    // The server decided this, with the project's classpath in front of it. Nothing here re-derives
+    // it from frameworkName, which is a display label.
+    if (runnerKind == TestProtocol.RunnerKind.JUNIT_PLATFORM) {
       JUnitPlatformRunner junitRunner = new JUnitPlatformRunner(protocolOut);
       junitRunner.runSuite(className, capturedOut, capturedErr);
       return;
@@ -231,8 +199,8 @@ public class ForkedTestRunner {
       capturedErr.flush();
 
       // Load the framework
-      send(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkName));
-      Framework framework = loadFramework(frameworkName);
+      send(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkClass));
+      Framework framework = loadFramework(frameworkClass);
       send(TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
 
       // Get the runner
@@ -446,68 +414,20 @@ public class ForkedTestRunner {
     }
   }
 
-  private static Framework loadFramework(String name) throws Exception {
-    // Special handling for JUnit - try multiple implementations
-    // Check for various JUnit framework names
-    // Also handle Kotest which uses JUnit Platform under the hood
-    if (name.equalsIgnoreCase("JUnit")
-        || name.equalsIgnoreCase("JUnit Jupiter")
-        || name.equalsIgnoreCase("Kotest")
-        || name.toLowerCase().contains("junit")) {
-      for (String frameworkClass : JUNIT_FRAMEWORKS) {
-        try {
-          Class<?> clazz = Class.forName(frameworkClass);
-          Framework fw = (Framework) clazz.getDeclaredConstructor().newInstance();
-          send(
-              TestProtocol.encodeLog(
-                  "info", "Loaded JUnit framework: " + frameworkClass + " (for " + name + ")"));
-          return fw;
-        } catch (ClassNotFoundException e) {
-          // Try next one
-        }
-      }
-      throw new ClassNotFoundException(
-          "No JUnit framework found for "
-              + name
-              + ". Tried: "
-              + String.join(", ", JUNIT_FRAMEWORKS));
-    }
-
-    // Special handling for TestNG - try multiple bridge implementations
-    if (name.equalsIgnoreCase("TestNG")) {
-      for (String frameworkClass : TESTNG_FRAMEWORKS) {
-        try {
-          Class<?> clazz = Class.forName(frameworkClass);
-          Framework fw = (Framework) clazz.getDeclaredConstructor().newInstance();
-          send(TestProtocol.encodeLog("info", "Loaded TestNG framework: " + frameworkClass));
-          return fw;
-        } catch (ClassNotFoundException e) {
-          // Try next one
-        }
-      }
-      throw new ClassNotFoundException(
-          "No TestNG framework found. Tried: " + String.join(", ", TESTNG_FRAMEWORKS));
-    }
-
-    String className = FRAMEWORK_CLASSES.getOrDefault(name, name);
-    Class<?> clazz = Class.forName(className);
+  /**
+   * Instantiate an sbt.testing.Framework by class name.
+   *
+   * <p>One line, because the server sends the class rather than a label to guess from. This used to
+   * special-case JUnit, Kotest and TestNG, probe lists of candidate classes, and fall back to
+   * treating the display name as a class name — which is how "Spock" and "kotlin.test" arrived at
+   * Class.forName verbatim.
+   */
+  private static Framework loadFramework(String frameworkClass) throws Exception {
+    Class<?> clazz = Class.forName(frameworkClass);
     return (Framework) clazz.getDeclaredConstructor().newInstance();
   }
 
   /** Check if this framework should use JUnit Platform Launcher directly. */
-  private static boolean isJUnitPlatformFramework(String name) {
-    if (name == null) return false;
-    String lower = name.toLowerCase();
-    // JUnit Jupiter (JUnit 5) and JUnit Vintage (JUnit 4 on JUnit 5 platform)
-    // Framework name may be a display name ("JUnit Jupiter") or a class name
-    // ("com.github.sbt.junit.JupiterFramework", "net.aichler.jupiter.api.JupiterFramework")
-    return lower.contains("junit jupiter")
-        || lower.contains("junit vintage")
-        || lower.contains("jupiterframework")
-        || lower.equals("junit")
-        || lower.contains("kotest");
-  }
-
   private static Logger createLogger(final String suiteName) {
     return new Logger() {
       @Override

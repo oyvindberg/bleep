@@ -233,7 +233,7 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val command = TestProtocol.TestCommand.RunSuite(
         className = "com.example.MySuite",
-        framework = "munit",
+        selection = bleep.testing.FrameworkSelection.SbtTestInterface("MUnit", "munit.Framework"),
         args = List("--verbose", "--include=fast")
       )
       val encoded = TestProtocol.encodeCommand(command)
@@ -241,7 +241,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
 
       decoded shouldBe Right(command)
       encoded should include("RunSuite")
-      encoded should include("munit")
+      encoded should include("munit.Framework")
+      encoded should include("sbt-test-interface")
     }
   }
 
@@ -249,7 +250,7 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val command = TestProtocol.TestCommand.RunSuite(
         className = "MySuite",
-        framework = "scalatest",
+        selection = bleep.testing.FrameworkSelection.SbtTestInterface("ScalaTest", "org.scalatest.tools.Framework"),
         args = Nil
       )
       val encoded = TestProtocol.encodeCommand(command)

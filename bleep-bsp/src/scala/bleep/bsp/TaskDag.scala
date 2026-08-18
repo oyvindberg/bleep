@@ -266,7 +266,7 @@ object TaskDag {
   case class TestSuiteTask(
       project: CrossProjectName,
       suiteName: SuiteName,
-      framework: String
+      selection: bleep.testing.FrameworkSelection
   ) extends Task {
     val id: TaskId = TaskId.Test(project, suiteName)
     val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
@@ -853,7 +853,7 @@ object TaskDag {
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
-      discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
+      discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, bleep.testing.FrameworkSelection)])],
       test: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
@@ -1059,8 +1059,8 @@ object TaskDag {
                         _ <- result match {
                           case TaskResult.Success =>
                             // Add test tasks for discovered suites
-                            val testTasks = suites.map { case (suiteName, framework) =>
-                              TestSuiteTask(dt.project, SuiteName(suiteName), framework)
+                            val testTasks = suites.map { case (suiteName, selection) =>
+                              TestSuiteTask(dt.project, SuiteName(suiteName), selection)
                             }
                             dagRef.update(dag => testTasks.foldLeft(dag)(_.addTask(_))) >>
                               emit(DagEvent.SuitesDiscovered(dt.project, suites.map(s => SuiteName(s._1)), timestamp))

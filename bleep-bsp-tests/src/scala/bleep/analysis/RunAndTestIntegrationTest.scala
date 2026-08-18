@@ -551,6 +551,8 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
         val command = bleep.testing.runner.TestProtocol.encodeRunSuite(
           "example.ExampleJunit5Test",
           "JUnit Jupiter",
+          bleep.testing.runner.TestProtocol.RunnerKind.JUNIT_PLATFORM,
+          null,
           java.util.List.of()
         )
         writer.println(command)
@@ -636,11 +638,12 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
         val readyLine = reader.readLine()
         readyLine should include("\"type\":\"Ready\"")
 
-        // Send RunSuite command — framework name is "JUnit" (ForkedTestRunner
-        // loads JupiterFramework first, which via vintage engine can run JUnit 4 tests)
+        // JUnit 4 runs on the platform through the vintage engine, so the runner is JUNIT_PLATFORM like any other junit suite.
         val command = bleep.testing.runner.TestProtocol.encodeRunSuite(
           "example.ExampleTest",
           "JUnit",
+          bleep.testing.runner.TestProtocol.RunnerKind.JUNIT_PLATFORM,
+          null,
           java.util.List.of()
         )
         writer.println(command)

@@ -18,10 +18,13 @@ object TestProtocol {
 
   object TestCommand {
 
-    /** Run a test suite */
+    /** Run a test suite.
+      *
+      * `selection` carries the execution decision, not just a name — see [[FrameworkSelection]] for why the fork is told rather than asked to work it out.
+      */
     case class RunSuite(
         className: String,
-        framework: String,
+        selection: FrameworkSelection,
         args: List[String]
     ) extends TestCommand
 
@@ -31,8 +34,48 @@ object TestProtocol {
     /** Get a thread dump from the forked JVM */
     case object GetThreadDump extends TestCommand
 
-    implicit val runSuiteEncoder: Encoder[RunSuite] = deriveEncoder
-    implicit val runSuiteDecoder: Decoder[RunSuite] = deriveDecoder
+    /** The wire strings, read from the Java enum the fork parses with, so there is exactly one definition of them. */
+    private object RunnerWire {
+      val JUnitPlatform: String = runner.TestProtocol.RunnerKind.JUNIT_PLATFORM.wire()
+      val SbtTestInterface: String = runner.TestProtocol.RunnerKind.SBT_TEST_INTERFACE.wire()
+    }
+
+    /** Hand-written rather than derived, because the wire form is flat while the model is a sum: `runner` names the mechanism and `frameworkClass` is present
+      * exactly when that mechanism needs one. The Java parser in the fork enforces the same pairing, and both sides reject a mismatch rather than defaulting.
+      */
+    implicit val runSuiteEncoder: Encoder[RunSuite] = Encoder.instance { rs =>
+      val (runner, frameworkClass) = rs.selection match {
+        case FrameworkSelection.JUnitPlatform(_)         => (RunnerWire.JUnitPlatform, None)
+        case FrameworkSelection.SbtTestInterface(_, cls) => (RunnerWire.SbtTestInterface, Some(cls))
+        case FrameworkSelection.PlatformRunner(name)     =>
+          // Unreachable by construction: the test handler routes JS/Native suites to their own runners before any fork exists. If it ever is reached, the
+          // fork cannot run this suite and a placeholder command would only move the failure somewhere less obvious.
+          sys.error(s"$name is run by its platform's own runner, not by a forked JVM — it must never be sent over TestProtocol (suite ${rs.className})")
+      }
+      Json.obj(
+        "className" -> rs.className.asJson,
+        "framework" -> rs.selection.displayName.asJson,
+        "runner" -> runner.asJson,
+        "frameworkClass" -> frameworkClass.asJson,
+        "args" -> rs.args.asJson
+      )
+    }
+
+    implicit val runSuiteDecoder: Decoder[RunSuite] = Decoder.instance { cursor =>
+      for {
+        className <- cursor.downField("className").as[String]
+        displayName <- cursor.downField("framework").as[String]
+        runner <- cursor.downField("runner").as[String]
+        frameworkClass <- cursor.downField("frameworkClass").as[Option[String]]
+        args <- cursor.downField("args").as[List[String]]
+        selection <- (runner, frameworkClass) match {
+          case (RunnerWire.JUnitPlatform, _)            => Right(FrameworkSelection.JUnitPlatform(displayName))
+          case (RunnerWire.SbtTestInterface, Some(cls)) => Right(FrameworkSelection.SbtTestInterface(displayName, cls))
+          case (RunnerWire.SbtTestInterface, None)      => Left(DecodingFailure(s"${RunnerWire.SbtTestInterface} requires frameworkClass", cursor.history))
+          case (other, _)                               => Left(DecodingFailure(s"Unknown runner: $other", cursor.history))
+        }
+      } yield RunSuite(className, selection, args)
+    }
 
     implicit val encoder: Encoder[TestCommand] = Encoder.instance {
       case rs: RunSuite  => Json.obj("type" -> "RunSuite".asJson, "data" -> rs.asJson)

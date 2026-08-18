@@ -211,12 +211,51 @@ public final class TestProtocol {
     }
   }
 
+  /**
+   * Which mechanism runs a suite.
+   *
+   * <p>Chosen by the server, which has the project's classpath, and carried on the wire. The fork
+   * used to infer this from the framework's display name with a substring match, which is why
+   * "Spock", "kotlin.test" and "ScalaCheck" reached {@code Class.forName} as literal names and
+   * killed the fork. A display name is a label a framework picks for itself; it is not an
+   * identifier.
+   *
+   * <p>The wire strings are defined here and read from here by the Scala encoder in bleep-core, so
+   * the two sides cannot drift.
+   */
+  public enum RunnerKind {
+    /** org.junit.platform.launcher.Launcher, via JUnitPlatformRunner. */
+    JUNIT_PLATFORM("junit-platform"),
+    /** sbt.testing.Framework, instantiated from the accompanying frameworkClass. */
+    SBT_TEST_INTERFACE("sbt-test-interface");
+
+    private final String wire;
+
+    RunnerKind(String wire) {
+      this.wire = wire;
+    }
+
+    public String wire() {
+      return wire;
+    }
+
+    /**
+     * The kind for a wire string, or null when unrecognized — callers reject rather than default.
+     */
+    public static RunnerKind fromWire(String wire) {
+      for (RunnerKind kind : values()) {
+        if (kind.wire.equals(wire)) return kind;
+      }
+      return null;
+    }
+  }
+
   // === Command parsing (forked JVM receives these) ===
 
   /**
    * Parse a command from a JSON line. Format:
-   * {"type":"RunSuite","data":{"className":"...","framework":"...","args":[...]}} or
-   * {"type":"Shutdown"}
+   * {"type":"RunSuite","data":{"className":"...","framework":"...","runner":"...","frameworkClass":"...","args":[...]}}
+   * or {"type":"Shutdown"}
    */
   public static ParsedCommand parseCommand(String line) {
     if (line == null || line.isEmpty()) {
@@ -244,14 +283,31 @@ public final class TestProtocol {
 
         String className = extractStringField(dataSection, "className");
         String framework = extractStringField(dataSection, "framework");
+        String runner = extractStringField(dataSection, "runner");
+        String frameworkClass = extractStringField(dataSection, "frameworkClass");
         List<String> args = extractStringArray(dataSection, "args");
 
-        if (className == null || framework == null) {
-          return new ParsedCommand.Invalid("Missing className or framework");
+        if (className == null || framework == null || runner == null) {
+          return new ParsedCommand.Invalid("Missing className, framework or runner");
+        }
+
+        RunnerKind kind = RunnerKind.fromWire(runner);
+        if (kind == null) {
+          return new ParsedCommand.Invalid("Unknown runner: " + runner);
+        }
+        // The pairing is the whole contract: this kind is useless without the class to instantiate,
+        // and guessing one is what this change removes.
+        if (kind == RunnerKind.SBT_TEST_INTERFACE && frameworkClass == null) {
+          return new ParsedCommand.Invalid(
+              "runner " + runner + " requires frameworkClass, none given for " + className);
         }
 
         return new ParsedCommand.RunSuite(
-            className, framework, args != null ? args : new ArrayList<String>());
+            className,
+            framework,
+            kind,
+            frameworkClass,
+            args != null ? args : new ArrayList<String>());
       } else {
         return new ParsedCommand.Invalid("Unknown command type: " + type);
       }
@@ -432,11 +488,20 @@ public final class TestProtocol {
 
   // === Command encoding (parent sends these) ===
 
-  public static String encodeRunSuite(String className, String framework, List<String> args) {
+  public static String encodeRunSuite(
+      String className,
+      String framework,
+      RunnerKind runner,
+      String frameworkClass,
+      List<String> args) {
     StringBuilder sb = new StringBuilder();
     sb.append("{\"type\":\"RunSuite\",\"data\":{");
     sb.append("\"className\":").append(jsonString(className));
     sb.append(",\"framework\":").append(jsonString(framework));
+    sb.append(",\"runner\":").append(jsonString(runner.wire()));
+    if (frameworkClass != null) {
+      sb.append(",\"frameworkClass\":").append(jsonString(frameworkClass));
+    }
     sb.append(",\"args\":[");
     for (int i = 0; i < args.size(); i++) {
       if (i > 0) sb.append(",");
@@ -455,12 +520,30 @@ public final class TestProtocol {
   public abstract static class ParsedCommand {
     public static final class RunSuite extends ParsedCommand {
       public final String className;
+
+      /** Display name, for logs and reporting. Never dispatched on. */
       public final String framework;
+
+      public final RunnerKind runner;
+
+      /**
+       * The sbt.testing.Framework implementation to instantiate. Non-null exactly when runner is
+       * SBT_TEST_INTERFACE.
+       */
+      public final String frameworkClass;
+
       public final List<String> args;
 
-      public RunSuite(String className, String framework, List<String> args) {
+      public RunSuite(
+          String className,
+          String framework,
+          RunnerKind runner,
+          String frameworkClass,
+          List<String> args) {
         this.className = className;
         this.framework = framework;
+        this.runner = runner;
+        this.frameworkClass = frameworkClass;
         this.args = args;
       }
     }
