@@ -2744,10 +2744,13 @@ class MultiWorkspaceBspServer(
               recorder
             )
 
-            // Determine final status
+            // Determine final status. `failed` alone is not the whole story: a task that threw (errored), hung past its
+            // timeout (timedOut) or was killed also means the run did not complete cleanly — only deliberate
+            // cancellation gets its own code. Skipped tasks need no clause: whatever dependency failure caused the
+            // skip is itself in one of these sets.
             val statusCode =
               if (cancellation.isCancelled) StatusCode.Cancelled
-              else if (result.failed.nonEmpty) StatusCode.Error
+              else if (result.failed.nonEmpty || result.errored.nonEmpty || result.timedOut.nonEmpty || result.killed.nonEmpty) StatusCode.Error
               else StatusCode.Ok
 
             // Compute suite-level counts from DAG result

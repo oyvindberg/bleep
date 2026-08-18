@@ -898,7 +898,7 @@ class ReactiveBspClient(
                 if (progressCount <= 10 || progressCount % 500 == 0)
                   diagLog(s"[progress#$progressCount] $eventType")
             }
-            convertToBuildEvent(event).foreach(emit)
+            BuildEvent.fromProtocol(event).foreach(emit)
           case Left(err) =>
             diagLog(s"[progress#$progressCount] decode FAILED: ${err.getMessage} json=${jsonStr.take(200)}")
         }
@@ -954,119 +954,6 @@ class ReactiveBspClient(
       case _: Exception => None
     }
 
-  /** Convert BleepBspProtocol event to BuildEvent */
-  private def convertToBuildEvent(event: BleepBspProtocol.Event): Option[BuildEvent] = {
-    import BleepBspProtocol.{Event => PE}
-
-    event match {
-      case PE.CompileStarted(project, timestamp) =>
-        Some(BuildEvent.CompileStarted(project, timestamp))
-
-      case PE.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, timestamp) =>
-        Some(BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, timestamp))
-
-      case PE.CompileProgress(project, percentage, timestamp) =>
-        Some(BuildEvent.CompileProgress(project, percentage, timestamp))
-
-      case PE.CompilePhaseChanged(project, phase, trackedApis, timestamp) =>
-        Some(BuildEvent.CompilePhaseChanged(project, phase, trackedApis, timestamp))
-
-      case PE.CompileFinished(project, status, durationMs, diagnostics, skippedBecause, timestamp) =>
-        Some(BuildEvent.CompileFinished(project, status, durationMs, timestamp, diagnostics, skippedBecause))
-
-      case PE.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp) =>
-        Some(BuildEvent.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp))
-
-      case PE.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp) =>
-        Some(BuildEvent.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp))
-
-      case PE.SuitesDiscovered(project, suites, totalDiscovered, timestamp) =>
-        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, timestamp))
-
-      case PE.SuiteStarted(project, suite, timestamp) =>
-        Some(BuildEvent.SuiteStarted(project, suite, timestamp))
-
-      case PE.TestStarted(project, suite, test, timestamp) =>
-        Some(BuildEvent.TestStarted(project, suite, test, timestamp))
-
-      case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
-        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location))
-
-      case PE.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp))
-
-      case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
-        // protocol's `threadDump: Option[String]` carries the full HotSpot dump text from jstack;
-        // park it in singleThreadStack so BuildState can hang it off failure.throwable for the summary's Timeouts section.
-        Some(BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump.map(d => bleep.testing.ThreadDumpInfo(0, Some(d), None)), timestamp))
-
-      case PE.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp))
-
-      case PE.SuiteCancelled(project, suite, reason, timestamp) =>
-        Some(BuildEvent.SuiteCancelled(project, suite, reason, timestamp))
-
-      case PE.ProjectSkipped(project, reason, timestamp) =>
-        Some(BuildEvent.ProjectSkipped(project, reason, timestamp))
-
-      case PE.Output(project, suite, line, channel, timestamp) =>
-        Some(BuildEvent.Output(project, suite, line, channel, timestamp))
-
-      case PE.Error(message, details, timestamp) =>
-        Some(BuildEvent.Error(message, details, timestamp))
-
-      case PE.LinkStarted(project, platform, timestamp) =>
-        Some(BuildEvent.LinkStarted(project, platform, timestamp))
-
-      case PE.LinkFinished(project, success, durationMs, _, timestamp, platform, error) =>
-        if (success)
-          Some(BuildEvent.LinkSucceeded(project, platform, durationMs, timestamp))
-        else
-          Some(BuildEvent.LinkFailed(project, platform, durationMs, error.getOrElse("Link failed"), timestamp))
-
-      case PE.SourcegenStarted(scriptMain, forProjects, timestamp) =>
-        Some(BuildEvent.SourcegenStarted(scriptMain, forProjects, timestamp))
-
-      case PE.SourcegenFinished(scriptMain, success, durationMs, error, timestamp) =>
-        Some(BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, timestamp))
-
-      case PE.ResolveAnnotationProcessorsStarted(_, _) =>
-        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
-
-      case PE.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
-        Some(BuildEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, timestamp))
-
-      case PE.RunSymbolProcessorsStarted(_, _) =>
-        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
-
-      case PE.RunSymbolProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
-        Some(BuildEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, timestamp))
-
-      case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
-        Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))
-
-      case PE.WorkspaceReady(timestamp) =>
-        Some(BuildEvent.WorkspaceReady(timestamp))
-
-      case PE.LockContention(project, waitingMs, timestamp) =>
-        Some(BuildEvent.LockContention(project, waitingMs, timestamp))
-
-      case PE.LockAcquired(project, waitedMs, timestamp) =>
-        Some(BuildEvent.LockAcquired(project, waitedMs, timestamp))
-
-      // Events not relevant for BuildDisplay
-      case PE.TestRunFinished(_, _, _, _, _, _) => None
-      case PE.DiscoveryStarted(_, _)            => None
-      case PE.BuildInitialized(_, _, _)         => None
-      case PE.ProjectStateChanged(_, _, _, _)   => None
-      case PE.BuildFinished(_, _, _)            => None
-      case PE.LinkProgress(_, _, _)             => None
-      case PE.RunStarted(_, _, _)               => None
-      case PE.RunOutput(_, _, _, _)             => None
-      case PE.RunFinished(_, _, _, _)           => None
-      case PE.LogMessage(_, _, _, _)            => None
-    }
-  }
 }
 
 object ReactiveBsp {

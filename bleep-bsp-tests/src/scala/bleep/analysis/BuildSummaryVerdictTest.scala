@@ -1,0 +1,152 @@
+package bleep.analysis
+
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, LinkPlatformName, ProcessExit, SuiteOutcome, TestStatus}
+import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
+import bleep.testing.{BuildEvent, BuildState, BuildStateReducer}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
+
+/** Pins the verdict on a whole run: protocol events through [[BuildEvent.fromProtocol]], folded by [[BuildStateReducer]], judged by
+  * [[bleep.testing.BuildSummary.toEither]]. This chain is what `bleep test`'s exit code, the MCP tools and transcript rendering all share, so every way a run
+  * can go wrong before or beside the tests — a dependency that fails to compile, a link/sourcegen/processor failure, a suite that errors, hangs or never runs —
+  * must come out Left here. The founding incident: a removed constructor broke a dependency's compile, every downstream task was skipped, and the run reported
+  * success with "0 tests passed".
+  */
+class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
+
+  import BleepBspProtocol.{Event => E}
+
+  private def proj(name: String): CrossProjectName = CrossProjectName(ProjectName(name), crossId = None)
+
+  private def verdict(events: List[E]): Either[bleep.BleepException, Unit] = {
+    val state = events.flatMap(BuildEvent.fromProtocol).foldLeft(BuildState.empty)(BuildStateReducer.reduce)
+    state.toSummary(durationMs = 0L, wasCancelled = false).toEither
+  }
+
+  private def leftMessage(events: List[E]): String =
+    verdict(events).left.map(_.getMessage) match {
+      case Left(msg) => msg
+      case Right(()) => fail("expected the run to be judged a failure, but it was Right")
+    }
+
+  private def compileFinished(p: String, status: CompileStatus, skippedBecause: Option[String]): E =
+    E.CompileFinished(
+      proj(p),
+      status,
+      durationMs = 1L,
+      diagnostics =
+        if (status == CompileStatus.Failed)
+          List(BleepBspProtocol.Diagnostic(DiagnosticSeverity.Error, "boom", rendered = None, path = None, line = None, column = None))
+        else Nil,
+      skippedBecause = skippedBecause.map(proj),
+      timestamp = 1L
+    )
+
+  private def passedTest(p: String): List[E] = List(
+    E.TestFinished(
+      proj(p),
+      SuiteName("OkSuite"),
+      TestName("ok"),
+      TestStatus.Passed,
+      durationMs = 1L,
+      message = None,
+      throwable = None,
+      timestamp = 1L,
+      location = None
+    ),
+    E.SuiteFinished(proj(p), SuiteName("OkSuite"), SuiteOutcome.Executed(1, 0, 0, 0), durationMs = 1L, timestamp = 2L)
+  )
+
+  test("a dependency failing to compile fails the run, even with zero suites and zero test events") {
+    leftMessage(
+      List(
+        compileFinished("core", CompileStatus.Failed, skippedBecause = None),
+        compileFinished("tests", CompileStatus.Skipped, skippedBecause = Some("core"))
+      )
+    ) should include("failed to compile")
+  }
+
+  test("a compile task that errored (threw, rather than reporting diagnostics) fails the run") {
+    leftMessage(List(compileFinished("core", CompileStatus.Error, skippedBecause = None))) should include("failed to compile")
+  }
+
+  test("a link failure fails the run even when every executed test passed") {
+    leftMessage(
+      passedTest("app") :+
+        E.LinkFinished(
+          proj("app"),
+          success = false,
+          durationMs = 1L,
+          outputPath = None,
+          timestamp = 3L,
+          platform = LinkPlatformName.ScalaJs,
+          error = Some("nope")
+        )
+    ) should include("failed to link")
+  }
+
+  test("a sourcegen failure fails the run") {
+    leftMessage(
+      List(E.SourcegenFinished(scriptMain = "scripts.Gen", success = false, durationMs = 1L, error = Some("script exploded"), timestamp = 1L))
+    ) should include("Source generation failed")
+  }
+
+  test("an annotation-processor resolution failure fails the run") {
+    leftMessage(
+      List(
+        E.ResolveAnnotationProcessorsFinished(
+          proj("app"),
+          success = false,
+          durationMs = 1L,
+          error = Some("no artifact"),
+          discoveredJarCount = 0,
+          timestamp = 1L
+        )
+      )
+    ) should include("Annotation processor")
+  }
+
+  test("a symbol-processor (KSP) resolution failure fails the run") {
+    leftMessage(
+      List(E.RunSymbolProcessorsFinished(proj("app"), success = false, durationMs = 1L, error = Some("ksp broke"), discoveredJarCount = 0, timestamp = 1L))
+    ) should include("KSP")
+  }
+
+  test("a crashed suite process fails the run") {
+    verdict(
+      passedTest("app") :+
+        E.SuiteError(proj("app"), SuiteName("OomSuite"), error = "boom", processExit = ProcessExit.Signal(9), durationMs = 1L, timestamp = 3L)
+    ).isLeft shouldBe true
+  }
+
+  test("a timed-out suite fails the run") {
+    verdict(List(E.SuiteTimedOut(proj("app"), SuiteName("HungSuite"), timeoutMs = 60000L, threadDump = None, timestamp = 1L))).isLeft shouldBe true
+  }
+
+  test("a suite cancelled because its dependency failed fails the run") {
+    leftMessage(
+      passedTest("app") :+
+        E.SuiteCancelled(proj("app"), SuiteName("NeverRan"), reason = Some("dependency core failed"), timestamp = 3L)
+    ) should include("cancelled")
+  }
+
+  test("a build-level Error event fails the run") {
+    verdict(List(E.Error(message = "discovery blew up", details = None, timestamp = 1L))).isLeft shouldBe true
+  }
+
+  test("a cancelled compile fails the run") {
+    leftMessage(List(compileFinished("app", CompileStatus.Cancelled, skippedBecause = None))) should include("cancelled")
+  }
+
+  test("suites that completed without executing a single test are the silent-zero signature, not a pass") {
+    verdict(List(E.SuiteFinished(proj("app"), SuiteName("EmptySuite"), SuiteOutcome.Empty, durationMs = 1L, timestamp = 1L))).isLeft shouldBe true
+  }
+
+  test("a clean run is Right") {
+    verdict(compileFinished("app", CompileStatus.Success, skippedBecause = None) +: passedTest("app")) shouldBe Right(())
+  }
+
+  test("an empty event stream is Right — no suites were even attempted") {
+    verdict(Nil) shouldBe Right(())
+  }
+}
