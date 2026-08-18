@@ -19,11 +19,14 @@ case class DiscoveredTestSuite(
 
 /** Discovers test suites by scanning compiled class files.
   *
-  * Supports multiple discovery mechanisms:
+  * Three mechanisms, tried in order, each seeing only what the previous one did not claim:
   *   1. sbt-testing Framework fingerprints (ScalaTest, munit, utest, ZIO Test, specs2, etc.)
   *   2. Direct annotation scanning (JUnit 4/5, TestNG, kotlin.test)
   *   3. Base class detection (Kotest, Spock)
-  *   4. Naming convention fallback (Maven/Gradle patterns)
+  *
+  * There used to be a fourth, matching class names against Maven/Gradle conventions (`*Test`, `*Spec`, ...). It was unreachable — its entry point had no
+  * callers, both live ones call [[discover]] directly — and it could not have worked: it reported the framework as the literal string "unknown", which the fork
+  * would have handed to `Class.forName`. Guessing from a filename cannot say which runner to use, so it is gone rather than repaired.
   */
 object ClasspathTestDiscovery {
 
@@ -135,31 +138,15 @@ object ClasspathTestDiscovery {
   )
 
   // ============================================================================
-  // Naming patterns for fallback discovery (Maven/Gradle conventions)
-  // ============================================================================
-  private val testNamePatterns: List[String] = List(
-    "^Test[A-Z].*", // Test* (Maven default)
-    ".*Test$", // *Test (Maven default)
-    ".*Tests$", // *Tests (Maven default)
-    ".*TestCase$", // *TestCase (Maven default)
-    ".*Spec$", // *Spec (ScalaTest, Spock convention)
-    ".*Specification$", // *Specification (Spock convention)
-    ".*Suite$", // *Suite (ScalaTest convention)
-    ".*IT$", // Integration tests
-    ".*IntegrationTest$"
-  )
-
-  // ============================================================================
   // Main discovery entry point
   // ============================================================================
 
   /** Discover test suites in a project's compiled classes.
     *
-    * Uses multiple strategies in order:
+    * Three strategies, each seeing only the classes the previous one did not claim:
     *   1. sbt-testing Framework fingerprints
     *   2. Direct annotation scanning
     *   3. Base class detection
-    *   4. Naming convention fallback
     *
     * @param project
     *   the project name
@@ -219,22 +206,6 @@ object ClasspathTestDiscovery {
 
       deduped
     } finally classLoader.close()
-  }
-
-  /** Discover tests using optional naming convention fallback. Only use this when no tests found via other methods.
-    */
-  def discoverWithFallback(
-      project: CrossProjectName,
-      classesDir: Path,
-      classpath: List[Path]
-  ): List[DiscoveredTestSuite] = {
-    val discovered = discover(project, classesDir, classpath)
-    if (discovered.nonEmpty) {
-      discovered
-    } else {
-      // Fallback: try naming conventions
-      discoverByNamingConvention(project, classesDir)
-    }
   }
 
   // ============================================================================
@@ -521,28 +492,6 @@ object ClasspathTestDiscovery {
   // ============================================================================
   // Strategy 4: Naming convention fallback (Maven/Gradle patterns)
   // ============================================================================
-
-  /** Discover tests by naming convention (use as last resort) */
-  private def discoverByNamingConvention(
-      project: CrossProjectName,
-      classesDir: Path
-  ): List[DiscoveredTestSuite] = {
-    if (!Files.isDirectory(classesDir)) return Nil
-
-    val classFiles = collectClassFiles(classesDir)
-    val compiledPatterns = testNamePatterns.map(_.r)
-
-    classFiles.flatMap { classFile =>
-      val className = classFileToClassName(classesDir, classFile)
-      val simpleName = className.split('.').lastOption.getOrElse(className)
-
-      if (compiledPatterns.exists(_.findFirstIn(simpleName).isDefined)) {
-        Some(DiscoveredTestSuite(project, className, "unknown"))
-      } else {
-        None
-      }
-    }
-  }
 
   // ============================================================================
   // Utility methods
