@@ -3705,6 +3705,22 @@ class MultiWorkspaceBspServer(
     case kspt: TaskDag.RunSymbolProcessorsTask        => (TraceCategory.RunSymbolProcessors, kspt.project.value)
   }
 
+  /** The floor under task reporting: a task that terminated abnormally — its body threw (Error), hung (TimedOut) or was killed — never got to emit its own
+    * failure event, so the stream would carry no trace of why the run went wrong, and clients replaying the events would judge the run a success. Every such
+    * result becomes a protocol Error event naming the task and cause.
+    *
+    * Deliberately NOT emitted for Success, Failure, Skipped or Cancelled: a Failure means the task body ran to completion and its own event (CompileFinished /
+    * LinkFinished / SourcegenFinished / ...) already carries the failure; a Skipped task's root cause is the failed dependency, which reported itself; and
+    * Cancelled is the user's own doing, conveyed via the response's StatusCode.
+    */
+  private def abnormalTaskEvent(description: String, result: TaskDag.TaskResult, timestamp: Long): Option[BleepBspProtocol.Event] =
+    result match {
+      case TaskDag.TaskResult.Error(error, _) => Some(BleepBspProtocol.Event.Error(s"$description errored: $error", None, timestamp))
+      case TaskDag.TaskResult.Killed(reason)  => Some(BleepBspProtocol.Event.Error(s"$description was killed ($reason)", None, timestamp))
+      case _: TaskDag.TaskResult.TimedOut     => Some(BleepBspProtocol.Event.Error(s"$description timed out", None, timestamp))
+      case TaskDag.TaskResult.Success | _: TaskDag.TaskResult.Failure | _: TaskDag.TaskResult.Skipped | TaskDag.TaskResult.Cancelled => None
+    }
+
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
   private def compileTaskFinishedEvent(
       project: CrossProjectName,
@@ -3914,15 +3930,19 @@ class MultiWorkspaceBspServer(
               case ct: TaskDag.CompileTask =>
                 Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
 
-              case _: TaskDag.LinkTask =>
-                None // Link tasks are not exposed via test protocol
+              case lt: TaskDag.LinkTask =>
+                // Success and Failure are conveyed by the LinkFinished event the task body emits; the
+                // abnormal results below never reached that emit and would otherwise vanish.
+                abnormalTaskEvent(s"Link ${lt.project.value}", result, timestamp)
 
               case dt: TaskDag.DiscoverTask =>
                 result match {
                   case TaskDag.TaskResult.Failure(msg, _) =>
                     Some(BleepBspProtocol.Event.Error(msg, None, timestamp))
-                  case _ =>
-                    None // Discovery success is handled by SuitesDiscovered event
+                  case TaskDag.TaskResult.Success | _: TaskDag.TaskResult.Skipped | TaskDag.TaskResult.Cancelled =>
+                    None // Discovery success is handled by SuitesDiscovered; Skipped's root cause reported itself
+                  case other =>
+                    abnormalTaskEvent(s"Test discovery for ${dt.project.value}", other, timestamp)
                 }
 
               case tt: TaskDag.TestSuiteTask =>
@@ -4058,7 +4078,15 @@ class MultiWorkspaceBspServer(
             case ct: TaskDag.CompileTask =>
               logger.withContext("project", ct.project.value).withContext("durationMs", durationMs).info("Compile finished")
               Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
-            case _ => None
+            case lt: TaskDag.LinkTask =>
+              // Success and Failure are conveyed by the LinkFinished event the task body emits; the
+              // abnormal results never reached that emit and would otherwise vanish.
+              abnormalTaskEvent(s"Link ${lt.project.value}", result, timestamp)
+            case _ =>
+              // Sourcegen/AP/KSP tasks emit their own Finished event for every result, abnormal included
+              // (recovery wraps only their handler — see TaskDag.executeTask); Discover/TestSuite tasks
+              // do not run in compile mode.
+              None
           }
           traceRecorder.recordEnd(cat, name) >>
             IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e, recorder)))
