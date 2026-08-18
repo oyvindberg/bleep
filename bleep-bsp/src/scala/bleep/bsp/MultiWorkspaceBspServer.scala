@@ -3705,20 +3705,28 @@ class MultiWorkspaceBspServer(
     case kspt: TaskDag.RunSymbolProcessorsTask        => (TraceCategory.RunSymbolProcessors, kspt.project.value)
   }
 
-  /** The floor under task reporting: a task that terminated abnormally — its body threw (Error), hung (TimedOut) or was killed — never got to emit its own
-    * failure event, so the stream would carry no trace of why the run went wrong, and clients replaying the events would judge the run a success. Every such
-    * result becomes a protocol Error event naming the task and cause.
+  /** The floor under task reporting: a task that terminated abnormally — its body threw (Error), hung (TimedOut) or was killed for exceeding a time limit —
+    * never got to emit its own failure event, so the stream would carry no trace of why the run went wrong, and clients replaying the events would judge the
+    * run a success. Every such result becomes a protocol Error event naming the task and cause.
     *
-    * Deliberately NOT emitted for Success, Failure, Skipped or Cancelled: a Failure means the task body ran to completion and its own event (CompileFinished /
-    * LinkFinished / SourcegenFinished / ...) already carries the failure; a Skipped task's root cause is the failed dependency, which reported itself; and
-    * Cancelled is the user's own doing, conveyed via the response's StatusCode.
+    * Deliberately NOT emitted for Success, Failure or Skipped: a Failure means the task body ran to completion and its own event (CompileFinished /
+    * LinkFinished / SourcegenFinished / ...) already carries the failure, and a Skipped task's root cause is the failed dependency, which reported itself.
+    *
+    * Kills are classified by their reason. `TaskResult.Cancelled` is literally `Killed(UserRequest)`, and ServerShutdown / DeadClient / ParentDying likewise
+    * mean the run was torn down around the task, not that the build is defective — those are conveyed by the response's Cancelled StatusCode and by the
+    * Cancelled compiles/suites the teardown leaves behind, and an Error event here would dress a Ctrl-C up as a build failure. Only Killed(Timeout) is the
+    * task's own fault.
     */
   private def abnormalTaskEvent(description: String, result: TaskDag.TaskResult, timestamp: Long): Option[BleepBspProtocol.Event] =
     result match {
       case TaskDag.TaskResult.Error(error, _) => Some(BleepBspProtocol.Event.Error(s"$description errored: $error", None, timestamp))
-      case TaskDag.TaskResult.Killed(reason)  => Some(BleepBspProtocol.Event.Error(s"$description was killed ($reason)", None, timestamp))
       case _: TaskDag.TaskResult.TimedOut     => Some(BleepBspProtocol.Event.Error(s"$description timed out", None, timestamp))
-      case TaskDag.TaskResult.Success | _: TaskDag.TaskResult.Failure | _: TaskDag.TaskResult.Skipped | TaskDag.TaskResult.Cancelled => None
+      case TaskDag.TaskResult.Killed(reason) =>
+        reason match {
+          case KillReason.Timeout => Some(BleepBspProtocol.Event.Error(s"$description was killed after exceeding its time limit", None, timestamp))
+          case KillReason.UserRequest | KillReason.ParentDying | KillReason.ServerShutdown | KillReason.DeadClient => None
+        }
+      case TaskDag.TaskResult.Success | _: TaskDag.TaskResult.Failure | _: TaskDag.TaskResult.Skipped => None
     }
 
   /** Convert a compile TaskResult to a CompileFinished protocol event. */
@@ -3966,10 +3974,15 @@ class MultiWorkspaceBspServer(
                     Some(
                       BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some(s"dependency ${failedDep.project.value} failed"), timestamp)
                     )
-                  case TaskDag.TaskResult.Killed(_) =>
-                    Some(BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some("killed"), timestamp))
-                  case TaskDag.TaskResult.Cancelled =>
-                    Some(BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some("cancelled"), timestamp))
+                  case TaskDag.TaskResult.Killed(reason) =>
+                    // TaskResult.Cancelled is Killed(UserRequest), so the reason — not a separate case —
+                    // distinguishes a user's cancellation from other kills. (A dedicated Cancelled arm
+                    // after this one would be unreachable.)
+                    val why = reason match {
+                      case KillReason.UserRequest => "cancelled"
+                      case other                  => s"killed ($other)"
+                    }
+                    Some(BleepBspProtocol.Event.SuiteCancelled(tt.project, tt.suiteName, Some(why), timestamp))
                   case TaskDag.TaskResult.TimedOut(threadDump) =>
                     Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project, tt.suiteName, durationMs, threadDump, timestamp))
                 }
