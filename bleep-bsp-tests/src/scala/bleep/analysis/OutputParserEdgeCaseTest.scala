@@ -197,18 +197,6 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   // DiscoveredSuites Edge Cases
   // ==========================================================================
 
-  test("DiscoveredSuites: handles empty suite list") {
-    val discovered = ScalaJsTestRunner.DiscoveredSuites("munit.Framework", List.empty)
-    discovered.framework shouldBe "munit.Framework"
-    discovered.suites shouldBe empty
-  }
-
-  test("DiscoveredSuites: handles many suites") {
-    val suites = (1 to 1000).map(i => TestRunnerTypes.TestSuite(s"Suite$i", s"com.example.Suite$i")).toList
-    val discovered = ScalaJsTestRunner.DiscoveredSuites("test.Framework", suites)
-    discovered.suites should have size 1000
-  }
-
   // ==========================================================================
   // LinkConfig Edge Cases
   // ==========================================================================

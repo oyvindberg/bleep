@@ -3,7 +3,7 @@ package bleep.analysis
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
-import java.io.{BufferedReader, InputStreamReader, PrintWriter}
+import java.io.BufferedReader
 import scala.collection.mutable.ListBuffer
 
 /** Integration tests for running and testing compiled code.
@@ -530,17 +530,9 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
       val javaHome = System.getProperty("java.home")
       val javaBin = Path.of(javaHome, "bin", "java").toString
 
-      val process = new ProcessBuilder(
-        javaBin,
-        "-cp",
-        classpath,
-        "bleep.testing.runner.ForkedTestRunner"
-      )
-        .start()
-
-      val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
-      val writer = new PrintWriter(process.getOutputStream, true)
-      val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+      val launched = ForkedRunnerLaunch.launch(javaBin, classpath)
+      val reader = launched.reader
+      val writer = launched.writer
 
       try {
         // Wait for Ready
@@ -580,12 +572,7 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
         suiteDoneLines.head should include("\"failed\":0")
 
         info("JUnit 5 tests ran successfully via ForkedTestRunner")
-      } finally {
-        process.destroyForcibly()
-        reader.close()
-        writer.close()
-        stderr.close()
-      }
+      } finally launched.close()
     } finally deleteRecursively(outputDir)
   }
 
@@ -621,17 +608,9 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
       val javaHome = System.getProperty("java.home")
       val javaBin = Path.of(javaHome, "bin", "java").toString
 
-      val process = new ProcessBuilder(
-        javaBin,
-        "-cp",
-        classpath,
-        "bleep.testing.runner.ForkedTestRunner"
-      )
-        .start()
-
-      val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
-      val writer = new PrintWriter(process.getOutputStream, true)
-      val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+      val launched = ForkedRunnerLaunch.launch(javaBin, classpath)
+      val reader = launched.reader
+      val writer = launched.writer
 
       try {
         // Wait for Ready
@@ -671,12 +650,7 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
         suiteDoneLines.head should include("\"failed\":0")
 
         info("JUnit 4 tests ran successfully via ForkedTestRunner (vintage engine)")
-      } finally {
-        process.destroyForcibly()
-        reader.close()
-        writer.close()
-        stderr.close()
-      }
+      } finally launched.close()
     } finally deleteRecursively(outputDir)
   }
 }
