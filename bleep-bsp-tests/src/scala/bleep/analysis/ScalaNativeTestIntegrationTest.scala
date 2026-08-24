@@ -114,10 +114,10 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestFramework: all frameworks") {
-    ScalaNativeTestRunner.TestFramework.MUnit.name shouldBe "munit"
-    ScalaNativeTestRunner.TestFramework.ScalaTest.name shouldBe "scalatest"
-    ScalaNativeTestRunner.TestFramework.UTest.name shouldBe "utest"
-    ScalaNativeTestRunner.TestFramework.Unknown.name shouldBe "unknown"
+    TestRunnerTypes.TestFramework.MUnit.name shouldBe "munit"
+    TestRunnerTypes.TestFramework.ScalaTest.name shouldBe "scalatest"
+    TestRunnerTypes.TestFramework.UTest.name shouldBe "utest"
+    TestRunnerTypes.TestFramework.Unknown.name shouldBe "unknown"
   }
 
   test("detectFramework: detects munit from classpath") {
@@ -126,7 +126,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       Path.of("/path/to/other.jar")
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.MUnit
+    framework shouldBe TestRunnerTypes.TestFramework.MUnit
   }
 
   test("detectFramework: detects scalatest from classpath") {
@@ -135,7 +135,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       Path.of("/path/to/other.jar")
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.ScalaTest
+    framework shouldBe TestRunnerTypes.TestFramework.ScalaTest
   }
 
   test("detectFramework: detects utest from classpath") {
@@ -144,7 +144,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       Path.of("/path/to/other.jar")
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.UTest
+    framework shouldBe TestRunnerTypes.TestFramework.UTest
   }
 
   test("detectFramework: returns Unknown for unrecognized") {
@@ -153,7 +153,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       Path.of("/path/to/other.jar")
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.Unknown
+    framework shouldBe TestRunnerTypes.TestFramework.Unknown
   }
 
   // ==========================================================================
@@ -162,10 +162,10 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
 
   test("getTestMainClass: returns TestMain for all frameworks") {
     val expected = ScalaNativeTestRunner.TestMainClass
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.MUnit) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.ScalaTest) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.UTest) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.Unknown) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.MUnit) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.ScalaTest) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.UTest) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.Unknown) shouldBe expected
   }
 
   // ==========================================================================
@@ -214,7 +214,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
         res <- ScalaNativeTestRunner.runTests(
           binary,
           suites,
-          ScalaNativeTestRunner.TestFramework.MUnit,
+          TestRunnerTypes.TestFramework.MUnit,
           handler,
           Map.empty,
           tempDir,
@@ -257,7 +257,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
         res <- ScalaNativeTestRunner.runTests(
           binary,
           suites,
-          ScalaNativeTestRunner.TestFramework.ScalaTest,
+          TestRunnerTypes.TestFramework.ScalaTest,
           handler,
           Map.empty,
           tempDir,
@@ -300,7 +300,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
         r <- ScalaNativeTestRunner.runTests(
           binary,
           suites,
-          ScalaNativeTestRunner.TestFramework.Unknown,
+          TestRunnerTypes.TestFramework.Unknown,
           handler,
           Map.empty,
           tempDir,
@@ -457,7 +457,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
-        r <- ScalaNativeTestRunner.runTests(binary, suites, ScalaNativeTestRunner.TestFramework.MUnit, handler, Map.empty, tempDir, killSignal)
+        r <- ScalaNativeTestRunner.runTests(binary, suites, TestRunnerTypes.TestFramework.MUnit, handler, Map.empty, tempDir, killSignal)
       } yield r).unsafeRunSync()
 
       info(s"munit: passed=${result.passed}, failed=${result.failed}, skipped=${result.skipped}")
@@ -516,7 +516,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
-        r <- ScalaNativeTestRunner.runTests(binary, suites, ScalaNativeTestRunner.TestFramework.ScalaTest, handler, Map.empty, tempDir, killSignal)
+        r <- ScalaNativeTestRunner.runTests(binary, suites, TestRunnerTypes.TestFramework.ScalaTest, handler, Map.empty, tempDir, killSignal)
       } yield r).unsafeRunSync()
 
       info(s"scalatest: passed=${result.passed}, failed=${result.failed}, skipped=${result.skipped}")
@@ -577,7 +577,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
-        r <- ScalaNativeTestRunner.runTests(binary, suites, ScalaNativeTestRunner.TestFramework.UTest, handler, Map.empty, tempDir, killSignal)
+        r <- ScalaNativeTestRunner.runTests(binary, suites, TestRunnerTypes.TestFramework.UTest, handler, Map.empty, tempDir, killSignal)
       } yield r).unsafeRunSync()
 
       info(s"utest: passed=${result.passed}, failed=${result.failed}, skipped=${result.skipped}")
@@ -621,7 +621,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
         r <- ScalaNativeTestRunner.runTestsViaAdapter(
           binary,
           suites,
-          ScalaNativeTestRunner.TestFramework.MUnit,
+          TestRunnerTypes.TestFramework.MUnit,
           handler,
           Map.empty,
           snVersion,

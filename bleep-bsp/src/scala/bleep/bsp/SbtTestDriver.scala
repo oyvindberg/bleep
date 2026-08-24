@@ -2,6 +2,7 @@ package bleep.bsp
 
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
+import scala.jdk.CollectionConverters._
 
 /** Runs an `sbt.testing.Framework` and reports what it does to a bleep `TestEventHandler`.
   *
@@ -44,41 +45,50 @@ object SbtTestDriver {
 
     val tasks = runner.tasks(taskDefs)
 
-    val suiteCounts = new scala.collection.mutable.HashMap[String, SuiteCounts]()
+    // A TestAdapter delivers its events on its own thread, and the counts are read back on this one. Plain mutable collections would leave the reader seeing
+    // an empty map even after every event had been handled.
+    val suiteCounts = new java.util.concurrent.ConcurrentHashMap[String, SuiteCounts]()
 
-    val sbtEventHandler = new sbt.testing.EventHandler {
+    /** Report every event from one task against that task's own suite.
+      *
+      * A framework is free to put whatever it likes in `Event.fullyQualifiedName`. munit puts the suite name and the test name joined by a dot, which is not a
+      * suite name at all. The `TaskDef` the framework handed back does name the suite, and it is the same for every event the task fires.
+      */
+    def eventHandlerFor(suiteName: String) = new sbt.testing.EventHandler {
       def handle(event: sbt.testing.Event): Unit = {
-        val suiteName = event.fullyQualifiedName()
-        val testName = event.selector() match {
+        val reportedName = event.selector() match {
           case ts: sbt.testing.TestSelector       => ts.testName()
           case ns: sbt.testing.NestedTestSelector => ns.testName()
           case _                                  => event.fullyQualifiedName()
         }
+        val testName = stripSuitePrefix(suiteName, reportedName)
 
         eventHandler.onTestStarted(suiteName, testName)
 
-        val counts = suiteCounts.getOrElse(suiteName, SuiteCounts.empty)
+        def count(add: SuiteCounts => SuiteCounts): Unit =
+          suiteCounts.compute(suiteName, (_, existing) => add(Option(existing).getOrElse(SuiteCounts.empty))): Unit
+
         val status = event.status() match {
           case sbt.testing.Status.Success =>
-            suiteCounts(suiteName) = counts.copy(passed = counts.passed + 1)
+            count(counts => counts.copy(passed = counts.passed + 1))
             TestStatus.Passed
           case sbt.testing.Status.Failure =>
-            suiteCounts(suiteName) = counts.copy(failed = counts.failed + 1)
+            count(counts => counts.copy(failed = counts.failed + 1))
             TestStatus.Failed
           case sbt.testing.Status.Error =>
-            suiteCounts(suiteName) = counts.copy(failed = counts.failed + 1)
+            count(counts => counts.copy(failed = counts.failed + 1))
             TestStatus.Error
           case sbt.testing.Status.Skipped =>
-            suiteCounts(suiteName) = counts.copy(skipped = counts.skipped + 1)
+            count(counts => counts.copy(skipped = counts.skipped + 1))
             TestStatus.Skipped
           case sbt.testing.Status.Ignored =>
-            suiteCounts(suiteName) = counts.copy(ignored = counts.ignored + 1)
+            count(counts => counts.copy(ignored = counts.ignored + 1))
             TestStatus.Ignored
           case sbt.testing.Status.Canceled =>
-            suiteCounts(suiteName) = counts.copy(skipped = counts.skipped + 1)
+            count(counts => counts.copy(skipped = counts.skipped + 1))
             TestStatus.Cancelled
           case sbt.testing.Status.Pending =>
-            suiteCounts(suiteName) = counts.copy(skipped = counts.skipped + 1)
+            count(counts => counts.copy(skipped = counts.skipped + 1))
             TestStatus.Pending
         }
 
@@ -100,7 +110,7 @@ object SbtTestDriver {
       def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, OutputChannel.Stderr)
     })
 
-    val startedSuites = scala.collection.mutable.Set[String]()
+    val startedSuites = java.util.concurrent.ConcurrentHashMap.newKeySet[String]()
 
     def executeTasks(toRun: Array[sbt.testing.Task]): Unit =
       toRun.foreach { task =>
@@ -108,26 +118,37 @@ object SbtTestDriver {
         if (startedSuites.add(suiteName)) {
           eventHandler.onSuiteStarted(suiteName)
         }
-        executeTasks(task.execute(sbtEventHandler, sbtLoggers))
+        executeTasks(task.execute(eventHandlerFor(suiteName), sbtLoggers))
       }
 
     executeTasks(tasks)
 
-    startedSuites.foreach { name =>
-      val counts = suiteCounts.getOrElse(name, SuiteCounts.empty)
-      eventHandler.onSuiteFinished(name, counts.passed, counts.failed, counts.skipped)
-    }
-
-    // A Runner.done() can throw after every test has already run and every count is already recorded. Scala Native's RPC handler is one that does, when the
-    // linked binary was built without the done opcode. Discarding the throw keeps the results that are already in hand.
+    // done() is the barrier that flushes events. A Scala.js TestAdapter reports its events over a socket, and Task.execute can return before the last one
+    // arrives. Counting suites before this call loses those events.
+    // A Runner.done() can also throw once every test has already run. Scala Native's RPC handler does when the linked binary was built without the done
+    // opcode. Discarding the throw keeps the results that are already in hand.
     try runner.done()
     catch { case _: Exception => () }
 
+    startedSuites.forEach { name =>
+      val counts = Option(suiteCounts.get(name)).getOrElse(SuiteCounts.empty)
+      eventHandler.onSuiteFinished(name, counts.passed, counts.failed, counts.skipped)
+    }
+
     eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
 
-    val totals = suiteCounts.values.foldLeft(SuiteCounts.empty)((running, counts) => running.plus(counts))
+    val totals = suiteCounts.values.asScala.foldLeft(SuiteCounts.empty)((running, counts) => running.plus(counts))
     TestResult(totals.passed, totals.failed, totals.skipped, totals.ignored, TerminationReason.Completed)
   }
+
+  /** Drop a leading suite name from a reported test name.
+    *
+    * munit reports `example.ArithmeticSuite.addition adds` where ScalaTest and utest report `addition adds`. Returns the name unchanged when it does not start
+    * with the suite, which is the case for every framework that already reports a bare test name.
+    */
+  private def stripSuitePrefix(suiteName: String, fullyQualifiedName: String): String =
+    if (fullyQualifiedName.startsWith(suiteName + ".")) fullyQualifiedName.substring(suiteName.length + 1)
+    else fullyQualifiedName
 
   private case class SuiteCounts(passed: Int, failed: Int, skipped: Int, ignored: Int) {
     def plus(other: SuiteCounts): SuiteCounts =

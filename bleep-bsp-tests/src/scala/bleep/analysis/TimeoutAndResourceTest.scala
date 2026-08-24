@@ -161,7 +161,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.Unknown,
+            TestRunnerTypes.TestFramework.Unknown,
             handler,
             Map.empty,
             tempDir,
@@ -310,7 +310,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.Unknown,
+            TestRunnerTypes.TestFramework.Unknown,
             handler,
             Map.empty,
             tempDir,

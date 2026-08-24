@@ -23,7 +23,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
 
   test("detectFramework: handles empty classpath") {
     val framework = ScalaNativeTestRunner.detectFramework(Seq.empty)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.Unknown
+    framework shouldBe TestRunnerTypes.TestFramework.Unknown
   }
 
   test("detectFramework: handles classpath with non-jar files") {
@@ -33,7 +33,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
       java.nio.file.Path.of("/path/to/image.png")
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    framework shouldBe ScalaNativeTestRunner.TestFramework.Unknown
+    framework shouldBe TestRunnerTypes.TestFramework.Unknown
   }
 
   test("detectFramework: detects munit with various naming patterns") {
@@ -47,7 +47,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
     for (pattern <- patterns) {
       val classpath = Seq(java.nio.file.Path.of(s"/libs/$pattern"))
       val framework = ScalaNativeTestRunner.detectFramework(classpath)
-      framework shouldBe ScalaNativeTestRunner.TestFramework.MUnit
+      framework shouldBe TestRunnerTypes.TestFramework.MUnit
       info(s"Pattern '$pattern' correctly detected as MUnit")
     }
   }
@@ -60,7 +60,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
     )
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
     // munit should take priority
-    framework shouldBe ScalaNativeTestRunner.TestFramework.MUnit
+    framework shouldBe TestRunnerTypes.TestFramework.MUnit
   }
 
   // ==========================================================================
@@ -69,10 +69,10 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
 
   test("getTestMainClass: returns TestMain for all frameworks") {
     val expected = ScalaNativeTestRunner.TestMainClass
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.MUnit) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.ScalaTest) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.UTest) shouldBe expected
-    ScalaNativeTestRunner.getTestMainClass(ScalaNativeTestRunner.TestFramework.Unknown) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.MUnit) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.ScalaTest) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.UTest) shouldBe expected
+    ScalaNativeTestRunner.getTestMainClass(TestRunnerTypes.TestFramework.Unknown) shouldBe expected
   }
 
   // ==========================================================================

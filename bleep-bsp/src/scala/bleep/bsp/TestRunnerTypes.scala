@@ -83,6 +83,28 @@ object TestRunnerTypes {
       fullyQualifiedName: String
   )
 
+  /** A test framework bleep knows how to run. */
+  sealed trait TestFramework {
+    def name: String
+  }
+  object TestFramework {
+    case object MUnit extends TestFramework { val name = "munit" }
+    case object ScalaTest extends TestFramework { val name = "scalatest" }
+    case object UTest extends TestFramework { val name = "utest" }
+    case object Unknown extends TestFramework { val name = "unknown" }
+  }
+
+  /** The `sbt.testing.Framework` implementations to try for each framework, in order.
+    *
+    * `Unknown` lists every candidate. A `TestAdapter` takes the whole list and reports which one the linked code actually declares.
+    */
+  val frameworkClassNames: Map[TestFramework, List[String]] = Map(
+    TestFramework.MUnit -> List("munit.Framework"),
+    TestFramework.ScalaTest -> List("org.scalatest.tools.Framework", "org.scalatest.tools.ScalaTestFramework"),
+    TestFramework.UTest -> List("utest.runner.Framework"),
+    TestFramework.Unknown -> List("munit.Framework", "org.scalatest.tools.Framework", "utest.runner.Framework")
+  )
+
   /** Result of interpreting a process exit code. */
   case class ExitCodeResult(
       adjustedFailed: Int,

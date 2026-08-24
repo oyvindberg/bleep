@@ -3,7 +3,8 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag.LinkResult
-import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
+import bleep.bsp.TestRunnerTypes.{frameworkClassNames, RunnerEvent, TerminationReason, TestEventHandler, TestFramework, TestResult, TestSuite}
+import bleep.bsp.ScalaCollectionReflection.{fromScalaList, fromScalaOption, toScalaList, toScalaMap}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
@@ -12,17 +13,6 @@ import scala.jdk.CollectionConverters._
 
 /** Runner for Scala Native tests. */
 object ScalaNativeTestRunner {
-
-  /** Detected test framework. */
-  sealed trait TestFramework {
-    def name: String
-  }
-  object TestFramework {
-    case object MUnit extends TestFramework { val name = "munit" }
-    case object ScalaTest extends TestFramework { val name = "scalatest" }
-    case object UTest extends TestFramework { val name = "utest" }
-    case object Unknown extends TestFramework { val name = "unknown" }
-  }
 
   /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal, which returns a Resource that properly lifecycle-manages the
     * listener fiber.
@@ -183,13 +173,6 @@ object ScalaNativeTestRunner {
   def getTestMainClass(@annotation.unused framework: TestFramework): String = TestMainClass
 
   /** Framework class names for sbt.testing.Framework SPI discovery. */
-  private val frameworkClassNames: Map[TestFramework, List[String]] = Map(
-    TestFramework.MUnit -> List("munit.Framework"),
-    TestFramework.ScalaTest -> List("org.scalatest.tools.Framework", "org.scalatest.tools.ScalaTestFramework"),
-    TestFramework.UTest -> List("utest.runner.Framework"),
-    TestFramework.Unknown -> List("munit.Framework", "org.scalatest.tools.Framework", "utest.runner.Framework")
-  )
-
   /** Run tests in a Scala Native binary using the TestAdapter protocol.
     *
     * This is the proper way to communicate with binaries linked with TestMain. The TestAdapter opens a server socket, passes the port to the binary, and
@@ -310,52 +293,6 @@ object ScalaNativeTestRunner {
         val closeMethod = adapterClass.getMethod("close")
         closeMethod.invoke(adapter): Unit
       } catch { case _: Exception => () }
-  }
-
-  private def toScalaMap(javaMap: Map[String, String], loader: ClassLoader): Any = {
-    val mapCompanion = loader.loadClass("scala.collection.immutable.Map$")
-    val mapObj = mapCompanion.getField("MODULE$").get(null)
-    val emptyMethod = mapCompanion.getMethod("empty")
-    var result = emptyMethod.invoke(mapObj)
-    val updatedMethod = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
-    javaMap.foreach { case (k, v) =>
-      result = updatedMethod.invoke(result, k, v)
-    }
-    result
-  }
-
-  private def toScalaList(javaList: List[Any], loader: ClassLoader): Any = {
-    val nilClass = loader.loadClass("scala.collection.immutable.Nil$")
-    val nilObj = nilClass.getField("MODULE$").get(null)
-    val consClass = loader.loadClass("scala.collection.immutable.$colon$colon")
-    val consConstructor = consClass.getConstructor(classOf[Object], loader.loadClass("scala.collection.immutable.List"))
-    javaList.foldRight(nilObj: Any) { (elem, acc) =>
-      consConstructor.newInstance(elem.asInstanceOf[AnyRef], acc.asInstanceOf[AnyRef])
-    }
-  }
-
-  private def fromScalaList[A](scalaList: Any, loader: ClassLoader): List[A] = {
-    val result = scala.collection.mutable.ListBuffer[A]()
-    var current = scalaList
-    val nilClass = loader.loadClass("scala.collection.immutable.Nil$")
-    val nilObj = nilClass.getField("MODULE$").get(null)
-    while (current != nilObj) {
-      val headMethod = current.getClass.getMethod("head")
-      val tailMethod = current.getClass.getMethod("tail")
-      result += headMethod.invoke(current).asInstanceOf[A]
-      current = tailMethod.invoke(current)
-    }
-    result.toList
-  }
-
-  private def fromScalaOption[A](scalaOption: Any, loader: ClassLoader): Option[A] = {
-    val noneClass = loader.loadClass("scala.None$")
-    val noneObj = noneClass.getField("MODULE$").get(null)
-    if (scalaOption == noneObj) None
-    else {
-      val getMethod = scalaOption.getClass.getMethod("get")
-      Some(getMethod.invoke(scalaOption).asInstanceOf[A])
-    }
   }
 
   // Output Parsers

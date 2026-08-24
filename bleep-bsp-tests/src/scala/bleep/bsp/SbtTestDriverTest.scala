@@ -7,7 +7,16 @@ import org.scalatest.matchers.should.Matchers
 import scala.collection.mutable
 
 /** A task that reports one event per name it is given, then hands back the nested tasks it was built with. */
-class StubTask(suiteName: String, events: List[(String, sbt.testing.Status)], nested: Array[sbt.testing.Task]) extends sbt.testing.Task {
+class StubTask(
+    suiteName: String,
+    events: List[(String, sbt.testing.Status)],
+    nested: Array[sbt.testing.Task],
+    reportNamesLikeMunit: Boolean
+) extends sbt.testing.Task {
+
+  /** munit welds the suite name onto the front of both the event name and the selector's test name. Every other framework reports a bare test name. */
+  private def reportedName(testName: String): String =
+    if (reportNamesLikeMunit) s"$suiteName.$testName" else testName
 
   def tags(): Array[String] = Array.empty
 
@@ -18,9 +27,9 @@ class StubTask(suiteName: String, events: List[(String, sbt.testing.Status)], ne
     loggers.foreach(_.info(s"running $suiteName"))
     events.foreach { case (testName, eventStatus) =>
       handler.handle(new sbt.testing.Event {
-        def fullyQualifiedName(): String = suiteName
+        def fullyQualifiedName(): String = reportedName(testName)
         def fingerprint(): sbt.testing.Fingerprint = StubFramework.fingerprint
-        def selector(): sbt.testing.Selector = new sbt.testing.TestSelector(testName)
+        def selector(): sbt.testing.Selector = new sbt.testing.TestSelector(reportedName(testName))
         def status(): sbt.testing.Status = eventStatus
         def throwable(): sbt.testing.OptionalThrowable =
           if (eventStatus == sbt.testing.Status.Failure) new sbt.testing.OptionalThrowable(new AssertionError(s"$testName went wrong"))
@@ -62,33 +71,44 @@ object StubFramework {
   }
 }
 
+case class TestStarted(suite: String, test: String)
+case class TestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String])
+case class SuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int)
+case class Output(suite: String, line: String, channel: OutputChannel)
+
+/** Records every call the driver makes.
+  *
+  * Each record is a case class rather than a tuple. Scalafmt's `RedundantParens` rule strips the inner parentheses from `buffer += ((a, b))` on some passes and
+  * not others, which turns the append into a varargs call that does not compile. A named record cannot be rewritten that way, and its fields read better in an
+  * assertion than `_._3` does.
+  */
 class RecordingHandler extends TestEventHandler {
-  val testStarts = mutable.Buffer[(String, String)]()
-  val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
+  val testStarts = mutable.Buffer[TestStarted]()
+  val testFinishes = mutable.Buffer[TestFinished]()
   val suiteStarts = mutable.Buffer[String]()
-  val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-  val outputs = mutable.Buffer[(String, String, OutputChannel)]()
+  val suiteFinishes = mutable.Buffer[SuiteFinished]()
+  val outputs = mutable.Buffer[Output]()
 
   def onTestStarted(suite: String, test: String): Unit =
-    testStarts += (suite, test)
+    testStarts += TestStarted(suite, test)
 
   def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
-    testFinishes += (suite, test, status, durationMs, message)
+    testFinishes += TestFinished(suite, test, status, durationMs, message)
 
   def onSuiteStarted(suite: String): Unit =
     suiteStarts += suite
 
   def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
-    suiteFinishes += (suite, passed, failed, skipped)
+    suiteFinishes += SuiteFinished(suite, passed, failed, skipped)
 
   def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
-    outputs += (suite, line, channel)
+    outputs += Output(suite, line, channel)
 }
 
 class SbtTestDriverTest extends AnyFunSuite with Matchers {
 
   private def driveOneSuite(events: List[(String, sbt.testing.Status)]): (RecordingHandler, TestRunnerTypes.TestResult) = {
-    val task = new StubTask("example.AlphaSuite", events, Array.empty)
+    val task = new StubTask("example.AlphaSuite", events, Array.empty, reportNamesLikeMunit = false)
     val runner = new StubRunner(_ => Array(task))
     val handler = new RecordingHandler()
     val result = SbtTestDriver.runFramework(
@@ -104,9 +124,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     val (handler, result) = driveOneSuite(List("addition" -> sbt.testing.Status.Success, "subtraction" -> sbt.testing.Status.Failure))
 
     handler.suiteStarts shouldBe Seq("example.AlphaSuite")
-    handler.testStarts shouldBe Seq(("example.AlphaSuite", "addition"), ("example.AlphaSuite", "subtraction"))
-    handler.testFinishes.map(f => (f._2, f._3)) shouldBe Seq(("addition", TestStatus.Passed), ("subtraction", TestStatus.Failed))
-    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 1, 0))
+    handler.testStarts shouldBe Seq(TestStarted("example.AlphaSuite", "addition"), TestStarted("example.AlphaSuite", "subtraction"))
+    handler.testFinishes.map(finished => (finished.test, finished.status)) shouldBe Seq(("addition", TestStatus.Passed), ("subtraction", TestStatus.Failed))
+    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 1, 0))
 
     result.passed shouldBe 1
     result.failed shouldBe 1
@@ -116,9 +136,8 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
   test("SbtTestDriver: sends the duration and the failure message to the handler") {
     val (handler, _) = driveOneSuite(List("subtraction" -> sbt.testing.Status.Failure))
 
-    val (_, _, _, durationMs, message) = handler.testFinishes.head
-    durationMs shouldBe 7L
-    message shouldBe Some("subtraction went wrong")
+    handler.testFinishes.head.durationMs shouldBe 7L
+    handler.testFinishes.head.message shouldBe Some("subtraction went wrong")
   }
 
   test("SbtTestDriver: counts every sbt.testing.Status into the right column") {
@@ -138,13 +157,13 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     result.failed shouldBe 2
     result.skipped shouldBe 3
     result.ignored shouldBe 1
-    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 2, 3))
+    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 2, 3))
   }
 
   test("SbtTestDriver: walks nested tasks and starts each suite once") {
-    val grandchild = new StubTask("example.GammaSuite", List("deep" -> sbt.testing.Status.Success), Array.empty)
-    val child = new StubTask("example.BetaSuite", List("nested" -> sbt.testing.Status.Success), Array(grandchild))
-    val root = new StubTask("example.AlphaSuite", List("top" -> sbt.testing.Status.Success), Array(child))
+    val grandchild = new StubTask("example.GammaSuite", List("deep" -> sbt.testing.Status.Success), Array.empty, reportNamesLikeMunit = false)
+    val child = new StubTask("example.BetaSuite", List("nested" -> sbt.testing.Status.Success), Array(grandchild), reportNamesLikeMunit = false)
+    val root = new StubTask("example.AlphaSuite", List("top" -> sbt.testing.Status.Success), Array(child), reportNamesLikeMunit = false)
     val handler = new RecordingHandler()
 
     val result = SbtTestDriver.runFramework(
@@ -157,9 +176,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     handler.suiteStarts shouldBe Seq("example.AlphaSuite", "example.BetaSuite", "example.GammaSuite")
     result.passed shouldBe 3
     handler.suiteFinishes should contain theSameElementsAs Seq(
-      ("example.AlphaSuite", 1, 0, 0),
-      ("example.BetaSuite", 1, 0, 0),
-      ("example.GammaSuite", 1, 0, 0)
+      SuiteFinished("example.AlphaSuite", 1, 0, 0),
+      SuiteFinished("example.BetaSuite", 1, 0, 0),
+      SuiteFinished("example.GammaSuite", 1, 0, 0)
     )
   }
 
@@ -195,11 +214,11 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
   test("SbtTestDriver: sends framework logger output to the handler") {
     val (handler, _) = driveOneSuite(List("addition" -> sbt.testing.Status.Success))
 
-    handler.outputs.map(_._2) should contain("running example.AlphaSuite")
+    handler.outputs.map(_.line) should contain("running example.AlphaSuite")
   }
 
   test("SbtTestDriver: calls done on the runner") {
-    val task = new StubTask("example.AlphaSuite", List("addition" -> sbt.testing.Status.Success), Array.empty)
+    val task = new StubTask("example.AlphaSuite", List("addition" -> sbt.testing.Status.Success), Array.empty, reportNamesLikeMunit = false)
     val runner = new StubRunner(_ => Array(task))
 
     SbtTestDriver.runFramework(
@@ -210,5 +229,55 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     )
 
     runner.doneWasCalled shouldBe true
+  }
+
+  /** munit names an event `example.AlphaSuite.addition`, which is not a suite name. Attributing the count to that string would leave the real suite reporting
+    * zero passed and zero failed.
+    */
+  test("SbtTestDriver: attributes a munit-shaped event to the task's suite and trims the test name") {
+    val task = new StubTask(
+      "example.AlphaSuite",
+      List("addition" -> sbt.testing.Status.Success, "subtraction" -> sbt.testing.Status.Failure),
+      Array.empty,
+      reportNamesLikeMunit = true
+    )
+    val handler = new RecordingHandler()
+
+    val result = SbtTestDriver.runFramework(
+      new StubFramework(new StubRunner(_ => Array(task))),
+      List(TestSuite("AlphaSuite", "example.AlphaSuite")),
+      handler,
+      getClass.getClassLoader
+    )
+
+    handler.suiteStarts shouldBe Seq("example.AlphaSuite")
+    handler.testFinishes.map(_.suite) shouldBe Seq("example.AlphaSuite", "example.AlphaSuite")
+    handler.testFinishes.map(_.test) shouldBe Seq("addition", "subtraction")
+    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 1, 0))
+    result.passed shouldBe 1
+    result.failed shouldBe 1
+  }
+
+  /** The counts are read on the calling thread and written on whichever thread the framework calls back on. A `TestAdapter` uses its own. */
+  test("SbtTestDriver: counts events handled on another thread") {
+    val task = new StubTask("example.AlphaSuite", List("addition" -> sbt.testing.Status.Success), Array.empty, reportNamesLikeMunit = false) {
+      override def execute(handler: sbt.testing.EventHandler, loggers: Array[sbt.testing.Logger]): Array[sbt.testing.Task] = {
+        val thread = new Thread(() => super.execute(handler, loggers): Unit)
+        thread.start()
+        thread.join()
+        Array.empty
+      }
+    }
+    val handler = new RecordingHandler()
+
+    val result = SbtTestDriver.runFramework(
+      new StubFramework(new StubRunner(_ => Array(task))),
+      List(TestSuite("AlphaSuite", "example.AlphaSuite")),
+      handler,
+      getClass.getClassLoader
+    )
+
+    result.passed shouldBe 1
+    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 0, 0))
   }
 }

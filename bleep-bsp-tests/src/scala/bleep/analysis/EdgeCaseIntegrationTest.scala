@@ -439,7 +439,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         res <- ScalaNativeTestRunner.runTests(
           nonExistentPath,
           List.empty,
-          ScalaNativeTestRunner.TestFramework.Unknown,
+          TestRunnerTypes.TestFramework.Unknown,
           handler,
           Map.empty,
           Path.of("."),
@@ -465,7 +465,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.Unknown,
+            TestRunnerTypes.TestFramework.Unknown,
             handler,
             Map.empty,
             tempDir,
@@ -503,7 +503,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.Unknown,
+            TestRunnerTypes.TestFramework.Unknown,
             handler,
             Map.empty,
             tempDir,
@@ -540,7 +540,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             res <- ScalaNativeTestRunner.runTests(
               binary,
               List.empty,
-              ScalaNativeTestRunner.TestFramework.MUnit,
+              TestRunnerTypes.TestFramework.MUnit,
               handler,
               Map.empty,
               tempDir,
@@ -578,7 +578,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           r <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.Unknown,
+            TestRunnerTypes.TestFramework.Unknown,
             handler,
             Map.empty,
             tempDir,
@@ -616,7 +616,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.MUnit,
+            TestRunnerTypes.TestFramework.MUnit,
             handler,
             Map.empty,
             tempDir,
@@ -974,7 +974,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaNativeTestRunner.runTests(
             binary,
             List.empty,
-            ScalaNativeTestRunner.TestFramework.MUnit,
+            TestRunnerTypes.TestFramework.MUnit,
             handler,
             Map.empty,
             tempDir,
