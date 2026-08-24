@@ -3429,7 +3429,18 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaJsTestRunner
-              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, testEnv, killSignal)
+              .runTests(
+                mainModule,
+                linkConfig.moduleKind,
+                suites,
+                eventHandler,
+                ScalaJsTestRunner.NodeEnvironment.Node,
+                nodeBinary,
+                testEnv,
+                sjsVersion.scalaJsVersion,
+                classpath,
+                killSignal
+              )
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs
@@ -3513,7 +3524,7 @@ class MultiWorkspaceBspServer(
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaNativeTestRunner
-              .runTestsViaAdapter(binary, suites, framework, eventHandler, testEnv, snVersion.scalaNativeVersion, killSignal)
+              .runTestsViaAdapter(binary, suites, framework, eventHandler, testEnv, snVersion.scalaNativeVersion, classpath, killSignal)
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs

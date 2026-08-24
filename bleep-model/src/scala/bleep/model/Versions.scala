@@ -56,6 +56,14 @@ object Versions {
   /** sbt test interface — 1.0 is final, there will never be another */
   val TestInterface: String = "1.0"
 
+  /** Node.js JSEnv for the Scala.js test adapter.
+    *
+    * Versioned independently of Scala.js itself: `scalajs-env-nodejs` lives in its own repository and its 1.6.0 pairs with Scala.js 1.22.0, so this cannot be
+    * derived from [[ScalaJs1]] and has to be tracked by hand. The adapter jar, by contrast, ships with Scala.js and is resolved at the project's own Scala.js
+    * version.
+    */
+  val ScalaJsEnvNodejs: String = "1.6.0"
+
   /** Not fallbacks. These are used only where the project expressed *no* junit-platform opinion at all — today that means a JUnit 4 project, whose suites bleep
     * runs through the vintage engine (see the JUnit 4 row of `testRuntimeRules` in MultiWorkspaceBspServer). A project that resolves a junit-platform of its
     * own gets the launcher and engines at THAT version and never sees these. That is the invariant: bleep never supplies a junit-platform version when the
