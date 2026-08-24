@@ -9,6 +9,7 @@ import org.scalatest.time.{Seconds, Span}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
+import scala.jdk.CollectionConverters.*
 
 /** Integration tests for platform-aware test dispatching through BSP.
   *
@@ -179,6 +180,92 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
             runResult.suitesCompleted shouldBe 1
             runResult.totalPassed shouldBe 1
             runResult.totalFailed shouldBe 0
+          }
+        }
+      } finally deleteRecursively(workspace)
+    }
+  }
+
+  /** Three suites in one file. Compiling and linking one module serves all three. */
+  private val threeSuiteSource =
+    """package example
+      |
+      |class AlphaSuite extends munit.FunSuite {
+      |  test("alpha runs under node") {
+      |    assertEquals(1.0.toString, "1")
+      |  }
+      |}
+      |
+      |class BetaSuite extends munit.FunSuite {
+      |  test("beta runs under node") {
+      |    assertEquals(2.0.toString, "2")
+      |  }
+      |}
+      |
+      |class GammaSuite extends munit.FunSuite {
+      |  test("gamma runs under node") {
+      |    assertEquals(3.0.toString, "3")
+      |  }
+      |}
+      |""".stripMargin
+
+  /** Every directory under `root`, named by its own last segment. */
+  private def directoryNamesUnder(root: Path): List[String] = {
+    val stream = Files.walk(root)
+    try stream.iterator().asScala.filter(Files.isDirectory(_)).map(_.getFileName.toString).toList
+    finally stream.close()
+  }
+
+  /** The DAG runs one `LinkTask` per test project. A suite task that linked for itself would write a `link-output` directory beside the DAG's own output, and
+    * three suite tasks running at once would write that one directory three times over.
+    */
+  test("BSP: three Scala.js suites in one project link once") {
+    failAfter(Span(360, Seconds)) {
+      val workspace = createTempWorkspace("bsp-scalajs-one-link-")
+      try {
+        Files.writeString(workspace.resolve("src/ThreeSuites.scala"), threeSuiteSource)
+
+        val classpath =
+          (CompilerResolver.resolveScalaLibrary(DefaultScalaVersion) ++
+            CompilerTestLibraries.munitScalaJsLibrary ++
+            CompilerTestLibraries.scalaJsTestBridgeLibrary(DefaultScalaJsVersion)).distinct.toList
+
+        val config = BspTestHarness.ProjectConfig.scalaJs(
+          name = "scalajs-one-link",
+          sources = Set(workspace.resolve("src")),
+          scalaVersion = DefaultScalaVersion,
+          sjsVersion = DefaultScalaJsVersion,
+          classpath = classpath,
+          isTest = true
+        )
+
+        BspTestHarness.withProject(workspace, config) { client =>
+          client.initialize()
+          val targets = client.buildTargets()
+
+          // `BspClient.test` waits 120 seconds. This run compiles three Scala.js suites, links them, and starts three node processes, which comes close to
+          // that limit on an unloaded machine and passes it when the rest of the suite runs alongside. The async request takes a limit of its own rather than
+          // raising the limit every other test shares. 300 seconds still fails long before a run that has genuinely stopped.
+          val startedAt = System.currentTimeMillis()
+          val testResult = client
+            .testAsync(targets.targets.map(_.id))
+            .awaitWithTimeout(300000)
+            .getOrElse(fail(s"buildTarget/test did not reply. Events:\n${client.events.mkString("\n")}"))
+          info(s"buildTarget/test replied after ${System.currentTimeMillis() - startedAt}ms")
+
+          withClue(client.events.mkString("\n")) {
+            val runResult = BleepBspProtocol.TestRunResult
+              .decode(new String(testResult.data.get.value, StandardCharsets.UTF_8))
+              .fold(error => fail(s"Could not read the test run result: $error"), identity)
+
+            runResult.suitesTotal shouldBe 3
+            runResult.suitesCompleted shouldBe 3
+            runResult.totalPassed shouldBe 3
+            runResult.totalFailed shouldBe 0
+          }
+
+          withClue(directoryNamesUnder(workspace).mkString("\n")) {
+            directoryNamesUnder(workspace) should not contain "link-output"
           }
         }
       } finally deleteRecursively(workspace)

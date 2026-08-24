@@ -14,8 +14,48 @@ import java.nio.file.Files
   *   - Scala Native test linking uses TestMainClass when isTest=true
   *   - Scala Native linking throws when isTest=false and mainClass=None
   *   - Kotlin Native test linking produces binary with test runner via -Xinclude
+  *   - locateLinkedJs finds the module a Scala.js link already wrote
   */
 class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
+
+  // ==========================================================================
+  // Finding a Scala.js module an earlier link wrote
+  // ==========================================================================
+
+  private val debugJsPlatform: TaskDag.LinkPlatform.ScalaJs =
+    TaskDag.LinkPlatform.ScalaJs(DefaultScalaJsVersion, DefaultScalaVersion, ScalaJsLinkConfig.Debug)
+
+  /** `execute` writes the main module under the suffix `linkDirSuffix` picks. `locateLinkedJs` takes the base directory `execute` was given. */
+  test("locateLinkedJs: finds the main module under the link's own suffix directory") {
+    withTempDir("locate-linked-js") { tempDir =>
+      val jsDir = tempDir.resolve(LinkExecutor.linkDirSuffix(debugJsPlatform)).resolve("js")
+      Files.createDirectories(jsDir)
+      Files.writeString(jsDir.resolve("my_project.js"), "// linked module")
+      Files.writeString(jsDir.resolve("my_project.js.map"), "{}")
+
+      LinkExecutor.locateLinkedJs(tempDir, debugJsPlatform, "my_project") shouldBe Some(jsDir.resolve("my_project.js"))
+    }
+  }
+
+  /** An ESModule link writes several `.js` files. The module the project names is the entry point. */
+  test("locateLinkedJs: prefers the module the project names over the other files beside it") {
+    withTempDir("locate-linked-js-many") { tempDir =>
+      val jsDir = tempDir.resolve(LinkExecutor.linkDirSuffix(debugJsPlatform)).resolve("js")
+      Files.createDirectories(jsDir)
+      Files.writeString(jsDir.resolve("internal-a.js"), "// chunk")
+      Files.writeString(jsDir.resolve("my_project.js"), "// linked module")
+      Files.writeString(jsDir.resolve("internal-b.js"), "// chunk")
+
+      LinkExecutor.locateLinkedJs(tempDir, debugJsPlatform, "my_project") shouldBe Some(jsDir.resolve("my_project.js"))
+    }
+  }
+
+  /** A suite task that runs before any link finds nothing. The caller fails loudly rather than linking a second copy. */
+  test("locateLinkedJs: returns None when no link has written a module") {
+    withTempDir("locate-linked-js-empty") { tempDir =>
+      LinkExecutor.locateLinkedJs(tempDir, debugJsPlatform, "my_project") shouldBe None
+    }
+  }
 
   // ==========================================================================
   // Scala Native test linking

@@ -2356,7 +2356,7 @@ class MultiWorkspaceBspServer(
                 case (Some(model.PlatformId.Js), true) =>
                   runKotlinJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Js), false) =>
-                  runScalaJsTestSuite(started, testTask, classpath, testEnv, eventQueue, taskKillSignal)
+                  runScalaJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), true) =>
                   runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), false) =>
@@ -3129,7 +3129,6 @@ class MultiWorkspaceBspServer(
   private def runScalaJsTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
-      classpath: List[Path],
       testEnv: Map[String, String],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
@@ -3143,63 +3142,55 @@ class MultiWorkspaceBspServer(
     }
 
     val projectPaths = started.projectPaths(testTask.project)
-    val outputDir = projectPaths.classes.getParent.resolve("link-output")
     val linkConfig = bleep.analysis.ScalaJsLinkConfig.Debug
-    val logger = createLinkLogger()
+    val linkPlatform = TaskDag.LinkPlatform.ScalaJs(sjsVersion.scalaJsVersion, scalaVersion.scalaVersion, linkConfig)
 
-    val linkTask = TaskDag.LinkTask(
-      project = testTask.project,
-      platform = TaskDag.LinkPlatform.ScalaJs(sjsVersion.scalaJsVersion, scalaVersion.scalaVersion, linkConfig),
-      releaseMode = false,
-      isTest = true
-    )
+    // This task links nothing. `TestSuiteTask` depends on `DiscoverTask`, which depends on `TaskId.Link` for a non-JVM platform, so the DAG has already run
+    // one `LinkTask` for this project into `projectPaths.targetDir`. Linking here again would run one linker per suite, and every one of those linkers would
+    // write one directory at the same time as the others.
+    val mainModule = LinkExecutor
+      .locateLinkedJs(projectPaths.targetDir, linkPlatform, LinkExecutor.jsModuleName(testTask.project.value))
+      .getOrElse(throw MultiWorkspaceBspServer.NoLinkedScalaJsModuleException(testTask.project.value, projectPaths.targetDir))
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
       // Note: TaskStarted is already emitted by DAG executor - don't duplicate it here
-      linkResult <- LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-      taskResult <- linkResult match {
-        case (TaskDag.TaskResult.Success, TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
-          val nodeBinary = nodeBinaryFor(started, project)
-          Dispatcher.sequential[IO].use { dispatcher =>
-            val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
-            val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
-            ScalaJsTestRunner
-              .runTestsViaAdapter(
-                mainModule,
-                linkConfig.moduleKind,
-                suites,
-                TestRunnerTypes.TestFramework.fromName(testTask.framework),
-                eventHandler,
-                nodeBinary,
-                testEnv,
-                sjsVersion.scalaJsVersion,
-                killSignal
-              )
-              .flatMap { result =>
-                val endTs = System.currentTimeMillis()
-                val durationMs = endTs - startTs
-                eventQueue
-                  .offer(
-                    Some(
-                      TaskDag.DagEvent
-                        .SuiteFinished(
-                          testTask.project,
-                          testTask.suiteName,
-                          SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
-                          durationMs,
-                          endTs
-                        )
-                    )
+      taskResult <- {
+        val nodeBinary = nodeBinaryFor(started, project)
+        Dispatcher.sequential[IO].use { dispatcher =>
+          val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
+          val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
+          ScalaJsTestRunner
+            .runTestsViaAdapter(
+              mainModule,
+              linkConfig.moduleKind,
+              suites,
+              TestRunnerTypes.TestFramework.fromName(testTask.framework),
+              eventHandler,
+              nodeBinary,
+              testEnv,
+              sjsVersion.scalaJsVersion,
+              killSignal
+            )
+            .flatMap { result =>
+              val endTs = System.currentTimeMillis()
+              val durationMs = endTs - startTs
+              eventQueue
+                .offer(
+                  Some(
+                    TaskDag.DagEvent
+                      .SuiteFinished(
+                        testTask.project,
+                        testTask.suiteName,
+                        SuiteOutcome.fromCounts(result.passed, result.failed, result.skipped, result.ignored),
+                        durationMs,
+                        endTs
+                      )
                   )
-                  .as(classifyTestResult(result))
-              }
-          }
-        case (result, _) =>
-          val endTs = System.currentTimeMillis()
-          val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, erroredOutcomeOf(result), durationMs, endTs))).void >>
-            IO.pure(result)
+                )
+                .as(classifyTestResult(result))
+            }
+        }
       }
     } yield taskResult
   }
@@ -4000,17 +3991,6 @@ class MultiWorkspaceBspServer(
   }
 
   /** Classify non-JVM test result into TaskResult, distinguishing test failures from process crashes. */
-  /** Outcome for a non-JVM suite that could not run (link failure, missing output) — carries the failing result's message so the client shows the reason. */
-  private def erroredOutcomeOf(result: TaskDag.TaskResult): SuiteOutcome =
-    SuiteOutcome.Errored(
-      result match {
-        case TaskDag.TaskResult.Failure(e, _) => e
-        case TaskDag.TaskResult.Error(e, _)   => e
-        case other                            => s"test suite could not run: $other"
-      },
-      None
-    )
-
   private def classifyTestResult(result: TestRunnerTypes.TestResult): TaskDag.TaskResult =
     result.terminationReason match {
       case TestRunnerTypes.TerminationReason.Completed =>
@@ -4378,6 +4358,18 @@ class MultiWorkspaceBspServer(
 }
 
 object MultiWorkspaceBspServer {
+
+  /** The DAG's `LinkTask` for this project wrote no main module.
+    *
+    * @param project
+    *   the test project whose suite was about to run
+    * @param outputDir
+    *   the DAG's link handler writes into this directory
+   */
+  case class NoLinkedScalaJsModuleException(project: String, outputDir: java.nio.file.Path)
+      extends IllegalStateException(
+        s"No linked Scala.js module for $project under $outputDir. A TestSuiteTask runs only after the DAG's LinkTask for its project."
+      )
 
   /** Run the message loop to completion, treating an interrupt of this thread as the stop signal it is.
     *

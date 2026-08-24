@@ -97,6 +97,26 @@ object LinkExecutor {
     }
   }
 
+  /** Find the main module written by Scala.js link under `baseOutputDir`.
+    *
+    * @param baseOutputDir
+    *   the directory `execute` was given
+    * @param platform
+    *   the platform whose `linkDirSuffix` names the subdirectory
+    * @param moduleName
+    *   the module name the link used, which `executeScalaJs` derives from the project name
+    * @return
+    *   the main module, or None when no link has written one
+    */
+  def locateLinkedJs(baseOutputDir: Path, platform: LinkPlatform, moduleName: String): Option[Path] = {
+    val jsOutputDir = baseOutputDir.resolve(linkDirSuffix(platform)).resolve("js")
+    val modules = findJsOutputFiles(jsOutputDir).filterNot(_.toString.endsWith(".map"))
+    modules.find(_.getFileName.toString == s"$moduleName.js").orElse(modules.headOption)
+  }
+
+  /** The module name a Scala.js link gives its output for this project. */
+  def jsModuleName(projectName: String): String = projectName.replace("-", "_")
+
   /** Find all JS output files in a directory. */
   private def findJsOutputFiles(jsOutputDir: Path): Seq[Path] =
     if (!Files.exists(jsOutputDir)) Seq.empty
@@ -120,7 +140,7 @@ object LinkExecutor {
     *   the classpath including compiled output and dependencies
     * @param mainClass
     *   optional main class (for applications)
-    * @param outputDir
+    * @param baseOutputDir
     *   base output directory for linked output
     * @param logger
     *   logger for output
@@ -192,7 +212,7 @@ object LinkExecutor {
       isTest: Boolean
   ): IO[(TaskResult, LinkResult)] = {
     val jsOutputDir = outputDir.resolve("js")
-    val moduleName = projectName.replace("-", "_")
+    val moduleName = jsModuleName(projectName)
 
     checkJsUpToDate(jsOutputDir, classpath, logger) match {
       case Some(cached) => IO.pure(cached)

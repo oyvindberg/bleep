@@ -11,8 +11,7 @@ import java.nio.file.Path
 /** Runs a linked Scala.js test module under Node.
   *
   * `org.scalajs.testing.adapter.TestAdapter` starts the node process. The adapter speaks the sbt-testing protocol to the `org.scalajs.testing.bridge.Bridge`
-  * the linker put in the module. The adapter and the bridge both live outside bleep's classloader. Every call into the adapter goes through
-  * reflection.
+  * the linker put in the module. The adapter and the bridge both live outside bleep's classloader. Every call into the adapter goes through reflection.
   */
 object ScalaJsTestRunner {
 
