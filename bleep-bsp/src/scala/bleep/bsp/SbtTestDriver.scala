@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
-import scala.jdk.CollectionConverters._
+import scala.collection.concurrent.TrieMap
 
 /** Runs an `sbt.testing.Framework` and reports what it does to a bleep `TestEventHandler`.
   *
@@ -45,9 +45,8 @@ object SbtTestDriver {
 
     val tasks = runner.tasks(taskDefs)
 
-    /** A `TestAdapter` handles its events on its own thread. This ConcurrentHashMap lets the calling thread read the counts.
-      */
-    val suiteCounts = new java.util.concurrent.ConcurrentHashMap[String, SuiteCounts]()
+    /** A `TestAdapter` handles its events on its own thread. This `TrieMap` lets the calling thread read the counts safely. */
+    val suiteCounts = TrieMap.empty[String, SuiteCounts]
 
     /** Report every event from one task against that task's own suite.
       *
@@ -66,7 +65,7 @@ object SbtTestDriver {
         eventHandler.onTestStarted(suiteName, testName)
 
         def count(add: SuiteCounts => SuiteCounts): Unit =
-          suiteCounts.compute(suiteName, (_, existing) => add(Option(existing).getOrElse(SuiteCounts.empty))): Unit
+          suiteCounts.updateWith(suiteName)(existing => Some(add(existing.getOrElse(SuiteCounts.empty)))): Unit
 
         val status = event.status() match {
           case sbt.testing.Status.Success =>
@@ -110,12 +109,13 @@ object SbtTestDriver {
       def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, OutputChannel.Stderr)
     })
 
-    val startedSuites = java.util.concurrent.ConcurrentHashMap.newKeySet[String]()
+    /** The set of suites already reported as started. */
+    val startedSuites = TrieMap.empty[String, Unit]
 
     def executeTasks(toRun: Array[sbt.testing.Task]): Unit =
       toRun.foreach { task =>
         val suiteName = task.taskDef().fullyQualifiedName()
-        if (startedSuites.add(suiteName)) {
+        if (startedSuites.putIfAbsent(suiteName, ()).isEmpty) {
           eventHandler.onSuiteStarted(suiteName)
         }
         executeTasks(task.execute(eventHandlerFor(suiteName), sbtLoggers))
@@ -131,14 +131,14 @@ object SbtTestDriver {
     try runner.done()
     catch { case _: Exception => () }
 
-    startedSuites.forEach { name =>
-      val counts = Option(suiteCounts.get(name)).getOrElse(SuiteCounts.empty)
+    startedSuites.keys.foreach { name =>
+      val counts = suiteCounts.getOrElse(name, SuiteCounts.empty)
       eventHandler.onSuiteFinished(name, counts.passed, counts.failed, counts.skipped)
     }
 
     eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
 
-    val totals = suiteCounts.values.asScala.foldLeft(SuiteCounts.empty)((running, counts) => running.plus(counts))
+    val totals = suiteCounts.values.foldLeft(SuiteCounts.empty)((running, counts) => running.plus(counts))
     TestResult(totals.passed, totals.failed, totals.skipped, totals.ignored, TerminationReason.Completed)
   }
 
