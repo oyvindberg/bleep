@@ -96,6 +96,22 @@ trait PlatformTestHelper {
       outDir: Path,
       scalaVersion: String,
       sjsVersion: String
+  ): Seq[Path] =
+    compileForScalaJsWithDeps(srcDir, outDir, scalaVersion, sjsVersion, Seq.empty)
+
+  /** Compile Scala sources for Scala.js with extra dependencies on classpath.
+    *
+    * @param extraDeps
+    *   jars a source file imports, such as a test framework compiled for Scala.js
+    * @return
+    *   classpath including the output dir, scalajs-library, and the extra dependencies
+    */
+  def compileForScalaJsWithDeps(
+      srcDir: Path,
+      outDir: Path,
+      scalaVersion: String,
+      sjsVersion: String,
+      extraDeps: Seq[Path]
   ): Seq[Path] = {
     Files.createDirectories(outDir)
 
@@ -120,10 +136,12 @@ trait PlatformTestHelper {
       compileOrder = bleep.model.CompileOrder.JavaThenScala
     )
 
+    val fullClasspath = (scalaLibJars ++ sjsLibJars ++ extraDeps).distinct
+
     val config = ProjectConfig(
       name = "scalajs-compile",
       sources = Set(srcDir),
-      classpath = scalaLibJars ++ sjsLibJars,
+      classpath = fullClasspath,
       outputDir = outDir,
       language = language,
       analysisDir = None,
@@ -144,7 +162,7 @@ trait PlatformTestHelper {
       .unsafeRunSync()
 
     result match {
-      case ProjectCompileSuccess(_, _, _)  => Seq(outDir) ++ scalaLibJars ++ sjsLibJars
+      case ProjectCompileSuccess(_, _, _)  => Seq(outDir) ++ fullClasspath
       case f: ProjectCompileFailure        => throw new RuntimeException(s"Scala.js compilation failed: ${f.errors.map(_.formatted).mkString("\n")}")
       case ProjectCompileCancelled(reason) => throw new RuntimeException(s"Scala.js compilation cancelled: $reason")
     }
