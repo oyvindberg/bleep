@@ -47,7 +47,7 @@ object ClasspathTestDiscovery {
     "utest.runner.Framework",
     "zio.test.sbt.ZTestFramework",
     "org.specs2.runner.Specs2Framework",
-    "weaver.sbt.WeaverFramework",
+    "weaver.framework.CatsEffect",
     "org.scalacheck.ScalaCheckFramework",
     "hedgehog.sbt.Framework",
     "minitest.runner.Framework",
@@ -313,17 +313,23 @@ object ClasspathTestDiscovery {
         fingerprints.find { case (_, fp) =>
           fp match {
             case sfp: SubclassFingerprint =>
-              val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(cls)
-              hasConstructor && Try {
+              Try {
                 val superclass = classLoader.loadClass(sfp.superclassName())
-                if (sfp.isModule) {
-                  // Check if it's a Scala object
-                  val moduleName = className + "$"
-                  Try(classLoader.loadClass(moduleName))
-                    .map(m => superclass.isAssignableFrom(m))
-                    .getOrElse(false)
-                } else {
-                  superclass.isAssignableFrom(cls)
+                // A module fingerprint describes the object's own class, so every question — does it extend the right thing, does it have the constructor the
+                // fingerprint asks for — has to be asked of that class rather than of the name the scan happened to land on.
+                val subject: Option[Class[?]] =
+                  if (!sfp.isModule) Some(cls)
+                  // The scan yields `Foo` when the compiler emitted a mirror class beside `Foo$`, and `Foo$` when it did not. Appending `$` unconditionally
+                  // asked for `Foo$$` in the second case, which exists for nothing, so any framework whose only fingerprint is a module one went undiscovered:
+                  // minitest declares exactly one, and its suites were never found.
+                  else if (className.endsWith("$")) Some(cls)
+                  else Try(classLoader.loadClass(className + "$")).toOption
+
+                subject.exists { subjectClass =>
+                  // Checked against `subjectClass`, not `cls`. A Scala 3 mirror class declares no constructor at all, so asking it this question rejected every
+                  // module suite whose fingerprint required one — which is all of them.
+                  val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(subjectClass)
+                  hasConstructor && superclass.isAssignableFrom(subjectClass)
                 }
               }.getOrElse(false)
 
@@ -331,10 +337,8 @@ object ClasspathTestDiscovery {
               val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
               annotationClass.exists { annClass =>
                 if (afp.isModule) {
-                  val moduleName = className + "$"
-                  Try(classLoader.loadClass(moduleName))
-                    .map(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
-                    .getOrElse(false)
+                  val moduleClass = if (className.endsWith("$")) Some(cls) else Try(classLoader.loadClass(className + "$")).toOption
+                  moduleClass.exists(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
                 } else {
                   cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
                 }
