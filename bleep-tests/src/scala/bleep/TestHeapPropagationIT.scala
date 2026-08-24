@@ -64,6 +64,8 @@ class TestHeapPropagationIT extends IntegrationTestHarness {
         flamegraph = false,
         cancel = false,
         junitReportDir = None,
+        diffBase = None,
+        diffOutput = OutputMode.Text,
         clientEnv = Map.empty
       )
       .run(started)
