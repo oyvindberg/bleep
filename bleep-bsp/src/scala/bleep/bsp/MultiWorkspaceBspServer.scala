@@ -3721,7 +3721,7 @@ class MultiWorkspaceBspServer(
     result match {
       case TaskDag.TaskResult.Error(error, _) => Some(BleepBspProtocol.Event.Error(s"$description errored: $error", None, timestamp))
       case _: TaskDag.TaskResult.TimedOut     => Some(BleepBspProtocol.Event.Error(s"$description timed out", None, timestamp))
-      case TaskDag.TaskResult.Killed(reason) =>
+      case TaskDag.TaskResult.Killed(reason)  =>
         reason match {
           case KillReason.Timeout => Some(BleepBspProtocol.Event.Error(s"$description was killed after exceeding its time limit", None, timestamp))
           case KillReason.UserRequest | KillReason.ParentDying | KillReason.ServerShutdown | KillReason.DeadClient => None
