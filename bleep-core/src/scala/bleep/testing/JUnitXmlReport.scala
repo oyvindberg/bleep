@@ -155,7 +155,8 @@ object JUnitXmlReport {
 
   /** Escape text for XML attribute values */
   private def escapeAttr(s: String): String =
-    s.replace("&", "&amp;")
+    xmlSafe(s)
+      .replace("&", "&amp;")
       .replace("<", "&lt;")
       .replace(">", "&gt;")
       .replace("\"", "&quot;")
@@ -164,9 +165,34 @@ object JUnitXmlReport {
   private def appendCdata(sb: StringBuilder, text: String): Unit = {
     // CDATA cannot contain ]]> — split it if present
     sb.append("<![CDATA[")
-    sb.append(text.replace("]]>", "]]]]><![CDATA[>"))
+    sb.append(xmlSafe(text).replace("]]>", "]]]]><![CDATA[>"))
     sb.append("]]>")
   }
+
+  /** An ANSI CSI escape: ESC `[`, parameter bytes, intermediate bytes, then a final byte in `@`-`~`. */
+  private val AnsiCsi = "\u001b\\[[0-?]*[ -/]*[@-~]".r
+
+  /** Make text safe to place inside an XML 1.0 document.
+    *
+    * Test frameworks colorize. The forked runner reports `ansiCodesSupported() = true`, so ScalaTest and friends emit real ANSI escapes, that output is
+    * captured verbatim into `<system-out>`, and ESC (0x1b) is not a legal XML 1.0 character in any position — not inside a CDATA section, and not even as a
+    * numeric character reference. Every report bleep wrote for a colorizing framework was therefore rejected outright by conforming parsers, which is every CI
+    * system that consumes these files.
+    *
+    * Colour sequences are removed whole rather than having their ESC stripped out, since dropping only the ESC leaves `[31m` littered through text that Jenkins
+    * or GitHub Actions renders as-is. Whatever else XML 1.0 forbids — the remaining C0 controls except tab, newline and carriage return, plus the two
+    * non-characters at the end of the BMP — is dropped afterwards as a backstop, because captured output is arbitrary bytes from user code and not only from a
+    * framework. Surrogates pass through so that astral characters (emoji in a test name) survive as the pairs they are.
+    */
+  private def xmlSafe(s: String): String =
+    if (s.isEmpty) s
+    else {
+      val withoutAnsi = if (s.indexOf(0x1b) < 0) s else AnsiCsi.replaceAllIn(s, "")
+      if (withoutAnsi.forall(isLegalXmlChar)) withoutAnsi else withoutAnsi.filter(isLegalXmlChar)
+    }
+
+  private def isLegalXmlChar(c: Char): Boolean =
+    c == '\t' || c == '\n' || c == '\r' || (c >= '\u0020' && c <= '\ufffd')
 
   private def sanitizeFileName(name: String): String =
     name.replaceAll("[^a-zA-Z0-9._-]", "_")
