@@ -17,7 +17,13 @@ import scala.util.control.NonFatal
   *   - Project configuration (deps, compiler flags, scala version, platform, etc.)
   *   - Source file content hashes (via `git ls-tree` for clean dirs, filesystem for dirty/generated)
   *   - Resource file content hashes (affects key but resources are NOT cached)
+  *   - Content hashes of directories declared under `sourceGlobs` on a `sourcegen:` entry, because a generator that reads them produces different sources when
+  *     they change
   *   - Transitive dependency project digests (if B depends on A, B's digest includes A's digest)
+  *
+  * What goes in is content, never location: every file contributes its path *relative to the declared directory* plus a git blob hash of its bytes. That is
+  * what makes the digest a portable cache key — two checkouts of the same commit at different absolute paths, on different operating systems, must agree. Any
+  * new input has to meet the same bar, which is why `sourceGlobs` directories are hashed exactly like source directories rather than, say, by mtime.
   *
   * Computed bottom-up through the dependency DAG so leaf projects are digested first.
   *
@@ -93,13 +99,18 @@ object ProjectDigest {
           // 4. Resource file content hashes (affects digest, but resources are not cached)
           hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all, dirtyPaths)
 
-          // 5. Transitive dependency digests (sorted for determinism)
+          // 5. Directories this project declared as sourcegen inputs via `sourceGlobs`.
+          // Kept as its own step rather than folded into 2/3 so the bytes fed for projects without
+          // `sourceGlobs` — which is nearly all of them — are byte-for-byte what they were before.
+          hashDirectories(md, buildPaths.buildDir, ProjectInputs.declaredSourcegenInputs(project, projectPaths).toSet, dirtyPaths)
+
+          // 6. Transitive dependency digests (sorted for determinism)
           val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty)
           deps.toList.sorted.foreach { dep =>
             md.update(compute(dep).getBytes("UTF-8"))
           }
 
-          // 6. Sourcegen dependency digests
+          // 7. Sourcegen dependency digests
           project.sourcegen.values.foreach { case model.ScriptDef.Main(sourcegenProject, _, _) =>
             md.update(compute(sourcegenProject).getBytes("UTF-8"))
           }

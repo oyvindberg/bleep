@@ -134,7 +134,7 @@
         "-Wunused",
         "-Wvalue-discard",
         "-Xlint:_,-implicit-recursion,-recurse-with-default,-unused,-byname-implicit",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/com/olegpy/better-monadic-for_2.13/0.3.1/better-monadic-for_2.13-0.3.1.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/com/olegpy/better-monadic-for_2.13/0.3.1/better-monadic-for_2.13-0.3.1.jar:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.0/scala-compiler-2.13.0.jar:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.0/scala-library-2.13.0.jar:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.0/scala-reflect-2.13.0.jar:<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.13.15/0.4.17/nscplugin_2.13.15-0.4.17.jar",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.15/0.13.3/kind-projector_2.13.15-0.13.3.jar",
         "-Xsource:3",

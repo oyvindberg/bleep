@@ -11,7 +11,8 @@ first-class concepts in `bleep.yaml`:
   Java / Kotlin / Scala programs you invoke as bleep subcommands.
 - **[Source generation scripts](/docs/concepts/sourcegen)** , 
   programs that emit code or resources for another project, run
-  automatically before compilation, with hashing and atomic failure.
+  automatically before compilation, with declared inputs and atomic
+  failure.
 
 That's the entire extension surface. There is no plugin lifecycle,
 no `preCompile` hook, no `Compile / packageBin / mappings += …` to
@@ -57,9 +58,19 @@ is no privileged layer of magic dust between you and the JVM.
 | Anything where you invoke it manually or from CI               | [Bleep script](/docs/concepts/bleep-scripts)                 |
 
 The dividing line is whether `compile` needs the output. If it does,
-you want sourcegen, bleep runs your generator on demand,
-hashes the inputs, and reruns when they change. Otherwise it's a
-plain script.
+you want sourcegen, bleep runs your generator on demand and reruns
+it when its inputs change. Otherwise it's a plain script.
+
+"Its inputs" means the directories you declared: the sources and
+resources of the script project and its dependencies, plus anything
+listed under `sourceGlobs`. That is the same set the remote cache
+digests, `bleep build invalidated` reads, and `--watch` wakes up on.
+If your generator reads a file living somewhere else, say a `schema/`
+directory at the repo root, you declare that directory and everything
+lines up. If you don't, nothing warns you and the generated code goes
+stale. See [what counts as an
+input](/docs/concepts/sourcegen#what-counts-as-an-input) — it's one
+line of YAML and worth reading before you write your first generator.
 
 ## Where to go from here
 

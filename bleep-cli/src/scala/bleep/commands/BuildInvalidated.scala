@@ -74,7 +74,7 @@ case class BuildInvalidated(
     currentBuild.explodedProjects.foreach { case (crossName, project) =>
       if (!directlyInvalidated.contains(crossName)) {
         val projectPaths = started.buildPaths.project(crossName, project)
-        val allDirs = projectPaths.sourcesDirs.all ++ projectPaths.resourcesDirs.all
+        val allDirs = ProjectInputs.all(project, projectPaths)
         val hasChangedSource = changedFiles.exists { changedFile =>
           allDirs.exists(dir => changedFile.startsWith(dir))
         }

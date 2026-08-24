@@ -6,7 +6,9 @@ import Snippet from '@site/src/components/Snippet';
 
 # Source generation
 
-Bleep has first-class support for generated sources and resources. A *sourcegen script* is a normal program (Java, Kotlin, or Scala) that writes files; bleep tracks inputs, runs the script before compilation when needed, and cleans up after itself if the script fails.
+Bleep has first-class support for generated sources and resources. A *sourcegen script* is a normal program (Java, Kotlin, or Scala) that writes files; bleep tracks its inputs, runs it before compilation when needed, and cleans up after itself if the script fails.
+
+"Tracks its inputs" is a precise claim with a precise boundary: bleep tracks the files you *declared*, and it does not watch your generator to find out what it actually opens. If your generator reads a file that lives outside the script project, one line of YAML makes bleep see it, and without that line nothing will. [What counts as an input](#what-counts-as-an-input) spells out the rule and shows the declaration.
 
 Unlike sbt source generators (which run inside the build definition), bleep sourcegen scripts are:
 
@@ -113,14 +115,106 @@ These directories are automatically added to the consuming project's source/reso
 
 Before compilation, bleep decides whether each sourcegen script needs to run by comparing timestamps:
 
-- **Inputs** = all sources and resources of the script's project plus *all of its transitive dependencies*
+- **Inputs** = all sources and resources of the script's project plus *all of its transitive dependencies*, plus any directory the consuming project declared under `sourceGlobs`
 - **Outputs** = the `.bleep/generated-sources/...` and `.bleep/generated-resources/...` directories for the consuming project
 
 If any input is newer than the most-recent output, the script re-runs. If the output directory doesn't exist, it runs. Otherwise, it's skipped.
 
 A `.sourcegen-stamp` file is written to the output directory on every successful run, so that the output timestamp advances even when the script produced identical content.
 
-This means: **if you change anything the script transitively depends on, it re-runs**. You don't need to declare inputs; bleep computes them from the build graph.
+This means: **if you change anything the script transitively depends on, it re-runs**. Which raises the question the next section answers, because "transitively depends on" is a statement about the build graph, and your generator probably reads files too.
+
+### What counts as an input
+
+Here is the rule, and it is worth committing to memory:
+
+> **A file is an input if and only if it lives under a directory you declared: a source or resource directory of the script project (or of one of that project's transitive dependencies), or a `sourceGlobs` entry on the `sourcegen:` block that names the script.**
+
+That is the *only* thing bleep looks at. It is not a heuristic and there is no filesystem tracing behind it: bleep does not observe which files your generator opens. It reads the build graph, and the build graph is the set of directories you declared.
+
+Four separate mechanisms depend on that rule, and they all apply it identically:
+
+| Mechanism | What it does | Where it looks |
+| --- | --- | --- |
+| **Re-run decision** (`bleep compile`, `bleep test`, your IDE via BSP) | newest input mtime vs newest output mtime | script project + transitive deps: source and resource dirs; plus the consumer's `sourceGlobs` |
+| **Remote cache key** ([`ProjectDigest`](/docs/usage/remote-cache)) | SHA-256 over config + file contents | same, folded into the consumer's digest |
+| **CI project selection** ([`bleep build invalidated`](/docs/usage/ci-invalidation)) | which projects a git diff touched | same, plus the `sourcegen` edge to the consumer |
+| **`--watch`** | which directories to wake up on | same |
+
+So a generator that only reads its own source tree — a version stamper, a code emitter driven by an annotation on a dependency — is fully tracked, and you never have to think about any of this.
+
+A generator that reads a file **outside** every declared directory is not. And nothing warns you.
+
+### The trap: reading a file bleep can't see
+
+This is the shape that bites, so let's be blunt about it. Say your schema lives at the repo root and your generator reads it:
+
+```
+myrepo/
+  schema/users.sql       ← the real input
+  scripts/src/scala/...  ← the generator
+  myapp/src/scala/...    ← the consumer
+```
+
+```yaml
+projects:
+  myapp:
+    sourcegen: scripts/mypkg.GenTables   # ← reads ../schema/users.sql
+```
+
+Note what is missing: nothing in that YAML mentions `schema/`. Now edit `schema/users.sql` and leave the generator code alone. Every mechanism in the table above reports clean, because `schema/` is not a source or resource directory of any project and no `sourcegen:` entry declares it:
+
+- `bleep compile` skips the generator (its inputs are older than its outputs) — **your generated code is stale**
+- the remote cache key is unchanged, so a cache hit serves the previously-built classes
+- `bleep build invalidated -b origin/master` lists nothing, so CI compiles nothing and goes green
+
+Three green signals and one wrong artifact. The fix is one line.
+
+### Declaring an external input
+
+Name the directory under `sourceGlobs`, on the `sourcegen:` block that reads it. This requires the long form of `sourcegen:` rather than the `project/Main` shorthand:
+
+```yaml
+projects:
+  myapp:
+    sourcegen:
+      project: scripts
+      main: mypkg.GenTables
+      sourceGlobs: ../schema   # relative to myapp/, the project declaring sourcegen
+```
+
+Paths are relative to the folder of the project that declares `sourcegen:` — `myapp/` here, **not** the script project — and `..` is allowed, so `../schema` from `myapp/` resolves to `<build root>/schema`. `sourceGlobs` also takes a list if the generator reads several directories.
+
+Despite the name, entries are plain directory paths. There is no glob matching, so `../schema/*.sql` is not something you can write; name the directory and every file under it counts.
+
+With that one line, editing `schema/users.sql`:
+
+- **re-runs** the generator on the next `compile` or `test`, and in your IDE
+- **changes** `myapp`'s remote-cache digest, so no stale cache hit
+- **shows up** in `bleep build invalidated`, as `myapp`
+- **wakes up** `bleep compile --watch` and `bleep sourcegen --watch`
+
+Declaring a directory you don't read is harmless but will re-run the generator when it changes, so keep the declaration honest.
+
+### The other way: `sources` on the script project
+
+Declaring the directory as `sources` (or `resources`) **on the script project** works too, and is the better fit when several generators read the same directory or when the generator wants the files on its own classpath:
+
+```yaml
+projects:
+  scripts:
+    dependencies: build.bleep:bleepscript:${BLEEP_VERSION}
+    # `schema/` is not Scala, but declaring it here is what puts it in the build graph.
+    # Compilers select sources by extension, so the .sql files are simply ignored by compile.
+    sources: ../schema
+
+  myapp:
+    sourcegen: scripts/mypkg.GenTables
+```
+
+Here the path is relative to the *script* project's folder, and the effect reaches every consumer of that script, because each consumer's invalidation folds in the script project's. Use `resources: ../schema` instead of `sources:` if the generator loads the files with `getResourceAsStream` rather than reading from disk. For invalidation the two are equivalent; both are hashed, neither is treated as compilable code.
+
+Which to pick: `sourceGlobs` when one consumer has one external input and you want the declaration next to the `sourcegen:` entry that reads it; `sources` on the script project when the input belongs to the generator itself and every consumer should react to it. Both feed all four mechanisms, so there is no correctness difference — only blast radius, and which file you would rather read the declaration in.
 
 ### Concurrency
 
