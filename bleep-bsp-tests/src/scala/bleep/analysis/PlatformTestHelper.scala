@@ -99,13 +99,7 @@ trait PlatformTestHelper {
   ): Seq[Path] =
     compileForScalaJsWithDeps(srcDir, outDir, scalaVersion, sjsVersion, Seq.empty)
 
-  /** Compile Scala sources for Scala.js with extra dependencies on classpath.
-    *
-    * @param extraDeps
-    *   jars a source file imports, such as a test framework compiled for Scala.js
-    * @return
-    *   classpath including the output dir, scalajs-library, and the extra dependencies
-    */
+  /** Compile Scala sources for Scala.js with extra dependencies on classpath. */
   def compileForScalaJsWithDeps(
       srcDir: Path,
       outDir: Path,

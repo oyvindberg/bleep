@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
 
-/** Records every call the runner makes, letting a test assert on the sequence rather than on a summary count. */
+/** Records every call the runner makes. A test then asserts on the sequence of calls rather than on a summary count. */
 class AdapterEventRecorder extends TestRunnerTypes.TestEventHandler {
   val testStarts = mutable.Buffer[(String, String)]()
   val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
@@ -37,13 +37,11 @@ class AdapterEventRecorder extends TestRunnerTypes.TestEventHandler {
 
 /** Runs a real Scala.js munit suite through `org.scalajs.testing.adapter.TestAdapter`.
   *
-  * The suite compiles Scala sources to `.sjsir`, links them with the test module initializer, and hands the linked JavaScript to the runner. A link with no
-  * main class and `isTest = true` names `org.scalajs.testing.bridge.Bridge.start` as its entry point, which is the socket the adapter connects to.
+  * This test compiles Scala sources to `.sjsir`, links those files as a test module, and hands the linked JavaScript to the runner.
   */
 class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
 
-  /** One suite with one passing test and one failing test. The failing test pins that the runner reports a failure rather than reporting the whole suite as
-    * passed.
+  /** This source declares one suite with one passing test and one failing test. A runner that reported the whole suite as passed would fail on the second test.
     */
   private val munitSource =
     """package example
@@ -59,10 +57,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
       |}
       |""".stripMargin
 
-  /** 
-    * @return
-    *   the linked main module, which the adapter runs under Node
-    */
+  /** @return the linked main module. The adapter runs that module under Node. */
   private def compileAndLinkMunitSuite(tempDir: Path): Path = {
     val srcDir = tempDir.resolve("src")
     writeScalaSource(srcDir, "example", "ArithmeticSuite.scala", munitSource)
@@ -130,5 +125,29 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
       recorder.testFinishes.count(_._3 == TestStatus.Failed) shouldBe 1
       recorder.suiteFinishes should contain(("example.ArithmeticSuite", 1, 1, 0))
     }
+  }
+
+  test("CompilerResolver.getScalaJsTestAdapter: loads the adapter and the Node.js environment") {
+    val loader = CompilerResolver.getScalaJsTestAdapter(DefaultScalaJsVersion).loader
+
+    loader.loadClass("org.scalajs.testing.adapter.TestAdapter").getName shouldBe "org.scalajs.testing.adapter.TestAdapter"
+    loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv").getName shouldBe "org.scalajs.jsenv.nodejs.NodeJSEnv"
+  }
+
+  /** `CompilerTopLoader` hands `sbt.testing.*` to bleep's own classloader. A `Framework` the isolated loader returns is therefore assignable to bleep's
+    * `sbt.testing.Framework`. Narrowing that delegation would break the runner with a `ClassCastException` at run time. This assertion fails at test time
+    * instead.
+    */
+  test("CompilerResolver.getScalaJsTestAdapter: loads sbt.testing.Framework from bleep's own classloader") {
+    val loader = CompilerResolver.getScalaJsTestAdapter(DefaultScalaJsVersion).loader
+
+    loader.loadClass("sbt.testing.Framework") shouldBe classOf[sbt.testing.Framework]
+  }
+
+  test("CompilerResolver.getScalaJsTestAdapter: caches one instance per Scala.js version") {
+    val first = CompilerResolver.getScalaJsTestAdapter(DefaultScalaJsVersion)
+    val second = CompilerResolver.getScalaJsTestAdapter(DefaultScalaJsVersion)
+
+    first.loader shouldBe second.loader
   }
 }
