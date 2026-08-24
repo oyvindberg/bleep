@@ -51,6 +51,14 @@
     "forkToVerifiedGreenColdSeconds": 268,
     "forkToVerifiedGreenColdLabel": "4 min 22 s"
   },
+  "demo": {
+    "$comment": "Numbers the scripted agent session printed on camera, read back out of bleep's own run history by `history diff-timing`. Source of truth is the cast itself. This is a toy build sized to fit in half a minute of video — demo scale, deliberately not comparable to `timings`, which is the 5.1M-line repo.",
+    "source": "bleep-site/static/demos/claude-agents.cast",
+    "copyStateBytes": 756835,
+    "copyStateMs": 71,
+    "coldFirstCompileMs": 3529,
+    "seededFirstCompileMs": 585
+  },
   "tokens": {
     "$comment": "Measured over the live MCP server.",
     "greenCompile": 25,
