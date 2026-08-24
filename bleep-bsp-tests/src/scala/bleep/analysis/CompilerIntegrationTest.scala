@@ -101,7 +101,7 @@ object CompilerTestLibraries {
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
 
-  /** MUnit test library compiled for Scala.js */
+  /** The munit test framework compiled for Scala.js. */
   lazy val munitScalaJsLibrary: Seq[Path] = {
     val deps = Seq(
       Dependency(Module(Organization("org.scalameta"), ModuleName("munit_sjs1_3")), version.VersionConstraint("1.0.0"))
@@ -109,7 +109,7 @@ object CompilerTestLibraries {
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
 
-  /** utest library compiled for Scala.js */
+  /** The utest test framework compiled for Scala.js. */
   lazy val utestScalaJsLibrary: Seq[Path] = {
     val deps = Seq(
       Dependency(Module(Organization("com.lihaoyi"), ModuleName("utest_sjs1_3")), version.VersionConstraint("0.8.4"))

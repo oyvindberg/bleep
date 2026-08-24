@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import scala.collection.mutable
 
-/** A task that reports one event per name it is given, then hands back the nested tasks it was built with. */
+/** This task reports one event for each name the caller gives it. The task then hands back the nested tasks the caller built it with. */
 class StubTask(
     suiteName: String,
     events: List[(String, sbt.testing.Status)],
@@ -14,7 +14,9 @@ class StubTask(
     reportNamesLikeMunit: Boolean
 ) extends sbt.testing.Task {
 
-  /** munit welds the suite name onto the front of both the event name and the selector's test name. Every other framework reports a bare test name. */
+  /** munit welds the suite name onto the front of the event name and onto the front of the selector's test name. Every other framework reports a bare test
+    * name.
+    */
   private def reportedName(testName: String): String =
     if (reportNamesLikeMunit) s"$suiteName.$testName" else testName
 
@@ -54,8 +56,8 @@ class StubRunner(tasksByDef: Array[sbt.testing.TaskDef] => Array[sbt.testing.Tas
   }
 }
 
-/** The driver's contract is the sequence of calls it makes on a `TestEventHandler`. A stub framework pins that sequence with no linker, no binary, and no node
-  * process.
+/** The driver's contract is the sequence of calls the driver makes on a `TestEventHandler`. A stub framework pins that sequence with no linker, no binary, and
+  * no node process.
   */
 class StubFramework(runnerToReturn: StubRunner) extends sbt.testing.Framework {
   def name(): String = "stub"
@@ -71,7 +73,7 @@ object StubFramework {
   }
 }
 
-/** Records every call the driver makes. */
+/** This handler records every call the driver makes. */
 class RecordingHandler extends TestEventHandler {
   val testStarts = mutable.Buffer[(String, String)]()
   val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
@@ -222,7 +224,7 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     runner.doneWasCalled shouldBe true
   }
 
-  /** munit reports an event as `example.AlphaSuite.addition`, which is not a suite name. */
+  /** munit reports an event as `example.AlphaSuite.addition`. That string is not a suite name. */
   test("SbtTestDriver: attributes a munit-shaped event to the task's suite and trims the test name") {
     val task = new StubTask(
       "example.AlphaSuite",
@@ -247,7 +249,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     result.failed shouldBe 1
   }
 
-  /** The counts are read on the calling thread and written on whichever thread the framework calls back on. A `TestAdapter` uses its own. */
+  /** The driver updates the counts on whichever thread the framework calls back on, and takes them on the calling thread. A `TestAdapter` calls back on its own
+    * thread.
+    */
   test("SbtTestDriver: counts events handled on another thread") {
     val task = new StubTask("example.AlphaSuite", List("addition" -> sbt.testing.Status.Success), Array.empty, reportNamesLikeMunit = false) {
       override def execute(handler: sbt.testing.EventHandler, loggers: Array[sbt.testing.Logger]): Array[sbt.testing.Task] = {

@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.analysis.{CompilerResolver, ScalaJsLinkConfig}
 import bleep.bsp.ScalaCollectionReflection.{fromScalaList, fromScalaOption, toScalaList, toScalaMap}
-import bleep.bsp.TestRunnerTypes.*
+import bleep.bsp.TestRunnerTypes.{frameworkClassNames, TerminationReason, TestEventHandler, TestFramework, TestResult, TestSuite}
 import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO, Resource}
 
@@ -10,25 +10,26 @@ import java.nio.file.Path
 
 /** Runs a linked Scala.js test module under Node.
   *
-  * `org.scalajs.testing.adapter.TestAdapter` starts the node process and speaks the sbt-testing protocol to the `org.scalajs.testing.bridge.Bridge` the linker
-  * put in the module. The adapter and the bridge both live outside bleep's classloader, which is why every call into them goes through reflection.
+  * `org.scalajs.testing.adapter.TestAdapter` starts the node process. The adapter speaks the sbt-testing protocol to the `org.scalajs.testing.bridge.Bridge`
+  * the linker put in the module. The adapter and the bridge both live outside bleep's classloader. Every call into the adapter goes through
+  * reflection.
   */
 object ScalaJsTestRunner {
 
   /** Run a linked Scala.js test module through `org.scalajs.testing.adapter.TestAdapter`.
     *
-    * The adapter starts Node and hands back an `sbt.testing.Framework`.
+    * The adapter starts Node. The adapter then hands back an `sbt.testing.Framework`.
     *
     * @param linkedJs
     *   the linked main module
     * @param moduleKind
     *   the module kind the link config used. The adapter needs the matching `Input` case to load the file.
     * @param suites
-    *   the suites to run. An empty list asks the framework to discover its own.
+    *   the suites to run. An empty list asks the framework to discover its own suites.
     * @param framework
     *   the framework whose class names the adapter tries
     * @param eventHandler
-    *   the handler bleep reports test progress through
+    *   bleep reports test progress through this handler
     * @param nodeBinary
     *   the node executable
     * @param env
@@ -69,8 +70,8 @@ object ScalaJsTestRunner {
         }
     }
 
-  /** A resource for a started `TestAdapter`. Its release closes the adapter, which stops the node process the adapter started. A `close()` that throws fails
-    * the run rather than passing quietly.
+  /** A resource for a started `TestAdapter`. Releasing the resource closes the adapter. Closing the adapter stops the node process the adapter started. A
+    * `close()` that throws fails the run rather than passing quietly.
     */
   private def openAdapter(
       loader: ClassLoader,
@@ -104,7 +105,7 @@ object ScalaJsTestRunner {
   /** Ask the adapter which of the framework's class names the linked module declares.
     *
     * @throws NoScalaJsTestFrameworkException
-    *   when the linked module declares none of them
+    *   when the linked module declares none of those class names
     */
   private def loadFramework(loader: ClassLoader, adapter: AnyRef, framework: TestFramework, linkedJs: Path): sbt.testing.Framework = {
     val classNames = frameworkClassNames(framework)
@@ -121,8 +122,7 @@ object ScalaJsTestRunner {
       .getOrElse(throw NoScalaJsTestFrameworkException(framework.name, classNames, linkedJs))
   }
 
-  /** Build the `org.scalajs.jsenv.Input` case that matches the module kind the link used.
-    */
+  /** Build the `org.scalajs.jsenv.Input` case that matches the module kind the link used. */
   private def createInput(loader: ClassLoader, linkedJs: Path, moduleKind: ScalaJsLinkConfig.ModuleKind): Any = {
     val inputClassName = moduleKind match {
       case ScalaJsLinkConfig.ModuleKind.NoModule       => "org.scalajs.jsenv.Input$Script"

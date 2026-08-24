@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.*
+import bleep.bsp.BuildLoader
 import bleep.bsp.protocol.BleepBspProtocol
 import org.scalatest.concurrent.TimeLimits
 import org.scalatest.funsuite.AnyFunSuite
@@ -127,8 +127,8 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** `1.0.toString` renders as `1` under Scala.js and as `1.0` on the JVM. A suite that passes therefore proves the linked JavaScript ran under Node. The same
-    * classes sit on the test classpath as JVM class files, and a run that fell back to the JVM runner would report the assertion as failed.
+  /** `1.0.toString` renders as `1` under Scala.js and as `1.0` on the JVM. A suite that passes therefore proves that the linked JavaScript ran under Node.
+    * These classes also sit on the test classpath as JVM class files. A run that reached the JVM runner instead would report the assertion as failed.
     */
   private val platformSuiteSource =
     """package example
@@ -170,7 +170,7 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           withClue(client.events.mkString("\n")) {
             testResult.statusCode.value shouldBe 1
 
-            // The status code alone would also be Ok for a run that discovered no suite at all. The counts name what actually ran.
+            // The status code alone would also be Ok for a run that discovered no suite at all. The counts say what actually ran.
             val runResult = BleepBspProtocol.TestRunResult
               .decode(new String(testResult.data.get.value, StandardCharsets.UTF_8))
               .fold(error => fail(s"Could not read the test run result: $error"), identity)

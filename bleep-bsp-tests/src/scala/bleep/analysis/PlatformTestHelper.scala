@@ -18,8 +18,8 @@ object PlatformTestHelper {
     fetchNode(DefaultNodeVersion).toAbsolutePath.toString
   }
 
-  /** The scalac flags that make the compiler emit `.sjsir`. Scala 3 declares the Scala.js back end itself. Scala 2 reaches it through the Scala.js compiler
-    * plugin.
+  /** These scalac flags make the compiler emit `.sjsir`. Scala 3 declares the Scala.js back end itself. Scala 2 reaches that back end through the Scala.js
+    * compiler plugin.
     */
   def scalaJsCompilerOptions(scalaVersion: String, sjsVersion: String): List[String] =
     if (scalaVersion.startsWith("3.")) List("-scalajs")
@@ -113,7 +113,13 @@ trait PlatformTestHelper {
   ): Seq[Path] =
     compileForScalaJsWithDeps(srcDir, outDir, scalaVersion, sjsVersion, Seq.empty)
 
-  /** Compile Scala sources for Scala.js with extra dependencies on classpath. */
+  /** Compile Scala sources for Scala.js with extra dependencies on the classpath.
+    *
+    * @param extraDeps
+    *   JAR files the sources import, such as a test framework compiled for Scala.js
+    * @return
+    *   the classpath, which includes the output directory, scalajs-library, and `extraDeps`
+    */
   def compileForScalaJsWithDeps(
       srcDir: Path,
       outDir: Path,

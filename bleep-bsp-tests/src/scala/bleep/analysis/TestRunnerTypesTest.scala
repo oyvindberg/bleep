@@ -5,7 +5,7 @@ import bleep.bsp.protocol.{KillReason, TestStatus}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for the types every non-JVM test runner reports through. */
+/** Every non-JVM test runner reports through the types this suite tests. */
 class TestRunnerTypesTest extends AnyFunSuite with Matchers {
 
   test("TestResult: success when no failures") {
@@ -55,8 +55,8 @@ class TestRunnerTypesTest extends AnyFunSuite with Matchers {
     TestStatus.Cancelled shouldBe a[TestStatus]
   }
 
-  /** `ClasspathTestDiscovery` reports a framework's own `name()` for a fingerprint match and its base-class table's label otherwise. Those two spell the same
-    * framework differently, and both have to reach the same `TestFramework`.
+  /** `ClasspathTestDiscovery` reports a framework's own `name()` for a fingerprint match. `ClasspathTestDiscovery` reports its base-class table's label
+    * otherwise. The two spellings differ for one framework. Both spellings have to reach that framework's `TestFramework`.
     */
   test("TestFramework.fromName: matches both spellings of every framework bleep knows") {
     TestRunnerTypes.TestFramework.fromName("munit") shouldBe TestRunnerTypes.TestFramework.MUnit
@@ -66,7 +66,7 @@ class TestRunnerTypesTest extends AnyFunSuite with Matchers {
     TestRunnerTypes.TestFramework.fromName("ScalaTest") shouldBe TestRunnerTypes.TestFramework.ScalaTest
   }
 
-  /** `Unknown` lists every candidate class name, which asks a `TestAdapter` to try them all. */
+  /** `Unknown` lists every candidate class name. That list asks a `TestAdapter` to try every one of those class names. */
   test("TestFramework.fromName: an unrecognized name reaches Unknown") {
     TestRunnerTypes.TestFramework.fromName("weaver") shouldBe TestRunnerTypes.TestFramework.Unknown
   }

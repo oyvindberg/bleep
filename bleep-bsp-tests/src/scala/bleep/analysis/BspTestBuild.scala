@@ -27,9 +27,9 @@ object BspTestBuild {
       configs.map(cfg => crossName(cfg) -> project(cfg, configs)).toMap
 
     val build = model.Build.Exploded(
-      // `dev` rather than the git-derived version: `buildTarget/test` puts bleep-test-runner on the test classpath, and a git-derived version names a
-      // snapshot nothing ever published. `BleepDevDeps` short-circuits a dev version to the class dirs on this JVM's own classpath, which is the code this
-      // in-process server was built from.
+      // The version is `dev` rather than the git-derived version. `buildTarget/test` puts bleep-test-runner on the test classpath. A git-derived version
+      // points at an unpublished snapshot. `BleepDevDeps` maps a dev version to the class directories on this JVM's own classpath. This
+      // in-process server was built from those directories.
       $version = model.BleepVersion.dev,
       explodedProjects = projects,
       resolvers = model.JsonList.empty,
@@ -82,9 +82,9 @@ object BspTestBuild {
     model.CrossProjectName(model.ProjectName(config.name), crossId = None)
 
   private def project(config: BspTestHarness.ProjectConfig, all: List[BspTestHarness.ProjectConfig]): model.Project = {
-    // Only the fields the server actually reads off the model: dependsOn (for transitive ordering
+    // The server takes only these fields from a model project: dependsOn (for transitive ordering
     // and dependency locking), isTestProject, the platform's main class for `buildTarget/run`, and
-    // the platform and Scala version that `buildTarget/test` dispatches a suite on.
+    // the platform and Scala version `buildTarget/test` matches to pick a test runner.
     val dependsOn = model.JsonSet(config.dependsOn.map(model.ProjectName.apply).toSeq.sorted*)
     val _ = all
     model.Project.empty.copy(
@@ -110,11 +110,11 @@ object BspTestBuild {
       case _ => None
     }
 
-  /** The platform the server's test dispatch matches on. A Scala.js or Scala Native suite reaches its own runner through `platform.name`, and that runner reads
-    * the platform version back out to pick a toolchain.
+  /** The server matches this platform to pick a test runner. A Scala.js or Scala Native suite reaches its own runner through `platform.name`. That runner then
+    * takes the platform version from the platform to pick a toolchain.
     *
     * @throws KotlinPlatformNotModelledException
-    *   for a Kotlin platform. Kotlin dispatch also reads `kotlin.version` off the model project, and no harness test drives a Kotlin suite yet.
+    *   for a Kotlin platform. The server picks a Kotlin test runner from `kotlin.version` together with the platform. This method decides the platform alone.
     */
   private def modelPlatform(config: BspTestHarness.ProjectConfig): Option[model.Platform] =
     config.platform match {
@@ -150,13 +150,16 @@ object BspTestBuild {
         throw KotlinPlatformNotModelledException(kotlin.toString)
     }
 
-  /** The harness cannot lower a Kotlin platform onto a `model.Project` yet.
+  /** `BspTestBuild` builds no `model.Project` for a Kotlin platform yet.
     *
     * @param platform
     *   the platform the caller asked for
     */
   case class KotlinPlatformNotModelledException(platform: String)
-      extends RuntimeException(s"BspTestBuild does not model $platform. Add kotlin.version alongside the platform before a Kotlin suite can dispatch.")
+      extends RuntimeException(
+        s"BspTestBuild builds no model project for $platform. The server picks a Kotlin test runner from kotlin.version together with the platform. " +
+          "Set a Kotlin version on the model project alongside the platform."
+      )
 
   private def resolved(config: BspTestHarness.ProjectConfig, buildPaths: BuildPaths): ResolvedProject =
     ResolvedProject(

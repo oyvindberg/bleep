@@ -4,10 +4,10 @@ import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandl
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import scala.collection.concurrent.TrieMap
 
-/** Runs an `sbt.testing.Framework` and reports what it does to a bleep `TestEventHandler`.
+/** Runs an `sbt.testing.Framework` and reports every event the framework fires to a bleep `TestEventHandler`.
   *
   * Every platform reaches its `Framework` differently. The JVM loads a `Framework` from a classpath. Scala Native and Scala.js each go through a `TestAdapter`
-  * that talks to a separate process. After the platform has a `Framework` the work of running it is the same.
+  * that talks to a separate process. The work of running a `Framework` is the same on all platforms.
   */
 object SbtTestDriver {
 
@@ -18,16 +18,16 @@ object SbtTestDriver {
     def requireNoArgConstructor(): Boolean = true
   }
 
-  /** Run every named suite and report each event to the handler.
+  /** Run each suite the caller asked for and report each event to the handler.
     *
     * @param framework
-    *   the framework, already loaded by whatever the platform uses
+    *   the framework the platform already loaded
     * @param suites
-    *   the suites to run. An empty list asks the framework to discover its own.
+    *   the suites to run. An empty list asks the framework to discover its own suites.
     * @param eventHandler
-    *   the handler bleep reports test progress through
+    *   bleep reports test progress through this handler
     * @param testClassLoader
-    *   the classloader the framework builds its runner against
+    *   the framework builds its runner against this classloader
     * @return
     *   the counts the framework reported, summed across every suite
     */
@@ -45,13 +45,13 @@ object SbtTestDriver {
 
     val tasks = runner.tasks(taskDefs)
 
-    /** A `TestAdapter` handles its events on its own thread. This `TrieMap` lets the calling thread read the counts safely. */
+    /** A `TestAdapter` handles its events on its own thread. This `TrieMap` lets the calling thread observe the counts safely. */
     val suiteCounts = TrieMap.empty[String, SuiteCounts]
 
     /** Report every event from one task against that task's own suite.
       *
-      * A framework is free to put whatever it likes in `Event.fullyQualifiedName`. munit puts the suite name and the test name joined by a dot, which is not a
-      * suite name at all. The `TaskDef` the framework handed back declares the suite. That declaration covers every event the task fires.
+      * A framework is free to put whatever it likes in `Event.fullyQualifiedName`. munit puts the suite name and the test name joined by a dot. That string is
+      * not a suite name. The `TaskDef` the framework handed back declares the suite. That declaration covers every event the task fires.
       */
     def eventHandlerFor(suiteName: String) = new sbt.testing.EventHandler {
       def handle(event: sbt.testing.Event): Unit = {
@@ -109,7 +109,7 @@ object SbtTestDriver {
       def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, OutputChannel.Stderr)
     })
 
-    /** The set of suites already reported as started. */
+    /** The driver has already reported every suite in this map as started. */
     val startedSuites = TrieMap.empty[String, Unit]
 
     def executeTasks(toRun: Array[sbt.testing.Task]): Unit =
@@ -123,11 +123,11 @@ object SbtTestDriver {
 
     executeTasks(tasks)
 
-    // done() is the barrier that flushes events. A Scala.js TestAdapter reports its events over a socket, and Task.execute can return before the last one
-    // arrives.
-    // runner.done() signals the process to shut down.
-    // It may throw if the process's RPC handler doesn't support the done opcode,
-    // but by this point all tests have already executed and the results are captured.
+    // `done()` is the barrier that flushes events. A Scala.js `TestAdapter` reports its events over a socket. `Task.execute` can return before the last
+    // event arrives.
+    // TODO decide what this driver does with a throw from `done()`. Swallowing the exception is fallback code, which bleep's rules forbid. The section
+    // "In scope — add to plan" in dev-notes/plans/fix-655-scalajs-testadapter-plan.md asks which exception each adapter raises and whether a throw here
+    // loses results the run already has.
     try runner.done()
     catch { case _: Exception => () }
 
@@ -142,10 +142,10 @@ object SbtTestDriver {
     TestResult(totals.passed, totals.failed, totals.skipped, totals.ignored, TerminationReason.Completed)
   }
 
-  /** Drop a leading suite name from a reported test name.
+  /** Drops a leading suite name from a reported test name.
     *
-    * munit reports `example.ArithmeticSuite.addition adds` where ScalaTest and utest report `addition adds`. Returns the name unchanged when it does not start
-    * with the suite, which is the case for every framework that already reports a bare test name.
+    * munit reports `example.ArithmeticSuite.addition adds` where ScalaTest and utest report `addition adds`. Returns the name unchanged when the name does not
+    * start with the suite.
     */
   private def stripSuitePrefix(suiteName: String, fullyQualifiedName: String): String =
     if (fullyQualifiedName.startsWith(suiteName + ".")) fullyQualifiedName.substring(suiteName.length + 1)

@@ -394,8 +394,8 @@ object CompilerResolver {
   private def resolveDep(dep: Dep, combo: VersionCombo = VersionCombo.Java): Seq[Path] =
     resolveDepsInOneFetch(Seq(dep), combo)
 
-  /** Resolve several bleep Deps to JAR paths in one Coursier fetch. Coursier reconciles a shared dependency the Deps ask for at two versions. Separate fetches
-    * would put both versions on the classpath.
+  /** Resolve several bleep `Dep`s to JAR paths in one Coursier fetch. Coursier reconciles a shared dependency that two `Dep`s ask for at two versions. Separate
+    * fetches would put both versions on the classpath.
     */
   private def resolveDepsInOneFetch(deps: Seq[Dep], combo: VersionCombo): Seq[Path] = {
     val coursierDeps = deps.map { dep =>
@@ -559,8 +559,7 @@ object CompilerResolver {
     }
   }
 
-  /** The test adapter builds a `JSEnv` from this `scalajs-env-nodejs` version.
-    */
+  /** The test adapter builds a `JSEnv` from this `scalajs-env-nodejs` version. */
   val ScalaJsNodeEnvVersion = "1.6.0"
 
   /** Resolve the Scala.js test adapter together with a Node.js environment. The adapter runs a linked test module under that environment.
@@ -591,9 +590,9 @@ object CompilerResolver {
   /** Get a Scala.js test adapter instance with an isolated classloader.
     *
     * @param scalaJsVersion
-    *   Scala.js version (e.g., "1.16.0")
+    *   the Scala.js version, such as "1.16.0"
     * @return
-    *   compiler instance whose classloader loads `org.scalajs.testing.adapter.TestAdapter` and `org.scalajs.jsenv.nodejs.NodeJSEnv`
+    *   a compiler instance whose classloader loads `org.scalajs.testing.adapter.TestAdapter` and `org.scalajs.jsenv.nodejs.NodeJSEnv`
     */
   def getScalaJsTestAdapter(scalaJsVersion: String): CompilerInstance = {
     val key = InstanceKey("scalajs-test-adapter", scalaJsVersion)

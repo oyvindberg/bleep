@@ -15,27 +15,31 @@ import scala.concurrent.duration.*
 
 /** Runs real Scala.js suites through `org.scalajs.testing.adapter.TestAdapter`.
   *
-  * Each test compiles Scala sources to `.sjsir`, links those files as a test module, and hands the linked JavaScript to the runner.
+  * Each test compiles Scala sources to `.sjsir`. Each test then links those files as a test module and hands the linked JavaScript to the runner.
   */
 class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with BeforeAndAfterAll with PlatformTestHelper {
 
-  /** One directory for every module this suite links. Compiling and linking a module costs far more than running one, and several tests share a module. */
+  /** Every module this suite links goes in a subdirectory of this directory.
+    */
   private lazy val linkRoot: Path = createTempDir("sjs-adapter-links")
 
   override def afterAll(): Unit = deleteRecursively(linkRoot)
 
-  /** The name every fixture below gives its suite class. One name keeps the `TestSuite` each run asks for the same across fixtures. */
+  /** Every fixture in this suite gives its suite class this name. A single class name keeps the `TestSuite` value each run asks for identical to the
+    * `TestSuite` value every other run asks for.
+    */
   private val suiteClassName = "example.ArithmeticSuite"
 
   private val killedByUser: TestRunnerTypes.TerminationReason =
     TestRunnerTypes.TerminationReason.Killed(KillReason.UserRequest)
 
-  /** How long a cancelled run may take before the test calls it a hang. The spinning suite below never returns on its own, so any number well under the
-    * ScalaTest suite timeout proves the kill reached the Node process rather than the run having finished by itself.
+  /** A cancelled run that takes longer than this has hung. The spinning suite never returns on its own. Any duration well under the ScalaTest suite timeout
+    * therefore proves that the kill reached the Node process.
     */
   private val cancellationTimeoutMs = 30000L
 
-  /** This source declares one suite with one passing test and one failing test. A runner that reported the whole suite as passed would fail on the second test.
+  /** This source declares one suite with one passing test and one failing test. A runner that reported the whole suite as passed would fail the assertion on
+    * the failing test.
     */
   private val munitSource =
     """package example
@@ -70,8 +74,9 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
       |}
       |""".stripMargin
 
-  /** Env forwarding is not JVM-only. `bleep test` hands one environment to every platform, and a test reading a variable must see it under Node too. This suite
-    * reports pass or fail purely from `process.env`, and two tests run it with the variable and without.
+  /** `bleep test` hands one environment to every platform. A test that asks for an environment variable must find that variable under Node as well as on the
+    * JVM. This suite passes or fails purely from `process.env`. Two tests run this suite. The first test sets the variable. The second test leaves the variable
+    * unset.
     */
   private val envProbeSource =
     """package example
@@ -102,7 +107,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
     * @param fixtureName
     *   the subdirectory of [[linkRoot]] this fixture compiles and links in
     * @param frameworkJars
-    *   the test framework compiled for Scala.js, which the source imports
+    *   the test framework the source imports, compiled for Scala.js
     * @param moduleKind
     *   the module kind to link with. The runner must pick the matching `Input` case to load the result.
     * @return
@@ -235,7 +240,9 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
     result.failed shouldBe 0
   }
 
-  /** The control for the env case above. The probe genuinely fails without the variable, so a runner that ignored its `env` argument could not pass both. */
+  /** This test is the control for the test that sets the variable. The probe genuinely fails without the variable. A runner that ignored its `env` argument
+    * could not pass both tests.
+    */
   test("ScalaJsTestRunner.runTestsViaAdapter: the env probe fails without the variable") {
     val result =
       runThroughAdapter(envProbeModule, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.MUnit, Map.empty, new RecordingHandler())
@@ -291,7 +298,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
 
   /** Three adapters run at once, each with its own Node process. A runner that shared process state between runs would report the wrong counts. */
   test("ScalaJsTestRunner.runTestsViaAdapter: three runs execute in parallel") {
-    import cats.syntax.parallel._
+    import cats.syntax.parallel.*
 
     val results = (for {
       killSignal <- Outcome.neverKillSignal
@@ -329,7 +336,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
 
   /** `CompilerTopLoader` hands `sbt.testing.*` to bleep's own classloader. A `Framework` the isolated loader returns is therefore assignable to bleep's
     * `sbt.testing.Framework`. Narrowing that delegation would break the runner with a `ClassCastException` at run time. This assertion fails at test time
-    * instead.
+    * instead of at run time.
     */
   test("CompilerResolver.getScalaJsTestAdapter: loads sbt.testing.Framework from bleep's own classloader") {
     val loader = CompilerResolver.getScalaJsTestAdapter(DefaultScalaJsVersion).loader

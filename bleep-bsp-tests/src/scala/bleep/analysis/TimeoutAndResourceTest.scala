@@ -28,12 +28,12 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   val quickTimeout = Span(60, Seconds)
   val mediumTimeout = Span(10, Seconds)
 
-  /** How long a cancelled run may take before a test calls the cancellation broken. The two Scala Native cancellation tests below use it.
+  /** A cancelled run that takes longer than this has a broken cancellation path. The two Scala Native cancellation tests in this suite use this limit.
     *
-    * Each of those tests starts a job that would take 30s or 60s on its own. Returning in any fraction of that is the evidence that the kill reached the
-    * process. The limit is deliberately generous. A tight wall-clock number measures how loaded the machine is rather than the cancellation path, and these
-    * tests run alongside the rest of the suite. A healthy run finishes in under a second, the worst seen on a loaded CI runner is 6074ms, and the shortest
-    * workload being ruled out is 30s.
+    * Each of those tests starts a job that would take 30s or 60s on its own. Returning in any fraction of that duration is the evidence that the kill reached
+    * the process. The limit is deliberately generous. A tight wall-clock number measures how loaded the machine is rather than the cancellation path. These
+    * tests run alongside the rest of the suite. A healthy run finishes in under a second. The worst run seen on a loaded CI runner took 6074ms. The shortest
+    * workload being ruled out takes 30s.
     */
   val cancellationShortCircuitMs = 15000L
 

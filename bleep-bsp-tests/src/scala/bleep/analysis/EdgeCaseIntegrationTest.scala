@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.*
+import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
 import bleep.bsp.protocol.{KillReason, OutputChannel, TestStatus}
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.unsafe.implicits.global
@@ -29,8 +29,8 @@ import scala.concurrent.duration.*
 class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
 
   // Timeouts for different test categories. Each limit guards against a genuine hang rather than measuring speed. Most tests here start `node` or a native
-  // binary, and process startup on a loaded CI runner is not instant, so each limit sits far under the suite-level idle timeout rather than tight against what
-  // a developer machine does.
+  // binary. Process startup on a loaded CI runner is not instant. Each limit therefore sits far under the suite-level idle timeout rather than tight
+  // against what a developer machine does.
   val quickTimeout = Span(30, Seconds) // Tests that should complete without hanging
   val mediumTimeout = Span(10, Seconds) // Tests with moderate work
   val cancellationTimeout = Span(5, Seconds) // Tests that rely on cancellation (should be fast)

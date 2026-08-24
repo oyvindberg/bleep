@@ -96,10 +96,10 @@ object TestRunnerTypes {
     /** Match a framework name against the frameworks bleep knows.
       *
       * `ClasspathTestDiscovery` reports either the `name()` an `sbt.testing.Framework` declares or the label its base-class table uses. munit declares `munit`
-      * where that table says `MUnit`, and utest declares `utest` where the table says `uTest`. The comparison ignores case for that reason.
+      * where that table says `MUnit`. utest declares `utest` where the table says `uTest`. The comparison ignores case for that reason.
       *
       * @return
-      *   `Unknown` for any other name, which asks a `TestAdapter` to try every candidate class name
+      *   `Unknown` for any other framework name. `Unknown` asks a `TestAdapter` to try every candidate class name.
       */
     def fromName(frameworkName: String): TestFramework =
       frameworkName.toLowerCase match {
@@ -112,7 +112,7 @@ object TestRunnerTypes {
 
   /** The `sbt.testing.Framework` implementations to try for each framework, in order.
     *
-    * `Unknown` lists every candidate. A `TestAdapter` takes the whole list and reports which of those classes the linked code declares.
+    * `Unknown` lists every candidate class name. A `TestAdapter` takes the whole list and reports which of those classes the linked code declares.
     */
   val frameworkClassNames: Map[TestFramework, List[String]] = Map(
     TestFramework.MUnit -> List("munit.Framework"),
