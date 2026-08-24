@@ -163,10 +163,11 @@ function Hero() {
         </p>
 
         <p className={styles.heroTagline}>
-          That simplicity turns out to matter most to the newest thing reading
-          your build. Bleep is the best build tool for agentic development: fast
-          enough that every agent can have its own checkout, and quiet enough
-          that none of them drown in build output.
+          That <strong>simplicity</strong> turns out to matter most to the
+          newest thing reading your build. Bleep is the best build tool for{" "}
+          <strong>agentic development</strong>: fast enough that every agent can
+          have its own checkout, and quiet enough that none of them drown in
+          build output.
         </p>
 
         <div className={styles.heroButtons}>
@@ -231,13 +232,6 @@ function Hero() {
             <span className={styles.heroFactSub}>plain YAML, whole repo</span>
           </div>
         </div>
-
-        <p className={styles.heroFactsNote}>
-          The two in the middle are about coding agents. Each one works in its
-          own checkout, so each one pays for a build — and each one pays again,
-          in tokens, to read what that build said.{" "}
-          <Link to="/#agents">Why bleep is built for that</Link>.
-        </p>
       </div>
     </header>
   );

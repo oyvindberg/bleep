@@ -457,27 +457,6 @@
   color: var(--ink-400);
   letter-spacing: 0.04em;
 }
-/* Decoder for the two agent-facing figures above. Deliberately quiet: it is
-   scaffolding for a first-time reader, not a claim competing with the numbers. */
-.heroFactsNote {
-  margin: 1.25rem 0 0;
-  max-width: 62ch;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  line-height: 1.7;
-  color: var(--ink-400);
-}
-.heroFactsNote a {
-  color: var(--ink-200);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 1px;
-  text-decoration-color: var(--red-400);
-}
-.heroFactsNote a:hover {
-  color: var(--ink-50);
-}
-
 @media (max-width: 760px) {
   .heroFacts {
     grid-template-columns: repeat(2, 1fr);
@@ -1697,12 +1676,6 @@
 }
 [data-theme="light"] .heroFactSub {
   color: #6c6359;
-}
-[data-theme="light"] .heroFactsNote {
-  color: #6c6359;
-}
-[data-theme="light"] .heroFactsNote a {
-  color: #2b2724;
 }
 
 [data-theme="light"] .section + .section {
