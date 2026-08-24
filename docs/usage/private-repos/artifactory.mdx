@@ -74,7 +74,7 @@ projects:
       - com.mycompany::scala-utils:0.9.0
 ```
 
-The same resolver entry covers both fetching and publishing. Maven Central is still queried for everything Artifactory doesn't host (unless you remove it via [a custom resolver list](#mirror-mode-artifactory-as-maven-central-proxy)).
+The same resolver entry covers both fetching and publishing. Maven Central is still queried for everything Artifactory doesn't host, and **you cannot turn that off** — see [Mirror mode](#mirror-mode-artifactory-as-maven-central-proxy) below for what that means when your firewall blocks Maven Central.
 
 ## Publishing
 
@@ -121,6 +121,56 @@ bleep publish company-snapshots
 
 Same idea on GitLab CI / Jenkins / Buildkite, write the config file from secrets, then run the publish command. On macOS and Windows runners the path differs; resolve it with [`bleep config file`](/docs/reference/cli/config/file/) at the top of the job.
 
+## Mirror mode (Artifactory as Maven Central proxy)
+
+If your firewall blocks Maven Central and your company fronts it through an Artifactory *virtual*
+(or Nexus *group*) repository, declare that repository as a resolver:
+
+```yaml
+resolvers:
+  - name: maven-virtual
+    type: maven
+    uri: https://artifactory.company.com/artifactory/maven-virtual
+```
+
+It needs its own `authentications:` entry — bleep matches credentials by exact URI, so the virtual
+repo is a different key from the release and snapshot repos even when the user and token are
+identical:
+
+```yaml
+authentications:
+  https://artifactory.company.com/artifactory/maven-virtual:
+    user: alice@company.com
+    password: cmVmdGtuOj...
+```
+
+Resolvers you declare are consulted **before** the defaults, so every artifact your mirror serves is
+fetched from the mirror and Maven Central is never contacted for it.
+
+### Maven Central cannot be removed
+
+There is no `resolvers:` syntax that replaces the default list. `CoursierResolver.coursierRepos`
+builds the repository list as `repos ++ constants.DefaultRepos`, and `constants.DefaultRepos` is
+hardcoded to `~/.ivy2/local` followed by Maven Central. Whatever you write in `bleep.yaml`, those
+two are appended.
+
+If you need Central itself redirected rather than merely out-prioritised, use a Coursier mirror
+file — that *does* work, and is documented under [Coursier mirrors do redirect
+Central](/docs/usage/networking#coursier-mirrors-do-redirect-central).
+
+Without one, leaving the entry in place is fine behind a mirror that serves everything: nothing ever
+needs Central, so nothing ever asks it. It bites in two cases:
+
+- an artifact your virtual repo does **not** serve (excluded by a policy, or not yet cached
+  upstream). Bleep falls through to Maven Central, and on a network that blackholes it you get a
+  connect timeout rather than a clean "not found".
+- a fully air-gapped machine. See [Proxies, TLS & air-gapped
+  networks](/docs/usage/networking) for what has to be pre-seeded and what still breaks.
+
+If your firewall *rejects* rather than drops connections to `repo1.maven.org`, the fall-through
+fails fast and costs you nothing. If it drops them, the per-request timeout is coursier's, not
+bleep's, and bleep has no setting to shorten it.
+
 ## Troubleshooting
 
 ### `401 Unauthorized` when fetching or publishing
@@ -136,14 +186,3 @@ curl -u alice@company.com:<token> https://artifactory.company.com/artifactory/li
 ### `403 Forbidden` on publish
 
 The token has fetch permissions but lacks `Deploy`. In Artifactory: *Admin → Security → Permissions → Edit* the role tied to your token and enable Deploy on the target repo.
-
-### Mirror mode (Artifactory as Maven Central proxy)
-
-If your firewall blocks Maven Central and your company fronts it through Artifactory, add the proxy repo as a resolver. You'll need a separate `authentications:` entry for the proxy URI, same user/password, different key.
-
-```yaml
-resolvers:
-  - name: maven-virtual
-    type: maven
-    uri: https://artifactory.company.com/artifactory/maven-virtual
-```

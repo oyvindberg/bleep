@@ -77,7 +77,7 @@ object TarGz {
             val padding = (512 - (size % 512).toInt) % 512
             if (padding > 0) gzIn.skipNBytes(padding)
 
-            val targetFile = tmpDir.resolve(name)
+            val targetFile = entryPath(tmpDir, name)
             Files.createDirectories(targetFile.getParent)
             Files.write(targetFile, content): Unit
           }
@@ -103,6 +103,19 @@ object TarGz {
       // Clean up temp dir
       try internal.FileUtils.deleteDirectory(tmpDir)
       catch { case _: Exception => () }
+  }
+
+  /** Resolve one archive entry inside the extraction directory, refusing any name that would land outside it.
+    *
+    * Archives come from the build cache, which is a trust boundary: whoever can write to the bucket or cache directory decides these bytes. An entry named
+    * `../../../.ssh/authorized_keys` (or an absolute path) would otherwise be written wherever it points — the classic tar-traversal write primitive. Bleep
+    * only ever packs relative paths under the project directory, so an escaping name is never a legitimate archive: throw instead of extracting it.
+    */
+  private def entryPath(intoDir: Path, name: String): Path = {
+    val resolved = intoDir.resolve(name).normalize()
+    if (!resolved.startsWith(intoDir.normalize()))
+      throw new IllegalArgumentException(s"refusing to extract '$name': it resolves to $resolved, outside $intoDir")
+    resolved
   }
 
   // ============================================================================

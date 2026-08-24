@@ -42,6 +42,9 @@ const config = {
       {
         redirects: [
           { from: "/docs", to: "/docs/installing/" },
+          // `docs/usage/private-repositories.mdx` duplicated the whole `usage/private-repos/`
+          // directory and was in no sidebar. Merged into the index there; keep the old URL alive.
+          { from: "/docs/usage/private-repositories", to: "/docs/usage/private-repos/" },
         ],
       },
     ],

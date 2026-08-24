@@ -4,6 +4,7 @@ package commands
 import bleep.bsp.{BspConnection, BspRequestHelper, BspRifle, BspRifleConfig, BspServerBuilder, BspServerClasspathSource, SetupBleepBsp}
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
+import bleep.history.{DiffBase, Transcript, TranscriptDiff, TranscriptStore}
 import bleep.internal.{bleepLoggers, BspClientDisplayProgress, TransitiveProjects}
 import bleep.testing.{BuildDisplay, BuildEvent, BuildSummary, FancyBuildDisplay, JUnitXmlCollector, PreviousRunState}
 import cats.effect._
@@ -41,6 +42,13 @@ case class ReactiveBsp(
     flamegraph: Boolean,
     cancel: Boolean,
     junitReportDir: Option[Path],
+    /** `--diff`: after the run, print the one-line summary and then ONLY the mechanical diff against a base history entry — the edit-run-what-changed loop as
+      * one command. Resolved and validated BEFORE anything runs, so a doomed diff never costs a compile. With `--watch`, bare `--diff` rolls (each cycle diffs
+      * against the previous cycle's entry) while an explicit id stays a fixed baseline for every cycle.
+      */
+    diffBase: Option[DiffBase],
+    /** How the `--diff` result is printed: rendered for humans ([[OutputMode.Text]], the default) or the underlying diff document ([[OutputMode.Json]]). */
+    diffOutput: OutputMode,
     /** Environment forwarded to forked test processes, in [[BuildMode.Test]] only. Normally `BleepBspProtocol.ClientEnv.current()`; a field rather than a
       * `sys.env` read at the send site so tests can inject values that are provably not in the running JVM's own environment — the only way to prove the value
       * travelled over BSP rather than being inherited by the fork.
@@ -57,10 +65,80 @@ case class ReactiveBsp(
     new AtomicReference[List[BuildEvent]](Nil)
 
   override def run(started: Started): Either[BleepException, Unit] =
-    if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(runOnce)
-    else runOnce(started)
+    prepareDiffRun(started).flatMap { diffRun =>
+      if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(s => runOnce(s, diffRun))
+      else runOnce(started, diffRun)
+    }
 
-  private def runOnce(started: Started): Either[BleepException, Unit] = {
+  /** Resolve and validate `--diff` BEFORE anything runs: an explicit id must exist in this workspace's store and mode-match the command; bare `--diff` must
+    * find a same-mode entry. Resolving up front fails fast (never waste a compile on a doomed diff) and pins the base transcript, so a concurrent client
+    * writing entries mid-run cannot shift what "previous" meant.
+    *
+    * The one lenient case: `--watch` + bare `--diff` is ROLLING — each cycle diffs against the previous cycle's entry, seeded with the newest same-mode entry
+    * from before the watch started. No history yet is fine there: the first cycle renders plain output and rolling starts once it has recorded an entry. An
+    * explicit id under `--watch` is a FIXED baseline instead ("keep comparing to the last green run"), validated up front like the non-watch case.
+    */
+  private[bleep] def prepareDiffRun(started: Started): Either[BleepException, Option[ReactiveBsp.DiffRun]] =
+    diffBase match {
+      case None       => Right(None)
+      case Some(base) =>
+        try {
+          val modeName = mode match {
+            case BuildMode.Compile => "compile"
+            case BuildMode.Test    => "test"
+            case other             => throw new BleepException.Text(s"--diff is only supported for compile and test, not for $other")
+          }
+          val diffRun = (base, watch) match {
+            case (DiffBase.Previous, true) =>
+              ReactiveBsp.DiffRun.Rolling(new AtomicReference(DiffBase.previous(started.buildPaths, modeName)))
+            case _ =>
+              ReactiveBsp.DiffRun.Fixed(DiffBase.resolve(started.buildPaths, modeName, base))
+          }
+          Right(Some(diffRun))
+        } catch { case e: BleepException => Left(e) }
+    }
+
+  /** After a `--diff` run completed and printed its one-line summary: render the mechanical diff against the pre-resolved base (the same JSON `bleep history
+    * diff` prints) plus the timing hint, then advance a rolling base to this run's own entry so the next watch cycle diffs against it.
+    *
+    * `summary.historyId == None` is the sanctioned transcript-write failure: the build already ran, so the command must not fail over a missing diff — one
+    * clear line says it could not be computed. A rolling base is left unchanged in that case.
+    */
+  private def renderDiffAndAdvance(
+      started: Started,
+      diffRun: Option[ReactiveBsp.DiffRun],
+      cycleBase: Option[Transcript],
+      summary: BuildSummary
+  ): Unit =
+    if (diffRun.isDefined) {
+      val target: Option[Transcript] = summary.historyId.map(id => TranscriptStore.read(started.buildPaths, id))
+      cycleBase.foreach { base =>
+        target match {
+          case Some(t) =>
+            val diff = TranscriptDiff.mechanical(base, t)
+            diffOutput match {
+              case OutputMode.Json => println(diff.spaces2)
+              case OutputMode.Text => println(bleep.history.TranscriptDiffRender.text(diff))
+              case OutputMode.Raw  => throw new BleepException.Text("--output raw is not supported for diffs; use text or json")
+            }
+            println(s"timing: bleep history diff ${base.id} ${t.id} --timing")
+          case None =>
+            started.logger.warn("--diff: this run produced no history entry (transcript write failed or older compile server); the diff could not be computed")
+        }
+      }
+      diffRun.foreach {
+        case ReactiveBsp.DiffRun.Rolling(ref) => target.foreach(t => ref.set(Some(t)))
+        case _: ReactiveBsp.DiffRun.Fixed     => ()
+      }
+    }
+
+  private[bleep] def runOnce(started: Started, diffRun: Option[ReactiveBsp.DiffRun]): Either[BleepException, Unit] = {
+    // The base THIS cycle diffs against, captured before the run: fixed bases were resolved up front, a rolling base is whatever the previous cycle recorded.
+    // None while a rolling watch has no history yet — that cycle renders plain output.
+    val diffCycleBase: Option[Transcript] = diffRun.flatMap {
+      case ReactiveBsp.DiffRun.Fixed(base)  => Some(base)
+      case ReactiveBsp.DiffRun.Rolling(ref) => ref.get()
+    }
     // For `bleep test --only-tag slow`, prune projects whose `testTags` declare none of the requested tags before BSP dispatch.
     // The suite-level filter inside the BSP server would catch this too, but pruning here avoids compiling those projects in the first place.
     val candidateProjects: Set[model.CrossProjectName] = projects.toSet
@@ -114,7 +192,7 @@ case class ReactiveBsp(
 
     started.bspServerClasspathSource match {
       case BspServerClasspathSource.InProcess(connect) =>
-        runInProcess(started, connect, targetProjects, filterCtx)
+        runInProcess(started, connect, targetProjects, filterCtx, diffRun, diffCycleBase)
       case BspServerClasspathSource.FromCoursier(resolver) =>
         SetupBleepBsp(
           compileServerMode = started.config.compileServerModeOrDefault,
@@ -128,7 +206,7 @@ case class ReactiveBsp(
           case Left(err) =>
             Left(err)
           case Right(config) =>
-            runWithBleepBsp(started, config, targetProjects, filterCtx)
+            runWithBleepBsp(started, config, targetProjects, filterCtx, diffRun, diffCycleBase)
         }
     }
   }
@@ -138,7 +216,9 @@ case class ReactiveBsp(
       started: Started,
       connect: ryddig.Logger => Resource[IO, BspConnection],
       targetProjects: Set[model.CrossProjectName],
-      filterContext: Option[bleep.testing.FilterContext]
+      filterContext: Option[bleep.testing.FilterContext],
+      diffRun: Option[ReactiveBsp.DiffRun],
+      diffCycleBase: Option[Transcript]
   ): Either[BleepException, Unit] = {
     val bspLogger = started.logger
     val diagLog: String => Unit = _ => ()
@@ -193,11 +273,12 @@ case class ReactiveBsp(
       _ <- eventConsumerFiber.joinWithNever
       _ <- writeJUnitReports(started, junitReportDir, junitCollector)
       summary <- signalCompletion
-      _ <- display.printSummary(filterContext)
+      _ <- display.printSummary(filterContext, failureDetails = diffCycleBase.isEmpty)
     } yield summary
 
     try {
       val summary = program.unsafeRunSync()
+      renderDiffAndAdvance(started, diffRun, diffCycleBase, summary)
       resultFromSummary(summary)
     } catch {
       case ex: Exception =>
@@ -209,7 +290,9 @@ case class ReactiveBsp(
       started: Started,
       config: BspRifleConfig,
       targetProjects: Set[model.CrossProjectName],
-      filterContext: Option[bleep.testing.FilterContext]
+      filterContext: Option[bleep.testing.FilterContext],
+      diffRun: Option[ReactiveBsp.DiffRun],
+      diffCycleBase: Option[Transcript]
   ): Either[BleepException, Unit] = {
 
     // Determine effective mode and logger upfront (no IO needed)
@@ -227,6 +310,8 @@ case class ReactiveBsp(
         bleepLoggers.silent
       case DisplayMode.NoTui     => started.logger
       case DisplayMode.DiffWatch => started.logger
+      // --quiet promises less output: the daemon-connection chatter (classpath, ensuring, connecting) is not part of failures-and-summary
+      case DisplayMode.Quiet => started.logger.withMinLogLevel(ryddig.LogLevel.warn)
     }
 
     // Pre-create diagnostic log writer OUTSIDE IO monad for faster startup
@@ -265,6 +350,8 @@ case class ReactiveBsp(
       displayAndCompletionAndQuit <- effectiveMode match {
         case DisplayMode.NoTui =>
           BuildDisplay.create(false, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
+        case DisplayMode.Quiet =>
+          BuildDisplay.create(true, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
         case DisplayMode.DiffWatch =>
           BuildDisplay
             .createDiffWatch(started.logger, mode, previousRunState.get())
@@ -454,7 +541,7 @@ case class ReactiveBsp(
 
       // Always signal completion to TUI (even if BSP failed or user quit)
       summary <- signalCompletion
-      _ <- display.printSummary(filterContext)
+      _ <- display.printSummary(filterContext, failureDetails = diffCycleBase.isEmpty)
       // Update previousRunState from collected events (only in DiffWatch mode)
       _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
       _ <- IO.delay(started.logger.info(serverLogLine(config)))
@@ -478,6 +565,8 @@ case class ReactiveBsp(
     try {
       val summary = program.unsafeRunSync()
       summaryOpt = Some(summary)
+      // The TUI path prints its final summary in the `finally` below; the diff must follow it, so it renders there instead.
+      if (!isTui) renderDiffAndAdvance(started, diffRun, diffCycleBase, summary)
       resultFromSummary(summary)
     } catch {
       case ex: Exception =>
@@ -491,7 +580,7 @@ case class ReactiveBsp(
         val durationMs = System.currentTimeMillis() - startTime
         summaryOpt match {
           case Some(summary) =>
-            printFinalSummary(started, summary.copy(filterContext = filterContext))
+            printFinalSummary(started, summary.copy(filterContext = filterContext), failureDetails = diffCycleBase.isEmpty)
           case None =>
             errorOpt match {
               case Some(err) => printErrorSummary(started, err, durationMs)
@@ -501,6 +590,7 @@ case class ReactiveBsp(
         started.logger.info(serverLogLine(config))
         if (flamegraph)
           started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)")
+        summaryOpt.foreach(summary => renderDiffAndAdvance(started, diffRun, diffCycleBase, summary))
       }
   }
 
@@ -535,9 +625,9 @@ case class ReactiveBsp(
   }
 
   /** Print final summary after TUI exits - ALWAYS shows what happened */
-  private def printFinalSummary(started: Started, summary: BuildSummary): Unit = {
+  private def printFinalSummary(started: Started, summary: BuildSummary, failureDetails: Boolean): Unit = {
     val logger = started.logger
-    BuildSummary.formatSummary(summary, mode).foreach(logger.info(_))
+    BuildSummary.formatSummary(summary, mode, failureDetails).foreach(logger.info(_))
   }
 
   /** Create BSP client that intercepts events and forwards to display */
@@ -602,21 +692,47 @@ case class ReactiveBsp(
   ): IO[Unit] = {
     val commonArgs = if (flamegraph) List("--flamegraph") else Nil
 
+    // The daemon persisted a transcript for this request and put its id in the response — surface it so the summary can point at `bleep history show <id>`.
+    // Absence (older daemon, failed write) is sanctioned: no event, no summary line.
+    def emitHistoryRecorded(historyId: Option[Long]): IO[Unit] =
+      historyId match {
+        case Some(id) => eventQueue.offer(Some(BuildEvent.HistoryRecorded(id, System.currentTimeMillis())))
+        case None     => IO.unit
+      }
+
+    def historyIdFromCompileResult(result: bsp4j.CompileResult): Option[Long] =
+      for {
+        dataKind <- Option(result.getDataKind)
+        if dataKind == BleepBspProtocol.HistoryIdDataKind
+        data <- Option(result.getData)
+        payload <- BleepBspProtocol.HistoryIdPayload.decode(data.toString) match {
+          case Right(p)  => Some(p)
+          case Left(err) =>
+            bspLogger.warn(s"Failed to decode history-id payload: ${err.getMessage}")
+            None
+        }
+      } yield payload.historyId
+
+    def compileEmittingHistoryId(mkParams: => bsp4j.CompileParams): IO[Unit] =
+      BspRequestHelper
+        .callCancellable(server.buildTargetCompile(mkParams))
+        .flatMap(result => emitHistoryRecorded(historyIdFromCompileResult(result)))
+
     mode match {
       case BuildMode.Compile =>
-        BspRequestHelper.callCancellable {
+        compileEmittingHistoryId {
           val params = new bsp4j.CompileParams(targets.asJava)
           if (commonArgs.nonEmpty) params.setArguments(commonArgs.asJava)
-          server.buildTargetCompile(params)
-        }.void
+          params
+        }
 
       case BuildMode.Link(_) =>
-        BspRequestHelper.callCancellable {
+        compileEmittingHistoryId {
           val params = new bsp4j.CompileParams(targets.asJava)
           val args = linkOptions.map(_.toArgs).getOrElse(List("--link")) ++ commonArgs
           params.setArguments(args.asJava)
-          server.buildTargetCompile(params)
-        }.void
+          params
+        }
 
       case BuildMode.Test =>
         BspRequestHelper
@@ -666,7 +782,8 @@ case class ReactiveBsp(
                         timestamp = System.currentTimeMillis()
                       )
                     )
-                  )
+                  ) >>
+                  emitHistoryRecorded(result.historyId)
               case None =>
                 IO(diagLog("[TestRunResult] NOT decoded - None"))
             }.handleErrorWith { e =>
@@ -781,7 +898,7 @@ class ReactiveBspClient(
                 if (progressCount <= 10 || progressCount % 500 == 0)
                   diagLog(s"[progress#$progressCount] $eventType")
             }
-            convertToBuildEvent(event).foreach(emit)
+            BuildEvent.fromProtocol(event).foreach(emit)
           case Left(err) =>
             diagLog(s"[progress#$progressCount] decode FAILED: ${err.getMessage} json=${jsonStr.take(200)}")
         }
@@ -837,119 +954,6 @@ class ReactiveBspClient(
       case _: Exception => None
     }
 
-  /** Convert BleepBspProtocol event to BuildEvent */
-  private def convertToBuildEvent(event: BleepBspProtocol.Event): Option[BuildEvent] = {
-    import BleepBspProtocol.{Event => PE}
-
-    event match {
-      case PE.CompileStarted(project, timestamp) =>
-        Some(BuildEvent.CompileStarted(project, timestamp))
-
-      case PE.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, timestamp) =>
-        Some(BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, timestamp))
-
-      case PE.CompileProgress(project, percentage, timestamp) =>
-        Some(BuildEvent.CompileProgress(project, percentage, timestamp))
-
-      case PE.CompilePhaseChanged(project, phase, trackedApis, timestamp) =>
-        Some(BuildEvent.CompilePhaseChanged(project, phase, trackedApis, timestamp))
-
-      case PE.CompileFinished(project, status, durationMs, diagnostics, skippedBecause, timestamp) =>
-        Some(BuildEvent.CompileFinished(project, status, durationMs, timestamp, diagnostics, skippedBecause))
-
-      case PE.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp) =>
-        Some(BuildEvent.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp))
-
-      case PE.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp) =>
-        Some(BuildEvent.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp))
-
-      case PE.SuitesDiscovered(project, suites, totalDiscovered, timestamp) =>
-        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, timestamp))
-
-      case PE.SuiteStarted(project, suite, timestamp) =>
-        Some(BuildEvent.SuiteStarted(project, suite, timestamp))
-
-      case PE.TestStarted(project, suite, test, timestamp) =>
-        Some(BuildEvent.TestStarted(project, suite, test, timestamp))
-
-      case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location) =>
-        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp, location))
-
-      case PE.SuiteFinished(project, suite, outcome, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteFinished(project, suite, outcome, durationMs, timestamp))
-
-      case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
-        // protocol's `threadDump: Option[String]` carries the full HotSpot dump text from jstack;
-        // park it in singleThreadStack so BuildState can hang it off failure.throwable for the summary's Timeouts section.
-        Some(BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump.map(d => bleep.testing.ThreadDumpInfo(0, Some(d), None)), timestamp))
-
-      case PE.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp))
-
-      case PE.SuiteCancelled(project, suite, reason, timestamp) =>
-        Some(BuildEvent.SuiteCancelled(project, suite, reason, timestamp))
-
-      case PE.ProjectSkipped(project, reason, timestamp) =>
-        Some(BuildEvent.ProjectSkipped(project, reason, timestamp))
-
-      case PE.Output(project, suite, line, channel, timestamp) =>
-        Some(BuildEvent.Output(project, suite, line, channel, timestamp))
-
-      case PE.Error(message, details, timestamp) =>
-        Some(BuildEvent.Error(message, details, timestamp))
-
-      case PE.LinkStarted(project, platform, timestamp) =>
-        Some(BuildEvent.LinkStarted(project, platform, timestamp))
-
-      case PE.LinkFinished(project, success, durationMs, _, timestamp, platform, error) =>
-        if (success)
-          Some(BuildEvent.LinkSucceeded(project, platform, durationMs, timestamp))
-        else
-          Some(BuildEvent.LinkFailed(project, platform, durationMs, error.getOrElse("Link failed"), timestamp))
-
-      case PE.SourcegenStarted(scriptMain, forProjects, timestamp) =>
-        Some(BuildEvent.SourcegenStarted(scriptMain, forProjects, timestamp))
-
-      case PE.SourcegenFinished(scriptMain, success, durationMs, error, timestamp) =>
-        Some(BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, timestamp))
-
-      case PE.ResolveAnnotationProcessorsStarted(_, _) =>
-        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
-
-      case PE.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
-        Some(BuildEvent.ResolveAnnotationProcessorsFinished(project, success, durationMs, error, timestamp))
-
-      case PE.RunSymbolProcessorsStarted(_, _) =>
-        None // No corresponding BuildEvent — the started event is purely BSP-client visibility
-
-      case PE.RunSymbolProcessorsFinished(project, success, durationMs, error, _, timestamp) =>
-        Some(BuildEvent.RunSymbolProcessorsFinished(project, success, durationMs, error, timestamp))
-
-      case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
-        Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))
-
-      case PE.WorkspaceReady(timestamp) =>
-        Some(BuildEvent.WorkspaceReady(timestamp))
-
-      case PE.LockContention(project, waitingMs, timestamp) =>
-        Some(BuildEvent.LockContention(project, waitingMs, timestamp))
-
-      case PE.LockAcquired(project, waitedMs, timestamp) =>
-        Some(BuildEvent.LockAcquired(project, waitedMs, timestamp))
-
-      // Events not relevant for BuildDisplay
-      case PE.TestRunFinished(_, _, _, _, _, _) => None
-      case PE.DiscoveryStarted(_, _)            => None
-      case PE.BuildInitialized(_, _, _)         => None
-      case PE.ProjectStateChanged(_, _, _, _)   => None
-      case PE.BuildFinished(_, _, _)            => None
-      case PE.LinkProgress(_, _, _)             => None
-      case PE.RunStarted(_, _, _)               => None
-      case PE.RunOutput(_, _, _, _)             => None
-      case PE.RunFinished(_, _, _, _)           => None
-      case PE.LogMessage(_, _, _, _)            => None
-    }
-  }
 }
 
 object ReactiveBsp {
@@ -959,13 +963,28 @@ object ReactiveBsp {
     case object ServerCrashed extends BspAttemptResult
   }
 
+  /** How `--diff` behaves across run cycles, decided once in [[ReactiveBsp.prepareDiffRun]] before anything runs. */
+  private[bleep] sealed trait DiffRun
+  private[bleep] object DiffRun {
+
+    /** One pre-resolved, pre-validated base for every cycle: an explicit `--diff=<id>`, or bare `--diff` without `--watch` (a single run has a single base). */
+    case class Fixed(base: Transcript) extends DiffRun
+
+    /** `--watch` + bare `--diff`: each cycle diffs against the previous cycle's recorded entry. The ref is seeded with the newest same-mode entry from before
+      * the watch started (None when there is no history yet — the first cycle then renders plain output) and advanced by [[ReactiveBsp.renderDiffAndAdvance]].
+      */
+    case class Rolling(ref: AtomicReference[Option[Transcript]]) extends DiffRun
+  }
+
   /** Create compile-bsp command */
   def compile(
       watch: Boolean,
       projects: Array[model.CrossProjectName],
       displayMode: DisplayMode,
       flamegraph: Boolean,
-      cancel: Boolean
+      cancel: Boolean,
+      diffBase: Option[DiffBase],
+      diffOutput: OutputMode
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
     projects = projects,
@@ -981,6 +1000,8 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
+    diffBase = diffBase,
+    diffOutput = diffOutput,
     clientEnv = Map.empty
   )
 
@@ -998,6 +1019,8 @@ object ReactiveBsp {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[Path],
+      diffBase: Option[DiffBase],
+      diffOutput: OutputMode,
       clientEnv: Map[String, String]
   ): ReactiveBsp = ReactiveBsp(
     watch = watch,
@@ -1014,6 +1037,8 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = junitReportDir,
+    diffBase = diffBase,
+    diffOutput = diffOutput,
     clientEnv = clientEnv
   )
 
@@ -1040,6 +1065,8 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
+    diffBase = None,
+    diffOutput = OutputMode.Text,
     clientEnv = Map.empty
   )
 }

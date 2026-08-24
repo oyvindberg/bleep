@@ -39,9 +39,9 @@ Every requirement of it lands in one of the four primitives. Here is the whole i
 | Run the application in dev mode | One Java script that forks a JVM |
 | Run with prod tuning | A second Java script with different JVM args |
 
-Six lines of fluent Java per script, three scripts total. A 200-line
-`bleep-plugin-spring-boot` artifact wrapping Spring's published
-`spring-boot-loader-tools` API. No new primitive in bleep. No build
+Six lines of fluent Java per script, three scripts total. Behind them,
+`bleep-plugin-spring-boot`: three classes, about 600 lines, wrapping
+Spring's published `spring-boot-loader-tools` API. No new primitive in bleep. No build
 phase. No plugin lifecycle.
 
 ## The wiring, in `bleep.yaml`

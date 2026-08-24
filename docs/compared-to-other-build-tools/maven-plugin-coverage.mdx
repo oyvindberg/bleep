@@ -13,13 +13,27 @@ twenty years of Maven, is: *what about all my plugins?*
 
 This page is the answer. It surveys the 50 most-used Maven plugins by
 real-world usage and shows where each one lands in bleep's model.
-**Forty-seven out of 50 fit cleanly.** The three that don't only exist
-because Maven's plugin system does: scaffolding Maven projects,
-building Maven plugins, and testing Maven plugins. None of them apply
-to bleep.
 
-The remaining concern from a previous version of this page was Spring
-Boot. That one was real, and it's now solved: see
+Counted straight off the table below, with no rounding in bleep's
+favour:
+
+| Where it lands | Count | What you do |
+|---|---|---|
+| 🟢 Built in | **17** | Nothing. It's a bleep command or part of one |
+| ⚙️ Sourcegen | **6** | Point bleep's [sourcegen](/docs/concepts/sourcegen) at the generator |
+| 📝 You write it yourself | **19** | Write a `main` in your repo |
+| 🟢+📝 / 🟢+⚙️ Part built-in | **5** | Primitive for the common case, script for the edge |
+| 🔧 Meta to Maven | **3** | Nothing. These only exist to serve Maven's plugin system |
+
+**Nineteen of the fifty are "write it yourself."** That's the number
+worth arguing about, so [the argument is right
+here](#the-19-you-write-yourself) rather than buried at the bottom.
+It's a good deal, but it is a trade, not a freebie, and a page that
+hid the number would deserve the eye-roll it got.
+
+The other honest caveat is Spring Boot, which an earlier version of
+this page flagged as the one genuinely hard case. That one is now
+solved: see
 [Spring Boot proves the model](/docs/spring-boot-proves-the-model) for
 the design argument and
 [the tutorial](/docs/tutorials/spring-boot) for the working setup.
@@ -47,9 +61,9 @@ but are dropped here. They're listed at the end with reasons.
 
 | Symbol | Category | What it means |
 |---|---|---|
-| 🟢 | Built-in | Bleep handles this out of the box. Either a CLI primitive (`compile`, `test`, `package`, `link`, `publish`, `clean`, `run`) or a script shipped in bleep's standard library (`bleep-plugin-pgp`, `bleep-plugin-sonatype` including the new Central Portal API, `bleep-plugin-dynver`, `bleep-plugin-ci-release`, `bleep-plugin-native-image`, `bleep-plugin-spring-boot`) |
+| 🟢 | Built-in | Bleep handles this out of the box. Either a CLI command (`compile`, `test`, `run`, `link`, `dist`, `publish`, `clean`, `sourcegen`, `build update-deps`) or a library bleep publishes and maintains (PGP signing, Sonatype Central and legacy OSSRH, and dynver live in `bleep-core` behind [`bleep publish`](/docs/reference/cli/publish/); `bleep-plugin-native-image` and `bleep-plugin-spring-boot` are separate artifacts) |
 | ⚙️ | Sourcegen | Maps to bleep's sourcegen mechanism. The plugin produces files the compiler reads, which is exactly what sourcegen is for |
-| 📝 | User script | A `main` in your repo. Clear path, modest engineering. Typical case: distribution concerns (Docker, signing, doc gen, CI glue, migrations) |
+| 📝 | You write it yourself | A `main` in your repo. Ordinary code you own, run when you say so. Typical case: distribution concerns (Docker, WAR, uber-JARs, coverage, linters, migrations, CI glue). See [the argument for this](#the-19-you-write-yourself) |
 | 🔧 | Meta to Maven | Only exists because Maven plugins exist. No equivalent needed |
 
 ## The list
@@ -60,20 +74,20 @@ but are dropped here. They're listed at the end with reasons.
 | 2 | `org.apache.maven.plugins:maven-source-plugin` | Source JAR for publishing | Part of `bleep publish` | 🟢 Built-in |
 | 3 | `org.apache.maven.plugins:maven-javadoc-plugin` | Javadoc JAR for publishing | Part of `bleep publish` | 🟢 Built-in |
 | 4 | `org.apache.maven.plugins:maven-surefire-plugin` | Unit tests | `bleep test` | 🟢 Built-in |
-| 5 | `org.apache.maven.plugins:maven-jar-plugin` | Build JAR | Part of `bleep package` | 🟢 Built-in |
-| 6 | `org.apache.maven.plugins:maven-gpg-plugin` | PGP-sign artifacts | `bleep-plugin-pgp` | 🟢 Built-in |
-| 7 | `org.sonatype.plugins:nexus-staging-maven-plugin` | OSSRH staging (legacy) | `bleep-plugin-sonatype` | 🟢 Built-in |
-| 8 | `org.apache.felix:maven-bundle-plugin` | OSGi bundle and MANIFEST.MF | Script: write manifest, package | 📝 Script |
-| 9 | `org.apache.maven.plugins:maven-release-plugin` | Tag, bump, stage release | DynVer + `ci-release`; version from git tag | 🟢 Built-in |
-| 10 | `org.apache.maven.plugins:maven-assembly-plugin` | Custom distribution archives | Script using bleep's packaging API | 📝 Script |
-| 11 | `org.sonatype.central:central-publishing-maven-plugin` | Publish to new Sonatype Central Portal | `bleep-plugin-sonatype` (new Central API) | 🟢 Built-in |
+| 5 | `org.apache.maven.plugins:maven-jar-plugin` | Build JAR | Part of `bleep publish` and `bleep dist` (`bleep.packaging.createJar`) | 🟢 Built-in |
+| 6 | `org.apache.maven.plugins:maven-gpg-plugin` | PGP-sign artifacts | Part of `bleep publish` (liberated sbt-pgp, in `bleep-core`) | 🟢 Built-in |
+| 7 | `org.sonatype.plugins:nexus-staging-maven-plugin` | OSSRH staging (legacy) | `bleep publish sonatype` with `sonatypeCredentialHost: oss.sonatype.org` | 🟢 Built-in |
+| 8 | `org.apache.felix:maven-bundle-plugin` | OSGi bundle and MANIFEST.MF | Script: write manifest, call `bleep.packaging.createJar` | 📝 Script |
+| 9 | `org.apache.maven.plugins:maven-release-plugin` | Tag, bump, stage release | DynVer + the liberated sbt-ci-release; version derived from the git tag | 🟢 Built-in |
+| 10 | `org.apache.maven.plugins:maven-assembly-plugin` | Custom distribution archives | Script using `bleep.packaging` | 📝 Script |
+| 11 | `org.sonatype.central:central-publishing-maven-plugin` | Publish to new Sonatype Central Portal | `bleep publish sonatype` (Central Portal is the default) | 🟢 Built-in |
 | 12 | `org.apache.maven.plugins:maven-shade-plugin` | Uber-JAR with relocation | Script using bleep packaging | 📝 Script |
 | 13 | `org.apache.maven.plugins:maven-dependency-plugin` | Tree, copy, unpack, analyze | Native for inspection; script for copy/unpack | 🟢 + 📝 |
 | 14 | `org.jacoco:jacoco-maven-plugin` | Test coverage | Script wires javaagent into bleep's test JVM args | 📝 Script |
-| 15 | `org.apache.maven.plugins:maven-enforcer-plugin` | Build-time rules | JDK and deps via `bleep.yaml`; rule sets via script | 📝 Mixed |
+| 15 | `org.apache.maven.plugins:maven-enforcer-plugin` | Build-time rules | JDK is pinned by `jvm:` in `bleep.yaml`; arbitrary rule sets need a script | 📝 Script |
 | 16 | `org.apache.maven.plugins:maven-failsafe-plugin` | Integration tests | Just another project with `isTestProject: true` | 🟢 Built-in |
 | 17 | `org.apache.maven.plugins:maven-deploy-plugin` | Upload artifacts | `bleep publish` | 🟢 Built-in |
-| 18 | `org.apache.maven.plugins:maven-install-plugin` | Install to local repo | `bleep publish-local` | 🟢 Built-in |
+| 18 | `org.apache.maven.plugins:maven-install-plugin` | Install to local repo | [`bleep publish local-ivy`](/docs/reference/cli/publish/local-ivy/) | 🟢 Built-in |
 | 19 | `org.apache.maven.plugins:maven-clean-plugin` | Delete `target/` | `bleep clean` | 🟢 Built-in |
 | 20 | `org.apache.maven.plugins:maven-resources-plugin` | Copy resources, filter | Native (resources); sourcegen (filtering) | 🟢 + ⚙️ |
 | 21 | `org.springframework.boot:spring-boot-maven-plugin` | Fat JAR, run, build-info, build-image, AOT | `bleep-plugin-spring-boot` — see [the tutorial](/docs/tutorials/spring-boot) | 🟢 Built-in |
@@ -107,39 +121,90 @@ but are dropped here. They're listed at the end with reasons.
 | 49 | `org.jsonschema2pojo:jsonschema2pojo-maven-plugin` | JSON Schema to Java POJO | Sourcegen | ⚙️ Sourcegen |
 | 50 | `de.thetaphi:forbiddenapis` | Banned API checker | Pre-commit or CI script | 📝 Script |
 
-## What this proves
+## The count
 
-The 50 most-used Maven plugins decompose into a handful of categories
-that bleep already handles:
+The 50 most-used Maven plugins decompose into five groups:
 
-- **17 plugins are built-ins.** Compile, test, package, publish, sign,
-  Sonatype Central, native-image, the version-bump dance, and the full
+- **17 are built in** (rows 1–7, 9, 11, 16–19, 21, 22, 28, 45).
+  Compile, test, JARs, deploy, install, clean, PGP signing, Sonatype
+  Central and legacy OSSRH staging, the release version dance,
+  integration tests, dependency-version bumps, Kotlin, Scala, and the
   Spring Boot integration via
   [`bleep-plugin-spring-boot`](/docs/spring-boot-proves-the-model). The
-  plugin you would have used in Maven, you don't need to think about in
-  bleep.
-- **6 plugins are sourcegen.** Avro, OpenAPI Generator, ANTLR, JAXB2,
-  MyBatis Generator, jsonschema2pojo. Every one of these is a schema or
-  IDL feeding a code generator. Bleep's
-  [sourcegen mechanism](/docs/concepts/sourcegen) is built for exactly
-  this shape.
-- **19 plugins are user scripts.** Container builds, doc generation,
-  integration-test sidecars, CI glue, database migrations, coverage
-  uploads, license headers, ad-hoc Ant-style steps, enforcer rules.
-  They consume what the compiler produced, run when you say so, and
-  don't need a task DAG to make sense.
-- **5 plugins span built-in plus a script or sourcegen edge.**
-  Resource filtering, dependency inspection, exec, build helpers,
-  frontend tooling. Clean primitive path for the common case, script
-  or sourcegen for the edge.
+  plugin you would have configured in Maven is something you don't
+  think about in bleep.
+- **6 are sourcegen** (rows 35, 36, 46–49). Avro, OpenAPI Generator,
+  ANTLR, JAXB2, MyBatis Generator, jsonschema2pojo. Every one is a
+  schema or IDL feeding a code generator, which is exactly the shape
+  [sourcegen](/docs/concepts/sourcegen) exists for.
+- **19 you write yourself** (rows 8, 10, 12, 14, 15, 24, 25, 26, 29,
+  30, 32–34, 37–40, 42, 50). Container builds, uber-JARs, WARs, OSGi
+  bundles, coverage, linters, license headers, database migrations,
+  analysis uploads, ad-hoc steps, enforcer rules.
+  [Argued below.](#the-19-you-write-yourself)
+- **5 are part built-in, part script or sourcegen** (rows 13, 20, 23,
+  27, 31). Resource filtering, dependency inspection, exec, build
+  helpers, frontend tooling. Clean primitive path for the common case,
+  a script for the edge.
+- **3 are meta to Maven** (rows 41, 43, 44). `maven-plugin-plugin` and
+  `maven-invoker-plugin` are infrastructure for authoring and testing
+  Maven plugins; `maven-archetype-plugin` scaffolds Maven projects from
+  XML archetypes. Without a plugin system or Maven-shaped projects,
+  bleep needs none of them.
 
-That accounts for **47 out of 50** by mechanisms that already exist.
+So: **20 of 50 need nothing from you** — 17 built in, and 3 that
+evaporate along with the plugin system. **11 more are configuration**:
+6 sourcegen entries, 5 hybrids where the primitive covers the common
+case. **19 are a program you write.** 20 + 11 + 19 = 50.
 
-The remaining three only exist because Maven's plugin system does:
-`maven-plugin-plugin` and `maven-invoker-plugin` are infrastructure
-for authoring and testing Maven plugins, and `maven-archetype-plugin`
-scaffolds Maven projects from XML archetypes. Without a plugin system
-or Maven-shaped projects, bleep needs none of them.
+## The 19 you write yourself
+
+This is the honest cost of refusing a plugin system, and it deserves a
+straight argument rather than a symbol in a table.
+
+**What's actually in the 19.** Docker and Jib, WAR and assembly and
+shade and OSGi bundles, JaCoCo, Checkstyle and PMD and forbiddenapis
+and license headers, Flyway and Liquibase, Sonar and Coveralls
+uploads, `maven-scm`, `properties-maven-plugin`, `antrun`, enforcer
+rules. Not one of them compiles anything. Every one is "run this
+program, at a moment I choose, over files that already exist."
+
+**The work didn't appear; it moved.** In Maven you didn't get these
+for free either. You got someone else's plugin, plus its XML
+configuration surface to learn, plus its lifecycle binding to get
+right, plus its version to keep current, plus its transitive
+dependencies inside your build's classpath. What bleep asks instead is
+a `main` you can open in a debugger and step through. You trade
+reading a plugin's website for writing twenty lines against a Java
+API — usually the very same API the plugin was wrapping. Jib, Flyway,
+Liquibase, JaCoCo, and the Sonar scanner all ship a documented Java
+API or CLI; their Maven plugins are thin covers over it.
+
+**The scripts are small, and we measured that on the hardest case.**
+`spring-boot-maven-plugin` is the biggest single plugin in this list,
+and [the whole integration](/docs/spring-boot-proves-the-model) came
+out at six lines of fluent Java per script, three scripts, over a
+200-line library wrapping Spring's published
+`spring-boot-loader-tools`. If the worst case is that size, a
+Checkstyle invocation is not going to ruin your week.
+
+**They're ordinary code, which is the point.** A script is versioned
+with your repo, tested like anything else, debuggable in your IDE, and
+readable by whoever joins next year. There is no classloader isolation
+puzzle, no "which phase does this bind to", no plugin whose behaviour
+changes because a transitive dep moved. And when a script turns out to
+be worth sharing, it's a library on Maven Central like any other —
+that's what `bleep-plugin-native-image` and `bleep-plugin-spring-boot`
+are.
+
+**And the concession.** It is still work. A team that today writes six
+lines of XML to enable JaCoCo will write a script instead, and the
+first one costs an afternoon. If your build is entirely off-the-shelf
+plugins, nobody on the team wants to own a `main`, and none of the
+plugins you use are causing you pain, that's a real reason to stay
+where you are. Bleep's bet is that the teams reading this page are not
+in that situation — they're in the one where the plugin *is* the pain,
+and owning twenty lines of Java beats debugging somebody's Mojo.
 
 ## The case that used to be hard
 
@@ -224,22 +289,26 @@ misleading. The right answer for each is a modern alternative.
 
 ## The broader point
 
-The category "Maven plugin" is misleading. It contains:
+The category "Maven plugin" is misleading. It contains four unrelated
+kinds of thing:
 
-- **Things every build tool does natively** (compile, test, package,
-  publish): roughly 36% of the top 50.
-- **Schema-driven codegen** (Protobuf, Avro, OpenAPI, JAXB2, ANTLR,
-  MyBatis, jsonschema2pojo): roughly 12% of the top 50, all sourcegen.
-- **Distribution concerns** (containers, signing, doc gen, CI glue,
-  migrations): roughly 36% of the top 50, all programs.
-- **A long tail** of one-offs, meta-plugins, and anachronisms: the
-  rest.
+- **Things every build tool does natively** (compile, test, JAR,
+  publish, sign, clean): 17 of 50, 34%.
+- **Schema-driven codegen** (Avro, OpenAPI, ANTLR, JAXB2, MyBatis,
+  jsonschema2pojo): 6 of 50, 12%. All sourcegen.
+- **Distribution and quality concerns** (containers, archives,
+  coverage, linters, migrations, CI glue): 19 of 50, 38%. All
+  programs.
+- **The rest**: 5 hybrids and 3 plugins that exist only to serve
+  Maven's plugin system, 16%.
 
 When you decompose it that way, *what about all my Maven plugins?*
-becomes a much smaller question. Half of them don't need to be a build
-plugin at all. They need a primitive (compile, test, publish), a
-generator (sourcegen), or a script (everything else). Bleep ships all
-three.
+stops being one question. A third of them need a primitive, an eighth
+need a generator, and the largest single group needs a program — which
+is what they always were, wearing a `<plugin>` element as a costume.
+Bleep ships the primitive, the generator, and a first-class way to run
+your program. It just declines to pretend the third one is anything
+other than code you own.
 
 ## See also
 

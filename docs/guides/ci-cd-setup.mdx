@@ -95,28 +95,50 @@ runner can pull what's been built elsewhere instead of recompiling.
 Pair it with `invalidated` and CI compiles only the projects that
 genuinely changed *and* whose digest isn't in the cache.
 
+Whoever can write to the cache decides the compiled classes every
+later build executes, so **pull-request builds get read-only
+credentials and never push** — a PR runs code chosen by whoever opened
+it, and on GitHub a PR from a branch in the same repository does
+receive your secrets. Entries are written by builds of the branch you
+protect. Issue two credential pairs: one whose policy allows only
+reads, one that may write.
+
 ```yaml
       - name: Pull cache
         run: bleep remote-cache pull
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          # Read-only key: safe in any job, including pull requests.
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
       # ... compile, test ...
 
       - name: Push cache
-        if: success()
+        # Only post-merge builds of the protected branch write to the cache.
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: bleep remote-cache push
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_WRITE_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_WRITE_SECRET_ACCESS_KEY }}
 ```
+
+An `if:` on the step is not by itself enough. On a `pull_request`
+event GitHub runs the workflow file **from the pull request branch**,
+so a PR can edit the workflow and help itself to any secret the event
+can reach. Put the pushing steps in their own job and attach a GitHub
+[Environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
+whose deployment-branch rule allows only your protected branch — that
+is what actually withholds the write credential from pull requests.
+The [remote cache page](/docs/usage/remote-cache#ci-integration) shows
+the full two-job workflow.
 
 Configuration (the bucket URI plus credentials) lives in
 `bleep.yaml` and `~/.config/bleep/config.yaml`, see
 [Remote build cache](/docs/usage/remote-cache) for setup, S3-compatible
-backends (MinIO / Cloudflare R2 / GCS), and bucket-lifecycle
-expiration commands.
+backends (MinIO / Cloudflare R2 / GCS), bucket-lifecycle
+expiration commands, and the
+[trust model](/docs/usage/remote-cache#trust-model) — read that before
+handing any job a write credential.
 
 ## Consolidated workflow: invalidation + remote cache
 
@@ -124,6 +146,10 @@ The two features compose. Pull the cache first, compute the
 invalidated set, compile/test against it (cache hits skip work,
 genuine changes recompile), push the cache so the next run picks
 up the new artifacts.
+
+Two jobs, not one: the pull-request job reads the cache with a
+read-only key, and the post-merge job — the only one that runs code
+that has been reviewed — is the one that writes.
 
 ```yaml
 name: CI
@@ -135,7 +161,9 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  # Untrusted: builds the PR branch. Reads the cache, never writes it.
+  pr:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -154,25 +182,56 @@ jobs:
       - name: Pull remote cache
         run: bleep remote-cache pull
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
       - name: Compile invalidated projects
         run: |
-          BASE=origin/${{ github.event.pull_request.base.ref || 'main' }}
+          BASE=origin/${{ github.event.pull_request.base.ref }}
           bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress compile
 
       - name: Test invalidated projects
         run: |
-          BASE=origin/${{ github.event.pull_request.base.ref || 'main' }}
+          BASE=origin/${{ github.event.pull_request.base.ref }}
           bleep build invalidated --base "$BASE" | xargs bleep --no-color --no-bsp-progress test
+
+  # Trusted: reachable only after merge to main, and the write credential
+  # lives in an Environment whose deployment-branch rule allows only main.
+  main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: build-cache-write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/coursier
+            ~/.bleep
+          key: ${{ runner.os }}-bleep-${{ hashFiles('**/bleep.yaml') }}
+
+      - name: Pull remote cache
+        run: bleep remote-cache pull
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
+
+      - name: Compile and test
+        run: |
+          bleep --no-color --no-bsp-progress compile
+          bleep --no-color --no-bsp-progress test
 
       - name: Push remote cache
         if: success()
         run: bleep remote-cache push
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_WRITE_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_WRITE_SECRET_ACCESS_KEY }}
 ```
 
 ## Release workflow
@@ -222,6 +281,20 @@ bleep --no-color --no-bsp-progress compile
 | `--no-bsp-progress` | Drop the live BSP progress display so log files stay small. |
 
 Both are appropriate for any non-interactive run.
+
+On `compile`, `test`, `run`, `link` and `dist`, three flags control how much
+of the run is printed:
+
+| Flag | Effect |
+|---|---|
+| `--no-tui` | Full streaming trace without the TUI: one log line per project and test event. For CI logs you want to read afterwards. |
+| `--quiet`, `-q` | Only failures and the final summary. Per-event streaming and daemon-connection chatter are suppressed; a red build still prints the full failure section and exits non-zero. |
+| `--summary-only` | Alias for `--quiet` (`test` only). |
+
+Quiet success, loud failure: `--quiet` is the right default for agents and
+for CI jobs where the log only matters when something broke. Combined with
+`--diff` it prints just the summary and
+[what changed](/docs/usage/run-history) — nothing else.
 
 ## Matrix builds
 

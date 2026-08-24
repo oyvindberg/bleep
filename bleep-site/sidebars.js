@@ -247,6 +247,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Proxies, TLS & air-gapped networks",
+          id: "usage/networking",
+        },
+        {
+          type: "doc",
           label: "Environment variables",
           id: "usage/environment-variables",
         },
@@ -273,6 +278,11 @@ const sidebars = {
             id: "usage/private-repos/index",
           },
           items: [
+            {
+              type: "doc",
+              label: "Artifactory / Nexus / generic Maven",
+              id: "usage/private-repos/artifactory",
+            },
             {
               type: "doc",
               label: "GitHub Packages",
@@ -307,6 +317,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Run history & diffs",
+          id: "usage/run-history",
+        },
+        {
+          type: "doc",
           label: "Resource Filtering",
           id: "guides/resource-filtering",
         },
@@ -314,6 +329,16 @@ const sidebars = {
           type: "doc",
           label: "Unmanaged Jars",
           id: "usage/unmanaged-jars",
+        },
+        {
+          type: "doc",
+          label: "Worktrees",
+          id: "guides/worktrees",
+        },
+        {
+          type: "doc",
+          label: "Exit strategy",
+          id: "guides/exit-strategy",
         },
       ],
     },
@@ -348,6 +373,11 @@ const sidebars = {
           type: "doc",
           label: "Mill",
           id: "compared-to-other-build-tools/mill",
+        },
+        {
+          type: "doc",
+          label: "Bazel",
+          id: "compared-to-other-build-tools/bazel",
         },
         {
           type: "doc",

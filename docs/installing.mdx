@@ -1,32 +1,163 @@
+---
+title: Install Bleep
+---
+
 # Install Bleep
 
-## Quick install
+Every release publishes five native binaries — there is no JVM to install first, and no wrapper
+script in your repo. Pick whichever of the routes below fits your machine or your CI image.
+
+Behind a corporate proxy, a TLS-intercepting firewall, or on an air-gapped network? Read
+[Proxies, TLS & air-gapped networks](/docs/usage/networking) before you start — the installer and
+the binary reach the network at different moments and through different stacks.
+
+## What gets published
+
+Each `v*` tag runs the [release job](https://github.com/oyvindberg/bleep/blob/master/.github/workflows/build.yml)
+which uploads exactly these assets to the
+[GitHub release](https://github.com/oyvindberg/bleep/releases):
+
+| Platform | Release asset | `bleep.build/install` | Coursier channel |
+| --- | --- | --- | --- |
+| Linux x86\_64 | `bleep-x86_64-pc-linux.tar.gz` | yes | yes |
+| Linux arm64 | `bleep-arm64-pc-linux.tar.gz` | yes | yes |
+| macOS x86\_64 (Intel) | `bleep-x86_64-apple-darwin.tar.gz` | yes | yes |
+| macOS arm64 (Apple silicon) | `bleep-arm64-apple-darwin.tar.gz` | yes | yes |
+| Windows x86\_64 | `bleep-x86_64-pc-win32.zip` | **no** | yes |
+
+Plus a `SHA256SUMS` asset covering all five (see [Verify the download](#verify-the-download)).
+
+Every one of those five is built *and its test suite run* on a runner of that architecture before
+the release job will publish it. There is no Windows arm64 and no 32-bit build.
+
+The `.tar.gz` archives contain a single executable named `bleep` at the archive root; the Windows
+zip contains `bleep.exe`.
+
+## Quick install (Linux, macOS)
 
 ```bash
 curl -fsSL https://bleep.build/install | sh
 ```
 
-This installer downloads the bleep native binary and puts it on your
-PATH. macOS and Linux. Same script the home-page Install button runs.
+The script detects your OS and architecture, downloads the matching `.tar.gz` from the GitHub
+release, and installs the binary. It is the same script the home-page Install button runs.
+
+It reads two environment variables:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `BLEEP_VERSION` | latest GitHub release | Pin an exact version, e.g. `1.0.0-M9`. A leading `v` is stripped, so `v1.0.0-M9` works too. |
+| `BLEEP_INSTALL_DIR` | `~/.local/bin` | Where the binary is installed. |
+
+### Pin the version
+
+Unpinned installs follow `releases/latest`, which moves. In CI, in a Dockerfile, or anywhere you
+want a reproducible image, pin it:
+
+```bash
+curl -fsSL https://bleep.build/install | BLEEP_VERSION=1.0.0-M9 sh
+```
+
+```dockerfile
+ENV BLEEP_VERSION=1.0.0-M9
+ENV BLEEP_INSTALL_DIR=/usr/local/bin
+RUN curl -fsSL https://bleep.build/install | sh
+```
+
+The pinned version must be a released tag — the script builds the download URL as
+`https://github.com/oyvindberg/bleep/releases/download/v$BLEEP_VERSION/<asset>` and fails loudly if
+that 404s.
+
+Note this pins the *binary*. The version of bleep a build wants is a separate thing, declared as
+`$version:` in `bleep.yaml`. Run a binary inside a build that names a different version and
+`Main.maybeRunWithDifferentVersion` downloads that release from `github.com/oyvindberg/bleep` into
+the Coursier archive cache and re-executes it — so pinning the installed binary to the version your
+builds ask for is what keeps the extra download from happening. `--dev` skips the re-launch.
+
+### Verify the download
+
+Releases from this change onward publish a `SHA256SUMS` asset listing every archive. To check a
+download by hand:
+
+```bash
+version=1.0.0-M9
+asset=bleep-x86_64-pc-linux.tar.gz
+base=https://github.com/oyvindberg/bleep/releases/download/v$version
+
+curl -fLO "$base/$asset"
+curl -fLO "$base/SHA256SUMS"
+
+# Linux
+sha256sum --ignore-missing -c SHA256SUMS
+# macOS
+shasum -a 256 --ignore-missing -c SHA256SUMS
+```
+
+`--ignore-missing` is what lets you check one archive against the full list; drop it if you
+downloaded all five. On Windows:
+
+```powershell
+certutil -hashfile bleep-x86_64-pc-win32.zip SHA256
+# compare the printed hash against the matching line in SHA256SUMS
+```
+
+**The install script does not do this for you.** It pipes a `curl` straight into `tar`, with no
+checksum and no signature check — TLS to `github.com` is the only integrity guarantee. If your
+security policy requires verified artifacts, use the manual route above (or the Coursier route,
+which verifies against the checksums Maven Central serves) instead of `curl … | sh`.
+
+Releases published before `SHA256SUMS` existed have no checksum asset. There is no detached GPG
+signature for the binaries at any version — the *jars* on Maven Central are PGP-signed as part of
+the Sonatype publish, the native binaries are not.
+
+## Windows
+
+The shell installer explicitly refuses to run on Windows. Install one of these two ways:
+
+1. **Manual** — download `bleep-x86_64-pc-win32.zip` from the
+   [releases page](https://github.com/oyvindberg/bleep/releases) (expand "Assets"), unzip it, and
+   put `bleep.exe` on your `PATH`.
+2. **Coursier** — see below; the channel has a `x86_64-pc-win32` prebuilt binary entry.
+
+The Windows binary is a first-class artifact, not a courtesy build: the CI matrix runs
+`bleep test jvm3` and `bleep selftest` against the freshly built `bleep.exe` on `windows-latest`
+before the release job will publish it.
 
 ## Via Coursier
 
-If you already have [Coursier](https://get-coursier.io/docs/cli-installation)
-installed (common in Scala shops), you can install bleep through its
-channel:
+If you already have [Coursier](https://get-coursier.io/docs/cli-installation) installed (common in
+Scala shops), install bleep through its channel:
 
 ```bash
 cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep
 ```
 
-## GitHub action
+```bash
+# pin a version
+cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep:1.0.0-M9
+```
 
-There is an action available to install Bleep. It picks up the wanted Bleep version from `bleep.yaml`, so make sure to run it after checkout:
+The [channel file](https://github.com/oyvindberg/bleep/blob/master/coursier-channel.json) maps
+`x86_64-pc-linux`, `aarch64-pc-linux`, `x86_64-apple-darwin`, `aarch64-apple-darwin` and
+`x86_64-pc-win32` to the prebuilt release archives, and falls back to launching
+`build.bleep:bleep-cli_3` from Maven Central on any platform without one.
+
+On a locked-down network this is often the easier route, because the `cs` launcher already has
+whatever proxy and truststore configuration your organisation gave it. Be clear about what it does
+*not* buy you though: the `prebuiltBinaries` entries point at the same GitHub release archives, so
+this path has no more checksum verification than the shell installer. Only the JVM fallback
+(`build.bleep:bleep-cli_3` from Maven Central) is checksum-verified, and that is not what you get on
+a platform with a prebuilt binary.
+
+## GitHub Action
+
+The action reads the wanted bleep version from `bleep.yaml`, so run it after checkout:
+
 ```yaml
-  - uses: actions/checkout@v4
-    with:
-      submodules: recursive
-  - uses: bleep-build/bleep-setup-action@v1
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
+- uses: bleep-build/bleep-setup-action@v1
 ```
 
 ## Nix
@@ -35,4 +166,28 @@ Bleep is published on nixpkgs, currently available on the unstable channel.
 
 ## Manual installation
 
-You can download it manually from [GitHub releases](https://github.com/oyvindberg/bleep/releases) (expand "assets")
+Download the archive for your platform from
+[GitHub releases](https://github.com/oyvindberg/bleep/releases) (expand "Assets"), verify it
+against `SHA256SUMS` as shown above, unpack it, and put the executable somewhere on your `PATH`:
+
+```bash
+tar -xzf bleep-x86_64-pc-linux.tar.gz
+install -m 0755 bleep ~/.local/bin/bleep
+```
+
+macOS Gatekeeper will quarantine a binary downloaded through a browser; download with `curl` or
+clear the attribute with `xattr -d com.apple.quarantine bleep`.
+
+## After installing
+
+```bash
+bleep --help
+```
+
+The header line prints the version the binary was built as. (There is no `bleep --version`
+subcommand.)
+
+The binary is standalone, but bleep is not finished downloading things: the first real command
+fetches the matching `bleep-bsp` compile server, the JVM named in your build, and your
+dependencies — all through Coursier. On a restricted network, read
+[Proxies, TLS & air-gapped networks](/docs/usage/networking) next.

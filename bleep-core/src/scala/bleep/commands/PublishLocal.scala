@@ -44,7 +44,9 @@ case class PublishLocal(watch: Boolean, options: PublishLocal.Options, buildOpts
         projects = options.projects,
         displayMode = buildOpts.displayMode,
         flamegraph = buildOpts.flamegraph,
-        cancel = buildOpts.cancel
+        cancel = buildOpts.cancel,
+        diffBase = None,
+        diffOutput = OutputMode.Text
       )
       .run(started)
       .map { case () =>

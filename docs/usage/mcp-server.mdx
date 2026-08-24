@@ -6,29 +6,38 @@ title: MCP server
 
 Bleep ships a Model Context Protocol server. Point Claude Code (or
 any MCP-aware client) at it and an agent can compile, test, run, and
-inspect your build through 18 structured tool calls, without
+inspect your build through structured tool calls, without
 parsing CLI output, without keeping a long-running interactive shell
 open, without reading pages of context for a one-line answer.
 
 The design is built for the world where multiple agents run against
-the same build at the same time:
+multiple checkouts of the same build at the same time:
 
-- **Compact by default.** Every tool returns a small JSON summary
-  (error counts, failure suites, the diff against the previous run).
-  Full output is one extra call away, `bleep.status` for the
-  cached last run, or `verbose=true` on the original tool.
+- **Stateless.** Every tool call names the checkout it targets via a
+  required `directory` parameter, is bootstrapped fresh from that
+  workspace's `bleep.yaml`, talks to the shared compile server, and
+  disconnects. One MCP server serves a whole session — including
+  subagents working in other git worktrees — and holds nothing that
+  can go stale or leak when a worktree is removed.
+- **Compact by default.** Compile and test return a small JSON summary
+  (error counts, failure suites) plus a `historyId`. The full
+  transcript of that exact run is one `bleep.history.show` call away.
 - **Errors stream.** Per-project compile errors land as MCP
   notifications the instant that project finishes, not at the end of
   the whole build. The latency floor for a real failure is
   milliseconds.
-- **In-process.** The MCP server runs against bleep&rsquo;s BSP server
-  inside the same JVM. Every call is sub-second after warmup, sub-100ms
-  once warm. Four parallel agents do not stall on a tool that doesn&rsquo;t
-  exist outside one of them.
 
 ## Setup
 
-Run from your build root:
+The recommended setup is one user-scoped registration that covers
+every project and every git worktree — MCP stdio servers launch with
+the session's working directory, and bleep needs nothing else:
+
+```bash
+claude mcp add --scope user bleep -- bleep mcp-server
+```
+
+Alternatively, run from a build root:
 
 ```bash
 bleep setup-mcp-server
@@ -41,116 +50,214 @@ the client (or trigger a re-scan) and the bleep tools appear.
 The flag `--force-jvm` runs the MCP server through the JVM rather
 than the native binary, useful when iterating on bleep itself.
 
+### Non-bleep projects
+
+A user-scoped registration advertises the bleep tools in *every*
+session — including sessions on Maven, Gradle, or sbt projects that
+bleep cannot build. An agent whose "compile" intent pattern-matches to
+`bleep.compile` in such a project gets a fast, definitive answer: the
+call fails in milliseconds with *"&lt;directory&gt; is not part of a bleep
+build: no bleep.yaml exists there or in any parent directory"*, and
+the error text redirects to the project's own build system rather than
+reading like a transient bleep failure.
+
+The inverse deserves stating because agents get it wrong: bleep tool
+availability never identifies a project's build system. If the bleep
+tools disappear mid-session, the MCP connection dropped (commonly
+because the bleep binary was reinstalled underneath the server) —
+reconnect with `/mcp` or fall back to the `bleep` CLI. Whether a
+project is a bleep project is decided by `bleep.yaml` on disk, and by
+nothing else.
+
 ## The tool surface
 
-| Tool                      | Effect      | What it does                                                                                |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| `bleep.compile`           | read-only   | Compile selected projects. Returns error counts and a diff vs the previous run.             |
-| `bleep.test`              | read-only   | Run tests. Returns pass/fail counts, failure summaries, and a diff.                         |
-| `bleep.test.suites`       | read-only   | List test suite class names without running them. Requires projects to be compiled.         |
-| `bleep.sourcegen`         | additive    | Run sourcegen scripts for selected projects.                                                |
-| `bleep.fmt`               | additive    | Format Scala and Java sources via scalafmt and google-java-format.                          |
-| `bleep.clean`             | destructive | Delete compile output for selected projects.                                                |
-| `bleep.watch`             | additive    | Start a background watch job. Returns a `jobId`; results stream as notifications.            |
-| `bleep.sync`              | read-only   | Pull the latest results from active watch jobs (or do a fresh compile if none are running). |
-| `bleep.watch.stop`        | destructive | Stop a watch job, or all of them if no `jobId` is given.                                    |
-| `bleep.build.effective`   | read-only   | The project config after templates apply, what bleep sees.                           |
-| `bleep.build.resolved`    | read-only   | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.               |
-| `bleep.projects`          | read-only   | List projects with their dependencies and test-project flag.                                |
-| `bleep.programs`          | read-only   | List projects with a `mainClass` (runnable programs).                                       |
-| `bleep.scripts`           | read-only   | List the named scripts under `scripts:` in `bleep.yaml`.                                    |
-| `bleep.run`               | additive    | Compile and run a project or script. Returns stdout/stderr and exit code.                   |
-| `bleep.status`            | read-only   | The cached results from the last build/test, with full diagnostics. Paginated.              |
-| `bleep.restart`           | destructive | Exit the MCP server process. The client will relaunch it.                                   |
+| Tool                        | Effect      | Runs code from the checkout | What it does                                             |
+| --------------------------- | ----------- | --------------------------- | -------------------------------------------------------- |
+| `bleep.compile`             | destructive | yes                         | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
+| `bleep.test`                | destructive | yes                         | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
+| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Returns stdout/stderr and exit code.             |
+| `bleep.sourcegen`       | destructive | yes                         | Run sourcegen scripts for selected projects.                                          |
+| `bleep.test.suites`         | additive    | yes                         | List test suite class names without running them. Requires projects to be compiled.   |
+| `bleep.fmt`             | destructive | no                          | Format Scala and Java sources via scalafmt and google-java-format. Rewrites files in place. |
+| `bleep.clean`           | destructive | no                          | Delete compile output for selected projects.                                          |
+| `bleep.copy-state`      | additive    | no                          | Seed a fresh git worktree with the parent worktree's compiled state. Call once after forking. |
+| `bleep.restart`         | destructive | no                          | Exit the MCP server process. The client will relaunch it.                             |
+| `bleep.history.list`        | read-only   | no                          | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
+| `bleep.history.show`        | read-only   | no                          | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
+| `bleep.history.diff`        | read-only   | no                          | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
+| `bleep.history.diff-timing` | read-only   | no                          | What got slower or faster between two runs, jitter suppressed, plus the target run's slowest items. |
+| `bleep.build.effective` | read-only   | no                          | The project config after templates apply, what bleep sees.                            |
+| `bleep.build.resolved`  | read-only   | no                          | Fully resolved classpath, source dirs, compiler JARs. Requires prior compile.         |
+| `bleep.projects`        | read-only   | no                          | List projects with their dependencies and test-project flag.                          |
+| `bleep.programs`        | read-only   | no                          | List projects with a `mainClass` (runnable programs).                                 |
+| `bleep.scripts`         | read-only   | no                          | List the named scripts under `scripts:` in `bleep.yaml`.                              |
 
-`Effect` mirrors the MCP spec's tool semantics, clients use it
-to decide whether a tool can run unattended.
+### What the effect column means
+
+`Effect` mirrors the MCP spec's tool annotations — `read-only` maps to
+`readOnlyHint`, `destructive` to `destructiveHint` — and clients use
+them to decide what may run **unattended**, without asking the user.
+So the column is a security statement, not a description of intent,
+and bleep sets it accordingly:
+
+- **`read-only` means bleep reads files and its own build model, and
+  nothing else happens.** Only the nine tools above qualify: the
+  history tools read transcript JSON off disk, and the listing tools
+  parse `bleep.yaml` and expand templates. No build code runs, nothing
+  is written.
+- **Building is not read-only.** A compile runs sourcegen scripts,
+  annotation processors, KSP and macros; `bleep.test` additionally
+  runs the test bodies; `bleep.run` runs the program you name. That is
+  arbitrary code from the checkout, executing with your privileges —
+  it can write files, reach the network, and touch anything your user
+  can. A tool that does this must never be advertised as safe to run
+  without asking, however read-only "compile" sounds. `bleep.fmt`
+  rewrites your sources in place and `bleep.clean` deletes output, so
+  they are destructive for the ordinary reason.
+- **`bleep.test.suites` runs no test body, but it is not a pure read
+  either.** Discovery builds a classloader over the project's
+  classpath and instantiates the test frameworks it finds there, so
+  code from the checkout's dependencies executes in the compile
+  daemon. It writes nothing, hence `additive` rather than
+  `destructive`.
+
+The practical consequence: if you point an agent at a checkout you do
+not trust (a contributor's pull request, a repository you just
+cloned), auto-approving `bleep.compile` is equivalent to auto-approving
+`run whatever this branch says`. The annotations are pinned by tests
+(`bleep.McpToolEffectTest`) so they cannot quietly drift back.
+
+Tools that reach the network — anything that resolves dependencies or
+starts the compile daemon — additionally set `openWorldHint`.
+
+Every tool except `bleep.restart` requires `directory`: the absolute
+path of the checkout to act on. An agent's current working directory
+works — bleep finds the build root from any directory inside it. Even
+the `bleep.history.*` tools take it: history ids are per-workspace, so
+an id means nothing without saying whose history to look in.
 
 ## Output shape
 
-Every tool returns a JSON document. By default that document is a
-*summary*, not a transcript:
+Compile and test return a *summary*, not a transcript:
 
 ```json
 {
-  "compiled": 12,
-  "errors": 0,
+  "success": false,
+  "errors": 2,
   "warnings": 3,
-  "diff": {
-    "newErrors": [],
-    "newWarnings": [{"project": "myapp", "file": "Main.scala", "line": 42, "message": "..."}]
-  }
+  "summary": "Build failed: 2 errors in 1 project. 3 warnings. Use bleep.history.show with this historyId for all diagnostics",
+  "failedProjects": ["myapp"],
+  "topErrors": [{"message": "...", "path": "Main.scala", "line": 42}],
+  "historyId": 7
 }
 ```
 
-The diff is computed against the previous run that touched the same
-projects (a two-slot ring buffer is kept in memory). An agent that
-runs `bleep.compile` twice in a row sees an empty diff on the second
-call; the response is small, a no-op.
-
-Two ways to get full output when you actually need it:
-
-- `bleep.status` returns the *full* diagnostics from the last run,
-  with `project`, `limit`, `offset` parameters for pagination. This
-  is the right call when an agent has already seen the summary and
-  decided to drill in.
-- `verbose=true` on `bleep.compile` / `bleep.test` returns the full
-  output inline. Use sparingly, it's much larger.
-
-## Watch and sync
-
-Long-running compile/test loops use a different shape. `bleep.watch`
-starts a background fiber and returns a `jobId`. Results stream to
-the client as MCP notifications. To pull the latest snapshot
-synchronously, the agent calls `bleep.sync`, which reads from every
-active watch job and returns the same compact summary shape.
+The transcript of every completed run is written by the compile
+daemon into the workspace itself
+(`.bleep/builds/normal/history/<id>.json`, the last 32 kept), keyed
+by that `historyId`. History is per-worktree, shared with the CLI
+(`bleep history`, `bleep history show`, `bleep history diff`) and IDE builds, and
+survives MCP server restarts — the server itself keeps nothing in
+memory. The [run history & diffs guide](/docs/usage/run-history)
+covers the recording and diffing model in depth. When the agent
+decides to drill in:
 
 ```
-agent: bleep.watch { mode: "test", projects: ["myapp"] }
-       → { jobId: "w1" }
-... time passes; notifications stream as projects compile and tests run ...
-agent: bleep.sync
-       → { watchResults: [{ jobId: "w1", mode: "test", result: {...} }] }
-agent: bleep.watch.stop { jobId: "w1" }
+agent: bleep.history.show { directory: "/checkout", historyId: 7 }
+       → every diagnostic, every failing test with its stack trace;
+         project/limit/offset parameters paginate large results
+
+agent: bleep.history.show { directory: "/checkout", historyId: 7, query: "NullPointer|timed out" }
+       → only the matching diagnostics or failures — a case-insensitive
+         regex over messages, paths, suite/test names and stack traces
 ```
 
-Without an active watch job, `bleep.sync` falls back to a fresh
-compile of every project, useful as a "where am I?" probe.
+The `query` parameter exists because searching output is what agents
+do. Given a long log they will divert it to a file and grep it —
+losing structure, and often the answer. Searching the structured
+transcript server-side returns exactly the matching items, still as
+data.
+
+For the edit–run loop, `bleep.compile` and `bleep.test` take an
+optional `diffBase` (`"previous"` for the most recent run of the same
+mode, or a `historyId` to pin a base such as the last green run):
+the base is validated before the build starts, and the response gains
+a `"diff"` section — newly failing/fixed tests, new/resolved
+diagnostics — so the agent reads what its edit changed instead of
+re-reading full results. The CLI mirror is `bleep compile --diff` /
+`bleep test --diff`.
+
+A transcript describes its own run, never current state — so it cannot
+go stale when someone compiles from the CLI in between. The current
+state of the build is always one (cheap, incremental) `bleep.compile`
+away.
+
+## Multiple checkouts and git worktrees
+
+MCP clients launch stdio servers once per session, and subagents share
+the parent session's connection. A subagent working in a git worktree
+therefore talks to an MCP server that was started in the parent
+checkout — which is why `directory` is required on every call rather
+than inferred: the server has no ambient workspace, so there is
+nothing to silently get wrong. Each call bootstraps the named
+workspace fresh (config edits, including JVM changes, take effect on
+the next call) and is routed to the shared compile server, which
+already serves all worktrees from one deduplicated in-memory state.
+
+If a build declares a `$version` different from the running MCP
+server's, the call fails with an explanation — install the matching
+binary and call `bleep.restart`, which exits the process so the client
+relaunches it as the new binary.
+
+A fresh worktree starts cold: it has your parent's sources but none of
+its compiled state. `bleep.copy-state { directory, from }` (CLI:
+`bleep copy-state <source-worktree>`) fixes that in one call — it
+clones the parent worktree's classes, zinc analyses and generated
+sources into the new one, using the fastest copy the filesystem offers
+(clonefile on APFS, reflink where Linux supports it). The copy runs in
+the compile daemon under the same per-project locks compiles take, so
+it is safe even while other agents keep compiling the parent. The
+first build afterwards no-ops through everything unchanged and
+compiles incrementally from the parent's baseline for the rest —
+typically a few files, not a few hundred. State is copied from the
+worktree you forked off and nowhere else: what you start with is
+exactly what your parent had, which makes a seeded worktree's behavior
+explainable rather than dependent on whatever happens to be in a
+cache.
 
 ## Why these design choices
 
-A few words on the *why*, since each choice paid for itself within
-the first session of using bleep with multiple parallel agents.
+### Stateless over cached
+
+Anything an MCP server caches between calls — a bootstrapped
+workspace, a daemon connection, "last build" results — can go stale:
+config edits, binary upgrades, CLI builds racing MCP builds, worktrees
+deleted under the server. Each piece of held state would need its own
+invalidation rule. Bootstrapping per call costs roughly what a CLI
+invocation costs, which is the thing bleep is already fast at; all
+expensive state lives in the shared compile server, where it is
+bounded and shared across checkouts.
 
 ### Compactness over completeness
 
-A full compile transcript can be tens of thousands of tokens. An
-agent making decisions doesn't need the transcript, it needs to
-know *did anything go wrong, and what changed since last time*.
-Returning a summary first, with `bleep.status` available for drill-in,
-turns a 30 000-token tool response into a 200-token one and a
-follow-up.
-
-### Diff against the previous run
-
-Coding agents call build tools dozens of times per session, and most
-of those calls are no-ops. Highlighting *what changed* between calls
-lets the agent reason about progress without re-reading every error.
+A full compile transcript can be tens of thousands of tokens, and
+dumping it into an agent's context does real damage: the signal
+drowns, the agent starts managing output instead of fixing code —
+redirecting logs to files, grepping them, paging through noise — and
+frequently never finds the line that mattered. Structured data
+removes that entire class of failure. The agent gets *did anything go
+wrong* as a boolean, counts, and the first errors in a couple hundred
+tokens; everything deeper is a targeted `bleep.history.show` call —
+paginated, or searched with a regex — that returns exactly the items
+asked for, still as data.
 
 ### Errors stream, results summarise
 
 When something is wrong, latency matters, the agent should know
 about a compile error the instant the project finishes, not 30
 seconds later when the rest of the build wraps. So per-project
-errors stream as notifications during the call, while the *summary*
-that wraps up the call is the diff and the counts.
-
-### In-process BSP
-
-The MCP server runs against bleep's existing BSP server inside the
-same JVM. Tool calls don't fork processes, don't reload bleep, don't
-incur the daemon-handshake tax that every other build tool has. This
-is the only reason "four agents in parallel" doesn't degrade.
+errors stream as notifications during the call, while the summary
+that wraps up the call is the counts.
 
 ## See also
 

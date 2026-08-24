@@ -48,7 +48,10 @@ case class BuildState(
     /** The compile server died mid-run. Not a compile failure — the compiles that finished really did finish — but the run did not complete, so a summary that
       * looked clean while the command failed left the reader to reconcile two blocks that seemed to disagree.
       */
-    serverCrashed: Boolean
+    serverCrashed: Boolean,
+    /** Id of the transcript the daemon persisted for this request, from the response. None when the response carried none (older daemon, or the write failed).
+      */
+    historyId: Option[Long]
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
@@ -96,7 +99,8 @@ case class BuildState(
       totalTaskTimeMs = totalTaskTimeMs,
       wasCancelled = wasCancelled,
       serverCrashed = serverCrashed,
-      filterContext = None
+      filterContext = None,
+      historyId = historyId
     )
   }
 }
@@ -139,7 +143,8 @@ object BuildState {
     skippedProjects = Nil,
     pendingOutput = Map.empty,
     totalTaskTimeMs = 0,
-    serverCrashed = false
+    serverCrashed = false,
+    historyId = None
   )
 }
 
@@ -488,5 +493,8 @@ object BuildStateReducer {
         runningTests = Set.empty,
         cancelledSuites = authoritativeCancelled
       )
+
+    case BuildEvent.HistoryRecorded(historyId, _) =>
+      state.copy(historyId = Some(historyId))
   }
 }

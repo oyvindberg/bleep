@@ -23,12 +23,12 @@ object RemoteCache {
 
   private val Parallelism = 16
 
-  /** Per-machine noop manifest is regenerated locally after pull, never shipped. */
-  private val NoopManifestFileName = "noop-manifest.bin"
-
-  /** Predicate used to filter files when packing an archive for upload. Exposed so tests can verify the same exclusion behavior as production. */
-  private[bleep] def packFilter(p: Path): Boolean =
-    p.getFileName.toString != NoopManifestFileName
+  /** What goes in an archive is decided by [[bleep.StateSharing]] — the same allow-list copy-state uses. Deny by default: this used to be a name-based
+    * deny-list (only the noop manifest excluded) and shipped `.zinc/cache`, KSP caches and even lock files. Exposed so tests can verify the same behavior as
+    * production.
+    */
+  private[bleep] def packFilter(variantBuildDir: Path)(p: Path): Boolean =
+    bleep.StateSharing.isShareableIn(variantBuildDir)(p)
 
   case class Pull(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
@@ -142,7 +142,7 @@ object RemoteCache {
                           s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile."
                         ): Unit
                       case Nil =>
-                        val archive = TarGz.pack(projectPaths.targetDir, packFilter)
+                        val archive = TarGz.pack(projectPaths.targetDir, packFilter(projectPaths.targetDir))
                         semaphore.acquire()
                         try {
                           client.putObject(key, archive)

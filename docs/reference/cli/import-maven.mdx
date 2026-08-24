@@ -28,3 +28,12 @@ bleep import-maven [flags]
 | `--platform, -p <platform>` (repeatable) | only import projects for specified platform(s) |
 | `--scala, -s <scala version>` (repeatable) | only import projects for specified scala version(s) |
 
+## Getting in and out
+
+Mechanical paths in: [`bleep import`](/docs/reference/cli/import/) (sbt) and
+[`bleep import-maven`](/docs/reference/cli/import-maven/) (Maven). Mechanical path out:
+[`bleep export-maven`](/docs/reference/cli/export-maven/), a proof-of-concept script — see the
+[exit strategy](/docs/guides/exit-strategy).
+
+**Gradle has neither.** There is no Gradle importer and no Gradle exporter, so a Gradle build is
+hand-ported in, and would be hand-ported out. There is no sbt exporter either.

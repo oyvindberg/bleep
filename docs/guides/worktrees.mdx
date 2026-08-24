@@ -1,0 +1,153 @@
+---
+title: Worktrees
+---
+
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import copyStateCast from "!!file-loader!@site/static/demos/copy-state.cast";
+import agentsCast from "!!file-loader!@site/static/demos/agents.cast";
+import stats from '@site/src/data/build-stats.json';
+
+# Worktrees
+
+Agentic development has a shape: an orchestrating session fans subagents out
+into git worktrees, each working a branch in parallel. The build tool either
+makes that shape cheap or it quietly forbids it — because if every fresh
+worktree starts with a cold build, nobody forks worktrees.
+
+Bleep makes a fork of a multi-million-line build **verified green in under a
+minute**. This page is the recipe, the measured numbers, and — for the
+sceptics — exactly how it works.
+
+## The recipe
+
+```bash
+git worktree add ../feature-x
+cd ../feature-x
+bleep copy-state ../main    # clone the sibling's compiled state
+bleep compile               # verifies everything, compiles nothing
+```
+
+That's all of it. No per-worktree daemon, no per-worktree configuration, no
+cache server. Agents do the same over MCP with
+[`bleep.copy-state`](/docs/usage/mcp-server/).
+
+Watch two fresh worktrees side by side — one pays for a full rebuild, the
+other seeds itself and its first build recompiles nothing:
+
+<AsciinemaPlayer src={copyStateCast} cols={100} rows={34} fit="width" />
+
+## The numbers
+
+Measured on the repo bleep's authors work in daily — **{stats.compiled.java.linesLabel} lines of
+Java and {stats.compiled.scala.linesLabel} of Scala** ({stats.compiled.java.generatedLabel} of the
+Java is generated and checked in) in **{stats.compiled.projects} projects**, out of
+{stats.repo.trackedLinesLabel} tracked lines. Apple M5 Pro, 18 cores, APFS. Bleep snapshot of
+current `master`. Each step timed with `/usr/bin/time`:
+
+| Step | Time |
+|------|-----:|
+| `git worktree add` (materialize the {stats.repo.trackedLinesLabel}-line checkout) | {stats.timings.worktreeAddSeconds} s |
+| `bleep copy-state ../main` ({stats.compiled.projects} projects, {stats.timings.copyStateGigabytes} GB of compiled state) | {stats.timings.copyStateSeconds} s |
+| `bleep compile` — first build: verifies all {stats.compiled.projects} projects green | {stats.timings.firstCompileAfterCopyStateSeconds} s |
+| **Fork → verified green** | **~{stats.timings.forkToVerifiedGreenSeconds} s** |
+| The same `bleep compile` in a worktree without `copy-state` (cold) | {stats.timings.forkToVerifiedGreenColdLabel} |
+| Every subsequent `bleep compile` (up-to-date check, {stats.compiled.projects} projects) | {stats.timings.noopCompileSeconds} s |
+
+Code sizes measured {stats.measuredAt} at commit `{stats.repo.commit}`; timings are from the run
+described above. Both come from `bleep-site/src/data/build-stats.json`, which is the only place
+the site keeps these figures.
+
+The cold build is not slow because bleep is slow — five million lines is
+simply a lot of compiler work. The point is that **no fork ever needs to do
+that work again**: compiled state is a value you clone, not a side effect you
+recompute.
+
+## How it works, for the sceptical
+
+### The copy is a constant-time clone
+
+`bleep copy-state` doesn't copy bytes if the filesystem can avoid it: on
+macOS it clones via APFS `clonefile` (`cp -Rc` — O(metadata), blocks shared
+copy-on-write until modified), on Linux via `cp -a --reflink=auto` (CoW on
+btrfs/XFS). 1.8 GB of classes and analyses "copies" without duplicating a
+block.
+
+### It runs inside the compile daemon, under the compile locks
+
+The copy is routed through the shared compile server and takes the same
+per-project locks compiles take — a Shared lock on each source project, which
+blocks writers but not other readers. That's the whole point of putting it in
+the daemon: state is never copied mid-compile, no matter which client — CLI,
+IDE, or another agent — is compiling the source worktree at that moment. The
+daemon needs neither workspace's build loaded; projects are enumerated from
+disk, and the target has typically never connected.
+
+### What's copied — and what deliberately isn't
+
+Per project: the classes directories, the zinc incremental analysis, and
+generated sources/resources. **Not** copied: the no-op manifest, whose keys
+are absolute paths into the source worktree — a copied manifest would
+validate against the *parent's* files and yield a false "nothing to do" that
+points the fork at the parent's classes. Caches and lock files are also
+skipped: caches regenerate, and a lock must never be inherited.
+
+### The first build verifies instead of trusting
+
+That first 33-second `bleep compile` is not a formality and not a rebuild:
+zinc does one round-trip per project against the copied analysis and writes
+the fork's own manifest. The round-trip is fast because the copied analysis is
+byte-identical to one already resident in the daemon's analysis cache — the
+daemon has been serving the parent worktree all along.
+
+### One daemon serves every worktree
+
+There is no per-worktree JVM. All checkouts on the machine share one compile
+server ([compile servers](/docs/guides/compile-servers)) that keeps
+incremental state hot and stores identical dependency analyses once. Every
+command names its workspace explicitly, so parallel builds in parallel
+worktrees don't race — they queue on per-project locks.
+
+## When there is no sibling to copy from
+
+CI machines and fresh clones have no warm neighbour. For those, the
+[local directory cache / remote cache](/docs/usage/remote-cache) serves the
+same purpose from content-addressed storage: cache keys are content digests
+and the shipped zinc analysis is path-portable, so
+`bleep remote-cache pull` restores classes and analysis for every project a
+sibling — or a CI run — already built.
+
+## For agents
+
+Register the MCP server once (`claude mcp add --scope user bleep -- bleep
+mcp-server`) and every session and subagent can call
+[`bleep.copy-state`](/docs/usage/mcp-server/) with a `directory` and a
+`from`, then compile and test any checkout on the machine. Runs land in
+per-worktree [history](/docs/usage/run-history), and
+`bleep history diff --base-dir ../main` diffs a fork's run against its
+parent's.
+
+The payoff, in one sitting: an agent proves its change as a diff — first
+against its own previous run (`test --diff`), then against the worktree it was
+forked from (`history diff --base-dir`):
+
+<AsciinemaPlayer src={agentsCast} cols={100} rows={32} fit="width" />
+
+Nor is the fan-out hypothetical: the repo carries a scripted, rerunnable
+Claude session (`demo-claude-agents/` at the repo root) in which an
+orchestrator spawns two parallel subagents into fresh worktrees over the MCP
+tools — one seeds with `copy-state`, one deliberately compiles cold — and
+closes by asking bleep for the cross-worktree timing diff. The model never
+invents a number; every figure below came back from a tool call. This is the
+run recorded in the cast on the [front page](/), verbatim:
+
+```
+agent[seeded]  copy-state: 756835 bytes in 71ms  ->  first compile: success
+agent[cold]    first compile: success (compiled everything from scratch)
+bleep history diff-timing (cold -> seeded): total 3529ms -> 585ms
+verdict: the cold worktree's first compile took 3529ms while the seeded
+         worktree's first compile took 585ms.
+```
+
+Milliseconds, because the demo build is tiny — it has to fit on camera. The
+mechanism is the same one that turns the four-and-a-half minutes above into
+under a minute on a real codebase; only the scale differs.

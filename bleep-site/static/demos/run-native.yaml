@@ -1,0 +1,24 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 1.0.0-M12+29-a156d968-SNAPSHOT
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  mycli:
+    extends: template-common
+    platform:
+      mainClass: com.example.helloMain
+  mycli-test:
+    dependencies: org.scalameta::munit:1.3.4
+    dependsOn: mycli
+    extends: template-common
+    isTestProject: true
+templates:
+  template-common:
+    platform:
+      name: native
+      nativeGc: immix
+      nativeVersion: 0.5.12
+    scala:
+      options: -encoding utf8 -feature -unchecked
+      strict: true
+      version: 3.8.4

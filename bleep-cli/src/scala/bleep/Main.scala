@@ -377,16 +377,44 @@ object Main {
 
     val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
 
+    /** `--diff [id]` for compile/test: run as normal, then print only the mechanical diff against a base history entry. Bare `--diff` resolves the most recent
+      * same-mode entry (`modeName` names it in the help text); `--diff=<id>` names one explicitly.
+      */
+    def diffOpt(modeName: String): Opts[Option[bleep.history.DiffBase]] =
+      Opts
+        .flagOption[Long](
+          "diff",
+          s"after the run, print only what changed vs a recorded run: bare --diff compares against the most recent $modeName (with --watch: the previous cycle), --diff=<id> against that history entry (with --watch: a fixed baseline for every cycle)",
+          metavar = "history id"
+        )
+        .orNone
+        .map {
+          case None           => None
+          case Some(None)     => Some(bleep.history.DiffBase.Previous)
+          case Some(Some(id)) => Some(bleep.history.DiffBase.Id(id))
+        }
+
+    /** diff results render for humans by default; `--output json` prints the underlying diff document (the same structure the MCP server returns) */
+    val diffOutputOpt: Opts[OutputMode] =
+      Opts
+        .option[String]("output", "with --diff: 'text' renders the diff for humans (default), 'json' prints the diff document", "o")
+        .mapValidated {
+          case "text" => cats.data.Validated.valid(OutputMode.Text: OutputMode)
+          case "json" => cats.data.Validated.valid(OutputMode.Json: OutputMode)
+          case other  => cats.data.Validated.invalidNel(s"Invalid diff output format: $other. Valid values: text, json")
+        }
+        .withDefault(OutputMode.Text: OutputMode)
+
     val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
       (
-        Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-        Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-      ).mapN(_ || _),
+        Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+        Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+      ).tupled,
       Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
       cancel
-    ).mapN { case (noTui, flamegraph, cancel) =>
+    ).mapN { case ((noTui, quiet), flamegraph, cancel) =>
       commands.CommonBuildOpts(
-        displayMode = commands.DisplayMode.fromFlags(noTui),
+        displayMode = commands.DisplayMode.fromFlags(noTui, quiet),
         flamegraph = flamegraph,
         cancel = cancel
       )
@@ -536,17 +564,19 @@ object Main {
               watch,
               projectNames,
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-              ).mapN(_ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+              ).tupled,
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
-              cancel
-            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel) =>
+              cancel,
+              diffOpt("compile"),
+              diffOutputOpt
+            ).mapN { case (watch, projectNames, (noTui, quiet), diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
+                else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase, diffOutput)
             }
           ),
           Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
@@ -561,12 +591,12 @@ object Main {
               optimizeOpt,
               debugInfoOpt,
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
-              ).mapN(_ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+              ).tupled,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel
-            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel) =>
+            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, (noTui, quiet), flamegraph, cancel) =>
               val linkOptions = commands.LinkOptions(
                 releaseMode = release,
                 sourceMaps = sourceMaps,
@@ -576,7 +606,7 @@ object Main {
                 optimize = optimize,
                 debugInfo = debugInfo
               )
-              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel)
+              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui, quiet), linkOptions, flamegraph, cancel)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
@@ -586,12 +616,13 @@ object Main {
             (
               watch,
               testProjectNames,
-              // Multiple aliases for disabling TUI - for different use cases
               (
-                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
-                Opts.flag("quiet", "alias for --no-tui", "q").orFalse,
-                Opts.flag("summary-only", "alias for --no-tui").orFalse
-              ).mapN(_ || _ || _),
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                (
+                  Opts.flag("quiet", "only failures and the final summary", "q").orFalse,
+                  Opts.flag("summary-only", "alias for --quiet").orFalse
+                ).mapN(_ || _)
+              ).tupled,
               Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
               Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
@@ -601,26 +632,47 @@ object Main {
               excludeTag,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
-              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, onlyTag, excludeTag, flamegraph, cancel, junitReportDir) =>
-              val (effectiveWatch, effectiveDisplayMode) =
-                if (diffWatch) (true, commands.DisplayMode.DiffWatch)
-                else (watch, commands.DisplayMode.fromFlags(noTui))
-              commands.ReactiveBsp.test(
-                watch = effectiveWatch,
-                projects = projectNames,
-                displayMode = effectiveDisplayMode,
-                jvmOptions = jvmOpts.toList,
-                testArgs = testArgs.toList,
-                only = only.map(_.toList).getOrElse(Nil),
-                exclude = exclude.map(_.toList).getOrElse(Nil),
-                includeTags = onlyTag.map(_.toList).getOrElse(Nil),
-                excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
-                flamegraph = flamegraph,
-                cancel = cancel,
-                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
-                clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
-              )
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              diffOpt("test run"),
+              diffOutputOpt
+            ).mapN {
+              case (
+                    watch,
+                    projectNames,
+                    (noTui, quiet),
+                    diffWatch,
+                    jvmOpts,
+                    testArgs,
+                    only,
+                    exclude,
+                    onlyTag,
+                    excludeTag,
+                    flamegraph,
+                    cancel,
+                    junitReportDir,
+                    diffBase,
+                    diffOutput
+                  ) =>
+                val (effectiveWatch, effectiveDisplayMode) =
+                  if (diffWatch) (true, commands.DisplayMode.DiffWatch)
+                  else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
+                commands.ReactiveBsp.test(
+                  watch = effectiveWatch,
+                  projects = projectNames,
+                  displayMode = effectiveDisplayMode,
+                  jvmOptions = jvmOpts.toList,
+                  testArgs = testArgs.toList,
+                  only = only.map(_.toList).getOrElse(Nil),
+                  exclude = exclude.map(_.toList).getOrElse(Nil),
+                  includeTags = onlyTag.map(_.toList).getOrElse(Nil),
+                  excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
+                  flamegraph = flamegraph,
+                  cancel = cancel,
+                  junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  diffBase = diffBase,
+                  diffOutput = diffOutput,
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+                )
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
@@ -674,6 +726,42 @@ object Main {
           ),
           Opts.subcommand("clean", "delete compile output and generated sources for selected projects (or the whole build)")(
             projectNames.map(projectNames => commands.Clean(projectNames))
+          ),
+          Opts.subcommand("copy-state", "copy compiled state from a sibling git worktree, so the first build here starts from its incremental baseline")(
+            Opts
+              .argument[String]("source worktree")
+              .map(fromStr => commands.CopyState(from = fromStr))
+          ),
+          Opts.subcommand("history", "list this workspace's recorded compile/test runs (written by the compile server, kept per worktree)")(
+            Opts
+              .subcommand("show", "print the full transcript of a recorded compile/test run as JSON (latest when no id is given)")(
+                (
+                  Opts.argument[Long]("history id").orNone,
+                  Opts.option[String]("project", "only events belonging to this project").orNone,
+                  Opts
+                    .option[String]("query", "case-insensitive regex over messages, paths, suite/test names and stack traces; only matching items are returned")
+                    .orNone,
+                  Opts.option[Int]("limit", "max number of items (diagnostics for compile, failures for test) to return").orNone,
+                  Opts.option[Int]("offset", "skip the first N items before applying limit").orNone
+                ).mapN { case (id, project, query, limit, offset) =>
+                  commands.History.Show(id, project, query, limit, offset): BleepBuildCommand
+                }
+              )
+              .orElse(
+                Opts.subcommand("diff", "diff two recorded runs: what logically changed (or, with --timing, what got slower/faster)")(
+                  (
+                    Opts.argument[Long]("base history id"),
+                    Opts.argument[Long]("target history id"),
+                    Opts.flag("timing", "compare durations (jitter-suppressed) instead of logical outcome").orFalse,
+                    Opts.option[Int]("limit", "--timing only: max entries per list (slower/faster/slowestInTarget)").orNone,
+                    Opts.option[String]("base-dir", "resolve the base id in another workspace's history (e.g. the worktree this one was forked from)").orNone,
+                    diffOutputOpt
+                  ).mapN { case (base, target, timing, limit, baseDir, diffOutput) =>
+                    commands.History.Diff(base, target, timing, limit, baseDir.map(java.nio.file.Paths.get(_)), diffOutput): BleepBuildCommand
+                  }
+                )
+              )
+              .orElse(Opts(commands.History.ListEntries: BleepBuildCommand))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
             (projectNames, outputMode).mapN { (projectNames, mode) =>
@@ -1312,22 +1400,11 @@ object Main {
         }
 
       case "mcp-server" :: args =>
+        // Deliberately no build loading and no version dispatch here: the MCP server is workspace-free at boot.
+        // Every tool call names its workspace via the required `directory` parameter and bootstraps it fresh.
         val (preOpts, _) = PreBootstrapOpts.parse(args)
         val lopts = preOpts.toLoggingOpts
-        val cwd = cwdFor(preOpts.directory)
-        val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(lopts), buildLoader, preOpts.dev).andThen {
-          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
-          val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
-
-          bleepLoggers.stderrAndFileLogging(config, lopts, buildPaths).use { logger =>
-            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
-              case Left(be)   => fatal("", logger, be)
-              case Right(pre) =>
-                mcp.McpServerRunner.run(pre)
-            }
-          }
-        }
+        mcp.McpServerRunner.run(bleepLoggers.stderrAll(lopts), userPaths, ec)
 
       case args =>
         val (preOpts, restArgs) = PreBootstrapOpts.parse(args)

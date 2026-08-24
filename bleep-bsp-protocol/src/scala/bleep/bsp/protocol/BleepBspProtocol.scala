@@ -59,6 +59,11 @@ object BleepBspProtocol {
   /** The dataKind used in TestResult.data for reliable delivery of test run results */
   val TestRunResultDataKind: String = "bleep-test-run-result"
 
+  /** The dataKind used in CompileResult.data to return the id of the transcript the daemon persisted for the request. Test responses carry the id inside
+    * [[TestRunResult.historyId]] instead — TestResult.data is already claimed by [[TestRunResultDataKind]].
+    */
+  val HistoryIdDataKind: String = "bleep-history-id"
+
   // ==========================================================================
   // Response Extensions (server -> client, in TestResult.data)
   // ==========================================================================
@@ -77,7 +82,14 @@ object BleepBspProtocol {
       suitesCompleted: Int,
       suitesFailed: Int,
       suitesCancelled: Int,
-      durationMs: Long
+      durationMs: Long,
+      /** Id of the transcript the daemon persisted for this request (`<workspace>/.bleep/builds/<variant>/history/<id>.json`).
+        *
+        * `None` is the sanctioned absence: exactly when the transcript write failed (which never fails the build — the daemon logs and continues), and in the
+        * copy of this result embedded inside the transcript itself, whose own `Transcript.id` is authoritative. A missing field on the wire also decodes as
+        * `None`, so responses from older daemons keep decoding.
+        */
+      historyId: Option[Long]
   )
 
   object TestRunResult {
@@ -87,6 +99,20 @@ object BleepBspProtocol {
 
     def decode(json: String): Either[io.circe.Error, TestRunResult] =
       io.circe.parser.decode[TestRunResult](json)
+  }
+
+  /** Payload for [[HistoryIdDataKind]]: `{"historyId": <id>}` in CompileResult.data. Only attached when the transcript write succeeded — a failed write is the
+    * sanctioned absence (the daemon logs and returns the result without data rather than failing the build).
+    */
+  case class HistoryIdPayload(historyId: Long)
+
+  object HistoryIdPayload {
+    implicit val codec: Codec[HistoryIdPayload] = deriveCodec
+
+    def encode(payload: HistoryIdPayload): String = payload.asJson.noSpaces
+
+    def decode(json: String): Either[io.circe.Error, HistoryIdPayload] =
+      io.circe.parser.decode[HistoryIdPayload](json)
   }
 
   // ==========================================================================

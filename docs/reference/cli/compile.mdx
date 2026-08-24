@@ -27,9 +27,16 @@ bleep compile <project name...> [flags]
 | Flag | Description |
 |------|-------------|
 | `--watch, -w` | start in watch mode |
-| `--no-tui` | disable TUI, show summary only (for CI/agents) |
-| `--quiet, -q` | alias for --no-tui |
+| `--no-tui` | disable TUI, keep the full streaming trace (for CI/agents that read logs) |
+| `--quiet, -q` | only failures and the final summary |
 | `--diff-watch` | watch mode with per-project diffs between cycles |
 | `--flamegraph` | generate execution trace (open in chrome://tracing or ui.perfetto.dev) |
 | `--cancel` | cancel any running build before starting |
+| `--diff <history id>` | after the run, print only what changed vs a recorded run: bare --diff compares against the most recent compile (with --watch: the previous cycle), --diff=&lt;id&gt; against that history entry (with --watch: a fixed baseline for every cycle) |
+| `--output, -o <string>` | with --diff: 'text' renders the diff for humans (default), 'json' prints the diff document |
 
+## See also
+
+The [run history & diffs guide](/docs/usage/run-history) tells the whole story — what
+gets recorded, diffing runs, the `--diff` edit loop, cross-worktree comparisons — with
+a demo video.

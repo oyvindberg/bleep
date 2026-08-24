@@ -39,6 +39,26 @@ bleep list-tests               # list test names without running them
 [`bleep test --diff-watch`](/docs/reference/cli/test/) works the same as `compile --diff-watch`,
 showing only the suites whose pass/fail status flipped between cycles.
 
+## Run history and diffs
+
+Every compile and test run is recorded into the workspace
+(`.bleep/builds/normal/history/`, per worktree, the last 32 kept) — summaries
+end with a `History: #N` line pointing at the transcript.
+
+```bash
+bleep history                  # list recorded compile/test runs
+bleep history show 7           # full transcript of run #7, as JSON
+bleep history diff 6 7         # what logically changed between two runs
+bleep history diff 6 7 --timing # what got slower/faster, jitter suppressed
+bleep test --diff              # run tests, print only what changed vs the previous run
+bleep compile --diff           # same, for diagnostics
+```
+
+`--diff=<id>` pins a fixed baseline (say, the last green run) instead of the
+previous run. The [run history & diffs guide](/docs/usage/run-history) tells
+the whole story, with a demo video; [`bleep history`](/docs/reference/cli/history/)
+is the reference.
+
 ## Run
 
 ```bash

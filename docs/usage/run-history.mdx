@@ -1,0 +1,177 @@
+---
+title: Run history & diffs
+---
+
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import diffCast from "!!file-loader!@site/static/demos/diff.cast";
+import historyApiCast from "!!file-loader!@site/static/demos/history-api.cast";
+
+# Run history & diffs
+
+Every compile and test run bleep performs is recorded as a **transcript**: an
+immutable JSON file the compile daemon writes into the workspace itself. Every
+summary ends with a `History: #N` line pointing at the transcript it just
+wrote. Because a completed run is a value on disk — not state inside a daemon —
+you can list runs, read any run's full diagnostics after the fact, and diff two
+runs as a pure function over two files. That's the whole API:
+
+- [`bleep history`](/docs/reference/cli/history/) — list recorded runs
+- [`bleep history show`](/docs/reference/cli/history/show) — one run's full transcript
+- [`bleep history diff`](/docs/reference/cli/history/diff) — what changed between two runs
+- [`bleep compile --diff`](/docs/reference/cli/compile/) / [`bleep test --diff`](/docs/reference/cli/test/) — run, then print only what changed
+
+The edit-run-what-changed loop in under a minute:
+
+<AsciinemaPlayer src={diffCast} cols={100} rows={30} fit="width" />
+
+## What gets recorded
+
+Transcripts live at `.bleep/builds/normal/history/<id>.json` (the last 32 are
+kept). History is **per worktree** — each checkout has its own numbering — and
+it is shared by every client of that workspace: the CLI, your IDE's BSP
+connection, and the [MCP server](/docs/usage/mcp-server) all read and write the
+same files, and the records survive daemon and server restarts.
+
+```bash
+$ bleep history
+#1  2026-08-13 09:29:37  compile  client=bleep  targets=mathy,mathy-test
+#2  2026-08-13 09:29:38  test     client=bleep  targets=mathy-test
+#3  2026-08-13 09:29:39  test     client=bleep  targets=mathy-test
+```
+
+## Reading a transcript: `bleep history show`
+
+`bleep history show <id>` prints the full record of a run as JSON — the latest
+run when no id is given. A test transcript carries pass/fail counts and every
+failure with its message and stack trace; a compile transcript carries every
+diagnostic with severity, path, and lines.
+
+```bash
+bleep history show            # the latest run
+bleep history show 6          # run #6
+bleep history show 6 --query 'Timeout|NullPointer'   # only matching items
+bleep history show 6 --project mathy-test            # only one project's events
+bleep history show 6 --limit 5 --offset 5            # paginate large runs
+```
+
+`--query` is a case-insensitive regex over messages, paths, suite/test names,
+and stack traces — the intended way to pull the two interesting failures out of
+a run with hundreds.
+
+## What changed: `bleep history diff`
+
+`bleep history diff <base> <target>` compares the *logical outcome* of two
+runs. Time never enters the comparison — durations are not part of the compared
+data — so two runs with the same outcome diff as identical no matter how
+their timings jittered. The result renders for humans by default:
+
+```text
+compile diff  #3 → #4
+1 project changed
+
+  core  success → failed
+    + error value withTag is not a member of com.example.Record7
+      core/src/scala/com/example/Record7.scala:10
+```
+
+Pass `--output json` (`-o json`) to get the underlying diff document instead —
+the same structure the MCP server returns, for scripts and agents:
+
+```json
+{
+  "base"      : { "historyId": 5, "workspace": "~/demo" },
+  "target"    : { "historyId": 6, "workspace": "~/demo" },
+  "mode"      : "test",
+  "identical" : true,
+  "summary"   : "No logical differences."
+}
+```
+
+For **test** runs, differences are grouped by transition — `newlyFailing`
+(with the failure message), `fixed`, `stillFailing` (context; only counts as a
+difference when the failure message changed), `newlySkipped`, `unskipped`,
+`added`, `removed`, and `suiteOutcomeChanges`. A test's identity is
+`(project, suite, test)`.
+
+For **compile** runs, each changed project reports what moved: compile status
+and reason (`up-to-date` → `incremental`), `invalidatedFilesAdded`/`Removed`,
+`changedDependenciesAdded`/`Removed`, and — the interesting part —
+`newDiagnostics` and `resolvedDiagnostics`. A diagnostic's identity is
+`(severity, path, message)`: the line number is an attribute, not identity, so
+an edit that only shifts a warning down the file does not report it as new plus
+resolved.
+
+## What got slower: `--timing`
+
+`bleep history diff <base> <target> --timing` is the other half: it compares
+durations, and treats jitter as the enemy. Per-item deltas are reported only
+above a significance threshold of `max(50ms, 20% of base)`; everything below is
+counted in `insignificantDeltasSuppressed` rather than listed. You get
+`slower`, `faster`, and the target run's `slowestInTarget` (at most `--limit`
+entries each, default 15), plus totals:
+
+```text
+timing diff (compile)  #1 → #3
+total 2608ms → 3845ms (+1237ms)
+threshold max(50ms, 20% of base), 12 insignificant deltas suppressed
+
+slower
+     2403ms →    3750ms  (+1347ms)  core
+```
+
+`--output json` applies here too. The same two transcripts always render the
+same result: ordering ties break on item identity, never on hash order.
+
+## The edit loop: `compile --diff` and `test --diff`
+
+You rarely need to name two ids. After an edit:
+
+```bash
+bleep test --diff             # run, then print only what changed vs the previous test run
+bleep compile --diff          # same, for diagnostics
+bleep test --diff=12          # pin a fixed baseline, e.g. the last green run
+```
+
+Bare `--diff` compares against the most recent run of the same mode — a
+*sliding* baseline, which is exactly the edit-loop question. The corollary:
+rerunning without an edit reports `identical`, because nothing did change
+since the last run (the header always names the two ids being compared, and
+when both runs are identically red the diff says so instead of reading like
+an all-clear). When you want a *fixed* reference — "compare everything I do
+against the last green run" — pin it with `--diff=<id>`. With `--watch`,
+bare `--diff` compares each cycle against the previous cycle, while
+`--diff=<id>` keeps a fixed baseline for every cycle. Every `--diff` output
+ends with a hint (`timing: bleep history diff 5 6 --timing`) so the duration
+comparison of the exact same pair is one paste away. `--diff-watch` is the
+terse variant: watch mode printing only the per-project diffs between cycles.
+
+The whole loop in one sitting — a transcript fetched as JSON, a break
+pinpointed by `compile --diff`, the fix confirmed the same way:
+
+<AsciinemaPlayer src={historyApiCast} cols={100} rows={40} fit="width" />
+
+## Across worktrees: `--base-dir`
+
+History ids only mean something together with their workspace, so comparing a
+fork against the worktree it was forked from takes one extra flag:
+
+```bash
+bleep history diff 12 3 --base-dir ../main-worktree
+```
+
+Identity is computed against each side's own workspace root: paths under the
+root are relativized (separator-agnostic, so a transcript written on Windows
+compares cleanly anywhere), and the root embedded in diagnostic messages is
+normalized away — the same failure in a parent and its fork compares as the
+same failure. Paths outside any workspace (coursier jars, the JDK) stay
+absolute, which is correct on one machine: the same jar genuinely is the same
+file in both worktrees.
+
+## For agents: the MCP surface
+
+The [MCP server](/docs/usage/mcp-server) exposes the same records:
+`bleep.compile` and `bleep.test` accept `diffBase` (`"previous"` or a
+`historyId`) and return a `diff` section with their summary, and
+`bleep.history.list` / `show` / `diff` / `diff-timing` mirror the CLI —
+including `baseDirectory` for cross-worktree diffs. The base is validated
+before the build starts, so a bad id fails without costing a build.

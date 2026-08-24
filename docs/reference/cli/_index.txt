@@ -24,7 +24,9 @@
   - bleep config test-runner
   - bleep config auth
   - bleep config remote-cache
+- bleep copy-state
 - bleep dist
+- bleep export-maven
 - bleep extract-info
   - bleep extract-info all
   - bleep extract-info project-graph
@@ -32,6 +34,9 @@
   - bleep extract-info scripts
   - bleep extract-info sourcegen
 - bleep fmt
+- bleep history
+  - bleep history show
+  - bleep history diff
 - bleep import
 - bleep import-maven
 - bleep install-tab-completions-bash

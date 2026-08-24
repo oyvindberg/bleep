@@ -1,21 +1,32 @@
 #!/usr/bin/env bash
+# Record a screencast of a shell script, with inlined code & comments and simulated typing.
+#
+# Requires asciinema 3.x (`brew install asciinema`). Records asciicast v2 by default so the
+# cast stays compatible with asciinema-player.
+#
 # Example:
 #                            asciinema-rec_script screencasts/staff-service-01
 #   screencast=/tmp/foo.cast asciinema-rec_script screencasts/staff-service-01
 #
-# This will run the script and record a screencast of it with inlined code & comments.
+# When extra arguments are given after the script path, they are passed verbatim to
+# `asciinema rec` (and must include the output file), e.g.:
+#   asciinema-rec_script my-script --title demo --headless --window-size 100x30 \
+#     --output-format asciicast-v2 --idle-time-limit 1 --overwrite out.cast
 
 set -uo pipefail
 
-REC_ARGS="${RECORD_ARGS:---idle-time-limit 1 --overwrite}"
+REC_ARGS="${RECORD_ARGS:---idle-time-limit 1 --overwrite --output-format asciicast-v2}"
 
+
+# ANSI escapes written with $'\e' quoting on purpose: a literal ESC byte in this file is invisible
+# and gets silently lost when the file is edited by tools that strip control characters
+ESC=$'\e'
+export RESET="${ESC}[0m"
 
 # Nb. these can all be overriden from the command line if you don't like the defaults..
-export PROMPT="${PROMPT:-"[32;1m❯[0m "}"
-export COMMENT="${COMMENT:-"💭 [3;1m"}"
-export ECHO="${ECHO:-"💬 [3;1m"}"
-export BEGIN_RECORDING="${BEGIN_RECORDING:-"🎥 [32;3mBegin recording - [1m"}"
-export END_RECORDING="${END_RECORDING:-"🎬 [32;3mEnd recording - [1m"}"
+export PROMPT="${PROMPT:-"${ESC}[32;1m❯${RESET} "}"
+export COMMENT="${COMMENT:-"💭 ${ESC}[3;1m"}"
+export ECHO="${ECHO:-"💬 ${ESC}[3;1m"}"
 
 build_augmented_script() { local script="$1"
   comment() {
@@ -24,7 +35,7 @@ build_augmented_script() { local script="$1"
         : # skip the "#!/usr/bin ..." line, as that's not a comment
       ;;
       *)
-        echo "${COMMENT}$(echo "${1}" | $MARKDOWN)[0m"
+        echo "${COMMENT}$(echo "${1}" | $MARKDOWN)${RESET}"
       ;;
     esac
   }
@@ -35,7 +46,7 @@ build_augmented_script() { local script="$1"
 
     # A pause can be added between typing out characters in
     # the command to simulate typing
-    TYPING_PAUSE=${TYPING_PAUSE:-0.001}
+    TYPING_PAUSE=${TYPING_PAUSE:-0.02}
 
     type_out() { local text="$1"
       sleep "$PROMPT_PAUSE"
@@ -44,7 +55,7 @@ build_augmented_script() { local script="$1"
         sleep "$TYPING_PAUSE"
       done
       sleep "$PROMPT_PAUSE"
-      echo "[0m"
+      echo "${RESET}"
     }
 
     case $1 in
@@ -72,14 +83,6 @@ build_augmented_script() { local script="$1"
         eval "$1"
       ;;
     esac
-  }
-
-  begin_recording() {
-    echo "${BEGIN_RECORDING}${1##*/}[0m"
-  }
-
-  end_recording() {
-    echo "${END_RECORDING}${1##*/}[0m"
   }
 
   countdown() { local sleep_time=$1
@@ -146,11 +149,9 @@ LINE
   echo "export CAT='${CAT:-$(syntax_highlighter)}'"
   echo "export MARKDOWN='${MARKDOWN:-$(markdown_highlighter)}'"
   # shellcheck disable=SC2034
-  typeset -f comment execute begin_recording end_recording countdown
+  typeset -f comment execute countdown
 
-  echo begin_recording "'""$script""'"
   transform_lines < "$script"
-  echo end_recording "'""$script""'"
 }
 
 syntax_highlighter() {
@@ -193,10 +194,10 @@ if [ "$#" -eq 0 ]; then
 
   # And add some defaults
   # shellcheck disable=SC2206
-  args=($REC_ARGS "$screencast")
+  args=($REC_ARGS --title "${title:-${script##*/}}" "$screencast")
 else
   args=("$@")
 fi
 
 
-asciinema_rec "$script" --title "${title:-${script##*/}}" "${args[@]}"
+asciinema_rec "$script" "${args[@]}"

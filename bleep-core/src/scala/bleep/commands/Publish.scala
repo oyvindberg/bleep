@@ -211,7 +211,9 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
           projects = projects,
           displayMode = buildOpts.displayMode,
           flamegraph = buildOpts.flamegraph,
-          cancel = buildOpts.cancel
+          cancel = buildOpts.cancel,
+          diffBase = None,
+          diffOutput = OutputMode.Text
         )
         .run(started)
       version <- resolveVersion()

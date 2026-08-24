@@ -31,8 +31,12 @@ trait BuildDisplay {
   /** Record that the compile server died, so the summary says the run did not complete rather than reading as clean next to a failure message. */
   def markServerCrashed: IO[Unit]
 
-  /** Print final summary. Pass a [[FilterContext]] when test filters are active so the summary can show which filters ran and what they pruned. */
-  def printSummary(filterContext: Option[FilterContext]): IO[Unit]
+  /** Print final summary. Pass a [[FilterContext]] when test filters are active so the summary can show which filters ran and what they pruned.
+    *
+    * `failureDetails = false` keeps the one-line counts (and the `History: #N` pointer) but suppresses the verbose failure sections — used by `--diff`, where
+    * the mechanical diff printed right after carries the failure messages (its newlyFailing entries / newDiagnostics) and repeating them above it is noise.
+    */
+  def printSummary(filterContext: Option[FilterContext], failureDetails: Boolean): IO[Unit]
 }
 
 /** Snapshot of the filters the user asked for in this run. Attached to `BuildSummary` purely for display — does not affect control flow.
@@ -94,7 +98,9 @@ case class BuildSummary(
       * that reads as clean while the command fails is a summary the reader has to reconcile against the error below it.
       */
     serverCrashed: Boolean,
-    filterContext: Option[FilterContext]
+    filterContext: Option[FilterContext],
+    /** Id of the transcript the daemon persisted for this request (`bleep history show <id>` expands it). None when the response carried none. */
+    historyId: Option[Long]
 ) {
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
@@ -138,8 +144,10 @@ case class BuildSummary(
 object BuildSummary {
 
   /** Format a complete summary for display after a build/test run. Returns lines to print. Used by both TUI and non-TUI paths.
+    *
+    * `failureDetails = false` stops after the counts/duration/history/filter block — see [[BuildDisplay.printSummary]].
     */
-  def formatSummary(summary: BuildSummary, mode: BuildMode): List[String] = {
+  def formatSummary(summary: BuildSummary, mode: BuildMode, failureDetails: Boolean): List[String] = {
     import BleepConsole as C
     val lines = List.newBuilder[String]
 
@@ -205,6 +213,7 @@ object BuildSummary {
       f" (total task time: ${totalSec}%.1fs, ${parallelism}%.1fx parallelism)"
     } else ""
     lines += s"  Duration: $durationStr$parallelismStr"
+    summary.historyId.foreach(id => lines += s"  History:  #$id (bleep history show $id)")
 
     // --- Filter accounting (test mode only; only when something was filtered) ---
     mode match {
@@ -236,6 +245,9 @@ object BuildSummary {
     }
 
     lines += ""
+
+    // `--diff` mode: the mechanical diff printed after this block carries the failure detail; stop here.
+    if (!failureDetails) return lines.result()
 
     // === Killed tasks (cancelled builds) ===
     if (summary.killedTasks.nonEmpty) {
@@ -523,7 +535,8 @@ object BuildSummary {
     totalTaskTimeMs = 0L,
     wasCancelled = false,
     serverCrashed = false,
-    filterContext = None
+    filterContext = None,
+    historyId = None
   )
 }
 
@@ -857,6 +870,9 @@ object BuildDisplay {
 
       case _: BuildEvent.TestRunCompleted =>
         IO.unit // State updated via BuildStateReducer; no side effects needed
+
+      case _: BuildEvent.HistoryRecorded =>
+        IO.unit // Surfaces in the summary via BuildStateReducer; nothing to print mid-run
     }
 
     private def printStatus: IO[Unit] =
@@ -915,16 +931,16 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] = mode match {
+    override def printSummary(filterContext: Option[FilterContext], failureDetails: Boolean): IO[Unit] = mode match {
       case BuildMode.Compile | BuildMode.Link(_) =>
-        printCompileSummary
+        printCompileSummary(failureDetails)
       case BuildMode.Test =>
-        printBuildSummary(filterContext)
+        printBuildSummary(filterContext, failureDetails)
       case BuildMode.Run(_, _) =>
         IO.unit // Run mode doesn't need a summary
     }
 
-    private def printCompileSummary: IO[Unit] =
+    private def printCompileSummary(failureDetails: Boolean): IO[Unit] =
       for {
         s <- summary
         // A compile run also fails when what runs BEFORE the compiles fails — sourcegen, or
@@ -952,7 +968,8 @@ object BuildDisplay {
         _ <- if (s.kspResolutionFailed > 0) log(s"KSP: ${s.kspResolutionFailed} project(s) failed to resolve") else IO.unit
         wallTimeSeconds = s.durationMs / 1000.0
         _ <- log(f"Time:     ${wallTimeSeconds}%.1fs")
-        _ <- if (s.compileFailures.nonEmpty) printCompileFailures(s.compileFailures) else IO.unit
+        _ <- s.historyId.fold(IO.unit)(id => log(s"History:  #$id (bleep history show $id)"))
+        _ <- if (s.compileFailures.nonEmpty && failureDetails) printCompileFailures(s.compileFailures) else IO.unit
         _ <- log("=" * 60)
       } yield ()
 
@@ -990,11 +1007,11 @@ object BuildDisplay {
         }
       } yield ()
 
-    private def printBuildSummary(filterContext: Option[FilterContext]): IO[Unit] =
+    private def printBuildSummary(filterContext: Option[FilterContext], failureDetails: Boolean): IO[Unit] =
       for {
         s <- summary
         enriched = s.copy(filterContext = filterContext)
-        _ <- BuildSummary.formatSummary(enriched, mode).traverse_(log)
+        _ <- BuildSummary.formatSummary(enriched, mode, failureDetails).traverse_(log)
       } yield ()
   }
 
@@ -1152,9 +1169,9 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] =
+    override def printSummary(filterContext: Option[FilterContext], failureDetails: Boolean): IO[Unit] =
       // DiffWatch focuses on per-cycle deltas; FilterContext isn't surfaced here since the user already chose the filter and watches its outcome cycle by cycle.
-      // We accept the parameter for trait conformance and ignore it.
+      // We accept the parameters for trait conformance and ignore them — the summary here is already a single line, so there is nothing to suppress.
       for {
         s <- summary.map(_.copy(filterContext = filterContext))
         allTests <- currentTestResults.get
@@ -1216,6 +1233,7 @@ object BuildDisplay {
         now <- IO.realTime.map(_.toMillis)
       } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
 
-    override def printSummary(filterContext: Option[FilterContext]): IO[Unit] = IO.unit // Fancy display handles this; filterContext is rendered there.
+    override def printSummary(filterContext: Option[FilterContext], failureDetails: Boolean): IO[Unit] =
+      IO.unit // Fancy display handles this; filterContext is rendered there.
   }
 }

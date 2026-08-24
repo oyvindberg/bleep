@@ -63,15 +63,148 @@ Cache entries are tar.gz archives stored at `s3://bucket/prefix/<project>/<diges
 ### Push behavior
 - For each compiled project, checks if the cache already has an entry for that digest
 - Uploads tar.gz of classes + zinc analysis for new entries
-- Skips projects that aren't compiled or are already cached
+- Skips projects that aren't compiled or are already cached (`--force` uploads anyway, overwriting the stored entry — see [Trust model](#trust-model))
+
+Who is allowed to push decides what everyone else executes: see [Trust model](#trust-model) before wiring this into CI.
+
+## Trust model
+
+Read this before pointing CI at a shared cache. A build cache is a
+supply-chain component: everything in it is executed, linked into
+artifacts, or shipped.
+
+### How a cache key is computed
+
+Every project gets a SHA-256 **digest** over its compilation inputs
+(`ProjectDigest`), in this order:
+
+1. the build's `$version` (different bleep versions produce different output),
+2. the project's effective configuration as YAML — templates expanded,
+   `publish` excluded because it doesn't affect compilation,
+3. content hashes of every source file under the project's source
+   directories,
+4. content hashes of every resource file (resources are *not* stored in
+   the archive, but they change the key),
+5. the digests of all transitive project dependencies,
+6. the digests of the projects backing its sourcegen scripts.
+
+File content hashes are git blob hashes: `git ls-tree -r HEAD` supplies
+them for directories with no uncommitted changes, and directories that
+are dirty or untracked (generated sources) are hashed from the
+filesystem with the same `SHA-1("blob <size>\0" + content)` formula, so
+both paths agree on the same content.
+
+The resulting key is
+`<prefix>/<project>/<digest>.tar.gz` (slashes in a cross-project name
+become dashes). The archive holds the classes directory and the Zinc
+analysis.
+
+**The digest describes the inputs, never the bytes stored under it.**
+`bleep remote-cache pull` asks the backend whether that key exists,
+downloads it, and unpacks it into the project's target directory. There
+is no signature, no content hash, and no record of who wrote the entry.
+Trust in a cache entry is exactly trust in whoever could write that
+key.
+
+### What someone who can write to the cache can do
+
+Given write access to the bucket (or cache directory), an attacker
+picks any key and puts any archive there. Because the key is a pure
+function of repository content plus bleep version, they can compute the
+key of *any* commit they can read — including the main branch, and
+including commits that haven't been built yet — and place an entry
+under it ahead of time.
+
+Anyone whose build then produces those same inputs gets a cache hit and
+never compiles the project:
+
+- the planted classes go on the classpath of every downstream compile,
+  so they can also change what compiles against them,
+- tests execute them, and a poisoned entry can make the tests pass,
+- packaging and publishing steps ship them,
+- developers who run `bleep remote-cache pull` locally get them on
+  their machines,
+- the Zinc analysis in the archive drives later incremental compiles,
+  so a poisoned entry keeps influencing builds after it lands.
+
+Nothing in the pull path would notice: a poisoned entry looks exactly
+like a hit. The only checks bleep performs are structural — push
+refuses to upload analysis containing absolute paths (it would not be
+portable), and unpacking refuses archive entries whose paths would
+escape the project's target directory. Neither says anything about
+whether the *contents* are trustworthy.
+
+The blast radius is therefore the whole set of consumers of the cache,
+not just the job that wrote the entry. That is why untrusted builds
+must not hold write credentials.
+
+### Read-only clients are enforced by the backend, not by bleep
+
+Bleep has no read-only mode. There is one credential pair, used for
+both `pull` and `push`; `pull` never writes, but nothing stops a client
+holding those credentials from running `push`. If you need a build to
+be unable to write to the cache, **give it credentials that cannot
+write**:
+
+- **S3 / R2 / MinIO / GCS:** issue a second key whose policy allows
+  only `s3:GetObject` (plus `s3:ListBucket` if your backend needs it)
+  on the cache prefix, and hand *that* one to untrusted jobs. Keep the
+  read-write key for jobs that only trusted refs can start.
+- **`file://` caches:** filesystem permissions — mount or chmod the
+  cache directory read-only for the accounts that must not write.
+
+Keep the two secrets under different names so a copy-paste cannot
+promote a read-only job to a writer.
+
+### `bleep remote-cache push --force`
+
+Without `--force`, push checks whether the key already exists and skips
+it — an existing entry is left alone. With `--force`, the upload
+happens regardless and **overwrites** whatever was there.
+
+Use it when you know the stored entry is wrong: it was produced by a
+broken toolchain, by a bleep version with an output bug, or by an
+attacker, and you are re-pushing a known-good build from a trusted
+machine.
+
+Do not put it in a routine pipeline. It turns "first writer wins" into
+"last writer wins", so any job that can reach the cache can replace a
+good entry at will, and it removes the one accidental brake that makes
+poisoning harder — the skip on an existing key. Combined with a write
+credential in a pull-request build, `--force` is a one-line
+cache-poisoning primitive.
 
 ## CI integration
+
+The rule these examples follow: **untrusted builds read, trusted builds
+write.** A pull request is untrusted — anyone who can open one chooses
+the code that runs in the job — so PR builds get the read-only
+credential and no push step. Entries are written by post-merge builds
+of the branch you protect, which is exactly the code that already
+passed review.
+
+Note that "fork PRs don't get secrets" is not the protection here: on
+GitHub, a pull request from a *branch in the same repository* does
+receive the repository's secrets, and any contributor who can push a
+branch can then run arbitrary code in that job. Nor is an `if:` on the
+push step a control: on a `pull_request` event the workflow file that
+runs is the one **on the PR branch**, so the PR can simply delete the
+guard. What actually withholds the credential is the backend policy on
+the key plus a GitHub Environment whose deployment-branch rule admits
+only the protected branch (GitLab: protected variables).
 
 ### GitHub Actions
 
 ```yaml
+on:
+  pull_request:
+  push:
+    branches: [main]
+
 jobs:
-  build:
+  # Untrusted: runs code from the PR branch. Read-only cache credentials, no push.
+  pr:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,28 +216,86 @@ jobs:
       - name: Pull cache
         run: bleep remote-cache pull
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          # Key whose IAM policy allows GetObject only.
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
       - name: Build changed projects
         run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
 
+  # Trusted: only reachable after merge to main. This job writes the cache.
+  main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Scope the write credential to a GitHub Environment restricted to this branch,
+    # so no other workflow or ref can read it.
+    environment: build-cache-write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bleep-build/bleep-setup-action@v1
+
+      - name: Pull cache
+        run: bleep remote-cache pull
+        env:
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_READ_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
+
+      - name: Build
+        run: bleep compile
+
       - name: Push cache
         run: bleep remote-cache push
         env:
-          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID }}
-          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY }}
+          # Read-write key. Only this job's environment can read it.
+          BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.BLEEP_CACHE_WRITE_ACCESS_KEY_ID }}
+          BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_WRITE_SECRET_ACCESS_KEY }}
 ```
+
+`workflow_run` and `pull_request_target` are *not* substitutes for
+this split: both run with the base repository's permissions, and a job
+that checks out PR code under either of them is as untrusted as the PR
+itself.
 
 ### GitLab CI
 
+Mark the read-write credentials as **protected** variables, so they
+are only exposed to jobs on protected branches and tags, and leave the
+read-only pair unprotected for merge-request pipelines.
+
 ```yaml
-build:
+# Untrusted: merge request pipelines read the cache.
+mr:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: $CACHE_READ_KEY_ID
+    BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: $CACHE_READ_SECRET
   script:
     - bleep remote-cache pull
     - bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | xargs bleep compile
+
+# Trusted: only the protected default branch, which is the only place
+# the protected write variables resolve.
+default-branch:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    BLEEP_REMOTE_CACHE_S3_ACCESS_KEY_ID: $CACHE_WRITE_KEY_ID       # protected variable
+    BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: $CACHE_WRITE_SECRET   # protected variable
+  script:
+    - bleep remote-cache pull
+    - bleep compile
     - bleep remote-cache push
 ```
+
+If you want PR builds to reuse each other's work as well, give them a
+*separate* cache — a different bucket that trusted builds never pull
+from — rather than write access to the shared one, and scope that
+write credential to that bucket alone. A poisoned entry then reaches
+only other PR builds, which are untrusted anyway.
 
 ## Local directory cache
 
@@ -116,6 +307,8 @@ remote-cache:
 ```
 
 No credentials or region are needed. Cache entries land at `<dir>/<project>/<digest>.tar.gz`, written atomically so concurrent pushes from different checkouts are safe.
+
+The [trust model](#trust-model) applies unchanged: the cache is as trustworthy as the set of accounts that can write to that directory. A per-user directory trusts only you; one shared across a machine or an NFS mount trusts everyone who can write there.
 
 This is built for git worktrees: because cache keys are content digests and the shipped zinc analysis is path-portable, a freshly created worktree can `bleep remote-cache pull` and skip compiling everything its sibling already built:
 
