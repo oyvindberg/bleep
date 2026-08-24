@@ -273,7 +273,10 @@ object ResolveProjects {
       */
     val libraryVersionSchemes: SortedSet[model.LibraryVersionScheme] =
       explodedProject.libraryVersionSchemes.values ++
-        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.libraryVersionSchemes.values }
+        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.libraryVersionSchemes.values } ++
+        // Schemes for the platform test libraries bleep injects itself. See `VersionCombo.testLibraryVersionSchemes`: without them a project fails on a
+        // conflict between a version bleep chose and one a test framework declared, neither of which the user wrote.
+        versionCombo.testLibraryVersionSchemes(explodedProject.isTestProject.getOrElse(false))
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromPlatform =
