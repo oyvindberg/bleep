@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
-<title data-rh="true">Import Maven build | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/demos/importing-maven-build/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Import Maven build | Bleep"><meta data-rh="true" name="description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><meta data-rh="true" property="og:description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/demos/importing-maven-build/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Import from Maven","item":"https://bleep.build/docs/demos/importing-maven-build"}]}</script><link rel="stylesheet" href="/assets/css/styles.833866ae.css">
-<script src="/assets/js/runtime~main.5f171567.js" defer="defer"></script>
-<script src="/assets/js/main.ef69df1c.js" defer="defer"></script>
+<title data-rh="true">Import Maven build | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/demos/importing-maven-build/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Import Maven build | Bleep"><meta data-rh="true" name="description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><meta data-rh="true" property="og:description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/demos/importing-maven-build/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Import from Maven","item":"https://bleep.build/docs/demos/importing-maven-build"}]}</script><link rel="stylesheet" href="/assets/css/styles.a0eb1d0f.css">
+<script src="/assets/js/runtime~main.04a74e12.js" defer="defer"></script>
+<script src="/assets/js/main.95a0c6f4.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -89,9 +89,13 @@ for bleep&#x27;s <a class="" href="/docs/reference/cli/publish/sonatype/"><code>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="limits-today">Limits today<a href="#limits-today" class="hash-link" aria-label="Direct link to Limits today" title="Direct link to Limits today" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>Gradle import is not yet implemented.</strong> Multi-tool repos that mix
-Maven and Gradle modules can import the Maven half today; the
-Gradle half is manual.</li>
+<li class=""><strong>Gradle import is not yet implemented, and there is no Gradle
+exporter either.</strong> Multi-tool repos that mix Maven and Gradle
+modules can import the Maven half today; the Gradle half is a hand
+port, in both directions. The only mechanical paths are <code>bleep import</code> (sbt), <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>,
+and out again via
+<a class="" href="/docs/reference/cli/export-maven/"><code>bleep export-maven</code></a> — see the
+<a class="" href="/docs/guides/exit-strategy/">exit strategy</a>.</li>
 <li class=""><strong>BOMs are inlined</strong> at import time; bleep has no <code>dependencyManagement</code>
 equivalent yet, so dependencies imported through <code>spring-boot-dependencies</code>
 or similar will end up with explicit versions in <code>bleep.yaml</code>.</li>

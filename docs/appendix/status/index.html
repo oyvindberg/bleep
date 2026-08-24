@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
-<title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><meta data-rh="true" property="og:description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.833866ae.css">
-<script src="/assets/js/runtime~main.5f171567.js" defer="defer"></script>
-<script src="/assets/js/main.ef69df1c.js" defer="defer"></script>
+<title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><meta data-rh="true" property="og:description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.a0eb1d0f.css">
+<script src="/assets/js/runtime~main.04a74e12.js" defer="defer"></script>
+<script src="/assets/js/main.95a0c6f4.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -29,13 +29,19 @@ libraries published to Maven Central, generated-source projects with
 hundreds of thousands of lines, and backend services shipping to
 real users.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-workload-bleep-is-developed-against">The workload bleep is developed against<a href="#the-workload-bleep-is-developed-against" class="hash-link" aria-label="Direct link to The workload bleep is developed against" title="Direct link to The workload bleep is developed against" translate="no">​</a></h2>
-<p>The daily driver is a private repository of <strong>12.9M lines across
-57,941 files</strong>. Of that, bleep compiles <strong>4.1M lines of Java and
-Scala across 11,896 files in 67 projects</strong> — and <strong>3.7M of those
-Java lines (92%) are generated and checked in</strong>, a SQL parser and
-AST family spanning a dozen database dialects. Roughly <strong>2,300
-declared tests</strong> run against a corpus of <strong>44,127 SQL files</strong>, and
+<p>The daily driver is a private repository of <strong>17,072,788<!-- --> tracked
+lines across <!-- -->64,707<!-- --> files</strong>. Of that, bleep compiles
+<strong>4.9M<!-- --> lines of Java and <!-- -->169k<!-- --> lines of
+Scala — <!-- -->5,131,841<!-- --> lines across <!-- -->11,928<!-- --> files
+in <!-- -->132<!-- --> projects</strong>. <strong>4.6M<!-- --> of those Java
+lines are generated and checked in</strong> — a SQL parser and AST family spanning a
+dozen database dialects — leaving <!-- -->353k<!-- --> of hand-written Java.
+Roughly <strong>2,300 declared tests</strong> run against a corpus of <strong>44,127 SQL files</strong>, and
 several suites are heavy enough to need their own heap.</p>
+<small><p>Measured <!-- -->2026-08-15<!-- --> at commit <code>{stats.repo.commit}</code> with
+<a href="https://github.com/oyvindberg/bleep/blob/master/bleep-site/measure-daily-driver.sh" target="_blank" rel="noopener noreferrer" class=""><code>bleep-site/measure-daily-driver.sh</code></a>.
+Every figure the site quotes about this repository comes from one file,
+<code>bleep-site/src/data/build-stats.json</code>, so the pages cannot drift apart.</p></small>
 <p>It is never one build at a time. Development runs across <strong>a dozen
 or more git worktrees concurrently</strong>, each an independent client of
 the same shared compile server, often driven by several agents at
@@ -76,13 +82,24 @@ on Linux) is the first thing to attach to a bug report.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="whats-not-yet-covered">What&#x27;s not yet covered<a href="#whats-not-yet-covered" class="hash-link" aria-label="Direct link to What&#x27;s not yet covered" title="Direct link to What&#x27;s not yet covered" translate="no">​</a></h2>
 <ul>
 <li class=""><strong>No BOM / <code>dependencyManagement</code></strong>: every dependency declares its
-version explicitly. Spring Boot users feel this most.</li>
+version explicitly. Spring Boot users feel this most, and it is worth
+being blunt about the cost: adopting a Spring Boot release means
+writing out the versions that <code>spring-boot-dependencies</code> would have
+chosen for you, and revisiting them on every Boot upgrade. Templates
+take the sting out — put the versions in one template and every
+project that extends it inherits them, so it is one edit rather than
+one per project — but that is a workaround, not the feature. If your
+build leans on imported BOMs, this is the gap most likely to stop you.</li>
 <li class=""><strong>No KAPT</strong> for Kotlin. KAPT is legacy; migrate to KSP1, which is
 supported (see <a class="" href="/docs/usage/annotation-processing/#kotlin-ksp">annotation processing</a>).
 KSP runs from scratch on every compile today; per-file change
 tracking for incremental mode is a planned follow-up.</li>
-<li class=""><strong>No Gradle import</strong>: Maven and sbt are imported via <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a>
-/ <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>.</li>
+<li class=""><strong>No Gradle import, and no Gradle export</strong>: Maven and sbt are imported
+via <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> /
+<a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>, and
+<code>bleep export-maven</code> writes a Maven build back out. Gradle has neither
+direction, so a Gradle shop hand-ports in and would hand-port out.
+There is no timeline for a Gradle importer.</li>
 <li class=""><strong>Single-host caching only</strong>: remote cache works via
 <a class="" href="/docs/reference/cli/remote-cache/pull/"><code>bleep remote-cache pull</code></a> / <code>push</code>; not transparent on every
 invocation.</li>
