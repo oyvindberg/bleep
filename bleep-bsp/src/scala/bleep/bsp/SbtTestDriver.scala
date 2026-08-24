@@ -6,12 +6,12 @@ import scala.jdk.CollectionConverters._
 
 /** Runs an `sbt.testing.Framework` and reports what it does to a bleep `TestEventHandler`.
   *
-  * Every platform reaches its `Framework` differently. The JVM loads one off a classpath. Scala Native and Scala.js each go through a `TestAdapter` that talks
-  * to a separate process. Once a platform holds a `Framework`, the work of running it is the same everywhere.
+  * Every platform reaches its `Framework` differently. The JVM loads a `Framework` from a classpath. Scala Native and Scala.js each go through a `TestAdapter`
+  * that talks to a separate process. After the platform has a `Framework` the work of running it is the same.
   */
 object SbtTestDriver {
 
-  /** Every suite bleep asks for is named outright, and the fingerprint only satisfies the `TaskDef` constructor. A framework matches on the name. */
+  /** The fingerprint only satisfies the `TaskDef` constructor. A framework matches on the suite name instead. */
   private val suiteFingerprint: sbt.testing.Fingerprint = new sbt.testing.SubclassFingerprint {
     def superclassName(): String = "java.lang.Object"
     def isModule: Boolean = false
@@ -45,14 +45,14 @@ object SbtTestDriver {
 
     val tasks = runner.tasks(taskDefs)
 
-    // A TestAdapter delivers its events on its own thread, and the counts are read back on this one. Plain mutable collections would leave the reader seeing
-    // an empty map even after every event had been handled.
+    /** A `TestAdapter` handles its events on its own thread. This ConcurrentHashMap lets the calling thread read the counts.
+      */
     val suiteCounts = new java.util.concurrent.ConcurrentHashMap[String, SuiteCounts]()
 
     /** Report every event from one task against that task's own suite.
       *
       * A framework is free to put whatever it likes in `Event.fullyQualifiedName`. munit puts the suite name and the test name joined by a dot, which is not a
-      * suite name at all. The `TaskDef` the framework handed back does name the suite, and it is the same for every event the task fires.
+      * suite name at all. The `TaskDef` the framework handed back declares the suite. That declaration covers every event the task fires.
       */
     def eventHandlerFor(suiteName: String) = new sbt.testing.EventHandler {
       def handle(event: sbt.testing.Event): Unit = {
@@ -124,9 +124,10 @@ object SbtTestDriver {
     executeTasks(tasks)
 
     // done() is the barrier that flushes events. A Scala.js TestAdapter reports its events over a socket, and Task.execute can return before the last one
-    // arrives. Counting suites before this call loses those events.
-    // A Runner.done() can also throw once every test has already run. Scala Native's RPC handler does when the linked binary was built without the done
-    // opcode. Discarding the throw keeps the results that are already in hand.
+    // arrives.
+    // runner.done() signals the process to shut down.
+    // It may throw if the process's RPC handler doesn't support the done opcode,
+    // but by this point all tests have already executed and the results are captured.
     try runner.done()
     catch { case _: Exception => () }
 

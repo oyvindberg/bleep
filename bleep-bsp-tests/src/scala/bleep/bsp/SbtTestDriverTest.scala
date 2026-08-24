@@ -71,38 +71,28 @@ object StubFramework {
   }
 }
 
-case class TestStarted(suite: String, test: String)
-case class TestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String])
-case class SuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int)
-case class Output(suite: String, line: String, channel: OutputChannel)
-
-/** Records every call the driver makes.
-  *
-  * Each record is a case class rather than a tuple. Scalafmt's `RedundantParens` rule strips the inner parentheses from `buffer += ((a, b))` on some passes and
-  * not others, which turns the append into a varargs call that does not compile. A named record cannot be rewritten that way, and its fields read better in an
-  * assertion than `_._3` does.
-  */
+/** Records every call the driver makes. */
 class RecordingHandler extends TestEventHandler {
-  val testStarts = mutable.Buffer[TestStarted]()
-  val testFinishes = mutable.Buffer[TestFinished]()
+  val testStarts = mutable.Buffer[(String, String)]()
+  val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
   val suiteStarts = mutable.Buffer[String]()
-  val suiteFinishes = mutable.Buffer[SuiteFinished]()
-  val outputs = mutable.Buffer[Output]()
+  val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
+  val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
   def onTestStarted(suite: String, test: String): Unit =
-    testStarts += TestStarted(suite, test)
+    testStarts += ((suite, test))
 
   def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
-    testFinishes += TestFinished(suite, test, status, durationMs, message)
+    testFinishes += ((suite, test, status, durationMs, message))
 
   def onSuiteStarted(suite: String): Unit =
     suiteStarts += suite
 
   def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
-    suiteFinishes += SuiteFinished(suite, passed, failed, skipped)
+    suiteFinishes += ((suite, passed, failed, skipped))
 
   def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
-    outputs += Output(suite, line, channel)
+    outputs += ((suite, line, channel))
 }
 
 class SbtTestDriverTest extends AnyFunSuite with Matchers {
@@ -124,9 +114,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     val (handler, result) = driveOneSuite(List("addition" -> sbt.testing.Status.Success, "subtraction" -> sbt.testing.Status.Failure))
 
     handler.suiteStarts shouldBe Seq("example.AlphaSuite")
-    handler.testStarts shouldBe Seq(TestStarted("example.AlphaSuite", "addition"), TestStarted("example.AlphaSuite", "subtraction"))
-    handler.testFinishes.map(finished => (finished.test, finished.status)) shouldBe Seq(("addition", TestStatus.Passed), ("subtraction", TestStatus.Failed))
-    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 1, 0))
+    handler.testStarts shouldBe Seq(("example.AlphaSuite", "addition"), ("example.AlphaSuite", "subtraction"))
+    handler.testFinishes.map(f => (f._2, f._3)) shouldBe Seq(("addition", TestStatus.Passed), ("subtraction", TestStatus.Failed))
+    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 1, 0))
 
     result.passed shouldBe 1
     result.failed shouldBe 1
@@ -136,8 +126,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
   test("SbtTestDriver: sends the duration and the failure message to the handler") {
     val (handler, _) = driveOneSuite(List("subtraction" -> sbt.testing.Status.Failure))
 
-    handler.testFinishes.head.durationMs shouldBe 7L
-    handler.testFinishes.head.message shouldBe Some("subtraction went wrong")
+    val (_, _, _, durationMs, message) = handler.testFinishes.head
+    durationMs shouldBe 7L
+    message shouldBe Some("subtraction went wrong")
   }
 
   test("SbtTestDriver: counts every sbt.testing.Status into the right column") {
@@ -157,7 +148,7 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     result.failed shouldBe 2
     result.skipped shouldBe 3
     result.ignored shouldBe 1
-    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 2, 3))
+    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 2, 3))
   }
 
   test("SbtTestDriver: walks nested tasks and starts each suite once") {
@@ -176,9 +167,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     handler.suiteStarts shouldBe Seq("example.AlphaSuite", "example.BetaSuite", "example.GammaSuite")
     result.passed shouldBe 3
     handler.suiteFinishes should contain theSameElementsAs Seq(
-      SuiteFinished("example.AlphaSuite", 1, 0, 0),
-      SuiteFinished("example.BetaSuite", 1, 0, 0),
-      SuiteFinished("example.GammaSuite", 1, 0, 0)
+      ("example.AlphaSuite", 1, 0, 0),
+      ("example.BetaSuite", 1, 0, 0),
+      ("example.GammaSuite", 1, 0, 0)
     )
   }
 
@@ -214,7 +205,7 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
   test("SbtTestDriver: sends framework logger output to the handler") {
     val (handler, _) = driveOneSuite(List("addition" -> sbt.testing.Status.Success))
 
-    handler.outputs.map(_.line) should contain("running example.AlphaSuite")
+    handler.outputs.map(_._2) should contain("running example.AlphaSuite")
   }
 
   test("SbtTestDriver: calls done on the runner") {
@@ -231,9 +222,7 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     runner.doneWasCalled shouldBe true
   }
 
-  /** munit names an event `example.AlphaSuite.addition`, which is not a suite name. Attributing the count to that string would leave the real suite reporting
-    * zero passed and zero failed.
-    */
+  /** munit reports an event as `example.AlphaSuite.addition`, which is not a suite name. */
   test("SbtTestDriver: attributes a munit-shaped event to the task's suite and trims the test name") {
     val task = new StubTask(
       "example.AlphaSuite",
@@ -251,9 +240,9 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     )
 
     handler.suiteStarts shouldBe Seq("example.AlphaSuite")
-    handler.testFinishes.map(_.suite) shouldBe Seq("example.AlphaSuite", "example.AlphaSuite")
-    handler.testFinishes.map(_.test) shouldBe Seq("addition", "subtraction")
-    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 1, 0))
+    handler.testFinishes.map(_._1) shouldBe Seq("example.AlphaSuite", "example.AlphaSuite")
+    handler.testFinishes.map(_._2) shouldBe Seq("addition", "subtraction")
+    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 1, 0))
     result.passed shouldBe 1
     result.failed shouldBe 1
   }
@@ -278,6 +267,6 @@ class SbtTestDriverTest extends AnyFunSuite with Matchers {
     )
 
     result.passed shouldBe 1
-    handler.suiteFinishes shouldBe Seq(SuiteFinished("example.AlphaSuite", 1, 0, 0))
+    handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 0, 0))
   }
 }

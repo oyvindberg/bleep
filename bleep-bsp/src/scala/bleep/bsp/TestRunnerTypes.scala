@@ -96,7 +96,7 @@ object TestRunnerTypes {
 
   /** The `sbt.testing.Framework` implementations to try for each framework, in order.
     *
-    * `Unknown` lists every candidate. A `TestAdapter` takes the whole list and reports which one the linked code actually declares.
+    * `Unknown` lists every candidate. A `TestAdapter` takes the whole list and reports which of those classes the linked code declares.
     */
   val frameworkClassNames: Map[TestFramework, List[String]] = Map(
     TestFramework.MUnit -> List("munit.Framework"),

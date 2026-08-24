@@ -172,7 +172,6 @@ object ScalaNativeTestRunner {
     */
   def getTestMainClass(@annotation.unused framework: TestFramework): String = TestMainClass
 
-  /** Framework class names for sbt.testing.Framework SPI discovery. */
   /** Run tests in a Scala Native binary using the TestAdapter protocol.
     *
     * This is the proper way to communicate with binaries linked with TestMain. The TestAdapter opens a server socket, passes the port to the binary, and

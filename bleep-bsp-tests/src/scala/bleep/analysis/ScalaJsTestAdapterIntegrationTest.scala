@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.analysis.PlatformTestHelper.assertCompleted
-import bleep.bsp.{Outcome, RecordingHandler, ScalaJsTestRunner, SuiteFinished}
+import bleep.bsp.{Outcome, RecordingHandler, ScalaJsTestRunner}
 import bleep.bsp.TestRunnerTypes
 import bleep.bsp.TestRunnerTypes.{TestFramework, TestSuite}
 import bleep.bsp.protocol.TestStatus
@@ -129,10 +129,10 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
       result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
 
       recorder.suiteStarts should contain("example.ArithmeticSuite")
-      recorder.testFinishes.count(_.status == TestStatus.Passed) shouldBe 1
-      recorder.testFinishes.count(_.status == TestStatus.Failed) shouldBe 1
-      recorder.suiteFinishes should contain(SuiteFinished("example.ArithmeticSuite", 1, 1, 0))
-      recorder.testFinishes.map(_.test) should contain theSameElementsAs Seq("addition adds", "subtraction is deliberately wrong")
+      recorder.testFinishes.count(_._3 == TestStatus.Passed) shouldBe 1
+      recorder.testFinishes.count(_._3 == TestStatus.Failed) shouldBe 1
+      recorder.suiteFinishes should contain(("example.ArithmeticSuite", 1, 1, 0))
+      recorder.testFinishes.map(_._2) should contain theSameElementsAs Seq("addition adds", "subtraction is deliberately wrong")
     }
   }
 
@@ -150,8 +150,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
     }
   }
 
-  /** An ESModule link produces a file the adapter can only load through `Input.ESModule`. Passing the wrong `Input` case fails the run.
-    */
+  /** An ESModule link produces a file the adapter can only load through `Input.ESModule`. Passing the wrong `Input` case fails the run. */
   test("ScalaJsTestRunner.runTestsViaAdapter: runs a suite linked as an ESModule") {
     withTempDir("sjs-adapter-esmodule") { tempDir =>
       val linkedJs = compileAndLink(tempDir, munitSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.ESModule)

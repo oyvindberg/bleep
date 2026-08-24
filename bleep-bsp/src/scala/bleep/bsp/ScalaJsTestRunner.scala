@@ -17,8 +17,7 @@ object ScalaJsTestRunner {
 
   /** Run a linked Scala.js test module through `org.scalajs.testing.adapter.TestAdapter`.
     *
-    * The adapter starts Node, speaks to the `org.scalajs.testing.bridge.Bridge` the linker made the module's entry point, and hands back an
-    * `sbt.testing.Framework`. `SbtTestDriver` takes it from there.
+    * The adapter starts Node and hands back an `sbt.testing.Framework`.
     *
     * @param linkedJs
     *   the linked main module
@@ -35,7 +34,7 @@ object ScalaJsTestRunner {
     * @param env
     *   environment variables for the node process
     * @param scalaJsVersion
-    *   the Scala.js version, which decides the adapter artifact
+    *   the Scala.js version. The adapter artifact tracks that version.
     * @param killSignal
     *   completes when the run is cancelled
     * @return
@@ -122,8 +121,7 @@ object ScalaJsTestRunner {
       .getOrElse(throw NoScalaJsTestFrameworkException(framework.name, classNames, linkedJs))
   }
 
-  /** Build the `org.scalajs.jsenv.Input` case that matches the module kind the link used. Reading the module kind from the link config keeps the two from
-    * drifting.
+  /** Build the `org.scalajs.jsenv.Input` case that matches the module kind the link used.
     */
   private def createInput(loader: ClassLoader, linkedJs: Path, moduleKind: ScalaJsLinkConfig.ModuleKind): Any = {
     val inputClassName = moduleKind match {
@@ -145,7 +143,7 @@ object ScalaJsTestRunner {
     loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv").getConstructor(configClass).newInstance(withEnv)
   }
 
-  /** The adapter logs its own progress and its own failures through this logger. Node's stdout and stderr reach the handler through `SbtTestDriver` instead. */
+  /** The adapter logs its own progress and its own failures through this logger. */
   private def createScalaJsLogger(loader: ClassLoader): Any = {
     val levelClass = loader.loadClass("org.scalajs.logging.Level")
     val infoLevel = loader.loadClass("org.scalajs.logging.Level$Info$").getField("MODULE$").get(null)

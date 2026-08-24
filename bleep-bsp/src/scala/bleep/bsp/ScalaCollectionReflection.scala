@@ -2,9 +2,9 @@ package bleep.bsp
 
 /** Builds and reads Scala collections that live in another classloader.
   *
-  * A `TestAdapter` resolved through `CompilerResolver` brings its own `scala-library`, and its methods take and return that library's `List`, `Map`, and
-  * `Option`. A `List` built here would come from bleep's own `scala-library` and fail with an `IllegalArgumentException` at the call. Every method below
-  *  takes the classloader whose collections it is working with.
+  * A `TestAdapter` resolved through `CompilerResolver` brings its own `scala-library`. Its methods take and return that library's `List`, `Map`, and `Option`.
+  * A `List` built here would come from bleep's own `scala-library` and fail with an `IllegalArgumentException` at the call. Every method in this object takes
+  * the classloader that owns the collections.
   */
 object ScalaCollectionReflection {
 
