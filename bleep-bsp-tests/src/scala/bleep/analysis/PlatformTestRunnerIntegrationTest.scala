@@ -186,7 +186,7 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** Three suites in one file. Compiling and linking one module serves all three. */
+  /** Three suites in one file. A single compile and a single link produce the module for all three suites. */
   private val threeSuiteSource =
     """package example
       |
@@ -209,7 +209,7 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
       |}
       |""".stripMargin
 
-  /** Every directory under `root`, named by its own last segment. */
+  /** Returns the last path segment of every directory under `root`. */
   private def directoryNamesUnder(root: Path): List[String] = {
     val stream = Files.walk(root)
     try stream.iterator().asScala.filter(Files.isDirectory(_)).map(_.getFileName.toString).toList

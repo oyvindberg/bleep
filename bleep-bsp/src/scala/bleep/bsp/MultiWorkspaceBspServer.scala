@@ -3145,9 +3145,7 @@ class MultiWorkspaceBspServer(
     val linkConfig = bleep.analysis.ScalaJsLinkConfig.Debug
     val linkPlatform = TaskDag.LinkPlatform.ScalaJs(sjsVersion.scalaJsVersion, scalaVersion.scalaVersion, linkConfig)
 
-    // This task links nothing. `TestSuiteTask` depends on `DiscoverTask`, which depends on `TaskId.Link` for a non-JVM platform, so the DAG has already run
-    // one `LinkTask` for this project into `projectPaths.targetDir`. Linking here again would run one linker per suite, and every one of those linkers would
-    // write one directory at the same time as the others.
+    // The DAG links this project once before any of its suites runs. This method finds the module that link wrote.
     val mainModule = LinkExecutor
       .locateLinkedJs(projectPaths.targetDir, linkPlatform, LinkExecutor.jsModuleName(testTask.project.value))
       .getOrElse(throw MultiWorkspaceBspServer.NoLinkedScalaJsModuleException(testTask.project.value, projectPaths.targetDir))
@@ -4365,7 +4363,7 @@ object MultiWorkspaceBspServer {
     *   the test project whose suite was about to run
     * @param outputDir
     *   the DAG's link handler writes into this directory
-   */
+    */
   case class NoLinkedScalaJsModuleException(project: String, outputDir: java.nio.file.Path)
       extends IllegalStateException(
         s"No linked Scala.js module for $project under $outputDir. A TestSuiteTask runs only after the DAG's LinkTask for its project."
