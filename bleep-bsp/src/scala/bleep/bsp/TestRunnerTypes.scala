@@ -92,6 +92,22 @@ object TestRunnerTypes {
     case object ScalaTest extends TestFramework { val name = "scalatest" }
     case object UTest extends TestFramework { val name = "utest" }
     case object Unknown extends TestFramework { val name = "unknown" }
+
+    /** Match a framework name against the frameworks bleep knows.
+      *
+      * `ClasspathTestDiscovery` reports either the `name()` an `sbt.testing.Framework` declares or the label its base-class table uses. munit declares `munit`
+      * where that table says `MUnit`, and utest declares `utest` where the table says `uTest`. The comparison ignores case for that reason.
+      *
+      * @return
+      *   `Unknown` for any other name, which asks a `TestAdapter` to try every candidate class name
+      */
+    def fromName(frameworkName: String): TestFramework =
+      frameworkName.toLowerCase match {
+        case "munit"     => MUnit
+        case "scalatest" => ScalaTest
+        case "utest"     => UTest
+        case _           => Unknown
+      }
   }
 
   /** The `sbt.testing.Framework` implementations to try for each framework, in order.

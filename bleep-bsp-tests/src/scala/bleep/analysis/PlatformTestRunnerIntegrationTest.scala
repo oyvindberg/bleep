@@ -1,11 +1,13 @@
 package bleep.analysis
 
-import bleep.bsp._
+import bleep.bsp.*
+import bleep.bsp.protocol.BleepBspProtocol
+import org.scalatest.concurrent.TimeLimits
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.{Seconds, Span}
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
 /** Integration tests for platform-aware test dispatching through BSP.
@@ -17,7 +19,7 @@ import java.nio.file.{Files, Path}
   *
   * These tests go through the full BSP protocol: BspTestHarness → BspServer → handleTest → platform dispatch.
   */
-class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
+class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLimits with PlatformTestHelper {
 
   val mediumTimeout: Span = Span(180, Seconds)
 
@@ -120,6 +122,64 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           compileResult.statusCode.value shouldBe 1 // Ok
 
           info("Scala.js test project compiled and configured with correct platform")
+        }
+      } finally deleteRecursively(workspace)
+    }
+  }
+
+  /** `1.0.toString` renders as `1` under Scala.js and as `1.0` on the JVM. A suite that passes therefore proves the linked JavaScript ran under Node. The same
+    * classes sit on the test classpath as JVM class files, and a run that fell back to the JVM runner would report the assertion as failed.
+    */
+  private val platformSuiteSource =
+    """package example
+      |
+      |class PlatformSuite extends munit.FunSuite {
+      |  test("a whole double renders without its fraction") {
+      |    assertEquals(1.0.toString, "1")
+      |  }
+      |}
+      |""".stripMargin
+
+  test("BSP: Scala.js munit suite runs through the test adapter") {
+    failAfter(mediumTimeout) {
+      val workspace = createTempWorkspace("bsp-scalajs-adapter-")
+      try {
+        Files.writeString(workspace.resolve("src/PlatformSuite.scala"), platformSuiteSource)
+
+        val classpath =
+          (CompilerResolver.resolveScalaLibrary(DefaultScalaVersion) ++
+            CompilerTestLibraries.munitScalaJsLibrary ++
+            CompilerTestLibraries.scalaJsTestBridgeLibrary(DefaultScalaJsVersion)).distinct.toList
+
+        val config = BspTestHarness.ProjectConfig.scalaJs(
+          name = "scalajs-adapter-suite",
+          sources = Set(workspace.resolve("src")),
+          scalaVersion = DefaultScalaVersion,
+          sjsVersion = DefaultScalaJsVersion,
+          classpath = classpath,
+          isTest = true
+        )
+
+        BspTestHarness.withProject(workspace, config) { client =>
+          client.initialize()
+          val targets = client.buildTargets()
+          targets.targets should have size 1
+
+          val testResult = client.test(targets.targets.map(_.id))
+
+          withClue(client.events.mkString("\n")) {
+            testResult.statusCode.value shouldBe 1
+
+            // The status code alone would also be Ok for a run that discovered no suite at all. The counts name what actually ran.
+            val runResult = BleepBspProtocol.TestRunResult
+              .decode(new String(testResult.data.get.value, StandardCharsets.UTF_8))
+              .fold(error => fail(s"Could not read the test run result: $error"), identity)
+
+            runResult.suitesTotal shouldBe 1
+            runResult.suitesCompleted shouldBe 1
+            runResult.totalPassed shouldBe 1
+            runResult.totalFailed shouldBe 0
+          }
         }
       } finally deleteRecursively(workspace)
     }

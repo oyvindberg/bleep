@@ -27,7 +27,10 @@ object BspTestBuild {
       configs.map(cfg => crossName(cfg) -> project(cfg, configs)).toMap
 
     val build = model.Build.Exploded(
-      $version = model.BleepVersion.current,
+      // `dev` rather than the git-derived version: `buildTarget/test` puts bleep-test-runner on the test classpath, and a git-derived version names a
+      // snapshot nothing ever published. `BleepDevDeps` short-circuits a dev version to the class dirs on this JVM's own classpath, which is the code this
+      // in-process server was built from.
+      $version = model.BleepVersion.dev,
       explodedProjects = projects,
       resolvers = model.JsonList.empty,
       // The server forces `Prebootstrapped.resolvedJvm`, which reads through this. Leaving it None
@@ -80,14 +83,80 @@ object BspTestBuild {
 
   private def project(config: BspTestHarness.ProjectConfig, all: List[BspTestHarness.ProjectConfig]): model.Project = {
     // Only the fields the server actually reads off the model: dependsOn (for transitive ordering
-    // and dependency locking), isTestProject, and the platform's main class for `buildTarget/run`.
+    // and dependency locking), isTestProject, the platform's main class for `buildTarget/run`, and
+    // the platform and Scala version that `buildTarget/test` dispatches a suite on.
     val dependsOn = model.JsonSet(config.dependsOn.map(model.ProjectName.apply).toSeq.sorted*)
     val _ = all
     model.Project.empty.copy(
       dependsOn = dependsOn,
-      isTestProject = if (config.isTest) Some(true) else None
+      isTestProject = if (config.isTest) Some(true) else None,
+      scala = modelScala(config),
+      platform = modelPlatform(config)
     )
   }
+
+  private def modelScala(config: BspTestHarness.ProjectConfig): Option[model.Scala] =
+    config.languageConfig match {
+      case sc: ScalaConfig =>
+        Some(
+          model.Scala(
+            version = Some(model.VersionScala(sc.version)),
+            options = model.Options.empty,
+            setup = None,
+            compilerPlugins = model.JsonSet.empty,
+            strict = None
+          )
+        )
+      case _ => None
+    }
+
+  /** The platform the server's test dispatch matches on. A Scala.js or Scala Native suite reaches its own runner through `platform.name`, and that runner reads
+    * the platform version back out to pick a toolchain.
+    *
+    * @throws KotlinPlatformNotModelledException
+    *   for a Kotlin platform. Kotlin dispatch also reads `kotlin.version` off the model project, and no harness test drives a Kotlin suite yet.
+    */
+  private def modelPlatform(config: BspTestHarness.ProjectConfig): Option[model.Platform] =
+    config.platform match {
+      case BuildLoader.Platform.Jvm                 => None
+      case BuildLoader.Platform.ScalaJs(version, _) =>
+        Some(
+          model.Platform.Js(
+            jsVersion = model.VersionScalaJs(version),
+            jsKind = None,
+            jsSplitStyle = None,
+            jsEmitSourceMaps = None,
+            jsJsdom = None,
+            jsNodeVersion = None,
+            jsMainClass = None
+          )
+        )
+      case BuildLoader.Platform.ScalaNative(version, _) =>
+        Some(
+          model.Platform.Native(
+            nativeVersion = model.VersionScalaNative(version),
+            nativeGc = None,
+            nativeMainClass = None,
+            nativeBuildTarget = None,
+            nativeLinkerReleaseMode = None,
+            nativeLTO = None,
+            nativeMultithreading = None,
+            nativeOptimize = None,
+            nativeEmbedResources = None,
+            nativeUseIncrementalCompilation = None
+          )
+        )
+      case kotlin @ (_: BuildLoader.Platform.KotlinJs | _: BuildLoader.Platform.KotlinNative) =>
+        throw KotlinPlatformNotModelledException(kotlin.toString)
+    }
+
+  /** The harness cannot lower a Kotlin platform onto a `model.Project` yet.
+    *
+    * @param platform
+    *   the platform the caller asked for
+    */
+  case class KotlinPlatformNotModelledException(platform: String)
+      extends RuntimeException(s"BspTestBuild does not model $platform. Add kotlin.version alongside the platform before a Kotlin suite can dispatch.")
 
   private def resolved(config: BspTestHarness.ProjectConfig, buildPaths: BuildPaths): ResolvedProject =
     ResolvedProject(

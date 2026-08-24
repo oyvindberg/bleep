@@ -2,6 +2,7 @@ package bleep.analysis
 
 import cats.effect.unsafe.implicits.global
 import coursier.cache.CacheLogger
+
 import java.nio.file.{Files, Path}
 
 /** Shared helpers for advanced platform integration tests.
@@ -16,6 +17,19 @@ object PlatformTestHelper {
     val fetchNode = new bleep.FetchNode(CacheLogger.nop, scala.concurrent.ExecutionContext.global)
     fetchNode(DefaultNodeVersion).toAbsolutePath.toString
   }
+
+  /** The scalac flags that make the compiler emit `.sjsir`. Scala 3 declares the Scala.js back end itself. Scala 2 reaches it through the Scala.js compiler
+    * plugin.
+    */
+  def scalaJsCompilerOptions(scalaVersion: String, sjsVersion: String): List[String] =
+    if (scalaVersion.startsWith("3.")) List("-scalajs")
+    else {
+      val pluginJars = CompilerResolver.resolveScalaJsCompilerPlugin(sjsVersion, scalaVersion)
+      val pluginJar = pluginJars
+        .find(_.getFileName.toString.contains("scalajs-compiler"))
+        .getOrElse(pluginJars.head)
+      List(s"-Xplugin:${pluginJar.toAbsolutePath}")
+    }
 
   /** Unwrap a `ThreadOutcome.Completed` in tests, failing loudly on `Cancelled` or `Crashed`. Lets the rest of a test read the result type's fields directly
     * without inline pattern matching at every call site.
@@ -112,19 +126,9 @@ trait PlatformTestHelper {
     val scalaLibJars = CompilerResolver.resolveScalaLibrary(scalaVersion)
     val sjsLibJars = CompilerResolver.resolveScalaJsLibrary(sjsVersion, scalaVersion)
 
-    val scalaOptions: List[String] = if (scalaVersion.startsWith("3.")) {
-      List("-scalajs")
-    } else {
-      val pluginJars = CompilerResolver.resolveScalaJsCompilerPlugin(sjsVersion, scalaVersion)
-      val pluginJar = pluginJars
-        .find(_.getFileName.toString.contains("scalajs-compiler"))
-        .getOrElse(pluginJars.head)
-      List(s"-Xplugin:${pluginJar.toAbsolutePath}")
-    }
-
     val language: ProjectLanguage.ScalaJava = ProjectLanguage.ScalaJava(
       scalaVersion = scalaVersion,
-      scalaOptions = scalaOptions,
+      scalaOptions = PlatformTestHelper.scalaJsCompilerOptions(scalaVersion, sjsVersion),
       javaOptions = Nil,
       ecjVersion = None,
       compileOrder = bleep.model.CompileOrder.JavaThenScala

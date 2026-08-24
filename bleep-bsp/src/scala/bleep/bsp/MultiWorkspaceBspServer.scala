@@ -3125,7 +3125,7 @@ class MultiWorkspaceBspServer(
   private def nodeBinaryFor(started: Started, project: model.Project): String =
     started.pre.fetchNode(project.platform.flatMap(_.jsNodeVersion).getOrElse(bleep.constants.Node)).toAbsolutePath.toString
 
-  /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
+  /** Run a Scala.js test suite: link, then run the linked module through `org.scalajs.testing.adapter.TestAdapter`, emitting events to the DAG queue. */
   private def runScalaJsTestSuite(
       started: Started,
       testTask: TaskDag.TestSuiteTask,
@@ -3160,13 +3160,22 @@ class MultiWorkspaceBspServer(
       linkResult <- LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
       taskResult <- linkResult match {
         case (TaskDag.TaskResult.Success, TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
-          // Run the specific test suite via Node.js
           val nodeBinary = nodeBinaryFor(started, project)
           Dispatcher.sequential[IO].use { dispatcher =>
             val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project)
             val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
             ScalaJsTestRunner
-              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, nodeBinary, testEnv, killSignal)
+              .runTestsViaAdapter(
+                mainModule,
+                linkConfig.moduleKind,
+                suites,
+                TestRunnerTypes.TestFramework.fromName(testTask.framework),
+                eventHandler,
+                nodeBinary,
+                testEnv,
+                sjsVersion.scalaJsVersion,
+                killSignal
+              )
               .flatMap { result =>
                 val endTs = System.currentTimeMillis()
                 val durationMs = endTs - startTs

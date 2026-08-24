@@ -1,20 +1,39 @@
 package bleep.analysis
 
 import bleep.analysis.PlatformTestHelper.assertCompleted
-import bleep.bsp.{Outcome, RecordingHandler, ScalaJsTestRunner}
-import bleep.bsp.TestRunnerTypes
 import bleep.bsp.TestRunnerTypes.{TestFramework, TestSuite}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{KillReason, TestStatus}
+import bleep.bsp.{Outcome, RecordingHandler, ScalaJsTestRunner, TestRunnerTypes}
 import cats.effect.unsafe.implicits.global
+import cats.effect.{Deferred, IO}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import java.nio.file.{Files, Path}
 
-/** Runs a real Scala.js munit suite through `org.scalajs.testing.adapter.TestAdapter`.
+import java.nio.file.{Files, Path}
+import scala.concurrent.duration.*
+
+/** Runs real Scala.js suites through `org.scalajs.testing.adapter.TestAdapter`.
   *
-  * This test compiles Scala sources to `.sjsir`, links those files as a test module, and hands the linked JavaScript to the runner.
+  * Each test compiles Scala sources to `.sjsir`, links those files as a test module, and hands the linked JavaScript to the runner.
   */
-class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
+class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with BeforeAndAfterAll with PlatformTestHelper {
+
+  /** One directory for every module this suite links. Compiling and linking a module costs far more than running one, and several tests share a module. */
+  private lazy val linkRoot: Path = createTempDir("sjs-adapter-links")
+
+  override def afterAll(): Unit = deleteRecursively(linkRoot)
+
+  /** The name every fixture below gives its suite class. One name keeps the `TestSuite` each run asks for the same across fixtures. */
+  private val suiteClassName = "example.ArithmeticSuite"
+
+  private val killedByUser: TestRunnerTypes.TerminationReason =
+    TestRunnerTypes.TerminationReason.Killed(KillReason.UserRequest)
+
+  /** How long a cancelled run may take before the test calls it a hang. The spinning suite below never returns on its own, so any number well under the
+    * ScalaTest suite timeout proves the kill reached the Node process rather than the run having finished by itself.
+    */
+  private val cancellationTimeoutMs = 30000L
 
   /** This source declares one suite with one passing test and one failing test. A runner that reported the whole suite as passed would fail on the second test.
     */
@@ -51,8 +70,37 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
       |}
       |""".stripMargin
 
+  /** Env forwarding is not JVM-only. `bleep test` hands one environment to every platform, and a test reading a variable must see it under Node too. This suite
+    * reports pass or fail purely from `process.env`, and two tests run it with the variable and without.
+    */
+  private val envProbeSource =
+    """package example
+      |
+      |import scala.scalajs.js
+      |
+      |class ArithmeticSuite extends munit.FunSuite {
+      |  test("the node process sees the variable the runner set") {
+      |    val fromNode = js.Dynamic.global.process.env.selectDynamic("BLEEP_JS_ENV_PROBE")
+      |    assertEquals(fromNode.toString, "from-client")
+      |  }
+      |}
+      |""".stripMargin
+
+  /** A test that never returns. The cancellation cases race a kill signal against this suite. */
+  private val spinningSource =
+    """package example
+      |
+      |class ArithmeticSuite extends munit.FunSuite {
+      |  test("this test never returns") {
+      |    while (true) {}
+      |  }
+      |}
+      |""".stripMargin
+
   /** Compile one source for Scala.js and link it as a test module.
     *
+    * @param fixtureName
+    *   the subdirectory of [[linkRoot]] this fixture compiles and links in
     * @param frameworkJars
     *   the test framework compiled for Scala.js, which the source imports
     * @param moduleKind
@@ -61,18 +109,19 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
     *   the linked main module. The adapter runs that module under Node.
     */
   private def compileAndLink(
-      tempDir: Path,
+      fixtureName: String,
       source: String,
       frameworkJars: Seq[Path],
       moduleKind: ScalaJsLinkConfig.ModuleKind
   ): Path = {
-    val srcDir = tempDir.resolve("src")
+    val fixtureDir = linkRoot.resolve(fixtureName)
+    val srcDir = fixtureDir.resolve("src")
     writeScalaSource(srcDir, "example", "ArithmeticSuite.scala", source)
 
-    val classesDir = tempDir.resolve("classes")
+    val classesDir = fixtureDir.resolve("classes")
     val compileClasspath = compileForScalaJsWithDeps(srcDir, classesDir, DefaultScalaVersion, DefaultScalaJsVersion, frameworkJars)
 
-    val linkDir = tempDir.resolve("linked")
+    val linkDir = fixtureDir.resolve("linked")
     Files.createDirectories(linkDir)
 
     val linkClasspath = (compileClasspath ++ CompilerTestLibraries.scalaJsTestBridgeLibrary(DefaultScalaJsVersion)).distinct
@@ -96,10 +145,26 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
     linkResult.mainModule
   }
 
+  private lazy val munitCommonJsModule: Path =
+    compileAndLink("munit-commonjs", munitSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
+
+  private lazy val munitEsModule: Path =
+    compileAndLink("munit-esmodule", munitSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.ESModule)
+
+  private lazy val utestCommonJsModule: Path =
+    compileAndLink("utest-commonjs", utestSource, CompilerTestLibraries.utestScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
+
+  private lazy val envProbeModule: Path =
+    compileAndLink("env-probe", envProbeSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
+
+  private lazy val spinningModule: Path =
+    compileAndLink("spinning", spinningSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
+
   private def runThroughAdapter(
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       framework: TestFramework,
+      env: Map[String, String],
       recorder: RecordingHandler
   ): TestRunnerTypes.TestResult =
     (for {
@@ -107,60 +172,151 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with P
       result <- ScalaJsTestRunner.runTestsViaAdapter(
         linkedJs,
         moduleKind,
-        List(TestSuite("ArithmeticSuite", "example.ArithmeticSuite")),
+        List(TestSuite("ArithmeticSuite", suiteClassName)),
         framework,
         recorder,
         nodeBinary,
-        Map.empty,
+        env,
         DefaultScalaJsVersion,
         killSignal
       )
     } yield result).unsafeRunSync()
 
   test("ScalaJsTestRunner.runTestsViaAdapter: reports one passing and one failing munit test") {
-    withTempDir("sjs-adapter-munit") { tempDir =>
-      val linkedJs = compileAndLink(tempDir, munitSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
-      val recorder = new RecordingHandler()
+    val recorder = new RecordingHandler()
 
-      val result = runThroughAdapter(linkedJs, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.MUnit, recorder)
+    val result = runThroughAdapter(munitCommonJsModule, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.MUnit, Map.empty, recorder)
 
-      result.passed shouldBe 1
-      result.failed shouldBe 1
-      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
+    result.passed shouldBe 1
+    result.failed shouldBe 1
+    result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
 
-      recorder.suiteStarts should contain("example.ArithmeticSuite")
-      recorder.testFinishes.count(_._3 == TestStatus.Passed) shouldBe 1
-      recorder.testFinishes.count(_._3 == TestStatus.Failed) shouldBe 1
-      recorder.suiteFinishes should contain(("example.ArithmeticSuite", 1, 1, 0))
-      recorder.testFinishes.map(_._2) should contain theSameElementsAs Seq("addition adds", "subtraction is deliberately wrong")
-    }
+    recorder.suiteStarts should contain(suiteClassName)
+    recorder.testFinishes.count(_._3 == TestStatus.Passed) shouldBe 1
+    recorder.testFinishes.count(_._3 == TestStatus.Failed) shouldBe 1
+    recorder.suiteFinishes should contain((suiteClassName, 1, 1, 0))
+    recorder.testFinishes.map(_._2) should contain theSameElementsAs Seq("addition adds", "subtraction is deliberately wrong")
   }
 
   test("ScalaJsTestRunner.runTestsViaAdapter: reports one passing and one failing utest test") {
-    withTempDir("sjs-adapter-utest") { tempDir =>
-      val linkedJs = compileAndLink(tempDir, utestSource, CompilerTestLibraries.utestScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.CommonJSModule)
-      val recorder = new RecordingHandler()
+    val recorder = new RecordingHandler()
 
-      val result = runThroughAdapter(linkedJs, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.UTest, recorder)
+    val result = runThroughAdapter(utestCommonJsModule, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.UTest, Map.empty, recorder)
 
-      result.passed shouldBe 1
-      result.failed shouldBe 1
-      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
-      recorder.suiteStarts should contain("example.ArithmeticSuite")
-    }
+    result.passed shouldBe 1
+    result.failed shouldBe 1
+    result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
+    recorder.suiteStarts should contain(suiteClassName)
   }
 
   /** An ESModule link produces a file the adapter can only load through `Input.ESModule`. Passing the wrong `Input` case fails the run. */
   test("ScalaJsTestRunner.runTestsViaAdapter: runs a suite linked as an ESModule") {
-    withTempDir("sjs-adapter-esmodule") { tempDir =>
-      val linkedJs = compileAndLink(tempDir, munitSource, CompilerTestLibraries.munitScalaJsLibrary, ScalaJsLinkConfig.ModuleKind.ESModule)
-      val recorder = new RecordingHandler()
+    val recorder = new RecordingHandler()
 
-      val result = runThroughAdapter(linkedJs, ScalaJsLinkConfig.ModuleKind.ESModule, TestFramework.MUnit, recorder)
+    val result = runThroughAdapter(munitEsModule, ScalaJsLinkConfig.ModuleKind.ESModule, TestFramework.MUnit, Map.empty, recorder)
 
+    result.passed shouldBe 1
+    result.failed shouldBe 1
+    recorder.suiteStarts should contain(suiteClassName)
+  }
+
+  test("ScalaJsTestRunner.runTestsViaAdapter: forwards env vars to the node process") {
+    assert(sys.env.get("BLEEP_JS_ENV_PROBE").isEmpty, "probe var must not be set in this JVM or the test proves nothing")
+
+    val result = runThroughAdapter(
+      envProbeModule,
+      ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+      TestFramework.MUnit,
+      Map("BLEEP_JS_ENV_PROBE" -> "from-client"),
+      new RecordingHandler()
+    )
+
+    result.passed shouldBe 1
+    result.failed shouldBe 0
+  }
+
+  /** The control for the env case above. The probe genuinely fails without the variable, so a runner that ignored its `env` argument could not pass both. */
+  test("ScalaJsTestRunner.runTestsViaAdapter: the env probe fails without the variable") {
+    val result =
+      runThroughAdapter(envProbeModule, ScalaJsLinkConfig.ModuleKind.CommonJSModule, TestFramework.MUnit, Map.empty, new RecordingHandler())
+
+    result.passed shouldBe 0
+    result.failed shouldBe 1
+  }
+
+  /** A kill signal that has already completed stops the run before the adapter starts Node. */
+  test("ScalaJsTestRunner.runTestsViaAdapter: a kill signal that already fired stops the run") {
+    val result = (for {
+      killSignal <- Deferred[IO, KillReason]
+      _ <- killSignal.complete(KillReason.UserRequest)
+      res <- ScalaJsTestRunner.runTestsViaAdapter(
+        munitCommonJsModule,
+        ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+        List(TestSuite("ArithmeticSuite", suiteClassName)),
+        TestFramework.MUnit,
+        new RecordingHandler(),
+        nodeBinary,
+        Map.empty,
+        DefaultScalaJsVersion,
+        killSignal
+      )
+    } yield res).unsafeRunSync()
+
+    result.terminationReason shouldBe killedByUser
+  }
+
+  /** The spinning suite blocks Node's event loop forever. Cancellation has to stop the adapter rather than wait for the suite. */
+  test("ScalaJsTestRunner.runTestsViaAdapter: cancellation stops a suite that never returns") {
+    val startTime = System.currentTimeMillis()
+    val result = (for {
+      killSignal <- Deferred[IO, KillReason]
+      _ <- (IO.sleep(2.seconds) >> killSignal.complete(KillReason.UserRequest)).start
+      res <- ScalaJsTestRunner.runTestsViaAdapter(
+        spinningModule,
+        ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+        List(TestSuite("ArithmeticSuite", suiteClassName)),
+        TestFramework.MUnit,
+        new RecordingHandler(),
+        nodeBinary,
+        Map.empty,
+        DefaultScalaJsVersion,
+        killSignal
+      )
+    } yield res).unsafeRunSync()
+    val duration = System.currentTimeMillis() - startTime
+
+    result.terminationReason shouldBe killedByUser
+    duration should be < cancellationTimeoutMs
+  }
+
+  /** Three adapters run at once, each with its own Node process. A runner that shared process state between runs would report the wrong counts. */
+  test("ScalaJsTestRunner.runTestsViaAdapter: three runs execute in parallel") {
+    import cats.syntax.parallel._
+
+    val results = (for {
+      killSignal <- Outcome.neverKillSignal
+      results <- List
+        .fill(3)(munitCommonJsModule)
+        .map { linkedJs =>
+          ScalaJsTestRunner.runTestsViaAdapter(
+            linkedJs,
+            ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+            List(TestSuite("ArithmeticSuite", suiteClassName)),
+            TestFramework.MUnit,
+            new RecordingHandler(),
+            nodeBinary,
+            Map.empty,
+            DefaultScalaJsVersion,
+            killSignal
+          )
+        }
+        .parSequence
+    } yield results).unsafeRunSync()
+
+    results.foreach { result =>
+      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
       result.passed shouldBe 1
       result.failed shouldBe 1
-      recorder.suiteStarts should contain("example.ArithmeticSuite")
     }
   }
 

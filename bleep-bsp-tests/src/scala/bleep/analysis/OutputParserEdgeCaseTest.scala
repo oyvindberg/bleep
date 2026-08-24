@@ -1,7 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.TestStatus
+import bleep.bsp.{ScalaNativeTestRunner, TestRunnerTypes}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -169,44 +169,6 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
       TestStatus.Cancelled
     )
     statuses should have size 5
-  }
-
-  // ==========================================================================
-  // Node Environment Edge Cases
-  // ==========================================================================
-
-  test("NodeEnvironment.JSDOM: stores URL correctly") {
-    val jsdom = ScalaJsTestRunner.NodeEnvironment.JSDOM("http://localhost:8080")
-    jsdom.url shouldBe "http://localhost:8080"
-  }
-
-  test("NodeEnvironment.JSDOM: handles special URLs") {
-    val urls = Seq(
-      "http://localhost",
-      "https://example.com:443/path?query=value#hash",
-      "file:///path/to/file.html",
-      "about:blank"
-    )
-    for (url <- urls) {
-      val jsdom = ScalaJsTestRunner.NodeEnvironment.JSDOM(url)
-      jsdom.url shouldBe url
-    }
-  }
-
-  // ==========================================================================
-  // DiscoveredSuites Edge Cases
-  // ==========================================================================
-
-  test("DiscoveredSuites: handles empty suite list") {
-    val discovered = ScalaJsTestRunner.DiscoveredSuites("munit.Framework", List.empty)
-    discovered.framework shouldBe "munit.Framework"
-    discovered.suites shouldBe empty
-  }
-
-  test("DiscoveredSuites: handles many suites") {
-    val suites = (1 to 1000).map(i => TestRunnerTypes.TestSuite(s"Suite$i", s"com.example.Suite$i")).toList
-    val discovered = ScalaJsTestRunner.DiscoveredSuites("test.Framework", suites)
-    discovered.suites should have size 1000
   }
 
   // ==========================================================================

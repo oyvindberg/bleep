@@ -94,8 +94,8 @@ object BspTestHarness {
       ProjectConfig(
         name = name,
         sources = sources,
-        classpath = classpath,
-        languageConfig = ScalaConfig(scalaVersion, Nil),
+        classpath = (classpath ++ CompilerResolver.resolveScalaJsLibrary(sjsVersion, scalaVersion)).distinct,
+        languageConfig = ScalaConfig(scalaVersion, PlatformTestHelper.scalaJsCompilerOptions(scalaVersion, sjsVersion)),
         dependsOn = Set.empty,
         isTest = isTest,
         platform = BuildLoader.Platform.ScalaJs(sjsVersion, scalaVersion)
