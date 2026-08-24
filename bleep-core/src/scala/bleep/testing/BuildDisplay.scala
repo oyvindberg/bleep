@@ -91,6 +91,8 @@ case class BuildSummary(
     compileFailures: List[ProjectCompileFailure],
     linkFailures: List[LinkFailure],
     skippedProjects: List[SkippedProject],
+    /** Test projects whose classpath scan found no suites at all, before any filter applied. See [[toEither]]. */
+    testProjectsWithoutSuites: List[CrossProjectName],
     durationMs: Long,
     totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
     wasCancelled: Boolean,
@@ -130,6 +132,20 @@ case class BuildSummary(
         if (testsCancelled > 0) parts += s"$testsCancelled cancelled"
         if (suitesCancelled > 0) parts += s"$suitesCancelled suites cancelled"
         Left(new bleep.BleepException.Text(s"Tests failed: ${parts.result().mkString(", ")}"))
+      } else if (testProjectsWithoutSuites.nonEmpty) {
+        // A project reaches discovery only when it is `isTestProject: true` and its classes compiled, and the count checked here is the one taken *before*
+        // `--only` / `--exclude` / tag filters. So this is not the user narrowing a run to nothing: it is compiled test classes that no framework recognised —
+        // a missing test dependency, a framework whose fingerprints match nothing bleep scanned, suites that were renamed out of existence. Every one of those
+        // used to report "0 tests executed" and exit 0, which is the worst possible answer: CI goes green precisely because the tests stopped running.
+        val names = testProjectsWithoutSuites.map(_.value).sorted
+        val shown = names.take(5).mkString(", ")
+        val suffix = if (names.size > 5) s", … +${names.size - 5} more" else ""
+        Left(
+          new bleep.BleepException.Text(
+            s"No test suites found in ${names.size} test project(s): $shown$suffix. " +
+              "The classes compiled but no test framework claimed them — check the project's test dependencies and `testFrameworks:`."
+          )
+        )
       } else if (suitesCompleted > 0 && testsObserved == 0)
         // Suites ran to completion but not a single test of any status was observed. This is
         // never a legitimate green build — it is the silent-zero signature (stale test
@@ -531,6 +547,7 @@ object BuildSummary {
     compileFailures = Nil,
     linkFailures = Nil,
     skippedProjects = Nil,
+    testProjectsWithoutSuites = Nil,
     durationMs = 0L,
     totalTaskTimeMs = 0L,
     wasCancelled = false,
@@ -755,7 +772,7 @@ object BuildDisplay {
         // ScalaTest/JUnit print their own started/finished lines to stdout.
         IO.unit
 
-      case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _) =>
+      case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _, _) =>
         if (!quietMode) {
           if (suites.isEmpty)
             logP(project, "🔍 discovered 0 test suites")

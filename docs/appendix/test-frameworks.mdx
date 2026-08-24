@@ -130,6 +130,28 @@ Discovery is bleep's own classpath scan rather than a delegation to the
 framework, which is what lets `bleep test` list suites, filter them with
 `--only`, and schedule them across JVMs before anything runs.
 
+## When a test project turns up empty
+
+A project marked `isTestProject: true` whose classes compiled but whose scan
+found **no suites at all** fails the run:
+
+```
+No test suites found in 1 test project(s): mylib-test. The classes compiled
+but no test framework claimed them — check the project's test dependencies
+and `testFrameworks:`.
+```
+
+This is a failure rather than a green "0 tests executed" on purpose. The
+usual causes — a test dependency that was never added, a framework whose
+fingerprints match nothing bleep scans for, suites renamed out of existence —
+all leave a build that compiles perfectly and tests nothing, and reporting
+that as a pass turns CI green precisely when it should not be.
+
+Filters are not affected. `--only`, `--exclude`, `--only-tag` and
+`--exclude-tag` narrowing a project down to nothing is you asking for that,
+so the check looks at what the scan found *before* any filter applied. A run
+that legitimately selects no suites still succeeds.
+
 ## See also
 
 - [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) ,

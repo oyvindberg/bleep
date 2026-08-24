@@ -142,6 +142,52 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     verdict(List(E.SuiteFinished(proj("app"), SuiteName("EmptySuite"), SuiteOutcome.Empty, durationMs = 1L, timestamp = 1L))).isLeft shouldBe true
   }
 
+  private def discovered(p: String, suites: List[String], beforeFilters: Int): E.SuitesDiscovered =
+    E.SuitesDiscovered(proj(p), suites.map(SuiteName.apply), totalSuitesDiscovered = suites.size, discoveredBeforeFilters = Some(beforeFilters), timestamp = 1L)
+
+  test("a test project whose classpath scan found nothing fails the run") {
+    leftMessage(
+      List(
+        compileFinished("tests", CompileStatus.Success, skippedBecause = None),
+        discovered("tests", suites = Nil, beforeFilters = 0)
+      )
+    ) should include("No test suites found")
+  }
+
+  test("the failure names the projects, so the user knows where to look") {
+    val msg = leftMessage(
+      List(
+        discovered("b-tests", suites = Nil, beforeFilters = 0),
+        discovered("a-tests", suites = Nil, beforeFilters = 0)
+      )
+    )
+    msg should include("a-tests")
+    msg should include("b-tests")
+    msg should include("2 test project(s)")
+  }
+
+  test("a project filtered down to nothing is the user's choice, not a broken build") {
+    // `--exclude` emptied the selection: the scan DID find suites, so there is nothing wrong with the project.
+    verdict(
+      List(
+        compileFinished("tests", CompileStatus.Success, skippedBecause = None),
+        discovered("tests", suites = Nil, beforeFilters = 7)
+      )
+    ) shouldBe Right(())
+  }
+
+  test("an older peer's event, which carries no pre-filter count, never invents a failure") {
+    // The wire form predating `discoveredBeforeFilters` decodes it as None, not 0. An empty `suites` from such a peer is genuinely ambiguous — scan found
+    // nothing, or a filter emptied it — and replaying an old transcript must not turn that silence into a failure the run never had.
+    import io.circe.syntax.*
+    // Built by encoding a current event and deleting the field, so this stays a test about the missing field rather than about how the rest happens to encode.
+    val legacyWire = discovered("tests", suites = Nil, beforeFilters = 0).asJson.mapObject(_.remove("discoveredBeforeFilters"))
+    legacyWire.hcursor.keys.map(_.toList) shouldBe Some(List("project", "suites", "totalSuitesDiscovered", "timestamp"))
+    val decoded = legacyWire.as[E.SuitesDiscovered].getOrElse(fail("legacy SuitesDiscovered must still decode"))
+    decoded.discoveredBeforeFilters shouldBe None
+    verdict(List(decoded)) shouldBe Right(())
+  }
+
   test("a clean run is Right") {
     verdict(compileFinished("app", CompileStatus.Success, skippedBecause = None) +: passedTest("app")) shouldBe Right(())
   }

@@ -1949,7 +1949,7 @@ class MultiWorkspaceBspServer(
         }
 
         // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
-        val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] =
+        val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
           (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
         val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
@@ -2470,7 +2470,7 @@ class MultiWorkspaceBspServer(
           val tagsActive = includeTagsSet.nonEmpty || excludeTagsSet.nonEmpty
           val regexActive = testOptions.only.nonEmpty || testOptions.exclude.nonEmpty
 
-          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] =
+          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
             (discoverTask, _) =>
               discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
                 val projectName = discoverTask.project.value
@@ -2531,9 +2531,9 @@ class MultiWorkspaceBspServer(
                     else "filter"
                   val msg =
                     s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
-                  (TaskDag.TaskResult.Failure(msg, Nil), Nil)
+                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size))
                 } else {
-                  (result, tagFiltered)
+                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size))
                 }
               }
 
@@ -4042,10 +4042,17 @@ class MultiWorkspaceBspServer(
               )
             )
 
-          case TaskDag.DagEvent.SuitesDiscovered(project, suites, timestamp) =>
+          case TaskDag.DagEvent.SuitesDiscovered(project, suites, discoveredBeforeFilters, timestamp) =>
             for {
               total <- totalSuitesRef.updateAndGet(_ + suites.size)
-              _ <- IO(sendTestEvent(originId, s"discover:$project", BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, timestamp), recorder))
+              _ <- IO(
+                sendTestEvent(
+                  originId,
+                  s"discover:$project",
+                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, Some(discoveredBeforeFilters), timestamp),
+                  recorder
+                )
+              )
             } yield ()
 
           case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>

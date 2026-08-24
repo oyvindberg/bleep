@@ -470,6 +470,15 @@ object BleepBspProtocol {
         project: CrossProjectName,
         suites: List[SuiteName],
         totalSuitesDiscovered: Int,
+        /** How many suites the classpath scan found for this project *before* `--only` / `--exclude` / tag filters were applied.
+          *
+          * `suites` is the post-filter list, which is what the run goes on to execute. The pre-filter count is a different fact and the only one that can tell
+          * "this test project's discovery came back empty" from "the user filtered it empty" — and the first of those is a broken build that used to report
+          * success. See `BuildSummary.toEither`.
+          *
+          * `None` means the peer that produced this event predates the field, so the answer is unknown rather than zero. A server always fills it in.
+          */
+        discoveredBeforeFilters: Option[Int],
         timestamp: Long
     ) extends Event
 
@@ -668,7 +677,35 @@ object BleepBspProtocol {
     implicit val runSymbolProcessorsStartedCodec: Codec[RunSymbolProcessorsStarted] = deriveCodec
     implicit val runSymbolProcessorsFinishedCodec: Codec[RunSymbolProcessorsFinished] = deriveCodec
     implicit val discoveryStartedCodec: Codec[DiscoveryStarted] = deriveCodec
-    implicit val suitesDiscoveredCodec: Codec[SuitesDiscovered] = deriveCodec
+
+    /** Version-tolerant for the same reason [[suiteFinishedCodec]] is: `discoveredBeforeFilters` was added after the fact, and a required field is a breaking
+      * change.
+      *
+      * Absent, it decodes to `None` rather than to `0`. The distinction carries weight: an older peer sending an empty `suites` has said nothing about whether
+      * the scan found nothing or a filter emptied it, and reading that silence as "the scan found nothing" would fail replayed runs that were fine. `None` is
+      * the honest answer and the consumer treats it as no evidence either way.
+      */
+    implicit val suitesDiscoveredCodec: Codec[SuitesDiscovered] = {
+      val enc: Encoder[SuitesDiscovered] = Encoder.instance { sd =>
+        Json.obj(
+          "project" -> sd.project.asJson,
+          "suites" -> sd.suites.asJson,
+          "totalSuitesDiscovered" -> sd.totalSuitesDiscovered.asJson,
+          "discoveredBeforeFilters" -> sd.discoveredBeforeFilters.asJson,
+          "timestamp" -> sd.timestamp.asJson
+        )
+      }
+      val dec: Decoder[SuitesDiscovered] = Decoder.instance { c =>
+        for {
+          project <- c.downField("project").as[CrossProjectName]
+          suites <- c.downField("suites").as[List[SuiteName]]
+          totalSuitesDiscovered <- c.downField("totalSuitesDiscovered").as[Int]
+          timestamp <- c.downField("timestamp").as[Long]
+          discoveredBeforeFilters <- c.get[Option[Int]]("discoveredBeforeFilters")
+        } yield SuitesDiscovered(project, suites, totalSuitesDiscovered, discoveredBeforeFilters, timestamp)
+      }
+      Codec.from(dec, enc)
+    }
     implicit val suiteStartedCodec: Codec[SuiteStarted] = deriveCodec
     implicit val testStartedCodec: Codec[TestStarted] = deriveCodec
     implicit val testFinishedCodec: Codec[TestFinished] = deriveCodec

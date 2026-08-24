@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import sbt.testing.*;
@@ -64,12 +63,24 @@ public class ForkedTestRunner {
     try {
       String portProperty = System.getProperty(PROTOCOL_PORT_PROPERTY);
       if (portProperty == null) {
-        // No fallback to stdio. The runner is always launched by a bleep of the same version, which
-        // always sets this, so a missing port means a broken launch and not an older parent.
+        // No fallback to stdio. The runner is always launched by a bleep built from the same source
+        // as the server, which always sets this, so a missing port means a mismatched launch rather
+        // than an older parent -- and a mismatched pair would misread the protocol a moment later
+        // anyway. Better to say so here than to deadlock or decode garbage.
+        //
+        // The one way to reach this in practice is building bleep itself with a *released* bleep:
+        // the server then resolves `bleep-test-runner` out of the build being compiled (that is
+        // deliberate, so bleep's own tests exercise the runner they just built) while the server
+        // itself is the released one. `--dev` is what keeps the two halves together.
         originalErr.println(
             "bleep test runner: -D"
                 + PROTOCOL_PORT_PROPERTY
-                + " was not set; cannot reach the parent");
+                + " was not set, so this fork cannot reach the bleep that started it.");
+        originalErr.println(
+            "  This runner was built from a different source tree than the server driving it.");
+        originalErr.println(
+            "  When building bleep itself, run the tests through the dev script:"
+                + " `bleep setup-dev-script bleep-cli` then `./bleep-cli.sh --dev test`.");
         System.exit(2);
       }
       protocolSocket = new Socket(InetAddress.getLoopbackAddress(), Integer.parseInt(portProperty));
