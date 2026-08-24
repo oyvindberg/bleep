@@ -1,10 +1,15 @@
 package bleep.testing.runner;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import sbt.testing.*;
@@ -39,12 +44,44 @@ public class ForkedTestRunner {
     // Save original streams for protocol communication
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
-    InputStream originalIn = System.in;
 
-    protocolOut = new PrintWriter(originalOut, true);
-
+    // The protocol runs over a loopback socket the parent is already listening on, NOT over this
+    // process's stdin/stdout.
+    //
+    // Sharing stdout with the protocol meant that anything writing to file descriptor 1 landed in
+    // the middle of the JSON stream, and a test cannot be stopped from doing that: `System.out` is
+    // captured below, but a subprocess started with inherited IO writes to the descriptor directly,
+    // beneath any Java-level redirection. Scala Native's test binaries are spawned that way by
+    // `scala.scalanative.testinterface.ProcessRunner` (a hardcoded `ProcessBuilder.inheritIO()`),
+    // and so is anything a user's own test launches the same way. The parent saw
+    // "Protocol error: expected json value got 'Test r...'" and reported a suite that never
+    // finished.
+    //
+    // With the protocol on its own channel, stdout and stderr are just output: the parent drains
+    // them and attributes the lines to the running suite, so that subprocess output reaches the
+    // user instead of corrupting the run.
+    Socket protocolSocket = null;
     try {
-      // Install stdout/stderr capture
+      String portProperty = System.getProperty(PROTOCOL_PORT_PROPERTY);
+      if (portProperty == null) {
+        // No fallback to stdio. The runner is always launched by a bleep of the same version, which
+        // always sets this, so a missing port means a broken launch and not an older parent.
+        originalErr.println(
+            "bleep test runner: -D"
+                + PROTOCOL_PORT_PROPERTY
+                + " was not set; cannot reach the parent");
+        System.exit(2);
+      }
+      protocolSocket = new Socket(InetAddress.getLoopbackAddress(), Integer.parseInt(portProperty));
+      protocolSocket.setTcpNoDelay(true);
+      protocolOut =
+          new PrintWriter(
+              new OutputStreamWriter(protocolSocket.getOutputStream(), StandardCharsets.UTF_8),
+              true);
+
+      // Install stdout/stderr capture. Still worth doing even though the protocol has moved: output
+      // written through `System.out` can be attributed to the suite that produced it, which raw
+      // descriptor writes drained by the parent cannot be.
       CapturingOutputStream capturedOut = new CapturingOutputStream("stdout");
       CapturingOutputStream capturedErr = new CapturingOutputStream("stderr");
       System.setOut(new PrintStream(capturedOut, true));
@@ -56,7 +93,9 @@ public class ForkedTestRunner {
       // Signal ready
       send(TestProtocol.encodeReady());
 
-      BufferedReader in = new BufferedReader(new InputStreamReader(originalIn));
+      BufferedReader in =
+          new BufferedReader(
+              new InputStreamReader(protocolSocket.getInputStream(), StandardCharsets.UTF_8));
 
       // Main command loop
       boolean running = true;
@@ -113,8 +152,20 @@ public class ForkedTestRunner {
       // Restore original streams
       System.setOut(originalOut);
       System.setErr(originalErr);
+      if (protocolSocket != null) {
+        try {
+          protocolSocket.close();
+        } catch (IOException ignored) {
+          // The parent may have closed first; nothing useful left to do either way.
+        }
+      }
     }
   }
+
+  /**
+   * System property carrying the port the parent listens on for this fork's protocol connection.
+   */
+  static final String PROTOCOL_PORT_PROPERTY = "bleep.test.protocolPort";
 
   private static void send(String message) {
     protocolOut.println(message);
@@ -220,7 +271,18 @@ public class ForkedTestRunner {
 
       Task[] tasks = null;
 
-      for (Fingerprint fingerprint : fingerprints) {
+      // Try fingerprints that agree with what the class actually is before the rest.
+      //
+      // "First fingerprint that yields a task" is not enough on its own. A framework that declares
+      // both a class and a module fingerprint — specs2 does — is
+      // free to hand back a task for either without checking, and only fails later when it tries to
+      // load the form that does not exist: a `class Fixture extends
+      // Specification` matched against the module fingerprint produced a task whose whole error
+      // message was "example.Specs2Fixture$". Whether a suite is a
+      // Scala object is not a guess; the compiler emits `Fixture$` for one and not for the other.
+      Fingerprint[] ordered = orderFingerprintsFor(className, fingerprints);
+
+      for (Fingerprint fingerprint : ordered) {
         TaskDef taskDef =
             new TaskDef(className, fingerprint, true, new Selector[] {new SuiteSelector()});
         Task[] candidate = runner.tasks(new TaskDef[] {taskDef});
@@ -460,6 +522,70 @@ public class ForkedTestRunner {
         send(TestProtocol.encodeLog("error", stackTraceToString(t)));
       }
     };
+  }
+
+  /**
+   * Puts fingerprints whose `isModule` matches the class on disk first, keeping the framework's own
+   * order within each group. Nothing is discarded: a framework that disagrees with this reading
+   * still gets every fingerprint tried, just second.
+   */
+  private static Fingerprint[] orderFingerprintsFor(String className, Fingerprint[] fingerprints) {
+    Class<?> asModule = loadClass(className + "$");
+    Class<?> asPlain = loadClass(className);
+    boolean isModule = asModule != null;
+
+    // Ranked, highest first, keeping the framework's own order within a rank:
+    //   2 — the class really does extend what the fingerprint names
+    //   1 — only the class/object shape agrees
+    //   0 — neither
+    //
+    // Shape alone is not enough to tell a framework's fingerprints apart when several describe
+    // objects. Weaver declares one for suites and another for global
+    // resources; picking by shape chose the resource one and the run died with
+    // "example.WeaverFixture$ is not an instance of weaver.IOGlobalResource". What the
+    // class extends is the question the fingerprint is actually asking, so ask that first.
+    List<List<Fingerprint>> byRank = new ArrayList<>();
+    for (int i = 0; i < 3; i++) byRank.add(new ArrayList<>());
+    for (Fingerprint fp : fingerprints) {
+      Boolean declaredModule = fingerprintIsModule(fp);
+      boolean shapeAgrees = declaredModule != null && declaredModule == isModule;
+      // Each fingerprint is checked against the class it is talking about: a module fingerprint
+      // means `Foo$`, a class fingerprint means `Foo`. Checking both against the object's class
+      // scored a class fingerprint naming `org.scalacheck.Properties` just as highly as the module
+      // one — `Foo$` extends Properties either way — and picking it made ScalaCheck unrunnable.
+      // A Scala 3 mirror class extends nothing, so the wrong shape now scores itself out.
+      Class<?> meant = (declaredModule != null && declaredModule) ? asModule : asPlain;
+      boolean extendsIt =
+          meant != null
+              && fingerprintSuperclass(fp).map(sup -> sup.isAssignableFrom(meant)).orElse(false);
+      int rank = extendsIt ? 2 : (shapeAgrees ? 1 : 0);
+      byRank.get(2 - rank).add(fp);
+    }
+
+    List<Fingerprint> ordered = new ArrayList<>();
+    for (List<Fingerprint> rank : byRank) ordered.addAll(rank);
+    return ordered.toArray(new Fingerprint[0]);
+  }
+
+  /** The class a SubclassFingerprint names, when it names one and it can be loaded. */
+  private static Optional<Class<?>> fingerprintSuperclass(Fingerprint fp) {
+    if (!(fp instanceof SubclassFingerprint)) return Optional.empty();
+    return Optional.ofNullable(loadClass(((SubclassFingerprint) fp).superclassName()));
+  }
+
+  private static Class<?> loadClass(String name) {
+    try {
+      return Class.forName(name, false, ForkedTestRunner.class.getClassLoader());
+    } catch (ClassNotFoundException | LinkageError e) {
+      return null;
+    }
+  }
+
+  /** Null when the fingerprint kind says nothing about module-ness. */
+  private static Boolean fingerprintIsModule(Fingerprint fp) {
+    if (fp instanceof SubclassFingerprint) return ((SubclassFingerprint) fp).isModule();
+    if (fp instanceof AnnotatedFingerprint) return ((AnnotatedFingerprint) fp).isModule();
+    return null;
   }
 
   private static String describeFingerprint(Fingerprint fp) {

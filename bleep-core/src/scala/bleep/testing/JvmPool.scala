@@ -7,6 +7,8 @@ import cats.syntax.all._
 import fs2.Stream
 
 import java.io._
+import java.net.{InetAddress, ServerSocket}
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
 import scala.collection.concurrent.TrieMap
@@ -89,6 +91,14 @@ trait TestJvm {
 }
 
 object JvmPool {
+
+  /** How long a freshly spawned fork gets to connect back on the protocol socket.
+    *
+    * Generous, because it covers JVM startup on a cold, loaded CI runner, and bounded, because a fork that never connects would otherwise hang the suite with
+    * no diagnostics — the failure it usually indicates (bad JVM options, a test-runner jar the project's JVM cannot load) is one the child reports on its own
+    * stderr, which the spawn failure surfaces.
+    */
+  private val ProtocolConnectTimeout: FiniteDuration = 60.seconds
 
   /** Create a new JVM pool with the given maximum concurrency.
     *
@@ -226,9 +236,16 @@ object JvmPool {
     */
   private class ManagedJvm(
       val process: Process,
+      /** Protocol channel to the fork — a loopback socket, deliberately not the process's stdin. */
       val stdin: PrintWriter,
+      /** Protocol channel from the fork. See [[stdin]]. */
       val stdout: BufferedReader,
       val stderr: BufferedReader,
+      /** The fork's actual stdout. Carries only output now that the protocol has its own socket, including whatever a subprocess started with inherited IO
+        * writes straight to the descriptor — which is the only way that output can reach the user at all.
+        */
+      val processStdout: BufferedReader,
+      val protocolSocket: java.net.Socket,
       val key: JvmKey,
       val jvmCommand: Path,
       /** Returns this process's memory reservation to the machine governor. Held for the lifetime of the PROCESS, not of the suite that happened to spawn it: a
@@ -253,19 +270,25 @@ object JvmPool {
     private val stderrBufferCap = 2048
 
     locally {
-      val t = new Thread(s"jvm-stderr-drain-${process.pid}") {
-        override def run(): Unit =
-          try {
-            var line = stderr.readLine()
-            while (line != null) {
-              stderrBuffer.addLast(line)
-              while (stderrBuffer.size > stderrBufferCap) stderrBuffer.pollFirst(): Unit
-              line = stderr.readLine()
-            }
-          } catch { case NonFatal(_) => () }
+      def drainInto(name: String, reader: BufferedReader): Unit = {
+        val t = new Thread(s"jvm-$name-drain-${process.pid}") {
+          override def run(): Unit =
+            try {
+              var line = reader.readLine()
+              while (line != null) {
+                stderrBuffer.addLast(line)
+                while (stderrBuffer.size > stderrBufferCap) stderrBuffer.pollFirst(): Unit
+                line = reader.readLine()
+              }
+            } catch { case NonFatal(_) => () }
+        }
+        t.setDaemon(true)
+        t.start()
       }
-      t.setDaemon(true)
-      t.start()
+      drainInto("stderr", stderr)
+      // Draining the fork's stdout is not optional. Nothing reads it otherwise, so a subprocess writing steadily to the inherited descriptor fills the pipe
+      // buffer and blocks — the suite then hangs with no output and no explanation.
+      drainInto("stdout", processStdout)
     }
 
     def isAlive: Boolean =
@@ -344,6 +367,10 @@ object JvmPool {
       alive = false
       try
         stdin.close()
+      catch { case NonFatal(_) => }
+      // Closing the socket is what the child reads as end-of-commands, the role closing its stdin used to play.
+      try
+        protocolSocket.close()
       catch { case NonFatal(_) => }
       // Kill the entire process tree, not just the direct child.
       // If the test runner spawned sub-processes (e.g., for some test frameworks),
@@ -596,7 +623,14 @@ object JvmPool {
                   else
                     List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-                val pb = new ProcessBuilder(cmd*)
+                // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
+                // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON
+                // stream, and the suite dies with "Protocol error: expected json value". Bound before the process starts so the child never races the listener.
+                val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
+                val protocolPort = protocolListener.getLocalPort
+
+                val cmdWithProtocol = cmd.head :: s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" :: cmd.tail
+                val pb = new ProcessBuilder(cmdWithProtocol*)
                 pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
                 pb.redirectErrorStream(false)
                 if (useEnvClasspath) {
@@ -607,12 +641,36 @@ object JvmPool {
                 pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
                 environment.foreach { case (k, v) => pb.environment().put(k, v) }
 
-                val process = pb.start()
-                val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
-                val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-                val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+                val process =
+                  try pb.start()
+                  catch {
+                    case e: Throwable =>
+                      protocolListener.close()
+                      throw e
+                  }
 
-                new ManagedJvm(process, stdin, stdout, stderr, key, jvmCommand, releaseMemory)
+                val protocolSocket =
+                  try {
+                    // A fork that never connects is a fork that will never answer. Bounded so a JVM that dies on startup (bad -Xmx, missing class) surfaces as
+                    // a spawn failure with the child's own stderr, rather than hanging the suite.
+                    protocolListener.setSoTimeout(ProtocolConnectTimeout.toMillis.toInt)
+                    protocolListener.accept()
+                  } catch {
+                    case e: Throwable =>
+                      process.destroyForcibly(): Unit
+                      throw new IOException(
+                        s"Test JVM did not connect back on port $protocolPort within $ProtocolConnectTimeout: ${e.getMessage}",
+                        e
+                      )
+                  } finally protocolListener.close()
+                protocolSocket.setTcpNoDelay(true)
+
+                val stdin = new PrintWriter(new OutputStreamWriter(protocolSocket.getOutputStream, StandardCharsets.UTF_8), true)
+                val stdout = new BufferedReader(new InputStreamReader(protocolSocket.getInputStream, StandardCharsets.UTF_8))
+                val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+                val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+
+                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory)
               }
               .flatTap(jvm => allJvms.update(_ + jvm))
               .flatTap(jvm =>

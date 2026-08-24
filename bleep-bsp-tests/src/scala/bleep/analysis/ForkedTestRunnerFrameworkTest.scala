@@ -6,7 +6,6 @@ import bleep.testing.runner.TestProtocol.RunnerKind
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
-import java.io.{BufferedReader, InputStreamReader, PrintWriter}
 import scala.collection.mutable.ListBuffer
 
 /** Comprehensive integration tests for ForkedTestRunner across all supported test frameworks.
@@ -59,15 +58,14 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     val javaHome = System.getProperty("java.home")
     val javaBin = Path.of(javaHome, "bin", "java").toString
 
-    val process = new ProcessBuilder(javaBin, "-cp", classpath, "bleep.testing.runner.ForkedTestRunner").start()
-    val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
-    val writer = new PrintWriter(process.getOutputStream, true)
-    val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+    val launched = ForkedRunnerLaunch.launch(javaBin, classpath)
+    val reader = launched.reader
+    val writer = launched.writer
 
     try {
       // Wait for Ready
       val readyLine = reader.readLine()
-      assert(readyLine != null, "ForkedTestRunner did not send Ready")
+      assert(readyLine != null, s"ForkedTestRunner did not send Ready. stderr:\n${launched.stderr}")
       readyLine should include("\"type\":\"Ready\"")
 
       // Send RunSuite command
@@ -121,12 +119,7 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
         protocolLines = lines,
         errors = errors.toList
       )
-    } finally {
-      process.destroyForcibly()
-      reader.close()
-      writer.close()
-      stderr.close()
-    }
+    } finally launched.close()
   }
 
   /** Simple JSON field extractor (no dependency on JSON library) */
