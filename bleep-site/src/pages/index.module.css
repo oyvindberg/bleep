@@ -1662,6 +1662,12 @@
 [data-theme="light"] .heroTagline {
   color: #3a3632;
 }
+/* .heroTagline strong is --ink-100, which is light ink for the dark theme. Nothing
+   emphasised anything in the tagline until now, so the missing override never showed:
+   in light mode the bold words came out near-white on cream. Same fix as .sectionLede strong. */
+[data-theme="light"] .heroTagline strong {
+  color: var(--ink-950);
+}
 [data-theme="light"] .heroFacts {
   border-top-color: rgba(10, 9, 8, 0.1);
 }
