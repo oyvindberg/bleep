@@ -69,23 +69,29 @@ class RecordingHandler extends TestEventHandler {
   val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
   val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
-  def onTestStarted(suite: String, test: String): Unit = testStarts += (suite, test)
+  def onTestStarted(suite: String, test: String): Unit =
+    testStarts += (suite, test)
 
   def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
     testFinishes += (suite, test, status, durationMs, message)
 
-  def onSuiteStarted(suite: String): Unit = suiteStarts += suite
-  def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += (suite, passed, failed, skipped)
-  def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += (suite, line, channel)
+  def onSuiteStarted(suite: String): Unit =
+    suiteStarts += suite
+
+  def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
+    suiteFinishes += (suite, passed, failed, skipped)
+
+  def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
+    outputs += (suite, line, channel)
 }
 
-class SbtTestingDriverTest extends AnyFunSuite with Matchers {
+class SbtTestDriverTest extends AnyFunSuite with Matchers {
 
   private def driveOneSuite(events: List[(String, sbt.testing.Status)]): (RecordingHandler, TestRunnerTypes.TestResult) = {
     val task = new StubTask("example.AlphaSuite", events, Array.empty)
     val runner = new StubRunner(_ => Array(task))
     val handler = new RecordingHandler()
-    val result = SbtTestingDriver.runFramework(
+    val result = SbtTestDriver.runFramework(
       new StubFramework(runner),
       List(TestSuite("AlphaSuite", "example.AlphaSuite")),
       handler,
@@ -94,7 +100,7 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     (handler, result)
   }
 
-  test("SbtTestingDriver: reports suite started, each test finished, and suite finished") {
+  test("SbtTestDriver: reports suite started, each test finished, and suite finished") {
     val (handler, result) = driveOneSuite(List("addition" -> sbt.testing.Status.Success, "subtraction" -> sbt.testing.Status.Failure))
 
     handler.suiteStarts shouldBe Seq("example.AlphaSuite")
@@ -107,7 +113,7 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     result.terminationReason shouldBe TerminationReason.Completed
   }
 
-  test("SbtTestingDriver: sends the duration and the failure message to the handler") {
+  test("SbtTestDriver: sends the duration and the failure message to the handler") {
     val (handler, _) = driveOneSuite(List("subtraction" -> sbt.testing.Status.Failure))
 
     val (_, _, _, durationMs, message) = handler.testFinishes.head
@@ -115,7 +121,7 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     message shouldBe Some("subtraction went wrong")
   }
 
-  test("SbtTestingDriver: counts every sbt.testing.Status into the right column") {
+  test("SbtTestDriver: counts every sbt.testing.Status into the right column") {
     val (handler, result) = driveOneSuite(
       List(
         "ok" -> sbt.testing.Status.Success,
@@ -135,13 +141,13 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     handler.suiteFinishes shouldBe Seq(("example.AlphaSuite", 1, 2, 3))
   }
 
-  test("SbtTestingDriver: walks nested tasks and starts each suite once") {
+  test("SbtTestDriver: walks nested tasks and starts each suite once") {
     val grandchild = new StubTask("example.GammaSuite", List("deep" -> sbt.testing.Status.Success), Array.empty)
     val child = new StubTask("example.BetaSuite", List("nested" -> sbt.testing.Status.Success), Array(grandchild))
     val root = new StubTask("example.AlphaSuite", List("top" -> sbt.testing.Status.Success), Array(child))
     val handler = new RecordingHandler()
 
-    val result = SbtTestingDriver.runFramework(
+    val result = SbtTestDriver.runFramework(
       new StubFramework(new StubRunner(_ => Array(root))),
       List(TestSuite("AlphaSuite", "example.AlphaSuite")),
       handler,
@@ -157,14 +163,14 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     )
   }
 
-  test("SbtTestingDriver: builds one TaskDef per requested suite") {
+  test("SbtTestDriver: builds one TaskDef per requested suite") {
     var seenDefs = Array.empty[sbt.testing.TaskDef]
     val runner = new StubRunner(defs => {
       seenDefs = defs
       Array.empty
     })
 
-    SbtTestingDriver.runFramework(
+    SbtTestDriver.runFramework(
       new StubFramework(runner),
       List(TestSuite("AlphaSuite", "example.AlphaSuite"), TestSuite("BetaSuite", "example.BetaSuite")),
       new RecordingHandler(),
@@ -174,29 +180,29 @@ class SbtTestingDriverTest extends AnyFunSuite with Matchers {
     seenDefs.map(_.fullyQualifiedName()) shouldBe Array("example.AlphaSuite", "example.BetaSuite")
   }
 
-  test("SbtTestingDriver: asks the framework to discover when no suite is named") {
+  test("SbtTestDriver: asks the framework to discover when no suite is named") {
     var seenDefs = Array.empty[sbt.testing.TaskDef]
     val runner = new StubRunner(defs => {
       seenDefs = defs
       Array.empty
     })
 
-    SbtTestingDriver.runFramework(new StubFramework(runner), Nil, new RecordingHandler(), getClass.getClassLoader)
+    SbtTestDriver.runFramework(new StubFramework(runner), Nil, new RecordingHandler(), getClass.getClassLoader)
 
     seenDefs shouldBe empty
   }
 
-  test("SbtTestingDriver: sends framework logger output to the handler") {
+  test("SbtTestDriver: sends framework logger output to the handler") {
     val (handler, _) = driveOneSuite(List("addition" -> sbt.testing.Status.Success))
 
     handler.outputs.map(_._2) should contain("running example.AlphaSuite")
   }
 
-  test("SbtTestingDriver: calls done on the runner") {
+  test("SbtTestDriver: calls done on the runner") {
     val task = new StubTask("example.AlphaSuite", List("addition" -> sbt.testing.Status.Success), Array.empty)
     val runner = new StubRunner(_ => Array(task))
 
-    SbtTestingDriver.runFramework(
+    SbtTestDriver.runFramework(
       new StubFramework(runner),
       List(TestSuite("AlphaSuite", "example.AlphaSuite")),
       new RecordingHandler(),

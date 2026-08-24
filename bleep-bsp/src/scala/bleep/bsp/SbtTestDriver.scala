@@ -8,7 +8,7 @@ import bleep.bsp.protocol.{OutputChannel, TestStatus}
   * Every platform reaches its `Framework` differently. The JVM loads one off a classpath. Scala Native and Scala.js each go through a `TestAdapter` that talks
   * to a separate process. Once a platform holds a `Framework`, the work of running it is the same everywhere.
   */
-object SbtTestingDriver {
+object SbtTestDriver {
 
   /** Every suite bleep asks for is named outright, and the fingerprint only satisfies the `TaskDef` constructor. A framework matches on the name. */
   private val suiteFingerprint: sbt.testing.Fingerprint = new sbt.testing.SubclassFingerprint {

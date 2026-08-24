@@ -302,7 +302,7 @@ object ScalaNativeTestRunner {
           TestResult(0, 0, 0, 0, TerminationReason.Error("No test framework found"))
 
         case Some(sbtFramework) =>
-          SbtTestingDriver.runFramework(sbtFramework, suites, eventHandler, loader)
+          SbtTestDriver.runFramework(sbtFramework, suites, eventHandler, loader)
       }
     } finally
       // Close adapter (kills native process)
