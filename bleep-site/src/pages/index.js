@@ -159,8 +159,14 @@ function Hero() {
           does precisely what a build is for: compile, test, sourcegen, then
           package, link, publish what comes out. It refuses the rest. Your
           container build is code you write. So is your doc generation, your
-          sidecar boot, your CI orchestration. All of it. And it&rsquo;s the
-          build tool your agents have been asking for.
+          sidecar boot, your CI orchestration. All of it.
+        </p>
+
+        <p className={styles.heroTagline}>
+          That simplicity turns out to matter most to the newest thing reading
+          your build. Bleep is the best build tool for agentic development: fast
+          enough that every agent can have its own checkout, and quiet enough
+          that none of them drown in build output.
         </p>
 
         <div className={styles.heroButtons}>
@@ -193,24 +199,28 @@ function Hero() {
             <span className={styles.heroFactSub}>native binary, no JVM</span>
           </div>
           <div className={styles.heroFact}>
-            <span className={styles.heroFactLabel}>new worktree, compiled</span>
+            <span className={styles.heroFactLabel}>
+              a fresh checkout, ready
+            </span>
             <span className={styles.heroFactValue}>
               {stats.timings.forkToVerifiedGreenColdSeconds} <em>&rarr;</em>{" "}
               {stats.timings.forkToVerifiedGreenSeconds} s
             </span>
             <span className={styles.heroFactSub}>
-              cold rebuild vs copy-state, {stats.compiled.linesShort} lines
+              built from scratch, or cloned from a sibling &mdash;{" "}
+              {stats.compiled.linesShort} lines
             </span>
           </div>
           <div className={styles.heroFact}>
-            <span className={styles.heroFactLabel}>tokens per answer</span>
+            <span className={styles.heroFactLabel}>what an agent reads</span>
             <span className={styles.heroFactValue}>
               {stats.tokens.greenCompile}
               <em>&ndash;</em>
               {stats.tokens.failingTestWithDiff}
             </span>
             <span className={styles.heroFactSub}>
-              green &rarr; failure with full diff
+              tokens, where <code>mvn test</code> spends{" "}
+              {stats.tokens.mavenSameRepoLabel}
             </span>
           </div>
           <div className={styles.heroFact}>
@@ -221,6 +231,13 @@ function Hero() {
             <span className={styles.heroFactSub}>plain YAML, whole repo</span>
           </div>
         </div>
+
+        <p className={styles.heroFactsNote}>
+          The two in the middle are about coding agents. Each one works in its
+          own checkout, so each one pays for a build — and each one pays again,
+          in tokens, to read what that build said.{" "}
+          <Link to="/#agents">Why bleep is built for that</Link>.
+        </p>
       </div>
     </header>
   );

@@ -60,10 +60,16 @@
     "seededFirstCompileMs": 585
   },
   "tokens": {
-    "$comment": "Measured over the live MCP server.",
+    "$comment": "Measured over the live MCP server. The maven* figures were measured the same day with the same tokenizer (cl100k_base via tiktoken) so the comparison is like for like: mavenSameRepo is `mvn test` over bleep's own build exported to Maven by `bleep export-maven` — the same 25 projects the MCP figures come from. The toy figures exist to show the gap is not an artefact of scale: even one module with two tests costs more than bleep's answer. The point they make together is that bleep's answer size barely moves with the build while Maven's tracks it.",
     "greenCompile": 25,
     "failingTestWithDiff": 265,
-    "rangeLabel": "25–265"
+    "rangeLabel": "25–265",
+    "mavenSameRepo": 31332,
+    "mavenSameRepoModules": 25,
+    "mavenSameRepoLabel": "31,000",
+    "toyBleepAnswer": 129,
+    "toyMvnQuiet": 571,
+    "toyMvnPlain": 1036
   },
   "ownTests": {
     "$comment": "bleep testing itself, the recording in static/demos/own-tests.cast.",
