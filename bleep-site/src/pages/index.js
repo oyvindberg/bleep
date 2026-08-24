@@ -986,7 +986,7 @@ function AgentsSection() {
           eyebrow="Agentic development"
           title={
             <>
-              The best build tool for <em>agents</em>. By a mile.
+              The best build tool for <em>agents</em>.
             </>
           }
         >
