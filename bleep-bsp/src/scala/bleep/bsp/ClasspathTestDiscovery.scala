@@ -161,13 +161,18 @@ object ClasspathTestDiscovery {
     *   directory containing compiled .class files
     * @param classpath
     *   full classpath including dependencies
+    * @param declaredFrameworks
+    *   `Framework` class names the project named in `testFrameworks:`. Tried ahead of the built-in list, which is the point of the setting: a framework bleep
+    *   has never heard of is discoverable as long as it implements sbt test-interface. Still subject to being on the project's own classpath — declaring a
+    *   class that is not there discovers nothing, the same as any other candidate.
     * @return
     *   list of discovered test suites
     */
   def discover(
       project: CrossProjectName,
       classesDir: Path,
-      classpath: List[Path]
+      classpath: List[Path],
+      declaredFrameworks: List[String]
   ): List[DiscoveredTestSuite] = {
     if (!Files.isDirectory(classesDir)) {
       return Nil
@@ -182,7 +187,7 @@ object ClasspathTestDiscovery {
       val classNames = classFiles.map(f => classFileToClassName(classesDir, f))
 
       // Strategy 1: sbt-testing Framework fingerprints
-      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader)
+      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks)
 
       // Get classes not yet discovered
       val discoveredClassNames = frameworkDiscovered.map(_.className).toSet
@@ -222,9 +227,10 @@ object ClasspathTestDiscovery {
   private def discoverViaFrameworks(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: URLClassLoader
+      classLoader: URLClassLoader,
+      declaredFrameworks: List[String]
   ): List[DiscoveredTestSuite] = {
-    val frameworks = loadFrameworks(classLoader)
+    val frameworks = loadFrameworks(project, classLoader, declaredFrameworks)
 
     if (frameworks.isEmpty) {
       return Nil
@@ -266,13 +272,31 @@ object ClasspathTestDiscovery {
     * delegating loader, because a `Framework` implements `sbt.testing.Framework` and that interface has to come from bleep's own classloader for the cast on
     * the next line to succeed.
     */
-  private def loadFrameworks(classLoader: URLClassLoader): List[Framework] =
-    knownFrameworks.filter(fqn => onProjectClasspath(classLoader, fqn)).flatMap { fqn =>
-      Try {
-        val cls = classLoader.loadClass(fqn)
-        cls.getDeclaredConstructor().newInstance().asInstanceOf[Framework]
-      }.toOption
-    }
+  private def loadFrameworks(project: CrossProjectName, classLoader: URLClassLoader, declaredFrameworks: List[String]): List[Framework] = {
+    // A name the user wrote is held to a higher standard than one bleep guessed. `knownFrameworks` is a list of candidates, most of which are absent from any
+    // given project, so absence there means nothing. A `testFrameworks:` entry that is absent means the setting is doing nothing and the user believes it is —
+    // exactly the silence this setting spent years in.
+    val missing = declaredFrameworks.filterNot(fqn => onProjectClasspath(classLoader, fqn))
+    if (missing.nonEmpty)
+      throw new RuntimeException(
+        s"${project.value}: testFrameworks names ${missing.mkString(", ")}, which is not on this project's classpath. " +
+          "Add the dependency that provides it, or remove the entry. " +
+          "If it is a junit adapter (net.aichler / com.github.sbt.junit / com.novocode.junit) an older `bleep import-maven` wrote it: delete the line, " +
+          "junit needs no adapter and its suites are detected automatically."
+      )
+
+    // Declared first, so a project's own choice wins the fingerprint race against a built-in candidate. Instantiation failures throw for the same reason as
+    // above — for known candidates they are shrugged off, because a broken framework bleep merely suspected is not the user's problem.
+    val declared = declaredFrameworks.map(fqn => instantiateFramework(classLoader, fqn))
+    val known = knownFrameworks
+      .filterNot(declaredFrameworks.contains)
+      .filter(fqn => onProjectClasspath(classLoader, fqn))
+      .flatMap(fqn => Try(instantiateFramework(classLoader, fqn)).toOption)
+    declared ++ known
+  }
+
+  private def instantiateFramework(classLoader: URLClassLoader, fqn: String): Framework =
+    classLoader.loadClass(fqn).getDeclaredConstructor().newInstance().asInstanceOf[Framework]
 
   /** Try to match a class against fingerprints */
   private def matchFingerprint(

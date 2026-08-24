@@ -52,7 +52,8 @@ Bleep:
 | Multi-module reactor (`<modules>`) | sibling projects in `projects:` |
 | `<dependencies>` | `dependencies:` |
 | Inter-module dependencies (group:artifact match within reactor) | `dependsOn:` |
-| Test-framework dependencies (junit5/scalatest/munit/...) | `testFrameworks:` + auto-injected sbt-test-interface adapter |
+| Test-framework dependencies (scalatest/munit/specs2/...) | `testFrameworks:` |
+| junit test dependencies | nothing to declare — bleep finds junit suites by scanning and runs them on the JUnit Platform |
 | `<repositories>` (non-Maven Central) | `resolvers:` |
 | `maven-compiler-plugin <release>` | `jvm.name: temurin:NN` |
 | `<dependencyManagement>` resolved versions | inlined into `dependencies:` (since bleep has no BOM model yet) |

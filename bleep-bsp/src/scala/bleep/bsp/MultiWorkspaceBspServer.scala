@@ -3239,7 +3239,7 @@ class MultiWorkspaceBspServer(
         val resolved = started.resolvedProject(project)
         val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
 
-        val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath)
+        val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath, resolved.testFrameworks)
 
         if (suites.isEmpty) {
           debugLog(s"No test suites discovered in ${project.value}")
@@ -4618,7 +4618,7 @@ class MultiWorkspaceBspServer(
         val resolved = started.resolvedProject(crossName)
         val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
 
-        val suites = ClasspathTestDiscovery.discover(crossName, classesDir, classpath)
+        val suites = ClasspathTestDiscovery.discover(crossName, classesDir, classpath, resolved.testFrameworks)
 
         debugLog(s"handleScalaTestClasses: project=${crossName.value}, classesDir=$classesDir, found ${suites.size} test classes")
 

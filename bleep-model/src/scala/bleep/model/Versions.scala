@@ -55,8 +55,6 @@ object Versions {
   // ── Test-framework artifacts bleep injects into user test classpaths ──
   /** sbt test interface — 1.0 is final, there will never be another */
   val TestInterface: String = "1.0"
-  val JupiterInterface: String = "0.11.1"
-  val JunitInterface: String = "0.13.3"
 
   /** Not fallbacks. These are used only where the project expressed *no* junit-platform opinion at all — today that means a JUnit 4 project, whose suites bleep
     * runs through the vintage engine (see the JUnit 4 row of `testRuntimeRules` in MultiWorkspaceBspServer). A project that resolves a junit-platform of its

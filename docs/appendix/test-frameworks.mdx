@@ -1,30 +1,79 @@
 # Supported test frameworks
 
-Bleep auto-detects the test framework for each test project from its
-dependencies. Add the dependency to your `mylib-test` project and
-[`bleep test`](/docs/reference/cli/test/) will use the right framework.
+Bleep detects the test framework for each test project by **scanning its
+compiled classes** — not by reading its dependency coordinates. Add the
+framework as a dependency, write a test, and
+[`bleep test`](/docs/reference/cli/test/) finds it.
+
+## Two ways a suite gets run
+
+Bleep speaks two runner SPIs, and which one a suite uses is decided by the
+build server, which can see the classpath. Nothing about it needs configuring.
+
+| Runner | Used for | How |
+|---|---|---|
+| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, Spock, jqwik, Cucumber, `kotlin.test` | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
+| **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
+
+The JUnit Platform is itself a runner SPI rather than a framework, which is
+why one code path covers so many names: bleep asks the Launcher, and the
+Launcher asks whichever engines the project brought.
+
+Going through the Launcher rather than an sbt adapter is deliberate. It is
+what opens a `LauncherSession`, which is where Quarkus installs its
+classloader and Spring Boot hangs test-context setup — an adapter never opens
+one, so those frameworks would not work at all.
 
 ## Auto-detected frameworks
 
-| Framework | Maven coordinate (any of) | Notes |
-|---|---|---|
-| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | Bleep injects `net.aichler:jupiter-interface:0.11.1` automatically. You do not declare it. |
-| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | Bleep injects `com.github.sbt:junit-interface:0.13.3` automatically. |
-| **ScalaTest** | `org.scalatest::scalatest` | Implements sbt test-interface natively. |
-| **specs2** | `org.specs2::specs2-core` | Native test-interface. |
-| **MUnit** | `org.scalameta::munit` | Native test-interface. |
-| **utest** | `com.lihaoyi::utest` | Native test-interface. |
-| **ZIO Test** | `dev.zio::zio-test` | Native test-interface. |
-| **weaver-cats** | `com.disneystreaming::weaver-cats` | Native test-interface. |
+| Framework | Maven coordinate (any of) |
+|---|---|
+| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` |
+| **JUnit 4 / JUnit 3** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` |
+| **Kotest** | `io.kotest:kotest-runner-junit5-jvm` |
+| **Spock** | `org.spockframework:spock-core` |
+| **ScalaTest** | `org.scalatest::scalatest` |
+| **specs2** | `org.specs2::specs2-core` |
+| **MUnit** | `org.scalameta::munit` |
+| **utest** | `com.lihaoyi::utest` |
+| **ZIO Test** | `dev.zio::zio-test` |
+| **weaver-cats** | `com.disneystreaming::weaver-cats` |
+| **ScalaCheck** | `org.scalacheck::scalacheck` |
+| **TestNG** | `org.testng:testng` **plus** Mill's bridge, `com.lihaoyi::mill-contrib-testng` — TestNG ships no sbt test-interface implementation of its own, and without the bridge there is nothing to run it with. |
 
-Detection is by *artifact name*, not by group. If your dependency
-coordinates match the artifact column above. Bleep treats the project
-as using that framework.
+You do not declare an adapter for JUnit. Bleep used to inject
+`net.aichler:jupiter-interface` and no longer does — it runs the Launcher
+itself, so the adapter was never loaded.
+
+## What bleep adds to the test classpath
+
+Only what the project cannot supply itself, and never a version the project
+already chose:
+
+- **`org.scala-sbt:test-interface`**, always. It is the SPI every
+  `Framework` is loaded through.
+- **The JUnit Platform launcher and engines**, at *the project's own
+  platform version*, when the project resolved a `org.junit.platform`
+  artifact. Bleep never overrides a junit version you picked: mixing them is
+  what produces `NoSuchMethodError` deep inside discovery.
+- **A JUnit 4 runtime** (launcher plus vintage engine, at bleep's versions)
+  when the project has `junit:junit` and *no* platform of its own. JUnit 4
+  predates the platform and cannot supply one.
+
+A project with no junit anywhere gets no junit — a ScalaTest fork carries
+none of it.
+
+### JUnit Platform versions
+
+Bleep runs **JUnit Platform 1.0.0 through 6.x**. The runner is compiled
+against the oldest supported API and reaches newer capabilities by probing
+for them, so a project pinning an old Jupiter still works: Spring Boot 2.4
+and 2.5, for instance, pin Jupiter 5.7, which predates `LauncherSession`.
 
 ## Multiple frameworks in one project
 
-A single test project can use multiple frameworks, declare each as a
-dependency and [`bleep test`](/docs/reference/cli/test/) runs all of them:
+A single test project can use several. Declare each as a dependency and
+[`bleep test`](/docs/reference/cli/test/) runs them all:
 
 ```yaml
 projects:
@@ -38,9 +87,9 @@ projects:
 
 ## Frameworks not on this list
 
-If you depend on a framework that implements [sbt
-test-interface](https://github.com/sbt/test-interface) and isn't
-auto-detected. You can declare it explicitly:
+Any framework that implements [sbt
+test-interface](https://github.com/sbt/test-interface) works if bleep can
+recognize its suites. Declare its `Framework` class explicitly:
 
 ```yaml
 projects:
@@ -50,28 +99,40 @@ projects:
       - org.example.test.MyFramework
 ```
 
-The fully qualified class name is the value of the framework's
-`Framework` SPI implementation. Check the framework's documentation
-for its `Framework` class name.
+The value is the fully qualified name of the framework's `Framework` SPI
+implementation; check the framework's own documentation for it. If the class
+is not on the project's classpath, `bleep test` fails and says so — the
+setting never silently does nothing.
+
+This exists because sbt test-interface has no discovery mechanism of its
+own: the jar defines interfaces and nothing else, no `META-INF/services`, so
+a build tool has to be told the class name. It is the same reason sbt has a
+`testFrameworks` setting.
+
+Anything that plugs into the JUnit Platform as a `TestEngine` needs no
+configuration at all — the Launcher discovers engines through the platform's
+`ServiceLoader`, so bleep does not have to know the name.
 
 ## How [`bleep test`](/docs/reference/cli/test/) runs them
 
 For each test project, bleep:
 
-1. Compiles the project (and its dependencies) like any other project.
-2. Spawns a JVM (or Node, for Scala.js / Kotlin/JS test projects)
-   with the test classpath, including the auto-injected adapter for
-   JUnit 4 / JUnit 5 if relevant.
-3. Discovers test classes via the framework's test-interface
-   implementation.
-4. Runs the discovered tests, streaming results back via BSP.
+1. Compiles the project and its dependencies like any other project.
+2. Scans the compiled classes for suites — by `Framework` fingerprints, by
+   test annotations, and by base class — and records which runner each one
+   needs.
+3. Spawns a JVM (or Node, for Scala.js and Kotlin/JS) with the test
+   classpath.
+4. Runs each suite through the runner chosen in step 2, streaming results
+   back over BSP as they happen.
 
-The discovery + run flow is the same as sbt's, since bleep uses sbt
-test-interface as the framework boundary.
+Discovery is bleep's own classpath scan rather than a delegation to the
+framework, which is what lets `bleep test` list suites, filter them with
+`--only`, and schedule them across JVMs before anything runs.
 
 ## See also
 
-- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) , 
+- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) ,
   how to organize unit vs integration tests as sibling projects.
 - [Your First Project](/docs/tutorials/your-first-project): JUnit 5
   walk-through.
