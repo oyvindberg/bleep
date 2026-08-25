@@ -76,8 +76,22 @@ object ClasspathTestDiscovery {
     // TestNG
     "org.testng.annotations.Test",
     // Kotlin test
-    "kotlin.test.Test"
+    "kotlin.test.Test",
+    // jqwik. Its own engine, its own annotations — `@Test` appears nowhere in a jqwik suite, so without these the class is invisible to this scan and the
+    // Launcher never gets asked about it. `@Property` is the property-based case, `@Example` the single-case one.
+    "net.jqwik.api.Property",
+    "net.jqwik.api.Example",
+    // A junit-platform-suite aggregator: the class carries no tests of its own, it names engines or resources for the Launcher to expand. This is how a
+    // Cucumber run is normally entered, and how anyone aggregates suites across engines.
+    "org.junit.platform.suite.api.Suite"
   )
+
+  /* Worth stating plainly, because it bounds everything above: bleep finds suites by scanning compiled classes itself, so a JUnit Platform engine is only
+   * reachable if something about its classes matches a name on one of these lists. The engine would run perfectly well — the Launcher finds engines through
+   * the ServiceLoader and asks each one — but bleep never hands it the class. Every engine with its own annotations therefore needs a line here, which is why
+   * jqwik was claimed in the docs and silently found nothing. The general fix is to let the Launcher perform discovery for junit-platform projects instead of
+   * guessing at annotations; that is a larger change, because bleep scans classes precisely so it can list, filter and schedule suites before running any.
+   */
 
   // ============================================================================
   // Base classes for framework detection (fallback when no sbt-testing Framework found)
@@ -453,6 +467,8 @@ object ClasspathTestDiscovery {
           case ann if ann.contains("junit")   => "JUnit"
           case ann if ann.contains("testng")  => "TestNG"
           case ann if ann.contains("kotlin")  => "kotlin.test"
+          case ann if ann.contains("jqwik")   => "jqwik"
+          case ann if ann.contains("suite")   => "JUnit Platform Suite"
           case _                              => "JUnit" // Default
         }
       }

@@ -38,6 +38,12 @@ case class TestFrameworkFixture(
     /** Fully qualified suite name, as `bleep test` reports it. */
     suiteFqn: String,
     source: String,
+    /** Extra files the fixture needs beside its suite, as (path relative to the project directory, content).
+      *
+      * Only Cucumber uses this today, and it is the reason the field exists: a Cucumber run is driven by `.feature` resources and step definitions, not by one
+      * annotated class, so a fixture model that can express only a single source file cannot describe it at all.
+      */
+    extraFiles: List[(String, String)],
     /** Test names as written in the source. */
     testNames: List[String],
     /** The one test that must fail an assertion, as written in the source. */
@@ -110,6 +116,7 @@ object TestFrameworkFixture {
                |  test("throws on purpose") { throw new RuntimeException("boom") }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -136,6 +143,7 @@ object TestFrameworkFixture {
                |  test("throws on purpose") { throw new RuntimeException("boom") }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -170,6 +178,7 @@ object TestFrameworkFixture {
                |  }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -199,6 +208,7 @@ object TestFrameworkFixture {
                |  property("throws on purpose") = forAll { (n: Int) => throw new RuntimeException("boom") }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -227,6 +237,7 @@ object TestFrameworkFixture {
                |  "throws on purpose" >> { if (1 + 1 == 2) throw new RuntimeException("boom") else ok }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -253,6 +264,7 @@ object TestFrameworkFixture {
                |  test("throws on purpose") { throw new RuntimeException("boom") }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -298,6 +310,7 @@ object TestFrameworkFixture {
                |  public void throwsOnPurpose() { throw new RuntimeException("boom"); }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
@@ -333,6 +346,7 @@ object TestFrameworkFixture {
                |  public void throwsOnPurpose() { throw new RuntimeException("boom"); }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
@@ -362,6 +376,7 @@ object TestFrameworkFixture {
                |  )
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -392,6 +407,7 @@ object TestFrameworkFixture {
                |  pureTest("throws on purpose") { throw new RuntimeException("boom") }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -421,6 +437,7 @@ object TestFrameworkFixture {
                |  )
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -457,6 +474,7 @@ object TestFrameworkFixture {
                |  test("throws on purpose") { throw RuntimeException("boom") }
                |})
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "fails on purpose", "throws on purpose"),
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
@@ -500,6 +518,7 @@ object TestFrameworkFixture {
                |  public void throwsOnPurpose() { throw new RuntimeException("boom"); }
                |}
                |""".stripMargin,
+    extraFiles = Nil,
     testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
@@ -512,9 +531,202 @@ object TestFrameworkFixture {
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
+  /** `kotlin.test` — the standard-library test API, and what a Kotlin project that never heard of Kotest will use.
+    *
+    * Worth its own row rather than being treated as a JUnit alias. `kotlin.test.Test` is a distinct annotation that discovery scans for by name, and on the JVM
+    * the API delegates to junit — so a suite written this way must reach the Launcher rather than the sbt path, where the fork once tried
+    * `Class.forName("kotlin.test")` and died.
+    */
+  val kotlinTest: TestFrameworkFixture = TestFrameworkFixture(
+    name = "kotlin.test",
+    deps = v => List(s"org.jetbrains.kotlin:kotlin-test-junit5:$v"),
+    versions = List(model.Versions.Kotlin24, model.Versions.Kotlin22),
+    language = FixtureLanguage.Kotlin,
+    relPath = "example/KotlinTestFixture.kt",
+    suiteFqn = "example.KotlinTestFixture",
+    source = """package example
+               |
+               |import kotlin.test.Test
+               |import kotlin.test.assertEquals
+               |
+               |class KotlinTestFixture {
+               |  @Test fun adds() { assertEquals(2, 1 + 1) }
+               |  @Test fun measures() { assertEquals(5, "hello".length) }
+               |  @Test fun failsOnPurpose() { assertEquals(2, 1) }
+               |  @Test fun throwsOnPurpose() { throw RuntimeException("boom") }
+               |}
+               |""".stripMargin,
+    extraFiles = Nil,
+    testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
+    failingTestName = "failsOnPurpose",
+    throwingTestName = "throwsOnPurpose",
+    reportedName = name => s"$name()",
+    platforms = JvmOnly,
+    scalaBinaryVersions = _ => AllScalaBinaryVersions
+  )
+
+  /** JUnit 3, which the docs claim and nothing exercised.
+    *
+    * Not a version of the junit4 fixture: a JUnit 3 suite carries no annotations at all, so it is invisible to annotation scanning and reaches discovery only
+    * through the `junit.framework.TestCase` base class. Different code path, different way to be wrong. The artifact is junit 4's, which still ships the JUnit
+    * 3 classes, and the vintage engine is what runs it.
+    */
+  val junit3: TestFrameworkFixture = TestFrameworkFixture(
+    name = "junit3",
+    deps = v => List(s"junit:junit:$v"),
+    versions = List("4.13.2"),
+    language = FixtureLanguage.Java,
+    relPath = "example/Junit3Fixture.java",
+    suiteFqn = "example.Junit3Fixture",
+    source = """package example;
+               |
+               |import junit.framework.TestCase;
+               |
+               |public class Junit3Fixture extends TestCase {
+               |  public void testAdds() { assertEquals(2, 1 + 1); }
+               |
+               |  public void testMeasures() { assertEquals(5, "hello".length()); }
+               |
+               |  public void testFailsOnPurpose() { assertEquals(2, 1); }
+               |
+               |  public void testThrowsOnPurpose() { throw new RuntimeException("boom"); }
+               |}
+               |""".stripMargin,
+    extraFiles = Nil,
+    testNames = List("testAdds", "testMeasures", "testFailsOnPurpose", "testThrowsOnPurpose"),
+    failingTestName = "testFailsOnPurpose",
+    throwingTestName = "testThrowsOnPurpose",
+    reportedName = identity,
+    platforms = JvmOnly,
+    scalaBinaryVersions = _ => AllScalaBinaryVersions
+  )
+
+  /** jqwik, a JUnit Platform engine the docs claim.
+    *
+    * The interesting row in the whole Java set: jqwik marks its tests `@Property` and `@Example`, neither of which is `@Test` under any name. It is a real
+    * `TestEngine`, so the Launcher runs it perfectly well once a suite reaches the Launcher — the question this fixture asks is whether bleep's own classpath
+    * scan finds the class in the first place.
+    */
+  val jqwik: TestFrameworkFixture = TestFrameworkFixture(
+    name = "jqwik",
+    deps = v => List(s"net.jqwik:jqwik:$v"),
+    versions = List("1.9.2"),
+    language = FixtureLanguage.Java,
+    relPath = "example/JqwikFixture.java",
+    suiteFqn = "example.JqwikFixture",
+    source = """package example;
+               |
+               |import net.jqwik.api.Example;
+               |
+               |public class JqwikFixture {
+               |  @Example
+               |  void adds() { if (1 + 1 != 2) throw new AssertionError("adds"); }
+               |
+               |  @Example
+               |  void measures() { if ("hello".length() != 5) throw new AssertionError("measures"); }
+               |
+               |  @Example
+               |  void failsOnPurpose() { throw new AssertionError("failsOnPurpose"); }
+               |
+               |  @Example
+               |  void throwsOnPurpose() { throw new RuntimeException("boom"); }
+               |}
+               |""".stripMargin,
+    extraFiles = Nil,
+    testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
+    failingTestName = "failsOnPurpose",
+    throwingTestName = "throwsOnPurpose",
+    reportedName = identity,
+    platforms = JvmOnly,
+    scalaBinaryVersions = _ => AllScalaBinaryVersions
+  )
+
+  /** Cucumber, entered the way the JUnit Platform expects: a `@Suite` aggregator that points the Launcher at a `.feature` resource.
+    *
+    * Structurally unlike every other fixture here, which is the point of including it. The class bleep discovers contains no tests at all — it is a pointer.
+    * The scenarios live in a Gherkin resource, the steps live in a third file, and what comes back as test cases is named after the scenarios rather than after
+    * any method. If bleep's scan can find the aggregator and the Launcher expands it, the whole shape works.
+    */
+  val cucumber: TestFrameworkFixture = TestFrameworkFixture(
+    name = "cucumber",
+    deps = v =>
+      List(
+        s"io.cucumber:cucumber-java:$v",
+        s"io.cucumber:cucumber-junit-platform-engine:$v",
+        "org.junit.platform:junit-platform-suite:1.11.4"
+      ),
+    versions = List("7.20.1"),
+    language = FixtureLanguage.Java,
+    relPath = "example/CucumberFixture.java",
+    suiteFqn = "example.CucumberFixture",
+    source = """package example;
+               |
+               |import org.junit.platform.suite.api.ConfigurationParameter;
+               |import org.junit.platform.suite.api.IncludeEngines;
+               |import org.junit.platform.suite.api.SelectClasspathResource;
+               |import org.junit.platform.suite.api.Suite;
+               |
+               |@Suite
+               |@IncludeEngines("cucumber")
+               |@SelectClasspathResource("example")
+               |@ConfigurationParameter(key = "cucumber.glue", value = "example")
+               |public class CucumberFixture {}
+               |""".stripMargin,
+    extraFiles = List(
+      "src/resources/example/fixture.feature" ->
+        """Feature: fixture
+          |
+          |  Scenario: adds
+          |    Given a calculator
+          |    Then adding one and one gives two
+          |
+          |  Scenario: measures
+          |    Given a calculator
+          |    Then hello has five letters
+          |
+          |  Scenario: failsOnPurpose
+          |    Given a calculator
+          |    Then the assertion fails
+          |
+          |  Scenario: throwsOnPurpose
+          |    Given a calculator
+          |    Then the step throws
+          |""".stripMargin,
+      "src/java/example/Steps.java" ->
+        """package example;
+          |
+          |import io.cucumber.java.en.Given;
+          |import io.cucumber.java.en.Then;
+          |
+          |public class Steps {
+          |  @Given("a calculator")
+          |  public void aCalculator() {}
+          |
+          |  @Then("adding one and one gives two")
+          |  public void addsUp() { if (1 + 1 != 2) throw new AssertionError("adds"); }
+          |
+          |  @Then("hello has five letters")
+          |  public void measures() { if ("hello".length() != 5) throw new AssertionError("measures"); }
+          |
+          |  @Then("the assertion fails")
+          |  public void failsOnPurpose() { throw new AssertionError("failsOnPurpose"); }
+          |
+          |  @Then("the step throws")
+          |  public void throwsOnPurpose() { throw new RuntimeException("boom"); }
+          |}
+          |""".stripMargin
+    ),
+    testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
+    failingTestName = "failsOnPurpose",
+    throwingTestName = "throwsOnPurpose",
+    reportedName = identity,
+    platforms = JvmOnly,
+    scalaBinaryVersions = _ => AllScalaBinaryVersions
+  )
+
   /** Every framework the matrix knows about. Each runs on the platforms and Scala versions it declares. */
   val all: List[TestFrameworkFixture] =
-    List(munit, scalatest, utest, scalacheck, specs2, minitest, zioTest, weaver, hedgehog, junit5, junit4, kotest, testng)
+    List(munit, scalatest, utest, scalacheck, specs2, minitest, zioTest, weaver, hedgehog, junit5, junit4, junit3, kotest, kotlinTest, testng, jqwik, cucumber)
 
   /** Fixtures that publish for this platform and Scala binary version, at the one version CI pins. */
   def pinnedFor(platformId: String, scalaBinaryVersion: String): List[(TestFrameworkFixture, String)] =

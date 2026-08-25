@@ -12,7 +12,7 @@ build server, which can see the classpath. Nothing about it needs configuring.
 
 | Runner | Used for | How |
 |---|---|---|
-| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, Spock, jqwik, Cucumber, `kotlin.test` | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
+| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, `kotlin.test`, jqwik, Cucumber | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
 | **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
 
 The JUnit Platform is itself a runner SPI rather than a framework, which is
@@ -31,7 +31,9 @@ one, so those frameworks would not work at all.
 | **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` |
 | **JUnit 4 / JUnit 3** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` |
 | **Kotest** | `io.kotest:kotest-runner-junit5-jvm` |
-| **Spock** | `org.spockframework:spock-core` |
+| **kotlin.test** | `org.jetbrains.kotlin:kotlin-test-junit5`, `:kotlin-test-junit` |
+| **jqwik** | `net.jqwik:jqwik` |
+| **Cucumber** | `io.cucumber:cucumber-junit-platform-engine` plus a `@Suite` class — see below |
 | **ScalaTest** | `org.scalatest::scalatest` |
 | **specs2** | `org.specs2::specs2-core` |
 | **MUnit** | `org.scalameta::munit` |
@@ -84,6 +86,42 @@ projects:
       - org.junit.jupiter:junit-jupiter:5.10.1     # JUnit 5
       - org.scalameta::munit:1.0.0                 # MUnit
 ```
+
+## Engines bleep does not find on its own
+
+Bleep discovers suites by scanning your compiled classes, so a JUnit Platform
+engine is reachable only when something about its classes is recognisable —
+an annotation bleep knows by name, or a base class it knows. The engine
+itself would run fine; bleep just never hands it the class.
+
+That is why an engine with its own annotations needs to be known explicitly.
+jqwik marks its tests `@Property` and `@Example` and carries no `@Test`
+anywhere, so before those names were added a jqwik project compiled, reported
+zero suites, and exited 0.
+
+Two consequences worth knowing:
+
+- **Cucumber** works, entered the way the JUnit Platform expects — a `@Suite`
+  class from `junit-platform-suite` pointing at your `.feature` resources:
+
+  ```java
+  @Suite
+  @IncludeEngines("cucumber")
+  @SelectClasspathResource("example")
+  @ConfigurationParameter(key = "cucumber.glue", value = "example")
+  public class RunCucumberTest {}
+  ```
+
+  That class is what bleep discovers; the Launcher expands it into one test
+  per scenario. A run with no annotated class anywhere — only `.feature`
+  resources — has nothing for bleep's scan to find.
+- **Spock** cannot be built by bleep at all, whatever discovery does: Spock
+  specs are Groovy, and bleep has no Groovy compiler. `spock.lang.Specification`
+  is recognised so that pre-compiled specs on the classpath are found, but
+  there is no way to compile one from source in a bleep build.
+
+If you hit an engine bleep does not find, that is a bug worth reporting —
+the fix is usually one line.
 
 ## Frameworks not on this list
 

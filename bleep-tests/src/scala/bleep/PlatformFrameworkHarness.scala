@@ -101,6 +101,7 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
   ): (Either[BleepException, Unit], List[JUnitReports.Suite]) = {
     ws.yaml(yamlFor(fixture, frameworkVersion, platform))
     ws.file(s"$projectName/src/${fixture.language.sourceDir}/${fixture.relPath}", fixture.source)
+    fixture.extraFiles.foreach { case (relPath, content) => ws.file(s"$projectName/$relPath", content) }
     val (started, _, _) = ws.start()
     val reportDir: Path = ws.root.resolve("junit-reports")
     val verdict = ReactiveBsp
