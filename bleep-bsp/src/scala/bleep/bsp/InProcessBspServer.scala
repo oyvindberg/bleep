@@ -3,10 +3,9 @@ package bleep.bsp
 import cats.effect.{IO, Resource}
 import ryddig.Logger
 
-import java.io.{PipedInputStream, PipedOutputStream}
 import java.util.concurrent.CompletableFuture
 
-/** Creates an in-process BSP server connected via piped streams.
+/** Creates an in-process BSP server connected through a pair of [[InMemoryPipe]]s.
   *
   * Used by integration tests to avoid launching a separate JVM process. The BSP server runs in a daemon thread within the same JVM.
   */
@@ -15,11 +14,10 @@ object InProcessBspServer {
   def connect(logger: Logger): Resource[IO, BspConnection] =
     Resource.make(
       IO.blocking {
-        // Create two pipe pairs for bidirectional communication
-        val serverIn = new PipedInputStream(1048576) // 1MB buffer to prevent deadlocks during sourcegen
-        val clientOut = new PipedOutputStream(serverIn) // client writes -> server reads
-        val clientIn = new PipedInputStream(1048576) // 1MB buffer
-        val serverOut = new PipedOutputStream(clientIn) // server writes -> client reads
+        // Two pipes carry the two directions. A megabyte of slack keeps a sourcegen run that logs faster than the
+        // client reads from blocking the server.
+        val clientToServer = new InMemoryPipe(1048576)
+        val serverToClient = new InMemoryPipe(1048576)
 
         // Use CompletableFuture (not a Deferred) so the server thread can signal exit without
         // bouncing through cats-effect from a non-IO thread. IO.fromCompletableFuture bridges
@@ -38,8 +36,8 @@ object InProcessBspServer {
               // One server per in-process run, so fresh daemon-scoped state is correct here.
               val server =
                 new MultiWorkspaceBspServer(
-                  serverIn,
-                  serverOut,
+                  clientToServer.source,
+                  serverToClient.sink,
                   logger,
                   machine = machine,
                   heapMonitor = HeapMonitor.system,
@@ -56,9 +54,9 @@ object InProcessBspServer {
                 exitCode = 1
                 logger.error(s"In-process BSP server failed: ${e.getClass.getName}: ${e.getMessage}", e)
             } finally {
-              try serverOut.close()
+              try serverToClient.sink.close()
               catch { case _: Exception => () }
-              try serverIn.close()
+              try clientToServer.source.close()
               catch { case _: Exception => () }
               exited.complete(exitCode): Unit
             }
@@ -66,7 +64,7 @@ object InProcessBspServer {
         }
         serverThread.start()
 
-        new InProcessConnection(clientIn, clientOut, exited)
+        new InProcessConnection(serverToClient.source, clientToServer.sink, exited)
       }
     )(_.close)
 

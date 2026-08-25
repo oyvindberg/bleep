@@ -5,7 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import ryddig.{LogPatterns, Loggers}
 
-import java.io.{BufferedReader, InputStreamReader, PipedInputStream, PipedOutputStream}
+import java.io.{BufferedReader, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
@@ -24,11 +24,9 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     val registry = new ConnectionRegistry(() => System.currentTimeMillis())
 
     private val logger = Loggers.stderr(LogPatterns.logFile)
-    private val clientToServer = new PipedOutputStream()
-    private val serverInput = new PipedInputStream(clientToServer, 65536)
-    private val serverToClient = new PipedOutputStream()
-    private val clientInput = new PipedInputStream(serverToClient, 65536)
-    private val reader = new BufferedReader(new InputStreamReader(clientInput, StandardCharsets.UTF_8))
+    private val clientToServer = new InMemoryPipe(65536)
+    private val serverToClient = new InMemoryPipe(65536)
+    private val reader = new BufferedReader(new InputStreamReader(serverToClient.source, StandardCharsets.UTF_8))
 
     private val analysisCache = new bleep.analysis.AnalysisCache
 
@@ -45,8 +43,8 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     )
 
     private val server = new MultiWorkspaceBspServer(
-      serverInput,
-      serverToClient,
+      clientToServer.source,
+      serverToClient.sink,
       logger,
       machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
       heapMonitor = HeapMonitor.system,
@@ -64,9 +62,9 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     def request(method: String, params: String): io.circe.Json = {
       val body = s"""{"jsonrpc":"2.0","id":1,"method":"$method","params":$params}"""
       val bytes = body.getBytes(StandardCharsets.UTF_8)
-      clientToServer.write(s"Content-Length: ${bytes.length}\r\n\r\n".getBytes(StandardCharsets.UTF_8))
-      clientToServer.write(bytes)
-      clientToServer.flush()
+      clientToServer.sink.write(s"Content-Length: ${bytes.length}\r\n\r\n".getBytes(StandardCharsets.UTF_8))
+      clientToServer.sink.write(bytes)
+      clientToServer.sink.flush()
       readMessage()
     }
 
