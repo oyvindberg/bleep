@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Dependencies | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/concepts/dependencies/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Dependencies | Bleep"><meta data-rh="true" name="description" content="A project&#x27;s dependencies are Maven coordinates listed under"><meta data-rh="true" property="og:description" content="A project&#x27;s dependencies are Maven coordinates listed under"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/concepts/dependencies/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/dependencies/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/dependencies/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Dependencies","item":"https://bleep.build/docs/concepts/dependencies"}]}</script><link rel="stylesheet" href="/assets/css/styles.a0eb1d0f.css">
-<script src="/assets/js/runtime~main.04a74e12.js" defer="defer"></script>
-<script src="/assets/js/main.95a0c6f4.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3f607cbf.js" defer="defer"></script>
+<script src="/assets/js/main.29e99e39.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -48,20 +48,27 @@ bleep stores about a dependency:</p>
 <p>Most builds don&#x27;t set <code>configuration:</code>; the default is the
 compile-and-runtime classpath. The cases that matter:</p>
 <ul>
-<li class=""><code>provided</code>, on the <strong>compile</strong> classpath but not the
-<strong>runtime</strong> classpath. Servlet APIs, etc.</li>
-<li class=""><code>optional</code>, same effect as <code>provided</code> for downstream
-consumers; on this project&#x27;s compile classpath but filtered out
-of inherited transitive resolution.</li>
-<li class=""><code>runtime</code>, the opposite of <code>provided</code>: present at runtime,
-not at compile time.</li>
+<li class=""><code>provided</code>, on <strong>this project&#x27;s</strong> compile and runtime
+classpaths, but <strong>not inherited</strong> by anything that depends on it.
+Servlet APIs, and any library a container or host supplies.</li>
+<li class=""><code>optional</code>, treated exactly like <code>provided</code> inside a bleep
+build. The two differ only in the POM bleep publishes, which
+carries whichever you wrote.</li>
+<li class=""><code>runtime</code>, present at runtime, not at compile time.</li>
 <li class=""><code>test</code>, only resolves when the project is a test project.</li>
 </ul>
 <p>Worth calling out: when project A <code>dependsOn:</code> project B, deps that
-B declared with <code>configuration: provided</code> (or <code>optional</code>) are
-<strong>dropped</strong> from A&#x27;s compile classpath, then <strong>re-added</strong> to A&#x27;s
-runtime classpath. You can model &quot;provided at this layer, needed at
-the leaf&quot; without re-declaring the dep at every level.</p>
+B declared <code>provided</code> or <code>optional</code> are dropped from <strong>both</strong> of A&#x27;s
+classpaths — Maven&#x27;s rule, that those scopes don&#x27;t travel to a
+consumer. If A needs the library, A declares it. There is no way to
+say &quot;provided at this layer, needed at the leaf&quot; and have it
+propagate; that is the point of the scope, not a limitation of it.</p>
+<p>Bleep&#x27;s own build relies on this. <code>bleep-test-runner</code> declares
+<code>junit-platform-launcher</code> as <code>provided</code>, because it compiles against
+the Launcher API but the junit version a test fork runs is chosen
+per project. Were that inherited, every project depending on
+<code>bleep-test-runner</code> would carry junit classes that shadow the ones
+the project actually resolved.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-this-page-doesnt-cover">What this page doesn&#x27;t cover<a href="#what-this-page-doesnt-cover" class="hash-link" aria-label="Direct link to What this page doesn&#x27;t cover" title="Direct link to What this page doesn&#x27;t cover" translate="no">​</a></h2>
 <ul>
 <li class=""><strong>Conflict resolution</strong> (library version schemes, the eviction

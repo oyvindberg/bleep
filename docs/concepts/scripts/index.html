@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Scripts and source generation | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/concepts/scripts/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Scripts and source generation | Bleep"><meta data-rh="true" name="description" content="Bleep models exactly two ways to extend the build, both as"><meta data-rh="true" property="og:description" content="Bleep models exactly two ways to extend the build, both as"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/concepts/scripts/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/scripts/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/scripts/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Scripts and source generation","item":"https://bleep.build/docs/concepts/scripts"}]}</script><link rel="stylesheet" href="/assets/css/styles.a0eb1d0f.css">
-<script src="/assets/js/runtime~main.04a74e12.js" defer="defer"></script>
-<script src="/assets/js/main.95a0c6f4.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3f607cbf.js" defer="defer"></script>
+<script src="/assets/js/main.29e99e39.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -19,7 +19,8 @@ first-class concepts in <code>bleep.yaml</code>:</p>
 Java / Kotlin / Scala programs you invoke as bleep subcommands.</li>
 <li class=""><strong><a class="" href="/docs/concepts/sourcegen/">Source generation scripts</a></strong> ,
 programs that emit code or resources for another project, run
-automatically before compilation, with hashing and atomic failure.</li>
+automatically before compilation, with declared inputs and atomic
+failure.</li>
 </ul>
 <p>That&#x27;s the entire extension surface. There is no plugin lifecycle,
 no <code>preCompile</code> hook, no <code>Compile / packageBin / mappings += …</code> to
@@ -52,9 +53,18 @@ is no privileged layer of magic dust between you and the JVM.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="when-to-use-which">When to use which<a href="#when-to-use-which" class="hash-link" aria-label="Direct link to When to use which" title="Direct link to When to use which" translate="no">​</a></h2>
 <table><thead><tr><th>You want to…</th><th>Use</th></tr></thead><tbody><tr><td>Publish artifacts, sign a release, post to Slack on green CI</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr><tr><td>Run a custom linter, check licenses, audit deps</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr><tr><td>Generate <code>.java</code> / <code>.kt</code> / <code>.scala</code> from a schema or spec</td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Stamp a build version into a generated <code>Constants</code> file</td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Anything where the output of your code is <em>consumed by compile</em></td><td><a class="" href="/docs/concepts/sourcegen/">Source generation script</a></td></tr><tr><td>Anything where you invoke it manually or from CI</td><td><a class="" href="/docs/concepts/bleep-scripts/">Bleep script</a></td></tr></tbody></table>
 <p>The dividing line is whether <code>compile</code> needs the output. If it does,
-you want sourcegen, bleep runs your generator on demand,
-hashes the inputs, and reruns when they change. Otherwise it&#x27;s a
-plain script.</p>
+you want sourcegen, bleep runs your generator on demand and reruns
+it when its inputs change. Otherwise it&#x27;s a plain script.</p>
+<p>&quot;Its inputs&quot; means the directories you declared: the sources and
+resources of the script project and its dependencies, plus anything
+listed under <code>sourceGlobs</code>. That is the same set the remote cache
+digests, <code>bleep build invalidated</code> reads, and <code>--watch</code> wakes up on.
+If your generator reads a file living somewhere else, say a <code>schema/</code>
+directory at the repo root, you declare that directory and everything
+lines up. If you don&#x27;t, nothing warns you and the generated code goes
+stale. See <a class="" href="/docs/concepts/sourcegen/#what-counts-as-an-input">what counts as an
+input</a> — it&#x27;s one
+line of YAML and worth reading before you write your first generator.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="where-to-go-from-here">Where to go from here<a href="#where-to-go-from-here" class="hash-link" aria-label="Direct link to Where to go from here" title="Direct link to Where to go from here" translate="no">​</a></h2>
 <ul>
 <li class=""><strong><a class="" href="/docs/concepts/bleep-scripts/">Bleep scripts</a></strong>: the
