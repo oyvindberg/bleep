@@ -4,7 +4,6 @@ import bleep.analysis._
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag.LinkResult
 import bleep.bsp.TestRunnerTypes.{frameworkClassNames, RunnerEvent, TerminationReason, TestEventHandler, TestFramework, TestResult, TestSuite}
-import bleep.bsp.ScalaCollectionReflection.{fromScalaList, fromScalaOption, toScalaList, toScalaMap}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
@@ -187,8 +186,6 @@ object ScalaNativeTestRunner {
     *   handler for test events
     * @param env
     *   environment variables
-    * @param workingDir
-    *   working directory
     * @param scalaNativeVersion
     *   Scala Native version (e.g., "0.5.6")
     * @param killSignal
@@ -234,51 +231,14 @@ object ScalaNativeTestRunner {
   ): TestResult = {
     val instance = CompilerResolver.getScalaNativeTestRunner(scalaNativeVersion)
     val loader = instance.loader
-
-    // Create TestAdapter.Config using builder pattern (Config is an interface in Scala 3)
-    val configClass = loader.loadClass("scala.scalanative.testinterface.adapter.TestAdapter$Config")
-    // Config.apply() returns a default config
-    val configApply = configClass.getMethod("apply")
-    var config: AnyRef = configApply.invoke(null)
-
-    // Set binary file
-    val withBinaryFile = configClass.getMethod("withBinaryFile", classOf[java.io.File])
-    config = withBinaryFile.invoke(config, binary.toFile).asInstanceOf[AnyRef]
-
-    // Set env vars
-    val scalaEnvMap = toScalaMap(env, loader)
-    val mapClass = loader.loadClass("scala.collection.immutable.Map")
-    val withEnvVars = configClass.getMethod("withEnvVars", mapClass)
-    config = withEnvVars.invoke(config, scalaEnvMap.asInstanceOf[AnyRef]).asInstanceOf[AnyRef]
-
-    // Set logger
-    val buildLoggerClass = loader.loadClass("scala.scalanative.build.Logger")
-    val buildLoggerCompanion = loader.loadClass("scala.scalanative.build.Logger$")
-    val buildLoggerObj = buildLoggerCompanion.getField("MODULE$").get(null)
-    val defaultLogger = buildLoggerCompanion.getMethod("default").invoke(buildLoggerObj)
-    val withLogger = configClass.getMethod("withLogger", buildLoggerClass)
-    config = withLogger.invoke(config, defaultLogger).asInstanceOf[AnyRef]
-
-    // Create TestAdapter
-    val adapterClass = loader.loadClass("scala.scalanative.testinterface.adapter.TestAdapter")
-    val adapterConstructor = adapterClass.getConstructor(configClass)
-    val adapter = adapterConstructor.newInstance(config.asInstanceOf[AnyRef])
+    val adapter = NativeTestAdapter.open(loader, binary, env)
 
     try {
       eventHandler.onRunnerEvent(RunnerEvent.Started)
 
-      // loadFrameworks takes List[List[String]] - list of framework class name alternatives
       val classNames = frameworkClassNames.getOrElse(framework, frameworkClassNames(TestFramework.Unknown))
-      val scalaClassNames = toScalaList(List(toScalaList(classNames, loader)), loader)
 
-      val loadMethod = adapterClass.getMethod("loadFrameworks", loader.loadClass("scala.collection.immutable.List"))
-      val frameworksResult = loadMethod.invoke(adapter, scalaClassNames.asInstanceOf[AnyRef])
-
-      // Result is List[Option[sbt.testing.Framework]] - convert to Java
-      val frameworksList = fromScalaList[Any](frameworksResult, loader)
-      val foundFramework = frameworksList.flatMap(opt => fromScalaOption[sbt.testing.Framework](opt, loader)).headOption
-
-      foundFramework match {
+      adapter.loadFrameworks(List(classNames)).flatten.headOption match {
         case None =>
           eventHandler.onRunnerEvent(RunnerEvent.Error("No test framework found in native binary", None))
           TestResult(0, 0, 0, 0, TerminationReason.Error("No test framework found"))
@@ -287,11 +247,66 @@ object ScalaNativeTestRunner {
           SbtTestDriver.runFramework(sbtFramework, suites, eventHandler, loader)
       }
     } finally
-      // Close adapter (kills native process)
-      try {
-        val closeMethod = adapterClass.getMethod("close")
-        closeMethod.invoke(adapter): Unit
-      } catch { case _: Exception => () }
+      // A close that throws must not replace the counts the framework already reported.
+      try adapter.close()
+      catch { case _: Exception => () }
+  }
+
+  /** The `scala.scalanative.testinterface.adapter.TestAdapter` that `loader` built.
+    *
+    * Each method here takes the name of the adapter method it reflects into. Each method takes and returns bleep's own types. `underlying` stays inside this
+    * class and its companion.
+    */
+  private case class NativeTestAdapter(underlying: AnyRef, loader: ClassLoader) {
+
+    /** Asks the adapter which of these class names the native binary declares.
+      *
+      * @param classNames
+      *   one list per framework. Each list gives the alternative `sbt.testing.Framework` class names for one framework.
+      * @return
+      *   one entry per framework, in the order the frameworks arrived. An entry is the framework the binary declares.
+      */
+    def loadFrameworks(classNames: List[List[String]]): List[Option[sbt.testing.Framework]] = {
+      val requested = AlienList.of(classNames.map(names => AlienList.of(names, loader).underlying), loader)
+      val loaded = NativeTestAdapter
+        .adapterClass(loader)
+        .getMethod("loadFrameworks", loader.loadClass("scala.collection.immutable.List"))
+        .invoke(underlying, requested.underlying)
+      AlienList(loaded, loader).elements.map(element => AlienOption(element, loader).as[sbt.testing.Framework])
+    }
+
+    /** Closes the adapter. Closing the adapter stops the native process the adapter started. */
+    def close(): Unit =
+      NativeTestAdapter.adapterClass(loader).getMethod("close").invoke(underlying): Unit
+  }
+
+  private object NativeTestAdapter {
+
+    /** Starts an adapter that runs `binary` with `env` set. */
+    def open(loader: ClassLoader, binary: Path, env: Map[String, String]): NativeTestAdapter = {
+      // `TestAdapter$Config` is an interface in Scala 3. `Config.apply()` returns a default config. Each `withX` call returns a new config.
+      val configClass = loader.loadClass("scala.scalanative.testinterface.adapter.TestAdapter$Config")
+      var config: AnyRef = configClass.getMethod("apply").invoke(null)
+
+      config = configClass.getMethod("withBinaryFile", classOf[java.io.File]).invoke(config, binary.toFile).asInstanceOf[AnyRef]
+
+      config = configClass
+        .getMethod("withEnvVars", loader.loadClass("scala.collection.immutable.Map"))
+        .invoke(config, AlienMap.of(env, loader).underlying)
+        .asInstanceOf[AnyRef]
+
+      val buildLoggerCompanion = loader.loadClass("scala.scalanative.build.Logger$")
+      val defaultLogger = buildLoggerCompanion.getMethod("default").invoke(buildLoggerCompanion.getField("MODULE$").get(null))
+      config = configClass
+        .getMethod("withLogger", loader.loadClass("scala.scalanative.build.Logger"))
+        .invoke(config, defaultLogger)
+        .asInstanceOf[AnyRef]
+
+      NativeTestAdapter(adapterClass(loader).getConstructor(configClass).newInstance(config), loader)
+    }
+
+    private def adapterClass(loader: ClassLoader): Class[?] =
+      loader.loadClass("scala.scalanative.testinterface.adapter.TestAdapter")
   }
 
   // Output Parsers

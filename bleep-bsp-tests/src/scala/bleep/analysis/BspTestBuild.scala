@@ -5,10 +5,7 @@ import bleep.{model, BuildPaths, ResolvedProject}
 
 import java.nio.file.Path
 
-/** Lowers the test harness's `ProjectConfig` descriptions into the `BspBuildData.Payload` that every bleep client sends.
-  *
-  * The BSP server does not load a build. The BSP server compiles the build its client resolved. A test that drives the server uses the same protocol a
-  * client uses rather than installing build state directly.
+/** Converts the test harness's `ProjectConfig` descriptions into the `BspBuildData.Payload`.
   *
   * [[BuildPaths]] determine every output location.
   */
@@ -45,7 +42,7 @@ object BspTestBuild {
     )
   }
 
-  /** The directory for a project's .class files.*/
+  /** The directory for a project's .class files. */
   def classesDirFor(workspaceRoot: Path, projectName: String, isTest: Boolean): Path =
     BuildPaths(
       cwd = workspaceRoot,
@@ -55,7 +52,7 @@ object BspTestBuild {
     ).variantBuildDir(model.CrossProjectName(model.ProjectName(projectName), crossId = None))
       .resolve(if (isTest) "test-classes" else "classes")
 
-  /** The directory for a project's .class files.*/
+  /** The directory for a project's .class files. */
   def classesDir(workspaceRoot: Path, config: BspTestHarness.ProjectConfig): Path = {
     val buildPaths = BuildPaths(
       cwd = workspaceRoot,

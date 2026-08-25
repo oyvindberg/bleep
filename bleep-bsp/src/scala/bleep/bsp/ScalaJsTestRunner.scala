@@ -1,7 +1,6 @@
 package bleep.bsp
 
 import bleep.analysis.{CompilerResolver, ScalaJsLinkConfig}
-import bleep.bsp.ScalaCollectionReflection.{fromScalaList, fromScalaOption, toScalaList, toScalaMap}
 import bleep.bsp.TestRunnerTypes.{frameworkClassNames, TerminationReason, TestEventHandler, TestFramework, TestResult, TestSuite}
 import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO, Resource}
@@ -15,7 +14,7 @@ import java.nio.file.Path
   */
 object ScalaJsTestRunner {
 
-  /** Run a linked Scala.js test module through `org.scalajs.testing.adapter.TestAdapter`.
+  /** Runs a linked Scala.js test module through `org.scalajs.testing.adapter.TestAdapter`.
     *
     * The adapter starts Node. The adapter then hands back an `sbt.testing.Framework`.
     *
@@ -56,9 +55,9 @@ object ScalaJsTestRunner {
       case None         =>
         val loader = CompilerResolver.getScalaJsTestAdapter(scalaJsVersion).loader
 
-        val work = openAdapter(loader, linkedJs, moduleKind, nodeBinary, env).use { adapter =>
+        val work = JsTestAdapter.open(loader, linkedJs, moduleKind, nodeBinary, env).use { adapter =>
           IO.interruptible {
-            val sbtFramework = loadFramework(loader, adapter, framework, linkedJs)
+            val sbtFramework = pickFramework(adapter, framework, linkedJs)
             SbtTestDriver.runFramework(sbtFramework, suites, eventHandler, loader)
           }
         }
@@ -69,84 +68,104 @@ object ScalaJsTestRunner {
         }
     }
 
-  /** A resource for a started `TestAdapter`. Releasing the resource closes the adapter. Closing the adapter stops the node process the adapter started. A
-    * `close()` that throws fails the run rather than passing quietly.
-    */
-  private def openAdapter(
-      loader: ClassLoader,
-      linkedJs: Path,
-      moduleKind: ScalaJsLinkConfig.ModuleKind,
-      nodeBinary: String,
-      env: Map[String, String]
-  ): Resource[IO, AnyRef] = {
-    val adapterClass = loader.loadClass("org.scalajs.testing.adapter.TestAdapter")
-
-    val acquire = IO.blocking {
-      val configClass = loader.loadClass("org.scalajs.testing.adapter.TestAdapter$Config")
-      val config = configClass
-        .getMethod("withLogger", loader.loadClass("org.scalajs.logging.Logger"))
-        .invoke(configClass.getConstructor().newInstance().asInstanceOf[AnyRef], createScalaJsLogger(loader))
-        .asInstanceOf[AnyRef]
-
-      adapterClass
-        .getConstructor(loader.loadClass("org.scalajs.jsenv.JSEnv"), loader.loadClass("scala.collection.immutable.Seq"), configClass)
-        .newInstance(
-          createNodeJsEnv(loader, nodeBinary, env).asInstanceOf[AnyRef],
-          toScalaList(List(createInput(loader, linkedJs, moduleKind)), loader).asInstanceOf[AnyRef],
-          config
-        )
-        .asInstanceOf[AnyRef]
-    }
-
-    Resource.make(acquire)(adapter => IO.blocking(adapterClass.getMethod("close").invoke(adapter): Unit))
-  }
-
-  /** Ask the adapter which of the framework's class names the linked module declares.
+  /** The framework the linked module declares.
     *
     * @throws NoScalaJsTestFrameworkException
-    *   when the linked module declares none of those class names
+    *   when the linked module declares none of the framework's class names
     */
-  private def loadFramework(loader: ClassLoader, adapter: AnyRef, framework: TestFramework, linkedJs: Path): sbt.testing.Framework = {
+  private def pickFramework(adapter: JsTestAdapter, framework: TestFramework, linkedJs: Path): sbt.testing.Framework = {
     val classNames = frameworkClassNames(framework)
-    val requested = toScalaList(List(toScalaList(classNames, loader)), loader)
-
-    val loaded = loader
-      .loadClass("org.scalajs.testing.adapter.TestAdapter")
-      .getMethod("loadFrameworks", loader.loadClass("scala.collection.immutable.List"))
-      .invoke(adapter, requested.asInstanceOf[AnyRef])
-
-    fromScalaList[Any](loaded, loader)
-      .flatMap(one => fromScalaOption[sbt.testing.Framework](one, loader))
+    adapter
+      .loadFrameworks(List(classNames))
+      .flatten
       .headOption
       .getOrElse(throw NoScalaJsTestFrameworkException(framework.name, classNames, linkedJs))
   }
 
-  /** Build the `org.scalajs.jsenv.Input` case that matches the module kind the link used. */
-  private def createInput(loader: ClassLoader, linkedJs: Path, moduleKind: ScalaJsLinkConfig.ModuleKind): Any = {
-    val inputClassName = moduleKind match {
-      case ScalaJsLinkConfig.ModuleKind.NoModule       => "org.scalajs.jsenv.Input$Script"
-      case ScalaJsLinkConfig.ModuleKind.CommonJSModule => "org.scalajs.jsenv.Input$CommonJSModule"
-      case ScalaJsLinkConfig.ModuleKind.ESModule       => "org.scalajs.jsenv.Input$ESModule"
+  /** The `org.scalajs.testing.adapter.TestAdapter` that `loader` built.
+    */
+  private case class JsTestAdapter(underlying: AnyRef, loader: ClassLoader) {
+
+    /** Asks the adapter which of these class names the linked module declares.
+      *
+      * @param classNames
+      *   one list per framework. Each list gives the alternative `sbt.testing.Framework` class names for one framework.
+      * @return
+      *   one entry per framework, in the order the frameworks arrived. An entry is the framework the linked module declares.
+      */
+    def loadFrameworks(classNames: List[List[String]]): List[Option[sbt.testing.Framework]] = {
+      val requested = AlienList.of(classNames.map(names => AlienList.of(names, loader).underlying), loader)
+      val loaded = JsTestAdapter
+        .adapterClass(loader)
+        .getMethod("loadFrameworks", loader.loadClass("scala.collection.immutable.List"))
+        .invoke(underlying, requested.underlying)
+      AlienList(loaded, loader).elements.map(element => AlienOption(element, loader).as[sbt.testing.Framework])
     }
-    loader.loadClass(inputClassName).getConstructor(classOf[Path]).newInstance(linkedJs.toAbsolutePath)
+
+    /** Closes the adapter. Closing the adapter stops the node process the adapter started. */
+    def close(): Unit =
+      JsTestAdapter.adapterClass(loader).getMethod("close").invoke(underlying): Unit
   }
 
-  private def createNodeJsEnv(loader: ClassLoader, nodeBinary: String, env: Map[String, String]): Any = {
-    val configClass = loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv$Config")
-    val config = configClass.getConstructor().newInstance().asInstanceOf[AnyRef]
-    val withExecutable = configClass.getMethod("withExecutable", classOf[String]).invoke(config, nodeBinary).asInstanceOf[AnyRef]
-    val withEnv = configClass
-      .getMethod("withEnv", loader.loadClass("scala.collection.immutable.Map"))
-      .invoke(withExecutable, toScalaMap(env, loader).asInstanceOf[AnyRef])
-      .asInstanceOf[AnyRef]
-    loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv").getConstructor(configClass).newInstance(withEnv)
-  }
+  private object JsTestAdapter {
 
-  /** The adapter logs its own progress and its own failures through this logger. */
-  private def createScalaJsLogger(loader: ClassLoader): Any = {
-    val levelClass = loader.loadClass("org.scalajs.logging.Level")
-    val infoLevel = loader.loadClass("org.scalajs.logging.Level$Info$").getField("MODULE$").get(null)
-    loader.loadClass("org.scalajs.logging.ScalaConsoleLogger").getDeclaredConstructor(levelClass).newInstance(infoLevel)
+    /** A resource for a started adapter. Releasing the resource closes the adapter. A `close()` that throws fails the run rather than passing quietly. */
+    def open(
+        loader: ClassLoader,
+        linkedJs: Path,
+        moduleKind: ScalaJsLinkConfig.ModuleKind,
+        nodeBinary: String,
+        env: Map[String, String]
+    ): Resource[IO, JsTestAdapter] = {
+      val acquire = IO.blocking {
+        val configClass = loader.loadClass("org.scalajs.testing.adapter.TestAdapter$Config")
+        val config = configClass
+          .getMethod("withLogger", loader.loadClass("org.scalajs.logging.Logger"))
+          .invoke(configClass.getConstructor().newInstance().asInstanceOf[AnyRef], consoleLogger(loader))
+          .asInstanceOf[AnyRef]
+
+        val adapter = adapterClass(loader)
+          .getConstructor(loader.loadClass("org.scalajs.jsenv.JSEnv"), loader.loadClass("scala.collection.immutable.Seq"), configClass)
+          .newInstance(nodeJsEnv(loader, nodeBinary, env), AlienList.of(List(input(loader, linkedJs, moduleKind)), loader).underlying, config)
+          .asInstanceOf[AnyRef]
+
+        JsTestAdapter(adapter, loader)
+      }
+
+      Resource.make(acquire)(adapter => IO.blocking(adapter.close()))
+    }
+
+    private def adapterClass(loader: ClassLoader): Class[?] =
+      loader.loadClass("org.scalajs.testing.adapter.TestAdapter")
+
+    /** Builds the `org.scalajs.jsenv.Input` case that matches the module kind the link used. */
+    private def input(loader: ClassLoader, linkedJs: Path, moduleKind: ScalaJsLinkConfig.ModuleKind): AnyRef = {
+      val inputClassName = moduleKind match {
+        case ScalaJsLinkConfig.ModuleKind.NoModule       => "org.scalajs.jsenv.Input$Script"
+        case ScalaJsLinkConfig.ModuleKind.CommonJSModule => "org.scalajs.jsenv.Input$CommonJSModule"
+        case ScalaJsLinkConfig.ModuleKind.ESModule       => "org.scalajs.jsenv.Input$ESModule"
+      }
+      loader.loadClass(inputClassName).getConstructor(classOf[Path]).newInstance(linkedJs.toAbsolutePath)
+    }
+
+    /** Builds the `org.scalajs.jsenv.nodejs.NodeJSEnv` that starts `nodeBinary` with `env` set. */
+    private def nodeJsEnv(loader: ClassLoader, nodeBinary: String, env: Map[String, String]): AnyRef = {
+      val configClass = loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv$Config")
+      val config = configClass.getConstructor().newInstance().asInstanceOf[AnyRef]
+      val withExecutable = configClass.getMethod("withExecutable", classOf[String]).invoke(config, nodeBinary).asInstanceOf[AnyRef]
+      val withEnv = configClass
+        .getMethod("withEnv", loader.loadClass("scala.collection.immutable.Map"))
+        .invoke(withExecutable, AlienMap.of(env, loader).underlying)
+        .asInstanceOf[AnyRef]
+      loader.loadClass("org.scalajs.jsenv.nodejs.NodeJSEnv").getConstructor(configClass).newInstance(withEnv)
+    }
+
+    /** The adapter logs its own progress and its own failures through this logger. */
+    private def consoleLogger(loader: ClassLoader): AnyRef = {
+      val levelClass = loader.loadClass("org.scalajs.logging.Level")
+      val infoLevel = loader.loadClass("org.scalajs.logging.Level$Info$").getField("MODULE$").get(null)
+      loader.loadClass("org.scalajs.logging.ScalaConsoleLogger").getDeclaredConstructor(levelClass).newInstance(infoLevel)
+    }
   }
 
   /** The linked module declares no framework the adapter could load.
