@@ -5,13 +5,12 @@ import bleep.{model, BuildPaths, ResolvedProject}
 
 import java.nio.file.Path
 
-/** Lowers the test harness's `ProjectConfig` descriptions into the `BspBuildData.Payload` that every real bleep client sends.
+/** Lowers the test harness's `ProjectConfig` descriptions into the `BspBuildData.Payload` that every bleep client sends.
   *
-  * The BSP server does not load builds — it compiles the one its client resolved — so a test that wants to drive it has to speak the same protocol rather than
-  * reach inside and install build state. That is the whole point of retargeting these tests: they now exercise the server the way production does.
+  * The BSP server does not load a build. The BSP server compiles the build its client resolved. A test that drives the server uses the same protocol a
+  * client uses rather than installing build state directly.
   *
-  * Output locations are derived from [[BuildPaths]] rather than chosen per project. The server derives the Zinc analysis directory, the compile lock and the
-  * test classpath the same way, so a test that named its own directory would compile into it and then find nothing there.
+  * [[BuildPaths]] determine every output location.
   */
 object BspTestBuild {
 
@@ -27,13 +26,13 @@ object BspTestBuild {
       configs.map(cfg => crossName(cfg) -> project(cfg, configs)).toMap
 
     val build = model.Build.Exploded(
-      // `dev` is what makes `BleepDevDeps` hand `buildTarget/test` the bleep-test-runner classes already on this JVM's classpath.
+      // `BleepDevDeps` maps the `dev` version to the bleep-test-runner classes already on this JVM's classpath.
       $version = model.BleepVersion.dev,
       explodedProjects = projects,
       resolvers = model.JsonList.empty,
-      // The server forces `Prebootstrapped.resolvedJvm`, which reads through this. Leaving it None
-      // means Jvm.system, and coursier reports "No system JVM found" in the test process. Naming the
-      // JVM this repo builds with costs nothing — it is already in the coursier cache.
+      // The server forces `Prebootstrapped.resolvedJvm`, which extracts this field. A None here
+      // means `Jvm.system`. Coursier then reports "No system JVM found" in the test process. The
+      // JVM this repository builds with already sits in the coursier cache.
       jvm = Option(model.Jvm.graalvm),
       scripts = Map.empty,
       remoteCache = None
@@ -46,11 +45,7 @@ object BspTestBuild {
     )
   }
 
-  /** Where a named project's classes land, matching what the server derives for it.
-    *
-    * Tests need this both to assert on compiler output and to put a dependency's classes on a dependent's classpath. Neither can hardcode a path any more: the
-    * location is derived from BuildPaths, not chosen.
-    */
+  /** The directory for a project's .class files.*/
   def classesDirFor(workspaceRoot: Path, projectName: String, isTest: Boolean): Path =
     BuildPaths(
       cwd = workspaceRoot,
@@ -60,7 +55,7 @@ object BspTestBuild {
     ).variantBuildDir(model.CrossProjectName(model.ProjectName(projectName), crossId = None))
       .resolve(if (isTest) "test-classes" else "classes")
 
-  /** Where a project's classes land, matching what the server derives for the same project. */
+  /** The directory for a project's .class files.*/
   def classesDir(workspaceRoot: Path, config: BspTestHarness.ProjectConfig): Path = {
     val buildPaths = BuildPaths(
       cwd = workspaceRoot,
@@ -80,9 +75,10 @@ object BspTestBuild {
     model.CrossProjectName(model.ProjectName(config.name), crossId = None)
 
   private def project(config: BspTestHarness.ProjectConfig, all: List[BspTestHarness.ProjectConfig]): model.Project = {
-    // The server takes only these fields from a model project: dependsOn (for transitive ordering
-    // and dependency locking), isTestProject, the platform's main class for `buildTarget/run`, and
-    // the platform and Scala version `buildTarget/test` matches to pick a test runner.
+    // The server extracts fields from a model project. `dependsOn` orders transitive
+    // compiles and locks dependencies. `isTestProject` marks a test project. The platform's main
+    // class serves `buildTarget/run`. The platform and the Scala version pick a test runner for
+    // `buildTarget/test`.
     val dependsOn = model.JsonSet(config.dependsOn.map(model.ProjectName.apply).toSeq.sorted*)
     val _ = all
     model.Project.empty.copy(
@@ -112,7 +108,7 @@ object BspTestBuild {
     * uses the platform's version to pick a toolchain.
     *
     * @throws KotlinPlatformNotModelledException
-    *   for a Kotlin platform - an illegal argument here. `model.Platform.Js` carries a Scala.js version and `model.Platform.Native` a Scala Native one. A Kotlin project's toolchain comes from `kotlin.version` alongside the platform.
+    *   for a Kotlin platform. A Kotlin project takes its toolchain from `kotlin.version` alongside the platform.
     */
   private def modelPlatform(config: BspTestHarness.ProjectConfig): Option[model.Platform] =
     config.platform match {
@@ -149,9 +145,6 @@ object BspTestBuild {
     }
 
   /** `BspTestBuild` builds no `model.Project` for a Kotlin platform.
-    *
-    * @param platform
-    *   the platform the caller asked for
     */
   case class KotlinPlatformNotModelledException(platform: String)
       extends IllegalArgumentException(
@@ -181,8 +174,6 @@ object BspTestBuild {
       case jc: JavaConfig =>
         ResolvedProject.Language.Java(options = jc.release.map(r => List("--release", r.toString)).getOrElse(Nil) ++ jc.options)
       case sc: ScalaConfig =>
-        // compilerJars stays empty: the server resolves the compiler from the version via its own
-        // CompilerResolver cache, exactly as it did when these tests drove the old server.
         ResolvedProject.Language.Scala(
           organization = "org.scala-lang",
           name = if (sc.version.startsWith("3")) "scala3-compiler_3" else "scala-compiler",

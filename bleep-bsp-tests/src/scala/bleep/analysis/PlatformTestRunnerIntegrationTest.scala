@@ -11,14 +11,12 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
-/** Integration tests for platform-aware test dispatching through BSP.
+/** These tests assert that `BspServer.handleTest` picks a test runner from the platform a `ProjectConfig` declares.
   *
-  * Verifies that BspServer.handleTest() correctly detects platform from ProjectConfig and dispatches to the appropriate test runner:
-  *   - JVM: runs tests via java -cp with detected framework
-  *   - Scala.js: links then runs via Node.js
-  *   - Scala Native: links native binary then runs it
+  * A JVM project runs its tests under `java -cp` with the framework the classpath declares. A Scala.js project links first. Node then runs the linked
+  * JavaScript. A Scala Native project links a binary first. The binary then runs.
   *
-  * These tests go through the full BSP protocol: BspTestHarness → BspServer → handleTest → platform dispatch.
+  * Each test travels the whole BSP protocol. A request enters `BspTestHarness`, reaches `BspServer`, reaches `handleTest`, and reaches one test runner.
   */
 class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLimits with PlatformTestHelper {
 
@@ -118,7 +116,7 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           targets.targets should have size 1
           targets.targets.head.tags should contain("test")
 
-          // Compilation should work (sources are valid Scala)
+          // The sources are valid Scala. The compile succeeds.
           val compileResult = client.compile(List(targets.targets.head.id))
           compileResult.statusCode.value shouldBe 1 // Ok
 
@@ -128,8 +126,7 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** Node itself sets `process.versions.node` to the version it is running. JVM runner never links `scala.scalajs.js` .
-    */
+  /** Node sets `process.versions.node` to the Node version running this suite. A JVM test runner never links `scala.scalajs.js`. */
   private val platformSuiteSource =
     """package example
       |
@@ -188,8 +185,8 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** Three suites in one file. A single compile and a single link produce the module for all three suites. Each one reads `process.versions.node` the way
-    * [[platformSuiteSource]] does.
+  /** Three suites in one file. One compile and one link produce the module for all three suites. Each suite extracts `process.versions.node` the way
+    * [[platformSuiteSource]] extracts it.
     */
   private val threeSuiteSource =
     """package example
@@ -226,8 +223,8 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     finally stream.close()
   }
 
-  /** The DAG runs one `LinkTask` per test project. A suite task that linked for itself would write a `link-output` directory beside the DAG's own output, and
-    * three suite tasks running at once would write that one directory three times over.
+  /** The DAG runs one `LinkTask` per test project. A suite task that linked for itself would write a `link-output` directory beside the DAG's own output. Three
+    * suite tasks running at once would write that directory three times over.
     */
   test("BSP: three Scala.js suites in one project link once") {
     failAfter(Span(360, Seconds)) {
@@ -253,9 +250,9 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           client.initialize()
           val targets = client.buildTargets()
 
-          // `BspClient.test` waits 120 seconds. This run compiles three Scala.js suites, links them, and starts three node processes, which comes close to
-          // that limit on an unloaded machine and passes it when the rest of the suite runs alongside. The async request takes a limit of its own rather than
-          // raising the limit every other test shares. 300 seconds still fails long before a run that has genuinely stopped.
+          // `BspClient.test` waits 120 seconds. This run compiles three Scala.js suites, links the three suites, and starts three node processes. That work
+          // approaches 120 seconds on an unloaded machine. That work passes 120 seconds while the rest of this class runs alongside. This async request takes
+          // a timeout of its own rather than raising the timeout every other test shares. 300 seconds still fails long before a stalled run would.
           val startedAt = System.currentTimeMillis()
           val testResult = client
             .testAsync(targets.targets.map(_.id))
@@ -388,7 +385,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
           val targets = client.buildTargets()
           targets.targets should have size 2
 
-          // Both should compile independently
           val compileResult = client.compile(targets.targets.map(_.id))
           compileResult.statusCode.value shouldBe 1 // Ok
 
@@ -414,7 +410,6 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
         )
 
         val classpath = CompilerResolver.resolveScalaLibrary("3.7.4").toList
-        // Use the scala() factory which doesn't set platform explicitly
         val config = BspTestHarness.ProjectConfig.scala(
           name = "default-platform",
           sources = Set(workspace.resolve("src")),
