@@ -326,9 +326,11 @@ object BuildStateReducer {
         )
       )
 
-    case BuildEvent.SuitesDiscovered(project, _, _, discoveredBeforeFilters, _) =>
-      // `None` is an event from a peer that predates the field: no evidence, so no verdict.
-      if (discoveredBeforeFilters.contains(0)) state.copy(testProjectsWithoutSuites = project :: state.testProjectsWithoutSuites)
+    case BuildEvent.SuitesDiscovered(project, _, _, discoveredBeforeFilters, isTestProject, _) =>
+      // Two conditions, both required. `None` is an event from a peer that predates the field — no evidence, so no verdict. And a project that never claimed to
+      // be a test project has not contradicted itself by holding no suites: `bleep test` and `bleep ci` pass plain libraries through discovery as a matter of
+      // course, and failing those would make the whole check unusable.
+      if (isTestProject && discoveredBeforeFilters.contains(0)) state.copy(testProjectsWithoutSuites = project :: state.testProjectsWithoutSuites)
       else state
 
     case BuildEvent.ProjectSkipped(project, reason, _) =>

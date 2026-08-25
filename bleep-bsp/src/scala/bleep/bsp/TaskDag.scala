@@ -270,7 +270,9 @@ object TaskDag {
     */
   case class DiscoveryResult(
       suites: List[(String, bleep.testing.FrameworkSelection)],
-      discoveredBeforeFilters: Int
+      discoveredBeforeFilters: Int,
+      /** Whether the project declares `isTestProject: true` — not whether it was named as a target, which every discovered project was. */
+      isTestProject: Boolean
   )
 
   /** Execute a test suite */
@@ -389,7 +391,13 @@ object TaskDag {
     ) extends DagEvent
 
     // Discovery events
-    case class SuitesDiscovered(project: CrossProjectName, suites: List[SuiteName], discoveredBeforeFilters: Int, timestamp: Long) extends DagEvent
+    case class SuitesDiscovered(
+        project: CrossProjectName,
+        suites: List[SuiteName],
+        discoveredBeforeFilters: Int,
+        isTestProject: Boolean,
+        timestamp: Long
+    ) extends DagEvent
 
     // Output events
     case class Output(project: CrossProjectName, suite: SuiteName, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
@@ -1079,6 +1087,7 @@ object TaskDag {
                                   dt.project,
                                   discovery.suites.map(s => SuiteName(s._1)),
                                   discovery.discoveredBeforeFilters,
+                                  discovery.isTestProject,
                                   timestamp
                                 )
                               )

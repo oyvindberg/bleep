@@ -10,9 +10,23 @@ sealed abstract class FixturePlatform(val id: String) {
 
   /** Used in test names, so a failure says which combination broke without opening the file. */
   def describe: String
+
+  /** `2.12`, `2.13` or `3` — what a Maven artifact suffix is built from, and the granularity at which frameworks decide what they publish. */
+  def scalaBinaryVersion: String = FixturePlatform.binaryVersionOf(scalaVersion)
 }
 
 object FixturePlatform {
+
+  /** 3.x collapses to `3`; 2.x keeps its minor. Anything else is a version this matrix has never been told about, and guessing at its suffix would produce a
+    * resolution error blaming the framework for the harness's mistake.
+    */
+  def binaryVersionOf(scalaVersion: String): String =
+    scalaVersion.split('.').toList match {
+      case "3" :: _          => "3"
+      case "2" :: minor :: _ => s"2.$minor"
+      case _                 => sys.error(s"cannot derive a Scala binary version from '$scalaVersion'")
+    }
+
   case class Jvm(scalaVersion: String) extends FixturePlatform("jvm") {
     def describe: String = s"jvm / scala $scalaVersion"
     def platformYaml: String =
@@ -56,13 +70,15 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
   protected val projectName: String = "mytest"
   protected val project: model.CrossProjectName = model.CrossProjectName(model.ProjectName(projectName), None)
 
-  protected def yamlFor(fixture: TestFrameworkFixture, platform: FixturePlatform): String = {
-    val deps = fixture.deps.map(d => s"    - $d").mkString("\n")
+  protected def yamlFor(fixture: TestFrameworkFixture, frameworkVersion: String, platform: FixturePlatform): String = {
+    val deps = fixture.deps(frameworkVersion).map(d => s"    - $d").mkString("\n")
     // A Java fixture gets no `scala:` block at all. Declaring a Scala version for a project with no Scala sources would pull the compiler and the standard
     // library in for nothing, and would stop the fixture from proving that a plain Java test project works.
     val scalaBlock = fixture.language match {
       case FixtureLanguage.Scala => s"    scala:\n      version: ${platform.scalaVersion}\n"
       case FixtureLanguage.Java  => ""
+      // Kotlin needs its own toolchain block for the same reason Scala does, and no `scala:` block for the same reason Java gets none.
+      case FixtureLanguage.Kotlin => s"    kotlin:\n      version: ${model.Versions.Kotlin24}\n"
     }
     s"""projects:
        |  $projectName:
@@ -80,9 +96,10 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
   protected def runFixture(
       ws: Workspace,
       fixture: TestFrameworkFixture,
+      frameworkVersion: String,
       platform: FixturePlatform
   ): (Either[BleepException, Unit], List[JUnitReports.Suite]) = {
-    ws.yaml(yamlFor(fixture, platform))
+    ws.yaml(yamlFor(fixture, frameworkVersion, platform))
     ws.file(s"$projectName/src/${fixture.language.sourceDir}/${fixture.relPath}", fixture.source)
     val (started, _, _) = ws.start()
     val reportDir: Path = ws.root.resolve("junit-reports")
@@ -116,11 +133,12 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
     */
   protected def assertFixtureRan(
       fixture: TestFrameworkFixture,
+      frameworkVersion: String,
       platform: FixturePlatform,
       suites: List[JUnitReports.Suite],
       verdict: Either[BleepException, Unit]
   ): org.scalatest.Assertion = {
-    val context = s"${fixture.name} on ${platform.id}"
+    val context = s"${fixture.name} $frameworkVersion on ${platform.describe}"
     // When nothing ran at all the useful information is in the run's own failure, not in the (empty) report — a build that failed to resolve or compile looks
     // exactly like a runner that executed nothing unless the exception is shown.
     val why = verdict match {
@@ -145,8 +163,9 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       s"$context: expected passing tests ${fixture.passingTestNames.sorted.mkString(", ")} but got ${passedNames.mkString(", ")}.\n$rendered"
     )
     assert(
-      failedNames == List(fixture.reportedFailingName),
-      s"$context: expected exactly one failing test '${fixture.reportedFailingName}' but got ${failedNames.mkString(", ")}.\n$rendered"
+      failedNames == fixture.reportedNotPassingNames,
+      s"$context: expected the assertion failure '${fixture.reportedFailingName}' and the uncaught exception '${fixture.reportedThrowingName}' " +
+        s"to be reported as not passing, but got ${failedNames.mkString(", ")}.\n$rendered"
     )
     assert(
       suite.tests == fixture.expectedTotal,
@@ -156,15 +175,20 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
   }
 
   /** The whole check for one combination: run it, then assert it ran. */
-  protected def checkFixture(ws: Workspace, fixture: TestFrameworkFixture, platform: FixturePlatform): org.scalatest.Assertion = {
-    val (verdict, suites) = runFixture(ws, fixture, platform)
-    // The run must report failure, because every fixture contains a deliberately failing test. A green verdict here means the failing test did not run or its
-    // failure was swallowed — both defects this suite exists to catch.
+  protected def checkFixture(
+      ws: Workspace,
+      fixture: TestFrameworkFixture,
+      frameworkVersion: String,
+      platform: FixturePlatform
+  ): org.scalatest.Assertion = {
+    val (verdict, suites) = runFixture(ws, fixture, frameworkVersion, platform)
+    // The run must report failure, because every fixture contains a deliberately failing test and a deliberately throwing one. A green verdict here means
+    // neither ran, or their outcomes were swallowed — both defects this suite exists to catch.
     assert(
       verdict.isLeft,
-      s"${fixture.name} on ${platform.id}: the run reported success, but the fixture contains a test that must fail.\n" +
+      s"${fixture.name} $frameworkVersion on ${platform.describe}: the run reported success, but the fixture contains a test that must fail.\n" +
         suites.map("  " + _.describe).mkString("\n")
     )
-    assertFixtureRan(fixture, platform, suites, verdict)
+    assertFixtureRan(fixture, frameworkVersion, platform, suites, verdict)
   }
 }

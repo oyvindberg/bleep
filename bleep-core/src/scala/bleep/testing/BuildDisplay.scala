@@ -772,7 +772,7 @@ object BuildDisplay {
         // ScalaTest/JUnit print their own started/finished lines to stdout.
         IO.unit
 
-      case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _, _) =>
+      case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _, _, _) =>
         if (!quietMode) {
           if (suites.isEmpty)
             logP(project, "🔍 discovered 0 test suites")

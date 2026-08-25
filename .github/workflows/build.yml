@@ -121,9 +121,12 @@ jobs:
         # Measured at 9m26s on master against ~3m30s of preceding steps, so 22 is >2x headroom and still
         # lands inside 30 with room for the upload.
         timeout-minutes: 22
-        # No tag exclusions: this is the canonical full-suite gate, and the only place the platform linkers are
-        # exercised now that the native-image matrix skips them.
-        run: ./bleep-cli.sh --dev test
+        # The canonical full-suite gate, and the only place the platform linkers are exercised now that the
+        # native-image matrix skips them. One exclusion: `matrix` is the framework version sweep, which is a
+        # full inner build per (framework x version x scala x platform) and moves only when someone edits
+        # TestFrameworkFixture. `TestFrameworkMatrixIT` still runs here at the pinned versions, so a
+        # regression in discovery or runner selection is caught; the sweep is run by hand.
+        run: ./bleep-cli.sh --dev test --exclude-tag matrix
 
       # `IntegrationTestHarness.commitSnippets` WRITES these files as a side effect of the tests above.
       # It never compares them, so nothing failed while they drifted: the runner's checkout was updated

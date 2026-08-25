@@ -496,7 +496,7 @@ object FancyBuildDisplay {
         state.runningSuites.clear()
         state.runningTests.clear()
 
-      case BuildEvent.SuitesDiscovered(_, _, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _) |
+      case BuildEvent.SuitesDiscovered(_, _, _, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _) |
           _: BuildEvent.TestRunCompleted | _: BuildEvent.HistoryRecorded | _: BuildEvent.SourcegenStarted | _: BuildEvent.SourcegenFinished |
           _: BuildEvent.ResolveAnnotationProcessorsFinished | _: BuildEvent.RunSymbolProcessorsFinished =>
         () // No TUI-specific state for these (core state updated via BuildStateReducer)
@@ -513,8 +513,8 @@ object FancyBuildDisplay {
 
     // Return new state with updated core + TUI-specific fields
     val updatedSuitesDiscovered = event match {
-      case BuildEvent.SuitesDiscovered(_, _, totalDiscovered, _, _) => totalDiscovered
-      case _                                                        => state.suitesDiscovered
+      case BuildEvent.SuitesDiscovered(_, _, totalDiscovered, _, _, _) => totalDiscovered
+      case _                                                           => state.suitesDiscovered
     }
     val updatedWorkspaceBusy = event match {
       case BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, _) =>

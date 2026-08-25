@@ -2,19 +2,19 @@ package bleep
 
 /** `bleep test` run end to end for every (platform, Scala version, framework) combination bleep claims to support.
   *
-  * One suite per (platform, Scala version) rather than one per platform. Each test drives a complete inner build — resolve, compile, link, discover, run — and
-  * the harness's in-process BSP transport (`InProcessBspServer`, client and server joined by `PipedInputStream`/`PipedOutputStream`) stops delivering requests
-  * after roughly five of those in a single suite: the server parks in `PipedInputStream.read` waiting for a request while the client parks in
-  * `CompletableFuture.get()` waiting for the reply to one it believes it sent. Three inner builds per suite stays well inside that, and the suites run in
-  * parallel, which the single large suite could not. Production BSP speaks over a socket, so nothing here reflects how bleep behaves for a user.
+  * Each test drives a complete inner build — resolve, compile, link, discover, run — through the real `bleep test` entry point, and asserts on the JUnit XML
+  * that came out. Nothing is stubbed. A runner that discovers a suite and then executes none of its tests fails here, which is what issue #655 was.
   *
-  * Every suite is named `*IT`, which puts it under the `slow` tag `bleep-tests` already declares for `**IT` — the `build` job runs them, the native-image jobs
-  * skip them with `--exclude-tag slow`.
+  * These suites pin one version per framework: the current one. The other versions each fixture declares are swept by [[TestFrameworkVersionMatrixIT]], which
+  * is not run automatically.
+  *
+  * Every suite is named `*IT`, which puts it under the `slow` tag `bleep-tests` declares for `**IT` — the `build` job runs them, the native-image jobs skip
+  * them with `--exclude-tag slow`.
   */
 abstract class TestFrameworkMatrixIT(platform: FixturePlatform) extends IntegrationTestHarness with PlatformFrameworkHarness {
-  TestFrameworkFixture.forPlatform(platform.id).foreach { fixture =>
-    integrationTest(s"${platform.describe} / ${fixture.name}") { ws =>
-      checkFixture(ws, fixture, platform)
+  TestFrameworkFixture.pinnedFor(platform.id, platform.scalaBinaryVersion).foreach { case (fixture, version) =>
+    integrationTest(s"${platform.describe} / ${fixture.name} $version") { ws =>
+      checkFixture(ws, fixture, version, platform)
     }
   }
 }
@@ -31,7 +31,7 @@ class JvmScala213TestFrameworkIT extends TestFrameworkMatrixIT(FixturePlatform.J
 class ScalaJsScala3TestFrameworkIT extends TestFrameworkMatrixIT(FixturePlatform.Js(model.Versions.Scala3, model.Versions.ScalaJs1, model.Versions.Node))
 class ScalaJsScala213TestFrameworkIT extends TestFrameworkMatrixIT(FixturePlatform.Js(model.Versions.Scala213, model.Versions.ScalaJs1, model.Versions.Node))
 
-/** Scala Native production runs `runTestsViaAdapter`, whose only test was `ignore`d as a "known RPC protocol issue"; the green suites beside it drive
+/** Scala Native production runs `runTestsViaAdapter`, whose only test was `ignore`d as a "known RPC protocol issue"; the green suites beside it drove
   * `runTests`, the stdout-parsing method production no longer calls, through hand-written `TestRunner` mains.
   */
 class ScalaNativeScala3TestFrameworkIT extends TestFrameworkMatrixIT(FixturePlatform.Native(model.Versions.Scala3, model.Versions.ScalaNative05))

@@ -2477,6 +2477,9 @@ class MultiWorkspaceBspServer(
                 val regexFiltered = filterSuites(suites, testOptions.only, testOptions.exclude)
                 val manifest: Map[String, Set[String]] =
                   started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
+                // Discovery runs on every target the client named, libraries included. Only a project that declared itself a test project is claiming there
+                // are suites here, so only that project's empty scan is a contradiction worth failing the run over.
+                val isTestProject = started.build.explodedProjects(discoverTask.project).isTestProject.getOrElse(false)
                 val tagFiltered =
                   if (!tagsActive) regexFiltered
                   else {
@@ -2531,9 +2534,9 @@ class MultiWorkspaceBspServer(
                     else "filter"
                   val msg =
                     s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
-                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size))
+                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject))
                 } else {
-                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size))
+                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size, isTestProject))
                 }
               }
 
@@ -4042,14 +4045,14 @@ class MultiWorkspaceBspServer(
               )
             )
 
-          case TaskDag.DagEvent.SuitesDiscovered(project, suites, discoveredBeforeFilters, timestamp) =>
+          case TaskDag.DagEvent.SuitesDiscovered(project, suites, discoveredBeforeFilters, isTestProject, timestamp) =>
             for {
               total <- totalSuitesRef.updateAndGet(_ + suites.size)
               _ <- IO(
                 sendTestEvent(
                   originId,
                   s"discover:$project",
-                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, Some(discoveredBeforeFilters), timestamp),
+                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, Some(discoveredBeforeFilters), isTestProject, timestamp),
                   recorder
                 )
               )

@@ -209,6 +209,7 @@ object BuildEvent {
       suites: List[SuiteName],
       totalDiscovered: Int,
       discoveredBeforeFilters: Option[Int],
+      isTestProject: Boolean,
       timestamp: Long
   ) extends BuildEvent
 
@@ -363,8 +364,8 @@ object BuildEvent {
       case PE.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp) =>
         Some(BuildEvent.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp))
 
-      case PE.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, timestamp) =>
-        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, timestamp))
+      case PE.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, isTestProject, timestamp) =>
+        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, isTestProject, timestamp))
 
       case PE.SuiteStarted(project, suite, timestamp) =>
         Some(BuildEvent.SuiteStarted(project, suite, timestamp))

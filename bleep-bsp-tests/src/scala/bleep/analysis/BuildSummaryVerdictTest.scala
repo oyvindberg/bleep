@@ -142,14 +142,21 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     verdict(List(E.SuiteFinished(proj("app"), SuiteName("EmptySuite"), SuiteOutcome.Empty, durationMs = 1L, timestamp = 1L))).isLeft shouldBe true
   }
 
-  private def discovered(p: String, suites: List[String], beforeFilters: Int): E.SuitesDiscovered =
-    E.SuitesDiscovered(proj(p), suites.map(SuiteName.apply), totalSuitesDiscovered = suites.size, discoveredBeforeFilters = Some(beforeFilters), timestamp = 1L)
+  private def discovered(p: String, suites: List[String], beforeFilters: Int, isTestProject: Boolean): E.SuitesDiscovered =
+    E.SuitesDiscovered(
+      proj(p),
+      suites.map(SuiteName.apply),
+      totalSuitesDiscovered = suites.size,
+      discoveredBeforeFilters = Some(beforeFilters),
+      isTestProject = isTestProject,
+      timestamp = 1L
+    )
 
   test("a test project whose classpath scan found nothing fails the run") {
     leftMessage(
       List(
         compileFinished("tests", CompileStatus.Success, skippedBecause = None),
-        discovered("tests", suites = Nil, beforeFilters = 0)
+        discovered("tests", suites = Nil, beforeFilters = 0, isTestProject = true)
       )
     ) should include("No test suites found")
   }
@@ -157,8 +164,8 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
   test("the failure names the projects, so the user knows where to look") {
     val msg = leftMessage(
       List(
-        discovered("b-tests", suites = Nil, beforeFilters = 0),
-        discovered("a-tests", suites = Nil, beforeFilters = 0)
+        discovered("b-tests", suites = Nil, beforeFilters = 0, isTestProject = true),
+        discovered("a-tests", suites = Nil, beforeFilters = 0, isTestProject = true)
       )
     )
     msg should include("a-tests")
@@ -171,7 +178,7 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     verdict(
       List(
         compileFinished("tests", CompileStatus.Success, skippedBecause = None),
-        discovered("tests", suites = Nil, beforeFilters = 7)
+        discovered("tests", suites = Nil, beforeFilters = 7, isTestProject = true)
       )
     ) shouldBe Right(())
   }
@@ -181,11 +188,24 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     // nothing, or a filter emptied it — and replaying an old transcript must not turn that silence into a failure the run never had.
     import io.circe.syntax.*
     // Built by encoding a current event and deleting the field, so this stays a test about the missing field rather than about how the rest happens to encode.
-    val legacyWire = discovered("tests", suites = Nil, beforeFilters = 0).asJson.mapObject(_.remove("discoveredBeforeFilters"))
+    val legacyWire = discovered("tests", suites = Nil, beforeFilters = 0, isTestProject = true).asJson
+      .mapObject(_.remove("discoveredBeforeFilters").remove("isTestProject"))
     legacyWire.hcursor.keys.map(_.toList) shouldBe Some(List("project", "suites", "totalSuitesDiscovered", "timestamp"))
     val decoded = legacyWire.as[E.SuitesDiscovered].getOrElse(fail("legacy SuitesDiscovered must still decode"))
     decoded.discoveredBeforeFilters shouldBe None
+    decoded.isTestProject shouldBe false
     verdict(List(decoded)) shouldBe Right(())
+  }
+
+  test("a plain library named as a test target finds no suites, and that is not a fault") {
+    // `bleep test` and `bleep ci` pass every named target through discovery, libraries included — `testProjects` is what the client asked for, not the set that
+    // declared `isTestProject: true`. CiCommandIT caught this: its `myapp` is a library with no tests, and failing it made `bleep ci` unusable.
+    verdict(
+      List(
+        compileFinished("myapp", CompileStatus.Success, skippedBecause = None),
+        discovered("myapp", suites = Nil, beforeFilters = 0, isTestProject = false)
+      )
+    ) shouldBe Right(())
   }
 
   test("a clean run is Right") {

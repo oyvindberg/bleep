@@ -479,6 +479,13 @@ object BleepBspProtocol {
           * `None` means the peer that produced this event predates the field, so the answer is unknown rather than zero. A server always fills it in.
           */
         discoveredBeforeFilters: Option[Int],
+        /** Whether the project declares `isTestProject: true`.
+          *
+          * Discovery runs on whatever targets the client named, which is not the same set: `bleep test` and `bleep ci` legitimately pass plain libraries
+          * through, and a library finding no suites is the expected outcome rather than a fault. Only a project that asked to be a test project is making a
+          * claim that an empty scan contradicts.
+          */
+        isTestProject: Boolean,
         timestamp: Long
     ) extends Event
 
@@ -692,6 +699,7 @@ object BleepBspProtocol {
           "suites" -> sd.suites.asJson,
           "totalSuitesDiscovered" -> sd.totalSuitesDiscovered.asJson,
           "discoveredBeforeFilters" -> sd.discoveredBeforeFilters.asJson,
+          "isTestProject" -> sd.isTestProject.asJson,
           "timestamp" -> sd.timestamp.asJson
         )
       }
@@ -702,7 +710,9 @@ object BleepBspProtocol {
           totalSuitesDiscovered <- c.downField("totalSuitesDiscovered").as[Int]
           timestamp <- c.downField("timestamp").as[Long]
           discoveredBeforeFilters <- c.get[Option[Int]]("discoveredBeforeFilters")
-        } yield SuitesDiscovered(project, suites, totalSuitesDiscovered, discoveredBeforeFilters, timestamp)
+          // Absent means an older peer, which never sent it — false, so a replayed transcript cannot produce a verdict its own run never reached.
+          isTestProject <- c.getOrElse("isTestProject")(false)
+        } yield SuitesDiscovered(project, suites, totalSuitesDiscovered, discoveredBeforeFilters, isTestProject, timestamp)
       }
       Codec.from(dec, enc)
     }

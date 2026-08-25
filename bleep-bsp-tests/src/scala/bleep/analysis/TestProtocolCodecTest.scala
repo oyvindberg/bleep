@@ -9,19 +9,16 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.{Seconds, Span}
 
-/** Integration tests for JVM test runner infrastructure.
+/** Wire-format tests for `TestProtocol`, the line protocol between bleep and the JVM it forks to run a suite.
   *
-  * Tests the protocol, data structures, and coordination used for JVM test execution.
+  * Codec tests rather than runner tests, despite the file this replaced being called an integration test. Nothing here forks a process: each case encodes a
+  * message, decodes it back and asserts the round-trip, which is the only level at which a compatibility break is visible before it reaches a user as a
+  * mis-decoded event mid-run. The framework coverage that used to sit beside these moved to `TestFrameworkMatrixIT`, which drives whole builds.
   *
-  * Note: Full edge case tests (System.exit, OOME, infinite loops) require the ForkedTestRunner to be on classpath. Those tests would verify:
-  *   - Timeout handling
-  *   - Cancellation
-  *   - Process crash handling
-  *   - Proper event reporting
-  *
-  * TODO: Add BspTestHarness for true end-to-end BSP protocol testing.
+  * The legacy `SuiteDone` case is the reason to keep this honest: a forked runner predating the `outcome` field still has to decode through the flat counts,
+  * and that is a claim about bytes, not about behaviour.
   */
-class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
+class TestProtocolCodecTest extends AnyFunSuite with Matchers with TimeLimits {
 
   val quickTimeout: Span = Span(5, Seconds)
 
