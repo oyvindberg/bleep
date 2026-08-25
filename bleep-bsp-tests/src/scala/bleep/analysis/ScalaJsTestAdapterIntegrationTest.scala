@@ -12,6 +12,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
 /** Runs real Scala.js suites through `org.scalajs.testing.adapter.TestAdapter`.
   *
@@ -33,8 +34,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
   private val killedByUser: TestRunnerTypes.TerminationReason =
     TestRunnerTypes.TerminationReason.Killed(KillReason.UserRequest)
 
-  /** A cancelled run that takes longer than this has hung. The spinning suite never returns on its own. Any duration well under the ScalaTest suite timeout
-    * therefore proves that the kill reached the Node process.
+  /** A cancelled run that takes longer than this has hung. The spinning suite never returns on its own.
     */
   private val cancellationTimeoutMs = 30000L
 
@@ -297,6 +297,48 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
   }
 
   /** Three adapters run at once, each with its own Node process. A runner that shared process state between runs would report the wrong counts. */
+  /** The node processes this JVM started that are still running.
+    *
+    * The adapter starts node through a `ProcessBuilder`, which makes every node process a direct child of this JVM. A cancelled run that leaves one of these
+    * behind leaves it spinning on a core until someone kills it.
+    */
+  private def liveNodeChildren(): Set[Long] =
+    ProcessHandle
+      .current()
+      .children()
+      .iterator()
+      .asScala
+      .filter(child => child.info().command().orElse("") == nodeBinary)
+      .map(_.pid())
+      .toSet
+
+  test("ScalaJsTestRunner.runTestsViaAdapter: cancellation leaves no node process behind") {
+    val before = liveNodeChildren()
+
+    val result = (for {
+      killSignal <- Deferred[IO, KillReason]
+      _ <- (IO.sleep(2.seconds) >> killSignal.complete(KillReason.UserRequest)).start
+      res <- ScalaJsTestRunner.runTestsViaAdapter(
+        spinningModule,
+        ScalaJsLinkConfig.ModuleKind.CommonJSModule,
+        List(TestSuite("ArithmeticSuite", suiteClassName)),
+        TestFramework.MUnit,
+        new RecordingHandler(),
+        nodeBinary,
+        Map.empty,
+        DefaultScalaJsVersion,
+        killSignal
+      )
+    } yield res).unsafeRunSync()
+
+    result.terminationReason shouldBe killedByUser
+
+    val leaked = liveNodeChildren() -- before
+    withClue(s"node processes still running after the kill: $leaked") {
+      leaked shouldBe empty
+    }
+  }
+
   test("ScalaJsTestRunner.runTestsViaAdapter: three runs execute in parallel") {
     import cats.syntax.parallel.*
 

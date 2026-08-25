@@ -306,7 +306,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
         read += r
       }
 
-      // The request codec reads `method` and skips every other key. Only a notification declares `method`. 
+      // The request codec reads `method` and skips every other key. Only a notification declares `method`.
       val envelope = readFromArray[JsonRpcRequest](content)
       if (envelope.method != null) handleNotification(envelope)
       else {

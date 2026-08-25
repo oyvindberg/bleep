@@ -55,16 +55,21 @@ object ScalaJsTestRunner {
       case None         =>
         val loader = CompilerResolver.getScalaJsTestAdapter(scalaJsVersion).loader
 
-        val work = JsTestAdapter.open(loader, linkedJs, moduleKind, nodeBinary, env).use { adapter =>
-          IO.interruptible {
+        JsTestAdapter.open(loader, linkedJs, moduleKind, nodeBinary, env).use { adapter =>
+          val runSuite = IO.interruptible {
             val sbtFramework = pickFramework(adapter, framework, linkedJs)
             SbtTestDriver.runFramework(sbtFramework, suites, eventHandler, loader)
           }
-        }
 
-        Outcome.raceKill(killSignal)(work).map {
-          case Left(result)  => result
-          case Right(reason) => TestResult(0, 0, 0, 0, TerminationReason.Killed(reason))
+          // Stopping Node is what ends a suite that spins. Such a suite never reaches Node's event loop and never sees the adapter close its RPC channel.
+          // The thread waiting for that suite's reply does not return either, which leaves fiber cancellation nothing to unwind. This branch produces its
+          // reason only after the process is gone. The race therefore resolves with Node already stopped.
+          val stopNodeThenReport = killSignal.get.flatTap(_ => IO.blocking(adapter.stopNodeRuns()))
+
+          IO.race(runSuite, stopNodeThenReport).map {
+            case Left(result)  => result
+            case Right(reason) => TestResult(0, 0, 0, 0, TerminationReason.Killed(reason))
+          }
         }
     }
 
@@ -84,7 +89,7 @@ object ScalaJsTestRunner {
 
   /** The `org.scalajs.testing.adapter.TestAdapter` that `loader` built.
     */
-  private case class JsTestAdapter(underlying: AnyRef, loader: ClassLoader) {
+  private case class JsTestAdapter(underlying: AnyRef, loader: ClassLoader, jsEnv: RecordingJsEnv) {
 
     /** Asks the adapter which of these class names the linked module declares.
       *
@@ -102,14 +107,89 @@ object ScalaJsTestRunner {
       AlienList(loaded, loader).elements.map(element => AlienOption(element, loader).as[sbt.testing.Framework])
     }
 
-    /** Closes the adapter. Closing the adapter stops the node process the adapter started. */
+    /** Closes the adapter's RPC channel for every runner it knows about. */
     def close(): Unit =
       JsTestAdapter.adapterClass(loader).getMethod("close").invoke(underlying): Unit
+
+    /** Stops every Node process this adapter started. Safe to call more than once. */
+    def stopNodeRuns(): Unit = jsEnv.stopStartedRuns()
+  }
+
+  /** A `org.scalajs.jsenv.JSEnv` that keeps every `org.scalajs.jsenv.JSRun` it starts.
+    *
+    * `TestAdapter.close` closes the RPC channel to each runner it knows about. It leaves a Node process that is spinning in a synchronous loop, because that
+    * process never reaches its event loop and never sees the channel close. `JSRun.close` reaches the process instead. `ExternalJSRun.close` calls
+    * `destroyForcibly` on it.
+    *
+    * Recording the runs keeps this containment exact. Each adapter stops the processes it started and no others, which matters because suites of one project
+    * run their adapters at the same time.
+    *
+    * @param realEnv
+    *   the `NodeJSEnv` this env delegates every call to
+    * @param loader
+    *   the classloader that owns `realEnv` and declares `JSEnv`
+    */
+  private class RecordingJsEnv(realEnv: AnyRef, loader: ClassLoader) {
+
+    private val startedRuns = new java.util.concurrent.ConcurrentLinkedQueue[AnyRef]()
+
+    /** The `JSEnv` to hand the adapter. Its `start` and `startWithCom` record what they return. */
+    val asJsEnv: AnyRef =
+      java.lang.reflect.Proxy.newProxyInstance(
+        loader,
+        Array(loader.loadClass("org.scalajs.jsenv.JSEnv")),
+        (_, method, args) => {
+          val returned =
+            try method.invoke(realEnv, (if (args == null) Array.empty[AnyRef] else args)*)
+            // The adapter reads the exception a `JSEnv` throws. A reflective wrapper around the cause would hide it.
+            catch { case invoked: java.lang.reflect.InvocationTargetException => throw invoked.getCause }
+          if (method.getName == "start" || method.getName == "startWithCom") startedRuns.add(returned): Unit
+          returned
+        }
+      )
+
+    /** Stops every run this env started. `JSRun.close` is documented idempotent, so a run the adapter already closed takes no harm.
+      *
+      * The process-level run closes first. That kills Node, which fails the socket read that `ComRun`'s receiver thread is blocked on. `ComRun.close` is
+      * `synchronized` against that receiver thread.
+      */
+    def stopStartedRuns(): Unit = {
+      val closeMethod = loader.loadClass("org.scalajs.jsenv.JSRun").getMethod("close")
+      startedRuns.forEach { started =>
+        closeMethod.invoke(processRunOf(started)): Unit
+        closeMethod.invoke(started): Unit
+      }
+    }
+
+    /** The run that owns the OS process.
+      *
+      * `startWithCom` returns a `org.scalajs.jsenv.nodejs.ComRun`. Closing a `ComRun` closes the socket it speaks to Node over. A suite spinning in a
+      * synchronous loop never reaches Node's event loop to notice that close. The run a `ComRun` keeps reaches the process instead, because
+      * `ExternalJSRun.close` calls `destroyForcibly`. `start` returns that process-level run with nothing wrapped around it.
+      */
+    private def processRunOf(started: AnyRef): AnyRef =
+      if (started.getClass.getName == RecordingJsEnv.ComRunClassName)
+        started.getClass.getField(RecordingJsEnv.ComRunRunField).get(started)
+      else started
+  }
+
+  private object RecordingJsEnv {
+
+    val ComRunClassName = "org.scalajs.jsenv.nodejs.ComRun"
+
+    /** The mangled name of `ComRun`'s `run` field. The field is public, so this read needs no `setAccessible` and no module opening. A Scala.js release that
+      * renames it fails this read loudly rather than leaking a Node process.
+      */
+    val ComRunRunField = "org$scalajs$jsenv$nodejs$ComRun$$run"
   }
 
   private object JsTestAdapter {
 
-    /** A resource for a started adapter. Releasing the resource closes the adapter. A `close()` that throws fails the run rather than passing quietly. */
+    /** A resource for a started adapter.
+      *
+      * Releasing the resource stops every Node process the adapter started, then closes the adapter. A `close()` that throws fails the run rather than passing
+      * quietly. The Node processes are already stopped by then.
+      */
     def open(
         loader: ClassLoader,
         linkedJs: Path,
@@ -124,15 +204,24 @@ object ScalaJsTestRunner {
           .invoke(configClass.getConstructor().newInstance().asInstanceOf[AnyRef], consoleLogger(loader))
           .asInstanceOf[AnyRef]
 
+        val recordingEnv = new RecordingJsEnv(nodeJsEnv(loader, nodeBinary, env), loader)
+
         val adapter = adapterClass(loader)
           .getConstructor(loader.loadClass("org.scalajs.jsenv.JSEnv"), loader.loadClass("scala.collection.immutable.Seq"), configClass)
-          .newInstance(nodeJsEnv(loader, nodeBinary, env), AlienList.of(List(input(loader, linkedJs, moduleKind)), loader).underlying, config)
+          .newInstance(recordingEnv.asJsEnv, AlienList.of(List(input(loader, linkedJs, moduleKind)), loader).underlying, config)
           .asInstanceOf[AnyRef]
 
-        JsTestAdapter(adapter, loader)
+        JsTestAdapter(adapter, loader, recordingEnv)
       }
 
-      Resource.make(acquire)(adapter => IO.blocking(adapter.close()))
+      // Stopping the runs comes first. It kills the Node process, which fails the RPC read that a suite thread is blocked on. `TestAdapter.close` takes the
+      // adapter's own monitor. A suite thread that still held that monitor would block this release forever.
+      Resource.make(acquire) { adapter =>
+        IO.blocking {
+          adapter.stopNodeRuns()
+          adapter.close()
+        }
+      }
     }
 
     private def adapterClass(loader: ClassLoader): Class[?] =

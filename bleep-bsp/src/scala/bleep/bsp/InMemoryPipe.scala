@@ -122,4 +122,3 @@ case class PipeClosedByReaderException() extends IOException("The reading end of
 
 /** Thrown when a write arrives after the writing end closed. */
 case class PipeClosedByWriterException() extends IOException("The writing end of this pipe is closed")
-
