@@ -296,11 +296,9 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
     duration should be < cancellationTimeoutMs
   }
 
-  /** Three adapters run at once, each with its own Node process. A runner that shared process state between runs would report the wrong counts. */
   /** The node processes this JVM started that are still running.
     *
-    * The adapter starts node through a `ProcessBuilder`, which makes every node process a direct child of this JVM. A cancelled run that leaves one of these
-    * behind leaves it spinning on a core until someone kills it.
+    * The adapter starts node through a `ProcessBuilder`. Every node process is a direct child of this JVM.
     */
   private def liveNodeChildren(): Set[Long] =
     ProcessHandle
@@ -339,6 +337,7 @@ class ScalaJsTestAdapterIntegrationTest extends AnyFunSuite with Matchers with B
     }
   }
 
+  /** Three adapters run at once, each with its own node process. A runner that shared process state between runs would report the wrong counts. */
   test("ScalaJsTestRunner.runTestsViaAdapter: three runs execute in parallel") {
     import cats.syntax.parallel.*
 

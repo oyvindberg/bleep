@@ -198,7 +198,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
   import JsonRpcCodecs.given
 
   def use[A](f: BspClient => A): A = {
-    // Two pipes carry the two directions. InMemoryPipe explains why not `java.io.PipedInputStream`.
+    // One pipe per direction.
     val clientToServer = new InMemoryPipe(65536)
     val serverToClient = new InMemoryPipe(65536)
 

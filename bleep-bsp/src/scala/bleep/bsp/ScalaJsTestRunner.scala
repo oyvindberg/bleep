@@ -61,9 +61,8 @@ object ScalaJsTestRunner {
             SbtTestDriver.runFramework(sbtFramework, suites, eventHandler, loader)
           }
 
-          // Stopping Node is what ends a suite that spins. Such a suite never reaches Node's event loop and never sees the adapter close its RPC channel.
-          // The thread waiting for that suite's reply does not return either, which leaves fiber cancellation nothing to unwind. This branch produces its
-          // reason only after the process is gone. The race therefore resolves with Node already stopped.
+          // Stopping node is what ends a suite that spins. Such a suite never returns to node's event loop, and never notices the adapter closing its
+          // socket to node. The thread waiting for that suite's reply does not return either.
           val stopNodeThenReport = killSignal.get.flatTap(_ => IO.blocking(adapter.stopNodeRuns()))
 
           IO.race(runSuite, stopNodeThenReport).map {
@@ -107,22 +106,18 @@ object ScalaJsTestRunner {
       AlienList(loaded, loader).elements.map(element => AlienOption(element, loader).as[sbt.testing.Framework])
     }
 
-    /** Closes the adapter's RPC channel for every runner it knows about. */
+    /** Closes the adapter's socket for every runner the adapter keeps. */
     def close(): Unit =
       JsTestAdapter.adapterClass(loader).getMethod("close").invoke(underlying): Unit
 
-    /** Stops every Node process this adapter started. Safe to call more than once. */
+    /** Stops every node process this adapter started. Safe to call more than once. */
     def stopNodeRuns(): Unit = jsEnv.stopStartedRuns()
   }
 
   /** A `org.scalajs.jsenv.JSEnv` that keeps every `org.scalajs.jsenv.JSRun` it starts.
     *
-    * `TestAdapter.close` closes the RPC channel to each runner it knows about. It leaves a Node process that is spinning in a synchronous loop, because that
-    * process never reaches its event loop and never sees the channel close. `JSRun.close` reaches the process instead. `ExternalJSRun.close` calls
-    * `destroyForcibly` on it.
-    *
-    * Recording the runs keeps this containment exact. Each adapter stops the processes it started and no others, which matters because suites of one project
-    * run their adapters at the same time.
+    * `TestAdapter.close` closes the socket to each runner. That close leaves a node process spinning in a synchronous loop because such a
+    * process never returns to its event loop to notice the socket closing. `ExternalJSRun.close` reaches the process instead via `destroyForcibly`.
     *
     * @param realEnv
     *   the `NodeJSEnv` this env delegates every call to
@@ -141,17 +136,16 @@ object ScalaJsTestRunner {
         (_, method, args) => {
           val returned =
             try method.invoke(realEnv, (if (args == null) Array.empty[AnyRef] else args)*)
-            // The adapter reads the exception a `JSEnv` throws. A reflective wrapper around the cause would hide it.
             catch { case invoked: java.lang.reflect.InvocationTargetException => throw invoked.getCause }
           if (method.getName == "start" || method.getName == "startWithCom") startedRuns.add(returned): Unit
           returned
         }
       )
 
-    /** Stops every run this env started. `JSRun.close` is documented idempotent, so a run the adapter already closed takes no harm.
+    /** Stops every run this env started. `JSRun.close` is safe to re-run.
       *
-      * The process-level run closes first. That kills Node, which fails the socket read that `ComRun`'s receiver thread is blocked on. `ComRun.close` is
-      * `synchronized` against that receiver thread.
+      * The process-level run closes first. Closing that run kills node. The socket read that blocks `ComRun`'s receiver thread then fails, which releases the
+      * monitor `ComRun.close` needs.
       */
     def stopStartedRuns(): Unit = {
       val closeMethod = loader.loadClass("org.scalajs.jsenv.JSRun").getMethod("close")
@@ -161,11 +155,9 @@ object ScalaJsTestRunner {
       }
     }
 
-    /** The run that owns the OS process.
+    /** The run that owns the node process.
       *
-      * `startWithCom` returns a `org.scalajs.jsenv.nodejs.ComRun`. Closing a `ComRun` closes the socket it speaks to Node over. A suite spinning in a
-      * synchronous loop never reaches Node's event loop to notice that close. The run a `ComRun` keeps reaches the process instead, because
-      * `ExternalJSRun.close` calls `destroyForcibly`. `start` returns that process-level run with nothing wrapped around it.
+      * `startWithCom` returns a `org.scalajs.jsenv.nodejs.ComRun`. Closing a `ComRun` closes the socket a `ComRun` uses to speak to node.
       */
     private def processRunOf(started: AnyRef): AnyRef =
       if (started.getClass.getName == RecordingJsEnv.ComRunClassName)
@@ -177,8 +169,7 @@ object ScalaJsTestRunner {
 
     val ComRunClassName = "org.scalajs.jsenv.nodejs.ComRun"
 
-    /** The mangled name of `ComRun`'s `run` field. The field is public, so this read needs no `setAccessible` and no module opening. A Scala.js release that
-      * renames it fails this read loudly rather than leaking a Node process.
+    /** The mangled name of `ComRun`'s `run` field. The field is public.
       */
     val ComRunRunField = "org$scalajs$jsenv$nodejs$ComRun$$run"
   }
@@ -187,8 +178,7 @@ object ScalaJsTestRunner {
 
     /** A resource for a started adapter.
       *
-      * Releasing the resource stops every Node process the adapter started, then closes the adapter. A `close()` that throws fails the run rather than passing
-      * quietly. The Node processes are already stopped by then.
+      * Releasing the resource stops every node process the adapter started, then closes the adapter.
       */
     def open(
         loader: ClassLoader,
@@ -214,8 +204,6 @@ object ScalaJsTestRunner {
         JsTestAdapter(adapter, loader, recordingEnv)
       }
 
-      // Stopping the runs comes first. It kills the Node process, which fails the RPC read that a suite thread is blocked on. `TestAdapter.close` takes the
-      // adapter's own monitor. A suite thread that still held that monitor would block this release forever.
       Resource.make(acquire) { adapter =>
         IO.blocking {
           adapter.stopNodeRuns()

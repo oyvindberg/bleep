@@ -14,8 +14,8 @@ object InProcessBspServer {
   def connect(logger: Logger): Resource[IO, BspConnection] =
     Resource.make(
       IO.blocking {
-        // Two pipes carry the two directions. A megabyte of slack keeps a sourcegen run that logs faster than the
-        // client reads from blocking the server.
+        // One pipe per direction. A sourcegen run logs faster than the client reads. A megabyte buffer
+        // keeps that run from blocking the server.
         val clientToServer = new InMemoryPipe(1048576)
         val serverToClient = new InMemoryPipe(1048576)
 
