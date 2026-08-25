@@ -165,18 +165,30 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     linkerConfig = invokeWithMethod(linkerConfig, "withCheckIR", classOf[Boolean], config.checkIR)
     linkerConfig = invokeWithMethod(linkerConfig, "withPrettyPrint", classOf[Boolean], config.prettyPrint)
 
-    // Apply release mode semantics if in release mode
+    // The release overlay, mirroring mill's `ScalaJSConfigModule.fullOptConfig` line for line: optimized semantics, the Closure compiler where the module kind
+    // permits it, and minification from Scala.js 1.16 on. Together these are what makes a full link a full link — without them a release build is a fast link
+    // that has merely had dead code eliminated, which is why `bleep link --release` produced output still carrying fastLinkJS's long names and a payload too
+    // large for a 10MB budget.
     if (config.mode == ScalaJsLinkConfig.LinkerMode.Release) {
       val semanticsClass = loader.loadClass("org.scalajs.linker.interface.Semantics")
       val semanticsCompanion = loader.loadClass("org.scalajs.linker.interface.Semantics$")
       val semanticsObj = semanticsCompanion.getField("MODULE$").get(null)
-      val optimizedMethod = semanticsCompanion.getMethod("Defaults").invoke(semanticsObj)
-      try
-        linkerConfig = invokeWithMethod(linkerConfig, "withSemantics", semanticsClass, optimizedMethod)
-      catch {
-        case _: NoSuchMethodException => // Older version, skip
-      }
+      val defaults = semanticsCompanion.getMethod("Defaults").invoke(semanticsObj)
+      // `Defaults.optimized`, not `Defaults`. The plain defaults keep every runtime check the optimized ones drop, so passing them made this branch a no-op
+      // that looked deliberate.
+      val optimized = defaults.getClass.getMethod("optimized").invoke(defaults)
+      linkerConfig = invokeWithMethod(linkerConfig, "withSemantics", semanticsClass, optimized)
+
+      // Scala.js rejects the Closure compiler for ESModule output, so the module kind decides rather than the user (mill encodes the same exclusion; see its
+      // issue #1392). `IfAvailable` because Closure is an optional artifact on the linker classpath — absent, the linker skips it rather than failing.
+      val closureAllowed = config.moduleKind != ScalaJsLinkConfig.ModuleKind.ESModule
+      linkerConfig = invokeWithMethod(linkerConfig, "withClosureCompilerIfAvailable", classOf[Boolean], closureAllowed)
     }
+
+    // Minification renames; it is the half of a release build that shortens the identifiers, and `ScalaJsLinkConfig.Release` has always declared it. The linker
+    // only gained `withMinify` in 1.16, so the version decides whether it can be applied — checked rather than probed with an exception, the way mill checks it.
+    if (config.minify && scalaJsMinorVersion.exists(_ >= 16))
+      linkerConfig = invokeWithMethod(linkerConfig, "withMinify", classOf[Boolean], true)
 
     // Apply module split style
     try {
@@ -203,6 +215,13 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
     linkerConfig
   }
+
+  /** Minor version of the project's Scala.js, when it reads as `1.<minor>.<patch>`. Decides which linker options exist. */
+  private lazy val scalaJsMinorVersion: Option[Int] =
+    scalaJsVersion.split('.') match {
+      case Array(_, minor, _*) => minor.toIntOption
+      case _                   => None
+    }
 
   private def invokeWithMethod(obj: Any, methodName: String, paramType: Class[?], value: Any): Any = {
     val method = obj.getClass.getMethod(methodName, paramType)

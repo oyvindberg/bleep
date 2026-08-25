@@ -2135,6 +2135,14 @@ class MultiWorkspaceBspServer(
     if (linkOpts.optimize.isDefined && present.isEmpty) {
       validationErrors += s"--optimize/--no-optimize only applies to non-JVM platforms, but no linkable projects found"
     }
+    // Refused rather than obeyed: it is worse on both counts a user could want. Measured on a stdlib-using program, `--release --no-optimize` produced 288,209
+    // bytes against release's 152,896 and took longer doing it — the optimizer shrinks the program before the Closure compiler has to read it, so dropping the
+    // optimizer hands Closure more work and yields more output. Scoped to Scala.js because that is where Closure runs and where this was measured.
+    if (linkOpts.isRelease && linkOpts.optimize.contains(false) && present.exists(_.name == LinkPlatformName.ScalaJs)) {
+      validationErrors +=
+        "--no-optimize with --release produces larger Scala.js output (~1.9x) and takes longer, because the optimizer reduces the work the Closure compiler " +
+          "then has to do. Drop --no-optimize for a deployable build, or drop --release for a fast one."
+    }
     if (linkOpts.debugInfo.isDefined && !present.exists(_.isNative)) {
       validationErrors += s"--debug-info/--no-debug-info only applies to native platforms (Scala Native, Kotlin/Native), but linking: $linking"
     }
