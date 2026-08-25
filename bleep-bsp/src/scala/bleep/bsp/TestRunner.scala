@@ -4,7 +4,7 @@ import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
-import bleep.testing.{JvmPool, TestJvm, TestProtocol}
+import bleep.testing.{FrameworkSelection, JvmPool, TestJvm, TestProtocol}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -49,8 +49,8 @@ object TestRunner {
     *   the project containing the suite
     * @param suiteName
     *   the fully qualified class name of the test suite
-    * @param framework
-    *   the test framework name
+    * @param selection
+    *   how to run the suite: which runner, and for the sbt path which `Framework` class
     * @param classpath
     *   full classpath for the test JVM
     * @param pool
@@ -70,7 +70,7 @@ object TestRunner {
   def runSuite(
       project: CrossProjectName,
       suiteName: String,
-      framework: String,
+      selection: FrameworkSelection,
       classpath: List[Path],
       pool: JvmPool,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
@@ -85,11 +85,11 @@ object TestRunner {
       // joins these to the fork_start/fork_end pair, which is what lets a test run be reconstructed: which suites shared a JVM, and which JVM was killed
       // under which suite.
       val startedAt = System.currentTimeMillis()
-      IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, suiteName, framework)).attempt >>
+      IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, suiteName, selection.displayName)).attempt >>
         executeWithIdleTimeout(
           project = project,
           suiteName = suiteName,
-          framework = framework,
+          selection = selection,
           jvm = jvm,
           eventQueue = eventQueue,
           testArgs = options.testArgs,
@@ -112,7 +112,7 @@ object TestRunner {
   private def executeWithIdleTimeout(
       project: CrossProjectName,
       suiteName: String,
-      framework: String,
+      selection: FrameworkSelection,
       jvm: TestJvm,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       testArgs: List[String],
@@ -143,7 +143,7 @@ object TestRunner {
 
           // Process each response as it arrives (streaming, not batching)
           _ <- jvm
-            .runSuite(suiteName, framework, testArgs)
+            .runSuite(suiteName, selection, testArgs)
             .evalMap {
               case TestProtocol.TestResponse.TestStarted(_, test) =>
                 now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))

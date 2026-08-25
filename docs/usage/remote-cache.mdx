@@ -38,7 +38,7 @@ export BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY=wJal...
 bleep remote-cache pull
 
 # Build only what changed
-bleep build invalidated --base origin/main | xargs bleep compile
+bleep build invalidated --base origin/main | xargs -r bleep compile
 
 # Push compiled classes to cache
 bleep remote-cache push
@@ -47,10 +47,14 @@ bleep remote-cache push
 ## How it works
 
 Each project gets a SHA-256 **digest** computed from:
+- The bleep version
+- The build-level toolchain JVM — `jvm:` in `bleep.yaml`, name and index url (bump the JDK and every project's digest changes)
 - Project configuration (dependencies, compiler flags, Scala version, platform, etc.)
 - Source file contents (using git blob hashes for speed, with filesystem fallback)
 - Resource file contents (affects the digest but resources are NOT cached)
 - Transitive dependency project digests (changes propagate downstream)
+
+A build without a `jvm:` cannot be cached: the compiler would be whatever `java` is on `PATH`, which is not something bleep can hash, so `remote-cache pull`/`push` fail with an error instead of keying entries on an unknown toolchain.
 
 Cache entries are tar.gz archives stored at `s3://bucket/prefix/<project>/<digest>.tar.gz` containing the compiled classes directory and zinc incremental analysis.
 
@@ -79,14 +83,27 @@ Every project gets a SHA-256 **digest** over its compilation inputs
 (`ProjectDigest`), in this order:
 
 1. the build's `$version` (different bleep versions produce different output),
-2. the project's effective configuration as YAML — templates expanded,
+2. the build's `jvm:` — the toolchain name and the index url it is looked
+   up in, because a different JDK produces different class files and
+   `jvm:` appears in no project's configuration,
+3. the project's effective configuration as YAML — templates expanded,
    `publish` excluded because it doesn't affect compilation,
-3. content hashes of every source file under the project's source
+4. content hashes of every source file under the project's source
    directories,
-4. content hashes of every resource file (resources are *not* stored in
+5. content hashes of every resource file (resources are *not* stored in
    the archive, but they change the key),
-5. the digests of all transitive project dependencies,
-6. the digests of the projects backing its sourcegen scripts.
+6. the digests of all transitive project dependencies,
+7. the digests of the projects backing its sourcegen scripts.
+
+`resolvers:` is deliberately **not** part of the key. A coordinate is
+expected to resolve to the same bytes from any repository, and an
+artifact that is missing from the configured repositories fails
+resolution before anything compiles — so a changed resolver list has no
+way to silently produce different output. Hashing it would invalidate
+every project in the build the moment somebody adds a repository for one
+new dependency. Two repositories serving different bytes under one
+coordinate is a supply-chain incident, and a cache key is the wrong
+place to defend against it.
 
 File content hashes are git blob hashes: `git ls-tree -r HEAD` supplies
 them for directories with no uncommitted changes, and directories that
@@ -221,7 +238,7 @@ jobs:
           BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.BLEEP_CACHE_READ_SECRET_ACCESS_KEY }}
 
       - name: Build changed projects
-        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
+        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs -r bleep compile
 
   # Trusted: only reachable after merge to main. This job writes the cache.
   main:
@@ -275,7 +292,7 @@ mr:
     BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY: $CACHE_READ_SECRET
   script:
     - bleep remote-cache pull
-    - bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | xargs bleep compile
+    - bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | xargs -r bleep compile
 
 # Trusted: only the protected default branch, which is the only place
 # the protected write variables resolve.

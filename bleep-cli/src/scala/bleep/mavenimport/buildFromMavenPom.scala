@@ -19,34 +19,19 @@ object buildFromMavenPom {
     "scala3-interfaces"
   )
 
-  // Well-known test framework detection by artifact name (direct dependency)
+  /** Well-known `sbt.testing.Framework` implementations, by the artifact that provides them.
+    *
+    * No junit here, deliberately. junit has no `Framework` of its own — the sbt adapters are third-party bridges, and bleep does not use them: it drives the
+    * JUnit Platform's `Launcher` directly and finds junit suites by scanning for their annotations. Naming an adapter class in `testFrameworks:` would point
+    * bleep at a bridge it never loads, and pull in a dependency the build does not need.
+    */
   private val testFrameworksByArtifact: Map[String, String] = Map(
-    "junit-jupiter-api" -> "com.github.sbt.junit.JupiterFramework",
-    "junit-jupiter-engine" -> "com.github.sbt.junit.JupiterFramework",
-    "junit-jupiter" -> "com.github.sbt.junit.JupiterFramework",
-    "junit" -> "com.novocode.junit.JUnitFramework",
-    "kotlin-test-junit" -> "com.novocode.junit.JUnitFramework",
     "scalatest" -> "org.scalatest.tools.Framework",
     "specs2-core" -> "org.specs2.runner.Specs2Framework",
     "munit" -> "munit.Framework",
     "utest" -> "utest.runner.Framework",
     "zio-test" -> "zio.test.sbt.ZTestFramework",
     "weaver-cats" -> "weaver.framework.CatsEffect"
-  )
-
-  // Artifact names that indicate a test framework when found in the transitive dependency closure
-  private val transitiveTestFrameworkArtifacts: Map[String, String] = Map(
-    "junit-jupiter-api" -> "com.github.sbt.junit.JupiterFramework",
-    "junit-jupiter-engine" -> "com.github.sbt.junit.JupiterFramework"
-  )
-
-  // Adapters needed by bleep's test runner (implements sbt test-interface)
-  // These are injected automatically when the corresponding test framework is detected.
-  // Scala test libs (scalatest, munit, etc.) already implement sbt test-interface.
-  // JUnit Jupiter requires an external adapter; JUnit 4 needs junit-interface.
-  private val testAdapterDeps: Map[String, model.Dep] = Map(
-    "com.github.sbt.junit.JupiterFramework" -> model.Dep.Java("net.aichler", "jupiter-interface", model.Versions.JupiterInterface),
-    "com.novocode.junit.JUnitFramework" -> model.Dep.Java("com.github.sbt", "junit-interface", model.Versions.JunitInterface)
   )
 
   // Repos that are default and shouldn't be included
@@ -178,16 +163,11 @@ object buildFromMavenPom {
 
     val platform = model.Platform.Jvm(model.Options.empty, detectMainClass(logger, mavenProject), model.Options.empty)
 
-    val testFrameworks = detectTestFrameworks(mavenProject, logger)
+    val testFrameworks = detectTestFrameworks(mavenProject)
 
-    // Inject test interface adapter deps needed by bleep's test runner
-    val adapterDeps = testFrameworks.values.iterator
-      .flatMap { fw =>
-        testAdapterDeps.get(fw.value)
-      }
-      .toList
-      .distinct
-    val allTestDeps = testDeps ++ adapterDeps
+    // No adapter injection. Scala frameworks implement sbt test-interface themselves, and junit needs no bridge because bleep runs the JUnit Platform
+    // Launcher directly — whatever junit the pom already declares is what runs.
+    val allTestDeps = testDeps
 
     val testHasSources = hasSourceFiles(mavenProject.testSourceDirectory)
 
@@ -659,8 +639,13 @@ object buildFromMavenPom {
     }
   }
 
-  private def detectTestFrameworks(mavenProject: MavenProject, logger: Logger): model.JsonSet[model.TestFrameworkName] = {
-    // Phase 1: detect from direct test dependencies
+  /** Which `sbt.testing.Framework` implementations the imported project brings, for `testFrameworks:`.
+    *
+    * Direct test dependencies only. There used to be a second phase that resolved the whole transitive closure through coursier looking for junit artifacts —
+    * an entire dependency resolution per module, swallowing any exception it hit, to detect something bleep does not need told: junit suites are found by
+    * scanning for their annotations, and the JUnit Platform Launcher runs them. Nothing else was ever detected transitively.
+    */
+  private def detectTestFrameworks(mavenProject: MavenProject): model.JsonSet[model.TestFrameworkName] = {
     val fromDeps = mavenProject.dependencies.flatMap { dep =>
       if (dep.scope == "test") {
         val stripped = stripScalaSuffix(dep.artifactId)._1
@@ -668,48 +653,7 @@ object buildFromMavenPom {
       } else None
     }.distinct
 
-    // Phase 2: resolve transitive test dependencies to detect frameworks not directly listed
-    val fromTransitives = detectTestFrameworksFromTransitives(mavenProject, logger)
-
-    val frameworks = (fromDeps ++ fromTransitives).distinct
-
-    // When both JUnit 4 and JUnit 5 are detected, prefer JUnit 5 (Jupiter)
-    val jupiterFramework = model.TestFrameworkName("com.github.sbt.junit.JupiterFramework")
-    val junit4Framework = model.TestFrameworkName("com.novocode.junit.JUnitFramework")
-    val resolved =
-      if (frameworks.contains(jupiterFramework) && frameworks.contains(junit4Framework))
-        frameworks.filter(_ != junit4Framework)
-      else frameworks
-
-    model.JsonSet.fromIterable(resolved)
-  }
-
-  /** Resolve test dependencies transitively and check for known test framework artifacts. */
-  private def detectTestFrameworksFromTransitives(mavenProject: MavenProject, logger: Logger): List[model.TestFrameworkName] = {
-    val testDeps = mavenProject.dependencies.filter(_.scope == "test")
-    if (testDeps.isEmpty) return Nil
-
-    val coursierDeps = testDeps.map { dep =>
-      coursier.Dependency(
-        coursier.Module(Organization(dep.groupId), ModuleName(dep.artifactId)),
-        coursier.version.VersionConstraint(dep.version)
-      )
-    }
-
-    val repos = CoursierResolver.coursierRepos(
-      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(r.url))),
-      None,
-      new CredentialProvider(logger, None),
-      logger
-    )
-
-    val resolution =
-      try coursier.Resolve().addDependencies(coursierDeps*).withRepositories(repos).run()
-      catch { case _: Exception => return Nil }
-
-    val resolvedModuleNames = resolution.dependencies.map(_.module.name.value)
-
-    resolvedModuleNames.flatMap(transitiveTestFrameworkArtifacts.get).map(model.TestFrameworkName.apply).toList
+    model.JsonSet.fromIterable(fromDeps)
   }
 
   private def extractRepositories(mavenProjects: List[MavenProject]): model.JsonList[model.Repository] = {

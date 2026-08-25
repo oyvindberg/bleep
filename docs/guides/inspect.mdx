@@ -94,17 +94,31 @@ text reports.
 ### `bleep build invalidated --base origin/main`
 
 Lists the projects whose source or config changed vs a base commit,
-plus every project that transitively depends on them. The
-CI-shaping primitive: feed the result into `xargs bleep compile`
-and you build only what changed (and what depends on what changed).
-Feed the JSON form into a GitHub Actions matrix and you fan out
-exactly the right test job set.
+plus every project that transitively depends on them. This is the
+*inspection* form: what you run to look at the set, or to feed a
+GitHub Actions matrix and fan out exactly the right job set.
 
 ```bash
-bleep build invalidated --base origin/main | xargs bleep compile
-bleep build invalidated --base origin/main | xargs bleep test
+bleep build invalidated --base origin/main
 bleep build invalidated --base origin/main --output json   # for matrix expansion
 ```
+
+To *build* that set, don't pipe this anywhere — put `--invalidated`
+on the build command itself:
+
+```bash
+bleep ci --invalidated=origin/main        # compile everything and test everything, scoped
+bleep compile --invalidated=origin/main   # compile only
+```
+
+That is not just shorter. The pipeline it replaces —
+`bleep build invalidated --base origin/main | xargs bleep compile` —
+fails open: when nothing is invalidated this command prints nothing,
+`xargs` runs `bleep compile` anyway with no arguments, and `bleep
+compile` with no arguments compiles **everything**. The flag keeps
+the project list inside one process, so an empty set builds nothing
+and says so. If you do pipe project names into something, use
+`xargs -r`, which runs no command at all on empty input.
 
 See [CI project invalidation](/docs/usage/ci-invalidation) for the
 full pattern with example workflows.

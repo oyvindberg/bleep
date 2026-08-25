@@ -8,6 +8,12 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
     if (watch) WatchMode.run(started, watchableProjects)(runOnce)
     else runOnce(started)
 
+  /** What `--watch` wakes up on: the script projects, and the projects that asked for them.
+    *
+    * The consumers are in the set because that is where `sourceGlobs` is declared, and those directories are now real inputs to the staleness check. Seeding
+    * only the script projects meant a schema directory declared on the consumer could change without waking anything — the same half-wired state the field had
+    * everywhere else.
+    */
   private def watchableProjects(started: Started): TransitiveProjects = {
     val scriptProjects = for {
       projectName <- projectNames
@@ -17,7 +23,7 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
         case model.ScriptDef.Main(scriptProject, _, _) => scriptProject
       }
     } yield scriptProject
-    TransitiveProjects(started.build, scriptProjects)
+    TransitiveProjects(started.build, projectNames ++ scriptProjects)
   }
 
   private def runOnce(started: Started): Either[BleepException, Unit] = {

@@ -8,16 +8,12 @@ import org.scalatest.time.{Seconds, Span}
 
 import java.nio.file.{Files, Path}
 
-/** Integration tests for platform-aware test dispatching through BSP.
+/** How a project's `platform:` and `isTestProject:` reach BSP: is it offered as a test target at all, and with which platform attached.
   *
-  * Verifies that BspServer.handleTest() correctly detects platform from ProjectConfig and dispatches to the appropriate test runner:
-  *   - JVM: runs tests via java -cp with detected framework
-  *   - Scala.js: links then runs via Node.js
-  *   - Scala Native: links native binary then runs it
-  *
-  * These tests go through the full BSP protocol: BspTestHarness → BspServer → handleTest → platform dispatch.
+  * Configuration, not execution — no suite runs here. What a given framework then does on that target is `TestFrameworkMatrixIT`'s subject; this pins the step
+  * before it, where a project that is a test project has to be recognised as one, and a Scala.js project must not arrive looking like a JVM one.
   */
-class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLimits {
+class BspTestTargetConfigTest extends AnyFunSuite with Matchers with TimeLimits {
 
   val mediumTimeout: Span = Span(180, Seconds)
 

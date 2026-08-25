@@ -23,7 +23,7 @@ class YourFirstScalaProjectIT extends IntegrationTestHarness {
     ws.attachSnippet("myapp/src/scala/com/example/Main.scala", "your-first-scala-project/Main.scala")
     ws.attachSnippet("myapp-test/src/scala/com/example/MainTest.scala", "your-first-scala-project/MainTest.scala")
 
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(model.CrossProjectName(model.ProjectName("myapp-test"), None)),
       watch = false,
@@ -32,6 +32,6 @@ class YourFirstScalaProjectIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "com.example.MainTest", tests = 1)
   }
 }

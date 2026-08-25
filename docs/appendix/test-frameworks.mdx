@@ -1,30 +1,160 @@
 # Supported test frameworks
 
-Bleep auto-detects the test framework for each test project from its
-dependencies. Add the dependency to your `mylib-test` project and
-[`bleep test`](/docs/reference/cli/test/) will use the right framework.
+Bleep detects the test framework for each test project by **scanning its
+compiled classes** — not by reading its dependency coordinates. Add the
+framework as a dependency, write a test, and
+[`bleep test`](/docs/reference/cli/test/) finds it.
+
+## Two ways a suite gets run
+
+Bleep speaks two runner SPIs, and which one a suite uses is decided by the
+build server, which can see the classpath. Nothing about it needs configuring.
+
+| Runner | Used for | How |
+|---|---|---|
+| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, `kotlin.test`, jqwik, Cucumber | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
+| **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, minitest, hedgehog, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
+
+The JUnit Platform is itself a runner SPI rather than a framework, which is
+why one code path covers so many names: bleep asks the Launcher, and the
+Launcher asks whichever engines the project brought.
+
+Going through the Launcher rather than an sbt adapter is deliberate. It is
+what opens a `LauncherSession`, which is where Quarkus installs its
+classloader and Spring Boot hangs test-context setup — an adapter never opens
+one, so those frameworks would not work at all.
 
 ## Auto-detected frameworks
 
-| Framework | Maven coordinate (any of) | Notes |
-|---|---|---|
-| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | Bleep injects `net.aichler:jupiter-interface:0.11.1` automatically. You do not declare it. |
-| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | Bleep injects `com.github.sbt:junit-interface:0.13.3` automatically. |
-| **ScalaTest** | `org.scalatest::scalatest` | Implements sbt test-interface natively. |
-| **specs2** | `org.specs2::specs2-core` | Native test-interface. |
-| **MUnit** | `org.scalameta::munit` | Native test-interface. |
-| **utest** | `com.lihaoyi::utest` | Native test-interface. |
-| **ZIO Test** | `dev.zio::zio-test` | Native test-interface. |
-| **weaver-cats** | `com.disneystreaming::weaver-cats` | Native test-interface. |
+Every framework below is covered by an end-to-end test that builds a real
+project, runs it on each platform marked here, and checks the reported
+results — so this table is generated from something that runs, not from
+intent. A blank cell means the framework publishes nothing for that platform,
+not that bleep fails there.
 
-Detection is by *artifact name*, not by group. If your dependency
-coordinates match the artifact column above. Bleep treats the project
-as using that framework.
+| Framework | Maven coordinate (any of) | JVM | Scala.js | Native |
+|---|---|:-:|:-:|:-:|
+| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | ✅ | | |
+| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | ✅ | | |
+| **JUnit 3** | `junit:junit` — suites extending `junit.framework.TestCase` | ✅ | | |
+| **Kotest** | `io.kotest:kotest-runner-junit5-jvm` | ✅ | | |
+| **kotlin.test** | `org.jetbrains.kotlin:kotlin-test-junit5`, `:kotlin-test-junit` | ✅ | | |
+| **jqwik** | `net.jqwik:jqwik` | ✅ | | |
+| **Cucumber** | `io.cucumber:cucumber-junit-platform-engine` plus a `@Suite` class — see below | ✅ | | |
+| **TestNG** | `org.testng:testng` **plus** Mill's bridge, `com.lihaoyi:mill-contrib-testng_2.13` | ✅ | | |
+| **ScalaTest** | `org.scalatest::scalatest` | ✅ | ✅ | ✅ |
+| **MUnit** | `org.scalameta::munit` | ✅ | ✅ | ✅ |
+| **utest** | `com.lihaoyi::utest` | ✅ | ✅ | ✅ |
+| **ScalaCheck** | `org.scalacheck::scalacheck` | ✅ | ✅ | ✅ |
+| **specs2** | `org.specs2::specs2-core` | ✅ | ✅ | |
+| **weaver-cats** | `com.disneystreaming::weaver-cats` | ✅ | ✅ | |
+| **minitest** | `io.monix::minitest` | ✅ | ✅ | |
+| **hedgehog** | `qa.hedgehog::hedgehog-sbt` | ✅ | ✅ | |
+| **ZIO Test** | `dev.zio::zio-test` | ✅ | | |
+
+`kotlin.test` additionally runs on **Kotlin/JS** and **Kotlin/Native** — see
+below. TestNG ships no sbt test-interface implementation of its own, which is
+why the Mill bridge is required and why bleep does not supply it for you.
+
+ZIO Test is JVM-only here deliberately rather than by omission: it links and
+runs on Scala.js, but comes back as a bare suite-level failure with no message,
+which is not enough to say whose defect it is.
+
+You do not declare an adapter for JUnit. Bleep used to inject
+`net.aichler:jupiter-interface` and no longer does — it runs the Launcher
+itself, so the adapter was never loaded.
+
+## What bleep adds to the test classpath
+
+Running a test needs more on the classpath than compiling one does, and the
+extra pieces are ones you should not have to name yourself. Bleep adds them,
+and this is the whole list — nothing else is injected anywhere.
+
+| What | When | At which version |
+|---|---|---|
+| `build.bleep:bleep-test-runner` | every test project | the version of bleep running the build |
+| `org.scala-sbt:test-interface` | every test project | 1.0, the only release there will ever be |
+| `junit-platform-launcher`, `junit-jupiter-engine`, `junit-vintage-engine` | the project resolved something from `org.junit.platform` | **the version the project resolved** |
+| `junit-platform-launcher`, `junit-vintage-engine` | the project has `junit:junit` and nothing from `org.junit.platform` | bleep's own |
+| `scalajs-test-interface`, `scalajs-test-bridge` | Scala.js test projects | the project's Scala.js version |
+| `test-interface` (Native) | Scala Native test projects | the project's Scala Native version |
+| `kotlin-test-js` | Kotlin/JS test projects | the project's Kotlin version |
+| the `kotlin-test` KLIB | Kotlin/Native test projects | from the Kotlin/Native distribution |
+
+Two rules govern all of it:
+
+**Bleep never overrides a version you chose.** If your project resolves a
+JUnit Platform, every junit artifact bleep adds is pinned to *that* version.
+Bleep supplies its own versions only in the one case where you have expressed
+no opinion at all — JUnit 4 with no platform anywhere, which predates the
+platform and cannot supply one. So bleep's versions and yours can never
+become two opinions for the resolver to reconcile.
+
+**Bleep adds nothing you do not need.** A ScalaTest project gets no junit. A
+project with no junit anywhere gets no junit. The rules fire on what you
+actually resolved, not on what you might have meant.
+
+The junit artifacts are version-sensitive in both directions, which is why
+the first rule matters: junit hard-fails when launcher and engine disagree
+(`OutputDirectoryCreator not available … unaligned versions`), and an engine
+paired with a foreign `junit-platform-commons` dies during discovery
+(`NoSuchMethodError: ReflectionUtils.returnsVoid`, dropped in 1.13). A kotest
+6 project hit exactly that when a stale engine landed ahead of the aligned one.
+
+The platform rows are different in kind: `scalajs-test-bridge` and its Native
+equivalent are the other half of the test protocol, linked into your test
+binary and spoken to by the adapter on the JVM side. Both halves must come
+from one toolchain, so bleep pins them to your platform version and marks them
+`early-semver` so a framework built against an older patch of the same line
+does not fail the eviction check over a conflict bleep created.
+
+### Seeing it for your own project
+
+These deps appear in no build file, so `bleep -d test` prints each one next
+to the rule that asked for it:
+
+```
+test runtime: org.scala-sbt:test-interface:1.0   [rule => sbt test interface …]
+test runtime: org.junit.platform:junit-platform-launcher:1.13.4, …   [rule => JUnit Platform …]
+```
+
+If something is on your test classpath that you did not put there and bleep
+does not claim, it arrived transitively through your own dependencies —
+`bleep evicted <project>` shows what resolution chose.
+
+### Kotlin/JS and Kotlin/Native
+
+Both run `kotlin.test`, and you declare no test dependency at all — bleep
+supplies `kotlin-test-js` and the Kotlin/Native `kotlin-test` KLIB itself.
+Write `@kotlin.test.Test`, and `bleep test` links the artifact and runs it.
+
+One limitation to know about, because it shows up in CI rather than at your
+terminal: on these two platforms bleep reports **one synthetic suite per
+project** — `<project>:KotlinJsTests` — rather than your actual test classes.
+Pass/fail counts are correct and a failing test fails the build, but the
+JUnit XML contains no individual test cases, so a CI dashboard reading those
+reports shows an empty run. `--only` cannot select by class name here either.
+
+Every other platform reports real suite and test names.
+
+### JUnit Platform versions
+
+Bleep runs **JUnit Platform 1.0.0 through 6.x**. The runner is compiled
+against the oldest supported API and reaches newer capabilities by probing
+for them, so a project pinning an old Jupiter still works: Spring Boot 2.4
+and 2.5, for instance, pin Jupiter 5.7, which predates `LauncherSession`.
+
+### What bleep does not add
+
+TestNG is the exception worth knowing: it ships no sbt test-interface
+implementation, so bleep cannot run it without Mill's bridge, and the bridge
+is not injected. Declare it yourself alongside `org.testng:testng` — see the
+table above for the coordinate.
 
 ## Multiple frameworks in one project
 
-A single test project can use multiple frameworks, declare each as a
-dependency and [`bleep test`](/docs/reference/cli/test/) runs all of them:
+A single test project can use several. Declare each as a dependency and
+[`bleep test`](/docs/reference/cli/test/) runs them all:
 
 ```yaml
 projects:
@@ -36,11 +166,42 @@ projects:
       - org.scalameta::munit:1.0.0                 # MUnit
 ```
 
+## Engines bleep does not find on its own
+
+Bleep discovers suites by scanning your compiled classes, so a JUnit Platform
+engine is reachable only when something about its classes is recognisable —
+an annotation bleep knows by name, or a base class it knows. The engine
+itself would run fine; bleep just never hands it the class.
+
+That is why an engine with its own annotations needs to be known explicitly.
+jqwik marks its tests `@Property` and `@Example` and carries no `@Test`
+anywhere, so before those names were added a jqwik project compiled, reported
+zero suites, and exited 0.
+
+Two consequences worth knowing:
+
+- **Cucumber** works, entered the way the JUnit Platform expects — a `@Suite`
+  class from `junit-platform-suite` pointing at your `.feature` resources:
+
+  ```java
+  @Suite
+  @IncludeEngines("cucumber")
+  @SelectClasspathResource("example")
+  @ConfigurationParameter(key = "cucumber.glue", value = "example")
+  public class RunCucumberTest {}
+  ```
+
+  That class is what bleep discovers; the Launcher expands it into one test
+  per scenario. A run with no annotated class anywhere — only `.feature`
+  resources — has nothing for bleep's scan to find.
+If you hit an engine bleep does not find, that is a bug worth reporting —
+the fix is usually one line.
+
 ## Frameworks not on this list
 
-If you depend on a framework that implements [sbt
-test-interface](https://github.com/sbt/test-interface) and isn't
-auto-detected. You can declare it explicitly:
+Any framework that implements [sbt
+test-interface](https://github.com/sbt/test-interface) works if bleep can
+recognize its suites. Declare its `Framework` class explicitly:
 
 ```yaml
 projects:
@@ -50,28 +211,65 @@ projects:
       - org.example.test.MyFramework
 ```
 
-The fully qualified class name is the value of the framework's
-`Framework` SPI implementation. Check the framework's documentation
-for its `Framework` class name.
+The value is the fully qualified name of the framework's `Framework` SPI
+implementation; check the framework's own documentation for it. If the class
+is not on the project's classpath, `bleep test` fails and says so — the
+setting never silently does nothing.
+
+This exists because sbt test-interface has no discovery mechanism of its
+own: the jar defines interfaces and nothing else, no `META-INF/services`, so
+a build tool has to be told the class name. It is the same reason sbt has a
+`testFrameworks` setting.
+
+A `TestEngine` on the JUnit Platform needs no configuration to *run* — the
+Launcher finds engines through the platform's `ServiceLoader` and asks each
+one. But bleep still has to find the suite class before it can hand anything
+over, so an engine whose suites carry neither a `Framework` fingerprint, a
+`@Test`-shaped annotation bleep knows, nor a recognised base class will not be
+discovered even though it would run perfectly. See below.
 
 ## How [`bleep test`](/docs/reference/cli/test/) runs them
 
 For each test project, bleep:
 
-1. Compiles the project (and its dependencies) like any other project.
-2. Spawns a JVM (or Node, for Scala.js / Kotlin/JS test projects)
-   with the test classpath, including the auto-injected adapter for
-   JUnit 4 / JUnit 5 if relevant.
-3. Discovers test classes via the framework's test-interface
-   implementation.
-4. Runs the discovered tests, streaming results back via BSP.
+1. Compiles the project and its dependencies like any other project.
+2. Scans the compiled classes for suites — by `Framework` fingerprints, by
+   test annotations, and by base class — and records which runner each one
+   needs.
+3. Spawns a JVM (or Node, for Scala.js and Kotlin/JS) with the test
+   classpath.
+4. Runs each suite through the runner chosen in step 2, streaming results
+   back over BSP as they happen.
 
-The discovery + run flow is the same as sbt's, since bleep uses sbt
-test-interface as the framework boundary.
+Discovery is bleep's own classpath scan rather than a delegation to the
+framework, which is what lets `bleep test` list suites, filter them with
+`--only`, and schedule them across JVMs before anything runs.
+
+## When a test project turns up empty
+
+A project marked `isTestProject: true` whose classes compiled but whose scan
+found **no suites at all** fails the run:
+
+```
+No test suites found in 1 test project(s): mylib-test. The classes compiled
+but no test framework claimed them — check the project's test dependencies
+and `testFrameworks:`.
+```
+
+This is a failure rather than a green "0 tests executed" on purpose. The
+usual causes — a test dependency that was never added, a framework whose
+fingerprints match nothing bleep scans for, suites renamed out of existence —
+all leave a build that compiles perfectly and tests nothing, and reporting
+that as a pass turns CI green precisely when it should not be.
+
+Filters are not affected. `--only`, `--exclude`, `--only-tag` and
+`--exclude-tag` narrowing a project down to nothing is you asking for that,
+so the check looks at what the scan found *before* any filter applied. A run
+that legitimately selects no suites still succeeds.
 
 ## See also
 
-- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) , 
+- [Projects → Tests are projects](/docs/concepts/projects#tests-are-projects) ,
   how to organize unit vs integration tests as sibling projects.
 - [Your First Project](/docs/tutorials/your-first-project): JUnit 5
   walk-through.

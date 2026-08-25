@@ -6,35 +6,63 @@ title: CI project invalidation
 
 Bleep can compute exactly which projects are affected by a set of changes, so your CI pipeline only rebuilds and retests what's necessary.
 
-## Usage
+## Build only what changed
+
+Put `--invalidated` on the build command:
 
 ```bash
-bleep build invalidated --base <commitish>
+bleep ci --invalidated=origin/main        # compile everything and test everything, scoped to the change
+bleep compile --invalidated=origin/main   # compile only
+bleep test --invalidated=origin/main      # test only
 ```
 
-The `--base` parameter is a git commitish, typically the base branch of a PR:
+[`bleep ci`](/docs/reference/cli/ci/) is the one-command CI entry point: compile every project, run every test, in a single build pass. With `--invalidated` it does that for the projects a diff touched — and for nothing else.
 
-```bash
-# Compare against the main branch
-bleep build invalidated --base origin/main
+The base is a git commitish, typically the base branch of a PR. Bare `--invalidated` (no `=<ref>`) compares against the current branch's upstream, which is what `git rev-parse @{upstream}` reports. If the branch has no upstream — a detached CI checkout, a branch never pushed — there is no answer, and bleep says so and stops rather than guessing a ref and building the wrong set:
 
-# Compare against a specific commit
-bleep build invalidated --base abc1234
+```console
+$ bleep compile --invalidated
+Error: no base ref to compare against: this branch has no upstream (`git rev-parse @{upstream}` found none).
+Name one explicitly, for instance `--base origin/main` or `--invalidated=origin/main`.
 ```
 
-Output is one project name per line, ready for piping:
+CI checkouts are usually in exactly that state, so name the ref explicitly in a workflow.
+
+### When nothing changed, nothing is built
+
+```console
+$ bleep ci --invalidated=origin/main
+Nothing invalidated vs origin/main. Nothing to compile and test.
+```
+
+That line is the entire point of the flag, and it is worth being explicit about why it exists.
+
+The recipe this replaces was:
 
 ```bash
+# DON'T. This fails open.
 bleep build invalidated --base origin/main | xargs bleep compile
-bleep build invalidated --base origin/main | xargs bleep test
 ```
 
-Use `--json` for structured output:
+`bleep build invalidated` prints one project name per line, so with nothing invalidated it prints nothing. `xargs` then runs the command anyway, with no arguments. And `bleep compile` with no arguments compiles **every project in the build**. The "only build what changed" pipeline quietly became a full build precisely in the case where there was nothing to do — the slowest possible outcome, in the job you added the pipeline to speed up, with no error anywhere to tell you.
+
+`--invalidated` keeps the project list inside a single process, where an empty selection is an empty selection. If you do pipe project names into a command for some other purpose, use `xargs -r` (`--no-run-if-empty`), which runs nothing when its input is empty.
+
+## Listing the set
+
+`bleep build invalidated` is still the right tool when you want to *see* the set, or feed it to something else — a build matrix, a report, a deploy filter:
 
 ```bash
+bleep build invalidated --base origin/main
+# bleep-core
+# bleep-cli
+# bleep-tests
+
 bleep build invalidated --base origin/main --json
-# ["bleep-core","bleep-cli","bleep-tests"]
+# {"projects":["bleep-core","bleep-cli","bleep-tests"],"success":true}
 ```
+
+`--base` is optional here too, and defaults to the branch's upstream in the same way.
 
 ## What counts as "invalidated"
 
@@ -43,8 +71,11 @@ A project is invalidated if **any** of the following changed between the base co
 1. **Build configuration**: dependencies, Scala/Java/Kotlin version, compiler options, platform settings, templates, or any other field in `bleep.yaml` that affects the project
 2. **Source files**: any file under the project's source or resource directories was added, modified, or deleted (detected via `git diff`)
 3. **Transitive dependents**: if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes sourcegen script dependencies.
+4. **Build-level toolchain**: a change to `jvm:` (the JDK that compiles everything) or to `$version` (the bleep that drives it) invalidates *every* project. Neither field belongs to any single project, so nothing in points 1-3 can see them.
 
 New projects (present in HEAD but not in the base) are always invalidated.
+
+Changing `resolvers:` deliberately invalidates **nothing**. A Maven coordinate resolves to the same bytes whichever repository serves it, and a missing artifact fails resolution loudly before anything compiles — so there is no path where a changed resolver list silently produces different output, and rebuilding the world because someone added a repository for one dependency would buy nothing.
 
 ## GitHub Actions example
 
@@ -59,46 +90,60 @@ jobs:
 
       - uses: bleep-build/bleep-setup-action@v1
 
-      - name: Find affected projects
-        id: affected
-        run: |
-          PROJECTS=$(bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }})
-          echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
-          if [ -z "$PROJECTS" ]; then
-            echo "No projects affected"
-          else
-            echo "Affected projects:"
-            echo "$PROJECTS"
-          fi
-
-      - name: Compile affected projects
-        if: steps.affected.outputs.projects != ''
-        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep compile
-
-      - name: Test affected projects
-        if: steps.affected.outputs.projects != ''
-        run: bleep build invalidated --base origin/${{ github.event.pull_request.base.ref }} | xargs bleep test
+      - name: Build and test what changed
+        run: bleep --no-color ci --no-tui --invalidated=origin/${{ github.event.pull_request.base.ref }}
 ```
+
+One step, and no guard around it: with nothing invalidated the command prints one line and exits 0.
 
 ## GitLab CI example
 
 ```yaml
 build:
   script:
-    - PROJECTS=$(bleep build invalidated --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
-    - |
-      if [ -n "$PROJECTS" ]; then
-        echo "$PROJECTS" | xargs bleep compile
-        echo "$PROJECTS" | xargs bleep test
-      else
-        echo "No projects affected, skipping build"
-      fi
+    - bleep --no-color ci --no-tui --invalidated=origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+```
+
+## Matrix expansion
+
+The one place the project list genuinely has to leave the process is a build matrix, where the CI system — not bleep — fans out the jobs. Use the JSON form, and guard the empty case in the CI system's own language:
+
+```yaml
+jobs:
+  affected:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.compute.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bleep-build/bleep-setup-action@v1
+      - id: compute
+        run: |
+          PROJECTS=$(bleep --no-color build invalidated --base origin/main --json | jq -c '.projects')
+          echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: affected
+    if: needs.affected.outputs.projects != '[]'   # the guard xargs never gave you
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.affected.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bleep-build/bleep-setup-action@v1
+      - run: bleep --no-color test --no-tui ${{ matrix.project }}
 ```
 
 ## How it works
 
 1. Loads `bleep.yaml` from the base commit via `git show`
-2. Compares the fully expanded project configuration (after template application) between base and HEAD
-3. Runs `git diff --name-only` to detect changed source and resource files
-4. Maps changed files to their owning projects
-5. Computes the transitive closure of dependents for all directly affected projects
+2. Compares the build-level toolchain fields (`jvm:`, `$version`) between base and HEAD — either changing invalidates everything
+3. Compares the fully expanded project configuration (after template application) between base and HEAD
+4. Runs `git diff --name-only` to detect changed source and resource files
+5. Maps changed files to their owning projects
+6. Computes the transitive closure of dependents for all directly affected projects
+
+Both the listing command and the `--invalidated` flag run that exact same code, so what `bleep build invalidated` prints and what `bleep ci --invalidated` builds cannot drift apart.

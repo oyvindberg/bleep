@@ -1,5 +1,7 @@
 package bleep
 
+import coursier.jvm.JvmChannel
+
 import java.nio.file.{Files, Path}
 import java.security.MessageDigest
 import scala.collection.immutable.SortedMap
@@ -10,15 +12,39 @@ import scala.util.control.NonFatal
 /** Computes a per-project SHA-256 digest capturing everything that affects compilation output.
   *
   * The digest includes:
+  *   - The bleep version
+  *   - The build-level toolchain JVM (`jvm:` in `bleep.yaml`) — the JDK that compiles and runs everything
   *   - Project configuration (deps, compiler flags, scala version, platform, etc.)
   *   - Source file content hashes (via `git ls-tree` for clean dirs, filesystem for dirty/generated)
   *   - Resource file content hashes (affects key but resources are NOT cached)
+  *   - Content hashes of directories declared under `sourceGlobs` on a `sourcegen:` entry, because a generator that reads them produces different sources when
+  *     they change
   *   - Transitive dependency project digests (if B depends on A, B's digest includes A's digest)
+  *
+  * What goes in is content, never location: every file contributes its path *relative to the declared directory* plus a git blob hash of its bytes. That is
+  * what makes the digest a portable cache key — two checkouts of the same commit at different absolute paths, on different operating systems, must agree. Any
+  * new input has to meet the same bar, which is why `sourceGlobs` directories are hashed exactly like source directories rather than, say, by mtime.
   *
   * Computed bottom-up through the dependency DAG so leaf projects are digested first.
   *
   * For performance on large repos, uses `git ls-tree` to get precomputed content hashes when the working tree is clean for a directory. Falls back to
   * filesystem hashing for directories with uncommitted changes or generated sources not tracked by git.
+  *
+  * ==Why the JVM is in here==
+  *
+  * `jvm:` is a *build*-level field, so it does not appear in any project's configuration YAML. Left out of the digest, bumping the toolchain JDK changed no
+  * project digest at all: `bleep remote-cache pull` happily served classes compiled by the previous JDK, and nothing anywhere reported a change. Both the name
+  * and the index url are hashed, because the index is what maps a name like `temurin:21` to an actual distribution — point it at a different index and the same
+  * name is a different JDK. A build with no `jvm:` cannot be digested at all: the toolchain is then whatever `java` happens to be on `PATH`, which is not an
+  * input we can hash, so [[computeAll]] throws instead of pretending the toolchain is known.
+  *
+  * ==Why `resolvers:` is deliberately NOT in here==
+  *
+  * Do not "fix" this by adding it. A Maven coordinate is expected to resolve to identical bytes whichever repository serves it, and if an artifact is missing
+  * from the configured repositories then resolution fails hard before anything is compiled — there is no path where a changed resolver list silently produces
+  * different output. Hashing resolvers would, on the other hand, invalidate every project in the build the moment someone adds a repository for one new
+  * dependency, buying nothing in return. The one case it would catch — two repositories serving different bytes under one coordinate — is a supply-chain
+  * incident, not a cache-correctness problem, and a cache key is the wrong place to defend against it.
   */
 object ProjectDigest {
 
@@ -32,6 +58,16 @@ object ProjectDigest {
       buildPaths: BuildPaths
   ): SortedMap[model.CrossProjectName, String] = {
     val digests = mutable.Map.empty[model.CrossProjectName, String]
+
+    // The toolchain JDK is a build-level input shared by every project. Determined once, up front, so a build without one fails before any hashing happens.
+    val jvm: model.Jvm = build.jvm.getOrElse(
+      throw new BleepException.Text(
+        s"no `jvm:` in ${BuildLoader.BuildFileName}. Compilation output depends on which JDK compiles it, so a build which leaves that to whatever `java` is on PATH cannot be given a content digest. Pin the toolchain, for instance:\n  jvm:\n    name: graalvm-community:24.0.1"
+      )
+    )
+    // `index` selects the channel a name like `temurin:21` is looked up in. `None` means coursier's default index, which is exactly what [[FetchJvm]] resolves
+    // it to, so hash that url rather than a stand-in for "unset" — an explicitly configured default index is the same toolchain as an omitted one.
+    val jvmIndex: String = jvm.index.getOrElse(JvmChannel.gitHubIndexUrl)
 
     // Pre-compute set of dirty paths once (much cheaper than per-directory git status calls)
     val dirtyPaths = gitDirtyPaths(buildPaths.buildDir)
@@ -48,24 +84,33 @@ object ProjectDigest {
           // 0. Bleep version (different versions produce different compilation output)
           md.update(build.$version.value.getBytes("UTF-8"))
 
-          // 1. Project config (deterministic YAML, excluding publish which doesn't affect compilation)
+          // 1. Build-level toolchain JVM (a different JDK produces different class files, and `jvm:` reaches no project's config)
+          md.update(jvm.name.getBytes("UTF-8"))
+          md.update(jvmIndex.getBytes("UTF-8"))
+
+          // 2. Project config (deterministic YAML, excluding publish which doesn't affect compilation)
           val configForDigest = project.copy(publish = None)
           val configYaml = yaml.encodeShortened(configForDigest)
           md.update(configYaml.getBytes("UTF-8"))
 
-          // 2. Source file content hashes
+          // 3. Source file content hashes
           hashDirectories(md, buildPaths.buildDir, projectPaths.sourcesDirs.all, dirtyPaths)
 
-          // 3. Resource file content hashes (affects digest, but resources are not cached)
+          // 4. Resource file content hashes (affects digest, but resources are not cached)
           hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all, dirtyPaths)
 
-          // 4. Transitive dependency digests (sorted for determinism)
+          // 5. Directories this project declared as sourcegen inputs via `sourceGlobs`.
+          // Kept as its own step rather than folded into 2/3 so the bytes fed for projects without
+          // `sourceGlobs` — which is nearly all of them — are byte-for-byte what they were before.
+          hashDirectories(md, buildPaths.buildDir, ProjectInputs.declaredSourcegenInputs(project, projectPaths).toSet, dirtyPaths)
+
+          // 6. Transitive dependency digests (sorted for determinism)
           val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty)
           deps.toList.sorted.foreach { dep =>
             md.update(compute(dep).getBytes("UTF-8"))
           }
 
-          // 5. Sourcegen dependency digests
+          // 7. Sourcegen dependency digests
           project.sourcegen.values.foreach { case model.ScriptDef.Main(sourcegenProject, _, _) =>
             md.update(compute(sourcegenProject).getBytes("UTF-8"))
           }

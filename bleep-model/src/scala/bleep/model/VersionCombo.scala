@@ -52,6 +52,45 @@ sealed trait VersionCombo {
         List(libs, scalaVersion.library, javalib) ++ testLibs.toList
     }
 
+  /** Version schemes for the test-harness libraries [[libraries]] injects.
+    *
+    * bleep pins these to the project's own Scala.js / Scala Native version, because the linked artifact's test bridge and the JVM-side adapter that talks to it
+    * have to come from one toolchain. A test framework published against an older patch of the same platform line brings its own copy along, and the eviction
+    * check then fails the build over a conflict bleep created and the user cannot see: `test-interface_native0.5_3:0.5.12 (strict) is selected over 0.5.1`,
+    * which is scalatest 3.2.19 against the [[Versions.ScalaNative05]] that `bleep build new` writes.
+    *
+    * `strict` there is not bleep's word: `org.scala-native` publishes `<info.versionScheme>strict</info.versionScheme>` in its POMs, so upstream's own position
+    * is that no two versions of this artifact are interchangeable. Overriding that deserves a reason rather than a convenience, and the reason is the module
+    * name. `test-interface_native0.5_3` can only ever hold a 0.5.x version — the binary line is in the artifact id, and both platforms keep compatibility
+    * across a line — so `early-semver` describes this module exactly: differing patches within one line are compatible, and there is no version of this module
+    * that early-semver would wave through but the platform would not. That is a narrower claim than `always`, which would also cover artifacts whose names
+    * carry no such guarantee, and it is checkable rather than merely asserted.
+    *
+    * Scoped to the test libraries deliberately. It says nothing about ordinary dependencies, and does not touch the standard library — a dependency demanding a
+    * newer scala-library is a real conflict, and one the user can act on.
+    */
+  def testLibraryVersionSchemes(isTest: Boolean): List[LibraryVersionScheme] =
+    if (!isTest) Nil
+    else
+      this match {
+        case VersionCombo.Js(_, scalaJs)         => List(scalaJs.testInterface, scalaJs.testBridge).map(earlySemVer)
+        case VersionCombo.Native(_, scalaNative) => List(earlySemVer(scalaNative.testInterface))
+        case _                                   => Nil
+      }
+
+  /** A [[LibraryVersionScheme]] keeps the scheme in its dep's *version* slot — `org::name:early-semver` is how one is written in `bleep.yaml`, and
+    * [[LibraryVersionScheme.from]] parses the version as the scheme. The `scheme` field and `dep.version` are therefore two spellings of one fact, and they
+    * have to agree.
+    *
+    * Handing the library dep straight in leaves them disagreeing: the in-memory value resolves correctly, because resolution reads the organization, the module
+    * name and `scheme`. But the pair is also part of the resolution cache key, and there the dep is what gets written — so the entry serialized as
+    * `org.scala-native::test-interface:0.5.8` and refused to decode on the way back in: "Invalid version scheme: '0.5.8'". Round-tripping is what caught it.
+    */
+  private def earlySemVer(dep: Dep): LibraryVersionScheme = {
+    val scheme = LibraryVersionScheme.VersionScheme.EarlySemVer
+    LibraryVersionScheme(scheme, dep.withVersion(scheme.value))
+  }
+
   val compilerPlugin: Option[Dep]
   val compilerOptions: Options
 }

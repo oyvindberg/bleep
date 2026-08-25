@@ -248,11 +248,23 @@ projects:
         distribution: repo
     sources: ./src/main/java
   bleep-test-runner:
+    # The junit runtime is chosen per project by the rule table in MultiWorkspaceBspServer
+    # (`testRuntimeRules`), at the version that project resolved. So this artifact must not
+    # carry one: `provided` keeps the launcher on our own compile classpath — JUnitPlatformRunner
+    # imports org.junit.platform.launcher directly — and out of every consumer's runtime.
+    # jupiter-interface and junit-vintage-engine are gone entirely; neither was ever imported,
+    # they were only named in strings (`Class.forName` probes) and in error messages.
+    #
+    # 1.0.0 is a COMPATIBILITY FLOOR, not a preference. The runner is compiled against this and
+    # executed against whatever the project resolved, so this version is the oldest JUnit Platform
+    # bleep can run — anything newer used here silently strands older projects (1.9.1 stranded
+    # every Spring Boot <= 2.5, which pins Jupiter 5.7 / platform 1.7). Newer Launcher APIs are
+    # reachable, but only as an explicitly probed capability; see JUnitPlatformRunner.openLauncher.
+    # BleepTestRunnerDepsTest and JunitPlatformVersionRangeIT both pin this.
     dependencies:
       - org.scala-sbt:test-interface:1.0
-      - net.aichler:jupiter-interface:0.11.1
-      - org.junit.platform:junit-platform-launcher:1.9.1
-      - org.junit.vintage:junit-vintage-engine:5.9.1
+      - configuration: provided
+        module: org.junit.platform:junit-platform-launcher:1.0.0
     java:
       options: -proc:none --release 8
     platform:
@@ -381,6 +393,12 @@ projects:
       # wall-time. The full `build` job in GHA still runs them; native-image jobs exclude them with `--exclude-tag slow`.
       slow:
       - "**IT"
+      # The framework version sweep: every framework x every version it declares x every Scala version x every platform, each one a full inner build resolved
+      # from Maven Central. It exists to catch what the pinned matrix cannot — an older framework release whose suites bleep discovers or dispatches wrongly —
+      # and the axes only move when someone edits TestFrameworkFixture. So no CI job runs it; run it deliberately with `--only-tag matrix` when changing
+      # discovery, runner selection or the fork protocol. The `build` job excludes it explicitly.
+      matrix:
+      - "**TestFrameworkVersionIT"
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}

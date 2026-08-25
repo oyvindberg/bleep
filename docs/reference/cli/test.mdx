@@ -27,6 +27,7 @@ bleep test <project name...> [flags]
 | Flag | Description |
 |------|-------------|
 | `--watch, -w` | start in watch mode |
+| `--invalidated <base ref>` | build only what a git diff invalidated: projects whose sources or config changed vs a base ref, plus every project transitively depending on them. Bare --invalidated compares against this branch's upstream, --invalidated=&lt;ref&gt; against that ref. Nothing invalidated builds nothing |
 | `--no-tui` | disable TUI, keep the full streaming trace (for CI/agents that read logs) |
 | `--quiet, -q` | only failures and the final summary |
 | `--summary-only` | alias for --quiet |

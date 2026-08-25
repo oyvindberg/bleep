@@ -262,11 +262,24 @@ object TaskDag {
     }
   }
 
+  /** What a [[DiscoverTask]] found.
+    *
+    * `suites` is what survived `--only` / `--exclude` / tag filters and is what the run goes on to execute. `discoveredBeforeFilters` is what the classpath
+    * scan produced, and is kept separately because the two answer different questions: an empty `suites` may be the user narrowing the run, while an empty scan
+    * is a test project whose compiled classes no framework claimed. Only the second is a broken build — see `BuildSummary.toEither`.
+    */
+  case class DiscoveryResult(
+      suites: List[(String, bleep.testing.FrameworkSelection)],
+      discoveredBeforeFilters: Int,
+      /** Whether the project declares `isTestProject: true` — not whether it was named as a target, which every discovered project was. */
+      isTestProject: Boolean
+  )
+
   /** Execute a test suite */
   case class TestSuiteTask(
       project: CrossProjectName,
       suiteName: SuiteName,
-      framework: String
+      selection: bleep.testing.FrameworkSelection
   ) extends Task {
     val id: TaskId = TaskId.Test(project, suiteName)
     val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
@@ -378,7 +391,13 @@ object TaskDag {
     ) extends DagEvent
 
     // Discovery events
-    case class SuitesDiscovered(project: CrossProjectName, suites: List[SuiteName], timestamp: Long) extends DagEvent
+    case class SuitesDiscovered(
+        project: CrossProjectName,
+        suites: List[SuiteName],
+        discoveredBeforeFilters: Int,
+        isTestProject: Boolean,
+        timestamp: Long
+    ) extends DagEvent
 
     // Output events
     case class Output(project: CrossProjectName, suite: SuiteName, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
@@ -853,7 +872,7 @@ object TaskDag {
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
-      discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, List[(String, String)])],
+      discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
       test: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
@@ -1055,15 +1074,23 @@ object TaskDag {
                   case dt: DiscoverTask =>
                     withRecovery(s"Discover ${dt.project.value}", taskKill) {
                       for {
-                        (result, suites) <- handlers.discover(dt, taskKill)
+                        (result, discovery) <- handlers.discover(dt, taskKill)
                         _ <- result match {
                           case TaskResult.Success =>
                             // Add test tasks for discovered suites
-                            val testTasks = suites.map { case (suiteName, framework) =>
-                              TestSuiteTask(dt.project, SuiteName(suiteName), framework)
+                            val testTasks = discovery.suites.map { case (suiteName, selection) =>
+                              TestSuiteTask(dt.project, SuiteName(suiteName), selection)
                             }
                             dagRef.update(dag => testTasks.foldLeft(dag)(_.addTask(_))) >>
-                              emit(DagEvent.SuitesDiscovered(dt.project, suites.map(s => SuiteName(s._1)), timestamp))
+                              emit(
+                                DagEvent.SuitesDiscovered(
+                                  dt.project,
+                                  discovery.suites.map(s => SuiteName(s._1)),
+                                  discovery.discoveredBeforeFilters,
+                                  discovery.isTestProject,
+                                  timestamp
+                                )
+                              )
                           case _ => IO.unit
                         }
                       } yield result

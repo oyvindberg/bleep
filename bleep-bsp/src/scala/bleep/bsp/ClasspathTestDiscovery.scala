@@ -1,6 +1,7 @@
 package bleep.bsp
 
 import bleep.model.CrossProjectName
+import bleep.testing.FrameworkSelection
 import sbt.testing._
 
 import java.io.File
@@ -10,20 +11,29 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-/** Discovered test suite ready for execution */
+/** Discovered test suite ready for execution.
+  *
+  * `selection` is the execution decision — which runner, and for the sbt path which `Framework` class — made here because this is where the classpath is. The
+  * display name remains available as [[framework]] for reporting, BSP's `ScalaTestClassesItem` and metrics; nothing dispatches on it.
+  */
 case class DiscoveredTestSuite(
     project: CrossProjectName,
     className: String,
-    framework: String
-)
+    selection: FrameworkSelection
+) {
+  def framework: String = selection.displayName
+}
 
 /** Discovers test suites by scanning compiled class files.
   *
-  * Supports multiple discovery mechanisms:
+  * Three mechanisms, tried in order, each seeing only what the previous one did not claim:
   *   1. sbt-testing Framework fingerprints (ScalaTest, munit, utest, ZIO Test, specs2, etc.)
   *   2. Direct annotation scanning (JUnit 4/5, TestNG, kotlin.test)
   *   3. Base class detection (Kotest, Spock)
-  *   4. Naming convention fallback (Maven/Gradle patterns)
+  *
+  * There used to be a fourth, matching class names against Maven/Gradle conventions (`*Test`, `*Spec`, ...). It was unreachable — its entry point had no
+  * callers, both live ones call [[discover]] directly — and it could not have worked: it reported the framework as the literal string "unknown", which the fork
+  * would have handed to `Class.forName`. Guessing from a filename cannot say which runner to use, so it is gone rather than repaired.
   */
 object ClasspathTestDiscovery {
 
@@ -37,7 +47,7 @@ object ClasspathTestDiscovery {
     "utest.runner.Framework",
     "zio.test.sbt.ZTestFramework",
     "org.specs2.runner.Specs2Framework",
-    "weaver.sbt.WeaverFramework",
+    "weaver.framework.CatsEffect",
     "org.scalacheck.ScalaCheckFramework",
     "hedgehog.sbt.Framework",
     "minitest.runner.Framework",
@@ -66,8 +76,22 @@ object ClasspathTestDiscovery {
     // TestNG
     "org.testng.annotations.Test",
     // Kotlin test
-    "kotlin.test.Test"
+    "kotlin.test.Test",
+    // jqwik. Its own engine, its own annotations — `@Test` appears nowhere in a jqwik suite, so without these the class is invisible to this scan and the
+    // Launcher never gets asked about it. `@Property` is the property-based case, `@Example` the single-case one.
+    "net.jqwik.api.Property",
+    "net.jqwik.api.Example",
+    // A junit-platform-suite aggregator: the class carries no tests of its own, it names engines or resources for the Launcher to expand. This is how a
+    // Cucumber run is normally entered, and how anyone aggregates suites across engines.
+    "org.junit.platform.suite.api.Suite"
   )
+
+  /* Worth stating plainly, because it bounds everything above: bleep finds suites by scanning compiled classes itself, so a JUnit Platform engine is only
+   * reachable if something about its classes matches a name on one of these lists. The engine would run perfectly well — the Launcher finds engines through
+   * the ServiceLoader and asks each one — but bleep never hands it the class. Every engine with its own annotations therefore needs a line here, which is why
+   * jqwik was claimed in the docs and silently found nothing. The general fix is to let the Launcher perform discovery for junit-platform projects instead of
+   * guessing at annotations; that is a larger change, because bleep scans classes precisely so it can list, filter and schedule suites before running any.
+   */
 
   // ============================================================================
   // Base classes for framework detection (fallback when no sbt-testing Framework found)
@@ -135,31 +159,15 @@ object ClasspathTestDiscovery {
   )
 
   // ============================================================================
-  // Naming patterns for fallback discovery (Maven/Gradle conventions)
-  // ============================================================================
-  private val testNamePatterns: List[String] = List(
-    "^Test[A-Z].*", // Test* (Maven default)
-    ".*Test$", // *Test (Maven default)
-    ".*Tests$", // *Tests (Maven default)
-    ".*TestCase$", // *TestCase (Maven default)
-    ".*Spec$", // *Spec (ScalaTest, Spock convention)
-    ".*Specification$", // *Specification (Spock convention)
-    ".*Suite$", // *Suite (ScalaTest convention)
-    ".*IT$", // Integration tests
-    ".*IntegrationTest$"
-  )
-
-  // ============================================================================
   // Main discovery entry point
   // ============================================================================
 
   /** Discover test suites in a project's compiled classes.
     *
-    * Uses multiple strategies in order:
+    * Three strategies, each seeing only the classes the previous one did not claim:
     *   1. sbt-testing Framework fingerprints
     *   2. Direct annotation scanning
     *   3. Base class detection
-    *   4. Naming convention fallback
     *
     * @param project
     *   the project name
@@ -167,13 +175,18 @@ object ClasspathTestDiscovery {
     *   directory containing compiled .class files
     * @param classpath
     *   full classpath including dependencies
+    * @param declaredFrameworks
+    *   `Framework` class names the project named in `testFrameworks:`. Tried ahead of the built-in list, which is the point of the setting: a framework bleep
+    *   has never heard of is discoverable as long as it implements sbt test-interface. Still subject to being on the project's own classpath — declaring a
+    *   class that is not there discovers nothing, the same as any other candidate.
     * @return
     *   list of discovered test suites
     */
   def discover(
       project: CrossProjectName,
       classesDir: Path,
-      classpath: List[Path]
+      classpath: List[Path],
+      declaredFrameworks: List[String]
   ): List[DiscoveredTestSuite] = {
     if (!Files.isDirectory(classesDir)) {
       return Nil
@@ -188,7 +201,7 @@ object ClasspathTestDiscovery {
       val classNames = classFiles.map(f => classFileToClassName(classesDir, f))
 
       // Strategy 1: sbt-testing Framework fingerprints
-      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader)
+      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks)
 
       // Get classes not yet discovered
       val discoveredClassNames = frameworkDiscovered.map(_.className).toSet
@@ -221,22 +234,6 @@ object ClasspathTestDiscovery {
     } finally classLoader.close()
   }
 
-  /** Discover tests using optional naming convention fallback. Only use this when no tests found via other methods.
-    */
-  def discoverWithFallback(
-      project: CrossProjectName,
-      classesDir: Path,
-      classpath: List[Path]
-  ): List[DiscoveredTestSuite] = {
-    val discovered = discover(project, classesDir, classpath)
-    if (discovered.nonEmpty) {
-      discovered
-    } else {
-      // Fallback: try naming conventions
-      discoverByNamingConvention(project, classesDir)
-    }
-  }
-
   // ============================================================================
   // Strategy 1: sbt-testing Framework fingerprints
   // ============================================================================
@@ -244,9 +241,10 @@ object ClasspathTestDiscovery {
   private def discoverViaFrameworks(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      classLoader: URLClassLoader,
+      declaredFrameworks: List[String]
   ): List[DiscoveredTestSuite] = {
-    val frameworks = loadFrameworks(classLoader)
+    val frameworks = loadFrameworks(project, classLoader, declaredFrameworks)
 
     if (frameworks.isEmpty) {
       return Nil
@@ -259,19 +257,60 @@ object ClasspathTestDiscovery {
 
     classNames.flatMap { className =>
       matchFingerprint(className, classLoader, fingerprintsByFramework).map { case (fw, _) =>
-        DiscoveredTestSuite(project, className, fw.name())
+        DiscoveredTestSuite(project, className, selectionForFramework(fw))
       }
     }
   }
 
-  /** Load all available test frameworks from the classpath */
-  private def loadFrameworks(classLoader: ClassLoader): List[Framework] =
-    knownFrameworks.flatMap { fqn =>
-      Try {
-        val cls = classLoader.loadClass(fqn)
-        cls.getDeclaredConstructor().newInstance().asInstanceOf[Framework]
-      }.toOption
-    }
+  /** sbt adapters that bridge junit *down* to `sbt.testing.Framework`. When one of these is what matched, the suite still goes to the Launcher: bleep drives
+    * the JUnit Platform itself, and running junit through the bridge would lose the `LauncherSession` lifecycle that Quarkus and Spring Boot hook into.
+    */
+  private val junitAdapterClasses: Set[String] = Set(
+    "com.github.sbt.junit.jupiter.api.JupiterFramework",
+    "com.github.sbt.junit.JupiterFramework",
+    "net.aichler.jupiter.api.JupiterFramework",
+    "com.novocode.junit.JUnitFramework"
+  )
+
+  /** The framework instance is in hand here, so its implementation class is exact rather than inferred — the whole point of carrying it instead of a name. */
+  private def selectionForFramework(fw: Framework): FrameworkSelection = {
+    val cls = fw.getClass.getName
+    if (junitAdapterClasses.contains(cls)) FrameworkSelection.JUnitPlatform(fw.name())
+    else FrameworkSelection.SbtTestInterface(fw.name(), cls)
+  }
+
+  /** Load the test frameworks the *project* brings.
+    *
+    * Two steps on purpose. [[onProjectClasspath]] decides whether a framework is the project's, since a bare `loadClass` would also find one that only bleep
+    * happens to depend on and offer it to every project on the machine — see the note there for how that played out. The load itself then goes through the
+    * delegating loader, because a `Framework` implements `sbt.testing.Framework` and that interface has to come from bleep's own classloader for the cast on
+    * the next line to succeed.
+    */
+  private def loadFrameworks(project: CrossProjectName, classLoader: URLClassLoader, declaredFrameworks: List[String]): List[Framework] = {
+    // A name the user wrote is held to a higher standard than one bleep guessed. `knownFrameworks` is a list of candidates, most of which are absent from any
+    // given project, so absence there means nothing. A `testFrameworks:` entry that is absent means the setting is doing nothing and the user believes it is —
+    // exactly the silence this setting spent years in.
+    val missing = declaredFrameworks.filterNot(fqn => onProjectClasspath(classLoader, fqn))
+    if (missing.nonEmpty)
+      throw new RuntimeException(
+        s"${project.value}: testFrameworks names ${missing.mkString(", ")}, which is not on this project's classpath. " +
+          "Add the dependency that provides it, or remove the entry. " +
+          "If it is a junit adapter (net.aichler / com.github.sbt.junit / com.novocode.junit) an older `bleep import-maven` wrote it: delete the line, " +
+          "junit needs no adapter and its suites are detected automatically."
+      )
+
+    // Declared first, so a project's own choice wins the fingerprint race against a built-in candidate. Instantiation failures throw for the same reason as
+    // above — for known candidates they are shrugged off, because a broken framework bleep merely suspected is not the user's problem.
+    val declared = declaredFrameworks.map(fqn => instantiateFramework(classLoader, fqn))
+    val known = knownFrameworks
+      .filterNot(declaredFrameworks.contains)
+      .filter(fqn => onProjectClasspath(classLoader, fqn))
+      .flatMap(fqn => Try(instantiateFramework(classLoader, fqn)).toOption)
+    declared ++ known
+  }
+
+  private def instantiateFramework(classLoader: URLClassLoader, fqn: String): Framework =
+    classLoader.loadClass(fqn).getDeclaredConstructor().newInstance().asInstanceOf[Framework]
 
   /** Try to match a class against fingerprints */
   private def matchFingerprint(
@@ -288,17 +327,23 @@ object ClasspathTestDiscovery {
         fingerprints.find { case (_, fp) =>
           fp match {
             case sfp: SubclassFingerprint =>
-              val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(cls)
-              hasConstructor && Try {
+              Try {
                 val superclass = classLoader.loadClass(sfp.superclassName())
-                if (sfp.isModule) {
-                  // Check if it's a Scala object
-                  val moduleName = className + "$"
-                  Try(classLoader.loadClass(moduleName))
-                    .map(m => superclass.isAssignableFrom(m))
-                    .getOrElse(false)
-                } else {
-                  superclass.isAssignableFrom(cls)
+                // A module fingerprint describes the object's own class, so every question — does it extend the right thing, does it have the constructor the
+                // fingerprint asks for — has to be asked of that class rather than of the name the scan happened to land on.
+                val subject: Option[Class[?]] =
+                  if (!sfp.isModule) Some(cls)
+                  // The scan yields `Foo` when the compiler emitted a mirror class beside `Foo$`, and `Foo$` when it did not. Appending `$` unconditionally
+                  // asked for `Foo$$` in the second case, which exists for nothing, so any framework whose only fingerprint is a module one went undiscovered:
+                  // minitest declares exactly one, and its suites were never found.
+                  else if (className.endsWith("$")) Some(cls)
+                  else Try(classLoader.loadClass(className + "$")).toOption
+
+                subject.exists { subjectClass =>
+                  // Checked against `subjectClass`, not `cls`. A Scala 3 mirror class declares no constructor at all, so asking it this question rejected every
+                  // module suite whose fingerprint required one — which is all of them.
+                  val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(subjectClass)
+                  hasConstructor && superclass.isAssignableFrom(subjectClass)
                 }
               }.getOrElse(false)
 
@@ -306,10 +351,8 @@ object ClasspathTestDiscovery {
               val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
               annotationClass.exists { annClass =>
                 if (afp.isModule) {
-                  val moduleName = className + "$"
-                  Try(classLoader.loadClass(moduleName))
-                    .map(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
-                    .getOrElse(false)
+                  val moduleClass = if (className.endsWith("$")) Some(cls) else Try(classLoader.loadClass(className + "$")).toOption
+                  moduleClass.exists(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
                 } else {
                   cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
                 }
@@ -329,56 +372,76 @@ object ClasspathTestDiscovery {
   private def discoverViaAnnotations(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      // URLClassLoader, not ClassLoader: the runtime probes need to ask what is on *these* URLs, not what the parent can also reach.
+      classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
-    // Check which framework runtimes are actually available
-    val availableRuntimes = detectAvailableRuntimes(classLoader)
+    val junitAvailable = junitRuntimeOnClasspath(classLoader)
+    val testngBridge = testngBridgeClasses.find(c => onProjectClasspath(classLoader, c))
 
     classNames.flatMap { className =>
-      detectFrameworkByAnnotation(className, classLoader).flatMap { framework =>
-        // Only include if we can actually run this framework
-        val runtimeAvailable = framework match {
-          case "JUnit Jupiter" => availableRuntimes.contains("junit5") || availableRuntimes.contains("junit4")
-          case "JUnit"         => availableRuntimes.contains("junit4") || availableRuntimes.contains("junit5")
-          case "TestNG"        => availableRuntimes.contains("testng")
-          case "kotlin.test"   => availableRuntimes.contains("junit5") || availableRuntimes.contains("junit4")
-          case _               => true // Unknown framework, let it try
-        }
-        if (runtimeAvailable) Some(DiscoveredTestSuite(project, className, framework))
-        else None
+      detectFrameworkByAnnotation(className, classLoader).flatMap { displayName =>
+        selectionForAnnotation(displayName, junitAvailable, testngBridge)
+          .map(selection => DiscoveredTestSuite(project, className, selection))
       }
     }
   }
 
-  /** Check which test framework runtimes are available on the classpath */
-  private def detectAvailableRuntimes(classLoader: ClassLoader): Set[String] = {
-    val runtimes = scala.collection.mutable.Set[String]()
+  /** TestNG has no sbt adapter of its own; Mill's bridge is what implements `sbt.testing.Framework` for it, and it has moved package once. */
+  private val testngBridgeClasses: List[String] = List(
+    "mill.testng.TestNGFramework",
+    "mill.contrib.testng.TestNGFramework"
+  )
 
-    // JUnit 5 (Jupiter) runtimes
-    val junit5Classes = List(
-      "com.github.sbt.junit.jupiter.api.JupiterFramework",
-      "com.github.sbt.junit.JupiterFramework",
-      "net.aichler.jupiter.api.JupiterFramework"
+  /** Turn an annotation-derived name into an execution decision, or None when the project cannot run it.
+    *
+    * Everything junit-shaped goes to the Launcher, `kotlin.test` included — on the JVM it delegates to junit, and it previously fell through to the sbt path
+    * where the fork tried `Class.forName("kotlin.test")` and died. TestNG is the one annotation-detected framework that really is an sbt-interface framework,
+    * and it is offered only when the bridge that implements that interface is actually present: gating on the *annotation* would have discovered suites whose
+    * fork then had nothing to run them with.
+    */
+  private def selectionForAnnotation(
+      displayName: String,
+      junitAvailable: Boolean,
+      testngBridge: Option[String]
+  ): Option[FrameworkSelection] =
+    displayName match {
+      case "TestNG" => testngBridge.map(cls => FrameworkSelection.SbtTestInterface(displayName, cls))
+      case _        => if (junitAvailable) Some(FrameworkSelection.JUnitPlatform(displayName)) else None
+    }
+
+  /** Is this class on the classloader's *own* URLs — the project's classpath — rather than anywhere its parent can reach?
+    *
+    * `findResource` does not delegate to the parent, and that is the entire point. [[discover]] parents its loader on bleep's own so that `sbt.testing.*` comes
+    * from one place and a `Framework` loaded out of a project can be cast to it, but that also means a plain `loadClass` probe answers "is this class anywhere
+    * on bleep's classpath" — the same answer for every project on the machine.
+    *
+    * Not hypothetical. These probes used to name sbt adapter classes, and they reported "junit5 available" for every project ever compiled: not because the
+    * project had junit, but because `bleep-test-runner` declared `jupiter-interface` and `bleep-bsp` depends on `bleep-test-runner`, so the class sat on the
+    * server's own classloader. Dropping that unused dependency from the POM turned junit discovery off everywhere, which is how this was found.
+    */
+  private def onProjectClasspath(classLoader: URLClassLoader, className: String): Boolean =
+    classLoader.findResource(className.replace('.', '/') + ".class") != null
+
+  /** Does the project bring a JUnit Platform runtime of its own, so a junit-shaped suite can actually be run?
+    *
+    * Deliberately the same signal `MultiWorkspaceBspServer.testRuntimeRules` triggers on, because the two have to agree: that table decides what lands on the
+    * fork classpath, and this decides whether a suite is offered to it. Ask different questions and they drift — either a suite is discovered that no runtime
+    * will run, or a runnable one is silently dropped.
+    *
+    * So these name what the *project* must supply, not what bleep adds on top. `junit-platform-launcher` is deliberately absent: bleep injects it, at the
+    * project's own platform version, and demanding it up front would reject every project that table exists to serve. Likewise the engines — kotest's, spock's,
+    * jupiter's — are found by the Launcher through SPI at run time, so the platform's presence is the question, not any particular engine's.
+    */
+  private def junitRuntimeOnClasspath(classLoader: URLClassLoader): Boolean = {
+    val classes = List(
+      // Anything with a TestEngine: `junit-platform-commons` comes with `junit-jupiter-api`, `junit-platform-engine` with any engine.
+      "org.junit.platform.commons.JUnitException",
+      "org.junit.platform.engine.TestEngine",
+      // JUnit 4 and 3 — `junit:junit` carries both namespaces, and bleep supplies the vintage engine that runs them.
+      "org.junit.Test",
+      "junit.framework.TestCase"
     )
-    if (junit5Classes.exists(c => Try(classLoader.loadClass(c)).isSuccess)) {
-      runtimes += "junit5"
-    }
-
-    // JUnit 4 runtime
-    if (Try(classLoader.loadClass("com.novocode.junit.JUnitFramework")).isSuccess) {
-      runtimes += "junit4"
-    }
-
-    // TestNG runtime (try both Mill package names)
-    val testngClasses = List(
-      "mill.testng.TestNGFramework",
-      "mill.contrib.testng.TestNGFramework"
-    )
-    if (testngClasses.exists(c => Try(classLoader.loadClass(c)).isSuccess)) {
-      runtimes += "testng"
-    }
-
-    runtimes.toSet
+    classes.exists(c => onProjectClasspath(classLoader, c))
   }
 
   /** Detect test framework by scanning for test annotations */
@@ -404,6 +467,8 @@ object ClasspathTestDiscovery {
           case ann if ann.contains("junit")   => "JUnit"
           case ann if ann.contains("testng")  => "TestNG"
           case ann if ann.contains("kotlin")  => "kotlin.test"
+          case ann if ann.contains("jqwik")   => "jqwik"
+          case ann if ann.contains("suite")   => "JUnit Platform Suite"
           case _                              => "JUnit" // Default
         }
       }
@@ -427,43 +492,54 @@ object ClasspathTestDiscovery {
   private def discoverViaBaseClasses(
       project: CrossProjectName,
       classNames: List[String],
-      classLoader: ClassLoader
+      classLoader: URLClassLoader
   ): List[DiscoveredTestSuite] = {
-    // For base class detection, the base class itself being loadable means
-    // the framework is on classpath. But we still need to verify the runtime
-    // (sbt-testing Framework) is available to actually run the tests.
-    val frameworkRuntimes = Map(
-      "Kotest" -> List("io.kotest.runner.junit.platform.KotestJunitPlatformTestEngine"),
-      "Spock" -> List("org.spockframework.runtime.SpockEngine"),
-      "ScalaTest" -> List("org.scalatest.tools.Framework"),
-      "ZIO Test" -> List("zio.test.sbt.ZTestFramework"),
-      "MUnit" -> List("munit.Framework"),
-      "uTest" -> List("utest.runner.Framework"),
-      "specs2" -> List("org.specs2.runner.Specs2Framework"),
-      "Weaver" -> List("weaver.sbt.WeaverFramework"),
-      "ScalaCheck" -> List("org.scalacheck.ScalaCheckFramework"),
-      "JUnit" -> List("com.novocode.junit.JUnitFramework", "com.github.sbt.junit.jupiter.api.JupiterFramework", "com.github.sbt.junit.JupiterFramework")
-    )
-
-    // Pre-check which frameworks have their runtime available
-    val availableFrameworks = frameworkRuntimes.collect {
-      case (framework, runtimeClasses) if runtimeClasses.exists(c => Try(classLoader.loadClass(c)).isSuccess) =>
-        framework
-    }.toSet
+    val junitAvailable = junitRuntimeOnClasspath(classLoader)
 
     classNames.flatMap { className =>
-      detectFrameworkByBaseClass(className, classLoader).flatMap { framework =>
-        // Kotest and Spock use JUnit Platform, so they might work without explicit runtime
-        // if JUnit 5 is available
-        val canRun = availableFrameworks.contains(framework) ||
-          (framework == "Kotest" && availableFrameworks.exists(f => f.contains("JUnit"))) ||
-          (framework == "Spock" && availableFrameworks.exists(f => f.contains("JUnit")))
-
-        if (canRun) Some(DiscoveredTestSuite(project, className, framework))
-        else None
+      detectFrameworkByBaseClass(className, classLoader).flatMap { displayName =>
+        selectionForBaseClass(displayName, junitAvailable, classLoader)
+          .map(selection => DiscoveredTestSuite(project, className, selection))
       }
     }
   }
+
+  /** Base-class-detected frameworks that run as a JUnit Platform engine rather than through `sbt.testing.Framework`.
+    *
+    * The engine class itself is not probed. Kotest and Spock register theirs through the platform's `ServiceLoader` SPI, so the Launcher finds it without being
+    * told, and naming the class here would break the moment either project moved it. What must be true is that the project has the platform at all, which is
+    * exactly [[junitRuntimeOnClasspath]] and exactly what the injection table triggers on.
+    */
+  private val baseClassJUnitPlatformFrameworks: Set[String] = Set("Kotest", "Spock", "JUnit")
+
+  /** The `sbt.testing.Framework` implementation behind each base-class-detected framework. Several candidates where a framework has renamed it.
+    *
+    * This mapping is the reason "Spock", "ScalaCheck" and "uTest" used to die in the fork: the display name went over the wire and was looked up in a
+    * *different* table on the other side, which had no entry for them, so it fell through to `Class.forName("Spock")`. The lookup now happens once, here, where
+    * the answer is checkable against the classpath.
+    */
+  private val baseClassSbtFrameworks: Map[String, List[String]] = Map(
+    "ScalaTest" -> List("org.scalatest.tools.Framework"),
+    "ZIO Test" -> List("zio.test.sbt.ZTestFramework"),
+    "MUnit" -> List("munit.Framework"),
+    "uTest" -> List("utest.runner.Framework"),
+    "specs2" -> List("org.specs2.runner.Specs2Framework"),
+    "Weaver" -> List("weaver.sbt.WeaverFramework", "weaver.framework.CatsEffect"),
+    "ScalaCheck" -> List("org.scalacheck.ScalaCheckFramework")
+  )
+
+  private def selectionForBaseClass(
+      displayName: String,
+      junitAvailable: Boolean,
+      classLoader: URLClassLoader
+  ): Option[FrameworkSelection] =
+    if (baseClassJUnitPlatformFrameworks.contains(displayName))
+      if (junitAvailable) Some(FrameworkSelection.JUnitPlatform(displayName)) else None
+    else
+      baseClassSbtFrameworks
+        .getOrElse(displayName, Nil)
+        .find(c => onProjectClasspath(classLoader, c))
+        .map(cls => FrameworkSelection.SbtTestInterface(displayName, cls))
 
   /** Detect test framework by checking base class inheritance */
   private def detectFrameworkByBaseClass(
@@ -494,28 +570,6 @@ object ClasspathTestDiscovery {
   // ============================================================================
   // Strategy 4: Naming convention fallback (Maven/Gradle patterns)
   // ============================================================================
-
-  /** Discover tests by naming convention (use as last resort) */
-  private def discoverByNamingConvention(
-      project: CrossProjectName,
-      classesDir: Path
-  ): List[DiscoveredTestSuite] = {
-    if (!Files.isDirectory(classesDir)) return Nil
-
-    val classFiles = collectClassFiles(classesDir)
-    val compiledPatterns = testNamePatterns.map(_.r)
-
-    classFiles.flatMap { classFile =>
-      val className = classFileToClassName(classesDir, classFile)
-      val simpleName = className.split('.').lastOption.getOrElse(className)
-
-      if (compiledPatterns.exists(_.findFirstIn(simpleName).isDefined)) {
-        Some(DiscoveredTestSuite(project, className, "unknown"))
-      } else {
-        None
-      }
-    }
-  }
 
   // ============================================================================
   // Utility methods

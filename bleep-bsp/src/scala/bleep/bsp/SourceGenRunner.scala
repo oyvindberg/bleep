@@ -158,29 +158,54 @@ object SourceGenRunner {
   ): Set[CrossProjectName] = {
     // Get input files: script project sources + dependencies
     val scriptProjectWithDeps = started.build.transitiveDependenciesFor(script.project).keySet + script.project
-    val inputPaths: Array[Path] = scriptProjectWithDeps.flatMap { projectName =>
+    val scriptInputPaths: Array[Path] = scriptProjectWithDeps.flatMap { projectName =>
       val paths = started.projectPaths(projectName)
       paths.sourcesDirs.all ++ paths.resourcesDirs.all
     }.toArray
 
-    val mostRecentInput = mostRecentFile(inputPaths)
+    projectsNeedingRegeneration(script, forProjects, scriptInputPaths, started.projectPaths)
+  }
 
-    mostRecentInput match {
-      case None =>
-        // No input files found - skip
-        Set.empty
+  /** The staleness decision itself, taking the paths rather than a whole loaded build so it can be tested.
+    *
+    * The input set is per-consumer, not global: the script project's own sources are shared by every consumer, but the directories a consumer declares under
+    * `sourceGlobs` belong to that consumer alone and resolve against its folder. Two projects sharing one generator can therefore disagree about whether it is
+    * stale, and only the stale one gets regenerated.
+    *
+    * A consumer with no inputs at all — no script sources, no declared directories — is skipped rather than run, which is the behaviour this had before
+    * `sourceGlobs` was folded in.
+    */
+  private[bsp] def projectsNeedingRegeneration(
+      script: ScriptDef.Main,
+      forProjects: Set[CrossProjectName],
+      scriptInputPaths: Array[Path],
+      pathsFor: CrossProjectName => ProjectPaths
+  ): Set[CrossProjectName] = {
+    val mostRecentScriptInput = mostRecentFile(scriptInputPaths)
 
-      case Some(inputTime) =>
-        forProjects.filter { projectName =>
-          val projectPaths = started.projectPaths(projectName)
+    forProjects.filter { projectName =>
+      val projectPaths = pathsFor(projectName)
+
+      val mostRecentDeclaredInput = mostRecentFile(ProjectInputs.declaredSourcegenInputs(script, projectPaths).toArray)
+
+      val mostRecentInput = (mostRecentScriptInput, mostRecentDeclaredInput) match {
+        case (Some(a), Some(b)) => Some(if (a.isAfter(b)) a else b)
+        case (some, None)       => some
+        case (None, some)       => some
+      }
+
+      mostRecentInput match {
+        case None =>
+          // No input files found - skip
+          false
+
+        case Some(inputTime) =>
           val outputPaths = Array(
             projectPaths.sourcesDirs.generated.get(script),
             projectPaths.resourcesDirs.generated.get(script)
           ).flatten
 
-          val mostRecentOutput = mostRecentFile(outputPaths)
-
-          mostRecentOutput match {
+          mostRecentFile(outputPaths) match {
             case None =>
               // Output doesn't exist - need to run
               true
@@ -188,7 +213,7 @@ object SourceGenRunner {
               // Input newer than output - need to run
               outputTime.isBefore(inputTime)
           }
-        }
+      }
     }
   }
 

@@ -198,11 +198,18 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
-  /** Test suites discovered for a project */
+  /** Test suites discovered for a project.
+    *
+    * `suites` is what survived `--only` / `--exclude` / tag filters; `discoveredBeforeFilters` is what the classpath scan found, or `None` when the event came
+    * from a peer that predates the field. They differ exactly when a filter was active, and the difference is what separates a build the user narrowed from a
+    * build whose discovery is broken.
+    */
   case class SuitesDiscovered(
       project: CrossProjectName,
       suites: List[SuiteName],
       totalDiscovered: Int,
+      discoveredBeforeFilters: Option[Int],
+      isTestProject: Boolean,
       timestamp: Long
   ) extends BuildEvent
 
@@ -357,8 +364,8 @@ object BuildEvent {
       case PE.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp) =>
         Some(BuildEvent.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp))
 
-      case PE.SuitesDiscovered(project, suites, totalDiscovered, timestamp) =>
-        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, timestamp))
+      case PE.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, isTestProject, timestamp) =>
+        Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, discoveredBeforeFilters, isTestProject, timestamp))
 
       case PE.SuiteStarted(project, suite, timestamp) =>
         Some(BuildEvent.SuiteStarted(project, suite, timestamp))

@@ -286,12 +286,17 @@ object Main {
       Opts
         .arguments(metavars.projectNameNoCross)(using argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
-    val projectNames: Opts[Array[model.CrossProjectName]] =
+    /** The project arguments exactly as typed: `None` when none were given, so a command can tell "the user named no projects" apart from "the user named every
+      * project". `--invalidated` needs that distinction — it selects the projects itself, so being handed some too is a contradiction, not a filter.
+      */
+    val maybeProjectNames: Opts[Option[Array[model.CrossProjectName]]] =
       Opts
         .arguments(metavars.projectName)(using argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.toArray.flatten)
         .orNone
-        .map(started.chosenProjects)
+
+    val projectNames: Opts[Array[model.CrossProjectName]] =
+      maybeProjectNames.map(started.chosenProjects)
 
     /** Like projectNames but returns empty array when nothing specified, so publish commands can auto-discover publishable projects. */
     val publishProjectNames: Opts[Array[model.CrossProjectName]] =
@@ -376,6 +381,32 @@ object Main {
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
     val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
+
+    /** `--invalidated[=<base ref>]` for `compile`, `test` and `ci`: the projects a diff against a git ref invalidated, computed by the same code
+      * [[commands.BuildInvalidated]] prints, and handed straight to the build without ever passing through a shell.
+      *
+      * `Opts[Option[Option[String]]]`: outer `None` is "flag absent", `Some(None)` is bare `--invalidated`, `Some(Some(ref))` names the ref.
+      */
+    val invalidatedOpt: Opts[Option[Option[String]]] =
+      Opts
+        .flagOption[String](
+          "invalidated",
+          "build only what a git diff invalidated: projects whose sources or config changed vs a base ref, plus every project transitively depending on them. " +
+            "Bare --invalidated compares against this branch's upstream, --invalidated=<ref> against that ref. Nothing invalidated builds nothing",
+          metavar = "base ref"
+        )
+        .orNone
+
+    /** `--invalidated` computes the project list, so being handed one as well is a contradiction — fail loudly rather than silently letting one win. */
+    def invalidatedTakesNoProjects(commandName: String): BleepBuildCommand =
+      new BleepBuildCommand {
+        override def run(started: Started): Either[BleepException, Unit] =
+          Left(
+            new BleepException.Text(
+              s"`--invalidated` selects the projects itself, so `bleep $commandName --invalidated` takes no project arguments. Drop the arguments, or drop the flag."
+            )
+          )
+      }
 
     /** `--diff [id]` for compile/test: run as normal, then print only the mechanical diff against a base history entry. Bare `--diff` resolves the most recent
       * same-mode entry (`modeName` names it in the help text); `--diff=<id>` names one explicitly.
@@ -559,10 +590,56 @@ object Main {
               newCommand(started.pre.logger, started.pre.userPaths, started.buildPaths.cwd)
             ).foldK
           ),
+          Opts.subcommand(
+            "ci",
+            "compile every project and run every test, in one pass. The whole build in one command — add --invalidated to scope it to what a git diff changed"
+          )(
+            (
+              watch,
+              invalidatedOpt,
+              (
+                Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
+                Opts.flag("quiet", "only failures and the final summary", "q").orFalse
+              ).tupled,
+              Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
+              Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
+              onlyTag,
+              excludeTag,
+              Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
+              cancel,
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              diffOpt("test run — a ci run is recorded as one"),
+              diffOutputOpt
+            ).mapN {
+              case (watch, invalidated, (noTui, quiet), jvmOpts, testArgs, onlyTag, excludeTag, flamegraph, cancel, junitReportDir, diffBase, diffOutput) =>
+                val displayMode = commands.DisplayMode.fromFlags(noTui, quiet)
+                // Compile and test, nothing else. `ci` does not run `fmt --check`, `sourcegen` or anything you did not ask for: sourcegen already runs inside
+                // compile as part of the task graph, and a formatting check is a separate opinion which deserves its own exit code.
+                val phase = commands.Ci.ciPhase(
+                  displayMode = displayMode,
+                  jvmOptions = jvmOpts.toList,
+                  testArgs = testArgs.toList,
+                  includeTags = onlyTag.map(_.toList).getOrElse(Nil),
+                  excludeTags = excludeTag.map(_.toList).getOrElse(Nil),
+                  flamegraph = flamegraph,
+                  cancel = cancel,
+                  junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  diffBase = diffBase,
+                  diffOutput = diffOutput,
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+                )
+                val scope = invalidated match {
+                  case None            => commands.Ci.Scope.Everything(None)
+                  case Some(maybeBase) => commands.Ci.Scope.Invalidated(maybeBase)
+                }
+                commands.Ci(phase, scope, watch)
+            }
+          ),
           Opts.subcommand("compile", "compile selected projects (or every project), respects the dependency graph; supports watch mode")(
             (
               watch,
-              projectNames,
+              maybeProjectNames,
+              invalidatedOpt,
               (
                 Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
                 Opts.flag("quiet", "only failures and the final summary", "q").orFalse
@@ -572,11 +649,19 @@ object Main {
               cancel,
               diffOpt("compile"),
               diffOutputOpt
-            ).mapN { case (watch, projectNames, (noTui, quiet), diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
+            ).mapN { case (watch, maybeProjectNames, invalidated, (noTui, quiet), diffWatch, flamegraph, cancel, diffBase, diffOutput) =>
               val (effectiveWatch, effectiveDisplayMode) =
                 if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                 else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
-              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel, diffBase, diffOutput)
+              val compilePhase = commands.Ci.compilePhase(effectiveDisplayMode, flamegraph, cancel, diffBase, diffOutput)
+              val cmd: BleepBuildCommand = (invalidated, maybeProjectNames) match {
+                case (Some(_), Some(_))      => invalidatedTakesNoProjects("compile")
+                case (Some(maybeBase), None) =>
+                  commands.Ci(compilePhase, commands.Ci.Scope.Invalidated(maybeBase), effectiveWatch)
+                case (None, _) =>
+                  compilePhase.command(started.chosenProjects(maybeProjectNames), diffBase, effectiveWatch)
+              }
+              cmd
             }
           ),
           Opts.subcommand("link", "link JS or Native projects (Scala.js / Scala Native / Kotlin/JS / Kotlin/Native), produces .js or a native executable")(
@@ -615,7 +700,8 @@ object Main {
           Opts.subcommand("test", "run tests in selected test projects (or every isTestProject in the build)")(
             (
               watch,
-              testProjectNames,
+              maybeProjectNames,
+              invalidatedOpt,
               (
                 Opts.flag("no-tui", "disable TUI, keep the full streaming trace (for CI/agents that read logs)").orFalse,
                 (
@@ -638,7 +724,8 @@ object Main {
             ).mapN {
               case (
                     watch,
-                    projectNames,
+                    maybeProjectNames,
+                    invalidated,
                     (noTui, quiet),
                     diffWatch,
                     jvmOpts,
@@ -656,9 +743,7 @@ object Main {
                 val (effectiveWatch, effectiveDisplayMode) =
                   if (diffWatch) (true, commands.DisplayMode.DiffWatch)
                   else (watch, commands.DisplayMode.fromFlags(noTui, quiet))
-                commands.ReactiveBsp.test(
-                  watch = effectiveWatch,
-                  projects = projectNames,
+                val testPhase = commands.Ci.testPhase(
                   displayMode = effectiveDisplayMode,
                   jvmOptions = jvmOpts.toList,
                   testArgs = testArgs.toList,
@@ -673,6 +758,16 @@ object Main {
                   diffOutput = diffOutput,
                   clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
                 )
+                val cmd: BleepBuildCommand = (invalidated, maybeProjectNames) match {
+                  case (Some(_), Some(_))      => invalidatedTakesNoProjects("test")
+                  case (Some(maybeBase), None) =>
+                    commands.Ci(testPhase, commands.Ci.Scope.Invalidated(maybeBase), effectiveWatch)
+                  case (None, _) =>
+                    // Explicit project arguments are passed through as typed — `bleep test some-lib` compiles a non-test project rather than dropping it.
+                    val projects = maybeProjectNames.getOrElse(started.chosenTestProjects(None))
+                    testPhase.command(projects, diffBase, effectiveWatch)
+                }
+                cmd
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(

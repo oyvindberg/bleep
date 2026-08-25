@@ -10,12 +10,7 @@ object BleepFileWatching {
       projects.all.iterator.flatMap { name =>
         val p = started.build.explodedProjects(name)
         val paths = started.buildPaths.project(name, p)
-        val allPaths = paths.sourcesDirs.all.iterator ++ paths.resourcesDirs.all
-        val fromSourceGen: Iterator[Path] =
-          p.sourcegen.values.iterator.flatMap { case model.ScriptDef.Main(_, _, sourceGlobs) =>
-            sourceGlobs.values.iterator.map(relPath => paths.dir / relPath)
-          }
-        (allPaths ++ fromSourceGen).map(path => (path, name))
+        ProjectInputs.all(p, paths).iterator.map(path => (path, name))
       }
 
     sourceProjectPairs.toSeq.groupMap { case (p, _) => p } { case (_, name) => name }

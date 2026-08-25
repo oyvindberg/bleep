@@ -594,7 +594,11 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
   // These tests use the real scala.scalanative.testinterface.TestMain and the
   // TestAdapter RPC protocol, which is how production BSP test execution works.
 
-  ignore("runTestsViaAdapter: munit on Scala Native via TestAdapter protocol - known RPC protocol issue") {
+  // The path production actually takes. This was `ignore`d as a "known RPC protocol issue" while the three suites above — which drive `runTests`, the
+  // stdout-parsing method production no longer calls, through hand-written `TestRunner` mains — stayed green, so Scala Native's real test path had no coverage
+  // at all. What made it fail was the fingerprint: the adapter was handed a fabricated `SubclassFingerprint(superclassName = "java.lang.Object")` instead of
+  // one the framework declared. See `SbtTestingBridge.runSuites`.
+  test("runTestsViaAdapter: munit on Scala Native via TestAdapter protocol") {
     withTempDir("sn-adapter-munit") { tempDir =>
       val frameworkDeps = resolveTestFrameworkDeps("org.scalameta", "munit", "1.0.0")
 
@@ -625,6 +629,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
           handler,
           Map.empty,
           snVersion,
+          frameworkDeps.toList,
           killSignal
         )
       } yield r).unsafeRunSync()

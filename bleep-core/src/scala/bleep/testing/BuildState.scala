@@ -43,6 +43,12 @@ case class BuildState(
     cancelledSuites: List[CancelledSuite],
     compileFailures: List[ProjectCompileFailure],
     skippedProjects: List[SkippedProject],
+    /** Test projects whose classpath scan found no suites at all — before any `--only` / `--exclude` / tag filter had a say.
+      *
+      * A project only reaches discovery when it is a test project that compiled, so an empty scan here is never the user narrowing the run: it is compiled test
+      * classes that no framework claimed. Kept as a list rather than a count so the verdict can name them.
+      */
+    testProjectsWithoutSuites: List[CrossProjectName],
     pendingOutput: Map[SuiteKey, List[String]],
     totalTaskTimeMs: Long,
     /** The compile server died mid-run. Not a compile failure — the compiles that finished really did finish — but the run did not complete, so a summary that
@@ -95,6 +101,7 @@ case class BuildState(
       compileFailures = compileFailures.reverse,
       linkFailures = linkFailures.reverse,
       skippedProjects = skippedProjects.reverse,
+      testProjectsWithoutSuites = testProjectsWithoutSuites.reverse,
       durationMs = durationMs,
       totalTaskTimeMs = totalTaskTimeMs,
       wasCancelled = wasCancelled,
@@ -141,6 +148,7 @@ object BuildState {
     cancelledSuites = Nil,
     compileFailures = Nil,
     skippedProjects = Nil,
+    testProjectsWithoutSuites = Nil,
     pendingOutput = Map.empty,
     totalTaskTimeMs = 0,
     serverCrashed = false,
@@ -318,8 +326,12 @@ object BuildStateReducer {
         )
       )
 
-    case BuildEvent.SuitesDiscovered(_, _, _, _) =>
-      state // No state change for discovery
+    case BuildEvent.SuitesDiscovered(project, _, _, discoveredBeforeFilters, isTestProject, _) =>
+      // Two conditions, both required. `None` is an event from a peer that predates the field — no evidence, so no verdict. And a project that never claimed to
+      // be a test project has not contradicted itself by holding no suites: `bleep test` and `bleep ci` pass plain libraries through discovery as a matter of
+      // course, and failing those would make the whole check unusable.
+      if (isTestProject && discoveredBeforeFilters.contains(0)) state.copy(testProjectsWithoutSuites = project :: state.testProjectsWithoutSuites)
+      else state
 
     case BuildEvent.ProjectSkipped(project, reason, _) =>
       state.copy(skippedProjects = SkippedProject(project, reason) :: state.skippedProjects)

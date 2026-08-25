@@ -4,11 +4,12 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
@@ -28,10 +29,80 @@ import org.junit.platform.launcher.core.LauncherFactory;
  */
 class JUnitPlatformRunner {
 
+  /** Fully-qualified name of the session interface, absent before JUnit Platform 1.8. */
+  private static final String LAUNCHER_SESSION = "org.junit.platform.launcher.LauncherSession";
+
   private final PrintWriter protocolOut;
 
   JUnitPlatformRunner(PrintWriter protocolOut) {
     this.protocolOut = protocolOut;
+  }
+
+  /** A {@link Launcher} plus whatever has to be closed afterwards. */
+  private static final class LauncherHandle implements AutoCloseable {
+    final Launcher launcher;
+
+    /** The {@code LauncherSession}, or null on a platform that predates the concept. */
+    private final AutoCloseable session;
+
+    LauncherHandle(Launcher launcher, AutoCloseable session) {
+      this.launcher = launcher;
+      this.session = session;
+    }
+
+    @Override
+    public void close() throws Exception {
+      if (session != null) {
+        session.close();
+      }
+    }
+  }
+
+  /**
+   * Obtain a launcher, using the session lifecycle when the platform on the classpath has one.
+   *
+   * <p>This class is compiled against the oldest launcher API bleep supports and executed against
+   * whatever version the project resolved — bleep injects the launcher at the project's own
+   * platform version rather than overriding a choice the project made. {@code
+   * LauncherFactory.openSession()} arrived in 1.8, so calling it directly made every project on
+   * Jupiter 5.7 or older (Spring Boot 2.5 and earlier pin exactly that) die here with
+   * NoSuchMethodError. Reflection is what lets one compiled runner span the whole range.
+   *
+   * <p>The no-session path is not a degraded fallback: before 1.8 there is no
+   * LauncherSessionListener SPI at all, so there is nothing to miss. Only that one condition — the
+   * type or the method being absent — is treated as "this platform is older". Every other
+   * reflective failure is a real bug and is rethrown.
+   */
+  private LauncherHandle openLauncher() {
+    Class<?> sessionType;
+    Method openSession;
+    try {
+      sessionType = Class.forName(LAUNCHER_SESSION, false, LauncherFactory.class.getClassLoader());
+      openSession = LauncherFactory.class.getMethod("openSession");
+    } catch (ClassNotFoundException | NoSuchMethodException pre18) {
+      send(
+          TestProtocol.encodeLog(
+              "debug",
+              "JUnit Platform predates LauncherSession (1.8); using LauncherFactory.create()."
+                  + " LauncherSessionListener extensions (Quarkus, Spring Boot) do not exist on"
+                  + " this version."));
+      return new LauncherHandle(LauncherFactory.create(), null);
+    }
+
+    try {
+      Object session = openSession.invoke(null);
+      // Look the method up on the *interface*: the implementation returned here is a
+      // package-private class, so a method resolved from session.getClass() cannot be invoked.
+      Launcher launcher = (Launcher) sessionType.getMethod("getLauncher").invoke(session);
+      return new LauncherHandle(launcher, (AutoCloseable) session);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+      if (cause instanceof Error) throw (Error) cause;
+      throw new RuntimeException("LauncherFactory.openSession() failed", cause);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("could not open a LauncherSession on a platform that has one", e);
+    }
   }
 
   /**
@@ -59,10 +130,11 @@ class JUnitPlatformRunner {
       capturedOut.flush();
       capturedErr.flush();
 
-      // Open a LauncherSession — this triggers LauncherSessionListener SPI.
+      // Open a LauncherSession where the platform has one — this triggers LauncherSessionListener
+      // SPI.
       // Quarkus's CustomLauncherInterceptor creates FacadeClassLoader here.
-      try (LauncherSession session = LauncherFactory.openSession()) {
-        Launcher launcher = session.getLauncher();
+      try (LauncherHandle handle = openLauncher()) {
+        Launcher launcher = handle.launcher;
 
         LauncherDiscoveryRequest request =
             LauncherDiscoveryRequestBuilder.request().selectors(selectClass(className)).build();

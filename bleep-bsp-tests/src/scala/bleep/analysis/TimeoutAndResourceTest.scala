@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.{Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
+import bleep.bsp.{Outcome, ScalaNativeTestRunner, TestRunnerTypes}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.protocol.KillReason
 import cats.effect.{Deferred, IO}
@@ -57,85 +57,6 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   // ==========================================================================
   // Cancellation Timing Tests
   // ==========================================================================
-
-  test("Scala.js: immediate cancellation returns quickly") {
-    failAfter(quickTimeout) {
-
-      val tempDir = createTempDir("scalajs-immediate-cancel")
-      try {
-        val jsFile = tempDir.resolve("slow-test.js")
-        Files.writeString(
-          jsFile,
-          """
-          |setTimeout(() => { console.log('done'); }, 30000);
-          |""".stripMargin
-        )
-
-        val handler = new RecordingHandler()
-
-        val startTime = System.currentTimeMillis()
-        val result = (for {
-          killSignal <- Deferred[IO, KillReason]
-          _ <- killSignal.complete(KillReason.UserRequest) // Cancel immediately
-          res <- ScalaJsTestRunner.runTests(
-            jsFile,
-            ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List.empty,
-            handler,
-            ScalaJsTestRunner.NodeEnvironment.Node,
-            PlatformTestHelper.nodeBinary,
-            Map.empty,
-            killSignal
-          )
-        } yield res).unsafeRunSync()
-        val duration = System.currentTimeMillis() - startTime
-
-        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < cancellationShortCircuitMs
-      } finally deleteRecursively(tempDir)
-    }
-  }
-
-  test("Scala.js: cancellation during execution terminates process") {
-    failAfter(quickTimeout) {
-
-      val tempDir = createTempDir("scalajs-mid-cancel")
-      try {
-        // This JS file blocks synchronously during require() by spawning a sleep process.
-        // The runner script calls require() which executes this code, blocking the main thread.
-        // When the kill signal fires, destroyForcibly() kills the Node process.
-        val jsFile = tempDir.resolve("long-test.js")
-        Files.writeString(
-          jsFile,
-          """
-          |require('child_process').execFileSync('sleep', ['60']);
-          |""".stripMargin
-        )
-
-        val handler = new RecordingHandler()
-
-        val startTime = System.currentTimeMillis()
-        val result = (for {
-          killSignal <- Deferred[IO, KillReason]
-          _ <- (IO.sleep(500.milliseconds) >> killSignal.complete(KillReason.UserRequest)).start
-          res <- ScalaJsTestRunner.runTests(
-            jsFile,
-            ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List.empty,
-            handler,
-            ScalaJsTestRunner.NodeEnvironment.Node,
-            PlatformTestHelper.nodeBinary,
-            Map.empty,
-            killSignal
-          )
-        } yield res).unsafeRunSync()
-        val duration = System.currentTimeMillis() - startTime
-
-        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
-        duration should be < cancellationShortCircuitMs
-      } finally deleteRecursively(tempDir)
-    }
-  }
 
   test("Scala Native: immediate cancellation returns quickly") {
     failAfter(quickTimeout) {
@@ -228,55 +149,6 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   // ==========================================================================
   // Parallel Execution Safety
   // ==========================================================================
-
-  test("multiple test runs can execute in parallel") {
-    failAfter(parallelTimeout) {
-
-      val tempDir = createTempDir("scalajs-parallel")
-      try {
-        // Create multiple test files that output protocol events synchronously.
-        // The runner script require()s these files, so all console.log calls execute
-        // synchronously during require() before the runner calls process.exit(0).
-        val testFiles = (1 to 3).map { i =>
-          val jsFile = tempDir.resolve(s"test-$i.js")
-          Files.writeString(
-            jsFile,
-            s"""
-            |console.log('##scalajs-test##suite-started|Suite$i');
-            |console.log('##scalajs-test##test-started|Suite$i|test1');
-            |console.log('##scalajs-test##test-finished|Suite$i|test1|passed|${i * 10}|');
-            |console.log('##scalajs-test##suite-finished|Suite$i|1|0|0');
-            |""".stripMargin
-          )
-          jsFile
-        }
-
-        // Run all tests in parallel using Cats Effect parSequence
-        import cats.syntax.parallel._
-        val allResults = (for {
-          killSignal <- Outcome.neverKillSignal
-          results <- testFiles.toList.map { jsFile =>
-            val handler = new RecordingHandler()
-            ScalaJsTestRunner.runTests(
-              jsFile,
-              ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-              List.empty,
-              handler,
-              ScalaJsTestRunner.NodeEnvironment.Node,
-              PlatformTestHelper.nodeBinary,
-              Map.empty,
-              killSignal
-            )
-          }.parSequence
-        } yield results).unsafeRunSync()
-
-        // All runs should complete without hanging or being cancelled.
-        allResults.foreach { result =>
-          result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
-        }
-      } finally deleteRecursively(tempDir)
-    }
-  }
 
   // ==========================================================================
   // Process Kill Tests

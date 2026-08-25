@@ -57,7 +57,7 @@ class TestFilterIT extends IntegrationTestHarness {
   integrationTest("test --only works before compilation") { ws =>
     ws.yaml(SingleSuiteYaml)
     ws.file("mytest/src/scala/MyTest.scala", SingleSuiteSource)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(mytest),
       watch = false,
@@ -66,13 +66,13 @@ class TestFilterIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "example.MyTest", tests = 1)
   }
 
   integrationTest("test --only with fully qualified class name") { ws =>
     ws.yaml(SingleSuiteYaml)
     ws.file("mytest/src/scala/MyTest.scala", SingleSuiteSource)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(mytest),
       watch = false,
@@ -81,14 +81,14 @@ class TestFilterIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "example.MyTest", tests = 1)
   }
 
   integrationTest("test --only filters to matching suite among multiple") { ws =>
     ws.yaml(MultiSuiteYaml)
     ws.file("mytest/src/scala/PassingTest.scala", PassingSuite)
     ws.file("mytest/src/scala/FailingTest.scala", FailingSuite)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(mytest),
       watch = false,
@@ -97,14 +97,15 @@ class TestFilterIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    // FailingTest would have failed the run had the filter not dropped it; PassingTest having actually run is the other half of the claim.
+    assertSuitePassed(storingLogger, "example.PassingTest", tests = 1)
   }
 
   integrationTest("test --exclude skips matching suite") { ws =>
     ws.yaml(MultiSuiteYaml)
     ws.file("mytest/src/scala/PassingTest.scala", PassingSuite)
     ws.file("mytest/src/scala/FailingTest.scala", FailingSuite)
-    val (_, commands, _) = ws.start()
+    val (_, commands, storingLogger) = ws.start()
     commands.test(
       projects = List(mytest),
       watch = false,
@@ -113,7 +114,7 @@ class TestFilterIT extends IntegrationTestHarness {
       includeTags = None,
       excludeTags = None
     )
-    succeed
+    assertSuitePassed(storingLogger, "example.PassingTest", tests = 1)
   }
 
   integrationTest("test --only with nonexistent suite fails") { ws =>

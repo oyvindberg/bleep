@@ -555,6 +555,59 @@ object CompilerResolver {
     }
   }
 
+  /** Resolve the JVM-side Scala.js test adapter, plus the Node.js JSEnv it drives.
+    *
+    * `scalajs-sbt-test-adapter` is what sbt and mill use to run Scala.js tests: it speaks the same `sbt.testing` interfaces as the JVM runner, and talks to
+    * `org.scalajs.testing.bridge.Bridge` in the linked program over the channel the linker's test entry point already establishes. Using it removes every
+    * dependence on Scala.js mangled names, which are an implementation detail the linker emits only for code the program actually reaches.
+    *
+    * Two artifacts, two version lines: the adapter ships with Scala.js and follows the project's Scala.js version, while `scalajs-env-nodejs` is released
+    * separately and is pinned by [[bleep.model.Versions.ScalaJsEnvNodejs]]. Both are JVM-side tooling published for 2.12 and 2.13 only, so they are resolved at
+    * 2.13 regardless of what Scala version the project compiles with — the same rule [[resolveScalaJsLinker]] follows.
+    *
+    * @param scalaJsVersion
+    *   Scala.js version (e.g., "1.22.0")
+    * @return
+    *   paths to the adapter jars and the Node.js JSEnv jars
+    */
+  def resolveScalaJsTestAdapter(scalaJsVersion: String): Seq[Path] = {
+    val key = InstanceKey("scalajs-test-adapter", scalaJsVersion)
+    Option(jarCache.get(key)).getOrElse {
+      val adapter = Dep.JavaDependency(
+        coursier.core.Organization("org.scala-js"),
+        coursier.core.ModuleName("scalajs-sbt-test-adapter_2.13"),
+        scalaJsVersion
+      )
+      val nodeEnv = Dep.JavaDependency(
+        coursier.core.Organization("org.scala-js"),
+        coursier.core.ModuleName("scalajs-env-nodejs_2.13"),
+        bleep.model.Versions.ScalaJsEnvNodejs
+      )
+      val paths = (resolveDep(adapter) ++ resolveDep(nodeEnv)).distinct
+      jarCache.put(key, paths)
+      paths
+    }
+  }
+
+  /** Get a Scala.js test adapter instance with an isolated classloader.
+    *
+    * @param scalaJsVersion
+    *   Scala.js version (e.g., "1.22.0")
+    * @return
+    *   compiler instance holding the adapter and JSEnv classes
+    */
+  def getScalaJsTestAdapter(scalaJsVersion: String): CompilerInstance = {
+    val key = InstanceKey("scalajs-test-adapter", scalaJsVersion)
+    instanceCache.computeIfAbsent(
+      key,
+      _ => {
+        val jars = resolveScalaJsTestAdapter(scalaJsVersion)
+        val loader = createCompilerClassLoader(jars)
+        CompilerInstance("scalajs-test-adapter", scalaJsVersion, jars, loader)
+      }
+    )
+  }
+
   /** Resolve Scala.js standard library for a specific version.
     *
     * @param scalaJsVersion
