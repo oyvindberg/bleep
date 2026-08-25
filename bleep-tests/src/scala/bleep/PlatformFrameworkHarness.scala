@@ -11,8 +11,19 @@ sealed abstract class FixturePlatform(val id: String) {
   /** Used in test names, so a failure says which combination broke without opening the file. */
   def describe: String
 
-  /** `2.12`, `2.13` or `3` — what a Maven artifact suffix is built from, and the granularity at which frameworks decide what they publish. */
-  def scalaBinaryVersion: String = FixturePlatform.binaryVersionOf(scalaVersion)
+  /** Does this platform report individual test cases, or only a suite-level result?
+    *
+    * False on the Kotlin platforms, and that is a defect rather than a design choice — see [[PlatformFrameworkHarness.assertFixtureRan]]. Stated here so the
+    * matrix asserts what is true today instead of quietly passing on a weaker check everywhere.
+    */
+  def reportsIndividualCases: Boolean = true
+
+  /** `2.12`, `2.13` or `3` — what a Maven artifact suffix is built from, and the granularity at which frameworks decide what they publish.
+    *
+    * `None` on a Kotlin platform, where no Scala is involved at all: nothing on the classpath carries a Scala suffix, so the axis does not constrain which
+    * fixtures apply. Not a stand-in value, because every stand-in would have to be a string some fixture then has to remember to list.
+    */
+  def scalaBinaryVersion: Option[String]
 }
 
 object FixturePlatform {
@@ -28,6 +39,7 @@ object FixturePlatform {
     }
 
   case class Jvm(scalaVersion: String) extends FixturePlatform("jvm") {
+    def scalaBinaryVersion: Option[String] = Some(binaryVersionOf(scalaVersion))
     def describe: String = s"jvm / scala $scalaVersion"
     def platformYaml: String =
       """    platform:
@@ -36,6 +48,7 @@ object FixturePlatform {
   }
 
   case class Js(scalaVersion: String, jsVersion: String, nodeVersion: String) extends FixturePlatform("js") {
+    def scalaBinaryVersion: Option[String] = Some(binaryVersionOf(scalaVersion))
     def describe: String = s"js / scala $scalaVersion / scalajs $jsVersion"
     def platformYaml: String =
       s"""    platform:
@@ -46,7 +59,41 @@ object FixturePlatform {
          |""".stripMargin
   }
 
+  /** Kotlin/JS. A `platform: js` project with a `kotlin:` block and no Scala — which is exactly how bleep tells the two apart: `MultiWorkspaceBspServer`
+    * branches on `(PlatformId.Js, project.kotlin.version.isDefined)`.
+    *
+    * No `jsVersion` here, because that field is Scala.js's linker version and there is no Scala.js in a Kotlin/JS build. The Kotlin compiler emits the
+    * JavaScript itself.
+    */
+  case class KotlinJs(kotlinVersion: String, nodeVersion: String) extends FixturePlatform("kotlin-js") {
+    override def reportsIndividualCases: Boolean = false
+    def scalaVersion: String = sys.error("Kotlin/JS has no Scala version")
+    def scalaBinaryVersion: Option[String] = None
+    def describe: String = s"kotlin-js / kotlin $kotlinVersion"
+    def platformYaml: String =
+      s"""    platform:
+         |      name: js
+         |      jsNodeVersion: $nodeVersion
+         |      jsKind: none
+         |""".stripMargin
+  }
+
+  /** Kotlin/Native — a `platform: native` project with a `kotlin:` block. No `nativeGc`, which is Scala Native's collector setting; the Kotlin/Native toolchain
+    * brings its own runtime.
+    */
+  case class KotlinNative(kotlinVersion: String) extends FixturePlatform("kotlin-native") {
+    override def reportsIndividualCases: Boolean = false
+    def scalaVersion: String = sys.error("Kotlin/Native has no Scala version")
+    def scalaBinaryVersion: Option[String] = None
+    def describe: String = s"kotlin-native / kotlin $kotlinVersion"
+    def platformYaml: String =
+      """    platform:
+        |      name: native
+        |""".stripMargin
+  }
+
   case class Native(scalaVersion: String, nativeVersion: String) extends FixturePlatform("native") {
+    def scalaBinaryVersion: Option[String] = Some(binaryVersionOf(scalaVersion))
     def describe: String = s"native / scala $scalaVersion / scala-native $nativeVersion"
     // `nativeGc` is spelled out because bleep requires it: `ResolveProjects` treats it as mandatory for a Scala Native project and fails the build with
     // "missing platform field `nativeGc`" when it is absent — unlike `jsKind`, which defaults. `immix` is Scala Native's own default collector.
@@ -78,7 +125,14 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       case FixtureLanguage.Scala => s"    scala:\n      version: ${platform.scalaVersion}\n"
       case FixtureLanguage.Java  => ""
       // Kotlin needs its own toolchain block for the same reason Scala does, and no `scala:` block for the same reason Java gets none.
-      case FixtureLanguage.Kotlin => s"    kotlin:\n      version: ${model.Versions.Kotlin24}\n"
+      case FixtureLanguage.Kotlin =>
+        // The Kotlin platforms carry their own toolchain version; a Kotlin fixture on the JVM takes the default.
+        val kotlinVersion = platform match {
+          case FixturePlatform.KotlinJs(v, _)  => v
+          case FixturePlatform.KotlinNative(v) => v
+          case _                               => model.Versions.Kotlin24
+        }
+        s"    kotlin:\n      version: $kotlinVersion\n"
     }
     s"""projects:
        |  $projectName:
@@ -151,6 +205,27 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       case Right(_) => ""
     }
     val rendered = (if (suites.isEmpty) "  (no suites reported at all)" else suites.map("  " + _.describe).mkString("\n")) + why
+
+    // Kotlin/JS and Kotlin/Native report one synthetic suite per project — `<project>:KotlinJsTests` — and no test cases at all, so neither the suite name nor
+    // the case names the rest of this method checks exist. What can still be asserted is that the tests really ran and that their outcomes were counted, which
+    // is what the run's own verdict carries.
+    //
+    // The gap is real and worth naming: `discoverTestSuites` hands the DAG a synthetic suite id, while `KotlinTestRunner` reports per-test events under the
+    // suite name the linked artifact prints. The two never meet, so the JUnit XML for a Kotlin/JS project says `tests=0` however many ran. Any CI reading
+    // those reports sees an empty run. Fixing it means giving the Kotlin platforms real suite identity — runtime discovery already exists in
+    // `KotlinTestRunner.Js` and is not wired to `discoverTestSuites` — which is a feature, not an assertion tweak, so it is pinned here rather than papered over.
+    if (!platform.reportsIndividualCases) {
+      val message = verdict.left.toOption.map(_.getMessage).getOrElse("")
+      assert(
+        message.startsWith("Tests failed:"),
+        s"$context: expected the run to fail because tests failed, but it failed with: $message\n$rendered"
+      )
+      assert(
+        message.contains(s"${fixture.expectedPassed} passed"),
+        s"$context: expected ${fixture.expectedPassed} passing tests in the verdict, got: $message\n$rendered"
+      )
+      return succeed
+    }
 
     val suite = suites
       .find(_.name == fixture.suiteFqn)

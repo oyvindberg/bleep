@@ -61,6 +61,8 @@ and this is the whole list — nothing else is injected anywhere.
 | `junit-platform-launcher`, `junit-vintage-engine` | the project has `junit:junit` and nothing from `org.junit.platform` | bleep's own |
 | `scalajs-test-interface`, `scalajs-test-bridge` | Scala.js test projects | the project's Scala.js version |
 | `test-interface` (Native) | Scala Native test projects | the project's Scala Native version |
+| `kotlin-test-js` | Kotlin/JS test projects | the project's Kotlin version |
+| the `kotlin-test` KLIB | Kotlin/Native test projects | from the Kotlin/Native distribution |
 
 Two rules govern all of it:
 
@@ -102,6 +104,21 @@ test runtime: org.junit.platform:junit-platform-launcher:1.13.4, …   [rule => 
 If something is on your test classpath that you did not put there and bleep
 does not claim, it arrived transitively through your own dependencies —
 `bleep evicted <project>` shows what resolution chose.
+
+### Kotlin/JS and Kotlin/Native
+
+Both run `kotlin.test`, and you declare no test dependency at all — bleep
+supplies `kotlin-test-js` and the Kotlin/Native `kotlin-test` KLIB itself.
+Write `@kotlin.test.Test`, and `bleep test` links the artifact and runs it.
+
+One limitation to know about, because it shows up in CI rather than at your
+terminal: on these two platforms bleep reports **one synthetic suite per
+project** — `<project>:KotlinJsTests` — rather than your actual test classes.
+Pass/fail counts are correct and a failing test fails the build, but the
+JUnit XML contains no individual test cases, so a CI dashboard reading those
+reports shows an empty run. `--only` cannot select by class name here either.
+
+Every other platform reports real suite and test names.
 
 ### JUnit Platform versions
 

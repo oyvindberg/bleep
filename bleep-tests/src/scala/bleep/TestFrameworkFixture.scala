@@ -78,8 +78,9 @@ case class TestFrameworkFixture(
   /** The version CI pins. Every other version in [[versions]] is reached only by the manual matrix. */
   def currentVersion: String = versions.head
 
-  def supports(platformId: String, scalaBinaryVersion: String, frameworkVersion: String): Boolean =
-    platforms.contains(platformId) && scalaBinaryVersions(frameworkVersion).contains(scalaBinaryVersion)
+  /** `scalaBinaryVersion` is `None` on a Kotlin platform, where nothing carries a Scala suffix and the axis therefore cannot rule anything out. */
+  def supports(platformId: String, scalaBinaryVersion: Option[String], frameworkVersion: String): Boolean =
+    platforms.contains(platformId) && scalaBinaryVersion.forall(scalaBinaryVersions(frameworkVersion).contains)
 
   def passingTestNames: List[String] = testNames.filterNot(n => n == failingTestName || n == throwingTestName).map(reportedName)
   def reportedFailingName: String = reportedName(failingTestName)
@@ -560,8 +561,10 @@ object TestFrameworkFixture {
     testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose"),
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
+    // On the JVM kotlin.test delegates to junit and the Launcher reports `name()`. On Kotlin/JS and Kotlin/Native there is no junit at all: bleep runs the
+    // linked artifact and reads back its own `##kotlin-test##` protocol, which names the bare method.
     reportedName = name => s"$name()",
-    platforms = JvmOnly,
+    platforms = Set("jvm", "kotlin-js", "kotlin-native"),
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -729,7 +732,7 @@ object TestFrameworkFixture {
     List(munit, scalatest, utest, scalacheck, specs2, minitest, zioTest, weaver, hedgehog, junit5, junit4, junit3, kotest, kotlinTest, testng, jqwik, cucumber)
 
   /** Fixtures that publish for this platform and Scala binary version, at the one version CI pins. */
-  def pinnedFor(platformId: String, scalaBinaryVersion: String): List[(TestFrameworkFixture, String)] =
+  def pinnedFor(platformId: String, scalaBinaryVersion: Option[String]): List[(TestFrameworkFixture, String)] =
     all.filter(f => f.supports(platformId, scalaBinaryVersion, f.currentVersion)).map(f => (f, f.currentVersion))
 
   /** Every (fixture, version) pair that publishes for this platform and Scala binary version — the whole sweep, pinned version included.
@@ -737,6 +740,6 @@ object TestFrameworkFixture {
     * Deliberately not `pinnedFor`'s complement: a version that CI already covers on one platform is still worth covering on another, and excluding it would
     * make the sweep's results depend on which combinations CI happens to run today.
     */
-  def sweepFor(platformId: String, scalaBinaryVersion: String): List[(TestFrameworkFixture, String)] =
+  def sweepFor(platformId: String, scalaBinaryVersion: Option[String]): List[(TestFrameworkFixture, String)] =
     all.flatMap(f => f.versions.filter(v => f.supports(platformId, scalaBinaryVersion, v)).map(v => (f, v)))
 }
