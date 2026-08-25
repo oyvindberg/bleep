@@ -116,8 +116,8 @@ object ScalaJsTestRunner {
 
   /** A `org.scalajs.jsenv.JSEnv` that keeps every `org.scalajs.jsenv.JSRun` it starts.
     *
-    * `TestAdapter.close` closes the socket to each runner. That close leaves a node process spinning in a synchronous loop because such a
-    * process never returns to its event loop to notice the socket closing. `ExternalJSRun.close` reaches the process instead via `destroyForcibly`.
+    * `TestAdapter.close` closes the socket to each runner. That close leaves a node process spinning in a synchronous loop because such a process never returns
+    * to its event loop to notice the socket closing. `ExternalJSRun.close` reaches the process instead via `destroyForcibly`.
     *
     * @param realEnv
     *   the `NodeJSEnv` this env delegates every call to
