@@ -13,7 +13,7 @@ build server, which can see the classpath. Nothing about it needs configuring.
 | Runner | Used for | How |
 |---|---|---|
 | **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, `kotlin.test`, jqwik, Cucumber | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
-| **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
+| **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, minitest, hedgehog, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
 
 The JUnit Platform is itself a runner SPI rather than a framework, which is
 why one code path covers so many names: bleep asks the Launcher, and the
@@ -26,22 +26,39 @@ one, so those frameworks would not work at all.
 
 ## Auto-detected frameworks
 
-| Framework | Maven coordinate (any of) |
-|---|---|
-| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` |
-| **JUnit 4 / JUnit 3** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` |
-| **Kotest** | `io.kotest:kotest-runner-junit5-jvm` |
-| **kotlin.test** | `org.jetbrains.kotlin:kotlin-test-junit5`, `:kotlin-test-junit` |
-| **jqwik** | `net.jqwik:jqwik` |
-| **Cucumber** | `io.cucumber:cucumber-junit-platform-engine` plus a `@Suite` class — see below |
-| **ScalaTest** | `org.scalatest::scalatest` |
-| **specs2** | `org.specs2::specs2-core` |
-| **MUnit** | `org.scalameta::munit` |
-| **utest** | `com.lihaoyi::utest` |
-| **ZIO Test** | `dev.zio::zio-test` |
-| **weaver-cats** | `com.disneystreaming::weaver-cats` |
-| **ScalaCheck** | `org.scalacheck::scalacheck` |
-| **TestNG** | `org.testng:testng` **plus** Mill's bridge, `com.lihaoyi::mill-contrib-testng` — TestNG ships no sbt test-interface implementation of its own, and without the bridge there is nothing to run it with. |
+Every framework below is covered by an end-to-end test that builds a real
+project, runs it on each platform marked here, and checks the reported
+results — so this table is generated from something that runs, not from
+intent. A blank cell means the framework publishes nothing for that platform,
+not that bleep fails there.
+
+| Framework | Maven coordinate (any of) | JVM | Scala.js | Native |
+|---|---|:-:|:-:|:-:|
+| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | ✅ | | |
+| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | ✅ | | |
+| **JUnit 3** | `junit:junit` — suites extending `junit.framework.TestCase` | ✅ | | |
+| **Kotest** | `io.kotest:kotest-runner-junit5-jvm` | ✅ | | |
+| **kotlin.test** | `org.jetbrains.kotlin:kotlin-test-junit5`, `:kotlin-test-junit` | ✅ | | |
+| **jqwik** | `net.jqwik:jqwik` | ✅ | | |
+| **Cucumber** | `io.cucumber:cucumber-junit-platform-engine` plus a `@Suite` class — see below | ✅ | | |
+| **TestNG** | `org.testng:testng` **plus** Mill's bridge, `com.lihaoyi:mill-contrib-testng_2.13` | ✅ | | |
+| **ScalaTest** | `org.scalatest::scalatest` | ✅ | ✅ | ✅ |
+| **MUnit** | `org.scalameta::munit` | ✅ | ✅ | ✅ |
+| **utest** | `com.lihaoyi::utest` | ✅ | ✅ | ✅ |
+| **ScalaCheck** | `org.scalacheck::scalacheck` | ✅ | ✅ | ✅ |
+| **specs2** | `org.specs2::specs2-core` | ✅ | ✅ | |
+| **weaver-cats** | `com.disneystreaming::weaver-cats` | ✅ | ✅ | |
+| **minitest** | `io.monix::minitest` | ✅ | ✅ | |
+| **hedgehog** | `qa.hedgehog::hedgehog-sbt` | ✅ | ✅ | |
+| **ZIO Test** | `dev.zio::zio-test` | ✅ | | |
+
+`kotlin.test` additionally runs on **Kotlin/JS** and **Kotlin/Native** — see
+below. TestNG ships no sbt test-interface implementation of its own, which is
+why the Mill bridge is required and why bleep does not supply it for you.
+
+ZIO Test is JVM-only here deliberately rather than by omission: it links and
+runs on Scala.js, but comes back as a bare suite-level failure with no message,
+which is not enough to say whose defect it is.
 
 You do not declare an adapter for JUnit. Bleep used to inject
 `net.aichler:jupiter-interface` and no longer does — it runs the Launcher
@@ -204,9 +221,12 @@ own: the jar defines interfaces and nothing else, no `META-INF/services`, so
 a build tool has to be told the class name. It is the same reason sbt has a
 `testFrameworks` setting.
 
-Anything that plugs into the JUnit Platform as a `TestEngine` needs no
-configuration at all — the Launcher discovers engines through the platform's
-`ServiceLoader`, so bleep does not have to know the name.
+A `TestEngine` on the JUnit Platform needs no configuration to *run* — the
+Launcher finds engines through the platform's `ServiceLoader` and asks each
+one. But bleep still has to find the suite class before it can hand anything
+over, so an engine whose suites carry neither a `Framework` fingerprint, a
+`@Test`-shaped annotation bleep knows, nor a recognised base class will not be
+discovered even though it would run perfectly. See below.
 
 ## How [`bleep test`](/docs/reference/cli/test/) runs them
 
