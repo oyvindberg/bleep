@@ -20,23 +20,21 @@ object BspTestBuild {
       cwd = workspaceRoot,
       bleepYamlFile = workspaceRoot.resolve(bleep.BuildLoader.BuildFileName),
       variant = model.BuildVariant.Normal,
-      wantedBleepVersion = Some(model.BleepVersion.current)
+      wantedBleepVersion = Option(model.BleepVersion.current)
     )
 
     val projects: Map[model.CrossProjectName, model.Project] =
       configs.map(cfg => crossName(cfg) -> project(cfg, configs)).toMap
 
     val build = model.Build.Exploded(
-      // The version is `dev` rather than the git-derived version. `buildTarget/test` puts bleep-test-runner on the test classpath. A git-derived version
-      // points at an unpublished snapshot. `BleepDevDeps` maps a dev version to the class directories on this JVM's own classpath. This
-      // in-process server was built from those directories.
+      // `dev` is what makes `BleepDevDeps` hand `buildTarget/test` the bleep-test-runner classes already on this JVM's classpath.
       $version = model.BleepVersion.dev,
       explodedProjects = projects,
       resolvers = model.JsonList.empty,
       // The server forces `Prebootstrapped.resolvedJvm`, which reads through this. Leaving it None
       // means Jvm.system, and coursier reports "No system JVM found" in the test process. Naming the
       // JVM this repo builds with costs nothing — it is already in the coursier cache.
-      jvm = Some(model.Jvm.graalvm),
+      jvm = Option(model.Jvm.graalvm),
       scripts = Map.empty,
       remoteCache = None
     )
@@ -58,7 +56,7 @@ object BspTestBuild {
       cwd = workspaceRoot,
       bleepYamlFile = workspaceRoot.resolve(bleep.BuildLoader.BuildFileName),
       variant = model.BuildVariant.Normal,
-      wantedBleepVersion = Some(model.BleepVersion.current)
+      wantedBleepVersion = Option(model.BleepVersion.current)
     ).variantBuildDir(model.CrossProjectName(model.ProjectName(projectName), crossId = None))
       .resolve(if (isTest) "test-classes" else "classes")
 
@@ -68,7 +66,7 @@ object BspTestBuild {
       cwd = workspaceRoot,
       bleepYamlFile = workspaceRoot.resolve(bleep.BuildLoader.BuildFileName),
       variant = model.BuildVariant.Normal,
-      wantedBleepVersion = Some(model.BleepVersion.current)
+      wantedBleepVersion = Option(model.BleepVersion.current)
     )
     classesDirIn(buildPaths, config)
   }
@@ -89,7 +87,7 @@ object BspTestBuild {
     val _ = all
     model.Project.empty.copy(
       dependsOn = dependsOn,
-      isTestProject = if (config.isTest) Some(true) else None,
+      isTestProject = Option.when(config.isTest)(true),
       scala = modelScala(config),
       platform = modelPlatform(config)
     )
@@ -98,9 +96,9 @@ object BspTestBuild {
   private def modelScala(config: BspTestHarness.ProjectConfig): Option[model.Scala] =
     config.languageConfig match {
       case sc: ScalaConfig =>
-        Some(
+        Option(
           model.Scala(
-            version = Some(model.VersionScala(sc.version)),
+            version = Option(model.VersionScala(sc.version)),
             options = model.Options.empty,
             setup = None,
             compilerPlugins = model.JsonSet.empty,
@@ -111,16 +109,16 @@ object BspTestBuild {
     }
 
   /** The server matches this platform to pick a test runner. A Scala.js or Scala Native suite reaches its own runner through `platform.name`. That runner then
-    * takes the platform version from the platform to pick a toolchain.
+    * uses the platform's version to pick a toolchain.
     *
     * @throws KotlinPlatformNotModelledException
-    *   for a Kotlin platform. The server picks a Kotlin test runner from `kotlin.version` together with the platform. This method decides the platform alone.
+    *   for a Kotlin platform - an illegal argument here. `model.Platform.Js` carries a Scala.js version and `model.Platform.Native` a Scala Native one. A Kotlin project's toolchain comes from `kotlin.version` alongside the platform.
     */
   private def modelPlatform(config: BspTestHarness.ProjectConfig): Option[model.Platform] =
     config.platform match {
       case BuildLoader.Platform.Jvm                 => None
       case BuildLoader.Platform.ScalaJs(version, _) =>
-        Some(
+        Option(
           model.Platform.Js(
             jsVersion = model.VersionScalaJs(version),
             jsKind = None,
@@ -132,7 +130,7 @@ object BspTestBuild {
           )
         )
       case BuildLoader.Platform.ScalaNative(version, _) =>
-        Some(
+        Option(
           model.Platform.Native(
             nativeVersion = model.VersionScalaNative(version),
             nativeGc = None,
@@ -150,13 +148,13 @@ object BspTestBuild {
         throw KotlinPlatformNotModelledException(kotlin.toString)
     }
 
-  /** `BspTestBuild` builds no `model.Project` for a Kotlin platform yet.
+  /** `BspTestBuild` builds no `model.Project` for a Kotlin platform.
     *
     * @param platform
     *   the platform the caller asked for
     */
   case class KotlinPlatformNotModelledException(platform: String)
-      extends RuntimeException(
+      extends IllegalArgumentException(
         s"BspTestBuild builds no model project for $platform. The server picks a Kotlin test runner from kotlin.version together with the platform. " +
           "Set a Kotlin version on the model project alongside the platform."
       )
@@ -207,34 +205,34 @@ object BspTestBuild {
   private def platform(config: BspTestHarness.ProjectConfig): Option[ResolvedProject.Platform] =
     config.platform match {
       case BuildLoader.Platform.Jvm =>
-        Some(ResolvedProject.Platform.Jvm(options = Nil, mainClass = None, runtimeOptions = Nil))
+        Option(ResolvedProject.Platform.Jvm(options = Nil, mainClass = None, runtimeOptions = Nil))
       case BuildLoader.Platform.ScalaJs(version, _) =>
-        Some(
+        Option(
           ResolvedProject.Platform.Js(
             version = version,
             mode = "debug",
             kind = "application",
             emitSourceMaps = false,
             jsdom = None,
-            nodePath = Some(Path.of(PlatformTestHelper.nodeBinary)),
+            nodePath = Option(Path.of(PlatformTestHelper.nodeBinary)),
             mainClass = None
           )
         )
       case BuildLoader.Platform.ScalaNative(version, _) =>
-        Some(ResolvedProject.Platform.Native(version = version, mode = "debug", gc = "immix", mainClass = None))
+        Option(ResolvedProject.Platform.Native(version = version, mode = "debug", gc = "immix", mainClass = None))
       case BuildLoader.Platform.KotlinJs(version) =>
-        Some(
+        Option(
           ResolvedProject.Platform.Js(
             version = version,
             mode = "debug",
             kind = "application",
             emitSourceMaps = false,
             jsdom = None,
-            nodePath = Some(Path.of(PlatformTestHelper.nodeBinary)),
+            nodePath = Option(Path.of(PlatformTestHelper.nodeBinary)),
             mainClass = None
           )
         )
       case BuildLoader.Platform.KotlinNative(version) =>
-        Some(ResolvedProject.Platform.Native(version = version, mode = "debug", gc = "immix", mainClass = None))
+        Option(ResolvedProject.Platform.Native(version = version, mode = "debug", gc = "immix", mainClass = None))
     }
 }

@@ -128,15 +128,17 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** `1.0.toString` renders as `1` under Scala.js and as `1.0` on the JVM. A suite that passes therefore proves that the linked JavaScript ran under Node.
-    * These classes also sit on the test classpath as JVM class files. A run that reached the JVM runner instead would report the assertion as failed.
+  /** Node itself sets `process.versions.node` to the version it is running. JVM runner never links `scala.scalajs.js` .
     */
   private val platformSuiteSource =
     """package example
       |
+      |import scala.scalajs.js
+      |
       |class PlatformSuite extends munit.FunSuite {
-      |  test("a whole double renders without its fraction") {
-      |    assertEquals(1.0.toString, "1")
+      |  test("the suite runs under node") {
+      |    val nodeVersion = js.Dynamic.global.process.versions.node.asInstanceOf[String]
+      |    assert(nodeVersion.nonEmpty, "process.versions.node was empty")
       |  }
       |}
       |""".stripMargin
@@ -186,25 +188,33 @@ class PlatformTestRunnerIntegrationTest extends AnyFunSuite with Matchers with T
     }
   }
 
-  /** Three suites in one file. A single compile and a single link produce the module for all three suites. */
+  /** Three suites in one file. A single compile and a single link produce the module for all three suites. Each one reads `process.versions.node` the way
+    * [[platformSuiteSource]] does.
+    */
   private val threeSuiteSource =
     """package example
       |
+      |import scala.scalajs.js
+      |
+      |object NodeVersion {
+      |  def read(): String = js.Dynamic.global.process.versions.node.asInstanceOf[String]
+      |}
+      |
       |class AlphaSuite extends munit.FunSuite {
       |  test("alpha runs under node") {
-      |    assertEquals(1.0.toString, "1")
+      |    assert(NodeVersion.read().nonEmpty, "process.versions.node was empty")
       |  }
       |}
       |
       |class BetaSuite extends munit.FunSuite {
       |  test("beta runs under node") {
-      |    assertEquals(2.0.toString, "2")
+      |    assert(NodeVersion.read().nonEmpty, "process.versions.node was empty")
       |  }
       |}
       |
       |class GammaSuite extends munit.FunSuite {
       |  test("gamma runs under node") {
-      |    assertEquals(3.0.toString, "3")
+      |    assert(NodeVersion.read().nonEmpty, "process.versions.node was empty")
       |  }
       |}
       |""".stripMargin

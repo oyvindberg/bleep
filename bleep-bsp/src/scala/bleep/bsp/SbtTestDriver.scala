@@ -65,7 +65,7 @@ object SbtTestDriver {
         eventHandler.onTestStarted(suiteName, testName)
 
         def count(add: SuiteCounts => SuiteCounts): Unit =
-          suiteCounts.updateWith(suiteName)(existing => Some(add(existing.getOrElse(SuiteCounts.empty)))): Unit
+          suiteCounts.updateWith(suiteName)(existing => Option(add(existing.getOrElse(SuiteCounts.empty)))): Unit
 
         val status = event.status() match {
           case sbt.testing.Status.Success =>

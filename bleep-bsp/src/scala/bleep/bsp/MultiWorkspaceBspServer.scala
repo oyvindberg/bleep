@@ -3175,7 +3175,7 @@ class MultiWorkspaceBspServer(
               val durationMs = endTs - startTs
               eventQueue
                 .offer(
-                  Some(
+                  Option(
                     TaskDag.DagEvent
                       .SuiteFinished(
                         testTask.project,
