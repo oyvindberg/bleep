@@ -13,8 +13,10 @@ object ScalaCollectionReflection {
     val mapObj = mapCompanion.getField("MODULE$").get(null)
     val emptyMethod = mapCompanion.getMethod("empty")
     var result = emptyMethod.invoke(mapObj)
-    val updatedMethod = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
     javaMap.foreach { case (k, v) =>
+      // Each added entry produces a map of a different class: `Map$Map1` through `Map$Map4`, then `HashMap`. `getMethod` returns a `Method` that the
+      // queried class declares. A `Method` declared by `Map$EmptyMap$` rejects a `Map$Map1` receiver. This lookup repeats for every entry.
+      val updatedMethod = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
       result = updatedMethod.invoke(result, k, v)
     }
     result
