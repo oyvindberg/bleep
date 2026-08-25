@@ -4,7 +4,7 @@ package bleep.bsp
   *
   * A `TestAdapter` resolved through `CompilerResolver` brings its own `scala-library`. The adapter's methods take and return that library's `List`, `Map`, and
   * `Option`. Passing a `List` that bleep's own `scala-library` built to an adapter method raises an `IllegalArgumentException`. Every method in this object
- *     takes the classloader that owns the collections.
+  * takes the classloader that owns the collections.
   */
 object ScalaCollectionReflection {
 

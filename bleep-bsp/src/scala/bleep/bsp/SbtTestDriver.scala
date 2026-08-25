@@ -123,11 +123,10 @@ object SbtTestDriver {
 
     executeTasks(tasks)
 
-    // `done()` is the barrier that flushes events. A Scala.js `TestAdapter` reports its events over a socket. `Task.execute` can return before the last
+    // `done()` is the barrier that flushes events. A Scala.js `TestAdapter` reports its events over a socket, and `Task.execute` can return before the last
     // event arrives.
-    // TODO decide what this driver does with a throw from `done()`. Swallowing the exception is fallback code, which bleep's rules forbid. The section
-    // "In scope — add to plan" in dev-notes/plans/fix-655-scalajs-testadapter-plan.md asks which exception each adapter raises and whether a throw here
-    // loses results the run already has.
+    // Only a Scala Native `TestAdapter` throws here, when the native process's RPC handler declares no `done` opcode. A Scala.js `TestAdapter` runs this
+    // call to completion.
     try runner.done()
     catch { case _: Exception => () }
 
