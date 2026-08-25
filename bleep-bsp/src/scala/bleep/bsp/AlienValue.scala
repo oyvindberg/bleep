@@ -36,13 +36,6 @@ final case class AlienList(private[bsp] val underlying: AnyRef, loader: ClassLoa
     }
     builder.result()
   }
-
-  /** Every element cast to an `A`.
-    *
-    * The cast succeeds only for a class that [[loader]] and bleep's own classloader resolve alike. The parent classloader supplies `sbt.testing.Framework` to
-    * both classloaders. `sbt.testing.Framework` is the only class this method casts to today.
-    */
-  def as[A]: List[A] = elements.map(_.asInstanceOf[A])
 }
 
 object AlienList {
@@ -89,7 +82,6 @@ object AlienMap {
 /** A `scala.Option` that [[loader]] built. */
 final case class AlienOption(private[bsp] val underlying: AnyRef, loader: ClassLoader) extends AlienValue {
 
-  /** The value cast to an `A`. [[AlienList.as]] states when that cast succeeds. */
   def as[A]: Option[A] = {
     val noneObj = loader.loadClass("scala.None$").getField("MODULE$").get(null)
     if (underlying == noneObj) None

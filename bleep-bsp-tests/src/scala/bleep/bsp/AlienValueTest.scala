@@ -27,18 +27,14 @@ class AlienValueTest extends AnyFunSuite with Matchers {
     AlienMap.of(entries, loader).underlying shouldBe entries
   }
 
-  test("AlienList.of and AlienList.as round-trip a list of strings") {
+  test("AlienList.of and AlienList.elements round-trip a list of strings") {
     val alienList = AlienList.of(List("a", "b", "c"), loader)
     alienList.underlying shouldBe List("a", "b", "c")
-    alienList.as[String] shouldBe List("a", "b", "c")
+    alienList.elements shouldBe List("a", "b", "c")
   }
 
-  test("AlienList.elements hands back every element") {
-    AlienList.of(List("a", "b", "c"), loader).elements shouldBe List("a", "b", "c")
-  }
-
-  test("AlienList.as extracts an empty list from Nil") {
-    AlienList(Nil, loader).as[String] shouldBe Nil
+  test("AlienList.elements extracts an empty list from Nil") {
+    AlienList(Nil, loader).elements shouldBe Nil
   }
 
   /** `loadFrameworks` returns a `List[Option[Framework]]`. The elements of that alien list are themselves alien. */
