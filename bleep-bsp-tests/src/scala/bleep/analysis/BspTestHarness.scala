@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp._
 import ryddig.{LogPatterns, Loggers}
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
-import java.io.{PipedInputStream, PipedOutputStream}
+import java.io.{InputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.{ArrayBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 /** Test harness for BSP server integration tests.
   *
-  * Starts a BspServer with piped streams, sends requests via JSON-RPC, and collects responses/notifications.
+  * Starts a BspServer over a pair of [[bleep.bsp.InMemoryPipe]]s, sends requests via JSON-RPC, and collects responses/notifications.
   *
   * Usage:
   * {{{
@@ -36,6 +36,17 @@ object BspTestHarness {
     case class TaskProgress(taskId: String, message: Option[String]) extends BspEvent
     case class TaskFinish(taskId: String, statusCode: Int, message: Option[String]) extends BspEvent
   }
+
+  /** The client's reader thread ended before the reply to `method` arrived. Nothing dispatches that reply. A request that kept waiting would wait out its whole
+    * timeout before reporting anything.
+    *
+    * @param method
+    *   the BSP method whose reply is lost
+    * @param cause
+    *   what ended the reader thread
+    */
+  case class ReaderThreadEndedException(method: String, cause: Throwable)
+      extends RuntimeException(s"The BSP reader thread ended before the reply to $method arrived", cause)
 
   /** Handle for an async request that can be cancelled */
   trait RequestHandle[R] {
@@ -192,22 +203,17 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
   import JsonRpcCodecs.given
 
   def use[A](f: BspClient => A): A = {
-    // Create pipes for bidirectional communication
-    // Client writes to clientToServer, server reads from it
-    // Server writes to serverToClient, client reads from it
-    val clientToServer = new PipedOutputStream()
-    val serverInput = new PipedInputStream(clientToServer, 65536)
-
-    val serverToClient = new PipedOutputStream()
-    val clientInput = new PipedInputStream(serverToClient, 65536)
+    // Two pipes carry the two directions. InMemoryPipe explains why not `java.io.PipedInputStream`.
+    val clientToServer = new InMemoryPipe(65536)
+    val serverToClient = new InMemoryPipe(65536)
 
     // The production server. It has no way to be handed build state directly — it compiles the
     // build its client sends — so the configs are lowered into the same payload a real bleep
     // client would send, and delivered through build/initialize below.
     val harnessAnalysisCache = new bleep.analysis.AnalysisCache
     val server = new MultiWorkspaceBspServer(
-      serverInput,
-      serverToClient,
+      clientToServer.source,
+      serverToClient.sink,
       Loggers.stderr(LogPatterns.logFile),
       machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
       heapMonitor = HeapMonitor.system,
@@ -236,25 +242,25 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     serverThread.setDaemon(true)
     serverThread.start()
 
-    val client = new BspClientImpl(clientInput, clientToServer, buildPayload)
+    val client = new BspClientImpl(serverToClient.source, clientToServer.sink, buildPayload)
 
     try f(client)
     finally {
       try client.shutdown()
       catch { case _: Exception => () }
       try {
-        clientToServer.close()
-        clientInput.close()
-        serverInput.close()
-        serverToClient.close()
+        clientToServer.sink.close()
+        clientToServer.source.close()
+        serverToClient.sink.close()
+        serverToClient.source.close()
       } catch { case _: Exception => () }
       serverThread.interrupt()
     }
   }
 
   private class BspClientImpl(
-      in: PipedInputStream,
-      out: PipedOutputStream,
+      in: InputStream,
+      out: OutputStream,
       buildPayload: Option[BspBuildData.Payload]
   ) extends BspClient {
 
@@ -268,13 +274,16 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     // Fallback queue for responses to unknown request IDs (shouldn't happen, but safety)
     private val defaultResponseQueue = new ArrayBlockingQueue[JsonRpcResponse](100)
 
+    /** What ended the reader thread. A closed stream at shutdown ends the reader too. Nothing waits for a reply by then. */
+    private val readerEndedBy = new java.util.concurrent.atomic.AtomicReference[Throwable](null)
+
     // Reader thread for handling responses and notifications
     private val readerRunnable: Runnable = () =>
       try
         while (true)
           readAndDispatch()
       catch {
-        case _: Exception => () // Shutdown
+        case ended: Exception => readerEndedBy.set(ended)
       }
     private val readerThread = new Thread(readerRunnable, "bsp-test-reader")
     readerThread.setDaemon(true)
@@ -302,12 +311,10 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
         read += r
       }
 
-      // Try to parse as response or notification
-      val json = new String(content, "UTF-8")
-
-      // Check if it has an "id" field (response) or just "method" (notification)
-      if (json.contains("\"result\"") || json.contains("\"error\"")) {
-        // It's a response - route to correct pending request
+      // The request codec reads `method` and skips every other key. Only a notification declares `method`. 
+      val envelope = readFromArray[JsonRpcRequest](content)
+      if (envelope.method != null) handleNotification(envelope)
+      else {
         val response = readFromArray[JsonRpcResponse](content)
         val responseId: Option[Int] = response.id match {
           case RpcId.IntId(i)    => Some(i)
@@ -322,9 +329,6 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
           case None =>
             defaultResponseQueue.put(response)
         }
-      } else if (json.contains("\"method\"")) {
-        // It's a notification
-        handleNotification(content)
       }
     }
 
@@ -344,9 +348,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       if (sb.isEmpty) null else sb.toString
     }
 
-    private def handleNotification(content: Array[Byte]): Unit = {
-      val notification = readFromArray[JsonRpcNotification](content)
-
+    private def handleNotification(notification: JsonRpcRequest): Unit =
       notification.method match {
         case "build/logMessage" =>
           notification.params.foreach { params =>
@@ -412,6 +414,27 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
 
         case _ => ()
       }
+
+    /** Waits for one reply, and gives up as soon as the reader thread that would deliver it ends.
+      *
+      * @return
+      *   the reply, or null once `timeoutMs` passes with no reply
+      * @throws ReaderThreadEndedException
+      *   when the reader thread ended before the reply arrived
+      */
+    private def pollUntilReaderEnds(queue: ArrayBlockingQueue[JsonRpcResponse], timeoutMs: Long, method: String): JsonRpcResponse = {
+      val deadlineNanos = System.nanoTime() + timeoutMs * 1000000L
+      var response: JsonRpcResponse = null
+      while (response == null && System.nanoTime() < deadlineNanos) {
+        response = queue.poll(200, TimeUnit.MILLISECONDS)
+        // The reader dispatches a reply before it ends. The poll above takes such a reply. An empty poll after the
+        // reader ended means no reply is coming.
+        if (response == null) {
+          val ended = readerEndedBy.get()
+          if (ended != null) throw ReaderThreadEndedException(method, ended)
+        }
+      }
+      response
     }
 
     /** Create and send a request, returning a handle for async use */
@@ -446,7 +469,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
 
         override def await(): R =
           try {
-            val response = queue.poll(120, TimeUnit.SECONDS)
+            val response = pollUntilReaderEnds(queue, 120000, method)
             if (response == null) {
               throw new RuntimeException(s"Timeout waiting for response to $method")
             }
@@ -455,7 +478,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
 
         override def awaitWithTimeout(timeoutMs: Long): Option[R] =
           try {
-            val response = queue.poll(timeoutMs, TimeUnit.MILLISECONDS)
+            val response = pollUntilReaderEnds(queue, timeoutMs, method)
             if (response == null) None
             else Some(processResponse(response, method))
           } finally pendingRequests.remove(id)
@@ -496,7 +519,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       }
 
       try {
-        val response = queue.poll(120, TimeUnit.SECONDS)
+        val response = pollUntilReaderEnds(queue, 120000, method)
         if (response == null) {
           throw new RuntimeException(s"Timeout waiting for response to $method")
         }
