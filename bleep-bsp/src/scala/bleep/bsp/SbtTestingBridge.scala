@@ -231,8 +231,14 @@ object SbtTestingBridge {
       val mapCompanion = loader.loadClass("scala.collection.immutable.Map$")
       val mapObj = mapCompanion.getField("MODULE$").get(null)
       var result = mapCompanion.getMethod("empty").invoke(mapObj)
-      val updated = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
-      entries.foreach { case (k, v) => result = updated.invoke(result, k, v) }
+      // Resolved against the *current* receiver on every entry, not hoisted out of the loop. Scala's immutable maps change class as they grow — `EmptyMap$`,
+      // then `Map1`, `Map2`, and so on — so a `Method` taken from the empty map's class throws `IllegalArgumentException: object of type Map$Map1 is not an
+      // instance of Map$EmptyMap$` the moment a second entry is added. One entry worked, which is what kept this hidden: weaver 0.8.4 passes one option
+      // through and 0.8.3 passes two, and only the second hung the Scala.js matrix.
+      entries.foreach { case (k, v) =>
+        val updated = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
+        result = updated.invoke(result, k, v)
+      }
       result.asInstanceOf[AnyRef]
     }
 
