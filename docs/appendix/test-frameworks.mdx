@@ -49,21 +49,59 @@ itself, so the adapter was never loaded.
 
 ## What bleep adds to the test classpath
 
-Only what the project cannot supply itself, and never a version the project
-already chose:
+Running a test needs more on the classpath than compiling one does, and the
+extra pieces are ones you should not have to name yourself. Bleep adds them,
+and this is the whole list — nothing else is injected anywhere.
 
-- **`org.scala-sbt:test-interface`**, always. It is the SPI every
-  `Framework` is loaded through.
-- **The JUnit Platform launcher and engines**, at *the project's own
-  platform version*, when the project resolved a `org.junit.platform`
-  artifact. Bleep never overrides a junit version you picked: mixing them is
-  what produces `NoSuchMethodError` deep inside discovery.
-- **A JUnit 4 runtime** (launcher plus vintage engine, at bleep's versions)
-  when the project has `junit:junit` and *no* platform of its own. JUnit 4
-  predates the platform and cannot supply one.
+| What | When | At which version |
+|---|---|---|
+| `build.bleep:bleep-test-runner` | every test project | the version of bleep running the build |
+| `org.scala-sbt:test-interface` | every test project | 1.0, the only release there will ever be |
+| `junit-platform-launcher`, `junit-jupiter-engine`, `junit-vintage-engine` | the project resolved something from `org.junit.platform` | **the version the project resolved** |
+| `junit-platform-launcher`, `junit-vintage-engine` | the project has `junit:junit` and nothing from `org.junit.platform` | bleep's own |
+| `scalajs-test-interface`, `scalajs-test-bridge` | Scala.js test projects | the project's Scala.js version |
+| `test-interface` (Native) | Scala Native test projects | the project's Scala Native version |
 
-A project with no junit anywhere gets no junit — a ScalaTest fork carries
-none of it.
+Two rules govern all of it:
+
+**Bleep never overrides a version you chose.** If your project resolves a
+JUnit Platform, every junit artifact bleep adds is pinned to *that* version.
+Bleep supplies its own versions only in the one case where you have expressed
+no opinion at all — JUnit 4 with no platform anywhere, which predates the
+platform and cannot supply one. So bleep's versions and yours can never
+become two opinions for the resolver to reconcile.
+
+**Bleep adds nothing you do not need.** A ScalaTest project gets no junit. A
+project with no junit anywhere gets no junit. The rules fire on what you
+actually resolved, not on what you might have meant.
+
+The junit artifacts are version-sensitive in both directions, which is why
+the first rule matters: junit hard-fails when launcher and engine disagree
+(`OutputDirectoryCreator not available … unaligned versions`), and an engine
+paired with a foreign `junit-platform-commons` dies during discovery
+(`NoSuchMethodError: ReflectionUtils.returnsVoid`, dropped in 1.13). A kotest
+6 project hit exactly that when a stale engine landed ahead of the aligned one.
+
+The platform rows are different in kind: `scalajs-test-bridge` and its Native
+equivalent are the other half of the test protocol, linked into your test
+binary and spoken to by the adapter on the JVM side. Both halves must come
+from one toolchain, so bleep pins them to your platform version and marks them
+`early-semver` so a framework built against an older patch of the same line
+does not fail the eviction check over a conflict bleep created.
+
+### Seeing it for your own project
+
+These deps appear in no build file, so `bleep -d test` prints each one next
+to the rule that asked for it:
+
+```
+test runtime: org.scala-sbt:test-interface:1.0   [rule => sbt test interface …]
+test runtime: org.junit.platform:junit-platform-launcher:1.13.4, …   [rule => JUnit Platform …]
+```
+
+If something is on your test classpath that you did not put there and bleep
+does not claim, it arrived transitively through your own dependencies —
+`bleep evicted <project>` shows what resolution chose.
 
 ### JUnit Platform versions
 
@@ -71,6 +109,13 @@ Bleep runs **JUnit Platform 1.0.0 through 6.x**. The runner is compiled
 against the oldest supported API and reaches newer capabilities by probing
 for them, so a project pinning an old Jupiter still works: Spring Boot 2.4
 and 2.5, for instance, pin Jupiter 5.7, which predates `LauncherSession`.
+
+### What bleep does not add
+
+TestNG is the exception worth knowing: it ships no sbt test-interface
+implementation, so bleep cannot run it without Mill's bridge, and the bridge
+is not injected. Declare it yourself alongside `org.testng:testng` — see the
+table above for the coordinate.
 
 ## Multiple frameworks in one project
 
@@ -115,11 +160,6 @@ Two consequences worth knowing:
   That class is what bleep discovers; the Launcher expands it into one test
   per scenario. A run with no annotated class anywhere — only `.feature`
   resources — has nothing for bleep's scan to find.
-- **Spock** cannot be built by bleep at all, whatever discovery does: Spock
-  specs are Groovy, and bleep has no Groovy compiler. `spock.lang.Specification`
-  is recognised so that pre-compiled specs on the classpath are found, but
-  there is no way to compile one from source in a bleep build.
-
 If you hit an engine bleep does not find, that is a bug worth reporting —
 the fix is usually one line.
 

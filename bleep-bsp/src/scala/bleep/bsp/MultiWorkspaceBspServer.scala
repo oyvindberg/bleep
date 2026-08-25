@@ -4866,11 +4866,20 @@ object MultiWorkspaceBspServer {
     )
   )
 
-  /** Evaluate [[testRuntimeRules]] against a test project's resolved dependency graph. The one place rules are applied. */
-  private[bsp] def testRuntimeDeps(project: CrossProjectName, resolved: ResolvedProject): SortedSet[model.Dep] = {
+  /** Evaluate [[testRuntimeRules]] against a test project's resolved dependency graph, keeping each dep next to the rule that produced it. The one place rules
+    * are applied.
+    *
+    * Attribution rather than a flat set, because "why is this jar on my test classpath?" is a question users ask and bleep is the only one who can answer it:
+    * these deps appear in no build file. [[testRuntimeDeps]] flattens it for the resolver; [[fetchTestRuntimeDeps]] logs it.
+    */
+  private[bsp] def testRuntimeDepsByRule(project: CrossProjectName, resolved: ResolvedProject): List[(String, List[model.Dep.JavaDependency])] = {
     val modules = resolvedModulesOf(project, resolved)
-    SortedSet.empty[model.Dep] ++ testRuntimeRules.flatMap(_.contributes(project, modules))
+    testRuntimeRules.map(rule => (rule.name, rule.contributes(project, modules))).filter { case (_, deps) => deps.nonEmpty }
   }
+
+  /** Evaluate [[testRuntimeRules]] against a test project's resolved dependency graph. */
+  private[bsp] def testRuntimeDeps(project: CrossProjectName, resolved: ResolvedProject): SortedSet[model.Dep] =
+    SortedSet.empty[model.Dep] ++ testRuntimeDepsByRule(project, resolved).flatMap { case (_, deps) => deps }
 
   private def excludeAllOf(organizations: String*): model.JsonMap[coursier.core.Organization, model.JsonSet[coursier.core.ModuleName]] =
     model.JsonMap(organizations.map(org => (coursier.core.Organization(org), model.JsonSet(coursier.core.ModuleName("*")))).toMap)
@@ -5001,7 +5010,15 @@ object MultiWorkspaceBspServer {
 
   private def fetchTestRuntimeDeps(started: Started, project: CrossProjectName, resolved: ResolvedProject): List[Path] = {
     val resolver = started.resolver
-    val deps = testRuntimeDeps(project, resolved)
+    val byRule = testRuntimeDepsByRule(project, resolved)
+    // Debug rather than info: correct on every run, and noise on all but the one where someone is asking why a jar is present. `bleep -d test` prints it.
+    byRule.foreach { case (ruleName, deps) =>
+      started.logger
+        .withContext("project", project.value)
+        .withContext("rule", ruleName)
+        .debug(s"test runtime: ${deps.map(_.repr).mkString(", ")}")
+    }
+    val deps = SortedSet.empty[model.Dep] ++ byRule.flatMap { case (_, deps) => deps }
     if (deps.isEmpty) return Nil
     val key = (resolver, deps)
     val cached = cachedTestRuntimeJars.get(key)
