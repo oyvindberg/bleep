@@ -24,12 +24,25 @@ object LinkExecutor {
     import bleep.bsp.protocol.BleepBspProtocol
 
     platform match {
+      // Named after the mode, not after the optimizer. Keying on the optimizer put `--release --no-optimize` in `debug/` and `--optimize` in `release/`, so two
+      // different builds shared one path and quietly overwrote each other. That was nearly harmless while the optimizer was the only thing separating the two
+      // modes; now that release also means minify, Closure and optimized semantics, the directory has to follow the mode that decides all four.
       case p: LinkPlatform.ScalaJs =>
-        BleepBspProtocol.linkDirSuffix(isRelease = p.config.optimizer, hasDebugInfo = false, hasLto = false)
+        BleepBspProtocol.linkDirSuffix(
+          isRelease = p.config.mode == ScalaJsLinkConfig.LinkerMode.Release,
+          hasDebugInfo = false,
+          hasLto = false
+        )
 
       case p: LinkPlatform.ScalaNative =>
         val hasLto = p.config.lto != ScalaNativeLinkConfig.NativeLTO.None
-        BleepBspProtocol.linkDirSuffix(isRelease = p.config.optimize, hasDebugInfo = false, hasLto = hasLto)
+        BleepBspProtocol.linkDirSuffix(
+          isRelease = p.config.mode != ScalaNativeLinkConfig.NativeMode.Debug,
+          hasDebugInfo = false,
+          hasLto = hasLto
+        )
+
+      // Kotlin carries no separate mode: `dce` and `optimizations` are exactly what `--release` sets, so for these two the flag really is the mode.
 
       case p: LinkPlatform.KotlinJs =>
         BleepBspProtocol.linkDirSuffix(isRelease = p.config.dce, hasDebugInfo = false, hasLto = false)

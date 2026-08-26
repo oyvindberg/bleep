@@ -89,7 +89,8 @@ class ScalaJsIntegrationTest extends AnyFunSuite with Matchers {
     val config = ScalaJsLinkConfig.Debug
     config.mode shouldBe ScalaJsLinkConfig.LinkerMode.Debug
     config.emitSourceMaps shouldBe true
-    config.optimizer shouldBe false
+    // The optimizer runs for a debug link as well; what separates debug from release is minification, Closure and the semantics, not this.
+    config.optimizer shouldBe true
     config.minify shouldBe false
   }
 

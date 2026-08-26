@@ -208,7 +208,8 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   }
 
   test("ScalaJsLinkConfig.Debug vs Release defaults") {
-    ScalaJsLinkConfig.Debug.optimizer shouldBe false
+    // On for debug too, as mill has it: measured free, and it halves the output. See `ScalaJsLinkConfig.Debug`.
+    ScalaJsLinkConfig.Debug.optimizer shouldBe true
     ScalaJsLinkConfig.Debug.minify shouldBe false
     ScalaJsLinkConfig.Debug.emitSourceMaps shouldBe true
 
