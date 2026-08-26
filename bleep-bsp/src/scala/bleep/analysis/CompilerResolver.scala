@@ -392,16 +392,20 @@ object CompilerResolver {
     * suffix.
     */
   private def resolveDep(dep: Dep, combo: VersionCombo = VersionCombo.Java): Seq[Path] =
-    dep.asJava(combo) match {
-      case Right(javaDep) =>
-        val coursierDep = javaDep.dependency
-        val files = Fetch()
-          .addDependencies(coursierDep)
-          .run()
-        files.map(_.toPath).toSeq
-      case Left(err) =>
-        throw new IllegalArgumentException(s"Failed to resolve dependency: $err")
+    resolveDepsInOneFetch(Seq(dep), combo)
+
+  /** Resolve several bleep `Dep`s to JAR paths in one Coursier fetch. Coursier reconciles a shared dependency that two `Dep`s ask for at two versions. Separate
+    * fetches would put both versions on the classpath.
+    */
+  private def resolveDepsInOneFetch(deps: Seq[Dep], combo: VersionCombo): Seq[Path] = {
+    val coursierDeps = deps.map { dep =>
+      dep.asJava(combo) match {
+        case Right(javaDep) => javaDep.dependency
+        case Left(err)      => throw new IllegalArgumentException(s"Failed to resolve dependency: $err")
+      }
     }
+    Fetch().addDependencies(coursierDeps*).run().map(_.toPath).toSeq
+  }
 
   /** Create an isolated classloader for compiler JARs.
     *
@@ -583,7 +587,9 @@ object CompilerResolver {
         coursier.core.ModuleName("scalajs-env-nodejs_2.13"),
         bleep.model.Versions.ScalaJsEnvNodejs
       )
-      val paths = (resolveDep(adapter) ++ resolveDep(nodeEnv)).distinct
+      // One fetch, not two. The adapter and the node env share dependencies and ask for them at different versions; resolving them separately put both
+      // versions of a shared jar on the adapter's classloader, and which one won depended on ordering.
+      val paths = resolveDepsInOneFetch(Seq(adapter, nodeEnv), VersionCombo.Java).distinct
       jarCache.put(key, paths)
       paths
     }

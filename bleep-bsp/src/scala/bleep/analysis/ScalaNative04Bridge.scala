@@ -274,20 +274,42 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
     ltoObj.getClass.getMethod(method).invoke(ltoObj)
   }
 
+  /** Invoke a single-argument `withX` builder method on a toolchain object.
+    *
+    * `paramType` is a hint, not a requirement. An exact match is preferred, but the erased signature of a Scala method is not stable across Scala versions:
+    * `Seq` means `scala.collection.Seq` in 2.12 and `scala.collection.immutable.Seq` in 2.13, so `getMethod("withClassPath", classOf[immutable.Seq])` throws
+    * `NoSuchMethodException` against a Scala Native toolchain built for 2.12 — and every Scala Native link on 2.12 failed on exactly that.
+    *
+    * Falling back to name-and-arity is safe here because these are builder methods with one overload each. If that ever stops being true this throws rather
+    * than picking one, because silently invoking the wrong overload on a linker config would surface as a mystery much further downstream.
+    */
   private def invokeWithMethod(obj: Any, methodName: String, paramType: Class[?], value: Any): Any = {
-    val method = obj.getClass.getMethod(methodName, paramType)
+    val candidates = obj.getClass.getMethods.filter(m => m.getName == methodName && m.getParameterCount == 1)
+    val method = candidates.find(_.getParameterTypes()(0) == paramType) match {
+      case Some(exact)                    => exact
+      case None if candidates.length == 1 => candidates.head
+      case None                           =>
+        sys.error(
+          s"cannot resolve $methodName on ${obj.getClass.getName}: no parameter of type ${paramType.getName}, and ${candidates.length} single-argument " +
+            s"candidates to choose from (${candidates.map(_.getParameterTypes()(0).getName).mkString(", ")})"
+        )
+    }
     method.invoke(obj, value.asInstanceOf[AnyRef])
   }
 
+  /** Build a `scala.collection.immutable.List` inside the toolchain's own classloader, by consing onto `Nil`.
+    *
+    * Deliberately not `scala.jdk.javaapi.CollectionConverters`, which is what this used to load. That class arrived in Scala 2.13, and the classloader here is
+    * the *toolchain's* — a Scala Native toolchain built for a 2.12 project carries a 2.12 standard library, where it does not exist. The linker then died with
+    * "Scala Native linker crashed: scala.jdk.javaapi.CollectionConverters$", which is to say that bleep could not link a Scala Native project on Scala 2.12 at
+    * all. `::` and `Nil` have been in the same place in every Scala version there has ever been.
+    */
   private def toScalaSeq(javaList: java.util.List[?], loader: ClassLoader): Any = {
-    val convertersClass = loader.loadClass("scala.jdk.javaapi.CollectionConverters$")
-    val convertersObj = convertersClass.getField("MODULE$").get(null)
-    val asScalaMethod = convertersClass.getMethods
-      .find(m => m.getName == "asScala" && m.getParameterCount == 1 && m.getParameterTypes()(0) == classOf[java.util.List[?]])
-      .get
-    val scalaBuffer = asScalaMethod.invoke(convertersObj, javaList)
-    val toListMethod = scalaBuffer.getClass.getMethod("toList")
-    toListMethod.invoke(scalaBuffer)
+    val nilObj = loader.loadClass("scala.collection.immutable.Nil$").getField("MODULE$").get(null)
+    val consCtor = loader
+      .loadClass("scala.collection.immutable.$colon$colon")
+      .getConstructor(classOf[Object], loader.loadClass("scala.collection.immutable.List"))
+    javaList.asScala.toList.foldRight(nilObj)((element, acc) => consCtor.newInstance(element.asInstanceOf[AnyRef], acc))
   }
 
   private def awaitResult(future: Any, loader: ClassLoader): Path = {
