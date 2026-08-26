@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.bsp.protocol.BleepBspProtocol
-import bleep.internal.{jvmRunCommand, TransitiveProjects}
+import bleep.internal.TransitiveProjects
 
 import java.nio.file.Files
 
@@ -108,7 +108,7 @@ case class Run(
       cwd = started.pre.buildPaths.cwd,
       resolvedJvm = started.resolvedJvm.forceGet,
       classpath = classpath,
-      jvmOptions = jvmRunCommand.scala3CompatOptions ++ jvmOptions,
+      jvmOptions = jvmOptions,
       mainClass = main,
       args = args,
       env = runEnv(started),

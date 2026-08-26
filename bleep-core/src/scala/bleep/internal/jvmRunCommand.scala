@@ -6,11 +6,6 @@ import java.nio.file.Path
 
 object jvmRunCommand {
 
-  /** JVM options to suppress Scala 3 LazyVals sun.misc.Unsafe warnings */
-  val scala3CompatOptions: List[String] = List(
-    "--add-opens=java.base/sun.misc=ALL-UNNAMED"
-  )
-
   def apply(
       project: ResolvedProject,
       resolvedJvm: Lazy[ResolvedJvm],
@@ -36,7 +31,6 @@ object jvmRunCommand {
 
   def cmdArgs(jvmOptions: List[String], cp: List[Path], main: String, args: List[String]): List[String] =
     List[List[String]](
-      scala3CompatOptions,
       jvmOptions,
       List("-classpath", cp.mkString(File.pathSeparator), main),
       args
