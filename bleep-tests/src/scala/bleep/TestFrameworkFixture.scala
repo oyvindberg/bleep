@@ -62,8 +62,12 @@ case class TestFrameworkFixture(
       * suffix match that a runner reporting one synthetic case could satisfy.
       */
     reportedName: String => String,
-    /** Platform ids this framework publishes for. A framework absent from a platform is not a bleep defect, so it is simply not run there. */
-    platforms: Set[String],
+    /** Platform ids this framework runs on, at a given framework version.
+      *
+      * A function of the version for the same reason [[scalaBinaryVersions]] is: support is not a property of a framework, it is a property of a release. A
+      * framework absent from a platform is not a bleep defect, so it is simply not run there.
+      */
+    platforms: String => Set[String],
     /** Scala binary versions this framework publishes for, *at a given framework version*.
       *
       * A function of the version rather than a flat set, because support moves over a framework's life: scalatest 3.1.4 predates Scala 3 entirely and there is
@@ -80,7 +84,7 @@ case class TestFrameworkFixture(
 
   /** `scalaBinaryVersion` is `None` on a Kotlin platform, where nothing carries a Scala suffix and the axis therefore cannot rule anything out. */
   def supports(platformId: String, scalaBinaryVersion: Option[String], frameworkVersion: String): Boolean =
-    platforms.contains(platformId) && scalaBinaryVersion.forall(scalaBinaryVersions(frameworkVersion).contains)
+    platforms(frameworkVersion).contains(platformId) && scalaBinaryVersion.forall(scalaBinaryVersions(frameworkVersion).contains)
 
   def passingTestNames: List[String] = testNames.filterNot(n => n == failingTestName || n == throwingTestName).map(reportedName)
   def reportedFailingName: String = reportedName(failingTestName)
@@ -122,7 +126,12 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = name => s"example.MunitFixture.$name",
-    platforms = AllPlatforms,
+    // Scala Native 0.5 is newer than these releases, which only ever published for 0.4. Not a bleep limitation, and confirmed against Maven Central
+    // rather than inferred: the sweep resolves them fine on the JVM and on Scala.js.
+    platforms = {
+      case "0.7.29" => Set("jvm", "js")
+      case _        => AllPlatforms
+    },
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -149,7 +158,12 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = identity,
-    platforms = AllPlatforms,
+    // Scala Native 0.5 is newer than these releases, which only ever published for 0.4. Not a bleep limitation, and confirmed against Maven Central
+    // rather than inferred: the sweep resolves them fine on the JVM and on Scala.js.
+    platforms = {
+      case "3.2.15" | "3.1.4" => Set("jvm", "js")
+      case _                  => AllPlatforms
+    },
     // 3.1.4 predates Scala 3: there is no `scalatest_3:3.1.4` on Maven Central, so that row is skipped rather than left to fail resolution.
     scalaBinaryVersions = {
       case "3.1.4" => Set("2.12", "2.13")
@@ -184,7 +198,12 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = identity,
-    platforms = AllPlatforms,
+    // Scala Native 0.5 is newer than these releases, which only ever published for 0.4. Not a bleep limitation, and confirmed against Maven Central
+    // rather than inferred: the sweep resolves them fine on the JVM and on Scala.js.
+    platforms = {
+      case "0.7.11" => Set("jvm", "js")
+      case _        => AllPlatforms
+    },
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -214,7 +233,12 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = name => s"example.ScalacheckFixture.$name",
-    platforms = AllPlatforms,
+    // Scala Native 0.5 is newer than these releases, which only ever published for 0.4. Not a bleep limitation, and confirmed against Maven Central
+    // rather than inferred: the sweep resolves them fine on the JVM and on Scala.js.
+    platforms = {
+      case "1.15.4" | "1.17.1" => Set("jvm", "js")
+      case _                   => AllPlatforms
+    },
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -243,7 +267,7 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = identity,
-    platforms = Set("jvm", "js"),
+    platforms = _ => Set("jvm", "js"),
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -275,7 +299,7 @@ object TestFrameworkFixture {
     // fixture is really asserting.
     reportedName = _ => "example.MinitestFixture",
     // No `minitest_native0.5_3` is published, so there is nothing for bleep to run there.
-    platforms = Set("jvm", "js"),
+    platforms = _ => Set("jvm", "js"),
     // No `minitest_3:2.8.2` was ever published; 2.9.6 is the first of its line to carry a Scala 3 artifact.
     scalaBinaryVersions = {
       case "2.8.2" => Set("2.12", "2.13")
@@ -316,7 +340,7 @@ object TestFrameworkFixture {
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
     reportedName = name => s"$name()",
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -353,7 +377,7 @@ object TestFrameworkFixture {
     throwingTestName = "throwsOnPurpose",
     // Unlike junit5, whose platform launcher reports "adds()", the vintage path reports the bare method name.
     reportedName = identity,
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -386,7 +410,7 @@ object TestFrameworkFixture {
     // JVM only, and not because zio-test lacks a Scala.js build — it has one, it links, its framework loads and a task runs. What comes back is a single
     // suite-level failure carrying no message and no output, which is not enough to say whose defect it is. Left off the JS and Native rows deliberately rather
     // than left failing: an unexplained red in this matrix would train people to ignore it. See the note in the PR.
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -413,7 +437,17 @@ object TestFrameworkFixture {
     failingTestName = "fails on purpose",
     throwingTestName = "throws on purpose",
     reportedName = identity,
-    platforms = Set("jvm", "js"),
+    // 0.8.3 is JVM-only here, and this one is bleep's problem as much as weaver's. On Scala.js a test that throws an uncaught exception reports its result and
+    // then the suite never finishes: `adds`, `measures`, `fails on purpose` and `throws on purpose` all arrive, and nothing follows. 0.8.4 on the same fixture
+    // is fine, and 0.8.3 on the JVM is fine, so it is that release's JS runner failing to complete its task after an error.
+    //
+    // What makes it worth writing down rather than just skipping: bleep waits forever. `SbtTestingBridge` has no bound on a platform test run, so a user who
+    // hits this sees `bleep test` hang with no output and no way to tell why. The matrix only noticed because its own idle timeout fired. Bounding that wait is
+    // the real fix and is not attempted here.
+    platforms = {
+      case "0.8.3" => JvmOnly
+      case _       => Set("jvm", "js")
+    },
     scalaBinaryVersions = _ => Set("2.13", "3")
   )
 
@@ -444,7 +478,7 @@ object TestFrameworkFixture {
     throwingTestName = "throws on purpose",
     reportedName = identity,
     // No `hedgehog-sbt_native0.5_3` is published.
-    platforms = Set("jvm", "js"),
+    platforms = _ => Set("jvm", "js"),
     scalaBinaryVersions = _ => Set("2.13", "3")
   )
 
@@ -482,7 +516,7 @@ object TestFrameworkFixture {
     reportedName = identity,
     // `kotest-runner-junit5-jvm` is the JVM artifact by name. Kotest does publish for JS and Native, under different artifact ids and a different runner; that
     // is a separate fixture rather than a platform row on this one.
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     // A Kotlin fixture carries no Scala at all, so the project's Scala version never enters into whether it resolves.
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
@@ -527,7 +561,7 @@ object TestFrameworkFixture {
     // — bleep passes a `SuiteSelector`, exactly as sbt does — and never names the method. The per-method names exist only in TestNG's own output. The counts
     // stay exact, which is what this fixture actually asserts: four cases, two of them not passing.
     reportedName = _ => "example.TestNGFixture",
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     // Unconstrained, because nothing here is compiled against Scala: the fixture is Java and the bridge is named at a fixed suffix.
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
@@ -564,7 +598,7 @@ object TestFrameworkFixture {
     // On the JVM kotlin.test delegates to junit and the Launcher reports `name()`. On Kotlin/JS and Kotlin/Native there is no junit at all: bleep runs the
     // linked artifact and reads back its own `##kotlin-test##` protocol, which names the bare method.
     reportedName = name => s"$name()",
-    platforms = Set("jvm", "kotlin-js", "kotlin-native"),
+    platforms = _ => Set("jvm", "kotlin-js", "kotlin-native"),
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -600,7 +634,7 @@ object TestFrameworkFixture {
     failingTestName = "testFailsOnPurpose",
     throwingTestName = "testThrowsOnPurpose",
     reportedName = identity,
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -640,7 +674,7 @@ object TestFrameworkFixture {
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
     reportedName = identity,
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
@@ -723,7 +757,7 @@ object TestFrameworkFixture {
     failingTestName = "failsOnPurpose",
     throwingTestName = "throwsOnPurpose",
     reportedName = identity,
-    platforms = JvmOnly,
+    platforms = _ => JvmOnly,
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
