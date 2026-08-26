@@ -592,22 +592,31 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     // ========================================================================
 
     private def resolveProjects(started: Started, names: List[String]): Array[model.CrossProjectName] =
-      if (names.isEmpty) {
-        started.chosenProjects(None)
-      } else {
-        names.flatMap { name =>
-          started.globs.projectNameMap.getOrElse(name, Array.empty[model.CrossProjectName])
-        }.toArray
-      }
+      if (names.isEmpty) started.chosenProjects(None)
+      else matchNames(names, started.globs.projectNameMap, "project")
 
     private def resolveTestProjects(started: Started, names: List[String]): Array[model.CrossProjectName] =
-      if (names.isEmpty) {
-        started.chosenTestProjects(None)
-      } else {
-        names.flatMap { name =>
-          started.globs.testProjectNameMap.getOrElse(name, Array.empty[model.CrossProjectName])
-        }.toArray
-      }
+      if (names.isEmpty) started.chosenTestProjects(None)
+      else matchNames(names, started.globs.testProjectNameMap, "test project")
+
+    /** Look every requested name up, and fail if any of them matched nothing.
+      *
+      * The command line has always rejected an unmatched name; this reached the same map with `getOrElse(name, Array.empty)` and dropped it without a word. The
+      * caller then got a green report about work that did not happen — `bleep.compile` on two projects, one of them mistyped, answered "1 projects compiled,
+      * all clear", and the only trace of the loss was a count the caller had to notice. Real builds have hidden compile errors and failing tests behind that
+      * silence for whole review cycles.
+      *
+      * Failing loudly is the point: an agent cannot see a project list it did not get, so the server has to be the one that notices.
+      */
+    private def matchNames(
+        names: List[String],
+        nameMap: Map[String, Array[model.CrossProjectName]],
+        what: String
+    ): Array[model.CrossProjectName] = {
+      val unmatched = names.filterNot(nameMap.contains)
+      if (unmatched.nonEmpty) throw new BleepException.Text(BleepMcpServer.unmatchedMessage(unmatched, nameMap.keys.toList, what))
+      names.flatMap(name => nameMap(name)).toArray
+    }
 
     /** A failed tool call is the only place the agent ever sees why the server died. If the server log records an OutOfMemoryError death, append that
       * explanation (with the fix) to the failure.
@@ -1216,6 +1225,32 @@ object BleepMcpServer {
   /** The definitive redirect for a `directory` that is not inside any bleep build. Worded for an agent mid-task: it must read as a final answer about the
     * project (so the agent switches to the right build tool immediately) and never as a transient bleep failure worth retrying.
     */
+  /** Say which names failed, and — where it can be worked out — why.
+    *
+    * The cross-target case is worth its own sentence because it is the one people actually hit: `MyProjectTest@jvm` names a cross target of a project that has
+    * none, and looks entirely reasonable to anyone who has seen `@jvm213` elsewhere in the same build.
+    */
+  def unmatchedMessage(unmatched: List[String], known: List[String], what: String): String = {
+    val sorted = known.sorted
+    val explanations = unmatched.map { name =>
+      val crossSuffixDropped = name.indexOf('@') match {
+        case -1 => None
+        case at => Option(name.take(at)).filter(sorted.contains)
+      }
+      val suggestions = crossSuffixDropped match {
+        case Some(base) => List(s"$base (it has no cross targets, so it is named without a suffix)")
+        case None       =>
+          val lower = name.toLowerCase
+          sorted.filter(k => k.toLowerCase == lower || k.toLowerCase.startsWith(lower) || lower.startsWith(k.toLowerCase)).take(5)
+      }
+      if (suggestions.isEmpty) s"  $name" else s"  $name — did you mean ${suggestions.mkString(", ")}?"
+    }
+    val header = if (unmatched.sizeIs == 1) s"no $what matches this name:" else s"no $what matches these names:"
+    // The full list last, so the specific complaint is not buried in it. Truncated because a large build has hundreds and the point is already made.
+    val all = if (sorted.sizeIs <= 40) sorted.mkString(", ") else sorted.take(40).mkString(", ") + s", … ${sorted.size - 40} more"
+    s"$header\n${explanations.mkString("\n")}\n\nknown ${what}s: $all"
+  }
+
   def notABleepBuild(directory: String): BleepException =
     new BleepException.Text(
       s"$directory is not part of a bleep build: no ${BuildLoader.BuildFileName} exists there or in any parent directory. " +
