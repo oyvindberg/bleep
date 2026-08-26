@@ -13,10 +13,10 @@ import java.io.{IOException, PipedInputStream, PipedOutputStream}
   *
   * The symptom was a BSP client parked in `CompletableFuture.get()` waiting for a reply while the server sat in `PipedInputStream.read` waiting for a request
   * neither of them could still deliver — reproducible by running several build-driving integration tests at once, and vanishing as soon as anything perturbed
-  * the timing.
+  * the timing, which is what made it look like a deadlock rather than a race.
   *
-  * These tests pin the behaviour rather than the workaround: if a future JDK stops tracking thread liveness this way, they fail and the socket pair the
-  * transport now uses can be reconsidered.
+  * These tests pin the JDK behaviour rather than the replacement: if a future JDK stops tracking thread liveness this way, they fail and `InMemoryPipe` can be
+  * reconsidered. That `InMemoryPipe` itself is free of the hazard is covered by `InMemoryPipeTest`, not here.
   */
 class PipedStreamThreadAffinityTest extends AnyFunSuite with Matchers {
 
@@ -50,27 +50,4 @@ class PipedStreamThreadAffinityTest extends AnyFunSuite with Matchers {
     thrown.getMessage shouldBe "Write end dead"
   }
 
-  test("a socket pair has no such thread affinity") {
-    val listener = new java.net.ServerSocket(0, 1, java.net.InetAddress.getLoopbackAddress)
-    val clientEnd = new java.net.Socket(java.net.InetAddress.getLoopbackAddress, listener.getLocalPort)
-    val serverEnd = listener.accept()
-    listener.close()
-
-    try {
-      val writer = new Thread(() => clientEnd.getOutputStream.write('a'), "short-lived-writer")
-      writer.start()
-      writer.join()
-
-      val reader = new Thread(() => serverEnd.getInputStream.read(): Unit, "short-lived-reader")
-      reader.start()
-      reader.join()
-
-      // Both threads that touched the connection are dead, and it still works from a third.
-      clientEnd.getOutputStream.write('b')
-      serverEnd.getInputStream.read() shouldBe 'b'
-    } finally {
-      clientEnd.close()
-      serverEnd.close()
-    }
-  }
 }
