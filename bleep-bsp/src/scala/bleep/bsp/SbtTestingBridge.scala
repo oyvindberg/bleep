@@ -223,47 +223,17 @@ object SbtTestingBridge {
 
   /** Reflective construction of Scala collections inside an adapter's classloader.
     *
-    * The adapters take and return `scala.collection.immutable.*` values loaded by their own classloader, which is a different `Class` from bleep's own Scala
-    * library. Nothing here is bleep-specific; it exists only to cross that boundary.
+    * A thin naming layer over [[AlienValue]], which is where the actual reflection and its hazards live. Kept because these call sites read better as
+    * `toMap`/`toList` than as `AlienMap.of(...).underlying`, and because everything here hands the raw object straight back to a reflective `invoke`.
     */
   object ScalaColl {
-    def toMap(entries: Map[String, String], loader: ClassLoader): AnyRef = {
-      val mapCompanion = loader.loadClass("scala.collection.immutable.Map$")
-      val mapObj = mapCompanion.getField("MODULE$").get(null)
-      var result = mapCompanion.getMethod("empty").invoke(mapObj)
-      // Resolved against the *current* receiver on every entry, not hoisted out of the loop. Scala's immutable maps change class as they grow — `EmptyMap$`,
-      // then `Map1`, `Map2`, and so on — so a `Method` taken from the empty map's class throws `IllegalArgumentException: object of type Map$Map1 is not an
-      // instance of Map$EmptyMap$` the moment a second entry is added. One entry worked, which is what kept this hidden: weaver 0.8.4 passes one option
-      // through and 0.8.3 passes two, and only the second hung the Scala.js matrix.
-      entries.foreach { case (k, v) =>
-        val updated = result.getClass.getMethod("updated", classOf[Object], classOf[Object])
-        result = updated.invoke(result, k, v)
-      }
-      result.asInstanceOf[AnyRef]
-    }
+    def toMap(entries: Map[String, String], loader: ClassLoader): AnyRef = AlienMap.of(entries, loader).underlying
 
-    def toList(elems: List[Any], loader: ClassLoader): AnyRef = {
-      val nilObj = loader.loadClass("scala.collection.immutable.Nil$").getField("MODULE$").get(null)
-      val consClass = loader.loadClass("scala.collection.immutable.$colon$colon")
-      val consCtor = consClass.getConstructor(classOf[Object], loader.loadClass("scala.collection.immutable.List"))
-      elems.foldRight(nilObj: Any)((elem, acc) => consCtor.newInstance(elem.asInstanceOf[AnyRef], acc.asInstanceOf[AnyRef])).asInstanceOf[AnyRef]
-    }
+    def toList(elems: List[Any], loader: ClassLoader): AnyRef = AlienList.of(elems.map(_.asInstanceOf[AnyRef]), loader).underlying
 
-    def fromList[A](scalaList: Any, loader: ClassLoader): List[A] = {
-      val nilObj = loader.loadClass("scala.collection.immutable.Nil$").getField("MODULE$").get(null)
-      val out = scala.collection.mutable.ListBuffer.empty[A]
-      var current = scalaList
-      while (current != nilObj) {
-        out += current.getClass.getMethod("head").invoke(current).asInstanceOf[A]
-        current = current.getClass.getMethod("tail").invoke(current)
-      }
-      out.toList
-    }
+    def fromList[A](scalaList: Any, loader: ClassLoader): List[A] =
+      AlienList(scalaList.asInstanceOf[AnyRef], loader).elements.map(_.asInstanceOf[A])
 
-    def fromOption[A](scalaOption: Any, loader: ClassLoader): Option[A] = {
-      val noneObj = loader.loadClass("scala.None$").getField("MODULE$").get(null)
-      if (scalaOption == noneObj) None
-      else Some(scalaOption.getClass.getMethod("get").invoke(scalaOption).asInstanceOf[A])
-    }
+    def fromOption[A](scalaOption: Any, loader: ClassLoader): Option[A] = AlienOption(scalaOption.asInstanceOf[AnyRef], loader).as[A]
   }
 }

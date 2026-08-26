@@ -306,15 +306,10 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
     */
   private def toScalaSeq(javaList: java.util.List[?], loader: ClassLoader): Any = {
     val nilObj = loader.loadClass("scala.collection.immutable.Nil$").getField("MODULE$").get(null)
-    val consClass = loader.loadClass("scala.collection.immutable.$colon$colon")
-    val consCtor = consClass.getConstructor(classOf[Object], loader.loadClass("scala.collection.immutable.List"))
-    var result: Any = nilObj
-    var i = javaList.size() - 1
-    while (i >= 0) {
-      result = consCtor.newInstance(javaList.get(i).asInstanceOf[AnyRef], result.asInstanceOf[AnyRef])
-      i -= 1
-    }
-    result
+    val consCtor = loader
+      .loadClass("scala.collection.immutable.$colon$colon")
+      .getConstructor(classOf[Object], loader.loadClass("scala.collection.immutable.List"))
+    javaList.asScala.toList.foldRight(nilObj)((element, acc) => consCtor.newInstance(element.asInstanceOf[AnyRef], acc))
   }
 
   private def awaitResult(future: Any, loader: ClassLoader): Path = {
