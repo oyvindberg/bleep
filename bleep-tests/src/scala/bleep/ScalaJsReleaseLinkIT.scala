@@ -17,7 +17,7 @@ class ScalaJsReleaseLinkIT extends IntegrationTestHarness {
 
   private val myapp = model.CrossProjectName(model.ProjectName("myapp"), None)
 
-  /** `jsKind: none` produces a NoModule program, which is what lets the Closure compiler run — Scala.js refuses to pair it with ESModule output. */
+  /** `jsKind: none` asks for a NoModule program. Any kind but ESModule lets the Closure compiler run; Scala.js refuses to pair Closure with ESModule output. */
   private val Yaml =
     s"""projects:
        |  myapp:
@@ -85,6 +85,27 @@ class ScalaJsReleaseLinkIT extends IntegrationTestHarness {
       case Nil        => fail(s"no linked main.js under a '$dirSegment' directory in ${ws.root}")
       case many       => fail(s"expected one linked main.js under '$dirSegment', found ${many.size}: ${many.mkString(", ")}")
     }
+  }
+
+  integrationTest("the project's jsKind reaches the linker") { ws =>
+    ws.yaml(Yaml)
+    ws.file("myapp/src/scala/example/Greeter.scala", Source)
+    val (started, _, _) = ws.start()
+
+    link(started, release = false).orThrow
+    val js = Files.readString(linkedJs(ws, "debug"))
+
+    // A NoModule program is wrapped in `(function(){ ... }).call(this)`; CommonJS and ESModule output is a bare sequence of top-level statements. That wrapper
+    // is the one shape difference visible in a program with no exported members, and it is enough: the build asks for `jsKind: none`, so its absence means the
+    // declaration never reached the linker.
+    //
+    // It did not, until it was made to. The link read `--module-kind` and then fell back to a hardcoded `CommonJSModule`, so a build declaring any kind at all
+    // got CommonJS and nothing said otherwise.
+    assert(
+      js.contains(").call(this)"),
+      s"linked output is not a NoModule program, so `jsKind: none` did not reach the linker. Tail:\n${js.takeRight(200)}"
+    )
+    succeed
   }
 
   integrationTest("release link minifies: names are shortened and the program shrinks") { ws =>

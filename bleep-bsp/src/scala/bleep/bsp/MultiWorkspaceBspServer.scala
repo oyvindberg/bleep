@@ -1850,12 +1850,22 @@ class MultiWorkspaceBspServer(
                 emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
                 minify = linkOpts.minify.getOrElse(baseConfig.minify),
                 optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
+                // `--module-kind` first, then the project's own `jsKind`, and only then the constant.
+                //
+                // The project was never consulted: a build declaring `jsKind: esmodule` got a CommonJS link and no flag was needed to cause it, because the
+                // fallback was a hardcoded `CommonJSModule`. That also quietly disarmed the Closure rule below, which skips Closure for ESModule output because
+                // Scala.js rejects the pairing — a yaml-declared ESModule project reached it looking like CommonJS.
                 moduleKind = linkOpts.moduleKind
                   .map {
                     case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
                     case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
                     case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
                   }
+                  .orElse(project.platform.flatMap(_.jsKind).map {
+                    case model.ModuleKindJS.NoModule       => ScalaJsLinkConfig.ModuleKind.NoModule
+                    case model.ModuleKindJS.CommonJSModule => ScalaJsLinkConfig.ModuleKind.CommonJSModule
+                    case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
+                  })
                   .getOrElse(baseConfig.moduleKind)
               )
               Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
