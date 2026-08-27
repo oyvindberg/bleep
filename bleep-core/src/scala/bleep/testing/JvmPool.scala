@@ -7,10 +7,11 @@ import cats.syntax.all._
 import fs2.Stream
 
 import java.io._
-import java.net.{InetAddress, ServerSocket}
+import java.net.{InetAddress, ServerSocket, Socket, SocketTimeoutException}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
 import scala.util.Properties
@@ -94,11 +95,21 @@ object JvmPool {
 
   /** How long a freshly spawned fork gets to connect back on the protocol socket.
     *
-    * Generous, because it covers JVM startup on a cold, loaded CI runner, and bounded, because a fork that never connects would otherwise hang the suite with
-    * no diagnostics — the failure it usually indicates (bad JVM options, a test-runner jar the project's JVM cannot load) is one the child reports on its own
-    * stderr, which the spawn failure surfaces.
+    * Generous, because it covers JVM startup on a cold, loaded CI runner, and bounded, because a fork that never connects would otherwise hang the suite
+    * forever. What the timeout means depends on the fork's state when it fires, so the spawn failure reports that state rather than the bare timeout: a fork
+    * that has already exited hit a startup failure it described on its own stderr, while a fork still running never intended to connect at all.
     */
   private val ProtocolConnectTimeout: FiniteDuration = 60.seconds
+
+  /** Cap on how much of a failed fork's output is quoted back. Enough for a JVM startup error, which is the only thing a fork that never connected can have had
+    * time to write, and short enough that a fork which died mid-flood does not bury the message reporting it.
+    */
+  private val MaxChildOutputBytes: Int = 4096
+
+  /** How often the wait for a connect-back looks up to check whether the fork is still alive. Short enough that a fork dying on startup is reported at once,
+    * long enough that the check costs nothing next to [[ProtocolConnectTimeout]].
+    */
+  private val ProtocolPollInterval: FiniteDuration = 250.millis
 
   /** Create a new JVM pool with the given maximum concurrency.
     *
@@ -578,6 +589,74 @@ object JvmPool {
         }
       } yield jvm
 
+    /** Whatever the fork wrote before it stopped, read without ever blocking.
+      *
+      * Only bytes already sitting in the pipe are taken, and only up to [[MaxChildOutputBytes]]. Nothing is draining these streams at this point — the reader
+      * threads belong to `ManagedJvm`, which does not exist yet on this path — so a blocking read here would hang the very code whose job is to report a hang.
+      */
+    private def describeChildOutput(process: Process): String = {
+      val quoted =
+        List("stderr" -> drainAvailable(process.getErrorStream), "stdout" -> drainAvailable(process.getInputStream))
+          .collect { case (name, text) if text.trim.nonEmpty => s"\n  $name: ${text.trim}" }
+      if (quoted.isEmpty) " The fork wrote no output." else quoted.mkString
+    }
+
+    private def drainAvailable(stream: InputStream): String = {
+      val collected = new ByteArrayOutputStream
+      val buf = new Array[Byte](8192)
+      var more = true
+      while (more && collected.size < MaxChildOutputBytes) {
+        val ready = stream.available()
+        if (ready <= 0) more = false
+        else {
+          val n = stream.read(buf, 0, math.min(buf.length, math.min(ready, MaxChildOutputBytes - collected.size)))
+          if (n <= 0) more = false else collected.write(buf, 0, n)
+        }
+      }
+      new String(collected.toByteArray, StandardCharsets.UTF_8)
+    }
+
+    /** Wait for a freshly spawned fork to connect back, giving up the moment that becomes impossible rather than always serving the full sentence.
+      *
+      * Polled instead of one long `accept`, because the answer is usually available long before the deadline: a fork that died during JVM startup is never
+      * going to connect, and blocking on a process that no longer exists turned a fast, fully explained failure into a minutes-long stall — 32 suites of it, in
+      * the report that prompted this.
+      *
+      * What the give-up means depends entirely on the fork's state, which is why both branches say so. A fork that exited hit a startup failure and described
+      * it on its own stderr. A fork still running never intended to connect: that is what a protocol mismatch looks like, and the case that actually happened
+      * was a `bleep-test-runner` from the project's own dependencies shadowing the server's and waiting for orders on stdin. The two need opposite fixes and
+      * the bare "Accept timed out" they used to share told them apart not at all — it read as a slow machine, which neither of them is.
+      */
+    private def awaitProtocolConnection(listener: ServerSocket, process: Process, port: Int): Socket = {
+      val deadlineNanos = System.nanoTime() + ProtocolConnectTimeout.toNanos
+      listener.setSoTimeout(ProtocolPollInterval.toMillis.toInt)
+
+      def giveUp(reason: String): Nothing = {
+        // Read what the fork wrote before killing it. `destroyForcibly` closes these pipes as the process is reaped, and a read landing on the far side of
+        // that comes back "Stream closed", replacing the diagnosis this exists to produce.
+        val childOutput = describeChildOutput(process)
+        if (process.isAlive) {
+          process.destroyForcibly(): Unit
+          process.waitFor(5, TimeUnit.SECONDS): Unit
+        }
+        throw new IOException(s"Test JVM did not connect back on port $port: $reason.$childOutput")
+      }
+
+      var connected: Socket = null
+      while (connected == null)
+        try connected = listener.accept()
+        catch {
+          case _: SocketTimeoutException =>
+            if (!process.isAlive) giveUp(s"the fork exited with code ${process.exitValue()} without ever connecting")
+            else if (System.nanoTime() >= deadlineNanos)
+              giveUp(
+                s"the fork was still running $ProtocolConnectTimeout later and had not connected, so it is not speaking this server's protocol — check " +
+                  "whether another bleep-test-runner is shadowing the one bleep puts on the test classpath"
+              )
+        }
+      connected
+    }
+
     private def spawnJvm(
         label: String,
         key: JvmKey,
@@ -650,18 +729,11 @@ object JvmPool {
                   }
 
                 val protocolSocket =
-                  try {
-                    // A fork that never connects is a fork that will never answer. Bounded so a JVM that dies on startup (bad -Xmx, missing class) surfaces as
-                    // a spawn failure with the child's own stderr, rather than hanging the suite.
-                    protocolListener.setSoTimeout(ProtocolConnectTimeout.toMillis.toInt)
-                    protocolListener.accept()
-                  } catch {
+                  try awaitProtocolConnection(protocolListener, process, protocolPort)
+                  catch {
                     case e: Throwable =>
-                      process.destroyForcibly(): Unit
-                      throw new IOException(
-                        s"Test JVM did not connect back on port $protocolPort within $ProtocolConnectTimeout: ${e.getMessage}",
-                        e
-                      )
+                      if (process.isAlive) process.destroyForcibly(): Unit
+                      throw e
                   } finally protocolListener.close()
                 protocolSocket.setTcpNoDelay(true)
 

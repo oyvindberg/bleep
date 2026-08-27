@@ -3287,12 +3287,24 @@ class MultiWorkspaceBspServer(
       .find(p => p.name.value == "bleep-test-runner")
       .map(p => started.projectPaths(p).classes)
 
-    val testRunnerClasses = testRunnerFromBuild match {
-      case Some(path) => List(path)
+    val (testRunnerClasses, testRuntimeJars) = testRunnerFromBuild match {
+      case Some(path) => (List(path), Nil)
       case None       => fetchTestRunnerViaCoursier(started, project, resolved)
     }
 
-    val classpath = (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
+    // `bleep-test-runner` goes ahead of the project's own dependencies; the test runtime stays behind them.
+    //
+    // A build that depends on bleep itself — scripts, plugins, anything pulling `build.bleep::bleep-core` — drags a *released* `bleep-test-runner` in
+    // transitively. Appended last, that copy came first on the classpath, and first-match-wins classloading handed the fork the released runner instead of the
+    // one this server speaks to. The two disagree about the protocol: the released runner reads commands from stdin, while this server waits for a connect-back
+    // on a loopback socket. Neither side ever moves, and the spawn dies 60 seconds later on the accept timeout — with the fork still alive and blocked in
+    // `readLine`, which is why it never looked like a crash.
+    //
+    // Only the runner moves. It is safe to put first because its jar contains nothing but `bleep/testing/runner`, so it can shadow only itself, and it is the
+    // only thing here whose identity must come from the server rather than from the project. The junit runtime is the opposite case: those versions are chosen
+    // to match what the project itself resolved, [[assertCoherentJunitClasspath]] checks that they do, and promoting them over the project's own jars would
+    // quietly make this server the arbiter of a version it deliberately follows.
+    val classpath = (classesDir :: resourceDirs) ++ testRunnerClasses ++ dependencyClasspath ++ testRuntimeJars
     MultiWorkspaceBspServer.assertCoherentJunitClasspath(project, classpath)
     classpath
   }
@@ -3316,14 +3328,16 @@ class MultiWorkspaceBspServer(
     * What that costs when it is wrong: the runner used to declare 1.9.1/5.9.1, coursier reconciles to the *highest* version rather than to ours, and a stale
     * `junit-jupiter-engine` landed ahead of the aligned one — a kotest 6 project then died in discovery with `NoSuchMethodError: ReflectionUtils.returnsVoid`.
     */
-  private def fetchTestRunnerViaCoursier(started: Started, project: CrossProjectName, resolved: ResolvedProject): List[Path] = {
+  private def fetchTestRunnerViaCoursier(started: Started, project: CrossProjectName, resolved: ResolvedProject): (List[Path], List[Path]) = {
     val testRuntimeJars = MultiWorkspaceBspServer.fetchTestRuntimeDeps(started, project, resolved)
     val testRunnerJars = fetchBleepTestRunnerOnly(started)
     if (testRunnerJars.isEmpty)
       throw new RuntimeException("bleep-test-runner resolution returned no jars")
-    // `distinct` because these are two independent resolutions and `test-interface` is in both: rule 1 always contributes it, and a *published*
-    // `bleep-test-runner` also declares it at compile scope. Exact-path equality, so two genuinely different jars that share a filename both survive.
-    (testRunnerJars ++ testRuntimeJars).distinct
+    // Kept apart because they land in different places on the fork's classpath — the runner ahead of the project's dependencies, the runtime behind them; see
+    // [[getTestClasspath]]. The runtime side drops anything the runner already contributes, because `test-interface` is in both: rule 1 always contributes it,
+    // and a *published* `bleep-test-runner` also declares it at compile scope. Exact-path equality, so two genuinely different jars that share a filename both
+    // survive.
+    (testRunnerJars.distinct, testRuntimeJars.distinct.filterNot(testRunnerJars.contains))
   }
 
   /** The forked runner speaks this server's `TestProtocol` over the fork's stdin/stdout, so it must be built from the same code as the server. Two ways to get
