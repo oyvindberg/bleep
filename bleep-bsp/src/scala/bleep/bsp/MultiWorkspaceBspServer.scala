@@ -2474,10 +2474,14 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
         // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener).use { jvmPool =>
-          // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
-          // intermediate compile-time data flow, so no equivalent map.
-          val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener).use {
+          jvmPool =>
+            // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
+            // intermediate compile-time data flow, so no equivalent map.
+            val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+          // What each link produced, for the test handlers that need to run it. Same shape as `apResults`, and safe for the same reason: the DAG puts a
+          // LinkTask between compile and discover for every non-JVM test project, so a suite can only run after its project's link has finished.
+          val linkResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult]()
 
           val compileHandler =
             makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
@@ -2575,7 +2579,7 @@ class MultiWorkspaceBspServer(
                 case (Some(model.PlatformId.Js), true) =>
                   runKotlinJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Js), false) =>
-                  runScalaJsTestSuite(started, testTask, classpath, testEnv, eventQueue, taskKillSignal)
+                  runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResults, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), true) =>
                   runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), false) =>
@@ -2628,7 +2632,7 @@ class MultiWorkspaceBspServer(
                 val outputDir = projectPaths.targetDir
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
                   LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-                }
+                }.flatTap { case (_, linkResult) => IO(linkResults.put(linkTask.project, linkResult)).void }
               }
 
           val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
@@ -3466,6 +3470,7 @@ class MultiWorkspaceBspServer(
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
       testEnv: Map[String, String],
+      linkResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3473,29 +3478,21 @@ class MultiWorkspaceBspServer(
     val sjsVersion = project.platform.flatMap(_.jsVersion).getOrElse {
       throw new IllegalStateException(s"Scala.js version not found for ${testTask.project.value}")
     }
-    val scalaVersion = project.scala.flatMap(_.version).getOrElse {
-      throw new IllegalStateException(s"Scala version not found for ${testTask.project.value}")
-    }
-
-    val projectPaths = started.projectPaths(testTask.project)
-    val outputDir = projectPaths.classes.getParent.resolve("link-output")
+    // No Scala version needed here any more: it was only ever used to describe the link this function used to run itself.
     val linkConfig = bleep.analysis.ScalaJsLinkConfig.Debug
-    val logger = createLinkLogger()
-
-    val linkTask = TaskDag.LinkTask(
-      project = testTask.project,
-      platform = TaskDag.LinkPlatform.ScalaJs(sjsVersion.scalaJsVersion, scalaVersion.scalaVersion, linkConfig),
-      releaseMode = false,
-      isTest = true
-    )
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
       lastActivityAt <- IO.monotonic.flatMap(Ref.of[IO, FiniteDuration])
       // Note: TaskStarted is already emitted by DAG executor - don't duplicate it here
-      linkResult <- LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-      taskResult <- linkResult match {
-        case (TaskDag.TaskResult.Success, TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
+      taskResult <- linkResults.get(testTask.project) match {
+        // Taken from the link the DAG already ran, rather than linking again here.
+        //
+        // This used to run its own `LinkExecutor.execute` into a second output directory, once per suite. The work is identical every time and the DAG has
+        // already done it — `TaskDag` puts a LinkTask between compile and discover for exactly this reason — so an N-suite project paid for N linear links of
+        // the whole program. Worse, it was billed to the suites: linking happened inside each suite's own runtime, where it counted against the idle timeout
+        // that is supposed to be measuring a hung test.
+        case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) =>
           // Run the specific test suite via Node.js
           val nodeBinary = nodeBinaryFor(started, project)
           boundPlatformRun(lastActivityAt, killSignal) {
@@ -3535,11 +3532,17 @@ class MultiWorkspaceBspServer(
                 }
             }
           }
-        case (result, _) =>
+        // No link output to run. The DAG links before it discovers, and discovery is what produced this suite, so reaching here means the two got out of step
+        // rather than that the user did anything wrong — say so plainly instead of quietly linking again and hiding it.
+        case other =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
-          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, erroredOutcomeOf(result), durationMs, endTs))).void >>
-            IO.pure(result)
+          val failure = TaskDag.TaskResult.Failure(
+            s"no Scala.js link output for ${testTask.project.value}: expected the DAG's link to have produced one, got ${Option(other).getOrElse("nothing")}",
+            Nil
+          )
+          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, erroredOutcomeOf(failure), durationMs, endTs))).void >>
+            IO.pure(failure)
       }
     } yield taskResult
   }
