@@ -37,5 +37,9 @@ final class JStarted(private[javaapi] val underlying: Started) extends bleepscri
   override def resolved(cross: bleepscript.CrossProjectName): bleepscript.ResolvedProject =
     JModel.resolvedProject(underlying.resolvedProject(JModel.toCross(cross)))
 
-  override def bleepExecutable(): Path = underlying.bleepExecutable.forceGet.command
+  override def bleepCommand(): java.util.List[String] = underlying.bleepExecutable.forceGet.whole.asJava
+
+  // `.command` used to be handed out here directly, which for a JVM-launched bleep is the path to `java` with `-cp <classpath> bleep.Main` dropped — a script
+  // asking how to run bleep got something that runs and is not bleep. `asSinglePath` says so instead.
+  override def bleepExecutable(): Path = underlying.bleepExecutable.forceGet.asSinglePath
 }

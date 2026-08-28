@@ -13,6 +13,21 @@ sealed trait BleepExecutable {
   def command: Path
   def args: List[String]
   def whole: List[String] = command.toString +: args
+
+  /** This bleep as a single path, for the callers that can only hold one — or a refusal, for the ones where that would be a lie.
+    *
+    * Only a [[BleepExecutable.Binary]] can honestly answer. The JVM forms are `java` plus `-cp <classpath> bleep.Main`, and their `command` is the *java*
+    * binary: handing that out on its own produces something that runs, does nothing resembling bleep, and reports no error — `java compile` is not a failed
+    * bleep invocation, it is a different program being asked for a class named `compile`. Prefer [[whole]], which is always the real invocation.
+    */
+  def asSinglePath: Path = this match {
+    case binary: BleepExecutable.Binary => binary.command
+    case other                          =>
+      throw new BleepException.Text(
+        s"this bleep runs as `${other.whole.mkString(" ")}`, so it cannot be named by a single path. Use the whole command instead — " +
+          "`bleepCommand()` from a script, `whole` from bleep itself."
+      )
+  }
 }
 
 object BleepExecutable {
