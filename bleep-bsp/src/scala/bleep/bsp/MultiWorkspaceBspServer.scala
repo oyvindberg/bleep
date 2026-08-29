@@ -2583,7 +2583,7 @@ class MultiWorkspaceBspServer(
                 case (Some(model.PlatformId.Native), true) =>
                   runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
                 case (Some(model.PlatformId.Native), false) =>
-                  runScalaNativeTestSuite(started, testTask, classpath, testEnv, eventQueue, taskKillSignal)
+                  runScalaNativeTestSuite(started, testTask, classpath, testEnv, linkResults, eventQueue, taskKillSignal)
                 case _ =>
                   // JVM (default) - use JvmPool
                   val projectDir =
@@ -3553,6 +3553,7 @@ class MultiWorkspaceBspServer(
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
       testEnv: Map[String, String],
+      linkResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3560,44 +3561,19 @@ class MultiWorkspaceBspServer(
     val snVersion = project.platform.flatMap(_.nativeVersion).getOrElse {
       throw new IllegalStateException(s"Scala Native version not found for ${testTask.project.value}")
     }
-    val scalaVersion = project.scala.flatMap(_.version).getOrElse {
-      throw new IllegalStateException(s"Scala version not found for ${testTask.project.value}")
-    }
-
-    val projectPaths = started.projectPaths(testTask.project)
-    val outputDir = projectPaths.classes.getParent.resolve("link-output")
-    val logger = createLinkLogger()
 
     val framework = ScalaNativeTestRunner.detectFramework(classpath)
-    val testMainClass = ScalaNativeTestRunner.getTestMainClass(framework)
-    val toolchain = bleep.analysis.ScalaNativeToolchain.forVersion(snVersion.scalaNativeVersion, scalaVersion.scalaVersion)
-    val binaryPath = outputDir.resolve(s"${testTask.project.value}-test")
-    val workDir = outputDir.resolve("native-work")
-
-    val nativeLogger = new bleep.analysis.ScalaNativeToolchain.Logger {
-      def trace(message: => String): Unit = logger.trace(message)
-      def debug(message: => String): Unit = logger.debug(message)
-      def info(message: => String): Unit = logger.info(message)
-      def warn(message: => String): Unit = logger.warn(message)
-      def error(message: => String): Unit = logger.error(message)
-      def running(command: Seq[String]): Unit = logger.info(s"Running: ${command.mkString(" ")}")
-    }
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
       lastActivityAt <- IO.monotonic.flatMap(Ref.of[IO, FiniteDuration])
       // Note: TaskStarted is already emitted by DAG executor - don't duplicate it here
-      linkResult <- ScalaNativeTestRunner.linkTestBinary(
-        toolchain,
-        classpath.map(_.toAbsolutePath),
-        testMainClass,
-        bleep.analysis.ScalaNativeLinkConfig.Debug,
-        binaryPath,
-        workDir,
-        nativeLogger,
-        killSignal
-      )
-      taskResult <- linkResult match {
+      taskResult <- linkResults.get(testTask.project) match {
+        // The binary the DAG's link wrote, rather than one linked here.
+        //
+        // This used to link its own, once per suite, and every suite computed the same output path — so a three-suite project linked four times and the last
+        // three raced each other for one file. The DAG's link is not merely equivalent, it is identical: `LinkExecutor` resolves an absent main class to
+        // `ScalaNativeTestRunner.TestMainClass` when the task is a test, which is the same constant `getTestMainClass` returns for every framework.
         case TaskDag.LinkResult.NativeSuccess(binary, _) =>
           boundPlatformRun(lastActivityAt, killSignal) {
             Dispatcher.sequential[IO].use { dispatcher =>
@@ -3655,15 +3631,17 @@ class MultiWorkspaceBspServer(
                 }
             }
           }
-        case _ =>
+        // No binary to run. The DAG links before it discovers, and discovery produced this suite, so this means the two got out of step rather than that the
+        // link failed — a failed link would have stopped the suite ever being scheduled. Named accordingly instead of blaming the linker.
+        case other =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
+          val message =
+            s"no Scala Native binary for ${testTask.project.value}: expected the DAG's link to have produced one, got ${Option(other).getOrElse("nothing")}"
           eventQueue
-            .offer(
-              Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, SuiteOutcome.Errored("Native linking failed", None), durationMs, endTs))
-            )
+            .offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, SuiteOutcome.Errored(message, None), durationMs, endTs)))
             .void >>
-            IO.pure(TaskDag.TaskResult.Failure("Native linking failed", List.empty))
+            IO.pure(TaskDag.TaskResult.Failure(message, List.empty))
       }
     } yield taskResult
   }
