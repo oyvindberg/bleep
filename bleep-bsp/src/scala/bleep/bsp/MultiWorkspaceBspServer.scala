@@ -1962,8 +1962,8 @@ class MultiWorkspaceBspServer(
         val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
           (_, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
-        val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-          (_, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
+        val testHandler: (TaskDag.TestSuiteTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+          (_, _, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
 
         val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
         val kspHandler = makeSymbolProcessorHandler(started, params.originId)
@@ -2479,9 +2479,6 @@ class MultiWorkspaceBspServer(
             // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
             // intermediate compile-time data flow, so no equivalent map.
             val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
-          // What each link produced, for the test handlers that need to run it. Same shape as `apResults`, and safe for the same reason: the DAG puts a
-          // LinkTask between compile and discover for every non-JVM test project, so a suite can only run after its project's link has finished.
-          val linkResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult]()
 
           val compileHandler =
             makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
@@ -2562,65 +2559,66 @@ class MultiWorkspaceBspServer(
                 }
               }
 
-          val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) =>
-            // getTestClasspath ends up in CoursierResolver.Direct.go which calls Fetch.eitherResult → Await.result(future, Duration.Inf).
-            // Without IO.blocking that runs synchronously on the IOFiber's compute thread, holding it for the entire resolve while
-            // every other fiber on the runtime — including the BSP pipe reader on the other end of an in-process server — has to
-            // queue behind it. Routing it through the blocker pool lets cats-effect grow a helper thread instead of starving compute.
-            IO.blocking(getTestClasspath(started, testTask.project)).flatMap { classpath =>
-              val project = started.build.explodedProjects(testTask.project)
-              val projectPlatform = project.platform.flatMap(_.name)
-              val isKotlin = project.kotlin.flatMap(_.version).isDefined
+          val testHandler: (TaskDag.TestSuiteTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+            (testTask, linkResult, taskKillSignal) =>
+              // getTestClasspath ends up in CoursierResolver.Direct.go which calls Fetch.eitherResult → Await.result(future, Duration.Inf).
+              // Without IO.blocking that runs synchronously on the IOFiber's compute thread, holding it for the entire resolve while
+              // every other fiber on the runtime — including the BSP pipe reader on the other end of an in-process server — has to
+              // queue behind it. Routing it through the blocker pool lets cats-effect grow a helper thread instead of starving compute.
+              IO.blocking(getTestClasspath(started, testTask.project)).flatMap { classpath =>
+                val project = started.build.explodedProjects(testTask.project)
+                val projectPlatform = project.platform.flatMap(_.name)
+                val isKotlin = project.kotlin.flatMap(_.version).isDefined
 
-              // Same env on every platform: a test that reads a var should not care whether it runs on the JVM, Node or a native binary.
-              val testEnv = computeTestEnvironment(started, testTask.project, testOptions.env)
+                // Same env on every platform: a test that reads a var should not care whether it runs on the JVM, Node or a native binary.
+                val testEnv = computeTestEnvironment(started, testTask.project, testOptions.env)
 
-              (projectPlatform, isKotlin) match {
-                case (Some(model.PlatformId.Js), true) =>
-                  runKotlinJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
-                case (Some(model.PlatformId.Js), false) =>
-                  runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResults, eventQueue, taskKillSignal)
-                case (Some(model.PlatformId.Native), true) =>
-                  runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
-                case (Some(model.PlatformId.Native), false) =>
-                  runScalaNativeTestSuite(started, testTask, classpath, testEnv, linkResults, eventQueue, taskKillSignal)
-                case _ =>
-                  // JVM (default) - use JvmPool
-                  val projectDir =
-                    started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
-                  // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
-                  val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
-                    case Some(p: ResolvedProject.Platform.Jvm) => p.options
-                    case _                                     => Nil
-                  }
-                  TestRunner.runSuite(
-                    project = testTask.project,
-                    suiteName = testTask.suiteName.value,
-                    selection = testTask.selection,
-                    classpath = classpath,
-                    pool = jvmPool,
-                    eventQueue = eventQueue,
-                    options = TestRunner.Options(
-                      // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
-                      // prepended here — it goes in as the default the pool falls back to, so a fork carries exactly one `-Xmx` and it is the one that
-                      // decided the heap. See MachineResources.withHeapBound.
-                      jvmOptions = projectJvmOptions ++ testOptions.jvmOptions,
-                      defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
-                      testArgs = testOptions.testArgs,
-                      idleTimeout = idleTimeout,
-                      environment = testEnv,
-                      workingDirectory = projectDir
-                    ),
-                    resolveSourcePath = className =>
-                      bleep.analysis.ZincSourceLookup.relativeSourceForProject(
-                        bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey),
-                        started.buildPaths.variantBuildDir(testTask.project).resolve(".zinc").resolve("analysis.zip"),
-                        className
+                (projectPlatform, isKotlin) match {
+                  case (Some(model.PlatformId.Js), true) =>
+                    runKotlinJsTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
+                  case (Some(model.PlatformId.Js), false) =>
+                    runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResult, eventQueue, taskKillSignal)
+                  case (Some(model.PlatformId.Native), true) =>
+                    runKotlinNativeTestSuite(started, testTask, testEnv, eventQueue, taskKillSignal)
+                  case (Some(model.PlatformId.Native), false) =>
+                    runScalaNativeTestSuite(started, testTask, classpath, testEnv, linkResult, eventQueue, taskKillSignal)
+                  case _ =>
+                    // JVM (default) - use JvmPool
+                    val projectDir =
+                      started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+                    // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
+                    val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
+                      case Some(p: ResolvedProject.Platform.Jvm) => p.options
+                      case _                                     => Nil
+                    }
+                    TestRunner.runSuite(
+                      project = testTask.project,
+                      suiteName = testTask.suiteName.value,
+                      selection = testTask.selection,
+                      classpath = classpath,
+                      pool = jvmPool,
+                      eventQueue = eventQueue,
+                      options = TestRunner.Options(
+                        // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
+                        // prepended here — it goes in as the default the pool falls back to, so a fork carries exactly one `-Xmx` and it is the one that
+                        // decided the heap. See MachineResources.withHeapBound.
+                        jvmOptions = projectJvmOptions ++ testOptions.jvmOptions,
+                        defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
+                        testArgs = testOptions.testArgs,
+                        idleTimeout = idleTimeout,
+                        environment = testEnv,
+                        workingDirectory = projectDir
                       ),
-                    killSignal = taskKillSignal
-                  )
+                      resolveSourcePath = className =>
+                        bleep.analysis.ZincSourceLookup.relativeSourceForProject(
+                          bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey),
+                          started.buildPaths.variantBuildDir(testTask.project).resolve(".zinc").resolve("analysis.zip"),
+                          className
+                        ),
+                      killSignal = taskKillSignal
+                    )
+                }
               }
-            }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
           val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -2632,7 +2630,7 @@ class MultiWorkspaceBspServer(
                 val outputDir = projectPaths.targetDir
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
                   LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-                }.flatTap { case (_, linkResult) => IO(linkResults.put(linkTask.project, linkResult)).void }
+                }
               }
 
           val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
@@ -3470,7 +3468,7 @@ class MultiWorkspaceBspServer(
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
       testEnv: Map[String, String],
-      linkResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult],
+      linkResult: Option[TaskDag.LinkResult],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3485,14 +3483,14 @@ class MultiWorkspaceBspServer(
       startTs <- IO.realTime.map(_.toMillis)
       lastActivityAt <- IO.monotonic.flatMap(Ref.of[IO, FiniteDuration])
       // Note: TaskStarted is already emitted by DAG executor - don't duplicate it here
-      taskResult <- linkResults.get(testTask.project) match {
+      taskResult <- linkResult match {
         // Taken from the link the DAG already ran, rather than linking again here.
         //
         // This used to run its own `LinkExecutor.execute` into a second output directory, once per suite. The work is identical every time and the DAG has
         // already done it — `TaskDag` puts a LinkTask between compile and discover for exactly this reason — so an N-suite project paid for N linear links of
         // the whole program. Worse, it was billed to the suites: linking happened inside each suite's own runtime, where it counted against the idle timeout
         // that is supposed to be measuring a hung test.
-        case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) =>
+        case Some(TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
           // Run the specific test suite via Node.js
           val nodeBinary = nodeBinaryFor(started, project)
           boundPlatformRun(lastActivityAt, killSignal) {
@@ -3538,7 +3536,7 @@ class MultiWorkspaceBspServer(
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
           val failure = TaskDag.TaskResult.Failure(
-            s"no Scala.js link output for ${testTask.project.value}: expected the DAG's link to have produced one, got ${Option(other).getOrElse("nothing")}",
+            s"no Scala.js link output for ${testTask.project.value}: expected the DAG's link to have produced one, got ${other.getOrElse("nothing")}",
             Nil
           )
           eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, erroredOutcomeOf(failure), durationMs, endTs))).void >>
@@ -3553,7 +3551,7 @@ class MultiWorkspaceBspServer(
       testTask: TaskDag.TestSuiteTask,
       classpath: List[Path],
       testEnv: Map[String, String],
-      linkResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, TaskDag.LinkResult],
+      linkResult: Option[TaskDag.LinkResult],
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3568,13 +3566,13 @@ class MultiWorkspaceBspServer(
       startTs <- IO.realTime.map(_.toMillis)
       lastActivityAt <- IO.monotonic.flatMap(Ref.of[IO, FiniteDuration])
       // Note: TaskStarted is already emitted by DAG executor - don't duplicate it here
-      taskResult <- linkResults.get(testTask.project) match {
+      taskResult <- linkResult match {
         // The binary the DAG's link wrote, rather than one linked here.
         //
         // This used to link its own, once per suite, and every suite computed the same output path — so a three-suite project linked four times and the last
         // three raced each other for one file. The DAG's link is not merely equivalent, it is identical: `LinkExecutor` resolves an absent main class to
         // `ScalaNativeTestRunner.TestMainClass` when the task is a test, which is the same constant `getTestMainClass` returns for every framework.
-        case TaskDag.LinkResult.NativeSuccess(binary, _) =>
+        case Some(TaskDag.LinkResult.NativeSuccess(binary, _)) =>
           boundPlatformRun(lastActivityAt, killSignal) {
             Dispatcher.sequential[IO].use { dispatcher =>
               val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project, lastActivityAt)
@@ -3637,7 +3635,7 @@ class MultiWorkspaceBspServer(
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
           val message =
-            s"no Scala Native binary for ${testTask.project.value}: expected the DAG's link to have produced one, got ${Option(other).getOrElse("nothing")}"
+            s"no Scala Native binary for ${testTask.project.value}: expected the DAG's link to have produced one, got ${other.getOrElse("nothing")}"
           eventQueue
             .offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project, testTask.suiteName, SuiteOutcome.Errored(message, None), durationMs, endTs)))
             .void >>
