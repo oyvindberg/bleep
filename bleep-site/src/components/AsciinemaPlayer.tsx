@@ -6,8 +6,8 @@ import "asciinema-player/dist/bundle/asciinema-player.css";
 
 interface AsciinemaPlayerProps {
   src: string;
-  cols?: string;
-  rows?: string;
+  cols?: number;
+  rows?: number;
   autoPlay?: boolean;
   preload?: boolean;
   loop?: boolean | number;

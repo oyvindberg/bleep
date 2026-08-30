@@ -12,7 +12,7 @@ build server, which can see the classpath. Nothing about it needs configuring.
 
 | Runner | Used for | How |
 |---|---|---|
-| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, `kotlin.test`, jqwik, Cucumber | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
+| **JUnit Platform** | JUnit 5 (Jupiter), JUnit 4 and 3, Kotest, `kotlin.test`, jqwik, Cucumber, Spek | Bleep drives `org.junit.platform.launcher.Launcher` directly, so every engine registered through the platform's SPI is found. |
 | **sbt test-interface** | ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver, ScalaCheck, minitest, hedgehog, TestNG | Bleep instantiates the framework's `Framework` class and runs its tasks. |
 
 The JUnit Platform is itself a runner SPI rather than a framework, which is
@@ -26,43 +26,25 @@ one, so those frameworks would not work at all.
 
 ## Auto-detected frameworks
 
-Every framework below is covered by an end-to-end test that builds a real
-project, runs it on each platform marked here, and checks the reported
-results — so this table is generated from something that runs, not from
-intent. A blank cell means the framework publishes nothing for that platform,
-not that bleep fails there.
+Bleep recognises these without configuration:
 
-| Framework | Maven coordinate (any of) | JVM | Scala.js | Native |
-|---|---|:-:|:-:|:-:|
-| **JUnit Jupiter (JUnit 5)** | `org.junit.jupiter:junit-jupiter`, `:junit-jupiter-api`, `:junit-jupiter-engine` | ✅ | | |
-| **JUnit 4** | `junit:junit`, `org.jetbrains.kotlin:kotlin-test-junit` | ✅ | | |
-| **JUnit 3** | `junit:junit` — suites extending `junit.framework.TestCase` | ✅ | | |
-| **Kotest** | `io.kotest:kotest-runner-junit5-jvm` | ✅ | | |
-| **kotlin.test** | `org.jetbrains.kotlin:kotlin-test-junit5`, `:kotlin-test-junit` | ✅ | | |
-| **jqwik** | `net.jqwik:jqwik` | ✅ | | |
-| **Cucumber** | `io.cucumber:cucumber-junit-platform-engine` plus a `@Suite` class — see below | ✅ | | |
-| **TestNG** | `org.testng:testng` **plus** Mill's bridge, `com.lihaoyi:mill-contrib-testng_2.13` | ✅ | | |
-| **ScalaTest** | `org.scalatest::scalatest` | ✅ | ✅ | ✅ |
-| **MUnit** | `org.scalameta::munit` | ✅ | ✅ | ✅ |
-| **utest** | `com.lihaoyi::utest` | ✅ | ✅ | ✅ |
-| **ScalaCheck** | `org.scalacheck::scalacheck` | ✅ | ✅ | ✅ |
-| **specs2** | `org.specs2::specs2-core` | ✅ | ✅ | |
-| **weaver-cats** | `com.disneystreaming::weaver-cats` | ✅ | ✅ | |
-| **minitest** | `io.monix::minitest` | ✅ | ✅ | |
-| **hedgehog** | `qa.hedgehog::hedgehog-sbt` | ✅ | ✅ | |
-| **ZIO Test** | `dev.zio::zio-test` | ✅ | | |
+**JUnit Platform** — JUnit 5 (Jupiter), JUnit 4, JUnit 3, Kotest, `kotlin.test`,
+jqwik, Cucumber, Spek.
 
-`kotlin.test` additionally runs on **Kotlin/JS** and **Kotlin/Native** — see
-below. TestNG ships no sbt test-interface implementation of its own, which is
-why the Mill bridge is required and why bleep does not supply it for you.
+**sbt test-interface** — ScalaTest, MUnit, specs2, utest, ZIO Test, Weaver,
+ScalaCheck, minitest, hedgehog, TestNG.
+
+Which of them runs on which platform, the versions each is tested against, the
+coordinates to depend on, and where a failure report is thinner than you would like,
+are all in the **[test framework support matrix](/docs/appendix/test-framework-matrix/)** —
+generated from the tests themselves, so it cannot drift from what actually runs.
+
+TestNG ships no sbt test-interface implementation of its own, which is why Mill's
+bridge is required alongside it and why bleep does not supply it for you.
 
 ZIO Test is JVM-only here deliberately rather than by omission: it links and
 runs on Scala.js, but comes back as a bare suite-level failure with no message,
 which is not enough to say whose defect it is.
-
-You do not declare an adapter for JUnit. Bleep used to inject
-`net.aichler:jupiter-interface` and no longer does — it runs the Launcher
-itself, so the adapter was never loaded.
 
 ## What bleep adds to the test classpath
 
@@ -194,6 +176,13 @@ Two consequences worth knowing:
   That class is what bleep discovers; the Launcher expands it into one test
   per scenario. A run with no annotated class anywhere — only `.feature`
   resources — has nothing for bleep's scan to find.
+
+- **Spek** carries no annotation at all: a suite is an
+  `object MySpec : Spek({ ... })`, so the base class is the only handle there
+  is. Its engine is registered correctly through `META-INF/services` and runs
+  fine once asked — it simply was never asked, because nothing nominated the
+  class. Recognising `org.spekframework.spek2.Spek` was the whole fix.
+
 If you hit an engine bleep does not find, that is a bug worth reporting —
 the fix is usually one line.
 
