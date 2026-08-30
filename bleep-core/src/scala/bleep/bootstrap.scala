@@ -35,10 +35,7 @@ object bootstrap {
         }
       }
 
-    exitCode match {
-      case ExitCode.Success => ()
-      case ExitCode.Failure => System.exit(exitCode.value)
-    }
+    if (exitCode.value != 0) System.exit(exitCode.value)
   }
 
   def from(

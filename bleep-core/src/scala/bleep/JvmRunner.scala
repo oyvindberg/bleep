@@ -180,7 +180,9 @@ object JvmRunner {
     val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(logger)
     val inMode = if (raw) cli.In.Attach else cli.In.No
     val command = jvmRunCommand.cmd(resolvedJvm, jvmOptions, classpath, mainClass, args)
-    cli("run", cwd, command, logger = logger, out = outMode, in = inMode, env = env).discard()
-    Right(())
+    // `cli.exitCode`, not `cli.apply`: this is the user's own program, and its exit code is its answer rather than a bleep failure to explain with a launch
+    // command. See BleepException.SubprocessExit.
+    val (code, _) = cli.exitCode("run", cwd, command, logger = logger, out = outMode, in = inMode, env = env)
+    if (code == 0) Right(()) else Left(new BleepException.SubprocessExit(code, mainClass))
   }
 }

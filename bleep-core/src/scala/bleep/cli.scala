@@ -44,6 +44,19 @@ object cli {
     }
   }
 
+  /** make sure we break out of x86_64 jail when running programs when possible */
+  private def patchCmd(cmd: List[String]): List[String] =
+    OsArch.current match {
+      case OsArch.MacosArm64(freedFromJail) if freedFromJail => List("arch", "-arch", "arm64") ++ cmd
+      case _                                                 => cmd
+    }
+
+  /** Run `cmd` and throw when it exits non-zero, with the whole command line in the message.
+    *
+    * This is right for the commands bleep runs for its own purposes — git, gpg, sbt, an installer — where a non-zero exit is something that went wrong and the
+    * reader needs the command to diagnose it. It is wrong for a program bleep launched on the user's behalf, whose exit code is its own answer: use
+    * [[exitCode]] there, and see the note on [[BleepException.SubprocessExit]].
+    */
   def apply(
       action: String,
       cwd: Path,
@@ -53,11 +66,35 @@ object cli {
       in: In = In.No,
       env: List[(String, String)] = Nil
   ): WrittenLines = {
-    // make sure we break out of x86_64 jail when running programs when possible
-    val patchedCmd = OsArch.current match {
-      case OsArch.MacosArm64(freedFromJail) if freedFromJail => List("arch", "-arch", "arm64") ++ cmd
-      case _                                                 => cmd
+    val (code, lines) = exitCode(action, cwd, cmd, logger, out, in, env)
+    if (code == 0) lines
+    else {
+      val cmdStr = patchCmd(cmd).mkString(" ")
+      // Include captured stderr so callers can pattern-match on the underlying error (e.g. SnapshotTest
+      // retries on git's `index.lock` collisions). Without this, the exception message has no signal
+      // beyond the exit code.
+      val stderr = lines.stderr
+      val stderrSuffix = if (stderr.nonEmpty) s"\n${stderr.mkString("\n")}" else ""
+      throw new BleepException.Text(s"Failed external command '$action' with exit code $code in $cwd: $cmdStr$stderrSuffix")
     }
+  }
+
+  /** Run `cmd` and hand back its exit code rather than throwing.
+    *
+    * Every caller who launches a program the *user* asked for wants this one. A script that exits 1 to report a problem it has already described has not failed
+    * to run, and answering it with bleep's own launch command — the java path, the `--add-opens` flags, a classpath of a hundred jars on one line — buries the
+    * report the script just printed.
+    */
+  def exitCode(
+      action: String,
+      cwd: Path,
+      cmd: List[String],
+      logger: Logger,
+      out: Out,
+      in: In,
+      env: List[(String, String)]
+  ): (Int, WrittenLines) = {
+    val patchedCmd = patchCmd(cmd)
 
     val process = Process {
       val builder = new java.lang.ProcessBuilder(patchedCmd*)
@@ -98,28 +135,18 @@ object cli {
           )
       }
 
-    val exitCode = process.run(processIO).exitValue()
+    val code = process.run(processIO).exitValue()
 
     val ctxLogger = logger
       .withContext("action", action)
       .withContext("cwd", cwd)
       .withContext("cmd", patchedCmd)
       .withContext("env", env)
-      .withContext("exitCode", exitCode)
+      .withContext("exitCode", code)
 
-    exitCode match {
-      case 0 =>
-        ctxLogger.debug("Command ran successfully")
-        WrittenLines(output.result())
-      case n =>
-        ctxLogger.debug("Failed command details")
-        val cmdStr = patchedCmd.mkString(" ")
-        // Include captured stderr so callers can pattern-match on the underlying error (e.g. SnapshotTest
-        // retries on git's `index.lock` collisions). Without this, the exception message has no signal
-        // beyond the exit code.
-        val stderr = output.result().collect { case WrittenLine.StdErr(line) => line }
-        val stderrSuffix = if (stderr.nonEmpty) s"\n${stderr.mkString("\n")}" else ""
-        throw new BleepException.Text(s"Failed external command '$action' with exit code $n in $cwd: $cmdStr$stderrSuffix")
-    }
+    if (code == 0) ctxLogger.debug("Command ran successfully")
+    else ctxLogger.debug("Failed command details")
+
+    (code, WrittenLines(output.result()))
   }
 }

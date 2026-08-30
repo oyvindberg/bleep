@@ -1606,10 +1606,23 @@ object Main {
         }
       case Right(cmd) =>
         Try(runCommand(cmd)) match {
-          case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
-          case Success(Left(th))  => fatal("command failed", logger, th)
+          case Failure(th)        => failed("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+          case Success(Left(th))  => failed("command failed", logger, th)
           case Success(Right(())) => ExitCode.Success
         }
+    }
+
+  /** [[fatal]], except that a program bleep launched on the user's behalf is not a bleep failure.
+    *
+    * A script that exits 1 to signal something it has already reported gets one line and its own exit code, so `bleep <script>` answers what the script
+    * answered. Everything else keeps the old treatment. See [[BleepException.SubprocessExit]].
+    */
+  private def failed(context: String, logger: Logger, th: Throwable): ExitCode =
+    th match {
+      case sub: BleepException.SubprocessExit =>
+        logger.error(sub.message)
+        ExitCode.FromSubprocess(sub.code)
+      case other => fatal(context, logger, other)
     }
 
   /** Scripts receive their trailing arguments verbatim, including tokens that start with `--`.
@@ -1672,20 +1685,27 @@ object Main {
           Try(cmd.run(startedWithLogger)) match {
             case Failure(th: BleepException) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
-              ExitCode.Failure
+              exitCodeOf(th)
             case Failure(th) if machineOutput =>
               CommandResult.print(CommandResult.Failure(th.getMessage))
               ExitCode.Failure
-            case Failure(th)                        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Failure(th)                        => failed("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
             case Success(Left(th)) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
-              ExitCode.Failure
-            case Success(Left(th))  => fatal("command failed", logger, th)
+              exitCodeOf(th)
+            case Success(Left(th))  => failed("command failed", logger, th)
             case Success(Right(())) => ExitCode.Success
           }
         }
     }
   }
+
+  /** The code bleep exits with for an already-reported failure: a launched program's own code when it chose one, plain failure otherwise. */
+  private def exitCodeOf(th: BleepException): ExitCode =
+    th match {
+      case sub: BleepException.SubprocessExit => ExitCode.FromSubprocess(sub.code)
+      case _                                  => ExitCode.Failure
+    }
 
   /** Check if restArgs request machine-readable output (json or raw), logs should go to stderr. */
   private def hasMachineOutput(restArgs: List[String]): Boolean =

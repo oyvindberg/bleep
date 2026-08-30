@@ -135,7 +135,7 @@ case class Run(
       val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
       val inMode = if (raw) cli.In.Attach else cli.In.No
       val command = List("node", jsOutput.toAbsolutePath.toString) ++ args
-      cli(
+      val (code, _) = cli.exitCode(
         "run",
         started.pre.buildPaths.cwd,
         command,
@@ -143,8 +143,8 @@ case class Run(
         out = outMode,
         in = inMode,
         env = runEnv(started)
-      ).discard()
-      Right(())
+      )
+      if (code == 0) Right(()) else Left(new BleepException.SubprocessExit(code, project.value))
     }
   }
 
@@ -167,7 +167,7 @@ case class Run(
         val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
         val inMode = if (raw) cli.In.Attach else cli.In.No
         val command = List(binaryPath.toAbsolutePath.toString) ++ args
-        cli(
+        val (code, _) = cli.exitCode(
           "run",
           started.pre.buildPaths.cwd,
           command,
@@ -175,8 +175,8 @@ case class Run(
           out = outMode,
           in = inMode,
           env = runEnv(started)
-        ).discard()
-        Right(())
+        )
+        if (code == 0) Right(()) else Left(new BleepException.SubprocessExit(code, project.value))
     }
   }
 }

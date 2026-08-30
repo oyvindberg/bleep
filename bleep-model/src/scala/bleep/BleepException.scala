@@ -18,6 +18,18 @@ abstract class BleepException(
     with Serializable
 
 object BleepException {
+
+  /** A program bleep launched on the user's behalf ran to completion and chose a non-zero exit code.
+    *
+    * Not a bleep failure, and rendered as such: one line naming what exited and with what code, and bleep exits with the same code so a caller of `bleep
+    * <script>` sees the script's own answer. The launch command is deliberately absent — a script that exits 1 to report a problem has already printed the
+    * report, and burying it under a java path, two `--add-opens` flags and a hundred-jar classpath is how a reader stops looking for it.
+    *
+    * A command that could not be launched, or that bleep runs for its own purposes, is a different thing and still gets the whole command line: see
+    * [[bleep.cli.apply]].
+    */
+  class SubprocessExit(val code: Int, what: String) extends BleepException(s"$what exited with code $code")
+
   class BuildNotFound(cwd: Path) extends BleepException(s"Couldn't find ${BuildLoader.BuildFileName} in directories in or above $cwd")
 
   class TargetFolderNotDetermined(projectName: model.CrossProjectName)
