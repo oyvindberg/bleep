@@ -325,15 +325,33 @@ class JUnitXmlCollector {
         message = Some(desc),
         throwable = None
       )
-      completedSuites += TestSuiteResult(
-        name = suite.value,
-        project = project.value,
-        timeSeconds = durationMs / 1000.0,
-        timestamp = startTime,
-        testCases = existingTests :+ errorCase,
-        systemOut = state.map(_.systemOut).getOrElse(Nil),
-        systemErr = state.map(_.systemErr).getOrElse(Nil)
-      )
+      // A suite that dies emits both events: `SuiteFinished` says it reported failures with no per-test results, then `SuiteError` says the process exited
+      // non-zero. `SuiteFinished` has already written its `TestSuiteResult` and taken the suite out of `activeSuites`, so appending here put the same suite
+      // in the report twice — two `<testsuite>` elements of one name, each holding half the story, which every CI dashboard renders as two suites.
+      //
+      // The console had the same duplication and the same fix: keep one record and add what the second event knows.
+      completedSuites.indexWhere(r => r.name == suite.value && r.project == project.value) match {
+        case -1 =>
+          completedSuites += TestSuiteResult(
+            name = suite.value,
+            project = project.value,
+            timeSeconds = durationMs / 1000.0,
+            timestamp = startTime,
+            testCases = existingTests :+ errorCase,
+            systemOut = state.map(_.systemOut).getOrElse(Nil),
+            systemErr = state.map(_.systemErr).getOrElse(Nil)
+          )
+        case i =>
+          val existing = completedSuites(i)
+          completedSuites.update(
+            i,
+            existing.copy(
+              testCases = existing.testCases :+ errorCase,
+              systemOut = if (existing.systemOut.nonEmpty) existing.systemOut else state.map(_.systemOut).getOrElse(Nil),
+              systemErr = if (existing.systemErr.nonEmpty) existing.systemErr else state.map(_.systemErr).getOrElse(Nil)
+            )
+          )
+      }
 
     case BuildEvent.SuiteCancelled(project, suite, reason, timestamp) =>
       val key = SuiteKey(project, suite)

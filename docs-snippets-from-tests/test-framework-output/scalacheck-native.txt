@@ -35,20 +35,20 @@ Running: mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 sendTestEvent
 sendTestEvent
+sendTestEvent: TestFinished
+  + example.ScalacheckFixture.adds
 sendTestEvent: SuiteFinished
 sendTestEvent: SuiteError
 FAILED example.CtorBoomScalacheckFixture: 0 passed, 1 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
 ❌ exited with code 1
-sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   + example.GreenScalacheckFixture.adds
-  + example.ScalacheckFixture.adds
-sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent: TestFinished
-  + example.GreenScalacheckFixture.measures
   + example.ScalacheckFixture.measures
+  + example.GreenScalacheckFixture.measures
 sendTestEvent
 sendTestEvent: TestFinished
   x example.ScalacheckFixture.fails on purpose
@@ -59,10 +59,10 @@ sendTestEvent: SuiteFinished
 PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
 Task executor completed
-FAILED example.ScalacheckFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Failed tasks
 Errored tasks
 Executor done, signalling consumer to terminate
+FAILED example.ScalacheckFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 0 skipped (<duration>)
@@ -89,67 +89,69 @@ Test Failures (2)
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
   | Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -2147483648
+  | > ARG_0_ORIGINAL: -817398870
   Stack trace:
   | java.lang.Exception: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -2147483648
+  | > ARG_0_ORIGINAL: -817398870
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at scala.scalanative.runtime.Throwable.<init>(Unknown Source)
   |   at java.lang.Throwable.<init>(Unknown Source)
   |   at java.lang.Exception.<init>(Unknown Source)
   |   ... above 1 frames repeated 3 times (3 frames total)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$anon$4.throwable(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(Unknown Source)
   |   at scala.scalanative.testinterface.common.Serializer$EventSerializer$.serialize(Unknown Source)
   |   at scala.scalanative.testinterface.common.Serializer$EventSerializer$.serialize(Unknown Source)
   |   at scala.scalanative.testinterface.common.Serializer$SerializeState$.write$extension(Unknown Source)
   |   at scala.scalanative.testinterface.common.RunMux$$anon$1.serialize(Unknown Source)
   |   at scala.scalanative.testinterface.common.RunMux$$anon$1.serialize(Unknown Source)
   |   at scala.scalanative.testinterface.common.Serializer$.serialize(Unknown Source)
-  |   at scala.scalanative.testinterface.common.RPCCore.$anonfun$makeMsgMsg$1(Unknown Source)
-  |   at scala.scalanative.testinterface.common.RPCCore$$Lambda$8.apply(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore.makeMsgMsg$$anonfun$1(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore$$Lambda$8.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
   |   at scala.scalanative.testinterface.common.Serializer$.withOutputStream(Unknown Source)
   |   at scala.scalanative.testinterface.common.RPCCore.makeMsgMsg(Unknown Source)
   |   at scala.scalanative.testinterface.common.RPCCore.send(Unknown Source)
   |   at scala.scalanative.testinterface.common.RunMuxRPC.send(Unknown Source)
   |   at scala.scalanative.testinterface.TestAdapterBridge$RemoteEventHandler.handle(Unknown Source)
   |   at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(Unknown Source)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$5(Unknown Source)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$10.apply(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3$$anonfun$1(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$10.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
   |   at scala.Option.foreach(Unknown Source)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$4(Unknown Source)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$2.apply(Unknown Source)
-  |   at scala.collection.ArrayOps$.foreach$extension(Unknown Source)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3.execute(Unknown Source)
-  |   at scala.scalanative.testinterface.TestAdapterBridge.$anonfun$executeFun$1(Unknown Source)
-  |   at scala.scalanative.testinterface.TestAdapterBridge$$Lambda$4.apply(Unknown Source)
-  |   at scala.scalanative.testinterface.common.RunMuxRPC.$anonfun$attach$3(Unknown Source)
-  |   at scala.scalanative.testinterface.common.RunMuxRPC$$Lambda$8.apply(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$2.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
 
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at scala.scalanative.runtime.Throwable.<init>(Unknown Source)
   |   at java.lang.Throwable.<init>(Unknown Source)
   |   at java.lang.Exception.<init>(Unknown Source)
   |   at java.lang.RuntimeException.<init>(Unknown Source)
   |   at java.lang.RuntimeException.<init>(Unknown Source)
   |   at java.lang.RuntimeException.<init>(Unknown Source)
-  |   at example.ScalacheckFixture$.$anonfun$new$14(Unknown Source)
-  |   at example.ScalacheckFixture$$$Lambda$10.apply(Unknown Source)
-  |   ... 23 frames elided (scala, scalacheck)
+  |   at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$1(Unknown Source)
+  |   at example.ScalacheckFixture$$$Lambda$14.apply(Unknown Source)
+  |   ... 20 frames elided (scala, scalacheck)
 
   Output from example.ScalacheckFixture:
   | Starting process '<project>/.bleep/projects/mytest/builds/normal/debug/mytest' on port '<port>'.
   | hello from the test
   | + example.ScalacheckFixture.adds: OK, passed 100 tests.
   | + example.ScalacheckFixture.measures: OK, passed 100 tests.
-  | failing seed for example.ScalacheckFixture.fails on purpose is hEpFehGQ4MOJqo87Us95Q_yJl_ulpiLmioKqDKDok-D=
+  | failing seed for example.ScalacheckFixture.fails on purpose is Tec0BWaEX1gJ4imo0Q2i4LnDK4dRi_EzAqn4ZQjY9yO=
   | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -2147483648
-  | failing seed for example.ScalacheckFixture.throws on purpose is oP5-x1SXGLG_KravqJOPUkjzWFm9fPEnaYph1P3S2mE=
+  | > ARG_0_ORIGINAL: -817398870
+  | failing seed for example.ScalacheckFixture.throws on purpose is 9EVV0WZaGf3JX8tzPGkMXOaOBtpThgFhQKbD10FfOHA=
   | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -2147483648
   | > Exception: java.lang.RuntimeException: boom
 
 Process Errors (1)
