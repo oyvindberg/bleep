@@ -1,6 +1,6 @@
 package bleep.javaapi
 
-import bleep.commands.{Publish, PublishLocal, PublishSonatype}
+import bleep.commands.{LinkOptions, Publish, PublishLocal, PublishSonatype}
 import bleep.packaging.ManifestCreator
 import bleep.{model, Commands, Started}
 import cats.data.NonEmptyList
@@ -11,11 +11,45 @@ import scala.jdk.CollectionConverters.*
 final class JCommands(started: Started) extends bleepscript.Commands {
   private val underlying = new Commands(started)
 
-  override def compile(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = false)
+  override def compile(projects: java.util.List[bleepscript.CrossProjectName]): bleepscript.CompileReport =
+    compile(projects, watch = false)
 
-  override def compile(projects: java.util.List[bleepscript.CrossProjectName], watch: Boolean): Unit =
-    underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = watch)
+  override def compile(projects: java.util.List[bleepscript.CrossProjectName], watch: Boolean): bleepscript.CompileReport = {
+    val summary = underlying.compile(projects.asScala.iterator.map(JModel.toCross).toList, watch = watch)
+    // Deliberately narrower than the summary it comes from. `BuildSummary` is bleep's internal accounting and changes shape whenever the build display does; a
+    // published Java interface should not.
+    new bleepscript.CompileReport(
+      summary.noOp,
+      summary.upToDateProjects.map(JModel.crossProjectName).asJava,
+      summary.compilesCompleted
+    )
+  }
+
+  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions): Unit =
+    link(projects, options, watch = false)
+
+  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions, watch: Boolean): Unit =
+    underlying.link(
+      projects.asScala.iterator.map(JModel.toCross).toList,
+      LinkOptions(
+        releaseMode = options.releaseMode,
+        sourceMaps = toScalaOpt(options.sourceMaps).map(_.booleanValue),
+        minify = toScalaOpt(options.minify).map(_.booleanValue),
+        moduleKind = toScalaOpt(options.moduleKind).map {
+          case bleepscript.LinkOptions.ModuleKind.NO_MODULE => LinkOptions.ModuleKind.NoModule
+          case bleepscript.LinkOptions.ModuleKind.COMMON_JS => LinkOptions.ModuleKind.CommonJS
+          case bleepscript.LinkOptions.ModuleKind.ES_MODULE => LinkOptions.ModuleKind.ESModule
+        },
+        lto = toScalaOpt(options.lto).map {
+          case bleepscript.LinkOptions.LTO.NONE => LinkOptions.LTO.None
+          case bleepscript.LinkOptions.LTO.THIN => LinkOptions.LTO.Thin
+          case bleepscript.LinkOptions.LTO.FULL => LinkOptions.LTO.Full
+        },
+        optimize = toScalaOpt(options.optimize).map(_.booleanValue),
+        debugInfo = toScalaOpt(options.debugInfo).map(_.booleanValue)
+      ),
+      watch = watch
+    )
 
   override def test(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
     underlying.test(

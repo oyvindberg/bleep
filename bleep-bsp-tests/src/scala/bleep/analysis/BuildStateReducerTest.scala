@@ -214,4 +214,44 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     state.runningSuites shouldBe empty
     state.runningTests shouldBe empty
   }
+
+  // ==========================================================================
+  // noOp — "did anything actually recompile"
+  // ==========================================================================
+
+  private def compiled(project: String, reason: bleep.bsp.protocol.CompileReason): Seq[BuildEvent] =
+    Seq(
+      BuildEvent.CompileStarted(cpn(project), ts),
+      BuildEvent.CompilationReason(cpn(project), reason, totalFiles = 1, invalidatedFiles = Nil, changedDependencies = Nil, ts + 1),
+      BuildEvent.CompileFinished(
+        cpn(project),
+        bleep.bsp.protocol.CompileStatus.Success,
+        durationMs = 5,
+        timestamp = ts + 2,
+        diagnostics = Nil,
+        skippedBecause = None
+      )
+    )
+
+  private def summaryOf(events: Seq[BuildEvent]): BuildSummary =
+    events.foldLeft(BuildState.empty)(BuildStateReducer.reduce).toSummary(durationMs = 0, wasCancelled = false)
+
+  test("noOp: every compile up to date") {
+    val summary = summaryOf(compiled("a", bleep.bsp.protocol.CompileReason.UpToDate) ++ compiled("b", bleep.bsp.protocol.CompileReason.UpToDate))
+    summary.upToDateProjects shouldBe List(cpn("a"), cpn("b"))
+    summary.noOp shouldBe true
+  }
+
+  test("noOp: one project recompiled is enough to make the run not a no-op") {
+    // The asymmetry is the point. A caller uses this to decide whether it may skip a deploy, so a single project that really compiled has to outweigh any
+    // number that did not.
+    val summary = summaryOf(compiled("a", bleep.bsp.protocol.CompileReason.UpToDate) ++ compiled("b", bleep.bsp.protocol.CompileReason.Incremental))
+    summary.upToDateProjects shouldBe List(cpn("a"))
+    summary.noOp shouldBe false
+  }
+
+  test("noOp: a run in which nothing compiled is not a no-op") {
+    // There was no compile to be a no-op about. Answering true here would tell a deploy script it may skip on the strength of a run that never looked.
+    summaryOf(Nil).noOp shouldBe false
+  }
 }

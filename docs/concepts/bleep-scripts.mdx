@@ -55,6 +55,7 @@ Your script gets three things:
   ```java
   commands.compile(List.of(projectName));
   commands.test(List.of(projectName));
+  commands.link(List.of(jsProject), LinkOptions.DEBUG);
   commands.publishLocal(
       PublishOptions.builder()
           .groupId("com.example")
@@ -62,6 +63,16 @@ Your script gets three things:
           .toLocalIvy()
           .projects(projectName)
           .build());
+  ```
+
+  `compile` hands back a `CompileReport`. Its `noOp()` is true when every project it compiled was
+  already up to date, which is what a script tests before doing work that only matters when
+  something was rebuilt:
+
+  ```java
+  if (!commands.compile(List.of(projectName)).noOp()) {
+    deploy(projectName);
+  }
   ```
 
 - **`args`**: whatever the user passed on the command line after the script name.

@@ -1,6 +1,7 @@
 package bleep
 
-import bleep.commands.{Publish, PublishLocal, PublishSonatype}
+import bleep.commands.{LinkOptions, Publish, PublishLocal, PublishSonatype}
+import bleep.testing.BuildSummary
 import cats.data.NonEmptyList
 
 class Commands(started: Started) {
@@ -17,11 +18,30 @@ class Commands(started: Started) {
   def clean(projects: List[model.CrossProjectName]): Unit =
     force(commands.Clean(projects.toArray))
 
-  def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(
-      commands.ReactiveBsp
-        .compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false, diffBase = None, diffOutput = OutputMode.Text)
-    )
+  /** Compile `projects`, returning what the run reported.
+    *
+    * A failed compile still throws, so a caller who only wants "did it work" can go on ignoring the result. The summary is there for the caller who needs to
+    * know more than that — [[bleep.testing.BuildSummary.noOp]] answers "did anything actually recompile", which is the signal a deploy step needs to skip
+    * itself when the previous run already produced the same artifacts.
+    *
+    * Under `watch = true` there is no single run to summarise, so this returns [[bleep.testing.BuildSummary.empty]] when the watch ends.
+    */
+  def compile(projects: List[model.CrossProjectName], watch: Boolean = false): BuildSummary = {
+    val cmd = commands.ReactiveBsp
+      .compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false, diffBase = None, diffOutput = OutputMode.Text)
+    if (watch) {
+      force(cmd)
+      BuildSummary.empty
+    } else cmd.runReportingSummary(started).orThrow
+  }
+
+  /** Link `projects` — Scala.js, Scala Native, Kotlin/JS or Kotlin/Native — the way `bleep link` does.
+    *
+    * [[bleep.commands.LinkOptions.Debug]] and [[bleep.commands.LinkOptions.Release]] are the two a caller usually wants; the rest of the fields map one to one
+    * onto the command line's flags.
+    */
+  def link(projects: List[model.CrossProjectName], options: LinkOptions, watch: Boolean = false): Unit =
+    force(commands.ReactiveBsp.link(watch, projects.toArray, commands.DisplayMode.NoTui, options, flamegraph = false, cancel = false))
 
   def run(
       project: model.CrossProjectName,

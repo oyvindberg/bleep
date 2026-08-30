@@ -4,9 +4,24 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Commands {
-  void compile(List<CrossProjectName> projects);
+  /**
+   * Compile {@code projects}. Throws when the compile fails; see {@link CompileReport} for what a
+   * successful one reports back.
+   */
+  CompileReport compile(List<CrossProjectName> projects);
 
-  void compile(List<CrossProjectName> projects, boolean watch);
+  CompileReport compile(List<CrossProjectName> projects, boolean watch);
+
+  /**
+   * Link {@code projects} — Scala.js, Scala Native, Kotlin/JS or Kotlin/Native — the way {@code
+   * bleep link} does.
+   *
+   * <p>Without this a script that packages linked JavaScript into a jar had to shell out to the
+   * {@code bleep} command line, paying the start-up cost a second time.
+   */
+  void link(List<CrossProjectName> projects, LinkOptions options);
+
+  void link(List<CrossProjectName> projects, LinkOptions options, boolean watch);
 
   void test(List<CrossProjectName> projects);
 

@@ -67,9 +67,22 @@ case class ReactiveBsp(
 
   override def run(started: Started): Either[BleepException, Unit] =
     prepareDiffRun(started).flatMap { diffRun =>
-      if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(s => runOnce(s, diffRun))
-      else runOnce(started, diffRun)
+      if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(s => runOnce(s, diffRun).map(_ => ()))
+      else runOnce(started, diffRun).map(_ => ())
     }
+
+  /** [[run]], handing back the summary the run produced instead of discarding it.
+    *
+    * The verdict is unchanged: a failed build is still a `Left`, so a caller that only wants "did it work" can keep ignoring the value. What the summary adds
+    * is everything the run already knew and had nowhere to put — which projects were up to date, how long each phase took, what compiled. `bleep.Commands` uses
+    * it for [[bleep.testing.BuildSummary.noOp]].
+    *
+    * Not offered under `--watch`: a watch has one summary per cycle and no last one, so there is nothing honest to return.
+    */
+  private[bleep] def runReportingSummary(started: Started): Either[BleepException, BuildSummary] = {
+    require(!watch, "runReportingSummary has no single summary to return under --watch")
+    prepareDiffRun(started).flatMap(diffRun => runOnce(started, diffRun))
+  }
 
   /** Resolve and validate `--diff` BEFORE anything runs: an explicit id must exist in this workspace's store and mode-match the command; bare `--diff` must
     * find a same-mode entry. Resolving up front fails fast (never waste a compile on a doomed diff) and pins the base transcript, so a concurrent client
@@ -133,7 +146,7 @@ case class ReactiveBsp(
       }
     }
 
-  private[bleep] def runOnce(started: Started, diffRun: Option[ReactiveBsp.DiffRun]): Either[BleepException, Unit] = {
+  private[bleep] def runOnce(started: Started, diffRun: Option[ReactiveBsp.DiffRun]): Either[BleepException, BuildSummary] = {
     // The base THIS cycle diffs against, captured before the run: fixed bases were resolved up front, a rolling base is whatever the previous cycle recorded.
     // None while a rolling watch has no history yet — that cycle renders plain output.
     val diffCycleBase: Option[Transcript] = diffRun.flatMap {
@@ -172,7 +185,8 @@ case class ReactiveBsp(
           s"No projects to $modeLabel after --only-tag ${includeTags.mkString(",")}. Candidates were: ${candidateProjects.toList.map(_.value).sorted.mkString(", ")}"
         )
       else started.logger.info(s"No projects to $modeLabel")
-      return Right(())
+      // Nothing ran, so nothing is up to date either — `noOp` reads false, which is what a caller asking "may I skip the next step" needs to hear.
+      return Right(BuildSummary.empty)
     }
 
     val filterCtx: Option[bleep.testing.FilterContext] =
@@ -220,7 +234,7 @@ case class ReactiveBsp(
       filterContext: Option[bleep.testing.FilterContext],
       diffRun: Option[ReactiveBsp.DiffRun],
       diffCycleBase: Option[Transcript]
-  ): Either[BleepException, Unit] = {
+  ): Either[BleepException, BuildSummary] = {
     val bspLogger = started.logger
     val diagLog: String => Unit = _ => ()
 
@@ -294,7 +308,7 @@ case class ReactiveBsp(
       filterContext: Option[bleep.testing.FilterContext],
       diffRun: Option[ReactiveBsp.DiffRun],
       diffCycleBase: Option[Transcript]
-  ): Either[BleepException, Unit] = {
+  ): Either[BleepException, BuildSummary] = {
 
     // Determine effective mode and logger upfront (no IO needed)
     val effectiveMode = DisplayMode.resolve(displayMode)
@@ -813,8 +827,8 @@ case class ReactiveBsp(
     }
 
   /** Convert build summary to result. Shared by runWithBleepBsp and runInProcess. */
-  private def resultFromSummary(summary: BuildSummary): Either[BleepException, Unit] =
-    summary.toEither
+  private def resultFromSummary(summary: BuildSummary): Either[BleepException, BuildSummary] =
+    summary.toEither.map(_ => summary)
 
   /** Build target identifier for a project */
   private def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {

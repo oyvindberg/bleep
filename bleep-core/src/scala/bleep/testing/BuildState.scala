@@ -18,6 +18,10 @@ case class BuildState(
     compilesFailed: Int,
     compilesSkipped: Int,
     compilesCancelled: Int,
+    /** Projects whose compile reported [[bleep.bsp.protocol.CompileReason.UpToDate]] — the compiler ran and found nothing to do. Kept as a list rather than a
+      * count so a caller can name them.
+      */
+    upToDateProjects: List[CrossProjectName],
     testsTotal: Int,
     testsPassed: Int,
     testsFailed: Int,
@@ -82,6 +86,7 @@ case class BuildState(
       compilesFailed = compilesFailed,
       compilesSkipped = compilesSkipped,
       compilesCancelled = compilesCancelled,
+      upToDateProjects = upToDateProjects.reverse,
       suitesTotal = suitesTotal,
       suitesCompleted = suitesCompleted,
       suitesFailed = suitesFailed,
@@ -123,6 +128,7 @@ object BuildState {
     compilesFailed = 0,
     compilesSkipped = 0,
     compilesCancelled = 0,
+    upToDateProjects = Nil,
     testsTotal = 0,
     testsPassed = 0,
     testsFailed = 0,
@@ -186,9 +192,13 @@ object BuildStateReducer {
         compileStartTimes = state.compileStartTimes + (project -> timestamp)
       )
 
-    case BuildEvent.CompilationReason(_, _, _, _, _, _) =>
-      // CompilationReason is purely informational for display - no state change needed
-      state
+    case BuildEvent.CompilationReason(project, reason, _, _, _, _) =>
+      // Informational for display, except for one bit worth keeping: whether the compiler found anything to do. That is the only place a caller can learn a
+      // compile was a no-op, and `bleep.Commands.compile` hands it back so a script can skip work that only matters when something recompiled.
+      reason match {
+        case bleep.bsp.protocol.CompileReason.UpToDate => state.copy(upToDateProjects = project :: state.upToDateProjects)
+        case _                                         => state
+      }
 
     case BuildEvent.CompileFinished(project, status, durationMs, _, diagnostics, skippedBecause) =>
       import bleep.bsp.protocol.CompileStatus
