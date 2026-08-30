@@ -1,0 +1,194 @@
+bootstrapped in 1 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+📦 read analysis (<duration>)
+📦 analyzed (<duration>)
+📦 compiled (<duration>)
+sendTestEvent: CompileFinished
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
+📦 saved analysis (<duration>)
+✅ compiled (<duration>)
+test runtime: org.scala-sbt:test-interface:1.0
+🔗 linking [Scala.js]
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
+✅ linked [Scala.js] (<duration>)
+sendTestEvent
+🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.HedgehogFixture' (TestFork) cpu=1 mem=0MB
+sendTestEvent
+sendTestEvent
+sendTestEvent
+Running: mytest:example.HedgehogFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.HedgehogFixture
+Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenHedgehogFixture.adds
+  + GreenHedgehogFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenHedgehogFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: SuiteError
+❌ Test example.CtorBoomHedgehogFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
+  Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
+  Stack trace:
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$4(RPCCore.scala:78)
+    at scala.Option.foreach(Option.scala:437)
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1(RPCCore.scala:76)
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1$adapted(RPCCore.scala:56)
+    at org.scalajs.testing.common.Serializer$.withInputStream(Serializer.scala:56)
+    at org.scalajs.testing.common.RPCCore.handleMessage(RPCCore.scala:56)
+    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4(JSEnvRPC.scala:48)
+    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
+    at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
+    at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
+sendTestEvent
+sendTestEvent: TestFinished
+  + HedgehogFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + HedgehogFixture.measures
+sendTestEvent
+sendTestEvent: TestFinished
+  x HedgehogFixture.fails on purpose
+sendTestEvent
+sendTestEvent: TestFinished
+  x HedgehogFixture.throws on purpose
+sendTestEvent: SuiteFinished
+Task executor completed
+Failed tasks
+Errored tasks
+Executor done, signalling consumer to terminate
+FAILED example.HedgehogFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 2 failed, 0 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 3 failed
+  Suites: 2/3 completed, 1 did not finish
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.HedgehogFixture,example.CtorBoomHedgehogFixture,example.GreenHedgehogFixture
+
+Test Failures (2)
+
+x mytest / example.HedgehogFixture / fails on purpose
+  Stack trace:
+  | hedgehog.sbt.MessageOnlyException: 
+  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18410)
+  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13554)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:7761)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:9012)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
+  |   at scala.concurrent.impl.Promise$Transformation.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:37849)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25664)
+  |   at <jscode>.process.processTicksAndRejections(node:internal/process/task_queues:104)
+
+x mytest / example.HedgehogFixture / throws on purpose
+  | java.lang.RuntimeException: boom
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  Stack trace:
+  | hedgehog.sbt.MessageOnlyException: java.lang.RuntimeException: boom
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  | 
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)(Unknown Source)
+  |   at <jscode>.scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)(Unknown Source)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)(Unknown Source)
+  |   at <jscode>.scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)(Unknown Source)
+  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)(Unknown Source)
+  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)(Unknown Source)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)(Unknown Source)
+  |   at <jscode>.scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)(Unknown Source)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)(Unknown Source)
+  |   at <jscode>.scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)(Unknown Source)
+  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18410)
+  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13554)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:7761)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:9012)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
+  |   at scala.concurrent.impl.Promise$Transformation.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:37849)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25664)
+  |   at <jscode>.process.processTicksAndRejections(node:internal/process/task_queues:104)
+
+  Output from example.HedgehogFixture:
+  | Using random seed: 64453292
+  | hello from the test
+  | + example.HedgehogFixture.adds: OK, passed 1 tests
+  | + example.HedgehogFixture.measures: OK, passed 1 tests
+  | - example.HedgehogFixture.fails on purpose: Falsified after 0 passed tests
+  | - example.HedgehogFixture.throws on purpose: Falsified after 0 passed tests
+  | > java.lang.RuntimeException: boom
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+
+Process Errors (1)
+
+! mytest / example.CtorBoomHedgehogFixture
+  | Test example.CtorBoomHedgehogFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
+  |   Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
+  |   Stack trace:
+  |     at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$4(RPCCore.scala:78)
+  |     at scala.Option.foreach(Option.scala:437)
+  |     at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1(RPCCore.scala:76)
+  |     at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1$adapted(RPCCore.scala:56)
+  |     at org.scalajs.testing.common.Serializer$.withInputStream(Serializer.scala:56)
+  |     at org.scalajs.testing.common.RPCCore.handleMessage(RPCCore.scala:56)
+  |     at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4(JSEnvRPC.scala:48)
+  |     at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
+  |     at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
+  |     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
+  Output:
+  | Using random seed: 61347708
+  | [scala.js] TestAdapter.close() was called. Incomplete runs: Set(0)

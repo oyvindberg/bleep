@@ -1,0 +1,124 @@
+bootstrapped in 112 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
+sendTestEvent: CompileFinished
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+✅ compiled (<duration>)
+🔗 linking [Kotlin/JS]
+[LINK] source-map-embed-sources argument has no effect without source map
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
+✅ linked [Kotlin/JS] (<duration>)
+[machine] grant 'test:mytest:example.KotlinTestFixture' (TestFork) cpu=1 mem=0MB
+sendTestEvent
+🔍 discovered 3 test suites (total: 3)
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+sendTestEvent
+sendTestEvent
+Running: mytest:example.CtorBoomKotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.KotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
+sendTestEvent
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
+  x CtorBoomKotlinTestFixture.adds
+  + GreenKotlinTestFixture.adds
+  + KotlinTestFixture.adds
+  x CtorBoomKotlinTestFixture.measures
+Task executor completed
+  + GreenKotlinTestFixture.measures
+  + KotlinTestFixture.measures
+Failed tasks
+  x CtorBoomKotlinTestFixture.failsOnPurpose
+Executor done, signalling consumer to terminate
+  x KotlinTestFixture.failsOnPurpose
+  x CtorBoomKotlinTestFixture.throwsOnPurpose
+  x KotlinTestFixture.throwsOnPurpose
+  - CtorBoomKotlinTestFixture.skippedOnPurpose
+  - KotlinTestFixture.skippedOnPurpose
+PASSED example.GreenKotlinTestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
+FAILED example.CtorBoomKotlinTestFixture: 0 passed, 4 failed, 1 skipped (<duration>)
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 6 failed, 2 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 6 failed, 2 skipped
+  Suites: 3 total
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.KotlinTestFixture,example.CtorBoomKotlinTestFixture,example.GreenKotlinTestFixture
+
+Test Failures (6)
+
+x mytest / example.CtorBoomKotlinTestFixture / adds
+x mytest / example.CtorBoomKotlinTestFixture / failsOnPurpose
+x mytest / example.CtorBoomKotlinTestFixture / measures
+x mytest / example.CtorBoomKotlinTestFixture / throwsOnPurpose
+  | all 4 failed with the same error:
+  | ctor boom
+
+x mytest / example.KotlinTestFixture / failsOnPurpose
+  | Expected <2>, actual <1>.
+
+x mytest / example.KotlinTestFixture / throwsOnPurpose
+  | boom
+
+  Output from example.KotlinTestFixture:
+  | hello from the test
+
+Skipped (2)
+mytest
+  - example.CtorBoomKotlinTestFixture / skippedOnPurpose
+  - example.KotlinTestFixture / skippedOnPurpose

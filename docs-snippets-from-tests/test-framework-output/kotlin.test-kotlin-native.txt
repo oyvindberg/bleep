@@ -1,0 +1,185 @@
+bootstrapped in 97 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+sendTestEvent: CompileFinished
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
+✅ compiled (<duration>)
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+🔗 linking [Kotlin/Native]
+Linking Kotlin/Native: 1 KLIBs -> <project>/.bleep/projects/mytest/builds/normal/debug/mytest (includes: 1, libraries: 0)
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+✅ linked [Kotlin/Native] (<duration>)
+sendTestEvent
+sendTestEvent
+[machine] grant 'test:mytest:example.KotlinTestFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
+sendTestEvent
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+Running: mytest:example.KotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.KotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
+sendTestEvent
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+Task executor completed
+sendTestEvent
+sendTestEvent
+Failed tasks
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+Executor done, signalling consumer to terminate
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
+  + GreenKotlinTestFixture.adds
+  + KotlinTestFixture.adds
+  + KotlinTestFixture.measures
+  x CtorBoomKotlinTestFixture.adds
+  + GreenKotlinTestFixture.measures
+  x KotlinTestFixture.failsOnPurpose
+  x CtorBoomKotlinTestFixture.measures
+  x KotlinTestFixture.throwsOnPurpose
+  x CtorBoomKotlinTestFixture.failsOnPurpose
+  x CtorBoomKotlinTestFixture.throwsOnPurpose
+  - KotlinTestFixture.skippedOnPurpose
+  - CtorBoomKotlinTestFixture.skippedOnPurpose
+PASSED example.GreenKotlinTestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
+FAILED example.CtorBoomKotlinTestFixture: 0 passed, 4 failed, 1 skipped (<duration>)
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 6 failed, 2 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 6 failed, 2 skipped
+  Suites: 3 total
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.KotlinTestFixture,example.CtorBoomKotlinTestFixture,example.GreenKotlinTestFixture
+
+Test Failures (6)
+
+x mytest / example.CtorBoomKotlinTestFixture / adds
+x mytest / example.CtorBoomKotlinTestFixture / failsOnPurpose
+x mytest / example.CtorBoomKotlinTestFixture / measures
+x mytest / example.CtorBoomKotlinTestFixture / throwsOnPurpose
+  | all 4 failed with the same error:
+
+  Output from example.CtorBoomKotlinTestFixture:
+  | kotlin.RuntimeException: ctor boom
+  | kotlin.RuntimeException: ctor boom
+  |     at 0   mytest.kexe                         0x102a76863        kfun:example.CtorBoomKotlinTestFixture#<init>(){} + 103 
+  |     at 0   mytest.kexe                         0x102a76863        kfun:example.CtorBoomKotlinTestFixture#<init>(){} + 103 
+  |     at 1   mytest.kexe                         0x102a7698f        kfun:example.$CtorBoomKotlinTestFixture$test$0.createInstance#internal + 163 
+  |     at 1   mytest.kexe                         0x102a7698f        kfun:example.$CtorBoomKotlinTestFixture$test$0.createInstance#internal + 163 
+  |     ... 24 frames elided (kotlin, kotlin/native)
+  | kotlin.RuntimeException: ctor boom
+  |     at 0   mytest.kexe                         0x102a76863        kfun:example.CtorBoomKotlinTestFixture#<init>(){} + 103 
+  |     at 1   mytest.kexe                         0x102a7698f        kfun:example.$CtorBoomKotlinTestFixture$test$0.createInstance#internal + 163 
+  |     ... 6 frames elided (kotlin)
+  | [----------] 5 tests from example.CtorBoomKotlinTestFixture (2 ms total)
+  |     ... 1 frame elided (kotlin)
+  | [----------] Global test environment tear-down
+  |     ... 1 frame elided (kotlin)
+  | [==========] 5 tests from 1 test cases ran. (2 ms total)
+  |     ... 1 frame elided (kotlin/native)
+  | [  PASSED  ] 0 tests.
+  |     ... 1 frame elided (kotlin/native)
+  | [  SKIPPED ] 1 test, listed below:
+  |     ... 2 frames elided (kotlin/native)
+  | kotlin.RuntimeException: ctor boom
+  |     at 0   mytest.kexe                         0x102a76863        kfun:example.CtorBoomKotlinTestFixture#<init>(){} + 103 
+  | [  FAILED  ] 4 tests, listed below:
+  |     at 1   mytest.kexe                         0x102a7698f        kfun:example.$CtorBoomKotlinTestFixture$test$0.createInstance#internal + 163 
+  | [  FAILED  ] example.CtorBoomKotlinTestFixture.adds
+  |     ... 2 frames elided (kotlin)
+  | [  FAILED  ] example.CtorBoomKotlinTestFixture.measures
+  |     ... 1 frame elided (kotlin)
+  | [  FAILED  ] example.CtorBoomKotlinTestFixture.failsOnPurpose
+  |     ... 1 frame elided (kotlin)
+  | [  FAILED  ] example.CtorBoomKotlinTestFixture.throwsOnPurpose
+  |     ... 1 frame elided (kotlin)
+  | 4 FAILED TESTS
+  |     ... 7 frames elided (kotlin, kotlin/native)
+
+x mytest / example.KotlinTestFixture / failsOnPurpose
+x mytest / example.KotlinTestFixture / throwsOnPurpose
+  | all 2 failed with the same error:
+
+  Output from example.KotlinTestFixture:
+  | kotlin.AssertionError: Expected <2>, actual <1>.
+  |     at 11  mytest.kexe                         0x10091da33        kfun:kotlin.native.internal.test#testLauncherEntryPoint(kotlin.Array<kotlin.String>){}kotlin.Int + 219 
+  |     at 0   mytest.kexe                         0x10090b15f        kfun:kotlin.AssertionError#<init>(kotlin.Any?){} + 231 
+  |     at 12  mytest.kexe                         0x10091d92f        kfun:kotlin.native.internal.test#main(kotlin.Array<kotlin.String>){} + 27 
+  |     at 1   mytest.kexe                         0x1009cded3        kfun:kotlin.test.DefaultAsserter#fail(kotlin.String?){}kotlin.Nothing + 139 
+  |     at 13  mytest.kexe                         0x10091dab3        Konan_start + 87 
+  |     at 2   mytest.kexe                         0x1009a530b        kfun:kotlin.test.Asserter#fail(kotlin.String?){}kotlin.Nothing-trampoline + 111 
+  |     at 14  mytest.kexe                         0x1009bd763        Init_and_run_start + 195 
+  |     at 3   mytest.kexe                         0x100930c5b        kfun:kotlin.test.Asserter#assertTrue(kotlin.Function0<kotlin.String?>;kotlin.Boolean){} + 203 
+  |     at 4   mytest.kexe                         0x100930f93        kfun:kotlin.test.Asserter#assertEquals(kotlin.String?;kotlin.Any?;kotlin.Any?){} + 463 
+  |     at 15  mytest.kexe                         0x1009bd7f7        Konan_main + 15 
+  |     at 5   mytest.kexe                         0x100932b7b        kfun:kotlin.test#assertEquals(0:0;0:0;kotlin.String?){0§<kotlin.Any?>} + 375 
+  |     at 6   mytest.kexe                         0x1009a4e0b        kfun:example.$KotlinTestFixture$test$3.$KotlinTestFixture$test$3$$FUNCTION_REFERENCE_FOR$failsOnPurpose$2.$<bridge-DNC>invoke(example.KotlinTestFixture){}#internal + 267 
+  |     ... 3 frames elided (kotlin, kotlin/native)
+  | kotlin.RuntimeException: boom
+  |     at 9   mytest.kexe                         0x100922d1b        kfun:kotlin.native.internal.test.TestRunner.runIteration#internal + 6683 
+  |     at 10  mytest.kexe                         0x100923dab        kfun:kotlin.native.internal.test.TestRunner#run(){}kotlin.Int + 859 
+  |     at 0   mytest.kexe                         0x1009cea7f        kfun:example.KotlinTestFixture#throwsOnPurpose(){} + 103 
+  |     at 1   mytest.kexe                         0x1009a4f13        kfun:example.$KotlinTestFixture$test$3.$KotlinTestFixture$test$3$$FUNCTION_REFERENCE_FOR$throwsOnPurpose$3.$<bridge-DNC>invoke(example.KotlinTestFixture){}#internal + 183 
+  | hello from the test
+  |     ... 10 frames elided (kotlin, kotlin/native)
+  | [----------] 5 tests from example.KotlinTestFixture (1 ms total)
+  | [----------] Global test environment tear-down
+  | [==========] 5 tests from 1 test cases ran. (1 ms total)
+  | [  PASSED  ] 2 tests.
+  | [  SKIPPED ] 1 test, listed below:
+  | [  FAILED  ] 2 tests, listed below:
+  | [  FAILED  ] example.KotlinTestFixture.failsOnPurpose
+  | [  FAILED  ] example.KotlinTestFixture.throwsOnPurpose
+  | 2 FAILED TESTS
+
+Skipped (2)
+mytest
+  - example.CtorBoomKotlinTestFixture / skippedOnPurpose
+  - example.KotlinTestFixture / skippedOnPurpose

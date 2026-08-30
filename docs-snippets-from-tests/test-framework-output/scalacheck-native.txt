@@ -1,0 +1,166 @@
+bootstrapped in 1 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+📦 read analysis (<duration>)
+📦 analyzed (<duration>)
+📦 compiled (<duration>)
+sendTestEvent: CompileFinished
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
+📦 saved analysis (<duration>)
+✅ compiled (<duration>)
+test runtime: org.scala-sbt:test-interface:1.0
+🔗 linking [Scala Native]
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
+✅ linked [Scala Native] (<duration>)
+sendTestEvent
+[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
+sendTestEvent
+sendTestEvent
+sendTestEvent
+Running: mytest:example.ScalacheckFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
+Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
+sendTestEvent
+sendTestEvent: TestFinished
+  + example.GreenScalacheckFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + example.GreenScalacheckFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteError
+FAILED example.CtorBoomScalacheckFixture: 0 passed, 1 failed, 0 skipped (<duration>)
+❌ exited with code 1
+sendTestEvent
+sendTestEvent: TestFinished
+  + example.ScalacheckFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + example.ScalacheckFixture.measures
+sendTestEvent
+sendTestEvent: TestFinished
+  x example.ScalacheckFixture.fails on purpose
+sendTestEvent
+sendTestEvent: TestFinished
+  x example.ScalacheckFixture.throws on purpose
+sendTestEvent: SuiteFinished
+FAILED example.ScalacheckFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+Task executor completed
+Failed tasks
+Errored tasks
+Executor done, signalling consumer to terminate
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 3 failed, 0 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 3 failed
+  Suites: 2/3 completed, 1 did not finish
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.ScalacheckFixture,example.CtorBoomScalacheckFixture,example.GreenScalacheckFixture
+
+Test Failures (2)
+
+x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
+  | Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: 9665996
+  Stack trace:
+  | java.lang.Exception: Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: 9665996
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at scala.scalanative.runtime.Throwable.<init>(Unknown Source)
+  |   at java.lang.Throwable.<init>(Unknown Source)
+  |   at java.lang.Exception.<init>(Unknown Source)
+  |   ... above 1 frames repeated 3 times (3 frames total)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(Unknown Source)
+  |   at scala.scalanative.testinterface.common.Serializer$EventSerializer$.serialize(Unknown Source)
+  |   at scala.scalanative.testinterface.common.Serializer$EventSerializer$.serialize(Unknown Source)
+  |   at scala.scalanative.testinterface.common.Serializer$SerializeState$.write$extension(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RunMux$$anon$1.serialize(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RunMux$$anon$1.serialize(Unknown Source)
+  |   at scala.scalanative.testinterface.common.Serializer$.serialize(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore.makeMsgMsg$$anonfun$1(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore$$Lambda$8.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
+  |   at scala.scalanative.testinterface.common.Serializer$.withOutputStream(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore.makeMsgMsg(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RPCCore.send(Unknown Source)
+  |   at scala.scalanative.testinterface.common.RunMuxRPC.send(Unknown Source)
+  |   at scala.scalanative.testinterface.TestAdapterBridge$RemoteEventHandler.handle(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3$$anonfun$1(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$10.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
+  |   at scala.Option.foreach(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3(Unknown Source)
+  |   at org.scalacheck.ScalaCheckRunner$$anon$3$$Lambda$2.applyVoid(Unknown Source)
+  |   at scala.runtime.function.JProcedure1.apply(Unknown Source)
+
+x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpose
+  | boom
+  Stack trace:
+  | java.lang.RuntimeException: boom
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at java.lang.Throwable.fillInStackTrace(Unknown Source)
+  |   at scala.scalanative.runtime.Throwable.<init>(Unknown Source)
+  |   at java.lang.Throwable.<init>(Unknown Source)
+  |   at java.lang.Exception.<init>(Unknown Source)
+  |   at java.lang.RuntimeException.<init>(Unknown Source)
+  |   at java.lang.RuntimeException.<init>(Unknown Source)
+  |   at java.lang.RuntimeException.<init>(Unknown Source)
+  |   at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$1(Unknown Source)
+  |   at example.ScalacheckFixture$$$Lambda$14.apply(Unknown Source)
+  |   ... 20 frames elided (scala, scalacheck)
+
+  Output from example.ScalacheckFixture:
+  | Starting process '<project>/.bleep/projects/mytest/builds/normal/link-output/mytest-example.ScalacheckFixture-test' on port '<port>'.
+  | hello from the test
+  | + example.ScalacheckFixture.adds: OK, passed 100 tests.
+  | + example.ScalacheckFixture.measures: OK, passed 100 tests.
+  | failing seed for example.ScalacheckFixture.fails on purpose is FvCl2Or4anyspkNphxZY8peOghBotBVHHPqlXtH8C8N=
+  | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: 9665996
+  | failing seed for example.ScalacheckFixture.throws on purpose is 6StkdNXWn1UEnV-cxf6CUm8oX7uun4VAm08Tt3it8-L=
+  | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
+  | > ARG_0: 0
+  | > Exception: java.lang.RuntimeException: boom
+
+Process Errors (1)
+
+! mytest / example.CtorBoomScalacheckFixture
+  | Suite reported 1 failure(s) but no individual test results were captured
+  | Process exited with code 1
+  Output:
+  | Starting process '<project>/.bleep/projects/mytest/builds/normal/link-output/mytest-example.CtorBoomScalacheckFixture-test' on port '<port>'.
+  | TestAdapter.close() was called. Incomplete runs: Set(0)
+  | java.lang.RuntimeException: ctor boom
+  | Process exited with code 1

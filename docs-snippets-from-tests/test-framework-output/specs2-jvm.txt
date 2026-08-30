@@ -1,0 +1,147 @@
+bootstrapped in 1 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+📦 read analysis (<duration>)
+📦 analyzed (<duration>)
+📦 compiled (<duration>)
+sendTestEvent: CompileFinished
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+📦 saved analysis (<duration>)
+sendTestEvent
+✅ compiled (<duration>)
+sendTestEvent
+🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.GreenSpecs2Fixture' (TestFork) cpu=1 mem=0MB
+sendTestEvent
+sendTestEvent
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomSpecs2Fixture
+Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture
+Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
+sendTestEvent: TestFinished
+  ! example.CtorBoomSpecs2Fixture
+sendTestEvent: SuiteFinished
+FAILED example.CtorBoomSpecs2Fixture: 0 passed, 1 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+  + GreenSpecs2Fixture.adds
+sendTestEvent: TestFinished
+  + Specs2Fixture.adds
+sendTestEvent: TestFinished
+  + GreenSpecs2Fixture.measures
+sendTestEvent: TestFinished
+  + Specs2Fixture.measures
+sendTestEvent: TestFinished
+  x Specs2Fixture.fails on purpose
+sendTestEvent: SuiteFinished
+PASSED example.GreenSpecs2Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+  ! Specs2Fixture.throws on purpose
+sendTestEvent: TestFinished
+  - Specs2Fixture.skipped on purpose
+sendTestEvent: SuiteFinished
+Task executor completed
+FAILED example.Specs2Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
+Failed tasks
+Executor done, signalling consumer to terminate
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 3 failed, 1 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 3 failed, 1 skipped
+  Suites: 3 total
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.Specs2Fixture,example.CtorBoomSpecs2Fixture,example.GreenSpecs2Fixture
+
+Test Failures (3)
+
+x mytest / example.CtorBoomSpecs2Fixture / example.CtorBoomSpecs2Fixture
+  | cannot create an instance for class example.CtorBoomSpecs2Fixture
+  Stack trace:
+  | org.specs2.control.UserException: cannot create an instance for class example.CtorBoomSpecs2Fixture
+  | 	... 49 frames elided (specs2, bleep)
+  | Caused by: java.lang.reflect.InvocationTargetException
+  | 	... 5 frames elided (jdk, specs2)
+  | Caused by: java.lang.RuntimeException: ctor boom
+  | 	at example.CtorBoomSpecs2Fixture.<init>(CtorBoomSpecs2Fixture.scala:6)
+  | 	... 1 frame elided (jdk)
+
+  Output from example.CtorBoomSpecs2Fixture:
+  | cannot create an instance for class example.CtorBoomSpecs2Fixture
+  |   caused by java.lang.RuntimeException: ctor boom
+  |   java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:74)
+  |   java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+  |   java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483)
+  |   ... 49 frames elided (specs2, bleep)
+  | 
+  | STACKTRACE
+  |   example.CtorBoomSpecs2Fixture.<init>(CtorBoomSpecs2Fixture.scala:6)
+  |   java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+  |   java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+  |   java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483)
+  |   ... 49 frames elided (specs2, bleep)
+  | 
+  |   CAUSED BY java.lang.RuntimeException: ctor boom
+  | 
+  | cannot create an instance for class example.CtorBoomSpecs2Fixture
+  | 
+  |  
+
+x mytest / example.Specs2Fixture / fails on purpose
+  | 1 != 2
+  Stack trace:
+  | java.lang.Exception: 1 != 2
+  | 	at example.Specs2Fixture.$init$$$anonfun$3(Specs2Fixture.scala:8)
+
+x mytest / example.Specs2Fixture / throws on purpose
+  | boom
+  Stack trace:
+  | java.lang.RuntimeException: boom
+  | 	at example.Specs2Fixture.$init$$$anonfun$4(Specs2Fixture.scala:9)
+
+  Output from example.Specs2Fixture:
+  | hello from the test
+  | Specs2Fixture
+  | 
+  | + adds
+  | + measures
+  | x fails on purpose
+  |  1 != 2 (Specs2Fixture.scala:8)
+  | 
+  | ! throws on purpose
+  |  java.lang.RuntimeException: boom (Specs2Fixture.scala:9)
+  | example.Specs2Fixture.$init$$$anonfun$4(Specs2Fixture.scala:9)
+  | 
+  | o skipped on purpose
+  | on purpose
+  | 
+  | 
+  | Total for specification Specs2Fixture
+  | Finished in 103 ms
+  | 5 examples, 1 failure, 1 error, 1 skipped
+
+Skipped (1)
+mytest
+  - example.Specs2Fixture / skipped on purpose

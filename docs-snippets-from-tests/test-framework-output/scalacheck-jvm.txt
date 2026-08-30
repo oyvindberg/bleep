@@ -1,0 +1,132 @@
+bootstrapped in 1 ms
+[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
+dispatch
+Build loaded
+dispatch
+dispatch
+handleTest: starting ioProgram
+Starting event consumer and task executor
+[machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent: CompileStarted
+🔨 compiling (clean build, no previous analysis)
+📦 read analysis (<duration>)
+📦 analyzed (<duration>)
+📦 compiled (<duration>)
+sendTestEvent: CompileFinished
+[machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+📦 saved analysis (<duration>)
+sendTestEvent
+✅ compiled (<duration>)
+sendTestEvent
+[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
+sendTestEvent
+sendTestEvent
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.ScalacheckFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.ScalacheckFixture
+Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
+sendTestEvent: SuiteFinished
+ERRORED example.CtorBoomScalacheckFixture: Error running suite example.CtorBoomScalacheckFixture: java.lang.ExceptionInInitializerError: null (<duration>)
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  + example.ScalacheckFixture.adds
+  + example.GreenScalacheckFixture.adds
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  + example.GreenScalacheckFixture.measures
+  + example.ScalacheckFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+  x example.ScalacheckFixture.fails on purpose
+sendTestEvent: TestFinished
+  ! example.ScalacheckFixture.throws on purpose
+sendTestEvent: SuiteFinished
+Task executor completed
+Failed tasks
+Executor done, signalling consumer to terminate
+FAILED example.ScalacheckFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+handleTest: ioProgram returned
+sendTestEvent
+Test completed: 4 passed, 3 failed, 0 skipped (<duration>)
+History transcript written
+dispatch
+build/shutdown received - cancelling all active requests
+Cancelling all active requests
+dispatch
+Transport stream closed (client disconnected)
+Server run() exiting - cleaning up
+  JUnit XML report: <project>/junit-reports/TEST-mytest.xml
+
+x Build Summary
+
+  Tests: 4 passed, 3 failed
+  Suites: 3 total
+  Duration: <duration>
+  History:  #<n> (bleep history show <n>)
+  Projects: 1/1 selected
+  Filters active: --only example.ScalacheckFixture,example.CtorBoomScalacheckFixture,example.GreenScalacheckFixture
+
+Test Failures (2)
+
+x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
+  | Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: -1182610329
+  Stack trace:
+  | java.lang.Exception: Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: -1182610329
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(ScalaCheckFramework.scala:153)
+  | 	at bleep.testing.runner.ForkedTestRunner$2.handle(ForkedTestRunner.java:365)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(ScalaCheckFramework.scala:163)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3$$anonfun$1(ScalaCheckFramework.scala:117)
+  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+  | 	at scala.Option.foreach(Option.scala:439)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3(ScalaCheckFramework.scala:117)
+  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+  | 	at scala.collection.ArrayOps$.foreach$extension(ArrayOps.scala:1324)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute(ScalaCheckFramework.scala:121)
+  | 	at bleep.testing.runner.ForkedTestRunner.executeTasks(ForkedTestRunner.java:463)
+  | 	at bleep.testing.runner.ForkedTestRunner.executeTasks(ForkedTestRunner.java:465)
+  | 	at bleep.testing.runner.ForkedTestRunner.runSuite(ForkedTestRunner.java:398)
+  | 	at bleep.testing.runner.ForkedTestRunner.main(ForkedTestRunner.java:129)
+
+x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpose
+  | boom
+  Stack trace:
+  | java.lang.RuntimeException: boom
+  | 	at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$1(ScalacheckFixture.scala:11)
+  | 	at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$adapted$1(ScalacheckFixture.scala:11)
+  | 	... 36 frames elided (scala, scalacheck, bleep)
+
+  Output from example.ScalacheckFixture:
+  | hello from the test
+  | + example.ScalacheckFixture.adds: OK, passed 100 tests.
+  | + example.ScalacheckFixture.measures: OK, passed 100 tests.
+  | failing seed for example.ScalacheckFixture.fails on purpose is 8fP0VqgEpfwR-QO59N8HjsNQ2LNA1D0P6zj5JVGFbyN=
+  | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: -1182610329
+  | failing seed for example.ScalacheckFixture.throws on purpose is 5yjFFhlMt-u2h5BCXs38uR-0Wghak5KCoTmu5JV6hSE=
+  | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
+  | > ARG_0: 0
+  | > ARG_0_ORIGINAL: 2063305787
+  | > Exception: java.lang.RuntimeException: boom
+
+Process Errors (1)
+
+! mytest / example.CtorBoomScalacheckFixture
+  | Error running suite example.CtorBoomScalacheckFixture: java.lang.ExceptionInInitializerError: null
+  Output:
+  | java.lang.ExceptionInInitializerError
+  | 	... 11 frames elided (jdk, scalacheck, scala, bleep)
+  | Caused by: java.lang.RuntimeException: ctor boom
+  | 	at example.CtorBoomScalacheckFixture$.<clinit>(CtorBoomScalacheckFixture.scala:7)
+  | 	... 11 more
