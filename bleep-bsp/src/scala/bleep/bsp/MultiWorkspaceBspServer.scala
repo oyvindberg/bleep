@@ -1850,23 +1850,7 @@ class MultiWorkspaceBspServer(
                 emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
                 minify = linkOpts.minify.getOrElse(baseConfig.minify),
                 optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
-                // `--module-kind` first, then the project's own `jsKind`, and only then the constant.
-                //
-                // The project was never consulted: a build declaring `jsKind: esmodule` got a CommonJS link and no flag was needed to cause it, because the
-                // fallback was a hardcoded `CommonJSModule`. That also quietly disarmed the Closure rule below, which skips Closure for ESModule output because
-                // Scala.js rejects the pairing — a yaml-declared ESModule project reached it looking like CommonJS.
-                moduleKind = linkOpts.moduleKind
-                  .map {
-                    case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
-                    case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
-                    case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
-                  }
-                  .orElse(project.platform.flatMap(_.jsKind).map {
-                    case model.ModuleKindJS.NoModule       => ScalaJsLinkConfig.ModuleKind.NoModule
-                    case model.ModuleKindJS.CommonJSModule => ScalaJsLinkConfig.ModuleKind.CommonJSModule
-                    case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
-                  })
-                  .getOrElse(baseConfig.moduleKind)
+                moduleKind = scalaJsModuleKind(project, linkOpts.moduleKind, baseConfig.moduleKind)
               )
               Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
@@ -2390,7 +2374,11 @@ class MultiWorkspaceBspServer(
               .getOrElse(throw new IllegalStateException(s"Scala.js version not found for ${crossName.value}"))
             val scalaVersion =
               project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
-            val config = bleep.analysis.ScalaJsLinkConfig.Debug
+            // Debug semantics for a test link are deliberate — nobody wants their tests run through the optimizer — but the module kind is not a semantics
+            // choice, it is what the build declared. `Debug` carries `CommonJSModule`, and taking that wholesale meant a project declaring `jsKind: esmodule`
+            // had its tests linked as CommonJS with nothing to say so.
+            val base = bleep.analysis.ScalaJsLinkConfig.Debug
+            val config = base.copy(moduleKind = scalaJsModuleKind(project, None, base.moduleKind))
             Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
           case (Some(model.PlatformId.Native), true) =>
@@ -2594,7 +2582,14 @@ class MultiWorkspaceBspServer(
                   case (Some(model.PlatformId.Js), true) =>
                     runKotlinJsTestSuite(started, testTask, linkedArtifactOf(testTask.project, linkResult), testEnv, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Js), false) =>
-                    runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResult, eventQueue, taskKillSignal)
+                    // Read back off the platform this run's DAG was built with, so the runner is told how the program was emitted rather than deciding for
+                    // itself. A missing entry means a Scala.js test project reached the handler without a link node, which is a broken DAG, not a default.
+                    val moduleKind = platforms.get(testTask.project) match {
+                      case Some(TaskDag.LinkPlatform.ScalaJs(_, _, config)) => config.moduleKind
+                      case other                                            =>
+                        throw new IllegalStateException(s"No Scala.js link platform for test project ${testTask.project.value}, got $other")
+                    }
+                    runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResult, moduleKind, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Native), true) =>
                     runKotlinNativeTestSuite(started, testTask, linkedArtifactOf(testTask.project, linkResult), testEnv, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Native), false) =>
@@ -3560,6 +3555,31 @@ class MultiWorkspaceBspServer(
   private def nodeBinaryFor(started: Started, project: model.Project): String =
     started.pre.fetchNode(project.platform.flatMap(_.jsNodeVersion).getOrElse(bleep.constants.Node)).toAbsolutePath.toString
 
+  /** The module kind a Scala.js link emits for `project`: an explicit `--module-kind` first, then the project's own `jsKind`, and only then the base
+    * configuration's own default.
+    *
+    * One function for the main link and the test link because there were two, and they disagreed. The test path declared `ScalaJsLinkConfig.Debug` and took its
+    * `CommonJSModule` along with the debug semantics it actually wanted, so a build declaring `jsKind: esmodule` had its tests linked as CommonJS and no flag
+    * could change it. The test path passes `None` for the flag — `bleep test` accepts no link options — and so always gets what the build declared.
+    */
+  private def scalaJsModuleKind(
+      project: model.Project,
+      fromFlag: Option[String],
+      fallback: ScalaJsLinkConfig.ModuleKind
+  ): ScalaJsLinkConfig.ModuleKind =
+    fromFlag
+      .map {
+        case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
+        case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
+        case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
+      }
+      .orElse(project.platform.flatMap(_.jsKind).map {
+        case model.ModuleKindJS.NoModule       => ScalaJsLinkConfig.ModuleKind.NoModule
+        case model.ModuleKindJS.CommonJSModule => ScalaJsLinkConfig.ModuleKind.CommonJSModule
+        case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
+      })
+      .getOrElse(fallback)
+
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
   private def runScalaJsTestSuite(
       started: Started,
@@ -3567,6 +3587,7 @@ class MultiWorkspaceBspServer(
       classpath: List[Path],
       testEnv: Map[String, String],
       linkResult: Option[TaskDag.LinkResult],
+      moduleKind: ScalaJsLinkConfig.ModuleKind,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3574,8 +3595,8 @@ class MultiWorkspaceBspServer(
     val sjsVersion = project.platform.flatMap(_.jsVersion).getOrElse {
       throw new IllegalStateException(s"Scala.js version not found for ${testTask.project.value}")
     }
-    // No Scala version needed here any more: it was only ever used to describe the link this function used to run itself.
-    val linkConfig = bleep.analysis.ScalaJsLinkConfig.Debug
+    // Taken from the link the DAG ran rather than declared again here. The adapter picks its `Input` from this — a NoModule program loaded as a module, or the
+    // reverse, fails before any test runs — so the one thing it must never be is a second opinion about how the program was emitted.
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
@@ -3598,7 +3619,7 @@ class MultiWorkspaceBspServer(
               ScalaJsTestRunner
                 .runTests(
                   mainModule,
-                  linkConfig.moduleKind,
+                  moduleKind,
                   suites,
                   eventHandler,
                   ScalaJsTestRunner.NodeEnvironment.Node,
