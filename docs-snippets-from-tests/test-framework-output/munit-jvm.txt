@@ -1,4 +1,4 @@
-bootstrapped in 117 ms
+bootstrapped in 82 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -20,17 +20,17 @@ sendTestEvent
 [machine] grant 'test:mytest:example.GreenMunitFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
-sendTestEvent
-sendTestEvent
-sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+sendTestEvent
+sendTestEvent
+sendTestEvent
 Running: mytest:example.GreenMunitFixture
-Running: mytest:example.GreenMunitFixture, mytest:example.MunitFixture
+Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture
 Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture, mytest:example.MunitFixture
 sendTestEvent: TestFinished
   x example.CtorBoomMunitFixture.initializationError
@@ -38,12 +38,12 @@ sendTestEvent: SuiteFinished
 FAILED example.CtorBoomMunitFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   + example.GreenMunitFixture.adds
-  + example.MunitFixture.adds
-  + example.MunitFixture.measures
   + example.GreenMunitFixture.measures
+sendTestEvent: TestFinished
+  + example.MunitFixture.adds
+sendTestEvent: TestFinished
+  + example.MunitFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenMunitFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
@@ -118,13 +118,14 @@ x mytest / example.MunitFixture / example.MunitFixture.fails on purpose
   | -2
   | +1
   | 	at munit.FunSuite.assertEquals(FunSuite.scala:12)
-  | 	at example.MunitFixture.$init$$$anonfun$3(MunitFixture.scala:6)
+  | 	at example.MunitFixture.$anonfun$new$5(MunitFixture.scala:6)
+  | 	... 1 frame elided (scala)
 
 x mytest / example.MunitFixture / example.MunitFixture.throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.MunitFixture.$init$$$anonfun$4(MunitFixture.scala:7)
+  | 	at example.MunitFixture.$anonfun$new$7(MunitFixture.scala:7)
 
   Output from example.MunitFixture:
   | hello from the test
@@ -140,9 +141,9 @@ x mytest / example.MunitFixture / example.MunitFixture.throws on purpose
   | -2
   | +1
   |     at munit.FunSuite.assertEquals(FunSuite.scala:12)
-  |     at example.MunitFixture.$init$$$anonfun$3(MunitFixture.scala:6)
+  |     at example.MunitFixture.$anonfun$new$5(MunitFixture.scala:6)
   | ==> X example.MunitFixture.throws on purpose <duration> java.lang.RuntimeException: boom
-  |     at example.MunitFixture.$init$$$anonfun$4(MunitFixture.scala:7)
+  |     at example.MunitFixture.$anonfun$new$7(MunitFixture.scala:7)
   | ==> i example.MunitFixture.skipped on purpose ignored <duration>
   | example.MunitFixture: finished <duration>
   | Test run example.MunitFixture finished: 2 failed, 1 ignored, 4 total <duration>

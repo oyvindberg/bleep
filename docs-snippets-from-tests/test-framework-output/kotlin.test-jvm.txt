@@ -11,22 +11,22 @@ sendTestEvent: CompileStarted
 🔨 compiling (clean build, no previous analysis)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-sendTestEvent
 ✅ compiled (<duration>)
+sendTestEvent
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.KotlinTestFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.GreenKotlinTestFixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
-Running: mytest:example.KotlinTestFixture
-Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.KotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture
 Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
 sendTestEvent
 sendTestEvent
@@ -35,31 +35,31 @@ sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomKotlinTestFixture.throwsOnPurpose()
 sendTestEvent: TestFinished
-sendTestEvent
   x CtorBoomKotlinTestFixture.measures()
-sendTestEvent: TestFinished
-  x CtorBoomKotlinTestFixture.failsOnPurpose()
 sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent
+  x CtorBoomKotlinTestFixture.failsOnPurpose()
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomKotlinTestFixture.adds()
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   x CtorBoomKotlinTestFixture.skippedOnPurpose()
-sendTestEvent
-  x KotlinTestFixture.throwsOnPurpose()
-sendTestEvent: SuiteFinished
-FAILED example.CtorBoomKotlinTestFixture: 0 passed, 5 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  x KotlinTestFixture.throwsOnPurpose()
   + GreenKotlinTestFixture.measures()
 sendTestEvent
+sendTestEvent: SuiteFinished
+sendTestEvent
+FAILED example.CtorBoomKotlinTestFixture: 0 passed, 5 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
   + GreenKotlinTestFixture.adds()
-sendTestEvent: TestFinished
-sendTestEvent
-  + KotlinTestFixture.measures()
 sendTestEvent: SuiteFinished
 PASSED example.GreenKotlinTestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+  + KotlinTestFixture.measures()
+sendTestEvent
 sendTestEvent: TestFinished
   x KotlinTestFixture.failsOnPurpose()
 sendTestEvent
@@ -68,8 +68,8 @@ sendTestEvent: TestFinished
 sendTestEvent: TestFinished
   - KotlinTestFixture.skippedOnPurpose()
 sendTestEvent: SuiteFinished
-FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Task executor completed
+FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned

@@ -25,9 +25,9 @@ sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenScalatestFixture
-Running: mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomScalatestFixture, mytest:example.GreenScalatestFixture
 Running: mytest:example.CtorBoomScalatestFixture, mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 sendTestEvent: TestFinished
   ! example.CtorBoomScalatestFixture
@@ -41,10 +41,10 @@ sendTestEvent: TestFinished
   + ScalatestFixture.adds
 sendTestEvent: TestFinished
   + ScalatestFixture.measures
-sendTestEvent: SuiteFinished
-PASSED example.GreenScalatestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
+sendTestEvent: SuiteFinished
   x ScalatestFixture.fails on purpose
+PASSED example.GreenScalatestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
   x ScalatestFixture.throws on purpose
@@ -52,8 +52,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 Task executor completed
 Failed tasks
-FAILED example.ScalatestFixture: 2 passed, 2 failed, 1 skipped, 1 ignored (<duration>)
 Executor done, signalling consumer to terminate
+FAILED example.ScalatestFixture: 2 passed, 2 failed, 1 skipped, 1 ignored (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 1 skipped (<duration>)
@@ -95,21 +95,19 @@ x mytest / example.CtorBoomScalatestFixture / example.CtorBoomScalatestFixture
 x mytest / example.ScalatestFixture / fails on purpose
   Stack trace:
   | org.scalatest.exceptions.TestFailedException
-  | 	at org.scalatest.Assertions.newAssertionFailedException(Assertions.scala:476)
-  | 	at org.scalatest.Assertions.newAssertionFailedException$(Assertions.scala:421)
-  | 	at org.scalatest.Assertions$.newAssertionFailedException(Assertions.scala:1385)
-  | 	at org.scalatest.Assertions$AssertionsHelper.macroAssert(Assertions.scala:1460)
-  | 	at example.ScalatestFixture.testFun$proxy3$1(ScalatestFixture.scala:8)
-  | 	at example.ScalatestFixture.$init$$$anonfun$3(ScalatestFixture.scala:8)
-  | 	... 40 frames elided (scalatest, scala, bleep)
+  | 	at org.scalatest.Assertions.newAssertionFailedException(Assertions.scala:472)
+  | 	at org.scalatest.Assertions.newAssertionFailedException$(Assertions.scala:471)
+  | 	at org.scalatest.Assertions$.newAssertionFailedException(Assertions.scala:1231)
+  | 	at org.scalatest.Assertions$AssertionsHelper.macroAssert(Assertions.scala:1295)
+  | 	at example.ScalatestFixture.$anonfun$new$3(ScalatestFixture.scala:8)
+  | 	... 37 frames elided (scalatest, scala, bleep)
 
 x mytest / example.ScalatestFixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.ScalatestFixture.testFun$proxy4$1(ScalatestFixture.scala:9)
-  | 	at example.ScalatestFixture.$init$$$anonfun$4(ScalatestFixture.scala:9)
-  | 	... 40 frames elided (scalatest, scala, bleep)
+  | 	at example.ScalatestFixture.$anonfun$new$4(ScalatestFixture.scala:9)
+  | 	... 37 frames elided (scalatest, scala, bleep)
 
   Output from example.ScalatestFixture:
   | ScalatestFixture:
@@ -120,9 +118,8 @@ x mytest / example.ScalatestFixture / throws on purpose
   |   org.scalatest.exceptions.TestFailedException was thrown. (ScalatestFixture.scala:8)
   | - throws on purpose *** FAILED ***
   |   java.lang.RuntimeException: boom
-  |   at example.ScalatestFixture.testFun$proxy4$1(ScalatestFixture.scala:9)
-  |   at example.ScalatestFixture.$init$$$anonfun$4(ScalatestFixture.scala:9)
-  |   ... 8 frames elided (scalatest)
+  |   at example.ScalatestFixture.$anonfun$new$4(ScalatestFixture.scala:9)
+  |   ... 9 frames elided (scalatest)
   |   ...
   | - skipped on purpose !!! IGNORED !!!
 

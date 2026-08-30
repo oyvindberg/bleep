@@ -457,7 +457,10 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
     // Frames, for the exception a test threw. Asserted separately from the message because they answer different questions and are lost by different bugs:
     // the message survived a reducer that dropped the throwable, and only the frames revealed it.
     if (fixture.reportsStackFrames && reporting.uncaughtException == ThrowableKind.Real) {
-      val boomDetail = notPassing.map(_.detail).find(_.contains("boom")).getOrElse("")
+      // By name, not by searching the text for "boom". munit renders an assertion failure with an excerpt of the source around it, and the fixture's next
+      // line is `test("throws on purpose") { throw new RuntimeException("boom") }` — so the *assertion* failure's detail contains the word too, and a text
+      // search picked whichever of the two the report happened to list first.
+      val boomDetail = notPassing.find(_.name == fixture.reportedThrowingName).map(_.detail).getOrElse("")
       assert(
         PlatformFrameworkHarness.hasStackFrames(boomDetail),
         s"$context: the uncaught exception reached the report but with no stack frames, so it says what was thrown and not where. " +

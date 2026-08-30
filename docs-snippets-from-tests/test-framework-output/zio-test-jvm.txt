@@ -14,20 +14,20 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-sendTestEvent
-[machine] grant 'test:mytest:example.GreenZioTestFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.GreenZioTestFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
-Running: mytest:example.GreenZioTestFixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.CtorBoomZioTestFixture, mytest:example.GreenZioTestFixture
+Running: mytest:example.ZioTestFixture
+Running: mytest:example.GreenZioTestFixture, mytest:example.ZioTestFixture
 Running: mytest:example.CtorBoomZioTestFixture, mytest:example.GreenZioTestFixture, mytest:example.ZioTestFixture
 sendTestEvent: SuiteFinished
 ERRORED example.CtorBoomZioTestFixture: Error running suite example.CtorBoomZioTestFixture: java.lang.RuntimeException: ctor boom (<duration>)
@@ -40,9 +40,9 @@ sendTestEvent: TestFinished
   + example.ZioTestFixture - measures
   + example.ZioTestFixture - adds
 sendTestEvent: TestFinished
-  x example.ZioTestFixture - throws on purpose
 sendTestEvent: TestFinished
   x example.ZioTestFixture - fails on purpose
+  x example.ZioTestFixture - throws on purpose
 sendTestEvent: TestFinished
   o example.ZioTestFixture - skipped on purpose
 sendTestEvent: SuiteFinished
@@ -77,12 +77,12 @@ Test Failures (2)
 
 x mytest / example.ZioTestFixture / example.ZioTestFixture - fails on purpose
   |   - fails on purpose
-  |     ✗ 1 was not equal to 2
+  |     ✗ Result was false
   |     1 == 2
   |     at <project>/mytest/src/scala/example/ZioTestFixture.scala:9 
   Stack trace:
   | java.lang.Exception:   - fails on purpose
-  |     ✗ 1 was not equal to 2
+  |     ✗ Result was false
   |     1 == 2
   |     at <project>/mytest/src/scala/example/ZioTestFixture.scala:9 
   | 
@@ -90,44 +90,40 @@ x mytest / example.ZioTestFixture / example.ZioTestFixture - fails on purpose
 
 x mytest / example.ZioTestFixture / example.ZioTestFixture - throws on purpose
   |   - throws on purpose
-  |     Exception in thread "zio-fiber-135" java.lang.RuntimeException: boom
-  |     	at example.ZioTestFixture$.spec$$anonfun$4(ZioTestFixture.scala:10)
-  |     	at zio.test.TestConstructor$.apply$$anonfun$1$$anonfun$1(TestConstructor.scala:22)
+  |     Exception in thread "zio-fiber-133" java.lang.RuntimeException: boom
+  |     	at example.ZioTestFixture$.$anonfun$spec$8(ZioTestFixture.scala:10)
   |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
   Stack trace:
   | java.lang.Exception:   - throws on purpose
-  |     Exception in thread "zio-fiber-135" java.lang.RuntimeException: boom
-  |     	at example.ZioTestFixture$.spec$$anonfun$4(ZioTestFixture.scala:10)
-  |     	at zio.test.TestConstructor$.apply$$anonfun$1$$anonfun$1(TestConstructor.scala:22)
+  |     Exception in thread "zio-fiber-133" java.lang.RuntimeException: boom
+  |     	at example.ZioTestFixture$.$anonfun$spec$8(ZioTestFixture.scala:10)
   |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
   |     	... 12 frames elided (zio-test, jdk)
 
   Output from example.ZioTestFixture:
   | + example.ZioTestFixture
   | hello from the test
-  |   + adds
   |   + measures
-  |   - throws on purpose
-  |     Exception in thread "zio-fiber-135" java.lang.RuntimeException: boom
-  |     	at example.ZioTestFixture$.spec$$anonfun$4(ZioTestFixture.scala:10)
-  |     	at zio.test.TestConstructor$.apply$$anonfun$1$$anonfun$1(TestConstructor.scala:22)
-  |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
+  |   + adds
   |   - fails on purpose
-  |     ✗ 1 was not equal to 2
+  |     ✗ Result was false
   |     1 == 2
   |     at <project>/mytest/src/scala/example/ZioTestFixture.scala:9 
+  |   - throws on purpose
+  |     Exception in thread "zio-fiber-133" java.lang.RuntimeException: boom
+  |     	at example.ZioTestFixture$.$anonfun$spec$8(ZioTestFixture.scala:10)
+  |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
   |   - skipped on purpose - ignored: 1
   | 2 tests passed. 2 tests failed. 1 tests ignored.
-  |   - example.ZioTestFixture - throws on purpose
-  |     Exception in thread "zio-fiber-135" java.lang.RuntimeException: boom
-  |     	at example.ZioTestFixture$.spec$$anonfun$4(ZioTestFixture.scala:10)
-  |     	at zio.test.TestConstructor$.apply$$anonfun$1$$anonfun$1(TestConstructor.scala:22)
-  |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
   |   - example.ZioTestFixture / fails on purpose
-  |     ✗ 1 was not equal to 2
+  |     ✗ Result was false
   |     1 == 2
   |     at <project>/mytest/src/scala/example/ZioTestFixture.scala:9 
-  | Executed in 144 ms
+  |   - example.ZioTestFixture - throws on purpose
+  |     Exception in thread "zio-fiber-133" java.lang.RuntimeException: boom
+  |     	at example.ZioTestFixture$.$anonfun$spec$8(ZioTestFixture.scala:10)
+  |     	at example.ZioTestFixture.spec(ZioTestFixture.scala:10)
+  | Executed in 146 ms
 
 Process Errors (1)
 
@@ -136,7 +132,7 @@ Process Errors (1)
   Output:
   | java.lang.RuntimeException: ctor boom
   | 	at example.CtorBoomZioTestFixture$.<clinit>(CtorBoomZioTestFixture.scala:6)
-  | 	... 16 frames elided (jdk, reflect, zio-test, scala, bleep)
+  | 	... 15 frames elided (jdk, reflect, zio-test, bleep)
 
 Ignored (1)
 mytest

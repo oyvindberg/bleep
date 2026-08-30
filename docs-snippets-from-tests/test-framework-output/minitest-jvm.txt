@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -32,12 +32,12 @@ Running: mytest:example.CtorBoomMinitestFixture, mytest:example.GreenMinitestFix
 sendTestEvent: SuiteFinished
 NO TESTS example.CtorBoomMinitestFixture: discovered but executed 0 tests (<duration>)
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   + example.GreenMinitestFixture
 sendTestEvent: TestFinished
+  + example.GreenMinitestFixture
 sendTestEvent: TestFinished
   + example.MinitestFixture
-  + example.GreenMinitestFixture
+sendTestEvent: TestFinished
   + example.MinitestFixture
 sendTestEvent: SuiteFinished
 PASSED example.GreenMinitestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
@@ -77,18 +77,18 @@ x mytest / example.MinitestFixture / example.MinitestFixture
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.MinitestFixture$.$init$$$anonfun$4(MinitestFixture.scala:9)
-  | 	... 24 frames elided (minitest, scala, jdk)
+  | 	at example.MinitestFixture$.$anonfun$new$4(MinitestFixture.scala:9)
+  | 	... 21 frames elided (minitest, scala, jdk)
 
 x mytest / example.MinitestFixture / example.MinitestFixture
   | received 1 != expected 2
   Stack trace:
   | minitest.api.AssertionException: received 1 != expected 2
   | 	at minitest.api.Asserts.assertEquals(Asserts.scala:70)
-  | 	at minitest.api.Asserts.assertEquals$(Asserts.scala:26)
+  | 	at minitest.api.Asserts.assertEquals$(Asserts.scala:64)
   | 	at example.MinitestFixture$.assertEquals(MinitestFixture.scala:5)
-  | 	at example.MinitestFixture$.$init$$$anonfun$3(MinitestFixture.scala:8)
-  | 	... 24 frames elided (minitest, scala, jdk)
+  | 	at example.MinitestFixture$.$anonfun$new$3(MinitestFixture.scala:8)
+  | 	... 21 frames elided (minitest, scala, jdk)
 
   Output from example.MinitestFixture:
   | example.MinitestFixture
@@ -101,22 +101,24 @@ x mytest / example.MinitestFixture / example.MinitestFixture
   | - fails on purpose *** FAILED ***
   |   received 1 != expected 2 (MinitestFixture.scala:8)
   |     minitest.api.Asserts.assertEquals(Asserts.scala:70)
-  |     minitest.api.Asserts.assertEquals$(Asserts.scala:26)
+  |     minitest.api.Asserts.assertEquals$(Asserts.scala:64)
   |     example.MinitestFixture$.assertEquals(MinitestFixture.scala:5)
-  |     example.MinitestFixture$.$init$$$anonfun$3(MinitestFixture.scala:8)
+  |     example.MinitestFixture$.$anonfun$new$3(MinitestFixture.scala:8)
   |     ... 3 frames elided (minitest, scala)
   |     java.base/java.util.concurrent.ForkJoinPool.compensatedBlock(ForkJoinPool.java:4326)
   |     java.base/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:4308)
-  |     ... 11 frames elided (scala, minitest)
+  |     ... 9 frames elided (scala, minitest)
+  |     java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.compute(ForkJoinTask.java:1750)
+  |     java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.compute(ForkJoinTask.java:1742)
   |     ...
   | 
   | - throws on purpose *** FAILED ***
   |   RuntimeException: boom
-  |     example.MinitestFixture$.$init$$$anonfun$4(MinitestFixture.scala:9)
+  |     example.MinitestFixture$.$anonfun$new$4(MinitestFixture.scala:9)
   |     ... 3 frames elided (minitest, scala)
   |     java.base/java.util.concurrent.ForkJoinPool.compensatedBlock(ForkJoinPool.java:4326)
   |     java.base/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:4308)
-  |     ... 12 frames elided (scala, minitest)
+  |     ... 9 frames elided (scala, minitest)
   |     java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.compute(ForkJoinTask.java:1750)
   |     java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.compute(ForkJoinTask.java:1742)
   |     java.base/java.util.concurrent.ForkJoinTask$InterruptibleTask.exec(ForkJoinTask.java:1659)

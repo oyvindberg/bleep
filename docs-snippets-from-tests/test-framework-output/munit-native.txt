@@ -1,4 +1,4 @@
-bootstrapped in 130 ms
+bootstrapped in 105 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -25,13 +25,13 @@ sendTestEvent
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
 sendTestEvent
 Running: mytest:example.GreenMunitFixture
-Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture
+Running: mytest:example.GreenMunitFixture, mytest:example.MunitFixture
 Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture, mytest:example.MunitFixture
 sendTestEvent
 sendTestEvent
@@ -49,11 +49,11 @@ sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
-  + example.GreenMunitFixture.adds
   + example.MunitFixture.adds
+  + example.GreenMunitFixture.adds
   + example.MunitFixture.measures
-  + example.GreenMunitFixture.measures
   x example.CtorBoomMunitFixture
+  + example.GreenMunitFixture.measures
   x example.MunitFixture.fails on purpose
   x example.MunitFixture.throws on purpose
   o example.MunitFixture.skipped on purpose

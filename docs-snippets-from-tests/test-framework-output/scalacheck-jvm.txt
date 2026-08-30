@@ -23,24 +23,24 @@ sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.ScalacheckFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.ScalacheckFixture
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 sendTestEvent: SuiteFinished
 ERRORED example.CtorBoomScalacheckFixture: Error running suite example.CtorBoomScalacheckFixture: java.lang.ExceptionInInitializerError: null (<duration>)
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  + example.ScalacheckFixture.adds
   + example.GreenScalacheckFixture.adds
 sendTestEvent: TestFinished
+  + example.ScalacheckFixture.adds
 sendTestEvent: TestFinished
-  + example.ScalacheckFixture.measures
   + example.GreenScalacheckFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+  + example.ScalacheckFixture.measures
 sendTestEvent: TestFinished
   x example.ScalacheckFixture.fails on purpose
 sendTestEvent: TestFinished
@@ -76,23 +76,21 @@ Test Failures (2)
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
   | Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1
+  | > ARG_0_ORIGINAL: 2147483647
   Stack trace:
   | java.lang.Exception: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1
-  | 	at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(ScalaCheckFramework.scala:153)
+  | > ARG_0_ORIGINAL: 2147483647
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3$$anon$4.throwable(ScalaCheckFramework.scala:153)
   | 	at bleep.testing.runner.ForkedTestRunner$2.handle(ForkedTestRunner.java:365)
   | 	at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(ScalaCheckFramework.scala:163)
-  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3$$anonfun$1(ScalaCheckFramework.scala:117)
-  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-  | 	at scala.Option.foreach(Option.scala:439)
-  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute$$anonfun$3(ScalaCheckFramework.scala:117)
-  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-  | 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$5(ScalaCheckFramework.scala:117)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$5$adapted(ScalaCheckFramework.scala:116)
+  | 	at scala.Option.foreach(Option.scala:437)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$4(ScalaCheckFramework.scala:116)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.$anonfun$execute$4$adapted(ScalaCheckFramework.scala:113)
   | 	at scala.collection.ArrayOps$.foreach$extension(ArrayOps.scala:1324)
-  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute(ScalaCheckFramework.scala:121)
+  | 	at org.scalacheck.ScalaCheckRunner$$anon$3.execute(ScalaCheckFramework.scala:113)
   | 	at bleep.testing.runner.ForkedTestRunner.executeTasks(ForkedTestRunner.java:463)
   | 	at bleep.testing.runner.ForkedTestRunner.executeTasks(ForkedTestRunner.java:465)
   | 	at bleep.testing.runner.ForkedTestRunner.runSuite(ForkedTestRunner.java:398)
@@ -102,22 +100,21 @@ x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpo
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$1(ScalacheckFixture.scala:11)
-  | 	at example.ScalacheckFixture$.$init$$$anonfun$4$$anonfun$adapted$1(ScalacheckFixture.scala:11)
-  | 	... 36 frames elided (scala, scalacheck, bleep)
+  | 	at example.ScalacheckFixture$.$anonfun$new$14(ScalacheckFixture.scala:11)
+  | 	at example.ScalacheckFixture$.$anonfun$new$14$adapted(ScalacheckFixture.scala:11)
+  | 	... 30 frames elided (scala, scalacheck, bleep)
 
   Output from example.ScalacheckFixture:
   | hello from the test
   | + example.ScalacheckFixture.adds: OK, passed 100 tests.
   | + example.ScalacheckFixture.measures: OK, passed 100 tests.
-  | failing seed for example.ScalacheckFixture.fails on purpose is AFZKbcb5sBNOQvoSyBw4lkplXKfCjWlkqJg9wlKNpCL=
+  | failing seed for example.ScalacheckFixture.fails on purpose is rj2R2j0awRtcFJ0WtchCUmUFxJCoMcx6LG1FI8NLPCF=
   | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1
-  | failing seed for example.ScalacheckFixture.throws on purpose is 7k8mUoVMeNxRmyFYwaaagyLoV4bsAhM7rwtdPV_ofRH=
+  | > ARG_0_ORIGINAL: 2147483647
+  | failing seed for example.ScalacheckFixture.throws on purpose is G-G9TCbkeMLVAHYfxDGgR-LviKifGTa4SMFodaPpMlE=
   | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -85692762
   | > Exception: java.lang.RuntimeException: boom
 
 Process Errors (1)

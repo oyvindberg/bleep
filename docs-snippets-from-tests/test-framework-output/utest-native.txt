@@ -16,22 +16,22 @@ sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
-🔗 linking [Scala Native]
 test runtime: org.scala-sbt:test-interface:1.0
+🔗 linking [Scala Native]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
 ✅ linked [Scala Native] (<duration>)
 sendTestEvent
-sendTestEvent
-[machine] grant 'test:mytest:example.UtestFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.UtestFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.UtestFixture
-Running: mytest:example.GreenUtestFixture, mytest:example.UtestFixture
+Running: mytest:example.CtorBoomUtestFixture
+Running: mytest:example.CtorBoomUtestFixture, mytest:example.UtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.GreenUtestFixture, mytest:example.UtestFixture
 sendTestEvent
 sendTestEvent
@@ -40,18 +40,18 @@ sendTestEvent: TestFinished
   x CtorBoomUtestFixture.
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent
   + UtestFixture.adds
-sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  + GreenUtestFixture.adds
-  + GreenUtestFixture.measures
 sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent
+  + GreenUtestFixture.adds
   + UtestFixture.measures
 sendTestEvent: TestFinished
+  + GreenUtestFixture.measures
 sendTestEvent
+sendTestEvent: TestFinished
   x UtestFixture.fails on purpose
+sendTestEvent
 sendTestEvent: TestFinished
   x UtestFixture.throws on purpose
 sendTestEvent: SuiteFinished
@@ -59,10 +59,10 @@ FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
 PASSED example.GreenUtestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
-FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Task executor completed
 Failed tasks
 Executor done, signalling consumer to terminate
+FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 0 skipped (<duration>)

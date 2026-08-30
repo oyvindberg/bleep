@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -28,14 +28,14 @@ sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent
+Running: mytest:example.WeaverFixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-Running: mytest:example.GreenWeaverFixture
-Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture
+Running: mytest:example.CtorBoomWeaverFixture, mytest:example.WeaverFixture
 Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture, mytest:example.WeaverFixture
 sendTestEvent
 sendTestEvent: TestFinished
@@ -44,13 +44,13 @@ sendTestEvent: SuiteFinished
 FAILED example.CtorBoomWeaverFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent
 sendTestEvent: TestFinished
-  + WeaverFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
   + GreenWeaverFixture.adds
 sendTestEvent
 sendTestEvent: TestFinished
   + GreenWeaverFixture.measures
+sendTestEvent
+sendTestEvent: TestFinished
+  + WeaverFixture.adds
 sendTestEvent: SuiteFinished
 PASSED example.GreenWeaverFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent
@@ -64,8 +64,8 @@ sendTestEvent: TestFinished
   ! WeaverFixture.throws on purpose
 sendTestEvent: SuiteFinished
 Task executor completed
-Failed tasks
 FAILED example.WeaverFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent

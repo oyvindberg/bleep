@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -22,12 +22,12 @@ sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenSpecs2Fixture
-Running: mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture
 Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
 sendTestEvent: TestFinished
   ! example.CtorBoomSpecs2Fixture
@@ -35,12 +35,12 @@ sendTestEvent: SuiteFinished
 FAILED example.CtorBoomSpecs2Fixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-  + Specs2Fixture.adds
   + GreenSpecs2Fixture.adds
+  + Specs2Fixture.adds
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-  + GreenSpecs2Fixture.measures
   + Specs2Fixture.measures
+  + GreenSpecs2Fixture.measures
 sendTestEvent: TestFinished
   x Specs2Fixture.fails on purpose
 sendTestEvent: SuiteFinished
@@ -94,14 +94,14 @@ x mytest / example.CtorBoomSpecs2Fixture / example.CtorBoomSpecs2Fixture
   |   java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:74)
   |   java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
   |   java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483)
-  |   ... 49 frames elided (specs2, bleep)
+  |   ... 50 frames elided (specs2, bleep)
   | 
   | STACKTRACE
   |   example.CtorBoomSpecs2Fixture.<init>(CtorBoomSpecs2Fixture.scala:6)
   |   java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
   |   java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
   |   java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483)
-  |   ... 49 frames elided (specs2, bleep)
+  |   ... 50 frames elided (specs2, bleep)
   | 
   |   CAUSED BY java.lang.RuntimeException: ctor boom
   | 
@@ -113,13 +113,13 @@ x mytest / example.Specs2Fixture / fails on purpose
   | 1 != 2
   Stack trace:
   | java.lang.Exception: 1 != 2
-  | 	at example.Specs2Fixture.$init$$$anonfun$3(Specs2Fixture.scala:8)
+  | 	at example.Specs2Fixture.$anonfun$new$9(Specs2Fixture.scala:8)
 
 x mytest / example.Specs2Fixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.Specs2Fixture.$init$$$anonfun$4(Specs2Fixture.scala:9)
+  | 	at example.Specs2Fixture.$anonfun$new$13(Specs2Fixture.scala:9)
 
   Output from example.Specs2Fixture:
   | hello from the test
@@ -132,14 +132,14 @@ x mytest / example.Specs2Fixture / throws on purpose
   | 
   | ! throws on purpose
   |  java.lang.RuntimeException: boom (Specs2Fixture.scala:9)
-  | example.Specs2Fixture.$init$$$anonfun$4(Specs2Fixture.scala:9)
+  | example.Specs2Fixture.$anonfun$new$13(Specs2Fixture.scala:9)
   | 
   | o skipped on purpose
   | on purpose
   | 
   | 
   | Total for specification Specs2Fixture
-  | Finished in 92 ms
+  | Finished in 89 ms
   | 5 examples, 1 failure, 1 error, 1 skipped
 
 Skipped (1)

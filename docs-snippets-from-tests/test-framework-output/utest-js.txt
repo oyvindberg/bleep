@@ -1,4 +1,4 @@
-bootstrapped in 2 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -14,9 +14,9 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
-test runtime: org.scala-sbt:test-interface:1.0
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
+test runtime: org.scala-sbt:test-interface:1.0
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent
@@ -26,11 +26,11 @@ sendTestEvent
 [machine] grant 'test:mytest:example.UtestFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
-Running: mytest:example.UtestFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.CtorBoomUtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.UtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.GreenUtestFixture, mytest:example.UtestFixture
 sendTestEvent
@@ -38,22 +38,22 @@ sendTestEvent: TestFinished
   x CtorBoomUtestFixture.
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
   + GreenUtestFixture.adds
-sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
+sendTestEvent: TestFinished
   + GreenUtestFixture.measures
-sendTestEvent: TestFinished
-  + UtestFixture.adds
 sendTestEvent
+  + UtestFixture.adds
 sendTestEvent: TestFinished
   + UtestFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenUtestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
+FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent
 sendTestEvent: TestFinished
-FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
   x UtestFixture.fails on purpose
 sendTestEvent
 sendTestEvent: TestFinished

@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -18,19 +18,19 @@ sendTestEvent: CompileFinished
 sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.CtorBoomWeaverFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 Running: mytest:example.CtorBoomWeaverFixture
-Running: mytest:example.CtorBoomWeaverFixture, mytest:example.WeaverFixture
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture
 Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture, mytest:example.WeaverFixture
 sendTestEvent: TestFinished
   ! CtorBoomWeaverFixture.Unexpected failure
@@ -51,8 +51,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 PASSED example.GreenWeaverFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
-Task executor completed
 FAILED example.WeaverFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+Task executor completed
 Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
@@ -103,20 +103,20 @@ x mytest / example.CtorBoomWeaverFixture / Unexpected failure
   |   Field.java:438                          java.lang.reflect.Field#get
   |   LoadableModuleClass.scala:17            org.portablescala.reflect.LoadableModuleClass#loadModule
   |   Reflection.scala:77                     weaver.internals.Reflection$#loadModule
-  |   Fingerprints.scala:43                   weaver.framework.WeaverFingerprints$$anon$1#$anonfun$1
-  |   Fingerprints.scala:46                   delay @ weaver.framework.WeaverFingerprints$$anon$1#apply
-  |   RunnerCompat.scala:223                  flatMap @ weaver.framework.RunnerCompat$IOTask#run
-  |   RunnerCompat.scala:245                  handleErrorWith$extension @ weaver.framework.RunnerCompat$IOTask#run
-  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1$$anonfun$2
-  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1$$anonfun$2
-  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1$$anonfun$2
-  |   RunnerCompat.scala:190                  map @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1$$anonfun$2
+  |   Fingerprints.scala:43                   weaver.framework.WeaverFingerprints$$anon$1#$anonfun$apply$1
+  |   Fingerprints.scala:42                   delay @ weaver.framework.WeaverFingerprints$$anon$1#apply
+  |   RunnerCompat.scala:214                  flatMap @ weaver.framework.RunnerCompat$IOTask#run
+  |   RunnerCompat.scala:243                  handleErrorWith$extension @ weaver.framework.RunnerCompat$IOTask#run
+  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#$anonfun$run$12
+  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#$anonfun$run$12
+  |   RunnerCompat.scala:189                  parTraverse$extension @ weaver.framework.RunnerCompat#$anonfun$run$12
+  |   RunnerCompat.scala:189                  map @ weaver.framework.RunnerCompat#$anonfun$run$12
   |   GlobalResourceF.scala:124               of$extension @ weaver.GlobalResourceF$#createMap
-  |   RunnerCompat.scala:178                  apply @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1
-  |   RunnerCompat.scala:188                  map @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1
-  |   RunnerCompat.scala:190                  flatMap @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1
+  |   RunnerCompat.scala:178                  apply @ weaver.framework.RunnerCompat#$anonfun$run$11
+  |   RunnerCompat.scala:178                  flatMap @ weaver.framework.RunnerCompat#$anonfun$run$11
   |   GlobalResourceF.scala:124               of$extension @ weaver.GlobalResourceF$#createMap
-  |   RunnerCompat.scala:190                  flatMap @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2
+  |   RunnerCompat.scala:177                  flatMap @ weaver.framework.RunnerCompat#$anonfun$run$10
+  |   RunnerCompat.scala:176                  delay @ weaver.framework.RunnerCompat#$anonfun$run$8
 
 x mytest / example.WeaverFixture / fails on purpose
 
@@ -124,7 +124,7 @@ x mytest / example.WeaverFixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  | 	at example.WeaverFixture$.$init$$$anonfun$4(WeaverFixture.scala:9)
+  | 	at example.WeaverFixture$.$anonfun$new$7(WeaverFixture.scala:9)
   | 	... 13 frames elided (weaver, cats-effect)
 
   Output from example.WeaverFixture:
@@ -137,25 +137,25 @@ x mytest / example.WeaverFixture / throws on purpose
   | *************FAILURES**************
   | example.WeaverFixture
   | - fails on purpose <duration>
-  |   assertion failed (../../../../../..<project>/mytest/src/scala/example/WeaverFixture.scala:7)
+  |   assertion failed (../../../../../..<project>/mytest/src/scala/example/WeaverFixture.scala:8)
   | 
-  |   1 == 2
+  |   pureTest("fails on purpose") { expect(1 == 2) }
   | 
   | 
   | - throws on purpose <duration>
   |   RuntimeException: boom
   | 
-  |   WeaverFixture.scala:9        example.WeaverFixture$#$init$$$anonfun$4
-  |   suites.scala:133             delay @ weaver.MutableFSuite#pureTest$$anonfun$1
-  |   Test.scala:21                defer @ weaver.Test$#apply$$anonfun$1$$anonfun$1
-  |   Test.scala:21                defer @ weaver.Test$#apply$$anonfun$1$$anonfun$1
-  |   Test.scala:22                map @ weaver.Test$#apply$$anonfun$1$$anonfun$1
-  |   Stream.scala:558             voidError$extension @ fs2.Stream#$anonfun$2$$anonfun$1
-  |   Test.scala:26                flatMap @ weaver.Test$#apply$$anonfun$1$$anonfun$1
+  |   WeaverFixture.scala:9        example.WeaverFixture$#$anonfun$new$7
+  |   suites.scala:133             delay @ weaver.MutableFSuite#$anonfun$pureTest$1
+  |   Test.scala:21                defer @ weaver.Test$#$anonfun$apply$2
+  |   Test.scala:21                defer @ weaver.Test$#$anonfun$apply$2
+  |   Test.scala:22                map @ weaver.Test$#$anonfun$apply$2
+  |   Stream.scala:558             voidError$extension @ fs2.Stream#$anonfun$concurrentlyAux$2
+  |   Test.scala:20                flatMap @ weaver.Test$#$anonfun$apply$2
   |   UnsafeRun.scala:13           map @ weaver.EffectCompat#realTimeMillis
-  |   Test.scala:26                flatMap @ weaver.Test$#apply$$anonfun$1
+  |   Test.scala:19                flatMap @ weaver.Test$#$anonfun$apply$1
   |   GlobalResourceF.scala:124    of$extension @ weaver.GlobalResourceF$#createMap
-  |   Test.scala:26                flatMap @ weaver.Test$#apply
+  |   Test.scala:18                flatMap @ weaver.Test$#apply
   |   Compiler.scala:163           flatMap @ fs2.Compiler$Target#flatMap
-  |   Stream.scala:2187            flatMap @ fs2.Stream#forkOnElem$1$$anonfun$1$$anonfun$1$$anonfun$1
-  |   RunnerCompat.scala:181       productR @ weaver.framework.RunnerCompat#run$$anonfun$1$$anonfun$2$$anonfun$1$$anonfun$1
+  |   Stream.scala:2187            flatMap @ fs2.Stream#$anonfun$parEvalMapActionImpl$5
+  |   RunnerCompat.scala:181       productR @ weaver.framework.RunnerCompat#$anonfun$run$12

@@ -11,21 +11,21 @@ sendTestEvent: CompileStarted
 🔨 compiling (clean build, no previous analysis)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.CtorBoomSpekFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
-test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
 Running: mytest:example.CtorBoomSpekFixture
+test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
+test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
+test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
 Running: mytest:example.CtorBoomSpekFixture, mytest:example.GreenSpekFixture
 Running: mytest:example.CtorBoomSpekFixture, mytest:example.GreenSpekFixture, mytest:example.SpekFixture
 sendTestEvent
@@ -34,14 +34,14 @@ sendTestEvent
 sendTestEvent: TestFinished
   x CtorBoomSpekFixture (class-level)
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
+sendTestEvent
   + GreenSpekFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
   + SpekFixture.adds
-sendTestEvent
   + GreenSpekFixture.measures
   + SpekFixture.measures
 sendTestEvent: TestFinished

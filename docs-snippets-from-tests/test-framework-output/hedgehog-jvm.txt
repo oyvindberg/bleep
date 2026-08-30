@@ -14,18 +14,18 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-📦 saved analysis (<duration>)
 sendTestEvent
+📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.HedgehogFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
-Running: mytest:example.GreenHedgehogFixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.HedgehogFixture
 test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
 Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
@@ -33,14 +33,14 @@ sendTestEvent: SuiteFinished
 ERRORED example.CtorBoomHedgehogFixture: Error running suite example.CtorBoomHedgehogFixture: java.lang.RuntimeException: ctor boom (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
+  + HedgehogFixture.adds
+sendTestEvent: TestFinished
+  + HedgehogFixture.measures
   + GreenHedgehogFixture.adds
+sendTestEvent: TestFinished
   + GreenHedgehogFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenHedgehogFixture: 2 passed, 0 failed, 0 skipped (<duration>)
-sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  + HedgehogFixture.adds
-  + HedgehogFixture.measures
 sendTestEvent: TestFinished
   x HedgehogFixture.fails on purpose
 sendTestEvent: TestFinished
@@ -79,28 +79,28 @@ x mytest / example.HedgehogFixture / fails on purpose
 
 x mytest / example.HedgehogFixture / throws on purpose
   | java.lang.RuntimeException: boom
-  | 	at example.HedgehogFixture$.tests$$anonfun$4(HedgehogFixture.scala:11)
-  | 	... 21 frames elided (hedgehog, scala, bleep)
+  | 	at example.HedgehogFixture$.$anonfun$tests$4(HedgehogFixture.scala:11)
+  | 	... 20 frames elided (hedgehog, scala, bleep)
   Stack trace:
   | 
 
   Output from example.HedgehogFixture:
-  | Using random seed: 830996639956708
+  | Using random seed: 833102107974291
   | hello from the test
   | + example.HedgehogFixture.adds: OK, passed 1 tests
   | + example.HedgehogFixture.measures: OK, passed 1 tests
   | - example.HedgehogFixture.fails on purpose: Falsified after 0 passed tests
   | - example.HedgehogFixture.throws on purpose: Falsified after 0 passed tests
   | > java.lang.RuntimeException: boom
-  | 	at example.HedgehogFixture$.tests$$anonfun$4(HedgehogFixture.scala:11)
-  | 	... 21 frames elided (hedgehog, scala, bleep)
+  | 	at example.HedgehogFixture$.$anonfun$tests$4(HedgehogFixture.scala:11)
+  | 	... 20 frames elided (hedgehog, scala, bleep)
 
 Process Errors (1)
 
 ! mytest / example.CtorBoomHedgehogFixture
   | Error running suite example.CtorBoomHedgehogFixture: java.lang.RuntimeException: ctor boom
   Output:
-  | Using random seed: 830996637954083
+  | Using random seed: 833102110310666
   | bleep.testing.runner.ForkedTestRunner$SuiteExecutionException: java.lang.RuntimeException: ctor boom
   | 	... 3 frames elided (bleep)
   | Caused by: java.lang.RuntimeException: ctor boom

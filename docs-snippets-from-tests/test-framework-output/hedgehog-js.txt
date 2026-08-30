@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -16,8 +16,8 @@ sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
-🔗 linking [Scala.js]
 test runtime: org.scala-sbt:test-interface:1.0
+🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 ✅ linked [Scala.js] (<duration>)
 sendTestEvent
@@ -26,38 +26,28 @@ sendTestEvent
 [machine] grant 'test:mytest:example.HedgehogFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.HedgehogFixture
 Running: mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
 Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
-test runtime: org.scala-sbt:test-interface:1.0
+sendTestEvent
+sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
   + HedgehogFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
-  + HedgehogFixture.measures
-sendTestEvent
-sendTestEvent: TestFinished
-  x HedgehogFixture.fails on purpose
-sendTestEvent
-sendTestEvent: TestFinished
-  x HedgehogFixture.throws on purpose
-sendTestEvent: SuiteFinished
-FAILED example.HedgehogFixture: 2 passed, 2 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
   + GreenHedgehogFixture.adds
 sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
 sendTestEvent: TestFinished
   + GreenHedgehogFixture.measures
+  + HedgehogFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenHedgehogFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteError
-Task executor completed
-Failed tasks
 ❌ Test example.CtorBoomHedgehogFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
   Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
   Stack trace:
@@ -71,6 +61,16 @@ Failed tasks
     at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
     at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
+sendTestEvent
+sendTestEvent: TestFinished
+  x HedgehogFixture.fails on purpose
+sendTestEvent
+sendTestEvent: TestFinished
+  x HedgehogFixture.throws on purpose
+sendTestEvent: SuiteFinished
+Task executor completed
+Failed tasks
+FAILED example.HedgehogFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Errored tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
@@ -157,7 +157,7 @@ x mytest / example.HedgehogFixture / throws on purpose
   |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27502)
 
   Output from example.HedgehogFixture:
-  | Using random seed: 287774500
+  | Using random seed: 58584541
   | hello from the test
   | + example.HedgehogFixture.adds: OK, passed 1 tests
   | + example.HedgehogFixture.measures: OK, passed 1 tests
@@ -192,5 +192,5 @@ Process Errors (1)
   |     at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
   |     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
   Output:
-  | Using random seed: 347874042
+  | Using random seed: 58613708
   | [scala.js] TestAdapter.close() was called. Incomplete runs: Set(0)

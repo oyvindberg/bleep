@@ -15,21 +15,21 @@ sendTestEvent: CompileStarted
 sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
-✅ compiled (<duration>)
 test runtime: org.scala-sbt:test-interface:1.0
+✅ compiled (<duration>)
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent
 ✅ linked [Scala.js] (<duration>)
 sendTestEvent
-[machine] grant 'test:mytest:example.GreenSpecs2Fixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.GreenSpecs2Fixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.GreenSpecs2Fixture
+Running: mytest:example.Specs2Fixture
 test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
 Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
@@ -46,9 +46,9 @@ sendTestEvent: TestFinished
   + Specs2Fixture.adds
 sendTestEvent
 sendTestEvent: TestFinished
+  + GreenSpecs2Fixture.measures
 sendTestEvent
 sendTestEvent: TestFinished
-  + GreenSpecs2Fixture.measures
   + Specs2Fixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenSpecs2Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
@@ -63,8 +63,8 @@ sendTestEvent: TestFinished
   - Specs2Fixture.skipped on purpose
 sendTestEvent: SuiteFinished
 Task executor completed
-FAILED example.Specs2Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Failed tasks
+FAILED example.Specs2Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
@@ -147,7 +147,7 @@ x mytest / example.Specs2Fixture / throws on purpose
   | 
   | 
   | Total for specification Specs2Fixture
-  | Finished in 79 ms
+  | Finished in 53 ms
   | 5 examples, 1 failure, 1 error, 1 skipped
 
 Skipped (1)

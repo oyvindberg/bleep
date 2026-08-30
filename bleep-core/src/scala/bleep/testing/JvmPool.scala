@@ -93,6 +93,36 @@ trait TestJvm {
 
 object JvmPool {
 
+  /** Tells a JDK 24+ JVM not to print its `sun.misc.Unsafe` deprecation notice. Older JVMs reject it outright, so it is only ever passed to one that took it.
+    */
+  private val UnsafeMemoryAccessFlag = "--sun-misc-unsafe-memory-access=allow"
+
+  private val unsafeFlagSupport = new java.util.concurrent.ConcurrentHashMap[String, java.lang.Boolean]()
+
+  /** Does this JVM accept [[UnsafeMemoryAccessFlag]]?
+    *
+    * Asked once per `java` binary and cached, by starting it with the flag and nothing else. A probe rather than a version comparison because the question is
+    * exactly "does this accept the flag" — parsing `java -version` to infer it adds a format to get wrong for no gain.
+    *
+    * A probe that cannot be run at all answers "no": the flag is a nicety, and a fork that starts with a warning beats one that does not start.
+    */
+  private def acceptsUnsafeMemoryAccessFlag(javaPath: java.nio.file.Path): Boolean =
+    unsafeFlagSupport
+      .computeIfAbsent(
+        javaPath.toString,
+        _ =>
+          java.lang.Boolean.valueOf {
+            try {
+              val pb = new ProcessBuilder(javaPath.toString, UnsafeMemoryAccessFlag, "-version")
+              pb.redirectErrorStream(true)
+              pb.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+              val p = pb.start()
+              p.waitFor(30, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0
+            } catch { case _: Exception => false }
+          }
+      )
+      .booleanValue()
+
   /** How long a freshly spawned fork gets to connect back on the protocol socket.
     *
     * Generous, because it covers JVM startup on a cold, loaded CI runner, and bounded, because a fork that never connects would otherwise hang the suite
@@ -709,8 +739,13 @@ object JvmPool {
 
                 // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
                 // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
-                // `<system-err>` of every report. `-XX:+IgnoreUnrecognizedVMOptions` first so older JVMs that lack the flag start rather than refuse to.
-                val quietUnsafe = List("-XX:+IgnoreUnrecognizedVMOptions", "--sun-misc-unsafe-memory-access=allow")
+                // `<system-err>` of every report.
+                //
+                // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
+                // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
+                // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
+                // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
+                val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
                 val cmd =
                   if (useEnvClasspath)
                     List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)

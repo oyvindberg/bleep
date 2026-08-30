@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -19,19 +19,19 @@ sendTestEvent: CompileFinished
 test runtime: org.scala-sbt:test-interface:1.0
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
+sendTestEvent
 ✅ linked [Scala.js] (<duration>)
 sendTestEvent
-sendTestEvent
-[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.ScalacheckFixture
-Running: mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
+Running: mytest:example.CtorBoomScalacheckFixture
+Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.ScalacheckFixture
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 sendTestEvent: SuiteError
 ❌ Test example.CtorBoomScalacheckFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
@@ -54,8 +54,8 @@ sendTestEvent: TestFinished
   + example.GreenScalacheckFixture.adds
   + example.ScalacheckFixture.adds
 sendTestEvent
-sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent: TestFinished
   + example.GreenScalacheckFixture.measures
   + example.ScalacheckFixture.measures
@@ -99,11 +99,11 @@ Test Failures (2)
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
   | Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 1884471707
+  | > ARG_0_ORIGINAL: -1
   Stack trace:
   | java.lang.Exception: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 1884471707
+  | > ARG_0_ORIGINAL: -1
   |   at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:26641)
   |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28238)
   |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28250)
@@ -134,11 +134,11 @@ x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpo
   | hello from the test
   | + example.ScalacheckFixture.adds: OK, passed 100 tests.
   | + example.ScalacheckFixture.measures: OK, passed 100 tests.
-  | failing seed for example.ScalacheckFixture.fails on purpose is pypDuSIZO947Ued4KPaUvVqAunt3B5iPxdrBairTewN=
+  | failing seed for example.ScalacheckFixture.fails on purpose is 31RufyZbR5Zt7skXiWyYU53iWp8xO_U7-LQ3GtdoY0A=
   | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 1884471707
-  | failing seed for example.ScalacheckFixture.throws on purpose is cZym4YfoRF3Pr6i2W-2c8FpWMJGxfeo-QE1J2mjQ0cN=
+  | > ARG_0_ORIGINAL: -1
+  | failing seed for example.ScalacheckFixture.throws on purpose is Zl0qSsq5FIAOXqQtNPVmp7EHUJHMpJJaIKNc1tD86NJ=
   | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
   | > ARG_0: 0
   | > ARG_0_ORIGINAL: -2147483648

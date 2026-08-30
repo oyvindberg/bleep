@@ -15,38 +15,38 @@ sendTestEvent: CompileStarted
 sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
-✅ compiled (<duration>)
 test runtime: org.scala-sbt:test-interface:1.0
+✅ compiled (<duration>)
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent
 ✅ linked [Scala.js] (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.GreenMinitestFixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.MinitestFixture
-Running: mytest:example.GreenMinitestFixture, mytest:example.MinitestFixture
+Running: mytest:example.CtorBoomMinitestFixture
+Running: mytest:example.CtorBoomMinitestFixture, mytest:example.GreenMinitestFixture
 Running: mytest:example.CtorBoomMinitestFixture, mytest:example.GreenMinitestFixture, mytest:example.MinitestFixture
 sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent: TestFinished
-  + example.MinitestFixture
   + example.GreenMinitestFixture
-  + example.MinitestFixture
   + example.GreenMinitestFixture
+sendTestEvent
 sendTestEvent: SuiteFinished
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent: TestFinished
 PASSED example.GreenMinitestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+  + example.MinitestFixture
+  + example.MinitestFixture
 sendTestEvent: SuiteFinished
 NO TESTS example.CtorBoomMinitestFixture: discovered but executed 0 tests (<duration>)
 sendTestEvent

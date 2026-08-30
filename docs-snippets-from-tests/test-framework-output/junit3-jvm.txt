@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -18,47 +18,47 @@ sendTestEvent: CompileFinished
 sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-[machine] grant 'test:mytest:example.Junit3Fixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.Junit3Fixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-Running: mytest:example.GreenJunit3Fixture
-Running: mytest:example.GreenJunit3Fixture, mytest:example.Junit3Fixture
+Running: mytest:example.Junit3Fixture
+Running: mytest:example.CtorBoomJunit3Fixture, mytest:example.Junit3Fixture
 Running: mytest:example.CtorBoomJunit3Fixture, mytest:example.GreenJunit3Fixture, mytest:example.Junit3Fixture
 sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
-  + GreenJunit3Fixture.testAdds
 sendTestEvent: TestFinished
+  + GreenJunit3Fixture.testAdds
   + GreenJunit3Fixture.testMeasures
+sendTestEvent: SuiteFinished
+PASSED example.GreenJunit3Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent
   x Junit3Fixture.testFailsOnPurpose
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
 sendTestEvent
   x Junit3Fixture.testThrowsOnPurpose
-sendTestEvent: TestFinished
 sendTestEvent
-  + Junit3Fixture.testAdds
 sendTestEvent: TestFinished
+  x CtorBoomJunit3Fixture.warning
+sendTestEvent
+sendTestEvent: TestFinished
+  + Junit3Fixture.testAdds
   + Junit3Fixture.testMeasures
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomJunit3Fixture.warning
-sendTestEvent: TestFinished
-sendTestEvent: SuiteFinished
-sendTestEvent
-  x CtorBoomJunit3Fixture.warning
-PASSED example.GreenJunit3Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomJunit3Fixture.warning
@@ -67,8 +67,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 FAILED example.Junit3Fixture: 2 passed, 2 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
-Task executor completed
 FAILED example.CtorBoomJunit3Fixture: 0 passed, 4 failed, 0 skipped (<duration>)
+Task executor completed
 Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned

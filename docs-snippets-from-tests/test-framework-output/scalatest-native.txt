@@ -16,47 +16,47 @@ sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
-test runtime: org.scala-sbt:test-interface:1.0
 🔗 linking [Scala Native]
-✅ linked [Scala Native] (<duration>)
+test runtime: org.scala-sbt:test-interface:1.0
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent
+✅ linked [Scala Native] (<duration>)
 sendTestEvent
 [machine] grant 'test:mytest:example.GreenScalatestFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.ScalatestFixture
-Running: mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
+Running: mytest:example.CtorBoomScalatestFixture
+Running: mytest:example.CtorBoomScalatestFixture, mytest:example.ScalatestFixture
 Running: mytest:example.CtorBoomScalatestFixture, mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
 sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenScalatestFixture.adds
 sendTestEvent: TestFinished
   + ScalatestFixture.adds
 sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  + GreenScalatestFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent: TestFinished
   + GreenScalatestFixture.measures
+  + ScalatestFixture.measures
+sendTestEvent: TestFinished
+  x ScalatestFixture.fails on purpose
 sendTestEvent
 sendTestEvent: TestFinished
-  + ScalatestFixture.measures
-  x ScalatestFixture.fails on purpose
+sendTestEvent
+sendTestEvent: TestFinished
   x ScalatestFixture.throws on purpose
   o ScalatestFixture.skipped on purpose
 sendTestEvent: SuiteFinished
-FAILED example.CtorBoomScalatestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteError
+FAILED example.CtorBoomScalatestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 ❌ exited with code 1
 sendTestEvent: SuiteFinished
 PASSED example.GreenScalatestFixture: 2 passed, 0 failed, 0 skipped (<duration>)

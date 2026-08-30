@@ -1,4 +1,4 @@
-bootstrapped in 5 ms
+bootstrapped in 4 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -19,14 +19,14 @@ sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent
-Running: mytest:example.GreenKotestFixture
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.13.4, org.junit.jupiter:junit-jupiter-engine:5.13.4, org.junit.vintage:junit-vintage-engine:5.13.4
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.13.4, org.junit.jupiter:junit-jupiter-engine:5.13.4, org.junit.vintage:junit-vintage-engine:5.13.4
 test runtime: org.junit.platform:junit-platform-launcher:1.13.4, org.junit.jupiter:junit-jupiter-engine:5.13.4, org.junit.vintage:junit-vintage-engine:5.13.4
-test runtime: org.junit.platform:junit-platform-launcher:1.13.4, org.junit.jupiter:junit-jupiter-engine:5.13.4, org.junit.vintage:junit-vintage-engine:5.13.4
-Running: mytest:example.CtorBoomKotestFixture, mytest:example.GreenKotestFixture
+Running: mytest:example.CtorBoomKotestFixture
+Running: mytest:example.CtorBoomKotestFixture, mytest:example.KotestFixture
 Running: mytest:example.CtorBoomKotestFixture, mytest:example.GreenKotestFixture, mytest:example.KotestFixture
 sendTestEvent
 sendTestEvent: TestFinished
@@ -36,31 +36,31 @@ sendTestEvent: TestFinished
   x CtorBoomKotestFixture (class-level)
 sendTestEvent
 sendTestEvent: SuiteFinished
-FAILED example.CtorBoomKotestFixture: 0 passed, 2 failed, 0 skipped (<duration>)
 sendTestEvent
+FAILED example.CtorBoomKotestFixture: 0 passed, 2 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  + KotestFixture.adds
   + GreenKotestFixture.adds
 sendTestEvent
+sendTestEvent: TestFinished
+  + GreenKotestFixture.measures
+sendTestEvent: TestFinished
+  + KotestFixture.adds
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   + KotestFixture.measures
-  + GreenKotestFixture.measures
 sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
   x KotestFixture.fails on purpose
+sendTestEvent: SuiteFinished
+PASSED example.GreenKotestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
   x KotestFixture.throws on purpose
-sendTestEvent: SuiteFinished
 sendTestEvent: TestFinished
-PASSED example.GreenKotestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
   - KotestFixture.skipped on purpose
 sendTestEvent: SuiteFinished
-Task executor completed
 FAILED example.KotestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
+Task executor completed
 Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned

@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -14,23 +14,23 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-sendTestEvent
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-[machine] grant 'test:mytest:example.CtorBoomJqwikFixture' (TestFork) cpu=1 mem=0MB
+sendTestEvent
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.CtorBoomJqwikFixture' (TestFork) cpu=1 mem=0MB
+sendTestEvent
+sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.11.3, org.junit.jupiter:junit-jupiter-engine:5.11.3, org.junit.vintage:junit-vintage-engine:5.11.3
 test runtime: org.junit.platform:junit-platform-launcher:1.11.3, org.junit.jupiter:junit-jupiter-engine:5.11.3, org.junit.vintage:junit-vintage-engine:5.11.3
-sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.11.3, org.junit.jupiter:junit-jupiter-engine:5.11.3, org.junit.vintage:junit-vintage-engine:5.11.3
-sendTestEvent
 Running: mytest:example.CtorBoomJqwikFixture
-Running: mytest:example.CtorBoomJqwikFixture, mytest:example.JqwikFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.11.3, org.junit.jupiter:junit-jupiter-engine:5.11.3, org.junit.vintage:junit-vintage-engine:5.11.3
+Running: mytest:example.CtorBoomJqwikFixture, mytest:example.GreenJqwikFixture
 Running: mytest:example.CtorBoomJqwikFixture, mytest:example.GreenJqwikFixture, mytest:example.JqwikFixture
 sendTestEvent
 sendTestEvent
@@ -39,8 +39,8 @@ sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomJqwikFixture.throwsOnPurpose
 sendTestEvent: TestFinished
-sendTestEvent
   x CtorBoomJqwikFixture.measures
+sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomJqwikFixture.failsOnPurpose
@@ -52,30 +52,30 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 FAILED example.CtorBoomJqwikFixture: 0 passed, 5 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
-  + GreenJqwikFixture.measures
 sendTestEvent
+  + GreenJqwikFixture.measures
 sendTestEvent: TestFinished
   + GreenJqwikFixture.adds
 sendTestEvent: SuiteFinished
 PASSED example.GreenJqwikFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
-sendTestEvent
   x JqwikFixture.throwsOnPurpose
-sendTestEvent: TestFinished
 sendTestEvent
+sendTestEvent: TestFinished
   + JqwikFixture.measures
-sendTestEvent: TestFinished
 sendTestEvent
+sendTestEvent: TestFinished
   x JqwikFixture.failsOnPurpose
+sendTestEvent
 sendTestEvent: TestFinished
   + JqwikFixture.adds
 sendTestEvent: TestFinished
   - JqwikFixture.skippedOnPurpose
 sendTestEvent: SuiteFinished
 Task executor completed
+FAILED example.JqwikFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
-FAILED example.JqwikFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 7 failed, 1 skipped (<duration>)
@@ -128,7 +128,7 @@ x mytest / example.JqwikFixture / throwsOnPurpose
   | 	... 42 frames elided (jdk, jqwik)
 
   Output from example.JqwikFixture:
-  | timestamp = 2026-08-30T21:25:37.797193, JqwikFixture:throwsOnPurpose = 
+  | timestamp = 2026-08-30T22:00:43.271233, JqwikFixture:throwsOnPurpose = 
   |   java.lang.RuntimeException:
   |     boom
   |                               |-----------------------jqwik-----------------------
@@ -140,8 +140,8 @@ x mytest / example.JqwikFixture / throwsOnPurpose
   | edge-cases#mode = MIXIN       | edge cases are mixed in
   | edge-cases#total = 0          | # of all combined edge cases
   | edge-cases#tried = 0          | # of edge cases tried in current run
-  | seed = -9170317692722085065   | random seed to reproduce generated values
-  | timestamp = 2026-08-30T21:25:37.811555, JqwikFixture:failsOnPurpose = 
+  | seed = 2218459973224374594    | random seed to reproduce generated values
+  | timestamp = 2026-08-30T22:00:43.287419, JqwikFixture:failsOnPurpose = 
   |   java.lang.AssertionError:
   |     failsOnPurpose
   |                               |-----------------------jqwik-----------------------
@@ -153,7 +153,7 @@ x mytest / example.JqwikFixture / throwsOnPurpose
   | edge-cases#mode = MIXIN       | edge cases are mixed in
   | edge-cases#total = 0          | # of all combined edge cases
   | edge-cases#tried = 0          | # of edge cases tried in current run
-  | seed = 4825131856299720399    | random seed to reproduce generated values
+  | seed = 3756439674444545190    | random seed to reproduce generated values
   | hello from the test
 
 Skipped (1)
