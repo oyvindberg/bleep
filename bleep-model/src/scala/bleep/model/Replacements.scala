@@ -177,9 +177,19 @@ object Replacements {
       ).flatten
     )
 
-  // note: bleepVersion may not be the running version in the case of `--dev`
-  // where the version found in the build is used instead.
-  // this is so that bleep-task dependencies can be resolved.
+  /** `bleepVersion` is what `${BLEEP_VERSION}` expands to, and it is always the build's own `$version` — never the version of the bleep doing the expanding.
+    * Both call sites pass it: `ResolveProjects` and `CoursierResolver.TemplatedVersions`.
+    *
+    * The distinction is invisible almost everywhere, because the CLI relaunches itself into the version a build asks for, so the two are the same value. They
+    * come apart only where that relaunch is deliberately waived — a snapshot binary, or `--dev` — and there the build's declaration is the one that wins.
+    *
+    * That is on purpose rather than an oversight. A build's scripts are compiled against the API of the bleep they name, so following the running bleep instead
+    * would break them on one machine, with an error pointing at the user's code rather than at the substitution. It is also what lets bleep build itself: its
+    * own `scripts` and `scripts-init` resolve published `build.bleep::*` artifacts through this template, and an in-tree edge would be circular.
+    *
+    * The cost is that a snapshot bleep can pair a build's older bleep libraries with a newer server. Only one thing has ever cared — a forked test JVM, where
+    * the project's `bleep-test-runner` and the server's meet on one classpath — and `getTestClasspath` settles that by ordering rather than by version.
+    */
   def versions(
       bleepVersion: Option[BleepVersion],
       versionCombo: VersionCombo,

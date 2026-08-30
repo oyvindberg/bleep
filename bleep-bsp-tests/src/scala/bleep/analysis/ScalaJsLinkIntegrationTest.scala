@@ -34,8 +34,8 @@ class ScalaJsLinkIntegrationTest extends AnyFunSuite with Matchers {
     config.emitSourceMaps shouldBe true
     config.minify shouldBe false
     config.prettyPrint shouldBe false
-    // Debug runs the optimizer too; minification and Closure are what release adds.
-    config.optimizer shouldBe true
+    // Off for debug, matching Scala Native and the Kotlin platforms; `--optimize` opts in. Release adds it along with minification and Closure.
+    config.optimizer shouldBe false
   }
 
   test("ScalaJsLinkConfig: Release configuration defaults") {

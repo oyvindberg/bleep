@@ -873,7 +873,13 @@ object TaskDag {
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
-      test: (TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      /** The second argument is what this project's link produced, taken from the executor's own record.
+        *
+        * Handed over rather than looked up, because a test path that has to find the linker's output itself will find it by rebuilding the path — and two
+        * derivations of one directory drift. Both platform paths did exactly that, from `classes.getParent` where the link used `targetDir`: the same directory
+        * by different arithmetic, with nothing keeping them equal. `None` for a JVM project, which links nothing.
+        */
+      test: (TestSuiteTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
       symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
@@ -1106,7 +1112,10 @@ object TaskDag {
                     // entirely. Previously this branch wrapped the whole thing in IO.uncancelable
                     // "so status events always fire", but that meant a wedged test framework
                     // could pin the BSP fiber indefinitely and block server shutdown.
-                    withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, taskKill))
+                    dagRef.get.flatMap { dag =>
+                      val linkResult = dag.linkResults.get(TaskId.Link(tt.project))
+                      withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, linkResult, taskKill))
+                    }
 
                   // These three emit their own Started/Finished pair, and the Finished carries the
                   // error message. Recovery therefore wraps ONLY the handler call, with the emit

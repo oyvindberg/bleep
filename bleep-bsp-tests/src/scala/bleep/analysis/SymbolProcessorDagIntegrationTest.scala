@@ -110,7 +110,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (ct, _) => IO { timeline.add(s"compile:${ct.project.value}"); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (kspt, _) => IO { timeline.add(s"ksp:${kspt.project.value}"); (TaskResult.Success, 2) }
@@ -143,7 +143,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (ct, _) => IO { compileInvoked.set(true); finishedTasks.add(ct.project.value -> TaskResult.Success); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => IO((TaskResult.Failure("simulated KSP misconfig", Nil), 0))

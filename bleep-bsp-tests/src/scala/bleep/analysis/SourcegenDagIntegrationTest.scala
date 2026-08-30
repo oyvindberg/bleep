@@ -301,7 +301,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -351,7 +351,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -401,7 +401,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -450,7 +450,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success), // up-to-date fast path
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -497,7 +497,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -550,7 +550,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("boom", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -601,7 +601,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -649,7 +649,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) =>
           record("sourcegen:start") >>
             IO.sleep(scala.concurrent.duration.DurationInt(100).millis) >>
@@ -696,7 +696,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (_, _) => IO.raiseError(new RuntimeException("bleep-test-runner resolution returned no jars")),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -749,7 +749,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _) => sys.error("DiscoverTask should not appear here"),
-        test = (_, _) => sys.error("TestSuiteTask should not appear here"),
+        test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.raiseError(new RuntimeException("generator blew up")),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")

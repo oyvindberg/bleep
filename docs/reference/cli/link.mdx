@@ -34,8 +34,8 @@ bleep link <project name...> [flags]
 | `--no-minify` | disable minification (Scala.js) |
 | `--module-kind <string>` | JS module kind: commonjs, esmodule, nomodule |
 | `--lto <string>` | Link-time optimization (Scala Native): none, thin, full |
-| `--optimize` | run the platform optimizer/DCE (Scala Native, Kotlin/JS, Kotlin/Native; Scala.js runs it already) |
-| `--no-optimize` | skip the platform optimizer/DCE (not allowed with --release on Scala.js) |
+| `--optimize` | run the platform optimizer/DCE (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native); on by default with --release |
+| `--no-optimize` | skip the platform optimizer/DCE; it is already off without --release (not allowed with --release on Scala.js) |
 | `--debug-info` | include debug info (native platforms) |
 | `--no-debug-info` | exclude debug info (native platforms) |
 | `--no-tui` | disable TUI, keep the full streaming trace (for CI/agents that read logs) |

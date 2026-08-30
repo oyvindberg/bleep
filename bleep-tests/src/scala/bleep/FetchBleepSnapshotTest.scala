@@ -67,4 +67,18 @@ class FetchBleepSnapshotTest extends AnyFunSuite with Matchers {
     actual.collect { case Left(err) => err } shouldBe empty
     actual.collect { case Right(name) => name }.toSet shouldBe expected
   }
+
+  test("latestRelease is a different bleep — the last resort, never the first choice") {
+    // Both halves of how `BleepExecutable` treats it. For a snapshot the two are different *published* versions, so asking for `latestRelease` up front gets a
+    // real bleep that is simply not this one — which is what made the old behaviour quiet, since nothing downstream can tell an ordinary release from the one
+    // that was wanted. It is still what we fall back to when the snapshot cannot be fetched at all, but only after saying so.
+    val snapshot = model.BleepVersion("1.0.0-M12+119-d9303c0a-SNAPSHOT")
+    snapshot.latestRelease shouldBe model.BleepVersion("1.0.0-M12")
+    snapshot.latestRelease should not be snapshot
+    snapshot.latestRelease.isDevelopment shouldBe false
+
+    // And why the fallback is guarded on `isDevelopment`: for a release the two coincide, so retrying with it would fail the same way a second time.
+    val release = model.BleepVersion("1.0.0-M12")
+    release.latestRelease shouldBe release
+  }
 }

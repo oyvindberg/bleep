@@ -490,9 +490,13 @@ object Main {
 
     val optimizeOpt: Opts[Option[Boolean]] =
       Opts
-        .flag("optimize", "run the platform optimizer/DCE (Scala Native, Kotlin/JS, Kotlin/Native; Scala.js runs it already)")
+        .flag("optimize", "run the platform optimizer/DCE (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native); on by default with --release")
         .map(_ => true)
-        .orElse(Opts.flag("no-optimize", "skip the platform optimizer/DCE (not allowed with --release on Scala.js)").map(_ => false))
+        .orElse(
+          Opts
+            .flag("no-optimize", "skip the platform optimizer/DCE; it is already off without --release (not allowed with --release on Scala.js)")
+            .map(_ => false)
+        )
         .orNone
 
     val debugInfoOpt: Opts[Option[Boolean]] =

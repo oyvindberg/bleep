@@ -25,6 +25,15 @@ trait ResolveProjects {
 object ResolveProjects {
   type Projects = SortedMap[model.CrossProjectName, Lazy[ResolvedProject]]
 
+  /** Maven's rule, in one place because it is needed in two: `provided` and `optional` do not travel to a consumer. A project that needs one says so itself.
+    *
+    * Load-bearing for `bleep-test-runner`, which declares a `provided` junit-platform-launcher pinned to the oldest platform bleep can run. That floor belongs
+    * on its own compile classpath and nowhere else — anything that inherits it inherits a junit-platform far older than the project's own, and bleep pairs the
+    * junit engines to whatever platform version a project resolved.
+    */
+  private[bleep] def providedOrOptional(dep: model.Dep): Boolean =
+    dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
+
   case class Result(build: model.Build, projects: Projects, bspServerClasspathSource: bsp.BspServerClasspathSource)
 
   object InMemory extends ResolveProjects {
@@ -80,9 +89,16 @@ object ResolveProjects {
 
           if (transitiveBleepProjectNames.nonEmpty) b(crossName) = transitiveBleepProjectNames
 
+          // `provided`/`optional` are dropped here for the same reason they are dropped from `inherited` below, and it has to be said twice because these
+          // arrive by a different route: a bleep project's dependencies are copied into the consumer's OWN set, where the inherited-dep filter never sees
+          // them — and where the runtime branch would go on to promote them out of `provided` entirely.
+          //
+          // What that cost: an integration-test workspace depending on `build.bleep:bleep-test-runner` acquired its `provided` junit-platform floor, 1.0.0,
+          // as an ordinary dependency. `testRuntimeRules` then read that as the junit-platform the project resolved and asked for the engine that pairs with
+          // it — junit-vintage-engine 5.0.0, which does not exist — so the run died in resolution naming a version nobody had written down anywhere.
           val newDeps: SortedSet[model.Dep] =
             restDependencies ++ transitiveBleepProjectNames.view.flatMap(pn =>
-              bleepBuild.forceGet.build.explodedProjects(pn).dependencies.values.filterNot(isBleepDep)
+              bleepBuild.forceGet.build.explodedProjects(pn).dependencies.values.filterNot(dep => isBleepDep(dep) || providedOrOptional(dep))
             )
 
           (crossName, p.copy(dependencies = model.JsonSet(newDeps)))
@@ -284,9 +300,6 @@ object ResolveProjects {
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
-
-      def providedOrOptional(dep: model.Dep): Boolean =
-        dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
       // Inherited `provided`/`optional` deps are dropped from BOTH classpaths, which is Maven's rule: those scopes do not travel to a consumer. A project that
       // needs one says so itself. Deliberate, and load-bearing — `bleep-test-runner` declares a `provided` junit-platform-launcher precisely so that

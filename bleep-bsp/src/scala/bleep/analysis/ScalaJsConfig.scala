@@ -102,10 +102,13 @@ object ScalaJsLinkConfig {
     prettyPrint = false,
     esFeatures = EsFeatures.Defaults,
     checkIR = false,
-    // On, as mill has it (`scalaJSOptimizer` defaults to true for `fastLinkJS` too). Measured on a stdlib-using program: no cost worth reporting — three runs
-    // came out marginally faster than with it off — while output fell from 1,579,362 to 808,810 bytes. A debug link stays source-mapped and debuggable either
-    // way, so there was nothing to trade away.
-    optimizer = true
+    // Off, like every other linkable platform's debug mode: `--optimize` turns it on, and release turns it on for you.
+    //
+    // Not because it is expensive. Measured on a upickle-deriving program, the optimizer costs 0.1-0.4s on a 1.5s link and saves 42% of the output
+    // (2,140,186 bytes against 3,034,721). It is off because none of that matters for a debug link — nobody ships one — while a Scala.js default that
+    // disagreed with Scala Native, Kotlin/JS and Kotlin/Native made `--optimize` mean "on" everywhere except here, where it already was. Consistency is
+    // worth more than 900KB of output nobody deploys, and the flag is there for anyone who wants it back.
+    optimizer = false
   )
 
   /** Default release configuration. */
