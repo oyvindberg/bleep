@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import cats.effect.IO
+import cats.effect.{IO, Ref}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -29,14 +29,16 @@ object IdleTimeout {
     * @param grace
     *   how long to give the work to stop, once asked
     * @param lastActivityAt
-    *   monotonic reading of when progress was last reported. Read repeatedly; it is expected to move.
+    *   monotonic reading of when progress was last reported. Read repeatedly; it is expected to move. Reset when the run starts, so whatever the caller did
+    *   beforehand cannot spend the budget: a test suite is preceded by a link, and a Scala Native link can take longer than the whole idle bound. Leaving that
+    *   on the clock would kill the run before a single test had a chance to report.
     * @param onTimeout
     *   asks the work to stop. Runs once, before the grace period.
     */
   def bound[A](
       idle: FiniteDuration,
       grace: FiniteDuration,
-      lastActivityAt: IO[FiniteDuration],
+      lastActivityAt: Ref[IO, FiniteDuration],
       onTimeout: IO[Unit]
   )(run: IO[A]): IO[Either[Fired, A]] = {
     // Sleeps exactly as long as remains, rather than polling on an interval: one wakeup per quiet stretch, and the moment it fires is the moment it is due.
@@ -44,14 +46,14 @@ object IdleTimeout {
       def loop: IO[Unit] =
         for {
           now <- IO.monotonic
-          last <- lastActivityAt
+          last <- lastActivityAt.get
           remaining = idle - (now - last)
           _ <- if (remaining.toMillis <= 0) IO.unit else IO.sleep(remaining) >> loop
         } yield ()
       loop
     }
 
-    run.start.flatMap { fiber =>
+    IO.monotonic.flatMap(lastActivityAt.set) >> run.start.flatMap { fiber =>
       IO.race(fiber.join, awaitIdle).flatMap {
         case Left(outcome) => outcome.embedError.map(Right(_))
         case Right(())     => onTimeout >> fiber.join.void.timeoutTo(grace, IO.unit).as(Left(Fired(idle)))

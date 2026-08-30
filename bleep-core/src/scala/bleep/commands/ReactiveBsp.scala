@@ -49,9 +49,10 @@ case class ReactiveBsp(
     diffBase: Option[DiffBase],
     /** How the `--diff` result is printed: rendered for humans ([[OutputMode.Text]], the default) or the underlying diff document ([[OutputMode.Json]]). */
     diffOutput: OutputMode,
-    /** Environment forwarded to forked test processes, in [[BuildMode.Test]] only. Normally `BleepBspProtocol.ClientEnv.current()`; a field rather than a
-      * `sys.env` read at the send site so tests can inject values that are provably not in the running JVM's own environment — the only way to prove the value
-      * travelled over BSP rather than being inherited by the fork.
+    /** Environment forwarded to forked test processes, in [[BuildMode.Test]] only. Normally
+      * `BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)`; a field rather than a `sys.env` read at the send site so tests
+      * can inject values that are provably not in the running JVM's own environment — the only way to prove the value travelled over BSP rather than being
+      * inherited by the fork.
       */
     clientEnv: Map[String, String]
 ) extends BleepBuildCommand {

@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{ProcessExit, TestStatus}
+import bleep.bsp.protocol.{ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName}
 import java.nio.file.{Files, Path}
 import java.time.{Instant, ZoneId}
@@ -235,15 +235,43 @@ class JUnitXmlCollector {
       )
       activeSuites.get(key).foreach(state => activeSuites(key) = state.copy(testCases = tc :: state.testCases))
 
-    case BuildEvent.SuiteFinished(project, suite, _, durationMs, _) =>
+    case BuildEvent.SuiteFinished(project, suite, outcome, durationMs, _) =>
       val key = SuiteKey(project, suite)
       activeSuites.remove(key).foreach { state =>
+        // A suite that produced no test cases but whose outcome is a failure gets one synthetic case, so the report says what bleep's own verdict says.
+        //
+        // Without this the two disagreed in the worst direction. A suite whose *constructor* throws reports no tests at all under scalacheck, minitest,
+        // zio-test, hedgehog and TestNG — the class never initialises, so no test ever starts. bleep already treats that as a failure (`SuiteOutcome.Empty`
+        // is `isFailure`), and said so on the console; the XML meanwhile carried `tests="0" failures="0"`, which every CI dashboard reads as a green suite.
+        // A test class that blew up on construction silently vanishing from CI is the exact failure this pair of files exists to prevent.
+        val synthesized =
+          if (state.testCases.nonEmpty || !outcome.isFailure) Nil
+          else {
+            val message = outcome match {
+              // Unreachable: `Empty` is not a failure, so it never gets here. A suite with no tests in it is a normal thing to have and is reported as
+              // what it is — an empty suite — not as an error.
+              case SuiteOutcome.Empty              => "Suite executed no tests."
+              case SuiteOutcome.NoFrameworkMatched => "No test framework or engine claimed this suite."
+              case SuiteOutcome.Errored(msg, _)    => msg
+              case _: SuiteOutcome.Executed        => "Suite reported failures but no individual test results were captured."
+            }
+            List(
+              TestCaseResult(
+                name = "(suite)",
+                className = suite.value,
+                timeSeconds = 0.0,
+                status = TestStatus.Error,
+                message = Some(message),
+                throwable = None
+              )
+            )
+          }
         completedSuites += TestSuiteResult(
           name = suite.value,
           project = project.value,
           timeSeconds = durationMs / 1000.0,
           timestamp = state.startTime,
-          testCases = state.testCases.reverse,
+          testCases = state.testCases.reverse ++ synthesized,
           systemOut = state.systemOut,
           systemErr = state.systemErr
         )
@@ -297,15 +325,33 @@ class JUnitXmlCollector {
         message = Some(desc),
         throwable = None
       )
-      completedSuites += TestSuiteResult(
-        name = suite.value,
-        project = project.value,
-        timeSeconds = durationMs / 1000.0,
-        timestamp = startTime,
-        testCases = existingTests :+ errorCase,
-        systemOut = state.map(_.systemOut).getOrElse(Nil),
-        systemErr = state.map(_.systemErr).getOrElse(Nil)
-      )
+      // A suite that dies emits both events: `SuiteFinished` says it reported failures with no per-test results, then `SuiteError` says the process exited
+      // non-zero. `SuiteFinished` has already written its `TestSuiteResult` and taken the suite out of `activeSuites`, so appending here put the same suite
+      // in the report twice — two `<testsuite>` elements of one name, each holding half the story, which every CI dashboard renders as two suites.
+      //
+      // The console had the same duplication and the same fix: keep one record and add what the second event knows.
+      completedSuites.indexWhere(r => r.name == suite.value && r.project == project.value) match {
+        case -1 =>
+          completedSuites += TestSuiteResult(
+            name = suite.value,
+            project = project.value,
+            timeSeconds = durationMs / 1000.0,
+            timestamp = startTime,
+            testCases = existingTests :+ errorCase,
+            systemOut = state.map(_.systemOut).getOrElse(Nil),
+            systemErr = state.map(_.systemErr).getOrElse(Nil)
+          )
+        case i =>
+          val existing = completedSuites(i)
+          completedSuites.update(
+            i,
+            existing.copy(
+              testCases = existing.testCases :+ errorCase,
+              systemOut = if (existing.systemOut.nonEmpty) existing.systemOut else state.map(_.systemOut).getOrElse(Nil),
+              systemErr = if (existing.systemErr.nonEmpty) existing.systemErr else state.map(_.systemErr).getOrElse(Nil)
+            )
+          )
+      }
 
     case BuildEvent.SuiteCancelled(project, suite, reason, timestamp) =>
       val key = SuiteKey(project, suite)

@@ -117,7 +117,8 @@ class KotlinNativeIntegrationTest extends AnyFunSuite with Matchers {
   test("KotlinNativeCompileResult: isSuccess when exitCode is 0") {
     val result = KotlinNativeCompileResult(
       outputPath = Path.of("app"),
-      exitCode = 0
+      exitCode = 0,
+      diagnostics = Nil
     )
     result.isSuccess shouldBe true
   }
@@ -125,7 +126,8 @@ class KotlinNativeIntegrationTest extends AnyFunSuite with Matchers {
   test("KotlinNativeCompileResult: not success when exitCode is non-zero") {
     val result = KotlinNativeCompileResult(
       outputPath = Path.of("app"),
-      exitCode = 1
+      exitCode = 1,
+      diagnostics = Nil
     )
     result.isSuccess shouldBe false
   }

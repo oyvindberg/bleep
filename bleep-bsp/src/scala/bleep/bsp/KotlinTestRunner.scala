@@ -93,7 +93,7 @@ object KotlinTestRunner {
       */
     def runTests(
         jsOutput: Path,
-        @annotation.unused suites: List[TestSuite],
+        suites: List[TestSuite],
         eventHandler: TestEventHandler,
         nodeBinary: String,
         env: Map[String, String],
@@ -103,7 +103,7 @@ object KotlinTestRunner {
         case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
         case None         =>
           IO.blocking {
-            val runnerScript = createTestRunnerScript(jsOutput)
+            val runnerScript = createTestRunnerScript(jsOutput, suites.map(_.fullyQualifiedName))
             val scriptPath = Files.createTempFile("kotlin-js-test-", ".js")
             Files.writeString(scriptPath, runnerScript)
             scriptPath
@@ -142,7 +142,7 @@ object KotlinTestRunner {
 
                       case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
                         val testStatus = TestStatus.fromString(status)
-                        IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
+                        IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg, None))
 
                       case None =>
                         stateRef.get.flatMap { state =>
@@ -174,60 +174,54 @@ object KotlinTestRunner {
           }
       }
 
+    /** Ask the linked module what suites it holds, by letting kotlin.test register them and then running none of them.
+      *
+      * Kotlin/JS's kotlin.test speaks to a QUnit adapter: loading the module calls `QUnit.module(name)` and `QUnit.test(name, fn)` for everything in it. The
+      * runner already installs a mock QUnit to capture exactly that, so discovery installs the same one and simply never calls the functions it collected.
+      *
+      * What this replaces was a guess. It loaded the module in a `vm` sandbox, walked the exported object graph, and called something a suite if its prototype
+      * had a method *named* `test…`. Kotlin's methods are named whatever the author named them — `adds`, `measures` — and are marked by annotation, so nothing
+      * ever matched and every project discovered zero suites. That is the same shape of mistake as issue #655: reading a linked artifact by poking at its
+      * mangled internals rather than through the protocol the framework actually speaks.
+      */
     private def createDiscoveryScript(jsOutput: Path): String =
       s"""
-         |const fs = require('fs');
-         |const vm = require('vm');
-         |const path = require('path');
+         |const registeredTests = [];
+         |let currentModule = '';
          |
-         |const jsPath = '${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}';
-         |const jsCode = fs.readFileSync(jsPath, 'utf-8');
-         |
-         |const sandbox = {
-         |  require: require,
-         |  console: console,
-         |  process: process,
-         |  module: { exports: {} },
-         |  exports: {}
+         |global.QUnit = {
+         |  module: function(name, fn) {
+         |    const prevModule = currentModule;
+         |    currentModule = currentModule ? currentModule + '.' + name : name;
+         |    if (typeof fn === 'function') fn();
+         |    currentModule = prevModule;
+         |  },
+         |  // Registration only. The function is captured and never invoked, so discovery runs no test body.
+         |  test: function(name, fn) { registeredTests.push({ module: currentModule, name: name }); },
+         |  skip: function(name, fn) { registeredTests.push({ module: currentModule, name: name }); }
          |};
          |
          |try {
-         |  vm.runInNewContext(jsCode, sandbox);
-         |  const exports = sandbox.module.exports || sandbox.exports || sandbox;
-         |
-         |  const suites = [];
-         |  function findTests(obj, prefix) {
-         |    if (!obj || typeof obj !== 'object') return;
-         |    for (const key of Object.keys(obj)) {
-         |      const val = obj[key];
-         |      const fullName = prefix ? prefix + '.' + key : key;
-         |      // Look for classes with test methods
-         |      if (typeof val === 'function' && hasTestMethods(val)) {
-         |        suites.push({ name: key, fullyQualifiedName: fullName });
-         |      } else if (typeof val === 'object') {
-         |        findTests(val, fullName);
-         |      }
-         |    }
+         |  require('${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}');
+         |  const seen = [];
+         |  for (const test of registeredTests) {
+         |    const moduleName = test.module || 'default';
+         |    if (!seen.includes(moduleName)) seen.push(moduleName);
          |  }
-         |
-         |  function hasTestMethods(ctor) {
-         |    if (!ctor.prototype) return false;
-         |    const proto = ctor.prototype;
-         |    return Object.getOwnPropertyNames(proto).some(name =>
-         |      name.startsWith('test') || name.endsWith('_test') ||
-         |      (typeof proto[name] === 'function' && proto[name].$$testMarker)
-         |    );
-         |  }
-         |
-         |  findTests(exports, '');
-         |  console.log(JSON.stringify(suites));
+         |  console.log(JSON.stringify(seen.map(m => ({ name: m.split('.').pop(), fullyQualifiedName: m }))));
          |} catch (err) {
          |  console.error('Discovery failed:', err.message);
          |  console.log('[]');
          |}
          |""".stripMargin
 
-    private def createTestRunnerScript(jsOutput: Path): String = {
+    /** @param onlySuites
+      *   suites the caller asked for. Empty means everything — which is what an artifact that could not enumerate itself gets.
+      *
+      * This used to be ignored: `runTests` took a suite list and the parameter was marked `@annotation.unused`, so asking for one suite ran the whole module.
+      * Nothing noticed because every Kotlin/JS project was discovered as a single synthetic suite, so nobody ever asked for a subset.
+      */
+    private def createTestRunnerScript(jsOutput: Path, onlySuites: List[String]): String = {
       // Kotlin/JS kotlin.test uses QUnit adapter by default, so we need to provide QUnit stubs
       // that capture and run the registered tests
       s"""
@@ -284,6 +278,9 @@ object KotlinTestRunner {
          |  // Load the Kotlin/JS module - this registers tests via QUnit.test() calls
          |  require(jsPath);
          |
+         |  // Only the suites the caller asked for. An empty list means "everything", which is what a module that could not be enumerated gets.
+         |  const onlySuites = ${onlySuites.map(n => "'" + n.replace("\\", "\\\\").replace("'", "\\'") + "'").mkString("[", ", ", "]")};
+         |
          |  // Group tests by module
          |  const testsByModule = {};
          |  for (const test of registeredTests) {
@@ -294,6 +291,7 @@ object KotlinTestRunner {
          |
          |  // Run tests
          |  for (const [moduleName, tests] of Object.entries(testsByModule)) {
+         |    if (onlySuites.length > 0 && !onlySuites.includes(moduleName)) continue;
          |    emit('suite-started', moduleName);
          |    let passed = 0, failed = 0, skipped = 0;
          |
@@ -372,14 +370,13 @@ object KotlinTestRunner {
               ProcessRunner.lines(process.getInputStream).compile.toList.flatMap { outputLines =>
                 IO.blocking(process.waitFor()).map { exitCode =>
                   if (exitCode == 0) {
-                    Right(
-                      outputLines
-                        .filter(_.nonEmpty)
-                        .map { line =>
-                          val name = line.split('.').lastOption.getOrElse(line)
-                          TestSuite(name, line.trim)
-                        }
-                    )
+                    // `--ktest_list_tests` prints a tree, not a list:
+                    //   example.KotlinTestFixture.
+                    //     adds
+                    //     measures
+                    // A suite is an unindented line; the indented lines under it are its tests. Reading every line as a suite — which this did — produced one
+                    // "suite" called "" and others called "  adds".
+                    Right(parseListedSuites(outputLines))
                   } else {
                     // Non-zero exit is expected when --ktest_list_tests is not supported
                     // Return empty list meaning "run all tests"
@@ -425,11 +422,19 @@ object KotlinTestRunner {
         currentSuite: Option[String],
         suitePassed: Int,
         suiteFailed: Int,
-        suiteSkipped: Int
+        suiteSkipped: Int,
+        /** Whether `[==========] N tests ... ran` was seen — i.e. the binary reached the end of its run and printed a summary.
+          *
+          * The suite used to be closed on that line. It is now closed at process exit instead, so that the skipped listing printed *after* it can still be
+          * attributed. But "closed at exit" must not become "closed unconditionally": a binary that dies mid-suite prints no summary, and leaving
+          * `currentSuite` set is exactly how `interpretExitCode` recognises truncated output. So the close is gated on having seen the summary, which keeps
+          * both behaviours — the normal run closes cleanly, the truncated run still reports as truncated.
+          */
+        sawSummary: Boolean
     )
 
     private object NativeRunState {
-      val empty: NativeRunState = NativeRunState(0, 0, 0, 0, None, 0, 0, 0)
+      val empty: NativeRunState = NativeRunState(0, 0, 0, 0, None, 0, 0, 0, false)
     }
 
     // Kotlin/Native test output patterns (Google Test format)
@@ -439,11 +444,46 @@ object KotlinTestRunner {
     //   [ RUN      ] example.KotlinNativeTest.testAddItem
     //   [       OK ] example.KotlinNativeTest.testAddItem (0 ms)
     //   [  PASSED  ] 5 tests.
-    private val suiteStartPattern = """^\[----------\]\s+\d+\s+tests?\s+from\s+(.+)$""".r
+    // GTest prints this line twice per suite — once on entry, once on exit with a total appended:
+    //   [----------] 4 tests from example.KotlinTestFixture
+    //   [----------] 4 tests from example.KotlinTestFixture (0 ms total)
+    // `(.+)$` matched both, so every suite was opened a second time under the name `example.KotlinTestFixture (0 ms total)`. That phantom carried its own
+    // copies of the failures, which is how a four-test fixture reported six of them. The opening line is the one with no parenthesis in it.
+    /** `--ktest_list_tests` prints a tree, not a list:
+      * {{{
+      * example.KotlinTestFixture.
+      *   adds
+      *   measures
+      * }}}
+      * A suite is an unindented line; the indented lines beneath it are its tests. Reading every line as a suite — which this did before anything called it —
+      * produced one "suite" named "" and others named " adds".
+      */
+    private[bsp] def parseListedSuites(outputLines: List[String]): List[TestSuite] =
+      outputLines
+        .filter(line => line.nonEmpty && !line.startsWith(" ") && !line.startsWith("\t"))
+        .map(_.trim.stripSuffix("."))
+        .filter(_.nonEmpty)
+        .distinct
+        .map(fqn => TestSuite(fqn.split('.').lastOption.getOrElse(fqn), fqn))
+
+    private[bsp] val suiteStartPattern = """^\[----------\]\s+\d+\s+tests?\s+from\s+([^(]+?)\s*$""".r
     private val testRunPattern = """^\[\s+RUN\s+\]\s+(.+)$""".r
     private val testOkPattern = """^\[\s+OK\s+\]\s+(.+?)(?:\s+\(\d+\s+ms\))?$""".r
-    private val testFailedPattern = """^\[\s+FAILED\s+\]\s+(.+?)(?:\s+\(\d+\s+ms\))?$""".r
+    // The timing is REQUIRED, not optional, and that is the whole point. GTest reports every failure three times:
+    //   [  FAILED  ] example.Fixture.failsOnPurpose (0 ms)   <- inline, as it happens
+    //   [  FAILED  ] 2 tests, listed below:                  <- a count
+    //   [  FAILED  ] example.Fixture.failsOnPurpose          <- and again in the closing summary
+    // With the timing optional this matched all three, so two real failures were counted five times. Only the inline report carries `(N ms)`.
+    private[bsp] val testFailedPattern = """^\[\s+FAILED\s+\]\s+(.+?)\s+\(\d+\s+ms\)$""".r
     private val summaryPattern = """^\[==========\]\s+(\d+)\s+tests?.*ran""".r
+    // An @Ignore'd test produces NO inline report at all — no `[ RUN ]`, no `[ OK ]`. Its only appearance is the closing summary, which arrives *after*
+    // `[==========]`:
+    //   [  SKIPPED ] 1 test, listed below:
+    //   [  SKIPPED ] example.Fixture.skippedOnPurpose
+    // The count line carries spaces after the bracket and the name line does not, so anchoring `\S+` to end-of-line separates them without a second pattern.
+    // The suite header still counts the test ("3 tests from example.Fixture" for two that run), so dropping these lost a case the binary had already
+    // accounted for: the report said 4 tests where the fixture has 5, with skipped=0.
+    private[bsp] val testSkippedPattern = """^\[\s+SKIPPED\s+\]\s+(\S+)$""".r
 
     def runTests(
         binary: Path,
@@ -464,7 +504,9 @@ object KotlinTestRunner {
             val command = if (suites.isEmpty) {
               Seq(binary.toAbsolutePath.toString)
             } else {
-              Seq(binary.toAbsolutePath.toString, "--ktest_filter=" + suites.map(_.fullyQualifiedName).mkString(":"))
+              // `--ktest_filter` matches *test* names, so a suite needs a trailing `.*`. Measured against a real binary: `example.Fixture` runs 0 tests,
+              // `example.Fixture.*` runs all 4. Passing the bare name — which this did — silently ran nothing.
+              Seq(binary.toAbsolutePath.toString, "--ktest_filter=" + suites.map(s => s"${s.fullyQualifiedName}.*").mkString(":"))
             }
 
             val pb = new ProcessBuilder(command.asJava)
@@ -519,7 +561,7 @@ object KotlinTestRunner {
                         stateRef.get.flatMap { st =>
                           st.currentSuite.traverse_ { suite =>
                             val testName = test.split('.').lastOption.getOrElse(test)
-                            IO.delay(eventHandler.onTestFinished(suite, testName, TestStatus.Passed, 0, None))
+                            IO.delay(eventHandler.onTestFinished(suite, testName, TestStatus.Passed, 0, None, None))
                           }
                         } >> stateRef.update(st => st.copy(suitePassed = st.suitePassed + 1))
 
@@ -527,12 +569,27 @@ object KotlinTestRunner {
                         stateRef.get.flatMap { st =>
                           st.currentSuite.traverse_ { suite =>
                             val testName = test.split('.').lastOption.getOrElse(test)
-                            IO.delay(eventHandler.onTestFinished(suite, testName, TestStatus.Failed, 0, None))
+                            IO.delay(eventHandler.onTestFinished(suite, testName, TestStatus.Failed, 0, None, None))
                           }
                         } >> stateRef.update(st => st.copy(suiteFailed = st.suiteFailed + 1))
 
+                      case testSkippedPattern(test) =>
+                        // Attributed from the name rather than from `currentSuite`: these lines arrive after the run's summary, and the suite they belong
+                        // to is fully qualified in the name itself.
+                        val suite = test.split('.').dropRight(1).mkString(".")
+                        val testName = test.split('.').lastOption.getOrElse(test)
+                        stateRef.get.flatMap { st =>
+                          if (st.currentSuite.contains(suite))
+                            IO.delay(eventHandler.onTestFinished(suite, testName, TestStatus.Skipped, 0, None, None)) >>
+                              stateRef.update(x => x.copy(suiteSkipped = x.suiteSkipped + 1))
+                          else IO.unit
+                        }
+
                       case summaryPattern(_) =>
-                        finishCurrentSuite
+                        // Records that the run finished; deliberately does NOT close the suite. The skipped listing comes after this line, and a closed
+                        // suite has no `currentSuite` to attribute it to. `onNormalExit` closes instead — it runs on every exit that was not a kill,
+                        // whatever the exit code, so a run that ends non-zero because tests failed still gets its counts.
+                        stateRef.update(_.copy(sawSummary = true))
 
                       case _ =>
                         stateRef.get.flatMap { st =>
@@ -564,7 +621,7 @@ object KotlinTestRunner {
                   killSignal = killSignal,
                   killDescendants = false,
                   preRun = IO.unit,
-                  onNormalExit = IO.unit,
+                  onNormalExit = stateRef.get.flatMap(st => if (st.sawSummary) finishCurrentSuite else IO.unit),
                   cleanup = IO.unit
                 )
               )

@@ -1,0 +1,43 @@
+.details {
+  margin: 0.75rem 0;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background-color: var(--ifm-background-surface-color);
+}
+
+.summary {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: var(--ifm-font-weight-semibold);
+  list-style: none;
+  user-select: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.details[open] > .summary::before {
+  content: "▾";
+}
+
+.summary:hover {
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.content {
+  padding: 0 0.9rem 0.6rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* The first table/paragraph shouldn't hug the border. */
+.content > :first-child {
+  margin-top: 0.75rem;
+}

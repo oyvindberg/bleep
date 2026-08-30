@@ -88,16 +88,19 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     state.testsPassed shouldBe 3
   }
 
-  test("SuiteFinished(Empty) — a discovered suite that ran nothing — is a failure") {
+  test("SuiteFinished(Empty) — a suite with no tests in it — is not a failure") {
+    // A test class someone has created and not filled in yet is an ordinary thing to have. This used to fail the build, and inconsistently: munit reports
+    // such a class as skipped and the build passed, ScalaTest reports it as empty and the same build failed — so whether an unwritten test class broke your
+    // build depended on which framework you had. The case that rule was really catching, a framework swallowing an exception thrown while constructing the
+    // suite, is a bug in that framework and is recorded as one instead.
     val state = reduce(
       BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.EmptySuite"), ts),
       BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.EmptySuite"), SuiteOutcome.Empty, durationMs = 42, ts + 1)
     )
     state.suitesCompleted shouldBe 1
-    state.suitesFailed shouldBe 1
-    state.testsFailed shouldBe 1
-    state.failures should have size 1
-    state.failures.head.test shouldBe tn("(suite failed)")
+    state.suitesFailed shouldBe 0
+    state.testsFailed shouldBe 0
+    state.failures shouldBe empty
   }
 
   test("SuiteFinished(NoFrameworkMatched) is a failure") {

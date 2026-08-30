@@ -40,7 +40,7 @@ class DiffFlagCliIT extends IntegrationTestHarness {
       junitReportDir = None,
       diffBase = diffBase,
       diffOutput = bleep.OutputMode.Json,
-      clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+      clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
     )
 
   /** Capture what `body` printed to stdout via println — the channel the diff JSON and the timing hint use (log lines go through the logger, not here). */

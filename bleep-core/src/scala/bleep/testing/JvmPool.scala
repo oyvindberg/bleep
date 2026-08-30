@@ -93,6 +93,36 @@ trait TestJvm {
 
 object JvmPool {
 
+  /** Tells a JDK 24+ JVM not to print its `sun.misc.Unsafe` deprecation notice. Older JVMs reject it outright, so it is only ever passed to one that took it.
+    */
+  private val UnsafeMemoryAccessFlag = "--sun-misc-unsafe-memory-access=allow"
+
+  private val unsafeFlagSupport = new java.util.concurrent.ConcurrentHashMap[String, java.lang.Boolean]()
+
+  /** Does this JVM accept [[UnsafeMemoryAccessFlag]]?
+    *
+    * Asked once per `java` binary and cached, by starting it with the flag and nothing else. A probe rather than a version comparison because the question is
+    * exactly "does this accept the flag" — parsing `java -version` to infer it adds a format to get wrong for no gain.
+    *
+    * A probe that cannot be run at all answers "no": the flag is a nicety, and a fork that starts with a warning beats one that does not start.
+    */
+  private def acceptsUnsafeMemoryAccessFlag(javaPath: java.nio.file.Path): Boolean =
+    unsafeFlagSupport
+      .computeIfAbsent(
+        javaPath.toString,
+        _ =>
+          java.lang.Boolean.valueOf {
+            try {
+              val pb = new ProcessBuilder(javaPath.toString, UnsafeMemoryAccessFlag, "-version")
+              pb.redirectErrorStream(true)
+              pb.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+              val p = pb.start()
+              p.waitFor(30, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0
+            } catch { case _: Exception => false }
+          }
+      )
+      .booleanValue()
+
   /** How long a freshly spawned fork gets to connect back on the protocol socket.
     *
     * Generous, because it covers JVM startup on a cold, loaded CI runner, and bounded, because a fork that never connects would otherwise hang the suite
@@ -209,7 +239,18 @@ object JvmPool {
               )
             case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
             case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code), not by bleep", None)
-            case code               => ExitDescription(s"exited with code $code", None)
+            case code               =>
+              // The same diagnosis as the exit-0 case, which already names System.exit. A test calling `System.exit(3)` lands here rather than there, and
+              // used to be reported as a bare "exited with code 3" — accurate and unhelpful. bleep cannot prevent the call: the runner installs a
+              // SecurityManager to block it, and JDK 24 removed SecurityManager, so on any current JVM the exit goes through and the fork simply dies.
+              ExitDescription(
+                s"exited with code $code",
+                Some(
+                  s"The JVM exited without sending a suite result. A test calling System.exit($code) is the usual cause; bleep cannot block that on JDK 24+, " +
+                    "where the SecurityManager it relied on no longer exists. Everything the suite had reported before the exit is kept, and the suite is " +
+                    "marked as not finished."
+                )
+              )
           }
     }
   }
@@ -696,11 +737,20 @@ object JvmPool {
                 // When the classpath is too long, pass it via CLASSPATH environment variable instead.
                 val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
+                // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
+                // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
+                // `<system-err>` of every report.
+                //
+                // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
+                // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
+                // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
+                // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
+                val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
                 val cmd =
                   if (useEnvClasspath)
-                    List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
                   else
-                    List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
                 // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
                 // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON

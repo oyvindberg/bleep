@@ -630,7 +630,7 @@ object Main {
                   junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
                   diffBase = diffBase,
                   diffOutput = diffOutput,
-                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
                 )
                 val scope = invalidated match {
                   case None            => commands.Ci.Scope.Everything(None)
@@ -760,7 +760,7 @@ object Main {
                   junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
                   diffBase = diffBase,
                   diffOutput = diffOutput,
-                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+                  clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
                 )
                 val cmd: BleepBuildCommand = (invalidated, maybeProjectNames) match {
                   case (Some(_), Some(_))      => invalidatedTakesNoProjects("test")

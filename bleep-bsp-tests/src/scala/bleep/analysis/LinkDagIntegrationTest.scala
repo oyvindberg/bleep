@@ -41,7 +41,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> LinkPlatform.Jvm),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -66,7 +67,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -94,7 +96,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -115,7 +118,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(app -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -144,7 +148,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         ),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -168,7 +173,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -192,7 +198,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = true
     )
@@ -211,7 +218,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> LinkPlatform.Jvm),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -236,7 +244,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -258,7 +267,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
             )
           )
         },
-        discover = (_, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -288,7 +297,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -304,7 +314,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
               LinkResult.JsSuccess(java.nio.file.Path.of("out.js"), None, Seq.empty, wasUpToDate = false)
             )
           ),
-        discover = (_, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -341,7 +351,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map(project -> platform),
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -350,7 +361,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-        discover = (_, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false))),
+        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false))),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in this DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),

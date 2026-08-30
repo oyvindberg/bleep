@@ -55,7 +55,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
     dag.tasks.values.collect { case t: SourcegenTask => t } shouldBe empty
@@ -79,7 +80,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -112,7 +114,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -145,7 +148,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -176,7 +180,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -207,7 +212,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -235,7 +241,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -260,7 +267,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -289,7 +297,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -300,7 +309,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -335,7 +344,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -350,7 +360,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           else if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -387,7 +397,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -400,7 +411,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -436,7 +447,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -449,7 +461,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success), // up-to-date fast path
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -487,7 +499,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -496,7 +509,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -540,7 +553,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -549,7 +563,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.pure(TaskResult.Failure("boom", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -587,7 +601,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -600,7 +615,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -636,7 +651,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -648,7 +664,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) =>
           record("sourcegen:start") >>
@@ -686,7 +702,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -695,7 +712,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.raiseError(new RuntimeException("bleep-test-runner resolution returned no jars")),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
@@ -739,7 +756,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         platforms = Map.empty,
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
-        kspPlan = SymbolProcessorPlan.empty
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty
       )
     )
 
@@ -748,7 +766,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _) => sys.error("DiscoverTask should not appear here"),
+        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         sourcegen = (_, _) => IO.raiseError(new RuntimeException("generator blew up")),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),

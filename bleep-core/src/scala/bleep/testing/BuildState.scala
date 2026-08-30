@@ -229,20 +229,24 @@ object BuildStateReducer {
         runningTests = state.runningTests + key
       )
 
-    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, _, _, location) =>
+    // `throwable` is bound and used, not discarded. It used to be `_`, with `None` passed to every TestFailure below — so the stack trace travelled all the
+    // way from the forked runner into this event and was dropped one line before display. A failing test showed its message and nothing else: for an
+    // assertion that is often enough, but for an exception thrown from a constructor the message alone ("ctor boom") says nothing about where it came from,
+    // and the frames were sitting right here. The JUnit XML had them the whole time, which is why the two disagreed.
+    case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, _, location) =>
       val testKey = TestKey(project, suite, test)
       val suiteKey = testKey.suiteKey
 
       val updatedFailures = status match {
         case TestStatus.Failed | TestStatus.Error =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.TestFailed, location) :: state.failures
+          TestFailure(project, suite, test, message, throwable, output, FailureCategory.TestFailed, location) :: state.failures
         case TestStatus.Timeout =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.Timeout, location) :: state.failures
+          TestFailure(project, suite, test, message, throwable, output, FailureCategory.Timeout, location) :: state.failures
         case TestStatus.Cancelled =>
           val output = state.pendingOutput.getOrElse(suiteKey, Nil)
-          TestFailure(project, suite, test, message, None, output, FailureCategory.Cancelled, location) :: state.failures
+          TestFailure(project, suite, test, message, throwable, output, FailureCategory.Cancelled, location) :: state.failures
         case TestStatus.AssumptionFailed => state.failures // not a failure
         case _                           => state.failures
       }
@@ -280,8 +284,9 @@ object BuildStateReducer {
       val failureReason: Option[String] = outcome match {
         case SuiteOutcome.Executed(_, failed, _, _) if failed > 0 =>
           Some(s"Suite reported $failed failure(s) but no individual test results were captured")
-        case _: SuiteOutcome.Executed         => None
-        case SuiteOutcome.Empty               => Some(s"Suite ${suite.value} was discovered but executed 0 tests")
+        case _: SuiteOutcome.Executed => None
+        // Not a failure: a suite with no tests in it is a normal thing to have. See SuiteOutcome.isFailure.
+        case SuiteOutcome.Empty               => None
         case SuiteOutcome.NoFrameworkMatched  => Some(s"No test framework/engine claimed ${suite.value}")
         case SuiteOutcome.Errored(message, _) => Some(message)
       }
@@ -302,6 +307,16 @@ object BuildStateReducer {
           )
         case _ => Nil
       }
+      // The suite's complete captured output, handed to every failure it produced.
+      //
+      // A failure records whatever had been captured at the moment that *test* finished, and for several frameworks the explanation is written later: weaver
+      // logs its failure summary once the whole suite is done, so a weaver failure was displayed with bleep's own startup chatter and nothing else, while the
+      // JUnit XML — which accumulates per suite — had the reason all along. `pendingOutput` is only cleared here, so at this point it holds everything.
+      val suiteOutput = state.pendingOutput.getOrElse(key, Nil)
+      val failuresWithSuiteOutput = state.failures.map { failure =>
+        if (failure.project == project && failure.suite == suite) failure.copy(output = suiteOutput) else failure
+      }
+
       val isFailure = outcome.isFailure
       // For a failing suite with no per-test failures already counted, surface one failed test so
       // count-based gates see it even when other suites in the run passed. Executed(failed>0) whose
@@ -314,7 +329,7 @@ object BuildStateReducer {
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
-        failures = syntheticFailures ++ state.failures
+        failures = syntheticFailures ++ failuresWithSuiteOutput
       )
 
     case BuildEvent.Output(project, suite, line, _, _) =>
@@ -383,26 +398,48 @@ object BuildStateReducer {
       val output = state.pendingOutput.getOrElse(key, Nil)
       // Only count as new failure if SuiteFinished didn't already count it
       val alreadyCounted = state.failures.exists(f => f.project == project && f.suite == suite)
-      val errorFailure = TestFailure(
-        project = project,
-        suite = suite,
-        test = TestName("(process error)"),
-        message = Some(desc),
-        throwable = None,
-        output = output,
-        category = FailureCategory.ProcessError,
-        // the forked JVM died; whatever it was doing never produced a throwable
-        location = None
-      )
-      state.copy(
-        suitesCompleted = if (alreadyCounted) state.suitesCompleted else state.suitesCompleted + 1,
-        suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + 1,
-        testsFailed = if (alreadyCounted) state.testsFailed else state.testsFailed + 1,
-        runningSuites = state.runningSuites - key,
-        suiteStartTimes = state.suiteStartTimes - key,
-        pendingOutput = state.pendingOutput - key,
-        failures = errorFailure :: state.failures
-      )
+      // A suite that dies can produce both events: `SuiteFinished` says it reported failures with no per-test results, then `SuiteError` says the process
+      // exited non-zero. They are one event from a reader's side, and reporting them as two put the same suite in the Process Errors list twice — once saying
+      // nothing was captured, once saying it exited 1, neither mentioning the other. The counts were already guarded against this; the list was not.
+      //
+      // Merged rather than dropped, because each half carries something the other lacks: the reason, and the exit status.
+      val syntheticForSuite =
+        state.failures.find(f => f.project == project && f.suite == suite && (f.test.value == "(suite failed)" || f.test.value == "(process error)"))
+      syntheticForSuite match {
+        case Some(existing) =>
+          val merged = existing.copy(
+            message = existing.message.map(m => if (m.contains(desc)) m else s"$m\n$desc").orElse(Some(desc)),
+            output = if (existing.output.nonEmpty) existing.output else output,
+            category = FailureCategory.ProcessError
+          )
+          state.copy(
+            runningSuites = state.runningSuites - key,
+            suiteStartTimes = state.suiteStartTimes - key,
+            pendingOutput = state.pendingOutput - key,
+            failures = state.failures.map(f => if (f eq existing) merged else f)
+          )
+        case None =>
+          val errorFailure = TestFailure(
+            project = project,
+            suite = suite,
+            test = TestName("(process error)"),
+            message = Some(desc),
+            throwable = None,
+            output = output,
+            category = FailureCategory.ProcessError,
+            // the forked JVM died; whatever it was doing never produced a throwable
+            location = None
+          )
+          state.copy(
+            suitesCompleted = if (alreadyCounted) state.suitesCompleted else state.suitesCompleted + 1,
+            suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + 1,
+            testsFailed = if (alreadyCounted) state.testsFailed else state.testsFailed + 1,
+            runningSuites = state.runningSuites - key,
+            suiteStartTimes = state.suiteStartTimes - key,
+            pendingOutput = state.pendingOutput - key,
+            failures = errorFailure :: state.failures
+          )
+      }
 
     case BuildEvent.Error(message, details, _) =>
       // Error events are project-less — use a synthetic project name for the failure record
@@ -435,7 +472,7 @@ object BuildStateReducer {
     case BuildEvent.LinkStarted(project, _, _) =>
       state.copy(currentlyLinking = state.currentlyLinking + project)
 
-    case BuildEvent.LinkSucceeded(project, _, durationMs, _) =>
+    case BuildEvent.LinkSucceeded(project, _, durationMs, _, _) =>
       state.copy(
         currentlyLinking = state.currentlyLinking - project,
         linksCompleted = state.linksCompleted + 1,

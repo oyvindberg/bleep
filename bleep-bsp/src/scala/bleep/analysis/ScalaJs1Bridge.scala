@@ -79,28 +79,28 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     checkCancellation(cancellation)
 
     // Get IR files from classpath (use linkerObj to get IRFileCache via StandardImpl.irFileCache())
-    logger.info(s"[ScalaJs1Bridge] Collecting IR files from ${classpath.size} classpath entries")
+    logger.debug(s"[ScalaJs1Bridge] Collecting IR files from ${classpath.size} classpath entries")
     val irFilesSeq = collectIRFiles(classpath, pathIRContainerObj, linkerObj, loader)
-    logger.info(s"[ScalaJs1Bridge] Collected IR files: ${irFilesSeq.getClass.getName}")
+    logger.debug(s"[ScalaJs1Bridge] Collected IR files: ${irFilesSeq.getClass.getName}")
 
     // Check cancellation
     checkCancellation(cancellation)
 
     // Create module initializers
-    logger.info(s"[ScalaJs1Bridge] Creating module initializers for mainClass=$mainClass, isTest=$isTest")
+    logger.debug(s"[ScalaJs1Bridge] Creating module initializers for mainClass=$mainClass, isTest=$isTest")
     val moduleInitializers = createModuleInitializers(mainClass, moduleInitializerObj, loader, isTest)
 
     // Create output directory handler
     val outputDirectory = createOutputDirectory(outputDir, pathOutputDirectoryObj)
-    logger.info(s"[ScalaJs1Bridge] Output directory: $outputDir")
+    logger.debug(s"[ScalaJs1Bridge] Output directory: $outputDir")
 
     // Check cancellation before linking
     checkCancellation(cancellation)
 
     // Link
-    logger.info(s"[ScalaJs1Bridge] Starting linker...")
+    logger.debug(s"[ScalaJs1Bridge] Starting linker...")
     runLinker(linker, irFilesSeq, moduleInitializers, outputDirectory, scalaJsLogger, loader, cancellation)
-    logger.info(s"[ScalaJs1Bridge] Linker completed")
+    logger.debug(s"[ScalaJs1Bridge] Linker completed")
 
     // Check cancellation after linking
     checkCancellation(cancellation)
@@ -115,7 +115,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
         name.endsWith(".js") || name.endsWith(".js.map")
       }
       .toSeq
-    logger.info(s"[ScalaJs1Bridge] Found ${outputFiles.size} output files in $outputDir")
+    logger.debug(s"[ScalaJs1Bridge] Found ${outputFiles.size} output files in $outputDir")
 
     val mainJs = outputDir.resolve(s"$moduleName.js")
     val actualMainJs = if (Files.exists(mainJs)) mainJs else outputFiles.find(_.toString.endsWith(".js")).getOrElse(mainJs)

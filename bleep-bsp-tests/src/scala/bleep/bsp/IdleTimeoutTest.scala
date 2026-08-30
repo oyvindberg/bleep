@@ -26,13 +26,14 @@ class IdleTimeoutTest extends AnyFunSuite with Matchers {
     */
   private val uncancellable: IO[Nothing] = IO.uncancelable(_ => IO.never)
 
-  private def constantActivity(at: FiniteDuration): IO[FiniteDuration] = IO.pure(at)
+  private def constantActivity(at: FiniteDuration): IO[Ref[IO, FiniteDuration]] = Ref.of[IO, FiniteDuration](at)
 
   test("fires at exactly the idle deadline when nothing reports progress") {
     val program = for {
       fired <- Ref.of[IO, Boolean](false)
       started <- IO.monotonic
-      result <- IdleTimeout.bound(Idle, Grace, constantActivity(started), fired.set(true))(uncancellable)
+      activity <- constantActivity(started)
+      result <- IdleTimeout.bound(Idle, Grace, activity, fired.set(true))(uncancellable)
       at <- IO.monotonic
       wasAsked <- fired.get
     } yield (result, at - started, wasAsked)
@@ -50,7 +51,7 @@ class IdleTimeoutTest extends AnyFunSuite with Matchers {
       ticker = (IO.sleep(Idle / 2) >> IO.monotonic.flatMap(lastActivity.set)).foreverM
       // Work that finishes well after the idle bound but never goes quiet for it.
       work = IO.sleep(Idle * 5).as("done")
-      result <- IdleTimeout.bound(Idle, Grace, lastActivity.get, IO.unit)(work).race(ticker)
+      result <- IdleTimeout.bound(Idle, Grace, lastActivity, IO.unit)(work).race(ticker)
     } yield result
 
     TestControl.executeEmbed(program).unsafeRunSync() shouldBe Left(Right("done"))
@@ -60,7 +61,8 @@ class IdleTimeoutTest extends AnyFunSuite with Matchers {
     val program = for {
       fired <- Ref.of[IO, Boolean](false)
       started <- IO.monotonic
-      result <- IdleTimeout.bound(Idle, Grace, constantActivity(started), fired.set(true))(IO.sleep(1.second).as(42))
+      activity <- constantActivity(started)
+      result <- IdleTimeout.bound(Idle, Grace, activity, fired.set(true))(IO.sleep(1.second).as(42))
       at <- IO.monotonic
       wasAsked <- fired.get
     } yield (result, at - started, wasAsked)
@@ -77,7 +79,8 @@ class IdleTimeoutTest extends AnyFunSuite with Matchers {
       started <- IO.monotonic
       // Notices the request after a second, well inside the grace period.
       work = stop.get >> IO.sleep(1.second) >> IO.pure("tidy")
-      result <- IdleTimeout.bound(Idle, Grace, constantActivity(started), stop.complete(()).void)(work)
+      activity <- constantActivity(started)
+      result <- IdleTimeout.bound(Idle, Grace, activity, stop.complete(()).void)(work)
       at <- IO.monotonic
     } yield (result, at - started)
 
@@ -86,9 +89,25 @@ class IdleTimeoutTest extends AnyFunSuite with Matchers {
     elapsed shouldBe (Idle + 1.second)
   }
 
+  test("work that starts long after the clock was created still gets a full idle budget") {
+    // A test suite is preceded by a link, and a Scala Native link can take longer than the whole idle bound. If the clock kept running through it, the suite
+    // would be killed before a single test had a chance to report — so `bound` resets it when the run actually starts.
+    val program = for {
+      activity <- IO.monotonic.flatMap(Ref.of[IO, FiniteDuration])
+      _ <- IO.sleep(Idle * 3) // stands in for a long link, during which nothing reports
+      started <- IO.monotonic
+      result <- IdleTimeout.bound(Idle, Grace, activity, IO.unit)(IO.sleep(Idle - 1.second).as("ran"))
+      at <- IO.monotonic
+    } yield (result, at - started)
+
+    val (result, elapsed) = TestControl.executeEmbed(program).unsafeRunSync()
+    result shouldBe Right("ran")
+    elapsed shouldBe (Idle - 1.second)
+  }
+
   test("an error from the work surfaces rather than being reported as a timeout") {
     val boom = new RuntimeException("boom")
-    val program = IO.monotonic.flatMap(started => IdleTimeout.bound(Idle, Grace, constantActivity(started), IO.unit)(IO.raiseError[Int](boom)))
+    val program = IO.monotonic.flatMap(constantActivity).flatMap(a => IdleTimeout.bound(Idle, Grace, a, IO.unit)(IO.raiseError[Int](boom)))
     TestControl.executeEmbed(program).attempt.unsafeRunSync().left.map(_.getMessage) shouldBe Left("boom")
   }
 }

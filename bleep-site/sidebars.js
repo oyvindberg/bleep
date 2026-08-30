@@ -413,6 +413,11 @@ const sidebars = {
           label: "Test Frameworks",
           id: "appendix/test-frameworks",
         },
+        {
+          type: "doc",
+          label: "Test Framework Support Matrix",
+          id: "appendix/test-framework-matrix",
+        },
       ],
     },
 

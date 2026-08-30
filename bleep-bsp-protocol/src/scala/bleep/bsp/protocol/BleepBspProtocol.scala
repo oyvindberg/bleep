@@ -201,8 +201,17 @@ object BleepBspProtocol {
     def capture(raw: Map[String, String]): Map[String, String] =
       raw.filterNot { case (k, _) => denied.contains(k) }
 
-    /** The current process's environment, filtered. Call this on the client, never on the daemon. */
-    def current(): Map[String, String] = capture(sys.env)
+    /** The current process's environment, filtered. Call this on the client, never on the daemon.
+      *
+      * `noColor` adds `NO_COLOR` when the user asked for no colour on the command line. Test frameworks decide whether to colourise by asking
+      * `sbt.testing.Logger.ansiCodesSupported`, which the forked runner answers from this variable — so `--no-color` and the `NO_COLOR` convention both reach
+      * the framework and it never emits escapes in the first place. Without it, `bleep test --no-color` still produced ANSI-coloured framework output, since
+      * the flag lives in the client JVM and the fork is a different process entirely.
+      */
+    def current(noColor: Boolean): Map[String, String] = {
+      val base = capture(sys.env)
+      if (noColor) base.updated("NO_COLOR", "1") else base
+    }
   }
 
   // ==========================================================================
@@ -406,6 +415,13 @@ object BleepBspProtocol {
         success: Boolean,
         durationMs: Long,
         outputPath: Option[String],
+        /** Everything the link produced, not just its entry point.
+          *
+          * `outputPath` names the main module or binary; a Scala.js link also emits per-module chunks and a source map beside it. Consumers that want to copy,
+          * hash or publish a link's output had no way to learn about those from this event and had to go rummaging in the output directory — which is the same
+          * "derive it from convention" mistake that made `bleep link` and `bleep test` disagree about where artifacts live. Empty on failure.
+          */
+        generatedFiles: List[String],
         timestamp: Long,
         platform: LinkPlatformName,
         error: Option[String]

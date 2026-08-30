@@ -373,7 +373,14 @@ object TaskDag {
         project: CrossProjectName,
         result: LinkResult,
         durationMs: Long,
-        timestamp: Long
+        timestamp: Long,
+        /** The platform actually linked, carried rather than inferred.
+          *
+          * [[LinkResult]] only distinguishes JS from Native, so reconstructing the name downstream reported every Kotlin/JS link as "Scala.js", every
+          * Kotlin/Native link as "Scala Native", and every *failure* as "JVM" — `❌ link failed [JVM]` for a Scala.js project. The task knows which platform it
+          * ran; [[LinkStarted]] already carries it, and now so does this.
+          */
+        platform: bleep.bsp.protocol.LinkPlatformName
     ) extends DagEvent
 
     // Test-specific events (nested within TestSuiteTask execution)
@@ -468,8 +475,19 @@ object TaskDag {
       skipped: Set[TaskId],
       killed: Set[TaskId],
       timedOut: Set[TaskId],
-      linkResults: Map[TaskId, LinkResult]
+      linkResults: Map[TaskId, LinkResult],
+      /** What each project's link actually produced, keyed so the tasks that run *after* it can ask.
+        *
+        * The linker is the only thing that knows where its output landed; every consumer used to rebuild that path from convention instead —
+        * `targetDir / linkDirSuffix(...) / "js" / s"$moduleName.js"` in one place, a list of four candidate paths tried in order in another. Two derivations of
+        * one fact, in code that has to agree with a third (the linker's own), and they did not: `bleep link` writes under `link-output/` while the test path
+        * looks under `builds/<suffix>/`, so a linked artifact was invisible to the run that needed it.
+        */
+      linkOutputs: Map[CrossProjectName, LinkResult]
   ) {
+
+    /** What this project's link produced, if it has been linked in this run. */
+    def linkOutputFor(project: CrossProjectName): Option[LinkResult] = linkOutputs.get(project)
 
     /** All finished tasks (any terminal state) */
     def finished: Set[TaskId] = completed ++ failed ++ errored ++ skipped ++ killed ++ timedOut
@@ -532,8 +550,8 @@ object TaskDag {
       copy(tasks = tasks + (task.id -> task))
 
     /** Record a link result for a task */
-    def recordLinkResult(taskId: TaskId, result: LinkResult): Dag =
-      copy(linkResults = linkResults + (taskId -> result))
+    def recordLinkResult(taskId: TaskId, project: CrossProjectName, result: LinkResult): Dag =
+      copy(linkResults = linkResults + (taskId -> result), linkOutputs = linkOutputs + (project -> result))
 
     /** Check if DAG execution is complete */
     def isComplete: Boolean = finished == tasks.keySet
@@ -572,11 +590,11 @@ object TaskDag {
   }
 
   object Dag {
-    def empty: Dag = Dag(Map.empty[TaskId, Task], Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty)
+    def empty: Dag = Dag(Map.empty[TaskId, Task], Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty, Map.empty)
 
     /** Create DAG from a set of tasks */
     def fromTasks(tasks: Seq[Task]): Dag =
-      Dag(tasks.map(t => t.id -> t).toMap, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty)
+      Dag(tasks.map(t => t.id -> t).toMap, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty, Map.empty)
   }
 
   /** Plan for sourcegen DAG integration.
@@ -631,7 +649,15 @@ object TaskDag {
       platforms: Map[CrossProjectName, LinkPlatform],
       sourcegen: SourcegenPlan,
       apPlan: AnnotationProcessorPlan,
-      kspPlan: SymbolProcessorPlan
+      kspPlan: SymbolProcessorPlan,
+      /** Which of these projects declared `isTestProject: true`.
+        *
+        * Needed because linking a test project is a different operation from linking a library: Scala.js needs test module initializers, Scala Native and
+        * Kotlin/Native need a generated test-runner entry point instead of a `main`. `bleep link` used to pass `isTest = false` unconditionally, so on a
+        * test-only project it asked all four platforms to link a `main` that does not exist — Scala.js produced no output, Scala Native failed on "requires a
+        * main class", and Kotlin/Native failed with "could not find '/main' function".
+        */
+      testProjects: Set[CrossProjectName]
   )
 
   /** What each kind of forked JVM is charged: its heap plus the non-heap a JVM also commits (metaspace, code cache, stacks, GC structures). Resolved from
@@ -647,6 +673,7 @@ object TaskDag {
 
   object BuildContext {
     val empty: BuildContext = BuildContext(
+      testProjects = Set.empty,
       allProjectDeps = Map.empty,
       platforms = Map.empty,
       sourcegen = SourcegenPlan.empty,
@@ -808,7 +835,7 @@ object TaskDag {
       ctx.platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
         case Some(platform)                =>
-          Some(LinkTask(project, platform, releaseMode, isTest = false))
+          Some(LinkTask(project, platform, releaseMode, isTest = ctx.testProjects(project)))
       }
     }
 
@@ -872,12 +899,13 @@ object TaskDag {
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
-      discover: (DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
-      /** The second argument is what this project's link produced, taken from the executor's own record.
+      /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
+        */
+      discover: (DiscoverTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
+      /** Given the suite to run and what its project's link produced, run it.
         *
-        * Handed over rather than looked up, because a test path that has to find the linker's output itself will find it by rebuilding the path — and two
-        * derivations of one directory drift. Both platform paths did exactly that, from `classes.getParent` where the link used `targetDir`: the same directory
-        * by different arithmetic, with nothing keeping them equal. `None` for a JVM project, which links nothing.
+        * The `LinkResult` is `None` on the JVM, where nothing links, and `Some` for every platform that does. Passing it beats letting the handler rebuild the
+        * path from convention: the linker already knows where it wrote, and a second derivation is a second thing to keep in step with it.
         */
       test: (TestSuiteTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
@@ -1072,15 +1100,16 @@ object TaskDag {
                         _ <- emit(DagEvent.LinkStarted(lt.project, lt.platform.name, linkStartTs))
                         (result, linkResult) <- handlers.link(lt, taskKill)
                         linkEndTs <- now
-                        _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs))
-                        _ <- dagRef.update(_.recordLinkResult(lt.id, linkResult))
+                        _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs, lt.platform.name))
+                        _ <- dagRef.update(_.recordLinkResult(lt.id, lt.project, linkResult))
                       } yield result
                     }
 
                   case dt: DiscoverTask =>
                     withRecovery(s"Discover ${dt.project.value}", taskKill) {
                       for {
-                        (result, discovery) <- handlers.discover(dt, taskKill)
+                        linkOutput <- dagRef.get.map(_.linkResults.get(TaskId.Link(dt.project)))
+                        (result, discovery) <- handlers.discover(dt, linkOutput, taskKill)
                         _ <- result match {
                           case TaskResult.Success =>
                             // Add test tasks for discovered suites

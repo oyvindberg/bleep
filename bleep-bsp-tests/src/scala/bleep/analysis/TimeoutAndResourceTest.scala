@@ -204,7 +204,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   class RecordingHandler extends TestRunnerTypes.TestEventHandler {
     val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
     def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
@@ -213,7 +213,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   class RecordingNativeHandler extends TestRunnerTypes.TestEventHandler {
     val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
     def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))

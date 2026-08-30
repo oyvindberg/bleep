@@ -4,6 +4,8 @@ import bleep.analysis.{CompilerResolver, ScalaJsLinkConfig}
 import bleep.bsp.protocol.{KillReason, OutputChannel}
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import cats.effect.{Deferred, IO}
+import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 /** Runs Scala.js test suites in linked output.
@@ -168,7 +170,98 @@ object ScalaJsTestRunner {
     val ctor = adapterClass.getConstructors
       .find(_.getParameterCount == 3)
       .getOrElse(throw new RuntimeException(s"org.scalajs.testing.adapter.TestAdapter has no 3-argument constructor in Scala.js $scalaJsVersion"))
-    ctor.newInstance(jsEnv, inputSeq, config).asInstanceOf[AnyRef]
+    ctor.newInstance(capturingJsEnv(loader, jsEnv, eventHandler, suiteTag), inputSeq, config).asInstanceOf[AnyRef]
+  }
+
+  /** Wrap a `JSEnv` so the node process's own stdout and stderr reach the test report.
+    *
+    * `TestAdapter` builds its own `RunConfig` and its `Config` exposes only `logger` and `env`, so there is no supported way to ask it to capture the program's
+    * output. What it produces is a default `RunConfig`, which inherits the JVM's stdout and stderr — and the JVM here is a *detached* bleep-bsp daemon whose
+    * own streams go nowhere. So a `println` in a Scala.js test was not merely missing from the report: it was written to a file descriptor nobody reads, and no
+    * `<system-out>` element was emitted at all.
+    *
+    * `JSEnv` is a three-method interface, so it can be proxied the same way [[adapterLogger]] proxies `org.scalajs.logging.Logger`. Both entry points take the
+    * `RunConfig` as their second argument; this replaces that argument with one that turns inheritance off and installs an `onOutputStream` callback, then
+    * delegates. The adapter is none the wiser, and it works for whatever `RunConfig` a future adapter version decides to build, because this modifies the one
+    * it passes rather than constructing its own.
+    */
+  private def capturingJsEnv(loader: ClassLoader, delegate: AnyRef, eventHandler: TestEventHandler, suite: String): AnyRef = {
+    val jsEnvClass = loader.loadClass("org.scalajs.jsenv.JSEnv")
+    val runConfigClass = loader.loadClass("org.scalajs.jsenv.RunConfig")
+
+    val handler = new java.lang.reflect.InvocationHandler {
+      def invoke(proxy: Any, method: java.lang.reflect.Method, rawArgs: Array[AnyRef]): AnyRef = {
+        val args = if (rawArgs == null) Array.empty[AnyRef] else rawArgs
+        // `start` and `startWithCom` both take (input, RunConfig, ...). `name` takes nothing and is passed straight through.
+        val patched = args.map {
+          case cfg if cfg != null && runConfigClass.isInstance(cfg) => withCapture(cfg)
+          case other                                                => other
+        }
+        method.invoke(delegate, patched*)
+      }
+
+      private def withCapture(runConfig: AnyRef): AnyRef = {
+        // RunConfig validates that inheritance and onOutputStream are not both requested, so both must be turned off before the callback goes on.
+        val noInherit = runConfigClass
+          .getMethod("withInheritOut", classOf[Boolean])
+          .invoke(runConfig, java.lang.Boolean.FALSE)
+        val noInheritErr = runConfigClass
+          .getMethod("withInheritErr", classOf[Boolean])
+          .invoke(noInherit, java.lang.Boolean.FALSE)
+        runConfigClass
+          .getMethod("withOnOutputStream", loader.loadClass("scala.Function2"))
+          .invoke(noInheritErr, outputStreamCallback)
+          .asInstanceOf[AnyRef]
+      }
+
+      /** `(Option[InputStream], Option[InputStream]) => Unit`, as a proxy over `scala.Function2`.
+        *
+        * Called once, from the JSEnv, with the process's streams. It must not block — the run has not started draining anything yet — so each stream gets a
+        * daemon thread that forwards lines and exits at EOF.
+        */
+      private def outputStreamCallback: AnyRef =
+        java.lang.reflect.Proxy.newProxyInstance(
+          loader,
+          Array(loader.loadClass("scala.Function2")),
+          (_: Any, m: java.lang.reflect.Method, a: Array[AnyRef]) =>
+            if (m.getName == "apply") {
+              pump(a(0), OutputChannel.Stdout)
+              pump(a(1), OutputChannel.Stderr)
+              null
+            } else m.invoke(this, a*)
+        )
+
+      private def pump(maybeStream: AnyRef, channel: OutputChannel): Unit =
+        unwrapOption(maybeStream).foreach { stream =>
+          val t = new Thread(
+            () => {
+              val reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+              try {
+                var line = reader.readLine()
+                while (line != null) {
+                  eventHandler.onOutput(suite, line, channel)
+                  line = reader.readLine()
+                }
+              } catch {
+                // The stream is closed under us when the run ends; that is the normal way this loop stops, not a fault to report as test output.
+                case _: java.io.IOException => ()
+              } finally reader.close()
+            },
+            s"scalajs-output-$channel"
+          )
+          t.setDaemon(true)
+          t.start()
+        }
+
+      private def unwrapOption(opt: AnyRef): Option[InputStream] =
+        if (opt == null) None
+        else {
+          val isEmpty = opt.getClass.getMethod("isEmpty").invoke(opt).asInstanceOf[java.lang.Boolean]
+          if (isEmpty) None else Some(opt.getClass.getMethod("get").invoke(opt).asInstanceOf[InputStream])
+        }
+    }
+
+    java.lang.reflect.Proxy.newProxyInstance(loader, Array(jsEnvClass), handler)
   }
 
   private def newNodeJsEnv(loader: ClassLoader, nodeEnv: NodeEnvironment, nodeBinary: String, env: Map[String, String]): AnyRef = {

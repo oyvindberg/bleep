@@ -488,7 +488,7 @@ object FancyBuildDisplay {
           state.compilingProjects.put(pv, cp.copy(phase = displayPhase)): Unit
         }
 
-      case BuildEvent.LinkStarted(_, _, _) | BuildEvent.LinkSucceeded(_, _, _, _) | BuildEvent.LinkFailed(_, _, _, _, _) =>
+      case BuildEvent.LinkStarted(_, _, _) | BuildEvent.LinkSucceeded(_, _, _, _, _) | BuildEvent.LinkFailed(_, _, _, _, _) =>
         () // Link state tracked in core via BuildStateReducer
 
       case _: BuildEvent.ConnectionLost =>

@@ -15,10 +15,21 @@ import io.circe.syntax._
   */
 sealed trait SuiteOutcome {
 
-  /** True when this suite must not count as a passing suite: it failed tests, ran nothing, matched no framework, or errored. */
+  /** True when this suite must not count as a passing suite: it failed tests, matched no framework, or errored.
+    *
+    * [[SuiteOutcome.Empty]] is deliberately NOT a failure. A test class with no tests in it is an ordinary thing to have — a suite someone has created and not
+    * filled in yet — and failing the build over it is wrong. It was worse than wrong for being inconsistent: munit reports such a class as skipped and the
+    * build passed, ScalaTest reports it as empty and the same build failed, so whether an unwritten test class broke your build depended on which framework you
+    * used.
+    *
+    * The case this rule was catching — a framework swallowing an exception thrown while constructing the suite, and reporting no tests instead of an error — is
+    * a bug in that framework, and is recorded as one rather than paid for by everybody else. `NoFrameworkMatched` stays a failure: there the user named a suite
+    * and nothing could run it.
+    */
   def isFailure: Boolean = this match {
     case e: SuiteOutcome.Executed => e.failed > 0
-    case _                        => true // Empty, NoFrameworkMatched, Errored are all failures
+    case SuiteOutcome.Empty       => false
+    case _                        => true // NoFrameworkMatched and Errored are failures
   }
 
   // Count accessors — non-zero only for Executed. Convenience for display/report sites that aggregate.

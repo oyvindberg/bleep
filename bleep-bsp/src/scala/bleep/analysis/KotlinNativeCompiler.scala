@@ -5,6 +5,8 @@ import cats.effect.IO
 import coursier.cache.{ArchiveCache, CacheLogger}
 import coursier.util.{Artifact, Task}
 
+import java.io.{ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
 import scala.concurrent.duration.Duration
@@ -182,9 +184,23 @@ object KotlinNativeCompiler {
       // Load K2Native compiler class
       val compilerClass = loader.loadClass("org.jetbrains.kotlin.cli.bc.K2Native")
 
-      // Invoke main method
-      val mainMethod = compilerClass.getMethod("main", classOf[Array[String]])
-      mainMethod.invoke(null, argList.toArray)
+      // `exec`, never `main`. K2Native extends CLICompiler, whose static `main` routes through `CLICompiler.doMain`, and `doMain` ends in
+      // `System.exit(exitCode.getCode)`. Called in-process — which is how this runs, by reflection in the BSP server's own JVM — that exit is not the
+      // compiler's to make: the *daemon* dies. Every Kotlin/Native diagnostic became "BSP server crashed twice", with no diagnostic shown, for any ordinary
+      // type error. `exec(PrintStream, String*)` is the same compilation with the same arguments, returning an `ExitCode` instead of terminating the JVM.
+      val compilerInstance = compilerClass.getDeclaredConstructor().newInstance()
+      val execMethod = compilerClass.getMethod("exec", classOf[PrintStream], classOf[Array[String]])
+      // The compiler writes its diagnostics here rather than to the daemon's stderr, where they belonged to no particular build and no client ever saw them.
+      val messageBuffer = new ByteArrayOutputStream()
+      // `false` for autoFlush: everything is read back after `exec` returns, and the explicit flush below is what guarantees it is all there.
+      val messageStream = new PrintStream(messageBuffer, false, StandardCharsets.UTF_8)
+      val exitCodeObj =
+        try execMethod.invoke(compilerInstance, messageStream, argList.toArray)
+        finally messageStream.flush()
+      val compilerOutput = new String(messageBuffer.toByteArray, StandardCharsets.UTF_8)
+      val compilerExitCode = exitCodeObj.getClass.getMethod("getCode").invoke(exitCodeObj).asInstanceOf[Integer].intValue()
+
+      val diagnostics = reportCompilerOutput(compilerOutput, diagnosticListener)
 
       // Check cancellation after compilation
       checkCancellation(cancellation)
@@ -203,9 +219,11 @@ object KotlinNativeCompiler {
         parentDir.resolve("classes").resolve(filename + ".kexe")
       )
       val actualOutput = possiblePaths.find(Files.exists(_)).getOrElse(outputPath)
-      val exitCode = if (Files.exists(actualOutput)) 0 else 1
+      // The compiler's own verdict wins over "is there a file". A failed run can leave a stale artifact from a previous compile behind, and treating that as
+      // success is how a build reports green over code that never compiled.
+      val exitCode = if (compilerExitCode != 0) compilerExitCode else if (Files.exists(actualOutput)) 0 else 1
 
-      KotlinNativeCompileResult(actualOutput, exitCode)
+      KotlinNativeCompileResult(actualOutput, exitCode, diagnostics)
     } catch {
       case _: InterruptedException =>
         Thread.currentThread().interrupt()
@@ -230,7 +248,7 @@ object KotlinNativeCompiler {
             severity = CompilerError.Severity.Error
           )
         )
-        KotlinNativeCompileResult(outputPath, 1)
+        KotlinNativeCompileResult(outputPath, 1, Nil)
       case e: ClassNotFoundException =>
         // K2Native may not be available in all distributions
         // Try alternative approach using konanc if available
@@ -246,11 +264,57 @@ object KotlinNativeCompiler {
             severity = CompilerError.Severity.Error
           )
         )
-        KotlinNativeCompileResult(outputPath, 1)
+        KotlinNativeCompileResult(outputPath, 1, Nil)
     } finally
       // Restore previous konan.home
       if (oldKonanHome != null) System.setProperty("konan.home", oldKonanHome): Unit
       else System.clearProperty("konan.home"): Unit
+  }
+
+  /** Turn the compiler's console output into diagnostics.
+    *
+    * Kotlin prefixes each message with its severity — `e: `, `w: `, `i: ` — and then a location that has moved between releases (`file:///p/T.kt:2:24 msg` in
+    * 2.x, `/p/T.kt: (2, 24): msg` before it). Rather than commit to one spelling and silently drop anything else, the location is parsed when recognised and
+    * the whole line is kept as the message when it is not: an unparsed diagnostic is still a diagnostic, and a user who can read it is better off than one
+    * staring at a crash.
+    */
+  private[analysis] def reportCompilerOutput(output: String, diagnosticListener: DiagnosticListener): List[CompilerError] = {
+    // What Kotlin/Native actually emits through `exec`, measured rather than assumed:
+    //   /abs/path/T.kt:2:26: error: return type mismatch: expected 'Int', actual 'String'.
+    // Location first, severity after it — not the `e: file:///...` shape the JVM compiler uses. Getting this wrong is silent: every line falls through, and
+    // the compile then reports a bare "exit code 1" with no diagnostics at all, which is exactly what it did.
+    val PathFirst = """^(.+?):(\d+):(\d+): (error|warning|info): (.*)$""".r
+    val Located = """^([ewi]): (?:file://)?(/[^:]+):(\d+):(\d+):? (.*)$""".r
+    val LocatedParens = """^([ewi]): (?:file://)?(/[^:]+): \((\d+), (\d+)\): (.*)$""".r
+    val Bare = """^([ewi]): (.*)$""".r
+    // `error: could not find '/main' function.` — the link step's own failures carry no `e:` prefix at all.
+    val PlainError = """^(error|warning): (.*)$""".r
+
+    def severityOf(marker: String): CompilerError.Severity = marker match {
+      case "e" | "error"   => CompilerError.Severity.Error
+      case "w" | "warning" => CompilerError.Severity.Warning
+      case _               => CompilerError.Severity.Info
+    }
+
+    output.linesIterator
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .flatMap { line =>
+        val diagnostic = line match {
+          case PathFirst(file, lineNo, col, sev, msg) =>
+            Some(CompilerError(Some(Path.of(file)), lineNo.toInt, col.toInt, msg, Some(line), severityOf(sev)))
+          case Located(sev, file, lineNo, col, msg) =>
+            Some(CompilerError(Some(Path.of(file)), lineNo.toInt, col.toInt, msg, Some(line), severityOf(sev)))
+          case LocatedParens(sev, file, lineNo, col, msg) =>
+            Some(CompilerError(Some(Path.of(file)), lineNo.toInt, col.toInt, msg, Some(line), severityOf(sev)))
+          case Bare(sev, msg)       => Some(CompilerError(None, 0, 0, msg, Some(line), severityOf(sev)))
+          case PlainError(sev, msg) => Some(CompilerError(None, 0, 0, msg, Some(line), severityOf(sev)))
+          case _                    => None
+        }
+        diagnostic.foreach(diagnosticListener.onDiagnostic)
+        diagnostic
+      }
+      .toList
   }
 
   /** Check cancellation and throw if cancelled. Also checks thread interrupt. */
@@ -291,7 +355,7 @@ object KotlinNativeCompiler {
           severity = CompilerError.Severity.Error
         )
       )
-      return KotlinNativeCompileResult(outputPath, 1)
+      return KotlinNativeCompileResult(outputPath, 1, Nil)
     }
 
     argList += konanc.get
@@ -350,7 +414,7 @@ object KotlinNativeCompiler {
       if (cancellation.isCancelled) {
         throw new CompilationCancelledException("Compilation cancelled")
       }
-      KotlinNativeCompileResult(outputPath, exitCode)
+      KotlinNativeCompileResult(outputPath, exitCode, Nil)
     } catch {
       case _: InterruptedException =>
         throw new InterruptedException("Compilation interrupted")
@@ -367,7 +431,7 @@ object KotlinNativeCompiler {
             severity = CompilerError.Severity.Error
           )
         )
-        KotlinNativeCompileResult(outputPath, 1)
+        KotlinNativeCompileResult(outputPath, 1, Nil)
     }
   }
 

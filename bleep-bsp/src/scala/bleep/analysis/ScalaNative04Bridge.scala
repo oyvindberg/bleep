@@ -141,7 +141,7 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
       checkCancellation(cancellation)
 
       // 0.4.17 signature: build(config: Config, outpath: Path)(implicit scope: Scope): Path
-      logger.info(s"Linking Scala Native binary to $outputPath")
+      logger.debug(s"Linking Scala Native binary to $outputPath")
 
       // Find build method
       val buildMethods = buildObj.getClass.getMethods.filter(_.getName == "build").sortBy(_.getParameterCount)
@@ -331,13 +331,16 @@ class ScalaNative04Bridge(scalaNativeVersion: String, scalaVersion: String) exte
         def invoke(proxy: AnyRef, method: java.lang.reflect.Method, args: Array[AnyRef]): AnyRef =
           method.getName match {
             case "trace" | "debug" => null // suppress verbose Scala Native output
-            case "info"            => evalLogArg(args).foreach(logger.info(_)); null
-            case "warn"            => evalLogArg(args).foreach(logger.warn(_)); null
-            case "error"           => evalLogArg(args).foreach(logger.error(_)); null
-            case "toString"        => "BleepLogger"
-            case "hashCode"        => Int.box(System.identityHashCode(proxy))
-            case "equals"          => Boolean.box(proxy eq args(0))
-            case _                 =>
+            // Scala Native's toolchain narrates every link phase at info — "Discovered 2288 classes and 16529 methods", "Produced 96 LLVM IR
+            // files", a timing for each stage. That is progress reporting for someone working on the linker, and it was appearing in the middle
+            // of users' test output, twice over when two suites linked concurrently. Its warnings and errors still come through untouched.
+            case "info"     => evalLogArg(args).foreach(logger.debug(_)); null
+            case "warn"     => evalLogArg(args).foreach(logger.warn(_)); null
+            case "error"    => evalLogArg(args).foreach(logger.error(_)); null
+            case "toString" => "BleepLogger"
+            case "hashCode" => Int.box(System.identityHashCode(proxy))
+            case "equals"   => Boolean.box(proxy eq args(0))
+            case _          =>
               // Concrete trait methods (timeAsync, time, running) are default methods
               // on the interface — delegate to the actual implementation so they work.
               if (method.isDefault)

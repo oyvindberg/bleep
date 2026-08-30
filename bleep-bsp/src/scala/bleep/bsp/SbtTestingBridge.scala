@@ -93,8 +93,10 @@ object SbtTestingBridge {
           case sbt.testing.Status.Pending  => bump(suiteName)(_.skipped); TestStatus.Pending
         }
 
-        val message = Option(event.throwable()).flatMap(opt => if (opt.isDefined) Option(opt.get().getMessage) else None)
-        eventHandler.onTestFinished(suiteName, testName, status, event.duration(), message)
+        val thrown = Option(event.throwable()).filter(_.isDefined).map(_.get())
+        // Both, and from the same throwable: the message is what the exception said, the rendering is the whole of it. Sending only the first is what made a
+        // ScalaTest assertion failure — whose message is null — arrive as a failure with nothing to read.
+        eventHandler.onTestFinished(suiteName, testName, status, event.duration(), thrown.flatMap(t => Option(t.getMessage)), thrown.map(renderThrowable))
       }
     }
 
@@ -147,6 +149,23 @@ object SbtTestingBridge {
     * declares four. An object suite matched against a class fingerprint produced `ClassNotFoundException: example.ScalacheckFixture`, naming the class form of
     * something that only exists as `example.ScalacheckFixture$`.
     */
+  /** Render a failure's throwable the way a person needs to read it: what was thrown, what it said, and where.
+    *
+    * This used to be `getMessage` alone, and that is never enough. A null `getMessage` is not the absence of information — it is one field of an exception that
+    * also has a type and a stack — and reading only that field made real failures arrive as empty ones. ScalaTest on Scala.js was the clearest case: its
+    * `TestFailedException` carries the explanation in the exception *type* and the frames while `getMessage` is null, so a failing assertion reached the report
+    * saying nothing at all. Both are recoverable, and both are reported now.
+    *
+    * `toString` rather than `getClass.getName`, deliberately. Across the Scala.js and Scala Native adapters a throwable is rehydrated into a synthetic subclass
+    * of the serializer's own making, so its runtime class name is meaningless — but `toString` is carried over from the original and still reads
+    * `org.scalatest.exceptions.TestFailedException`.
+    */
+  private[bsp] def renderThrowable(t: Throwable): String = {
+    // Capped: a deep stack in a report helps nobody, and what matters is at the top.
+    val frames = t.getStackTrace.take(30).map(frame => s"  at $frame").toList
+    (String.valueOf(t.toString) :: frames).mkString("\n")
+  }
+
   private def tasksFor(
       framework: sbt.testing.Framework,
       runner: sbt.testing.Runner,

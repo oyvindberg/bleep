@@ -794,9 +794,12 @@ object KotlinNativeProjectCompiler extends ProjectCompiler {
         if (result.isSuccess) {
           ProjectCompileSuccess(config.outputDir, Set(result.outputPath), None)
         } else {
-          ProjectCompileFailure(
-            List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
-          )
+          // The compiler's own diagnostics when it produced any. "exit code 1" tells the user nothing they can act on, and it was all they got: the
+          // messages went to a stream nobody read, because the compiler was invoked through `main` and `main` exits the JVM.
+          val errors =
+            if (result.diagnostics.nonEmpty) result.diagnostics
+            else List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
+          ProjectCompileFailure(errors)
         }
       }
       .handleErrorWith { case e: Exception =>

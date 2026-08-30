@@ -159,6 +159,17 @@ case class BuildSummary(
 
 object BuildSummary {
 
+  /** How a test failure's stack trace is printed: the framework's own machinery cut off the bottom, then any repeating cycle collapsed.
+    *
+    * In that order. [[StackTraceElision]] reads real frames and needs to see them; [[StackTraceCycles]] replaces a repeated run with a synthetic `... above N
+    * frames repeated` line, which is not a frame and would stop the cut short.
+    *
+    * Only failures that came from a test framework go through here. A bleep crash or a build error is bleep's own stack, and cutting `bleep.testing.runner` off
+    * the bottom of that would hide the thing being reported.
+    */
+  private def renderStack(stackTrace: String): List[String] =
+    StackTraceCycles.collapse(StackTraceElision.elide(stackTrace).mkString("\n"))
+
   /** Format a complete summary for display after a build/test run. Returns lines to print. Used by both TUI and non-TUI paths.
     *
     * `failureDetails = false` stops after the counts/duration/history/filter block — see [[BuildDisplay.printSummary]].
@@ -310,7 +321,7 @@ object BuildSummary {
         warnings.take(5).foreach { diag =>
           val text = diag.rendered.getOrElse(diag.message)
           text.linesIterator.foreach { line =>
-            lines += s"  ${C.YELLOW}|${C.RESET} $line"
+            lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}"
           }
         }
         if (warnings.size > 5)
@@ -374,21 +385,58 @@ object BuildSummary {
         if (testFailures.nonEmpty) {
           lines += s"${C.RED}${C.BOLD}Test Failures (${testFailures.size})${C.RESET}"
           lines += ""
-          testFailures.sortBy(f => (f.project, f.suite, f.test)).foreach { failure =>
-            lines += s"${C.RED}x ${failure.project.value} / ${failure.suite.value} / ${failure.test.value}${C.RESET}"
-            failure.message.foreach { msg =>
-              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+          // Grouped by suite, with the suite's captured output printed once beneath its failures rather than repeated under each of them.
+          //
+          // The output belongs to the suite, not to any one test — a framework writes it as the suite runs, and bleep cannot attribute a given line to a
+          // particular test. Attaching it to every failure meant a suite with two failures printed its entire output twice, and one with ten printed it ten
+          // times, burying the failures it was supposed to explain.
+          testFailures
+            .sortBy(f => (f.project, f.suite, f.test))
+            .groupBy(f => (f.project, f.suite))
+            .toList
+            .sortBy { case ((project, suite), _) => (project, suite) }
+            .foreach { case ((project, suite), failures) =>
+              // Tests that failed for the same reason are listed together and the reason printed once.
+              //
+              // One broken constructor becomes one failure per test method, each carrying the identical exception: JUnit 3 reports four tests all named
+              // `warning`, each with the same fifty-frame trace, which is two hundred lines saying one thing. Grouping is on the exact (message, stack) pair,
+              // so genuinely different failures are never merged.
+              failures
+                .groupBy(f => (f.message, f.throwable))
+                .toList
+                .sortBy { case (_, group) => group.map(_.test.value).min }
+                .foreach { case ((message, throwable), group) =>
+                  group.map(_.test.value).sorted.foreach(t => lines += s"${C.RED}x ${project.value} / ${suite.value} / $t${C.RESET}")
+                  if (group.sizeIs > 1) lines += s"  ${C.YELLOW}|${C.RESET} ${C.BOLD}all ${group.size} failed with the same error:${C.RESET}"
+                  // Through the same elision as the trace below it, because for some frameworks this *is* the trace. JUnit 3 reports a broken constructor as
+                  // "Exception in constructor: testMeasures (java.lang.RuntimeException: ctor boom \n\tat …" — fifty-eight frames inside the message text,
+                  // once per test method — and a message is not exempt from being unreadable.
+                  message.filter(_.trim.nonEmpty).foreach { msg =>
+                    renderStack(msg).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+                  }
+                  // Only when it adds something. Several frameworks put the whole trace in the message already — JUnit 3's "Exception in constructor: …"
+                  // carries it verbatim — and printing it again underneath doubles the longest thing on screen.
+                  throwable.foreach { stack =>
+                    val header = stack.linesIterator.nextOption().getOrElse("")
+                    val alreadyShown = message.exists(m => header.nonEmpty && m.contains(header))
+                    if (!alreadyShown) {
+                      lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
+                      renderStack(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+                    }
+                  }
+                  lines += ""
+                }
+              // Identical across a suite's failures by construction, so take it from any of them.
+              val suiteOutput = failures.map(_.output).find(_.nonEmpty).getOrElse(Nil)
+              if (suiteOutput.nonEmpty) {
+                lines += s"  ${C.CYAN}Output from ${suite.value}:${C.RESET}"
+                // Elided too, because this is where the same plumbing arrives a second time. Most frameworks print the failure to stdout as well as reporting
+                // it, so a kotest constructor failure that has just been shown in three lines is followed by forty lines of the interceptor chain it was cut
+                // from. The cut only ever removes a trailing run of frames it recognises, so ordinary output cannot be caught by it.
+                renderStack(suiteOutput.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+                lines += ""
+              }
             }
-            failure.throwable.foreach { stack =>
-              lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-            }
-            if (failure.output.nonEmpty) {
-              lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
-            }
-            lines += ""
-          }
         }
 
         // Timeouts (suite or test exceeded time limit)
@@ -398,15 +446,17 @@ object BuildSummary {
           timeouts.sortBy(f => (f.project, f.suite)).foreach { failure =>
             lines += s"${C.RED}T ${failure.project.value} / ${failure.suite.value}${C.RESET}"
             failure.message.foreach { msg =>
-              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              renderStack(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             if (failure.output.nonEmpty) {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              // Elided: this is what the test process printed, not bleep's own stack, and it is where a framework that dies before reporting leaves its
+              // trace. TestNG's broken constructor arrives here and nowhere else — twenty-seven `org.testng` frames under one line of cause.
+              renderStack(failure.output.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             lines += ""
           }
@@ -432,15 +482,17 @@ object BuildSummary {
           processErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
             lines += s"${C.RED}! ${failure.project.value} / ${failure.suite.value}${C.RESET}"
             failure.message.foreach { msg =>
-              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             if (failure.output.nonEmpty) {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
-              failure.output.foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              // Elided: this is what the test process printed, not bleep's own stack, and it is where a framework that dies before reporting leaves its
+              // trace. TestNG's broken constructor arrives here and nowhere else — twenty-seven `org.testng` frames under one line of cause.
+              renderStack(failure.output.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             lines += ""
           }
@@ -453,11 +505,11 @@ object BuildSummary {
           buildErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
             lines += s"${C.RED}! ${failure.project.value}${C.RESET}"
             failure.message.foreach { msg =>
-              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             failure.throwable.foreach { stack =>
               lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
-              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              StackTraceCycles.collapse(stack).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
             }
             lines += ""
           }
@@ -761,7 +813,7 @@ object BuildDisplay {
         IO.unit
 
       case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _, _) =>
-        if (!quietMode) printTestResult(test, status) else IO.unit
+        if (!quietMode) printTestResult(suite, test, status) else IO.unit
 
       case BuildEvent.SuiteFinished(_, suite, outcome, durationMs, _) =>
         if (!quietMode) printSuiteResult(suite, outcome, durationMs) else IO.unit
@@ -841,7 +893,7 @@ object BuildDisplay {
       case BuildEvent.LinkStarted(project, platform, _) =>
         if (!quietMode) logP(project, s"🔗 linking [${platform.wireValue}]") else IO.unit
 
-      case BuildEvent.LinkSucceeded(project, platform, durationMs, _) =>
+      case BuildEvent.LinkSucceeded(project, platform, durationMs, _, _) =>
         if (!quietMode) logP(project, s"✅ linked [${platform.wireValue}] (${durationMs}ms)") else IO.unit
 
       case BuildEvent.LinkFailed(project, platform, durationMs, error, _) =>
@@ -900,7 +952,15 @@ object BuildDisplay {
         _ <- log(s"Running: $running$more")
       } yield ()
 
+    /** One line per finished test, qualified by its suite when the test's own name does not already say which suite it belongs to.
+      *
+      * Suites run concurrently, so these lines interleave. Unqualified, two suites containing a test of the same name produced two identical lines — a run with
+      * a working suite and a broken copy of it printed `x throwsOnPurpose()` twice with nothing to tell them apart. Frameworks differ on whether the name they
+      * report is already qualified (munit reports `example.MunitFixture.adds`, JUnit reports `adds()`), so the suite is prepended only when it is missing
+      * rather than unconditionally, which would double it up for half the frameworks.
+      */
     private def printTestResult(
+        suite: SuiteName,
         test: TestName,
         status: TestStatus
     ): IO[Unit] = {
@@ -915,7 +975,9 @@ object BuildDisplay {
         case TestStatus.AssumptionFailed => SConsole.YELLOW + "a" + SConsole.RESET
         case TestStatus.Pending          => SConsole.YELLOW + "?" + SConsole.RESET
       }
-      log(s"  $icon ${test.value}")
+      val simpleSuite = suite.value.split('.').lastOption.getOrElse(suite.value)
+      val label = if (test.value.contains(simpleSuite)) test.value else s"$simpleSuite.${test.value}"
+      log(s"  $icon $label")
     }
 
     private def printSuiteResult(

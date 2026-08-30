@@ -15,9 +15,28 @@ import scala.jdk.CollectionConverters.*
 object JUnitReports {
 
   /** `status` is the JUnit XML shape: a `<testcase>` with no child element passed; otherwise the child's tag name (`failure`, `error`, `skipped`). */
-  case class Case(name: String, className: String, status: String, message: Option[String])
+  /** `detail` is the `message` attribute and the element's own text together.
+    *
+    * Both matter and frameworks disagree about which to use: munit puts a full diff in the attribute, while ScalaTest and hedgehog leave it empty and write the
+    * failure into the body. Reading only one of the two makes half the frameworks look like they report failures with nothing to say.
+    */
+  case class Case(name: String, className: String, status: String, message: Option[String], detail: String)
 
-  case class Suite(name: String, tests: Int, failures: Int, errors: Int, skipped: Int, cases: List[Case]) {
+  /** `systemOut` and `systemErr` are the `<system-out>` / `<system-err>` sections: everything the test program printed.
+    *
+    * Parsed because two platforms used to drop it entirely and nothing noticed — Scala.js emitted no `<system-out>` element at all, and Scala Native's binary
+    * wrote to a detached daemon's file descriptors. Both looked exactly like a test that printed nothing.
+    */
+  case class Suite(
+      name: String,
+      tests: Int,
+      failures: Int,
+      errors: Int,
+      skipped: Int,
+      cases: List[Case],
+      systemOut: String,
+      systemErr: String
+  ) {
     def passed: Int = cases.count(_.status == "passed")
     def describe: String =
       s"$name: tests=$tests failures=$failures errors=$errors skipped=$skipped cases=[${cases.map(c => s"${c.name}:${c.status}").mkString(", ")}]"
@@ -44,13 +63,16 @@ object JUnitReports {
         failures = intAttr(ts, "failures"),
         errors = intAttr(ts, "errors"),
         skipped = intAttr(ts, "skipped"),
+        systemOut = elements(ts, "system-out").map(_.getTextContent).mkString("\n"),
+        systemErr = elements(ts, "system-err").map(_.getTextContent).mkString("\n"),
         cases = elements(ts, "testcase").map { tc =>
           val child = childElements(tc).headOption
           Case(
             name = tc.getAttribute("name"),
             className = tc.getAttribute("classname"),
             status = child.map(_.getTagName).getOrElse("passed"),
-            message = child.map(_.getAttribute("message")).filter(_.nonEmpty)
+            message = child.map(_.getAttribute("message")).filter(_.nonEmpty),
+            detail = child.map(c => (c.getAttribute("message") + "\n" + c.getTextContent).trim).getOrElse("")
           )
         }
       )

@@ -78,6 +78,7 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
           success = false,
           durationMs = 1L,
           outputPath = None,
+          generatedFiles = Nil,
           timestamp = 3L,
           platform = LinkPlatformName.ScalaJs,
           error = Some("nope")
