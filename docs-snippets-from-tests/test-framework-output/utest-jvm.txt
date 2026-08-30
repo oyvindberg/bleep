@@ -18,16 +18,16 @@ sendTestEvent
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.UtestFixture' (TestFork) cpu=1 mem=0MB
-sendTestEvent
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
+sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.GreenUtestFixture
-Running: mytest:example.CtorBoomUtestFixture, mytest:example.GreenUtestFixture
+Running: mytest:example.UtestFixture
+Running: mytest:example.CtorBoomUtestFixture, mytest:example.UtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.GreenUtestFixture, mytest:example.UtestFixture
 sendTestEvent: TestFinished
   x CtorBoomUtestFixture.
@@ -35,23 +35,23 @@ sendTestEvent: TestFinished
   + GreenUtestFixture.adds
 sendTestEvent: TestFinished
   + GreenUtestFixture.measures
+sendTestEvent: SuiteFinished
 sendTestEvent: TestFinished
+FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
   + UtestFixture.adds
 sendTestEvent: TestFinished
   + UtestFixture.measures
-sendTestEvent: SuiteFinished
-FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
   x UtestFixture.fails on purpose
 sendTestEvent: SuiteFinished
-sendTestEvent: TestFinished
 PASSED example.GreenUtestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
   x UtestFixture.throws on purpose
 sendTestEvent: SuiteFinished
 Task executor completed
+FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
-FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 0 skipped (<duration>)

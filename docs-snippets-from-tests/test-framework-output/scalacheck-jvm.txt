@@ -14,19 +14,19 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-📦 saved analysis (<duration>)
 sendTestEvent
+📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.ScalacheckFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.ScalacheckFixture
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.ScalacheckFixture
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 sendTestEvent: SuiteFinished
@@ -37,8 +37,8 @@ sendTestEvent: TestFinished
   + example.GreenScalacheckFixture.adds
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-  + example.GreenScalacheckFixture.measures
   + example.ScalacheckFixture.measures
+  + example.GreenScalacheckFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
@@ -48,8 +48,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 Task executor completed
 Failed tasks
-Executor done, signalling consumer to terminate
 FAILED example.ScalacheckFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 0 skipped (<duration>)
@@ -76,11 +76,11 @@ Test Failures (2)
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
   | Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1182610329
+  | > ARG_0_ORIGINAL: -1
   Stack trace:
   | java.lang.Exception: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1182610329
+  | > ARG_0_ORIGINAL: -1
   | 	at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(ScalaCheckFramework.scala:153)
   | 	at bleep.testing.runner.ForkedTestRunner$2.handle(ForkedTestRunner.java:365)
   | 	at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(ScalaCheckFramework.scala:163)
@@ -110,14 +110,14 @@ x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpo
   | hello from the test
   | + example.ScalacheckFixture.adds: OK, passed 100 tests.
   | + example.ScalacheckFixture.measures: OK, passed 100 tests.
-  | failing seed for example.ScalacheckFixture.fails on purpose is 8fP0VqgEpfwR-QO59N8HjsNQ2LNA1D0P6zj5JVGFbyN=
+  | failing seed for example.ScalacheckFixture.fails on purpose is AFZKbcb5sBNOQvoSyBw4lkplXKfCjWlkqJg9wlKNpCL=
   | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -1182610329
-  | failing seed for example.ScalacheckFixture.throws on purpose is 5yjFFhlMt-u2h5BCXs38uR-0Wghak5KCoTmu5JV6hSE=
+  | > ARG_0_ORIGINAL: -1
+  | failing seed for example.ScalacheckFixture.throws on purpose is 7k8mUoVMeNxRmyFYwaaagyLoV4bsAhM7rwtdPV_ofRH=
   | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 2063305787
+  | > ARG_0_ORIGINAL: -85692762
   | > Exception: java.lang.RuntimeException: boom
 
 Process Errors (1)

@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -14,8 +14,8 @@ sendTestEvent: CompileFinished
 ✅ compiled (<duration>)
 sendTestEvent
 sendTestEvent
-[machine] grant 'test:mytest:example.CtorBoomSpekFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.CtorBoomSpekFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
@@ -26,7 +26,7 @@ test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
 test runtime: org.junit.platform:junit-platform-launcher:1.6.0, org.junit.jupiter:junit-jupiter-engine:5.6.0, org.junit.vintage:junit-vintage-engine:5.6.0
 Running: mytest:example.CtorBoomSpekFixture
-Running: mytest:example.CtorBoomSpekFixture, mytest:example.SpekFixture
+Running: mytest:example.CtorBoomSpekFixture, mytest:example.GreenSpekFixture
 Running: mytest:example.CtorBoomSpekFixture, mytest:example.GreenSpekFixture, mytest:example.SpekFixture
 sendTestEvent
 sendTestEvent
@@ -36,14 +36,14 @@ sendTestEvent: TestFinished
 sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  + GreenSpekFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
   + SpekFixture.adds
 sendTestEvent
-  + SpekFixture.measures
-sendTestEvent: TestFinished
-sendTestEvent
-  + GreenSpekFixture.adds
-sendTestEvent: TestFinished
   + GreenSpekFixture.measures
+  + SpekFixture.measures
 sendTestEvent: TestFinished
 sendTestEvent
   x SpekFixture.fails on purpose
@@ -57,8 +57,8 @@ sendTestEvent: SuiteFinished
 PASSED example.GreenSpekFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
 Task executor completed
-Failed tasks
 FAILED example.SpekFixture: 2 passed, 2 failed, 1 skipped (<duration>)
+Failed tasks
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent

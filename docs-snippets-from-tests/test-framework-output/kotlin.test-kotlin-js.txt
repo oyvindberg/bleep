@@ -1,4 +1,4 @@
-bootstrapped in 112 ms
+bootstrapped in 127 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -9,8 +9,8 @@ Starting event consumer and task executor
 [machine] grant 'compile:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent: CompileStarted
 🔨 compiling (clean build, no previous analysis)
-[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 sendTestEvent: CompileFinished
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 ✅ compiled (<duration>)
@@ -23,15 +23,15 @@ sendTestEvent
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 sendTestEvent
+sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
-test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 sendTestEvent
-sendTestEvent
-Running: mytest:example.CtorBoomKotlinTestFixture
+Running: mytest:example.KotlinTestFixture
 Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.KotlinTestFixture
 Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
 sendTestEvent
@@ -53,32 +53,32 @@ sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent: SuiteFinished
-sendTestEvent: SuiteFinished
-sendTestEvent: SuiteFinished
+sendTestEvent: TestFinished
   x CtorBoomKotlinTestFixture.adds
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
+sendTestEvent: SuiteFinished
   + GreenKotlinTestFixture.adds
   + KotlinTestFixture.adds
-  x CtorBoomKotlinTestFixture.measures
-Task executor completed
-  + GreenKotlinTestFixture.measures
   + KotlinTestFixture.measures
-Failed tasks
+  + GreenKotlinTestFixture.measures
+  x CtorBoomKotlinTestFixture.measures
   x CtorBoomKotlinTestFixture.failsOnPurpose
-Executor done, signalling consumer to terminate
   x KotlinTestFixture.failsOnPurpose
   x CtorBoomKotlinTestFixture.throwsOnPurpose
   x KotlinTestFixture.throwsOnPurpose
   - CtorBoomKotlinTestFixture.skippedOnPurpose
+Task executor completed
   - KotlinTestFixture.skippedOnPurpose
+Failed tasks
+Executor done, signalling consumer to terminate
 PASSED example.GreenKotlinTestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
-FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 FAILED example.CtorBoomKotlinTestFixture: 0 passed, 4 failed, 1 skipped (<duration>)
+FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 6 failed, 2 skipped (<duration>)

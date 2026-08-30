@@ -18,19 +18,19 @@ sendTestEvent: CompileFinished
 sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.Junit3Fixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-Running: mytest:example.CtorBoomJunit3Fixture
-Running: mytest:example.CtorBoomJunit3Fixture, mytest:example.Junit3Fixture
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+Running: mytest:example.GreenJunit3Fixture
+Running: mytest:example.GreenJunit3Fixture, mytest:example.Junit3Fixture
 Running: mytest:example.CtorBoomJunit3Fixture, mytest:example.GreenJunit3Fixture, mytest:example.Junit3Fixture
 sendTestEvent
 sendTestEvent
@@ -41,24 +41,24 @@ sendTestEvent
 sendTestEvent: TestFinished
   + GreenJunit3Fixture.testMeasures
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
 sendTestEvent
   x Junit3Fixture.testFailsOnPurpose
-sendTestEvent: SuiteFinished
-  x CtorBoomJunit3Fixture.warning
-sendTestEvent
-PASSED example.GreenJunit3Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent
   x Junit3Fixture.testThrowsOnPurpose
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
 sendTestEvent
-sendTestEvent
-  x CtorBoomJunit3Fixture.warning
   + Junit3Fixture.testAdds
 sendTestEvent: TestFinished
   + Junit3Fixture.testMeasures
+sendTestEvent: TestFinished
+sendTestEvent
+  x CtorBoomJunit3Fixture.warning
+sendTestEvent: TestFinished
+sendTestEvent: SuiteFinished
+sendTestEvent
+  x CtorBoomJunit3Fixture.warning
+PASSED example.GreenJunit3Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomJunit3Fixture.warning

@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -14,32 +14,32 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-📦 saved analysis (<duration>)
 sendTestEvent
+📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.GreenSpecs2Fixture' (TestFork) cpu=1 mem=0MB
-sendTestEvent
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
+sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.CtorBoomSpecs2Fixture
-Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture
+Running: mytest:example.GreenSpecs2Fixture
+Running: mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
 Running: mytest:example.CtorBoomSpecs2Fixture, mytest:example.GreenSpecs2Fixture, mytest:example.Specs2Fixture
 sendTestEvent: TestFinished
   ! example.CtorBoomSpecs2Fixture
 sendTestEvent: SuiteFinished
 FAILED example.CtorBoomSpecs2Fixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
-  + GreenSpecs2Fixture.adds
 sendTestEvent: TestFinished
   + Specs2Fixture.adds
+  + GreenSpecs2Fixture.adds
+sendTestEvent: TestFinished
 sendTestEvent: TestFinished
   + GreenSpecs2Fixture.measures
-sendTestEvent: TestFinished
   + Specs2Fixture.measures
 sendTestEvent: TestFinished
   x Specs2Fixture.fails on purpose
@@ -139,7 +139,7 @@ x mytest / example.Specs2Fixture / throws on purpose
   | 
   | 
   | Total for specification Specs2Fixture
-  | Finished in 103 ms
+  | Finished in 92 ms
   | 5 examples, 1 failure, 1 error, 1 skipped
 
 Skipped (1)

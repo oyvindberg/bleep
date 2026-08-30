@@ -15,66 +15,66 @@ sendTestEvent: CompileStarted
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 📦 saved analysis (<duration>)
+sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-sendTestEvent
-🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.GreenJunit4Fixture' (TestFork) cpu=1 mem=0MB
+🔍 discovered 3 test suites (total: 3)
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-Running: mytest:example.Junit4Fixture
-Running: mytest:example.CtorBoomJunit4Fixture, mytest:example.Junit4Fixture
+Running: mytest:example.GreenJunit4Fixture
+Running: mytest:example.GreenJunit4Fixture, mytest:example.Junit4Fixture
 Running: mytest:example.CtorBoomJunit4Fixture, mytest:example.GreenJunit4Fixture, mytest:example.Junit4Fixture
 sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent
   + GreenJunit4Fixture.measures
+sendTestEvent
 sendTestEvent: TestFinished
   + GreenJunit4Fixture.adds
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-sendTestEvent: SuiteFinished
 sendTestEvent
   x CtorBoomJunit4Fixture.throwsOnPurpose
-sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent: SuiteFinished
+  x CtorBoomJunit4Fixture.measures
+sendTestEvent
+PASSED example.GreenJunit4Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+sendTestEvent
+  x CtorBoomJunit4Fixture.failsOnPurpose
+sendTestEvent: TestFinished
+  x CtorBoomJunit4Fixture.adds
 sendTestEvent: TestFinished
 sendTestEvent
   x Junit4Fixture.throwsOnPurpose
-sendTestEvent
-PASSED example.GreenJunit4Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  - CtorBoomJunit4Fixture.skippedOnPurpose
   + Junit4Fixture.measures
-  x CtorBoomJunit4Fixture.measures
-sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
-sendTestEvent
-  x CtorBoomJunit4Fixture.failsOnPurpose
   x Junit4Fixture.failsOnPurpose
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
-  x CtorBoomJunit4Fixture.adds
   + Junit4Fixture.adds
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   - Junit4Fixture.skippedOnPurpose
-  - CtorBoomJunit4Fixture.skippedOnPurpose
 sendTestEvent: SuiteFinished
-FAILED example.Junit4Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
+FAILED example.CtorBoomJunit4Fixture: 0 passed, 4 failed, 1 skipped (<duration>)
 sendTestEvent: SuiteFinished
 Task executor completed
 Failed tasks
-FAILED example.CtorBoomJunit4Fixture: 0 passed, 4 failed, 1 skipped (<duration>)
 Executor done, signalling consumer to terminate
+FAILED example.Junit4Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 6 failed, 2 skipped (<duration>)

@@ -1,4 +1,4 @@
-bootstrapped in 134 ms
+bootstrapped in 117 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -20,17 +20,17 @@ sendTestEvent
 [machine] grant 'test:mytest:example.GreenMunitFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
+sendTestEvent
+sendTestEvent
+sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-sendTestEvent
-sendTestEvent
-sendTestEvent
 Running: mytest:example.GreenMunitFixture
-Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture
+Running: mytest:example.GreenMunitFixture, mytest:example.MunitFixture
 Running: mytest:example.CtorBoomMunitFixture, mytest:example.GreenMunitFixture, mytest:example.MunitFixture
 sendTestEvent: TestFinished
   x example.CtorBoomMunitFixture.initializationError
@@ -38,18 +38,18 @@ sendTestEvent: SuiteFinished
 FAILED example.CtorBoomMunitFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
   + example.GreenMunitFixture.adds
-  + example.GreenMunitFixture.measures
-sendTestEvent: TestFinished
   + example.MunitFixture.adds
-sendTestEvent: TestFinished
   + example.MunitFixture.measures
+  + example.GreenMunitFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenMunitFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent: TestFinished
-sendTestEvent: TestFinished
   x example.MunitFixture.fails on purpose
+sendTestEvent: TestFinished
   x example.MunitFixture.throws on purpose
   o example.MunitFixture.skipped on purpose
 sendTestEvent: SuiteFinished

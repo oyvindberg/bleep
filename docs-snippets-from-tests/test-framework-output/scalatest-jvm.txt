@@ -14,8 +14,8 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-sendTestEvent
 📦 saved analysis (<duration>)
+sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
 [machine] grant 'test:mytest:example.GreenScalatestFixture' (TestFork) cpu=1 mem=0MB
@@ -25,8 +25,8 @@ sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.GreenScalatestFixture
 test runtime: org.scala-sbt:test-interface:1.0
+Running: mytest:example.GreenScalatestFixture
 Running: mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 Running: mytest:example.CtorBoomScalatestFixture, mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 sendTestEvent: TestFinished
@@ -52,8 +52,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 Task executor completed
 Failed tasks
-Executor done, signalling consumer to terminate
 FAILED example.ScalatestFixture: 2 passed, 2 failed, 1 skipped, 1 ignored (<duration>)
+Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 1 skipped (<duration>)

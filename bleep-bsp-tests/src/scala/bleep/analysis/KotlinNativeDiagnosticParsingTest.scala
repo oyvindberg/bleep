@@ -13,6 +13,9 @@ import scala.collection.mutable
   */
 class KotlinNativeDiagnosticParsingTest extends AnyFunSuite with Matchers {
 
+  // Paths are compared as `Path`, never as `path.toString`. A `Path` renders with the platform's separator, so `Paths.get("/tmp/T.kt").toString` is
+  // `\tmp\T.kt` on Windows — asserting the string is asserting the separator, and these tests went red on windows-latest and nowhere else.
+
   private def collect(output: String): List[CompilerError] = {
     val seen = mutable.ListBuffer.empty[CompilerError]
     val listener: DiagnosticListener = (d: CompilerError) => seen += d
@@ -30,7 +33,7 @@ class KotlinNativeDiagnosticParsingTest extends AnyFunSuite with Matchers {
     d should have size 1
     d.head.line shouldBe 2
     d.head.column shouldBe 26
-    d.head.path.map(_.toString) shouldBe Some("/tmp/knprobe/T.kt")
+    d.head.path shouldBe Some(java.nio.file.Paths.get("/tmp/knprobe/T.kt"))
     d.head.severity shouldBe CompilerError.Severity.Error
     d.head.message should include("return type mismatch")
   }
@@ -44,7 +47,7 @@ class KotlinNativeDiagnosticParsingTest extends AnyFunSuite with Matchers {
     d should have size 1
     d.head.line shouldBe 2
     d.head.column shouldBe 24
-    d.head.path.map(_.toString) shouldBe Some("/p/T.kt")
+    d.head.path shouldBe Some(java.nio.file.Paths.get("/p/T.kt"))
     d.head.severity shouldBe CompilerError.Severity.Error
     d.head.message should include("type mismatch")
   }
@@ -53,7 +56,7 @@ class KotlinNativeDiagnosticParsingTest extends AnyFunSuite with Matchers {
     val d = collect("e: /p/T.kt: (2, 24): Type mismatch")
     d.head.line shouldBe 2
     d.head.column shouldBe 24
-    d.head.path.map(_.toString) shouldBe Some("/p/T.kt")
+    d.head.path shouldBe Some(java.nio.file.Paths.get("/p/T.kt"))
   }
 
   test("a link failure carries no location and is still reported") {

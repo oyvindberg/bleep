@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -18,19 +18,19 @@ sendTestEvent: CompileFinished
 sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-[machine] grant 'test:mytest:example.CtorBoomWeaverFixture' (TestFork) cpu=1 mem=0MB
 🔍 discovered 3 test suites (total: 3)
+[machine] grant 'test:mytest:example.CtorBoomWeaverFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 Running: mytest:example.CtorBoomWeaverFixture
-Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture
+Running: mytest:example.CtorBoomWeaverFixture, mytest:example.WeaverFixture
 Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture, mytest:example.WeaverFixture
 sendTestEvent: TestFinished
   ! CtorBoomWeaverFixture.Unexpected failure

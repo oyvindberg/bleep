@@ -21,12 +21,12 @@ sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.KotlinTestFixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
 test runtime: org.junit.platform:junit-platform-launcher:1.10.1, org.junit.jupiter:junit-jupiter-engine:5.10.1, org.junit.vintage:junit-vintage-engine:5.10.1
-Running: mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
+Running: mytest:example.KotlinTestFixture
+Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.KotlinTestFixture
 Running: mytest:example.CtorBoomKotlinTestFixture, mytest:example.GreenKotlinTestFixture, mytest:example.KotlinTestFixture
 sendTestEvent
 sendTestEvent
@@ -38,16 +38,16 @@ sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomKotlinTestFixture.measures()
 sendTestEvent: TestFinished
-sendTestEvent
   x CtorBoomKotlinTestFixture.failsOnPurpose()
+sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
   x CtorBoomKotlinTestFixture.adds()
 sendTestEvent: TestFinished
-  x CtorBoomKotlinTestFixture.skippedOnPurpose()
 sendTestEvent: TestFinished
-  x KotlinTestFixture.throwsOnPurpose()
+  x CtorBoomKotlinTestFixture.skippedOnPurpose()
 sendTestEvent
+  x KotlinTestFixture.throwsOnPurpose()
 sendTestEvent: SuiteFinished
 FAILED example.CtorBoomKotlinTestFixture: 0 passed, 5 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
@@ -57,25 +57,25 @@ sendTestEvent: TestFinished
   + GreenKotlinTestFixture.adds()
 sendTestEvent: TestFinished
 sendTestEvent
-sendTestEvent: SuiteFinished
   + KotlinTestFixture.measures()
+sendTestEvent: SuiteFinished
 PASSED example.GreenKotlinTestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
-sendTestEvent
   x KotlinTestFixture.failsOnPurpose()
+sendTestEvent
 sendTestEvent: TestFinished
   + KotlinTestFixture.adds()
 sendTestEvent: TestFinished
   - KotlinTestFixture.skippedOnPurpose()
 sendTestEvent: SuiteFinished
+FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Task executor completed
 Failed tasks
-FAILED example.KotlinTestFixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
-History transcript written
 Test completed: 4 passed, 7 failed, 1 skipped (<duration>)
+History transcript written
 dispatch
 build/shutdown received - cancelling all active requests
 Cancelling all active requests

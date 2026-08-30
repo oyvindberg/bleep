@@ -15,8 +15,8 @@ sendTestEvent: CompileStarted
 sendTestEvent: CompileFinished
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 📦 saved analysis (<duration>)
-✅ compiled (<duration>)
 sendTestEvent
+✅ compiled (<duration>)
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.CtorBoomJunit5Fixture' (TestFork) cpu=1 mem=0MB
@@ -26,8 +26,8 @@ sendTestEvent
 Running: mytest:example.CtorBoomJunit5Fixture
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.jupiter:junit-jupiter-engine:5.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.jupiter:junit-jupiter-engine:5.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.jupiter:junit-jupiter-engine:5.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.jupiter:junit-jupiter-engine:5.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 Running: mytest:example.CtorBoomJunit5Fixture, mytest:example.GreenJunit5Fixture
@@ -39,31 +39,31 @@ sendTestEvent: TestFinished
   x CtorBoomJunit5Fixture.throwsOnPurpose()
 sendTestEvent
 sendTestEvent: TestFinished
-  x CtorBoomJunit5Fixture.measures()
-sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
+  + GreenJunit5Fixture.measures()
+sendTestEvent
+  x CtorBoomJunit5Fixture.measures()
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  + GreenJunit5Fixture.adds()
 sendTestEvent
   x CtorBoomJunit5Fixture.failsOnPurpose()
 sendTestEvent: TestFinished
-  + GreenJunit5Fixture.measures()
-sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent
   x CtorBoomJunit5Fixture.adds()
-sendTestEvent: TestFinished
+sendTestEvent
 sendTestEvent: TestFinished
   x CtorBoomJunit5Fixture.skippedOnPurpose()
-  + GreenJunit5Fixture.adds()
+sendTestEvent: SuiteFinished
+PASSED example.GreenJunit5Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
   x Junit5Fixture.throwsOnPurpose()
 sendTestEvent
-sendTestEvent: SuiteFinished
-PASSED example.GreenJunit5Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
-sendTestEvent: SuiteFinished
 sendTestEvent: TestFinished
-FAILED example.CtorBoomJunit5Fixture: 0 passed, 5 failed, 0 skipped (<duration>)
   + Junit5Fixture.measures()
+sendTestEvent: SuiteFinished
 sendTestEvent
+FAILED example.CtorBoomJunit5Fixture: 0 passed, 5 failed, 0 skipped (<duration>)
 sendTestEvent: TestFinished
 sendTestEvent
   x Junit5Fixture.failsOnPurpose()
@@ -74,8 +74,8 @@ sendTestEvent: TestFinished
 sendTestEvent: SuiteFinished
 Task executor completed
 Failed tasks
-Executor done, signalling consumer to terminate
 FAILED example.Junit5Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
+Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 7 failed, 1 skipped (<duration>)

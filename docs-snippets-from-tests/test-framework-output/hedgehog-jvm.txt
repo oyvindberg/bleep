@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -23,9 +23,9 @@ sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenHedgehogFixture
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
 Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
@@ -85,7 +85,7 @@ x mytest / example.HedgehogFixture / throws on purpose
   | 
 
   Output from example.HedgehogFixture:
-  | Using random seed: 806323626747208
+  | Using random seed: 830996639956708
   | hello from the test
   | + example.HedgehogFixture.adds: OK, passed 1 tests
   | + example.HedgehogFixture.measures: OK, passed 1 tests
@@ -100,7 +100,7 @@ Process Errors (1)
 ! mytest / example.CtorBoomHedgehogFixture
   | Error running suite example.CtorBoomHedgehogFixture: java.lang.RuntimeException: ctor boom
   Output:
-  | Using random seed: 806323618941208
+  | Using random seed: 830996637954083
   | bleep.testing.runner.ForkedTestRunner$SuiteExecutionException: java.lang.RuntimeException: ctor boom
   | 	... 3 frames elided (bleep)
   | Caused by: java.lang.RuntimeException: ctor boom

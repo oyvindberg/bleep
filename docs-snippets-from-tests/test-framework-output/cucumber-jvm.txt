@@ -18,29 +18,29 @@ sendTestEvent: CompileFinished
 sendTestEvent
 ✅ compiled (<duration>)
 sendTestEvent
-🔍 discovered 2 test suites (total: 2)
 [machine] grant 'test:mytest:example.CucumberFixture' (TestFork) cpu=1 mem=0MB
-sendTestEvent
+🔍 discovered 2 test suites (total: 2)
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.11.4, org.junit.jupiter:junit-jupiter-engine:5.11.4, org.junit.vintage:junit-vintage-engine:5.11.4
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.junit.platform:junit-platform-launcher:1.11.4, org.junit.jupiter:junit-jupiter-engine:5.11.4, org.junit.vintage:junit-vintage-engine:5.11.4
-test runtime: org.junit.platform:junit-platform-launcher:1.11.4, org.junit.jupiter:junit-jupiter-engine:5.11.4, org.junit.vintage:junit-vintage-engine:5.11.4
+sendTestEvent
 Running: mytest:example.GreenCucumberFixture
 Running: mytest:example.CucumberFixture, mytest:example.GreenCucumberFixture
 sendTestEvent
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent
-  + GreenCucumberFixture.adds
-sendTestEvent: TestFinished
-sendTestEvent
   + CucumberFixture.adds
 sendTestEvent: TestFinished
-  + GreenCucumberFixture.measures
+sendTestEvent
+  + GreenCucumberFixture.adds
+sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
   + CucumberFixture.measures
+sendTestEvent: TestFinished
+  + GreenCucumberFixture.measures
 sendTestEvent: TestFinished
   x CucumberFixture.failsOnPurpose
 sendTestEvent
@@ -50,8 +50,8 @@ sendTestEvent: SuiteFinished
 PASSED example.GreenCucumberFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteFinished
 Task executor completed
-FAILED example.CucumberFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Failed tasks
+FAILED example.CucumberFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
