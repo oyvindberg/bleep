@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 2 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -12,43 +12,42 @@ sendTestEvent: CompileStarted
 📦 read analysis (<duration>)
 📦 analyzed (<duration>)
 📦 compiled (<duration>)
-[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 sendTestEvent: CompileFinished
+[machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
 test runtime: org.scala-sbt:test-interface:1.0
 ✅ compiled (<duration>)
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-sendTestEvent
 ✅ linked [Scala.js] (<duration>)
+sendTestEvent
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.GreenScalatestFixture' (TestFork) cpu=1 mem=0MB
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
 sendTestEvent
 sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.CtorBoomScalatestFixture
-Running: mytest:example.CtorBoomScalatestFixture, mytest:example.ScalatestFixture
+Running: mytest:example.GreenScalatestFixture
+Running: mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 Running: mytest:example.CtorBoomScalatestFixture, mytest:example.GreenScalatestFixture, mytest:example.ScalatestFixture
 sendTestEvent
 sendTestEvent: TestFinished
-sendTestEvent
   + GreenScalatestFixture.adds
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+sendTestEvent
+  + ScalatestFixture.adds
 sendTestEvent: TestFinished
   + GreenScalatestFixture.measures
+  + ScalatestFixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenScalatestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
-  + ScalatestFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
-  + ScalatestFixture.measures
 sendTestEvent: SuiteError
-sendTestEvent
 ❌ Test example.CtorBoomScalatestFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
   Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
   Stack trace:
@@ -62,6 +61,7 @@ sendTestEvent
     at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
     at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
+sendTestEvent
 sendTestEvent: TestFinished
   x ScalatestFixture.fails on purpose
 sendTestEvent
@@ -69,10 +69,10 @@ sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
   x ScalatestFixture.throws on purpose
-sendTestEvent: SuiteFinished
   o ScalatestFixture.skipped on purpose
-Task executor completed
+sendTestEvent: SuiteFinished
 FAILED example.ScalatestFixture: 2 passed, 2 failed, 0 skipped, 1 ignored (<duration>)
+Task executor completed
 Failed tasks
 Errored tasks
 Executor done, signalling consumer to terminate
@@ -102,16 +102,17 @@ Test Failures (2)
 x mytest / example.ScalatestFixture / fails on purpose
   Stack trace:
   | org.scalatest.exceptions.TestFailedException
-  |   at org.scalatest.Assertions.newAssertionFailedException(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:28646)
-  |   at org.scalatest.Assertions$AssertionsHelper.macroAssert(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:9111)
-  |   at example.ScalatestFixture.testFun$proxy3$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:60972)
-  |   ... 7 frames elided (scala, scalatest)
+  |   at org.scalatest.Assertions.newAssertionFailedException(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:30332)
+  |   at org.scalatest.Assertions$.newAssertionFailedException(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:38498)
+  |   at org.scalatest.Assertions$AssertionsHelper.macroAssert(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:9604)
+  |   at example.ScalatestFixture.testFun$proxy3$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:66877)
+  |   ... 6 frames elided (scala, scalatest, scala.js)
 
 x mytest / example.ScalatestFixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at example.ScalatestFixture.testFun$proxy4$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:60975)
+  |   at example.ScalatestFixture.testFun$proxy4$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:66880)
   |   ... 9 frames elided (scala, scalatest, scala.js)
 
   Output from example.ScalatestFixture:
@@ -123,7 +124,7 @@ x mytest / example.ScalatestFixture / throws on purpose
   |   org.scalatest.exceptions.TestFailedException was thrown. (ScalatestFixture.scala:8)
   | - throws on purpose *** FAILED ***
   |   java.lang.RuntimeException: boom
-  |   at example.ScalatestFixture.testFun$proxy4$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:60975:38)
+  |   at example.ScalatestFixture.testFun$proxy4$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:66880:38)
   |   ... 9 frames elided (scala, scalatest, scala.js)
   |   ...
   | - skipped on purpose !!! IGNORED !!!

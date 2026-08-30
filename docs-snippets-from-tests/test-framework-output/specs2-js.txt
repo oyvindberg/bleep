@@ -46,9 +46,9 @@ sendTestEvent: TestFinished
   + Specs2Fixture.adds
 sendTestEvent
 sendTestEvent: TestFinished
-  + GreenSpecs2Fixture.measures
 sendTestEvent
 sendTestEvent: TestFinished
+  + GreenSpecs2Fixture.measures
   + Specs2Fixture.measures
 sendTestEvent: SuiteFinished
 PASSED example.GreenSpecs2Fixture: 2 passed, 0 failed, 0 skipped (<duration>)
@@ -63,9 +63,9 @@ sendTestEvent: TestFinished
   - Specs2Fixture.skipped on purpose
 sendTestEvent: SuiteFinished
 Task executor completed
+FAILED example.Specs2Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
-FAILED example.Specs2Fixture: 2 passed, 2 failed, 1 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 1 skipped (<duration>)
@@ -93,15 +93,17 @@ x mytest / example.CtorBoomSpecs2Fixture / example.CtorBoomSpecs2Fixture
   | ctor boom
   Stack trace:
   | java.lang.RuntimeException: ctor boom
-  |   at example.CtorBoomSpecs2Fixture.<init>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:101780)
+  |   at example.CtorBoomSpecs2Fixture.<init>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113199)
   |   ... 9 frames elided (scala, scala.js, specs2)
 
   Output from example.CtorBoomSpecs2Fixture:
   | ctor boom
-  |   example.CtorBoomSpecs2Fixture.<init>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:101780:38)
-  |   {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:101770:181)
-  |   {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21354:14)
-  |   ... 7 frames elided (scala, scala.js, specs2)
+  |   example.CtorBoomSpecs2Fixture.<init>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113199:38)
+  |   {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113183:185)
+  |   {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23645:14)
+  |   ... 2 frames elided (scala, scala.js)
+  |   {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23548:21)
+  |   ... 4 frames elided (scala, scala.js, specs2)
   | 
   | STACKTRACE
   | 
@@ -117,15 +119,14 @@ x mytest / example.Specs2Fixture / fails on purpose
   | 1 != 2
   Stack trace:
   | java.lang.Exception: 1 != 2
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:102378)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31730)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113692)
 
 x mytest / example.Specs2Fixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:102386)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31730)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113694)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:33489)
 
   Output from example.Specs2Fixture:
   | hello from the test
@@ -134,19 +135,19 @@ x mytest / example.Specs2Fixture / throws on purpose
   | + adds
   | + measures
   | x fails on purpose
-  |  1 != 2 (/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:102378)
+  |  1 != 2 (/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113692)
   | 
   | ! throws on purpose
-  |  java.lang.RuntimeException: boom (/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:102386)
-  | {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:102386:40)
-  | {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31730:132)
+  |  java.lang.RuntimeException: boom (/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113694)
+  | {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:113694:40)
+  | {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:33489:210)
   | 
   | o skipped on purpose
   | on purpose
   | 
   | 
   | Total for specification Specs2Fixture
-  | Finished in 48 ms
+  | Finished in 79 ms
   | 5 examples, 1 failure, 1 error, 1 skipped
 
 Skipped (1)

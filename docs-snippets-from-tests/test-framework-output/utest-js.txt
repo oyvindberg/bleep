@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 2 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -14,9 +14,9 @@ sendTestEvent: CompileStarted
 📦 compiled (<duration>)
 sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
+test runtime: org.scala-sbt:test-interface:1.0
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
-test runtime: org.scala-sbt:test-interface:1.0
 🔗 linking [Scala.js]
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
 sendTestEvent
@@ -26,43 +26,43 @@ sendTestEvent
 [machine] grant 'test:mytest:example.UtestFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.UtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.UtestFixture
 Running: mytest:example.CtorBoomUtestFixture, mytest:example.GreenUtestFixture, mytest:example.UtestFixture
 sendTestEvent
 sendTestEvent: TestFinished
+  x CtorBoomUtestFixture.
 sendTestEvent
+sendTestEvent: TestFinished
+  + GreenUtestFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent
+  + GreenUtestFixture.measures
 sendTestEvent: TestFinished
   + UtestFixture.adds
-  + UtestFixture.measures
 sendTestEvent
 sendTestEvent: TestFinished
+  + UtestFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenUtestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: SuiteFinished
+sendTestEvent
+sendTestEvent: TestFinished
+FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
   x UtestFixture.fails on purpose
 sendTestEvent
 sendTestEvent: TestFinished
   x UtestFixture.throws on purpose
 sendTestEvent: SuiteFinished
-FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
-  x CtorBoomUtestFixture.
-sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent: TestFinished
-  + GreenUtestFixture.adds
-  + GreenUtestFixture.measures
-sendTestEvent: SuiteFinished
-sendTestEvent: SuiteFinished
-PASSED example.GreenUtestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 Task executor completed
+FAILED example.UtestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
-FAILED example.CtorBoomUtestFixture: 0 passed, 1 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 3 failed, 0 skipped (<duration>)
@@ -90,50 +90,51 @@ x mytest / example.CtorBoomUtestFixture /
   | ctor boom
   Stack trace:
   | java.lang.RuntimeException: ctor boom
-  |   at example.CtorBoomUtestFixture$.<init>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:28912)
-  |   at example.CtorBoomUtestFixture$.<clinit>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:28933)
+  |   at example.CtorBoomUtestFixture$.<init>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:35930)
+  |   at example.CtorBoomUtestFixture$.<clinit>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:35987)
   |   ... 8 frames elided (scala, scala.js, utest)
 
   Output from example.CtorBoomUtestFixture:
   | -------------------------------- Running Tests --------------------------------
   | X example.CtorBoomUtestFixture <duration> 
   |   java.lang.RuntimeException: ctor boom
-  |     example.CtorBoomUtestFixture$.<init>(main.js:28912)
-  |     example.CtorBoomUtestFixture$.<clinit>(main.js:28933)
-  |     <jscode>.{anonymous}()(main.js:28906)
-  |     <jscode>.{anonymous}()(main.js:24902)
+  |     example.CtorBoomUtestFixture$.<init>(main.js:35930)
+  |     example.CtorBoomUtestFixture$.<clinit>(main.js:35987)
+  |     <jscode>.{anonymous}()(main.js:35923)
+  |     <jscode>.{anonymous}()(main.js:29873)
   |     ... 3 frames elided (scala, scala.js, utest)
-  |     <jscode>.{anonymous}()(main.js:20771)
+  |     <jscode>.{anonymous}()(main.js:16050)
+  |     ... 2 frames elided (scala.js, scala)
 
 x mytest / example.UtestFixture / fails on purpose
   | 1 == 2
   Stack trace:
   | utest.AssertionError: 1 == 2
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12676)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:27896)
-  |   at utest.framework.StackMarker$.dropInside(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13337)
-  |   at utest.asserts.Util$.makeAssertError(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12674)
-  |   at utest.asserts.Asserts$.assertImpl(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:20282)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:29170)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24802)
-  |   at utest.framework.StackMarker$.dropOutside(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13340)
-  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13408)
-  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13402)
+  |   at utest.AssertionError$.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:30077)
+  |   at utest.asserts.Util$.makeAssertError$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15585)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15609)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:34572)
+  |   at utest.framework.StackMarker$.dropInside(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16083)
+  |   at utest.asserts.Util$.makeAssertError(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15609)
+  |   at utest.asserts.Asserts$.assertImpl(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:24599)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:36150)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:29717)
+  |   at utest.framework.StackMarker$.dropOutside(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16086)
 
 x mytest / example.UtestFixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:29174)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24802)
-  |   at utest.framework.StackMarker$.dropOutside(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13340)
-  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13408)
-  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13402)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12421)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:27896)
-  |   at utest.framework.StackMarker$.dropOutside(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13340)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12412)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:27896)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:36155)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:29717)
+  |   at utest.framework.StackMarker$.dropOutside(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16086)
+  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16161)
+  |   at utest.framework.TestCallTree.run(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16154)
+  |   at utest.TestRunner$.$anonfun$8$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15332)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15351)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:34572)
+  |   at utest.framework.Executor.utestWrap(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15691)
+  |   at example.UtestFixture$.utestWrap(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:34715)
 
   Output from example.UtestFixture:
   | -------------------------------- Running Tests --------------------------------
@@ -142,8 +143,8 @@ x mytest / example.UtestFixture / throws on purpose
   | + example.UtestFixture.measures <duration>  
   | X example.UtestFixture.fails on purpose <duration> 
   |   utest.AssertionError: 1 == 2
-  |     utest.asserts.Asserts$.assertImpl(main.js:20282)
-  |     <jscode>.{anonymous}()(main.js:29170)
+  |     utest.asserts.Asserts$.assertImpl(main.js:24599)
+  |     <jscode>.{anonymous}()(main.js:36150)
   | X example.UtestFixture.throws on purpose <duration> 
   |   java.lang.RuntimeException: boom
-  |     <jscode>.{anonymous}()(main.js:29174)
+  |     <jscode>.{anonymous}()(main.js:36155)

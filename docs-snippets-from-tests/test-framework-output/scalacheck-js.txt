@@ -33,14 +33,6 @@ test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.ScalacheckFixture
 Running: mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
 Running: mytest:example.CtorBoomScalacheckFixture, mytest:example.GreenScalacheckFixture, mytest:example.ScalacheckFixture
-sendTestEvent
-sendTestEvent: TestFinished
-  + example.GreenScalacheckFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
-  + example.GreenScalacheckFixture.measures
-sendTestEvent: SuiteFinished
-PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent: SuiteError
 ❌ Test example.CtorBoomScalacheckFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
   Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
@@ -57,10 +49,18 @@ sendTestEvent: SuiteError
     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
 sendTestEvent
 sendTestEvent: TestFinished
-  + example.ScalacheckFixture.adds
 sendTestEvent
 sendTestEvent: TestFinished
+  + example.GreenScalacheckFixture.adds
+  + example.ScalacheckFixture.adds
+sendTestEvent
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent: TestFinished
+  + example.GreenScalacheckFixture.measures
   + example.ScalacheckFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenScalacheckFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent
 sendTestEvent: TestFinished
   x example.ScalacheckFixture.fails on purpose
@@ -99,49 +99,49 @@ Test Failures (2)
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.fails on purpose
   | Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 2147483647
+  | > ARG_0_ORIGINAL: 1884471707
   Stack trace:
   | java.lang.Exception: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 2147483647
-  |   at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22672)
-  |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24412)
-  |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24426)
-  |   at org.scalajs.testing.common.RunMux$$anon$1.serialize(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24208)
-  |   at org.scalajs.testing.common.RunMux$$anon$1.serialize(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:24219)
-  |   at org.scalajs.testing.common.RPCCore.makeMsgMsg(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:10796)
-  |   at org.scalajs.testing.bridge.JSRPC$.send(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:11146)
-  |   at org.scalajs.testing.common.RunMuxRPC.send(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:11321)
-  |   at org.scalajs.testing.bridge.TestAdapterBridge$RemoteEventHandler.handle(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:23919)
-  |   at org.scalacheck.ScalaCheckRunner$$anon$3.executeInternal(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:27990)
+  | > ARG_0_ORIGINAL: 1884471707
+  |   at org.scalacheck.ScalaCheckRunner$$anon$4.throwable(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:26641)
+  |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28238)
+  |   at org.scalajs.testing.common.Serializer$EventSerializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28250)
+  |   at org.scalajs.testing.common.Serializer$SerializeState$.write$extension(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:12212)
+  |   at org.scalajs.testing.common.RunMux$$anon$1.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28031)
+  |   at org.scalajs.testing.common.RunMux$$anon$1.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:28040)
+  |   at org.scalajs.testing.common.Serializer$.serialize(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:12111)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:11681)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:36844)
+  |   at org.scalajs.testing.common.Serializer$.withOutputStream(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:12150)
 
 x mytest / example.ScalacheckFixture / example.ScalacheckFixture.throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:19104)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:32415)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12064)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:32415)
-  |   at org.scalacheck.Prop$.result$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:6923)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:6936)
-  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:37348)
-  |   at scala.collection.immutable.Stream$Cons.map(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:57208)
-  |   at org.scalacheck.Prop$.getFirstFailure$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:6935)
-  |   at org.scalacheck.Prop$.shrinker$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:6999)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:20405)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:36844)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:12683)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:36844)
+  |   at org.scalacheck.Prop$.$anonfun$3(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:8589)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:8592)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:42342)
+  |   at org.scalacheck.Prop$.secure(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:8790)
+  |   at org.scalacheck.Prop$.result$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:8592)
+  |   at org.scalacheck.Prop$.$anonfun$4(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:8596)
 
   Output from example.ScalacheckFixture:
   | hello from the test
   | + example.ScalacheckFixture.adds: OK, passed 100 tests.
   | + example.ScalacheckFixture.measures: OK, passed 100 tests.
-  | failing seed for example.ScalacheckFixture.fails on purpose is 2J_hbqrEXHBiLyDDXP7Pd7omE1VNn4M49P9rUYIcgoE=
+  | failing seed for example.ScalacheckFixture.fails on purpose is pypDuSIZO947Ued4KPaUvVqAunt3B5iPxdrBairTewN=
   | ! example.ScalacheckFixture.fails on purpose: Falsified after 0 passed tests.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: 2147483647
-  | failing seed for example.ScalacheckFixture.throws on purpose is IOXwvZ5WujYUtvrIBddWLKqceSU0-913y_0ECQjAj6L=
+  | > ARG_0_ORIGINAL: 1884471707
+  | failing seed for example.ScalacheckFixture.throws on purpose is cZym4YfoRF3Pr6i2W-2c8FpWMJGxfeo-QE1J2mjQ0cN=
   | ! example.ScalacheckFixture.throws on purpose: Exception raised on property evaluation.
   | > ARG_0: 0
-  | > ARG_0_ORIGINAL: -2121515445
+  | > ARG_0_ORIGINAL: -2147483648
   | > Exception: java.lang.RuntimeException: boom
 
 Process Errors (1)

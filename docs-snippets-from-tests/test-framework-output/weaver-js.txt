@@ -1,4 +1,4 @@
-bootstrapped in 0 ms
+bootstrapped in 1 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -28,18 +28,31 @@ sendTestEvent
 sendTestEvent
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.scala-sbt:test-interface:1.0
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
+test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 Running: mytest:example.GreenWeaverFixture
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
-test runtime: org.junit.platform:junit-platform-launcher:1.14.4, org.junit.vintage:junit-vintage-engine:5.14.4
 Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture
 Running: mytest:example.CtorBoomWeaverFixture, mytest:example.GreenWeaverFixture, mytest:example.WeaverFixture
 sendTestEvent
 sendTestEvent: TestFinished
+  ! CtorBoomWeaverFixture.Unexpected failure
+sendTestEvent: SuiteFinished
+FAILED example.CtorBoomWeaverFixture: 0 passed, 1 failed, 0 skipped (<duration>)
+sendTestEvent
+sendTestEvent: TestFinished
   + WeaverFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenWeaverFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenWeaverFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenWeaverFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 sendTestEvent
 sendTestEvent: TestFinished
   + WeaverFixture.measures
@@ -50,22 +63,9 @@ sendTestEvent
 sendTestEvent: TestFinished
   ! WeaverFixture.throws on purpose
 sendTestEvent: SuiteFinished
-FAILED example.WeaverFixture: 2 passed, 2 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
-  ! CtorBoomWeaverFixture.Unexpected failure
-sendTestEvent: SuiteFinished
-FAILED example.CtorBoomWeaverFixture: 0 passed, 1 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
-  + GreenWeaverFixture.adds
-sendTestEvent
-sendTestEvent: TestFinished
-  + GreenWeaverFixture.measures
-sendTestEvent: SuiteFinished
 Task executor completed
-PASSED example.GreenWeaverFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 Failed tasks
+FAILED example.WeaverFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Executor done, signalling consumer to terminate
 handleTest: ioProgram returned
 sendTestEvent
@@ -94,9 +94,12 @@ x mytest / example.CtorBoomWeaverFixture / Unexpected failure
   | ctor boom
   Stack trace:
   | java.lang.RuntimeException: ctor boom
-  |   at example.CtorBoomWeaverFixture$.<init>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:78430)
-  |   at example.CtorBoomWeaverFixture$.<clinit>(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:78457)
-  |   ... 4 frames elided (weaver)
+  |   at example.CtorBoomWeaverFixture$.<init>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:97946)
+  |   at example.CtorBoomWeaverFixture$.<clinit>(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:98002)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:97937)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:52580)
+  |   at $init$$$anonfun$3 @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:3411)
+  |   at $init$$$anonfun$3 @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:3411)
 
 x mytest / example.WeaverFixture / fails on purpose
 
@@ -104,20 +107,9 @@ x mytest / example.WeaverFixture / throws on purpose
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:78625)
-  |   at defer @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:51229)
-  |   at defer @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22986)
-  |   at defer @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22986)
-  |   at map @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22993)
-  |   at voidError @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:3822)
-  |   at flatMap @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:23035)
-  |   at map @ weaver.EffectCompat.realTimeMillis(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22091)
-  |   at flatMap @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:23037)
-  |   at refOf @ weaver.framework.RunnerCompat$SbtTask.executeFuture(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:71810)
-  |   at flatMap @ weaver.Test$.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:23039)
-  |   at flatMap @ fs2.Compiler$Target$ConcurrentTarget.flatMap(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:80150)
-  |   at flatMap @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:4038)
-  |   at productR @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:3906)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:98170)
+  |   at $init$$$anonfun$3 @ <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:3411)
+  |   ... above 1 frames repeated 13 times (13 frames total)
 
   Output from example.WeaverFixture:
   | example.WeaverFixture

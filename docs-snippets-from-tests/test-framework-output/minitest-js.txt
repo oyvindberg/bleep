@@ -1,4 +1,4 @@
-bootstrapped in 1 ms
+bootstrapped in 0 ms
 [machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget
 dispatch
 Build loaded
@@ -30,15 +30,25 @@ sendTestEvent
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
 test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.GreenMinitestFixture
-Running: mytest:example.CtorBoomMinitestFixture, mytest:example.GreenMinitestFixture
+Running: mytest:example.MinitestFixture
+Running: mytest:example.GreenMinitestFixture, mytest:example.MinitestFixture
 Running: mytest:example.CtorBoomMinitestFixture, mytest:example.GreenMinitestFixture, mytest:example.MinitestFixture
 sendTestEvent
 sendTestEvent: TestFinished
 sendTestEvent
 sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent: TestFinished
+sendTestEvent
+sendTestEvent: TestFinished
   + example.MinitestFixture
+  + example.GreenMinitestFixture
   + example.MinitestFixture
+  + example.GreenMinitestFixture
+sendTestEvent: SuiteFinished
+PASSED example.GreenMinitestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: SuiteFinished
+NO TESTS example.CtorBoomMinitestFixture: discovered but executed 0 tests (<duration>)
 sendTestEvent
 sendTestEvent: TestFinished
   x example.MinitestFixture
@@ -46,20 +56,10 @@ sendTestEvent
 sendTestEvent: TestFinished
   ! example.MinitestFixture
 sendTestEvent: SuiteFinished
-FAILED example.MinitestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
-sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent: SuiteFinished
-  + example.GreenMinitestFixture
-sendTestEvent
-sendTestEvent: TestFinished
-NO TESTS example.CtorBoomMinitestFixture: discovered but executed 0 tests (<duration>)
-  + example.GreenMinitestFixture
-sendTestEvent: SuiteFinished
 Task executor completed
+FAILED example.MinitestFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 Failed tasks
 Executor done, signalling consumer to terminate
-PASSED example.GreenMinitestFixture: 2 passed, 0 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 2 failed, 0 skipped (<duration>)
@@ -84,34 +84,27 @@ x Build Summary
 Test Failures (2)
 
 x mytest / example.MinitestFixture / example.MinitestFixture
-  | received 1 != expected 2
-  Stack trace:
-  | minitest.api.AssertionException: received 1 != expected 2
-  |   at minitest.api.Asserts.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12593)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21601)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18964)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:20361)
-  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283)
-  |   at minitest.api.TestSpec$.liftedTree2$2(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16070)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16108)
-  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283)
-  |   at minitest.api.Properties.liftedTree1$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31110)
-  |   at minitest.api.Properties.liftedTree2$3(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31125)
-
-x mytest / example.MinitestFixture / example.MinitestFixture
   | boom
   Stack trace:
   | java.lang.RuntimeException: boom
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21608)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18964)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:20361)
-  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283)
-  |   at minitest.api.TestSpec$.liftedTree2$2(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16070)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16108)
-  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283)
-  |   at minitest.api.Properties.liftedTree1$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31110)
-  |   at minitest.api.Properties.liftedTree2$3(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31125)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31331)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27379)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23996)
+  |   at minitest.SimpleTestSuite.test$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:25844)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:25829)
+  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27099)
+  |   at minitest.api.TestSpec$.liftedTree2$1$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:20615)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:20619)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27078)
+  |   at scala.concurrent.BlockContext$DefaultBlockContext$.blockOn(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:19384)
+  |   at scala.concurrent.package$.blocking(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:11958)
+
+x mytest / example.MinitestFixture / example.MinitestFixture
+  | received 1 != expected 2
+  Stack trace:
+  | minitest.api.AssertionException: received 1 != expected 2
+  |   at minitest.api.Asserts.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16873)
+  |   at example.MinitestFixture$.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27389)
+  |   ... 8 frames elided (scala, minitest, scala.js)
 
   Output from example.MinitestFixture:
   | example.MinitestFixture
@@ -123,26 +116,20 @@ x mytest / example.MinitestFixture / example.MinitestFixture
   | 
   | - fails on purpose *** FAILED ***
   |   received 1 != expected 2 (MinitestFixture.scala:8)
-  |     minitest.api.Asserts.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:12593:11)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21601:5)
-  |     scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18964:94)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:20361:41)
-  |     scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283:92)
-  |     minitest.api.TestSpec$.liftedTree2$2(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16070:47)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16108:97)
-  |     scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283:92)
-  |     minitest.api.Properties.liftedTree1$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31110:75)
-  |     minitest.api.Properties.liftedTree2$3(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31125:18)
+  |     minitest.api.Asserts.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16873:11)
+  |     example.MinitestFixture$.assertEquals(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27389:3)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27377:227)
+  |     ... 2 frames elided (scala, minitest)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:25829:327)
+  |     ... 2 frames elided (scala.js, minitest)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:20619:190)
+  |     ... 1 frame elided (scala.js)
   | 
   | - throws on purpose *** FAILED ***
   |   RuntimeException: boom
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21608:40)
-  |     scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18964:94)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:20361:41)
-  |     scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283:92)
-  |     minitest.api.TestSpec$.liftedTree2$2(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16070:47)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:16108:97)
-  |     scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21283:92)
-  |     minitest.api.Properties.liftedTree1$1(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31110:75)
-  |     minitest.api.Properties.liftedTree2$3(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31125:18)
-  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:31331:14)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27379:40)
+  |     ... 2 frames elided (scala, minitest)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:25829:327)
+  |     ... 2 frames elided (scala.js, minitest)
+  |     {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:20619:190)
+  |     ... 3 frames elided (scala.js, scala)

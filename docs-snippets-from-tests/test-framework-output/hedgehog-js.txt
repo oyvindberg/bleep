@@ -16,45 +16,23 @@ sendTestEvent: CompileFinished
 [machine] grant 'link:mytest' (SourcegenFork) cpu=1 mem=2560MB
 📦 saved analysis (<duration>)
 ✅ compiled (<duration>)
-test runtime: org.scala-sbt:test-interface:1.0
 🔗 linking [Scala.js]
+test runtime: org.scala-sbt:test-interface:1.0
 [machine] grant 'discover:mytest' (Compile) cpu=1 mem=0MB
-sendTestEvent
 ✅ linked [Scala.js] (<duration>)
+sendTestEvent
 sendTestEvent
 🔍 discovered 3 test suites (total: 3)
 [machine] grant 'test:mytest:example.HedgehogFixture' (TestFork) cpu=1 mem=0MB
 sendTestEvent
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
+test runtime: org.scala-sbt:test-interface:1.0
 Running: mytest:example.HedgehogFixture
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-test runtime: org.scala-sbt:test-interface:1.0
-Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.HedgehogFixture
+Running: mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
 Running: mytest:example.CtorBoomHedgehogFixture, mytest:example.GreenHedgehogFixture, mytest:example.HedgehogFixture
-sendTestEvent
-sendTestEvent: TestFinished
-sendTestEvent
-sendTestEvent: TestFinished
-  + GreenHedgehogFixture.adds
-  + GreenHedgehogFixture.measures
-sendTestEvent: SuiteFinished
-PASSED example.GreenHedgehogFixture: 2 passed, 0 failed, 0 skipped (<duration>)
-sendTestEvent: SuiteError
-❌ Test example.CtorBoomHedgehogFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
-  Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
-  Stack trace:
-    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$4(RPCCore.scala:78)
-    at scala.Option.foreach(Option.scala:437)
-    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1(RPCCore.scala:76)
-    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1$adapted(RPCCore.scala:56)
-    at org.scalajs.testing.common.Serializer$.withInputStream(Serializer.scala:56)
-    at org.scalajs.testing.common.RPCCore.handleMessage(RPCCore.scala:56)
-    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4(JSEnvRPC.scala:48)
-    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
-    at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
-    at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
+test runtime: org.scala-sbt:test-interface:1.0
 sendTestEvent
 sendTestEvent: TestFinished
   + HedgehogFixture.adds
@@ -68,11 +46,33 @@ sendTestEvent
 sendTestEvent: TestFinished
   x HedgehogFixture.throws on purpose
 sendTestEvent: SuiteFinished
+FAILED example.HedgehogFixture: 2 passed, 2 failed, 0 skipped (<duration>)
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenHedgehogFixture.adds
+sendTestEvent
+sendTestEvent: TestFinished
+  + GreenHedgehogFixture.measures
+sendTestEvent: SuiteFinished
+PASSED example.GreenHedgehogFixture: 2 passed, 0 failed, 0 skipped (<duration>)
+sendTestEvent: SuiteError
 Task executor completed
 Failed tasks
+❌ Test example.CtorBoomHedgehogFixture failed: org.scalajs.testing.common.RPCCore$RPCException: java.lang.RuntimeException: ctor boom
+  Caused by: org.scalajs.testing.common.Serializer$ThrowableSerializer$$anon$3: ctor boom
+  Stack trace:
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$4(RPCCore.scala:78)
+    at scala.Option.foreach(Option.scala:437)
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1(RPCCore.scala:76)
+    at org.scalajs.testing.common.RPCCore.$anonfun$handleMessage$1$adapted(RPCCore.scala:56)
+    at org.scalajs.testing.common.Serializer$.withInputStream(Serializer.scala:56)
+    at org.scalajs.testing.common.RPCCore.handleMessage(RPCCore.scala:56)
+    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4(JSEnvRPC.scala:48)
+    at org.scalajs.testing.adapter.JSEnvRPC.$anonfun$run$4$adapted(JSEnvRPC.scala:48)
+    at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
+    at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
 Errored tasks
 Executor done, signalling consumer to terminate
-FAILED example.HedgehogFixture: 2 passed, 2 failed, 0 skipped (<duration>)
 handleTest: ioProgram returned
 sendTestEvent
 Test completed: 4 passed, 2 failed, 0 skipped (<duration>)
@@ -99,79 +99,81 @@ Test Failures (2)
 x mytest / example.HedgehogFixture / fails on purpose
   Stack trace:
   | hedgehog.sbt.MessageOnlyException: 
-  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18410)
-  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13554)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:7761)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:9012)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
-  |   at scala.concurrent.impl.Promise$Transformation.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:37849)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25664)
-  |   at <jscode>.process.processTicksAndRejections(node:internal/process/task_queues:104)
+  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23636)
+  |   at hedgehog.sbt.Task.run$$anonfun$2(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16139)
+  |   at hedgehog.sbt.Task.run$$anonfun$adapted$2(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16142)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16110)
+  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32379)
+  |   at scala.collection.immutable.$colon$colon.foreach(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:54944)
+  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16110)
+  |   at hedgehog.sbt.Task.execute(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16167)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:9045)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27502)
 
 x mytest / example.HedgehogFixture / throws on purpose
   | java.lang.RuntimeException: boom
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15768:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27482:94)
+  |   at hedgehog.core.GenImplicits2.point$$anonfun$1$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15847:86)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:229)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32358:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23230:103)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23236:15)
+  |   at hedgehog.core.GenImplicits2.hedgehog$core$GenImplicits2$$anon$2$$_$point$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:116)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:22735:170)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32400:92)
   Stack trace:
   | hedgehog.sbt.MessageOnlyException: java.lang.RuntimeException: boom
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15768:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27482:94)
+  |   at hedgehog.core.GenImplicits2.point$$anonfun$1$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15847:86)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:229)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32358:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23230:103)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23236:15)
+  |   at hedgehog.core.GenImplicits2.hedgehog$core$GenImplicits2$$anon$2$$_$point$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:116)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:22735:170)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32400:92)
   | 
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)(Unknown Source)
-  |   at <jscode>.scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)(Unknown Source)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)(Unknown Source)
-  |   at <jscode>.scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)(Unknown Source)
-  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)(Unknown Source)
-  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)(Unknown Source)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)(Unknown Source)
-  |   at <jscode>.scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)(Unknown Source)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)(Unknown Source)
-  |   at <jscode>.scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)(Unknown Source)
-  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18410)
-  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13554)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:7761)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:9012)
-  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21698)
-  |   at scala.concurrent.impl.Promise$Transformation.run(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:37849)
-  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25664)
-  |   at <jscode>.process.processTicksAndRejections(node:internal/process/task_queues:104)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15768:40)(Unknown Source)
+  |   at <jscode>.scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27482:94)(Unknown Source)
+  |   at <jscode>.hedgehog.core.GenImplicits2.point$$anonfun$1$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15847:86)(Unknown Source)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:229)(Unknown Source)
+  |   at <jscode>.scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32358:92)(Unknown Source)
+  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23230:103)(Unknown Source)
+  |   at <jscode>.hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23236:15)(Unknown Source)
+  |   at <jscode>.hedgehog.core.GenImplicits2.hedgehog$core$GenImplicits2$$anon$2$$_$point$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:116)(Unknown Source)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:22735:170)(Unknown Source)
+  |   at <jscode>.scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32400:92)(Unknown Source)
+  |   at hedgehog.sbt.Event$.fromReport(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23636)
+  |   at hedgehog.sbt.Task.run$$anonfun$2(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16139)
+  |   at hedgehog.sbt.Task.run$$anonfun$adapted$2(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16142)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16110)
+  |   at scala.scalajs.runtime.AnonFunction1.$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32379)
+  |   at scala.collection.immutable.$colon$colon.foreach(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:54944)
+  |   at hedgehog.sbt.Task.run(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16110)
+  |   at hedgehog.sbt.Task.execute(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:16167)
+  |   at <jscode>.{anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:9045)
+  |   at scala.runtime.AbstractFunction1.$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27502)
 
   Output from example.HedgehogFixture:
-  | Using random seed: 64453292
+  | Using random seed: 287774500
   | hello from the test
   | + example.HedgehogFixture.adds: OK, passed 1 tests
   | + example.HedgehogFixture.measures: OK, passed 1 tests
   | - example.HedgehogFixture.fails on purpose: Falsified after 0 passed tests
   | - example.HedgehogFixture.throws on purpose: Falsified after 0 passed tests
   | > java.lang.RuntimeException: boom
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:13049:40)
-  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:21679:94)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18001:25)
-  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25722:92)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18187:21)
-  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18211:15)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:18000:115)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
-  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:22290:81)
-  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/link-output/debug/js/main.js:25762:92)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15768:40)
+  |   at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:27482:94)
+  |   at hedgehog.core.GenImplicits2.point$$anonfun$1$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15847:86)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:229)
+  |   at scala.scalajs.runtime.AnonFunction0.$$Lambda$2bf0f8dc580d6edeb2d6a336c52a1bab3049702d.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32358:92)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23230:103)
+  |   at hedgehog.core.TreeImplicits2$$anon$2.point(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:23236:15)
+  |   at hedgehog.core.GenImplicits2.hedgehog$core$GenImplicits2$$anon$2$$_$point$$anonfun$1(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:15850:116)
+  |   at {anonymous}()(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:22735:170)
+  |   at scala.scalajs.runtime.AnonFunction2.$$Lambda$770e9b86e03b055b1d78d82135c9f39ea48d32d7.apply(/private<project>/.bleep/projects/mytest/builds/normal/debug/js/main.js:32400:92)
 
 Process Errors (1)
 
@@ -190,5 +192,5 @@ Process Errors (1)
   |     at org.scalajs.jsenv.nodejs.ComRun$$anon$1.run(ComSupport.scala:74)
   |     at unsafeRunSync @ bleep.commands.ReactiveBsp.runInProcess(ReactiveBsp.scala:281)
   Output:
-  | Using random seed: 61347708
+  | Using random seed: 347874042
   | [scala.js] TestAdapter.close() was called. Incomplete runs: Set(0)

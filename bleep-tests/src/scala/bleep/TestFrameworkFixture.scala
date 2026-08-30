@@ -336,9 +336,12 @@ case class TestFrameworkFixture(
       case ("munit", "js")         => CtorFailureReport.Hangs
       case ("scalatest", "native") => CtorFailureReport.FailureWithoutCause
       case ("scalacheck", "jvm")   => CtorFailureReport.FailureWithoutCause
-      case ("minitest", _)         => CtorFailureReport.NothingButSilence
-      case ("testng", _)           => CtorFailureReport.FailureWithoutCause
-      case _                       => CtorFailureReport.NamesTheCause
+      // On Scala Native the binary dies before the adapter can report: the object initializer throws while the module is being loaded, so the process exits 1
+      // and no case is ever produced. bleep reports it as a process error and the thrown exception survives in the captured output, but never on a case.
+      case ("scalacheck", "native") => CtorFailureReport.FailureWithoutCause
+      case ("minitest", _)          => CtorFailureReport.NothingButSilence
+      case ("testng", _)            => CtorFailureReport.FailureWithoutCause
+      case _                        => CtorFailureReport.NamesTheCause
     }
 
   private def greenSimpleName: String = s"Green$simpleName"
