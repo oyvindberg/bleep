@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.commands.{DisplayMode, ReactiveBsp}
+import bleep.internal.FileUtils
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
@@ -219,7 +220,15 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       .replaceAll("""pid=\d+""", "pid=<pid>")
       .replaceAll("""history show \d+""", "history show <n>")
       .replaceAll("""#\d+ \(bleep""", "#<n> (bleep")
-    val transcriptFile = snippetsRoot / "test-framework-output" / s"${fixture.name}-${platform.id}.txt"
+    // Under `.bleep`, which is not tracked, and deliberately not under `docs-snippets-from-tests`.
+    //
+    // That directory holds published site content and CI gates it with `git diff --exit-code`: every file in it has to come out byte-identical on any
+    // machine. A transcript cannot. It opens with `bootstrapped in 1 ms` and `[machine] resource governor: 18 CPU core(s), 31744MB fork-memory budget` — a
+    // laptop and a CI runner disagree on both — and the suites run concurrently, so bleep's own progress lines interleave differently every time. Committing
+    // them there made that step red on a green build, for a file no doc reads.
+    //
+    // Still written, because reading them side by side across 18 frameworks is how the gaps on the matrix page were found in the first place.
+    val transcriptFile = FileUtils.cwd / ".bleep" / "test-framework-output" / s"${fixture.name}-${platform.id}.txt"
     Files.createDirectories(transcriptFile.getParent)
     Files.write(transcriptFile, transcript.getBytes(StandardCharsets.UTF_8)): Unit
 
