@@ -93,7 +93,7 @@ object LinkExecutor {
 
       val upToDate = !hasNewerInput
       if (upToDate) {
-        logger.info(s"[LINK] Up-to-date: $outputFile")
+        logger.debug(s"[LINK] Up-to-date: $outputFile")
       }
       upToDate
     }
@@ -228,13 +228,13 @@ object LinkExecutor {
 
       val scalaJsLogger = LinkLogger.toScalaJsLogger(logger)
 
-      logger.info(s"[LINK] Starting Scala.js link: classpath=${classpath.size} files, outputDir=$jsOutputDir, isTest=$isTest")
+      logger.debug(s"[LINK] Starting Scala.js link: classpath=${classpath.size} files, outputDir=$jsOutputDir, isTest=$isTest")
 
       toolchain
         .link(platform.config, classpath, mainClass, jsOutputDir, moduleName, scalaJsLogger, cancellation, isTest)
         .map {
           case Outcome.ThreadOutcome.Completed(result) =>
-            logger.info(s"[LINK] Scala.js link result: isSuccess=${result.isSuccess}, outputFiles=${result.outputFiles.size}, mainModule=${result.mainModule}")
+            logger.debug(s"[LINK] Scala.js link result: isSuccess=${result.isSuccess}, outputFiles=${result.outputFiles.size}, mainModule=${result.mainModule}")
             if (result.isSuccess) {
               val sourceMap = result.outputFiles.find(_.toString.endsWith(".map"))
               (TaskResult.Success, LinkResult.JsSuccess(result.mainModule, sourceMap, result.outputFiles, wasUpToDate = false))
@@ -360,7 +360,7 @@ object LinkExecutor {
           (TaskResult.Failure(s"No KLIB files found for linking: classpath=$classpath", List.empty), LinkResult.Failure("No KLIB files found", List.empty))
         )
       } else {
-        logger.info(s"[LINK] Starting Kotlin/JS link: ${klibs.size} KLIBs, outputDir=$jsOutputDir")
+        logger.debug(s"[LINK] Starting Kotlin/JS link: ${klibs.size} KLIBs, outputDir=$jsOutputDir")
 
         // Create compiler config for linking
         val moduleKind = platform.config.moduleKind match {
@@ -398,7 +398,7 @@ object LinkExecutor {
           .link(klibs, jsOutputDir, config, diagnosticListener, cancellation)
           .map {
             case Outcome.ThreadOutcome.Completed(result) =>
-              logger.info(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
+              logger.debug(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
               if (result.isSuccess && result.jsFile.isDefined) {
                 val allFiles =
                   scala.util
@@ -576,10 +576,14 @@ object LinkExecutor {
               )
               .map { result =>
                 if (result.isSuccess) {
-                  if (!Files.isExecutable(binaryPath)) {
-                    binaryPath.toFile.setExecutable(true): Unit
+                  // `result.outputPath`, not `binaryPath`. Kotlin/Native decides the real filename itself — it appends `.kexe` for a host executable — so
+                  // the path we asked for is not necessarily the path that now exists. The compiler resolves this and reports what it wrote; reporting the
+                  // request instead made `LinkResult` name a file that was never created, and chmod'd that non-existent path too.
+                  val produced = result.outputPath
+                  if (!Files.isExecutable(produced)) {
+                    produced.toFile.setExecutable(true): Unit
                   }
-                  (TaskResult.Success, LinkResult.NativeSuccess(binaryPath, wasUpToDate = false))
+                  (TaskResult.Success, LinkResult.NativeSuccess(produced, wasUpToDate = false))
                 } else {
                   (
                     TaskResult.Failure(s"Kotlin/Native linking failed with exit code ${result.exitCode}", List.empty),

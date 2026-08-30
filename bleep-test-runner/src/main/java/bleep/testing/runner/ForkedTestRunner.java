@@ -236,7 +236,8 @@ public class ForkedTestRunner {
 
     send(
         TestProtocol.encodeLog(
-            "info",
+            // bleep talking to itself about which suite it was handed. Not the user's test output.
+            "debug",
             "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
 
     // The server decided this, with the project's classpath in front of it. Nothing here re-derives
@@ -505,7 +506,14 @@ public class ForkedTestRunner {
     return new Logger() {
       @Override
       public boolean ansiCodesSupported() {
-        return true;
+        // Frameworks ask this before colourising. Answering an unconditional `true` meant `bleep
+        // test --no-color` still got ANSI escapes from ScalaTest,
+        // hedgehog and friends: the flag lives in the client JVM and this runs in a forked one, so
+        // the only thing that crosses is the environment. The
+        // client sets NO_COLOR when the user asks for no colour, and the no-color.org convention
+        // means a user who sets it themselves is honoured too.
+        String noColor = System.getenv("NO_COLOR");
+        return noColor == null || noColor.isEmpty();
       }
 
       @Override

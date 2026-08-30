@@ -749,7 +749,16 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
                 {
                   val params = new bsp4j.TestParams(targets)
                   params.setOriginId(UUID.randomUUID().toString)
-                  val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, Nil, Nil, false, BleepBspProtocol.ClientEnv.current())
+                  val testOptions = BleepBspProtocol.TestOptions(
+                    Nil,
+                    Nil,
+                    only,
+                    exclude,
+                    Nil,
+                    Nil,
+                    false,
+                    BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
+                  )
                   params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                   params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                   lifecycle.server.buildTargetTest(params)

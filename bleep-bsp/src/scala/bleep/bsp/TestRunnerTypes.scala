@@ -14,7 +14,14 @@ object TestRunnerTypes {
   /** Test event handler for receiving test execution events from non-JVM runners. */
   trait TestEventHandler {
     def onTestStarted(suite: String, test: String): Unit
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
+
+    /** @param message
+      *   the throwable's own message, which is frequently null — ScalaTest's `TestFailedException` carries no message at all
+      * @param throwable
+      *   the whole exception rendered: type, message and frames. Separate from `message` because they land in different places in the JUnit report (the
+      *   `message` attribute and the element body), and because a null message is not the absence of information.
+      */
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit
     def onSuiteStarted(suite: String): Unit
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
     def onOutput(suite: String, line: String, channel: OutputChannel): Unit

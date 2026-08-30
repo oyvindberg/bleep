@@ -27,7 +27,7 @@ class CiCommandIT extends IntegrationTestHarness {
     junitReportDir = None,
     diffBase = None,
     diffOutput = OutputMode.Text,
-    clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current()
+    clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
   )
 
   private def compilePhase = commands.Ci.compilePhase(

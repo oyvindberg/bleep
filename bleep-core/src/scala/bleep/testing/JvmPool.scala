@@ -209,7 +209,18 @@ object JvmPool {
               )
             case 139 => ExitDescription("killed by SIGSEGV (exit 139)", Some("The JVM crashed; look for an hs_err_pid*.log next to the working directory."))
             case code if code > 128 => ExitDescription(s"killed by signal ${code - 128} (exit $code), not by bleep", None)
-            case code               => ExitDescription(s"exited with code $code", None)
+            case code               =>
+              // The same diagnosis as the exit-0 case, which already names System.exit. A test calling `System.exit(3)` lands here rather than there, and
+              // used to be reported as a bare "exited with code 3" — accurate and unhelpful. bleep cannot prevent the call: the runner installs a
+              // SecurityManager to block it, and JDK 24 removed SecurityManager, so on any current JVM the exit goes through and the fork simply dies.
+              ExitDescription(
+                s"exited with code $code",
+                Some(
+                  s"The JVM exited without sending a suite result. A test calling System.exit($code) is the usual cause; bleep cannot block that on JDK 24+, " +
+                    "where the SecurityManager it relied on no longer exists. Everything the suite had reported before the exit is kept, and the suite is " +
+                    "marked as not finished."
+                )
+              )
           }
     }
   }
@@ -696,11 +707,15 @@ object JvmPool {
                 // When the classpath is too long, pass it via CLASSPATH environment variable instead.
                 val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
+                // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
+                // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
+                // `<system-err>` of every report. `-XX:+IgnoreUnrecognizedVMOptions` first so older JVMs that lack the flag start rather than refuse to.
+                val quietUnsafe = List("-XX:+IgnoreUnrecognizedVMOptions", "--sun-misc-unsafe-memory-access=allow")
                 val cmd =
                   if (useEnvClasspath)
-                    List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
                   else
-                    List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
                 // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
                 // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON

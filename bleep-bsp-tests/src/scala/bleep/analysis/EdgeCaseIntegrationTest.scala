@@ -524,7 +524,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     def outputs: List[(String, String, OutputChannel)] = synchronized(outputsBuffer.toList)
 
     def onTestStarted(suite: String, test: String): Unit = synchronized(testStartsBuffer += ((suite, test)))
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit =
       synchronized(testFinishesBuffer += ((suite, test, status, durationMs, message)))
     def onSuiteStarted(suite: String): Unit = synchronized(suiteStartsBuffer += suite)
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = synchronized(suiteFinishesBuffer += ((suite, passed, failed, skipped)))
@@ -620,7 +620,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
@@ -635,7 +635,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))

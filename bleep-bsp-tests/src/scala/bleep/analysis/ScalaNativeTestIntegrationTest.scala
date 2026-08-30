@@ -43,7 +43,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
 
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
 
     def onSuiteStarted(suite: String): Unit =
@@ -329,7 +329,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
 
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
 
     def onSuiteStarted(suite: String): Unit =

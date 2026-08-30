@@ -177,9 +177,17 @@ object TestRunner {
                 terminal.set(Some(Right(outcome)))
 
               case TestProtocol.TestResponse.Log(level, message, suite) =>
-                val isError = level == "error" || level == "stderr"
-                val effectiveSuite = suite.getOrElse(suiteName)
-                now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
+                // `debug` is bleep talking to itself — "Loading framework: …", "Matched fingerprint: …", the fork announcing which suite it was handed.
+                // It used to be forwarded as test output, so every user's failing test came with four lines of our internals above the framework's own
+                // words, and the same noise was written into `<system-out>` of every JUnit report. It goes to the daemon log now, where a person
+                // debugging bleep can still find it with BLEEP_BSP_DEBUG=true, and nowhere near the report.
+                if (level == "debug")
+                  IO.delay(MultiWorkspaceBspServer.debugLogStatic(s"[${suite.getOrElse(suiteName)}] $message"))
+                else {
+                  val isError = level == "error" || level == "stderr"
+                  val effectiveSuite = suite.getOrElse(suiteName)
+                  now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
+                }
 
               case TestProtocol.TestResponse.Error(message, _) =>
                 // Infrastructure error (JVM died mid-stream, or malformed response) — no authoritative
@@ -340,8 +348,12 @@ object TestRunner {
       failures: List[String]
   )
 
-  /** Map a suite outcome to a DAG task result. The single place suite pass/fail is decided — one match over the ADT, no count comparisons. Empty / no-framework
-    * / errored are all failures (a discovered suite that produced no passing tests is never green).
+  /** Map a suite outcome to a DAG task result. One match over the ADT, no count comparisons.
+    *
+    * `Empty` is a success: a test class with no tests in it is an ordinary thing to have, and failing the build over one was both wrong and inconsistent —
+    * munit reports such a class as skipped and the build passed, ScalaTest reports it as empty and the same build failed. Kept in step with
+    * [[SuiteOutcome.isFailure]], which decides the same question for the summary; when these two disagreed, the run showed "1 failed" with no failure to point
+    * at.
     */
   private def taskResultFor(suiteName: String, outcome: SuiteOutcome, failures: List[String]): TaskDag.TaskResult =
     outcome match {
@@ -350,7 +362,7 @@ object TestRunner {
       case _: SuiteOutcome.Executed =>
         TaskDag.TaskResult.Success
       case SuiteOutcome.Empty =>
-        TaskDag.TaskResult.Failure(error = s"suite $suiteName was discovered but executed 0 tests", diagnostics = Nil)
+        TaskDag.TaskResult.Success
       case SuiteOutcome.NoFrameworkMatched =>
         TaskDag.TaskResult.Failure(error = s"no test framework/engine claimed suite $suiteName", diagnostics = Nil)
       case SuiteOutcome.Errored(message, throwable) =>

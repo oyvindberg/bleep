@@ -232,6 +232,10 @@ object BuildEvent {
       project: CrossProjectName,
       platform: LinkPlatformName,
       durationMs: Long,
+      /** Every file the link wrote — main module or binary first, then source map and chunks. Carried from the linker rather than found by looking in the
+        * output directory afterwards, which is guesswork that goes stale the moment a platform changes its layout.
+        */
+      generatedFiles: List[String],
       timestamp: Long
   ) extends BuildEvent
 
@@ -402,9 +406,9 @@ object BuildEvent {
       case PE.LinkStarted(project, platform, timestamp) =>
         Some(BuildEvent.LinkStarted(project, platform, timestamp))
 
-      case PE.LinkFinished(project, success, durationMs, _, timestamp, platform, error) =>
+      case PE.LinkFinished(project, success, durationMs, _, generatedFiles, timestamp, platform, error) =>
         if (success)
-          Some(BuildEvent.LinkSucceeded(project, platform, durationMs, timestamp))
+          Some(BuildEvent.LinkSucceeded(project, platform, durationMs, generatedFiles, timestamp))
         else
           Some(BuildEvent.LinkFailed(project, platform, durationMs, error.getOrElse("Link failed"), timestamp))
 

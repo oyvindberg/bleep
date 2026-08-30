@@ -116,6 +116,11 @@ object ClasspathTestDiscovery {
     "Spock" -> List(
       "spock.lang.Specification"
     ),
+    // Spek (Kotlin) - its own TestEngine on the JUnit Platform. A Spek suite is an `object X : Spek({ ... })` with no annotation anywhere, so the base
+    // class is the only handle: annotation detection cannot see it, and the Launcher is never asked about a class discovery did not nominate.
+    "Spek" -> List(
+      "org.spekframework.spek2.Spek"
+    ),
     // ScalaTest - fingerprint: SubclassFingerprint("org.scalatest.Suite")
     "ScalaTest" -> List(
       "org.scalatest.Suite"
@@ -510,7 +515,7 @@ object ClasspathTestDiscovery {
     * told, and naming the class here would break the moment either project moved it. What must be true is that the project has the platform at all, which is
     * exactly [[junitRuntimeOnClasspath]] and exactly what the injection table triggers on.
     */
-  private val baseClassJUnitPlatformFrameworks: Set[String] = Set("Kotest", "Spock", "JUnit")
+  private val baseClassJUnitPlatformFrameworks: Set[String] = Set("Kotest", "Spock", "JUnit", "Spek")
 
   /** The `sbt.testing.Framework` implementation behind each base-class-detected framework. Several candidates where a framework has renamed it.
     *

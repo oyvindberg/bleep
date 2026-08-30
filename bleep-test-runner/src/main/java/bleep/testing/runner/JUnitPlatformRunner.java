@@ -118,7 +118,12 @@ class JUnitPlatformRunner {
     String currentSuite = className;
 
     send(
-        TestProtocol.encodeLog("info", "Using JUnit Platform Launcher directly for: " + className));
+        // These four describe how bleep decided to run the suite — the launcher it chose and the
+        // plan it built. Useful when debugging bleep, noise in
+        // front of a user trying to read why their test failed, so they travel at debug level and
+        // reach the daemon log rather than the report.
+        TestProtocol.encodeLog(
+            "debug", "Using JUnit Platform Launcher directly for: " + className));
 
     int[] passed = {0};
     int[] failed = {0};
@@ -146,7 +151,7 @@ class JUnitPlatformRunner {
                 long count = testPlan.countTestIdentifiers(t -> t.isTest());
                 send(
                     TestProtocol.encodeLog(
-                        "info",
+                        "debug",
                         "TestPlan started: "
                             + count
                             + " test(s) in plan, roots="
@@ -154,12 +159,12 @@ class JUnitPlatformRunner {
                 for (TestIdentifier root : testPlan.getRoots()) {
                   send(
                       TestProtocol.encodeLog(
-                          "info",
+                          "debug",
                           "  Root: " + root.getDisplayName() + " [" + root.getUniqueId() + "]"));
                   for (TestIdentifier child : testPlan.getChildren(root)) {
                     send(
                         TestProtocol.encodeLog(
-                            "info",
+                            "debug",
                             "    Child: "
                                 + child.getDisplayName()
                                 + " isTest="

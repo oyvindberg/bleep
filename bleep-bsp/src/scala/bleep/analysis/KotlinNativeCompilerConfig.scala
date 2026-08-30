@@ -109,7 +109,13 @@ object KotlinNativeCompilerConfig {
   */
 case class KotlinNativeCompileResult(
     outputPath: Path,
-    exitCode: Int
+    exitCode: Int,
+    /** What the compiler actually said, so a failure can be reported as the diagnostics it was rather than as "exit code 1".
+      *
+      * These are also handed to the `DiagnosticListener` as they are parsed; carrying them here as well is what lets the caller build a failure out of them
+      * instead of a placeholder.
+      */
+    diagnostics: List[CompilerError]
 ) {
   def isSuccess: Boolean = exitCode == 0
 }

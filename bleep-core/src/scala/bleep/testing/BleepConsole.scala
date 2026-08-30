@@ -22,4 +22,16 @@ object BleepConsole {
   val BOLD: String = if (on) scala.Console.BOLD else ""
   val UNDERLINED: String = if (on) scala.Console.UNDERLINED else ""
   val RESET: String = if (on) scala.Console.RESET else ""
+
+  private val AnsiCsi = "\u001b\\[[0-?]*[ -/]*[@-~]".r
+
+  /** Strip ANSI from text bleep did not author, when no-color is in effect.
+    *
+    * The constants above cover bleep's own output. They cannot cover a *framework's*: munit, utest, weaver and zio-test colourise from their own settings and
+    * never consult `sbt.testing.Logger.ansiCodesSupported`, so telling the forked runner that colour is unwanted quietens ScalaTest and hedgehog but not these.
+    * Their escapes then reached a terminal the user had explicitly asked to keep plain. Applied only when no-color is on, so a normal run keeps every bit of
+    * colour the framework meant to send.
+    */
+  def sanitize(line: String): String =
+    if (on || line.indexOf(0x1b) < 0) line else AnsiCsi.replaceAllIn(line, "")
 }
