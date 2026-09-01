@@ -550,9 +550,12 @@ object KotlinJsLinker {
         return KotlinJsLinkResult(outputDir, None, exitCode)
       }
 
-      // Find the JS output file
-      val jsFile = outputDir.resolve(s"${config.moduleName}.js")
-      val jsFileOpt = if (Files.exists(jsFile)) Some(jsFile) else None
+      // Find the JS output file.
+      //
+      // `.mjs` as well as `.js`, because Kotlin names its output after the module kind: `moduleKind = es` emits `<moduleName>.mjs`, every other kind emits
+      // `<moduleName>.js`. Looking only for `.js` meant an ES link that the compiler had completed successfully came back with no file, and the caller reported
+      // that as "Kotlin/JS linking failed" with no diagnostics — the compiler had nothing to complain about.
+      val jsFileOpt = List(".js", ".mjs").map(ext => outputDir.resolve(config.moduleName + ext)).find(Files.exists(_))
 
       KotlinJsLinkResult(outputDir, jsFileOpt, exitCode)
     } catch {

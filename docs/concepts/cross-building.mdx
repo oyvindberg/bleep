@@ -128,6 +128,37 @@ projects:
           - platform-js
 ```
 
+## Choosing the JavaScript module format
+
+Both JS toolchains take the module format from the project, and both default to
+CommonJS:
+
+```yaml
+projects:
+  # Scala.js
+  frontend:
+    platform:
+      name: js
+      jsKind: esmodule        # none | commonjs | esmodule
+
+  # Kotlin/JS
+  widget:
+    kotlin:
+      version: 2.4.10
+      js:
+        moduleKind: es        # plain | amd | commonjs | umd | es
+```
+
+`bleep link --module-kind <kind>` overrides either one for a single run.
+
+Test links are the exception, and differ between the two. A Scala.js test link
+uses whatever the project declares, because the test adapter loads each module
+format correctly. A Kotlin/JS test link is always UMD: bleep runs those tests by
+`require`-ing the linked output from a generated script, which an ES module
+cannot satisfy. Declaring something else on a Kotlin/JS test project logs a
+warning and links UMD anyway rather than producing output the runner cannot
+load. The main link still honours the declaration.
+
 ## Per-cross customization
 
 Anything settable at the project level can be overridden inside a `cross:` entry, dependencies, scalac/javac options, source layouts, platform settings. The cross block wins for that variant; everything outside it is shared.

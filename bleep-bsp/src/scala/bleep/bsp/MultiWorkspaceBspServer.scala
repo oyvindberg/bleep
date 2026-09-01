@@ -1818,20 +1818,11 @@ class MultiWorkspaceBspServer(
           (platformOpt, isKotlin) match {
             case (Some(model.PlatformId.Js), true) =>
               // Kotlin/JS
-              val projectPaths = started.projectPaths(crossName)
-              val outputDir = projectPaths.targetDir.resolve("link-output").resolve("js")
-              val moduleKind = linkOpts.moduleKind
-                .map {
-                  case "esmodule" => model.KotlinJsModuleKind.ESModule
-                  case "nomodule" => model.KotlinJsModuleKind.Plain
-                  case _          => model.KotlinJsModuleKind.CommonJS
-                }
-                .getOrElse(model.KotlinJsModuleKind.CommonJS)
+              val moduleKind = kotlinJsModuleKind(project, linkOpts.moduleKind)
               val config = TaskDag.KotlinJsConfig(
                 moduleKind = moduleKind,
                 sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
-                dce = linkOpts.optimize.getOrElse(isRelease),
-                outputDir = outputDir
+                dce = linkOpts.optimize.getOrElse(isRelease)
               )
               Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
 
@@ -2355,14 +2346,14 @@ class MultiWorkspaceBspServer(
 
         (platformOpt, isKotlin) match {
           case (Some(model.PlatformId.Js), true) =>
-            // Kotlin/JS - don't add "js" here; executeKotlinJs adds it
-            val projectPaths = started.projectPaths(crossName)
-            val outputDir = projectPaths.targetDir
+            // Kotlin/JS. UMD is not an arbitrary default here, and not the project's to choose: bleep runs Kotlin/JS tests by generating a CommonJS script that
+            // installs a QUnit mock as a global and then `require`s the linked output. UMD is what satisfies that — an ES module makes `require` throw
+            // `ERR_REQUIRE_ESM`, and a plain or AMD module does not export what the runner reads. A project declaring one of those is warned rather than
+            // silently linked as something else; see `kotlinJsTestModuleKind`.
             val config = TaskDag.KotlinJsConfig(
-              moduleKind = model.KotlinJsModuleKind.UMD,
+              moduleKind = kotlinJsTestModuleKind(started, crossName, project),
               sourceMap = false,
-              dce = false, // Tests run without DCE
-              outputDir = outputDir
+              dce = false // Tests run without DCE
             )
             Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
 
@@ -2639,7 +2630,9 @@ class MultiWorkspaceBspServer(
               IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
                 val projectPaths = started.projectPaths(linkTask.project)
                 val logger = createLinkLogger()
-                val outputDir = projectPaths.targetDir
+                // The same base directory the compile/link path uses. These were `targetDir/link-output` and `targetDir`, so `bleep link mytest` and `bleep
+                // test mytest` linked the same project into two trees, each with its own up-to-date check that could not see the other's output.
+                val outputDir = projectPaths.targetDir.resolve("link-output")
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
                   LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
                 }
@@ -3579,6 +3572,47 @@ class MultiWorkspaceBspServer(
         case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
       })
       .getOrElse(fallback)
+
+  /** The module kind a Kotlin/JS link emits for `project`: an explicit `--module-kind` first, then the project's own `kotlin.js.moduleKind`, and only then
+    * CommonJS.
+    *
+    * The project was never consulted. `model.KotlinJs.moduleKind` has been in the build model — and in the schema, and presumably in someone's `bleep.yaml` —
+    * with no reader anywhere in the server, so a build declaring `es` got CommonJS and nothing said otherwise. This is the Kotlin half of the same defect
+    * `scalaJsModuleKind` fixes on the Scala.js side.
+    *
+    * The flag speaks the Scala.js vocabulary because it is one flag across both, so `nomodule` maps to Kotlin's `plain`.
+    */
+  private def kotlinJsModuleKind(project: model.Project, fromFlag: Option[String]): model.KotlinJsModuleKind =
+    fromFlag
+      .map {
+        case "esmodule" => model.KotlinJsModuleKind.ESModule
+        case "nomodule" => model.KotlinJsModuleKind.Plain
+        case _          => model.KotlinJsModuleKind.CommonJS
+      }
+      .orElse(project.kotlin.flatMap(_.js).flatMap(_.moduleKind))
+      .getOrElse(model.KotlinJsModuleKind.CommonJS)
+
+  /** UMD, and a warning when the project asked for something else.
+    *
+    * Unlike a Scala.js test link — where the adapter picks its `Input` per module kind and all three work — the Kotlin/JS test path has exactly one shape it
+    * can load. `KotlinTestRunner.Js` generates a CommonJS script that installs a QUnit mock as a global and then `require`s the linked output. `ESModule` makes
+    * that `require` throw, and `Plain` and `AMD` do not put the tests where the runner reads them. UMD satisfies it and is compatible with the rest.
+    *
+    * So the declaration cannot be honoured here, and the honest thing is to say so rather than substitute in silence — which is what the hardcoded constant
+    * did. A warning rather than a failure: these builds' tests run today, and breaking them to report a limitation of the runner would be a poor trade.
+    */
+  private def kotlinJsTestModuleKind(started: Started, crossName: CrossProjectName, project: model.Project): model.KotlinJsModuleKind = {
+    project.kotlin.flatMap(_.js).flatMap(_.moduleKind).filterNot(_ == model.KotlinJsModuleKind.UMD).foreach { declared =>
+      started.logger
+        .withContext("project", crossName.value)
+        .withContext("declared", declared.value)
+        .warn(
+          s"Kotlin/JS tests link as UMD regardless of `kotlin.js.moduleKind: ${declared.value}` — bleep's test runner loads the output with `require`. " +
+            "The main link honours the declaration; only the test link overrides it."
+        )
+    }
+    model.KotlinJsModuleKind.UMD
+  }
 
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
   private def runScalaJsTestSuite(

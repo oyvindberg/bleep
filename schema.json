@@ -196,6 +196,23 @@
         }
       }
     },
+    "KotlinJs": {
+      "type": "object",
+      "description": "Kotlin/JS settings. Only `moduleKind` is read; the other fields on this block in bleep's model are not wired to anything yet and are deliberately not listed here.",
+      "properties": {
+        "moduleKind": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "amd",
+            "commonjs",
+            "umd",
+            "es"
+          ],
+          "description": "Module format the Kotlin/JS linker emits. Default `commonjs`; `--module-kind` on `bleep link` overrides it. Not honoured for test links, which are always `umd` because bleep's Kotlin/JS test runner loads the output with `require`."
+        }
+      }
+    },
     "Kotlin": {
       "type": "object",
       "properties": {
@@ -209,6 +226,9 @@
         "jvmTarget": {
           "type": "string",
           "description": "JVM bytecode target version (e.g., \"11\", \"17\", \"21\")"
+        },
+        "js": {
+          "$ref": "#/$defs/KotlinJs"
         },
         "kspVersion": {
           "type": "string",

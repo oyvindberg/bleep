@@ -410,8 +410,20 @@ object LinkExecutor {
                 val sourceMap = allFiles.find(_.toString.endsWith(".map"))
                 (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
               } else {
-                logger.error(s"[LINK] Kotlin/JS linking failed")
-                (TaskResult.Failure("Kotlin/JS linking failed", List.empty), LinkResult.Failure("Linking failed", List.empty))
+                // Two different failures used to share one message and one empty diagnostic list. A compiler that reported errors is one thing; a compiler that
+                // exited 0 while bleep could not find what it wrote is a bleep problem, and saying "linking failed" for it sends the reader to look for a
+                // compile error that was never emitted.
+                val reason =
+                  if (result.exitCode != 0) "Kotlin/JS linking failed"
+                  else {
+                    val found = scala.util
+                      .Using(Files.list(jsOutputDir))(_.iterator().asScala.map(_.getFileName.toString).toList.sorted)
+                      .getOrElse(Nil)
+                    val listed = if (found.isEmpty) "the directory is empty" else found.mkString(", ")
+                    s"Kotlin/JS linker reported success but produced no module in $jsOutputDir ($listed)"
+                  }
+                logger.error(s"[LINK] $reason")
+                (TaskResult.Failure(reason, List.empty), LinkResult.Failure(reason, List.empty))
               }
             case Outcome.ThreadOutcome.Cancelled(reason) =>
               (TaskResult.Killed(reason), LinkResult.Cancelled)
