@@ -42,12 +42,14 @@ class TestHeapPropagationIT extends IntegrationTestHarness {
 
   /** The default a fork gets here when the build states nothing.
     *
-    * Read from the same place the server reads it — the user config on disk (`MultiWorkspaceBspServer` loads it fresh per request), NOT
-    * [[IntegrationTestHarness.testConfig]], which the in-process server does not consult for this. Computing it rather than hardcoding it is what keeps these
-    * assertions true on a developer machine that has set `testRunnerHeap` and on CI, which has no config file at all.
+    * Read from [[IntegrationTestHarness.testConfig]], which is what the in-process server now uses. It used to read the developer's `config.yaml` instead, with
+    * a comment explaining that the harness's config "the in-process server does not consult" — true at the time, and a workaround for a defect rather than a
+    * property worth having: `handleTest` re-read the user's file per request, so every integration test ran with whatever heap and parallelism the person
+    * running it happened to have configured. The server takes a `configOverride` now, so this reads the value that will actually be used, and these assertions
+    * stop depending on a file outside the repository.
     */
   private val configuredDefaultMb: Long =
-    MachineResources.forkHeapMb(BleepConfigOps.loadOrDefault(userPaths).orThrow.bspServerConfigOrDefault.testRunnerHeap)
+    MachineResources.forkHeapMb(testConfig.bspServerConfigOrDefault.testRunnerHeap)
 
   private def runTests(started: Started, jvmOptions: List[String]): Either[BleepException, Unit] =
     commands.ReactiveBsp
