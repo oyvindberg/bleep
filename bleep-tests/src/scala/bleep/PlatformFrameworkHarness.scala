@@ -249,6 +249,10 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       verdict: Either[BleepException, Unit]
   ): org.scalatest.Assertion = {
     val context = s"${fixture.name} $frameworkVersion on ${platform.describe}"
+    // Whether this run is the version the fixture's recorded behaviour was measured at. Derived rather than passed in, so it stays right no matter which
+    // matrix calls this.
+    val pinnedVersion =
+      TestFrameworkFixture.pinnedFor(platform.id, platform.scalaBinaryVersion).exists { case (f, v) => f.name == fixture.name && v == frameworkVersion }
     // When nothing ran at all the useful information is in the run's own failure, not in the (empty) report — a build that failed to resolve or compile looks
     // exactly like a runner that executed nothing unless the exception is shown.
     val why = verdict match {
@@ -401,13 +405,19 @@ trait PlatformFrameworkHarness { self: IntegrationTestHarness =>
       // test and not an empty suite; where the thrown exception survives, the report must carry it.
       val ctorDetail = ctorSuites.flatMap(_.cases).map(_.detail).mkString("\n")
       // Same for the constructor failure, where frames matter most: without them you are told a class could not be built and nothing about which line threw.
-      if (fixture.reportsCtorStackFrames(platform.id) && fixture.ctorFailureReport(platform.id) == CtorFailureReport.NamesTheCause)
+      if (pinnedVersion && fixture.reportsCtorStackFrames(platform.id) && fixture.ctorFailureReport(platform.id) == CtorFailureReport.NamesTheCause)
         assert(
           PlatformFrameworkHarness.hasStackFrames(ctorDetail),
           s"$context: the constructor failure reached the report but with no stack frames.\nIt said: ${ctorDetail.take(220)}\n$rendered"
         )
 
-      fixture.ctorFailureReport(platform.id) match {
+      // How a construction failure *reads* is measured at the pinned version, and older releases of the same framework legitimately differ: munit 1.0.0 on
+      // Scala Native lets the process die where 1.3.4 reports through the adapter, so the same fixture yields a process error there and a named cause here.
+      //
+      // The sweep is not held to it. Its stated job is discovery, runner selection and the fork protocol — the ways an old release breaks a *user* — and
+      // asserting today's reporting detail against a five-year-old release only produces red that has to be explained away, which is how a matrix stops being
+      // read. What every version still has to do is above: the suite appears, and something about it is marked failed.
+      if (pinnedVersion) fixture.ctorFailureReport(platform.id) match {
         case CtorFailureReport.NamesTheCause =>
           assert(
             ctorDetail.contains("ctor boom"),
