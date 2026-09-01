@@ -63,6 +63,12 @@ class Commands(started: Started) {
   ): Unit =
     force(commands.Run(project, maybeOverriddenMain, args, raw, watch, noTuiBuildOpts))
 
+  /** Run the tests in `projects`, returning what the run reported.
+    *
+    * A failing test still throws, so the summary describes a run in which everything passed: counts, suites, durations. The detail a caller most wants on a
+    * *failing* run — `failures`, `cancelledSuites` — is therefore out of reach here, because the throw gets there first. Ask for a non-throwing entry point if
+    * you need to inspect failures rather than propagate them.
+    */
   def test(
       projects: List[model.CrossProjectName],
       watch: Boolean = false,
@@ -70,8 +76,8 @@ class Commands(started: Started) {
       exclude: Option[NonEmptyList[String]],
       includeTags: Option[NonEmptyList[String]],
       excludeTags: Option[NonEmptyList[String]]
-  ): Unit =
-    force(
+  ): BuildSummary = {
+    val cmd =
       commands.ReactiveBsp.test(
         watch = watch,
         projects = projects.toArray,
@@ -89,7 +95,11 @@ class Commands(started: Started) {
         diffOutput = OutputMode.Text,
         clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
       )
-    )
+    if (watch) {
+      force(cmd)
+      BuildSummary.empty
+    } else cmd.runReportingSummary(started).orThrow
+  }
 
   def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
     force(commands.Script(name, args, watch))

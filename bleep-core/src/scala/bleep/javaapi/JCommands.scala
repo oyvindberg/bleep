@@ -57,14 +57,16 @@ final class JCommands(started: Started) extends bleepscript.Commands {
     )
   }
 
-  override def test(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
-    underlying.test(
-      projects.asScala.iterator.map(JModel.toCross).toList,
-      watch = false,
-      only = None,
-      exclude = None,
-      includeTags = None,
-      excludeTags = None
+  override def test(projects: java.util.List[bleepscript.CrossProjectName]): bleepscript.TestReport =
+    toTestReport(
+      underlying.test(
+        projects.asScala.iterator.map(JModel.toCross).toList,
+        watch = false,
+        only = None,
+        exclude = None,
+        includeTags = None,
+        excludeTags = None
+      )
     )
 
   override def test(
@@ -72,15 +74,21 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       watch: Boolean,
       only: Optional[java.util.List[String]],
       exclude: Optional[java.util.List[String]]
-  ): Unit =
-    underlying.test(
-      projects.asScala.iterator.map(JModel.toCross).toList,
-      watch = watch,
-      only = toNel(only),
-      exclude = toNel(exclude),
-      includeTags = None,
-      excludeTags = None
+  ): bleepscript.TestReport =
+    toTestReport(
+      underlying.test(
+        projects.asScala.iterator.map(JModel.toCross).toList,
+        watch = watch,
+        only = toNel(only),
+        exclude = toNel(exclude),
+        includeTags = None,
+        excludeTags = None
+      )
     )
+
+  /** Narrower than the summary it comes from, for the same reason [[bleepscript.CompileReport]] is. */
+  private def toTestReport(summary: bleep.testing.BuildSummary): bleepscript.TestReport =
+    new bleepscript.TestReport(summary.testsTotal, summary.testsPassed, summary.testsSkipped, summary.testsIgnored, summary.suitesTotal)
 
   override def run(project: bleepscript.CrossProjectName): Unit =
     underlying.run(JModel.toCross(project), None, Nil, raw = false, watch = false)

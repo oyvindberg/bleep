@@ -26,9 +26,10 @@ public interface Commands {
 
   LinkReport link(List<CrossProjectName> projects, LinkOptions options, boolean watch);
 
-  void test(List<CrossProjectName> projects);
+  /** Run the tests in {@code projects}. Throws when a test fails; see {@link TestReport}. */
+  TestReport test(List<CrossProjectName> projects);
 
-  void test(
+  TestReport test(
       List<CrossProjectName> projects,
       boolean watch,
       Optional<List<String>> only,

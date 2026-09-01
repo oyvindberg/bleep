@@ -44,6 +44,40 @@ class ScriptCommandsIT extends IntegrationTestHarness {
     succeed
   }
 
+  integrationTest("test reports what ran, so an empty run is visible") { ws =>
+    ws.yaml(
+      s"""projects:
+         |  a:
+         |    dependencies:
+         |      - org.scalameta::munit:${model.Versions.Munit}
+         |    isTestProject: true
+         |    platform:
+         |      name: jvm
+         |    scala:
+         |      version: ${model.Versions.Scala3}
+         |""".stripMargin
+    )
+    ws.file(
+      "a/src/scala/example/ASuite.scala",
+      """package example
+        |
+        |class ASuite extends munit.FunSuite {
+        |  test("one") { assertEquals(1, 1) }
+        |  test("two") { assertEquals(2, 2) }
+        |}
+        |""".stripMargin
+    )
+    val (_, commands, _) = ws.start()
+
+    val summary = commands.test(List(a), watch = false, only = None, exclude = None, includeTags = None, excludeTags = None)
+
+    // The counts are the point. `commands.test` throws when a test fails, so "it returned" already meant "nothing failed" — what it could not tell a caller is
+    // whether anything ran at all, which is the failure mode that reads as success in CI.
+    assert(summary.testsPassed == 2, s"expected 2 passing tests, summary says ${summary.testsPassed}")
+    assert(summary.suitesTotal == 1, s"expected 1 suite, summary says ${summary.suitesTotal}")
+    succeed
+  }
+
   integrationTest("link is reachable from a script") { ws =>
     ws.yaml(
       s"""projects:
