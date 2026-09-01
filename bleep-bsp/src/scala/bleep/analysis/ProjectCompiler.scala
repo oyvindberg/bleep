@@ -571,13 +571,13 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
 
     val jsConfig = KotlinJsCompilerConfig(
       kotlinVersion = kt.kotlinVersion,
+      // The compile phase produces a KLIB, not a program: module kind, source-map shape and `.d.ts` generation are decided at link time, where the project's
+      // `kotlin.js` settings are read. Nothing here is a user-facing choice.
       moduleKind = KotlinJsCompilerConfig.ModuleKind.CommonJS,
       moduleName = config.name.replace("-", "_"),
-      outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable,
       sourceMap = true,
       sourceMapPrefix = None,
       sourceMapEmbedSources = KotlinJsCompilerConfig.SourceMapEmbedSources.Never,
-      target = KotlinJsCompilerConfig.Target.Node,
       developmentMode = true,
       generateDts = false,
       additionalOptions = kt.kotlinOptions

@@ -192,12 +192,9 @@ class CrossPlatformIntegrationTest extends AnyFunSuite with Matchers {
         KotlinJs(
           moduleKind = Some(KotlinJsModuleKind.ESModule),
           moduleName = Some("mymodule"),
-          outputMode = Some(KotlinJsOutputMode.JsExecutable),
           sourceMap = Some(true),
           sourceMapPrefix = None,
           sourceMapEmbedSources = None,
-          target = Some(KotlinJsTarget.Node),
-          developmentMode = Some(false),
           generateDts = Some(true)
         )
       ),

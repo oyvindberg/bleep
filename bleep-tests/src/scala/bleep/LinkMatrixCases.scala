@@ -17,8 +17,12 @@ object LinkMatrixCases {
        |      version: ${model.Versions.Scala3}
        |""".stripMargin
 
-  private def kotlinJsProject(moduleKind: Option[String]): String = {
-    val js = moduleKind.map(kind => s"      js:\n        moduleKind: $kind\n").getOrElse("")
+  private def kotlinJsProject(moduleKind: Option[String]): String =
+    kotlinJsProjectWith(moduleKind.map(kind => s"        moduleKind: $kind").toList)
+
+  /** A Kotlin/JS project carrying arbitrary `kotlin.js` settings, one per line. */
+  private def kotlinJsProjectWith(jsSettings: List[String]): String = {
+    val js = if (jsSettings.isEmpty) "" else s"      js:\n${jsSettings.mkString("\n")}\n"
     s"""  myapp:
        |    platform:
        |      name: js
@@ -66,6 +70,8 @@ object LinkMatrixCases {
       // A NoModule program is wrapped in `(function(){ ... }).call(this)`; the other kinds are a bare sequence of top-level statements.
       mustContain = List(").call(this)"),
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -76,6 +82,8 @@ object LinkMatrixCases {
       fileNameDescription = "main.js",
       mustContain = Nil,
       mustNotContain = List(").call(this)"),
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -86,6 +94,8 @@ object LinkMatrixCases {
       fileNameDescription = "main.js",
       mustContain = Nil,
       mustNotContain = List(").call(this)"),
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -97,6 +107,8 @@ object LinkMatrixCases {
       mustContain = Nil,
       // A release link minifies: the fully qualified Scala name survives a fast link and not an optimized one.
       mustNotContain = List("example_Main"),
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     )
   )
@@ -121,6 +133,8 @@ object LinkMatrixCases {
       fileNameDescription = "a .js module",
       mustContain = List("module.exports"),
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -132,6 +146,8 @@ object LinkMatrixCases {
       // UMD probes for both loaders before falling back to a global; that probe is the shape that distinguishes it from plain CommonJS.
       mustContain = List("define.amd"),
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -142,6 +158,8 @@ object LinkMatrixCases {
       fileNameDescription = "a .js module",
       mustContain = Nil,
       mustNotContain = List("module.exports"),
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -152,6 +170,8 @@ object LinkMatrixCases {
       fileNameDescription = "an .mjs module",
       mustContain = Nil,
       mustNotContain = List("module.exports"),
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -162,8 +182,74 @@ object LinkMatrixCases {
       fileNameDescription = "a .js module",
       mustContain = List("define("),
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       // An AMD module defines itself into a loader that node does not have.
       runnable = false
+    ),
+    // The rest of the `kotlin.js` block. Each of these was hardcoded until now — bleep set a value on the compiler arguments either way, so the question was
+    // never whether to support them but which constant to pick. One case per field, each asserting on something the compiler produced rather than on the
+    // configuration it was handed.
+    LinkCase(
+      name = "debug / moduleName names the artifact",
+      projectYaml = kotlinJsProjectWith(List("        moduleName: custom_name")),
+      options = LinkOptions.Debug,
+      expectedFileName = _ == "custom_name.js",
+      fileNameDescription = "custom_name.js",
+      mustContain = Nil,
+      mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
+      runnable = true
+    ),
+    LinkCase(
+      name = "debug / sourceMap emits a map",
+      projectYaml = kotlinJsProjectWith(List("        sourceMap: true")),
+      options = LinkOptions.Debug,
+      expectedFileName = isJs,
+      fileNameDescription = "a .js module",
+      mustContain = Nil,
+      mustNotContain = Nil,
+      siblings = List(".js.map"),
+      siblingMustContain = Nil,
+      runnable = true
+    ),
+    LinkCase(
+      name = "debug / sourceMapEmbedSources always embeds the sources",
+      projectYaml = kotlinJsProjectWith(List("        sourceMap: true", "        sourceMapEmbedSources: always")),
+      options = LinkOptions.Debug,
+      expectedFileName = isJs,
+      fileNameDescription = "a .js module",
+      mustContain = Nil,
+      mustNotContain = Nil,
+      siblings = List(".js.map"),
+      // `sourcesContent` is the map field that carries the sources themselves, and it is absent under the `never` every link used to get.
+      siblingMustContain = List(".js.map" -> "sourcesContent"),
+      runnable = true
+    ),
+    LinkCase(
+      name = "debug / sourceMapPrefix prefixes the map's sources",
+      projectYaml = kotlinJsProjectWith(List("        sourceMap: true", "        sourceMapPrefix: bleep-prefix/")),
+      options = LinkOptions.Debug,
+      expectedFileName = isJs,
+      fileNameDescription = "a .js module",
+      mustContain = Nil,
+      mustNotContain = Nil,
+      siblings = List(".js.map"),
+      siblingMustContain = List(".js.map" -> "bleep-prefix/"),
+      runnable = true
+    ),
+    LinkCase(
+      name = "debug / generateDts emits TypeScript declarations",
+      projectYaml = kotlinJsProjectWith(List("        generateDts: true")),
+      options = LinkOptions.Debug,
+      expectedFileName = isJs,
+      fileNameDescription = "a .js module",
+      mustContain = Nil,
+      mustNotContain = Nil,
+      siblings = List(".d.ts"),
+      siblingMustContain = Nil,
+      runnable = true
     )
   )
 
@@ -186,6 +272,8 @@ object LinkMatrixCases {
       fileNameDescription = "a native binary",
       mustContain = Nil,
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -196,6 +284,8 @@ object LinkMatrixCases {
       fileNameDescription = "a native binary",
       mustContain = Nil,
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     )
   )
@@ -219,6 +309,8 @@ object LinkMatrixCases {
       fileNameDescription = "a native binary",
       mustContain = Nil,
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     ),
     LinkCase(
@@ -229,6 +321,8 @@ object LinkMatrixCases {
       fileNameDescription = "a native binary",
       mustContain = Nil,
       mustNotContain = Nil,
+      siblings = Nil,
+      siblingMustContain = Nil,
       runnable = true
     )
   )

@@ -413,17 +413,19 @@ object KotlinJsLinker {
       klibs: Seq[Path],
       outputDir: Path,
       config: KotlinJsCompilerConfig,
+      projectKlibName: String,
       diagnosticListener: DiagnosticListener,
       cancellation: CancellationToken
   ): IO[bleep.bsp.Outcome.ThreadOutcome[KotlinJsLinkResult]] =
     bleep.bsp.Outcome.runInFreshThread[KotlinJsLinkResult](name = "kotlin-js-linker", contextClassLoader = None, cancellation = cancellation) {
-      linkBlocking(klibs, outputDir, config, diagnosticListener, cancellation)
+      linkBlocking(klibs, outputDir, config, projectKlibName, diagnosticListener, cancellation)
     }
 
   private def linkBlocking(
       klibs: Seq[Path],
       outputDir: Path,
       config: KotlinJsCompilerConfig,
+      projectKlibName: String,
       diagnosticListener: DiagnosticListener,
       cancellation: CancellationToken
   ): KotlinJsLinkResult = {
@@ -448,10 +450,14 @@ object KotlinJsLinker {
 
       // For linking, we pass KLIBs via includes field (the main KLIB to link) and libraries (dependencies)
       // The first KLIB is the main one to link, others are dependencies
+      // Which of these is the project's own KLIB, matched on the *project's* name rather than on `config.moduleName`.
+      //
+      // Those were the same string until `kotlin.js.moduleName` became a setting a build can change, and then they were not: the KLIB on disk is named after
+      // the project, so a project naming its module something else matched nothing, `includes` was never set, and the link failed with no diagnostic. One
+      // string was doing two jobs — naming the output, and identifying a file — and only one of them is the user's to choose.
       val (mainKlib, depKlibs) = klibs.partition { p =>
-        // The main KLIB is typically the one matching the module name
-        p.getFileName.toString.contains(config.moduleName.replace("_", "-")) ||
-        p.getFileName.toString.contains(config.moduleName)
+        p.getFileName.toString.contains(projectKlibName.replace("_", "-")) ||
+        p.getFileName.toString.contains(projectKlibName)
       }
 
       // Set main KLIB via includes field (not freeArgs which is interpreted as sources)

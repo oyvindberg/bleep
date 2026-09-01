@@ -151,6 +151,16 @@ projects:
 
 `bleep link --module-kind <kind>` overrides either one for a single run.
 
+The rest of the Kotlin/JS block:
+
+| setting | default | effect |
+|---|---|---|
+| `moduleName` | project name, `-` as `_` | names the module and the file it lands in |
+| `sourceMap` | on for debug, off for `--release` | emits a `.js.map`; `--source-maps` overrides |
+| `sourceMapPrefix` | unset | prefix for source paths inside the map |
+| `sourceMapEmbedSources` | `never` | `always` or `inlining` put the sources in the map |
+| `generateDts` | `false` | emits TypeScript declarations next to the module |
+
 Test links are the exception, and differ between the two. A Scala.js test link
 uses whatever the project declares, because the test adapter loads each module
 format correctly. A Kotlin/JS test link is always UMD: bleep runs those tests by

@@ -4,7 +4,7 @@ import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.{CrossProjectName, KotlinJsModuleKind, ScriptDef, SuiteName, TestName}
+import bleep.model.{CrossProjectName, KotlinJsModuleKind, KotlinJsSourceMapEmbedSources, ScriptDef, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -239,7 +239,11 @@ object TaskDag {
     */
   case class KotlinJsConfig(
       moduleKind: KotlinJsModuleKind,
+      moduleName: Option[String],
       sourceMap: Boolean,
+      sourceMapPrefix: Option[String],
+      sourceMapEmbedSources: KotlinJsSourceMapEmbedSources,
+      generateDts: Boolean,
       dce: Boolean // Dead Code Elimination - true = smaller output
   )
 

@@ -4,6 +4,7 @@ import bleep.commands.LinkOptions
 import org.scalatest.Assertion
 
 import java.nio.file.{Files, Path}
+import scala.jdk.CollectionConverters.*
 
 /** One link, described end to end: what to build, how to link it, what the artifact should look like, and what it prints when run. */
 case class LinkCase(
@@ -15,6 +16,10 @@ case class LinkCase(
     fileNameDescription: String,
     mustContain: List[String],
     mustNotContain: List[String],
+    /** Files that must appear beside the artifact — a source map, a `.d.ts`. Matched on the file name. */
+    siblings: List[String],
+    /** Assertions on a sibling's content, keyed by the same file-name match. */
+    siblingMustContain: List[(String, String)],
     /** Some outputs cannot be run by `node <file>` alone — AMD needs a loader. Those are asserted on shape only, and say so. */
     runnable: Boolean
 )
@@ -55,6 +60,16 @@ abstract class LinkMatrixIT(platformName: String, cases: List[LinkCase], sourceP
         val body = Files.readString(artifact)
         linkCase.mustContain.foreach(marker => assert(body.contains(marker), s"'$fileName' does not contain '$marker'"))
         linkCase.mustNotContain.foreach(marker => assert(!body.contains(marker), s"'$fileName' contains '$marker' and should not"))
+      }
+
+      val beside = Files.list(artifact.getParent).iterator().asScala.map(_.getFileName.toString).toList.sorted
+      linkCase.siblings.foreach { wanted =>
+        assert(beside.exists(_.endsWith(wanted)), s"expected a '$wanted' beside $fileName, found: ${beside.mkString(", ")}")
+      }
+      linkCase.siblingMustContain.foreach { case (wanted, marker) =>
+        val sibling = beside.find(_.endsWith(wanted)).getOrElse(fail(s"no '$wanted' beside $fileName, found: ${beside.mkString(", ")}"))
+        val body = Files.readString(artifact.resolveSibling(sibling))
+        assert(body.contains(marker), s"'$sibling' does not contain '$marker'")
       }
 
       if (linkCase.runnable) {

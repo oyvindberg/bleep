@@ -65,7 +65,6 @@ class KotlinJsIntegrationTest extends AnyFunSuite with Matchers {
     val config = KotlinJsCompilerConfig.ForTests
     config.kotlinVersion shouldBe bleep.model.Versions.Kotlin23
     config.moduleKind shouldBe KotlinJsCompilerConfig.ModuleKind.CommonJS
-    config.outputMode shouldBe KotlinJsCompilerConfig.OutputMode.JsExecutable
     config.sourceMap shouldBe true
     config.developmentMode shouldBe true
     config.generateDts shouldBe false
@@ -79,20 +78,10 @@ class KotlinJsIntegrationTest extends AnyFunSuite with Matchers {
     KotlinJsCompilerConfig.ModuleKind.ESModule.name shouldBe "es"
   }
 
-  test("KotlinJsCompilerConfig: output modes") {
-    KotlinJsCompilerConfig.OutputMode.Klib.name shouldBe "klib"
-    KotlinJsCompilerConfig.OutputMode.JsExecutable.name shouldBe "js"
-  }
-
   test("KotlinJsCompilerConfig: source map embed sources") {
     KotlinJsCompilerConfig.SourceMapEmbedSources.Never.name shouldBe "never"
     KotlinJsCompilerConfig.SourceMapEmbedSources.Always.name shouldBe "always"
     KotlinJsCompilerConfig.SourceMapEmbedSources.Inlining.name shouldBe "inlining"
-  }
-
-  test("KotlinJsCompilerConfig: targets") {
-    KotlinJsCompilerConfig.Target.Browser.name shouldBe "browser"
-    KotlinJsCompilerConfig.Target.Node.name shouldBe "nodejs"
   }
 
   // ============================================================================
@@ -176,8 +165,7 @@ class KotlinJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Pla
       )
 
       val config = KotlinJsCompilerConfig.ForTests.copy(
-        moduleName = "hello",
-        outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable
+        moduleName = "hello"
       )
 
       val errors = scala.collection.mutable.ListBuffer[CompilerError]()
@@ -258,8 +246,7 @@ class KotlinJsAdvancedIntegrationTest extends AnyFunSuite with Matchers with Pla
       )
 
       val config = KotlinJsCompilerConfig.ForTests.copy(
-        moduleName = "mylib",
-        outputMode = KotlinJsCompilerConfig.OutputMode.Klib
+        moduleName = "mylib"
       )
 
       val listener = new DiagnosticListener {

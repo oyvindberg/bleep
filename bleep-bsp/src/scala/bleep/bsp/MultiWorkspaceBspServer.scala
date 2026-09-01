@@ -1819,9 +1819,11 @@ class MultiWorkspaceBspServer(
             case (Some(model.PlatformId.Js), true) =>
               // Kotlin/JS
               val moduleKind = kotlinJsModuleKind(project, linkOpts.moduleKind)
-              val config = TaskDag.KotlinJsConfig(
+              val config = kotlinJsConfig(
+                project,
                 moduleKind = moduleKind,
-                sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
+                sourceMap = linkOpts.sourceMaps,
+                sourceMapDefault = !isRelease,
                 dce = linkOpts.optimize.getOrElse(isRelease)
               )
               Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
@@ -2350,9 +2352,11 @@ class MultiWorkspaceBspServer(
             // installs a QUnit mock as a global and then `require`s the linked output. UMD is what satisfies that — an ES module makes `require` throw
             // `ERR_REQUIRE_ESM`, and a plain or AMD module does not export what the runner reads. A project declaring one of those is warned rather than
             // silently linked as something else; see `kotlinJsTestModuleKind`.
-            val config = TaskDag.KotlinJsConfig(
+            val config = kotlinJsConfig(
+              project,
               moduleKind = kotlinJsTestModuleKind(started, crossName, project),
-              sourceMap = false,
+              sourceMap = None,
+              sourceMapDefault = false,
               dce = false // Tests run without DCE
             )
             Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
@@ -3591,6 +3595,33 @@ class MultiWorkspaceBspServer(
       }
       .orElse(project.kotlin.flatMap(_.js).flatMap(_.moduleKind))
       .getOrElse(model.KotlinJsModuleKind.CommonJS)
+
+  /** The Kotlin/JS link settings for `project`.
+    *
+    * Every one of these has to have a value — bleep sets each on the compiler arguments unconditionally — so the question was never whether to support them but
+    * which constant to hardcode. They now come from the build where the build says something, in the same order as the module kind: an explicit flag first,
+    * then the project, then bleep's default.
+    *
+    * `sourceMapPrefix` is the one exception, and stays an `Option`: the compiler is only told about it when there is one.
+    */
+  private def kotlinJsConfig(
+      project: model.Project,
+      moduleKind: model.KotlinJsModuleKind,
+      sourceMap: Option[Boolean],
+      sourceMapDefault: Boolean,
+      dce: Boolean
+  ): TaskDag.KotlinJsConfig = {
+    val js = project.kotlin.flatMap(_.js)
+    TaskDag.KotlinJsConfig(
+      moduleKind = moduleKind,
+      moduleName = js.flatMap(_.moduleName),
+      sourceMap = sourceMap.orElse(js.flatMap(_.sourceMap)).getOrElse(sourceMapDefault),
+      sourceMapPrefix = js.flatMap(_.sourceMapPrefix),
+      sourceMapEmbedSources = js.flatMap(_.sourceMapEmbedSources).getOrElse(model.KotlinJsSourceMapEmbedSources.Never),
+      generateDts = js.flatMap(_.generateDts).getOrElse(false),
+      dce = dce
+    )
+  }
 
   /** UMD, and a warning when the project asked for something else.
     *
