@@ -26,8 +26,7 @@ object Publish {
   val ReservedNames: Set[String] = Set("local-ivy", "sonatype", "setup")
 
   case class Options(
-      versionOverride: Option[String],
-      versionFallback: Option[() => String],
+      version: PublishVersion,
       assertRelease: Boolean,
       dryRun: Boolean,
       target: Target,
@@ -216,8 +215,7 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
           diffOutput = OutputMode.Text
         )
         .run(started)
-      version <- resolveVersion()
-      _ <- checkAssertRelease(version)
+      version <- PublishVersion.resolve(options.version, started.buildPaths.buildDir, options.assertRelease)
       _ <-
         if (options.dryRun) dryRun(started, projects, version)
         else
@@ -228,21 +226,6 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
               publishToResolver(started, projects, version, resolverName)
           }
     } yield ()
-
-  private def resolveVersion(): Either[BleepException, String] =
-    options.versionOverride
-      .orElse(options.versionFallback.map(_.apply()))
-      .toRight(new BleepException.Text("No --version specified and no git tags found for automatic versioning."): BleepException)
-
-  private def checkAssertRelease(version: String): Either[BleepException, Unit] =
-    if (options.assertRelease && options.versionOverride.isEmpty && (version.contains("+") || version.endsWith("-SNAPSHOT")))
-      Left(
-        new BleepException.Text(
-          s"--assert-release: version '$version' is not a release. " +
-            "Ensure you are on a clean git tag (no commits after tag, no dirty files)."
-        )
-      )
-    else Right(())
 
   /** Package all projects in one call, returning per-project artifacts. Reads groupId from each project's publish config. */
   private def packageAll(

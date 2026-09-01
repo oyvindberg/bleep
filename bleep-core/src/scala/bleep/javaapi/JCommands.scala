@@ -1,6 +1,6 @@
 package bleep.javaapi
 
-import bleep.commands.{LinkOptions, Publish, PublishLocal, PublishSonatype}
+import bleep.commands.{LinkOptions, Publish, PublishLocal, PublishSonatype, PublishVersion}
 import bleep.packaging.ManifestCreator
 import bleep.{model, Commands, Started}
 import cats.data.NonEmptyList
@@ -139,10 +139,9 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       case Some(other)                => throw new RuntimeException(s"Unknown ManifestCreator impl: ${other.getClass}")
       case None                       => ManifestCreator.default
     }
-    val version = resolveVersion(options)
     val opts = PublishLocal.Options(
       groupId = options.groupId,
-      version = version,
+      version = publishVersion(options.version),
       publishTarget = target,
       projects = options.projects.asScala.iterator.map(JModel.toCross).toArray,
       manifestCreator = manifestCreator
@@ -159,16 +158,12 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       case Some(other)                => throw new RuntimeException(s"Unknown ManifestCreator impl: ${other.getClass}")
       case None                       => ManifestCreator.default
     }
-    val versionOverride = toScalaOpt(options.versionOverride)
-    val versionFallback = toScalaOpt(options.versionFallback).map(supplier => () => supplier.get())
-
     options.target match {
       case _: bleepscript.PublishTarget.LocalIvy =>
         val target = PublishLocal.LocalIvy
-        val version = resolveVersion(options)
         val opts = PublishLocal.Options(
           groupId = options.groupId,
-          version = version,
+          version = publishVersion(options.version),
           publishTarget = target,
           projects = options.projects.asScala.iterator.map(JModel.toCross).toArray,
           manifestCreator = manifestCreator
@@ -177,10 +172,9 @@ final class JCommands(started: Started) extends bleepscript.Commands {
 
       case mf: bleepscript.PublishTarget.MavenFolder =>
         val target = PublishLocal.CustomMaven(model.Repository.MavenFolder(None, mf.path))
-        val version = resolveVersion(options)
         val opts = PublishLocal.Options(
           groupId = options.groupId,
-          version = version,
+          version = publishVersion(options.version),
           publishTarget = target,
           projects = options.projects.asScala.iterator.map(JModel.toCross).toArray,
           manifestCreator = manifestCreator
@@ -189,8 +183,7 @@ final class JCommands(started: Started) extends bleepscript.Commands {
 
       case r: bleepscript.PublishTarget.Resolver =>
         val opts = Publish.Options(
-          versionOverride = versionOverride,
-          versionFallback = versionFallback,
+          version = publishVersion(options.version),
           assertRelease = options.assertRelease,
           dryRun = options.dryRun,
           target = Publish.Target.Resolver(model.ResolverName(r.name)),
@@ -204,7 +197,7 @@ final class JCommands(started: Started) extends bleepscript.Commands {
         // publishConfig in bleep.yaml. The SonatypeCentral target's fields are exposed on the
         // Java side for documentation and future use, but the Scala command treats bleep.yaml as
         // the source of truth so a script can't accidentally override what the build declares.
-        runPublishSonatype(options, manifestCreator, versionOverride)
+        runPublishSonatype(options, manifestCreator)
     }
   }
 
@@ -214,33 +207,27 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       case Some(other)                => throw new RuntimeException(s"Unknown ManifestCreator impl: ${other.getClass}")
       case None                       => ManifestCreator.default
     }
-    val versionOverride = toScalaOpt(options.versionOverride)
-    runPublishSonatype(options, manifestCreator, versionOverride)
+    runPublishSonatype(options, manifestCreator)
   }
 
   private def runPublishSonatype(
       options: bleepscript.PublishOptions,
-      manifestCreator: ManifestCreator,
-      versionOverride: Option[String]
+      manifestCreator: ManifestCreator
   ): Unit =
     underlying.publishSonatype(
       PublishSonatype.Options(
-        versionOverride = versionOverride,
+        version = publishVersion(options.version),
         assertRelease = options.assertRelease,
         projectNames = options.projects.asScala.iterator.map(JModel.toCross).toArray,
         manifestCreator = manifestCreator
       )
     )
 
-  /** Resolve the version eagerly for the local-publish path, which expects a non-optional version. */
-  private def resolveVersion(options: bleepscript.PublishOptions): String =
-    toScalaOpt(options.versionOverride)
-      .orElse(toScalaOpt(options.versionFallback).map(_.get()))
-      .getOrElse(
-        throw new IllegalArgumentException(
-          "PublishOptions requires either an explicit version or a versionFallback"
-        )
-      )
+  private def publishVersion(v: bleepscript.PublishVersion): PublishVersion =
+    v match {
+      case s: bleepscript.PublishVersion.Specified => PublishVersion.Specified(s.value)
+      case _: bleepscript.PublishVersion.Dynver    => PublishVersion.Dynver
+    }
 
   private def toScalaOpt[T](o: Optional[T]): Option[T] =
     if (o.isPresent) Some(o.get) else None

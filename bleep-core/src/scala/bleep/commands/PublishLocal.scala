@@ -25,7 +25,7 @@ object PublishLocal {
 
   case class Options(
       groupId: String,
-      version: String,
+      version: PublishVersion,
       publishTarget: PublishLocal.PublishTarget,
       projects: Array[model.CrossProjectName],
       manifestCreator: ManifestCreator
@@ -50,10 +50,12 @@ case class PublishLocal(watch: Boolean, options: PublishLocal.Options, buildOpts
       )
       .run(started)
       .map { case () =>
+        // No `--assert-release` here: publishing a snapshot into the local cache is the normal case, and the flag is about what leaves the machine.
+        val version = PublishVersion.resolve(options.version, started.buildPaths.buildDir, assertRelease = false).orThrow
         val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
           packageLibraries(
             started,
-            coordinatesFor = CoordinatesFor.Default(groupId = options.groupId, version = options.version),
+            coordinatesFor = CoordinatesFor.Default(groupId = options.groupId, version = version),
             shouldInclude = options.projects.toSet,
             publishLayout = options.publishTarget.publishLayout,
             manifestCreator = options.manifestCreator
@@ -67,7 +69,7 @@ case class PublishLocal(watch: Boolean, options: PublishLocal.Options, buildOpts
               deleteUnknowns = FileSync.DeleteUnknowns.No,
               soft = false
             )
-            .log(started.logger.withContext("projectName", projectName.value).withContext("version", options.version), "Published locally")
+            .log(started.logger.withContext("projectName", projectName.value).withContext("version", version), "Published locally")
         }
         ()
       }

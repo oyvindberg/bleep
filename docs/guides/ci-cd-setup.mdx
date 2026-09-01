@@ -279,7 +279,9 @@ jobs:
 
 `--assert-release` fails the job if dynver would emit a snapshot
 version (uncommitted changes, commits past the tag. No tags at
-all). See [Publish to Maven Central](/docs/tutorials/publish-to-maven)
+all). It has nothing to check when you pass `--version` yourself —
+an explicit version is published as given. See
+[Publish to Maven Central](/docs/tutorials/publish-to-maven)
 for the full release-pipeline story.
 
 ## CI flags

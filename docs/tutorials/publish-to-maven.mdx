@@ -114,7 +114,8 @@ What happens:
 
 Useful flags:
 
-- `--version 1.2.3`, override the dynver-inferred version.
+- `--version 1.2.3`, publish exactly this instead of asking git. Not
+  second-guessed by `--assert-release`: you said what you wanted.
 - `--assert-release`, fail rather than publish a snapshot. Use this
   in CI release jobs.
 - `mylib`, publish only the named project (and its publishable
