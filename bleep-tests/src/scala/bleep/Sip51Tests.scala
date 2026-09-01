@@ -70,7 +70,10 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
       val started = bootstrap
         .from(
           Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
-          ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
+          ResolveProjects.ReplaceBleepDependencies(
+            lazyBleepBuild,
+            BspServerClasspathSource.InProcess(InProcessBspServer.connect(testConfig, IntegrationTestHarness.sharedMachine))
+          ),
           Nil,
           testConfig,
           CoursierResolver.Factory.default

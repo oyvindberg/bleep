@@ -69,7 +69,15 @@ class MultiWorkspaceBspServer(
     buildCache: BuildCache,
     analysisCache: bleep.analysis.AnalysisCache,
     daemonInfo: DaemonInfo,
-    connId: Int
+    connId: Int,
+    /** The config to use instead of reading the user's `config.yaml`, when a caller already has one.
+      *
+      * Empty for the real daemon, which re-reads the file per request on purpose — `parallelism`, the heaps and the idle timeout are machine settings, and
+      * picking up an edit without a restart is the point. It is set by the in-process server, whose caller has a config it means: bleep's own integration tests
+      * were carefully setting `parallelism`, `testRunnerHeap` and `kspRunnerMaxMemory` and having every one of them ignored in favour of whatever the developer
+      * running the suite happened to have in their own file.
+      */
+    configOverride: Option[model.BleepConfig]
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -1008,7 +1016,7 @@ class MultiWorkspaceBspServer(
                     "The server does not resolve builds itself, so there is nothing to compile these from."
                 )
               )
-          bleepConfig <- BleepConfigOps.loadOrDefault(userPaths)
+          bleepConfig <- configOverride.map(Right(_)).getOrElse(BleepConfigOps.loadOrDefault(userPaths))
         } yield {
           val pre = Prebootstrapped(
             logger = logger,
@@ -1775,9 +1783,9 @@ class MultiWorkspaceBspServer(
     val recorder = new TranscriptRecorder
     registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
-      // Re-read user config fresh before starting (allows runtime config changes)
+      // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
-      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val freshConfig = configOverride.getOrElse(BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default))
       val serverConfig = freshConfig.bspServerConfigOrDefault
       // Sizes are resolved here, once, so a task can declare the same heap the fork is started with.
       val forkHeaps = TaskDag.ForkHeaps(
@@ -2314,9 +2322,9 @@ class MultiWorkspaceBspServer(
     val recorder = new TranscriptRecorder
     registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
-      // Re-read user config fresh before starting (allows runtime config changes)
+      // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
-      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val freshConfig = configOverride.getOrElse(BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default))
       val serverConfig = freshConfig.bspServerConfigOrDefault
       val maxParallelism = serverConfig.effectiveParallelism
       val forkHeaps = TaskDag.ForkHeaps(

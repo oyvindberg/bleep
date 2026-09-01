@@ -1,6 +1,8 @@
 package bleep.bsp
 
 import cats.effect.{IO, Resource}
+
+import scala.concurrent.duration.*
 import ryddig.Logger
 
 import java.util.concurrent.CompletableFuture
@@ -11,7 +13,15 @@ import java.util.concurrent.CompletableFuture
   */
 object InProcessBspServer {
 
-  def connect(logger: Logger): Resource[IO, BspConnection] =
+  /** An in-process server, given the config it should use and a governor it should share.
+    *
+    * Both used to be invented here: the config was read from the developer's own `config.yaml` per request, and a `MachineResources` was built `forThisMachine`
+    * — sized for every core and most of the RAM — once per connection. A test suite running many of these concurrently therefore had as many governors as
+    * connections, each admitting forks as though it were the machine's only tenant, which is the opposite of what a governor is for.
+    *
+    * Callers now supply both, so a suite can share one governor across everything it runs and mean what it says about heaps and parallelism.
+    */
+  def connect(config: bleep.model.BleepConfig, machine: bleep.MachineResources)(logger: Logger): Resource[IO, BspConnection] =
     Resource.make(
       IO.blocking {
         // Two pipes carry the two directions. A megabyte of slack keeps a sourcegen run that logs faster than the
@@ -30,8 +40,6 @@ object InProcessBspServer {
           override def run(): Unit = {
             var exitCode: java.lang.Integer = 0
             try {
-              val numCores = Runtime.getRuntime.availableProcessors()
-              val machine = bleep.MachineResources.forThisMachine(totalCpu = numCores, logger = logger)
               val inProcessAnalysisCache = new bleep.analysis.AnalysisCache
               // One server per in-process run, so fresh daemon-scoped state is correct here.
               val server =
@@ -45,8 +53,9 @@ object InProcessBspServer {
                   buildCache =
                     new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), inProcessAnalysisCache),
                   analysisCache = inProcessAnalysisCache,
-                  daemonInfo = DaemonInfo.inProcess(bleep.model.BspServerConfig.default),
-                  connId = 1
+                  daemonInfo = DaemonInfo.inProcess(config.bspServerConfigOrDefault),
+                  connId = 1,
+                  configOverride = Some(config)
                 )
               server.run()
             } catch {
@@ -74,11 +83,23 @@ object InProcessBspServer {
       exited: CompletableFuture[java.lang.Integer]
   ) extends BspConnection {
     def serverExited: IO[Int] = IO.fromCompletableFuture(IO.pure(exited)).map(_.intValue)
-    def close: IO[Unit] = IO.blocking {
-      try output.close()
-      catch { case _: Exception => () }
-      try input.close()
-      catch { case _: Exception => () }
-    }
+
+    /** Close the transport, then wait for the server thread to finish unwinding.
+      *
+      * Closing the pipes is what tells `run()` to return, but nothing used to wait for it — so a test could finish, and start the next one, while the previous
+      * server was still cancelling requests and killing its child processes. The wait is bounded: a server that will not come down must not hang the suite that
+      * is trying to leave.
+      */
+    def close: IO[Unit] =
+      IO.blocking {
+        try output.close()
+        catch { case _: Exception => () }
+        try input.close()
+        catch { case _: Exception => () }
+      } >> IO
+        .fromCompletableFuture(IO.pure(exited))
+        .timeout(30.seconds)
+        .void
+        .handleError(_ => ())
   }
 }

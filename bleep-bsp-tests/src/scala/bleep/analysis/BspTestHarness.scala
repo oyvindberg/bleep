@@ -222,7 +222,8 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       buildCache = new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), harnessAnalysisCache),
       analysisCache = harnessAnalysisCache,
       daemonInfo = DaemonInfo.inProcess(bleep.model.BspServerConfig.default),
-      connId = 1
+      connId = 1,
+      configOverride = None
     )
 
     val buildPayload: Option[BspBuildData.Payload] =

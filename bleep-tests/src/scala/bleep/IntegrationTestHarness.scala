@@ -45,7 +45,8 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
       bootstrap.from(pre, ResolveProjects.InMemory, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
     }
 
-  protected val testConfig: model.BleepConfig = model.BleepConfig(
+  // A `def` so a suite can override it in terms of `super.testConfig` — `super` cannot reach a `val`.
+  protected def testConfig: model.BleepConfig = model.BleepConfig(
     compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
     authentications = None,
     logTiming = None,
@@ -106,6 +107,26 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
         ret
       } finally ws.cleanup()
     }
+}
+
+object IntegrationTestHarness {
+
+  /** One governor for every in-process server this test JVM starts, sized for a tenant rather than for the machine.
+    *
+    * Each connection used to build its own `MachineResources.forThisMachine` — all the cores, most of the RAM — so a suite running integration tests
+    * concurrently had one governor per connection, each admitting forks as though nothing else were running. The governor exists to bound forks *across*
+    * clients, and that is only true if there is one of it.
+    *
+    * Small on purpose, and small in two directions: this JVM is itself one of several the outer `bleep test` forked, and those outer forks are governed by a
+    * daemon that cannot see anything started in here. Two cores and 2GB lets an integration test fork a test JVM or a linker without pretending it is alone.
+    */
+  lazy val sharedMachine: MachineResources =
+    MachineResources.create(
+      totalCpu = 2,
+      totalMemoryMb = 2048L,
+      logger = bleepLoggers.silent,
+      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
+    )
 }
 
 object Workspace {
@@ -193,7 +214,10 @@ class Workspace(
         val rawStarted = bootstrap
           .from(
             Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
-            ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
+            ResolveProjects.ReplaceBleepDependencies(
+              lazyBleepBuild,
+              BspServerClasspathSource.InProcess(InProcessBspServer.connect(effectiveConfig, IntegrationTestHarness.sharedMachine))
+            ),
             Nil,
             effectiveConfig,
             CoursierResolver.Factory.default
