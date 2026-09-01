@@ -25,11 +25,11 @@ final class JCommands(started: Started) extends bleepscript.Commands {
     )
   }
 
-  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions): Unit =
+  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions): bleepscript.LinkReport =
     link(projects, options, watch = false)
 
-  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions, watch: Boolean): Unit =
-    underlying.link(
+  override def link(projects: java.util.List[bleepscript.CrossProjectName], options: bleepscript.LinkOptions, watch: Boolean): bleepscript.LinkReport = {
+    val summary = underlying.link(
       projects.asScala.iterator.map(JModel.toCross).toList,
       LinkOptions(
         releaseMode = options.releaseMode,
@@ -50,6 +50,12 @@ final class JCommands(started: Started) extends bleepscript.Commands {
       ),
       watch = watch
     )
+    new bleepscript.LinkReport(
+      summary.linkedOutputs.map { out =>
+        new bleepscript.LinkedOutput(JModel.crossProjectName(out.project), out.platform.wireValue, out.files.asJava)
+      }.asJava
+    )
+  }
 
   override def test(projects: java.util.List[bleepscript.CrossProjectName]): Unit =
     underlying.test(

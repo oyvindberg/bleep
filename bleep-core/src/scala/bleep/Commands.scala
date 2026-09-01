@@ -39,9 +39,20 @@ class Commands(started: Started) {
     *
     * [[bleep.commands.LinkOptions.Debug]] and [[bleep.commands.LinkOptions.Release]] are the two a caller usually wants; the rest of the fields map one to one
     * onto the command line's flags.
+    *
+    * [[bleep.testing.BuildSummary.linkedOutputs]] is where the link put things, taken from the linker rather than from the directory layout. A caller that
+    * needs the linked JavaScript — to copy it into a jar, to serve it — reads it from there instead of rebuilding `link-output/<mode>/js/main.js` by hand,
+    * which is a path bleep owns and has already changed once.
+    *
+    * Under `watch = true` there is no single run to summarise, so this returns [[bleep.testing.BuildSummary.empty]] when the watch ends.
     */
-  def link(projects: List[model.CrossProjectName], options: LinkOptions, watch: Boolean = false): Unit =
-    force(commands.ReactiveBsp.link(watch, projects.toArray, commands.DisplayMode.NoTui, options, flamegraph = false, cancel = false))
+  def link(projects: List[model.CrossProjectName], options: LinkOptions, watch: Boolean = false): BuildSummary = {
+    val cmd = commands.ReactiveBsp.link(watch, projects.toArray, commands.DisplayMode.NoTui, options, flamegraph = false, cancel = false)
+    if (watch) {
+      force(cmd)
+      BuildSummary.empty
+    } else cmd.runReportingSummary(started).orThrow
+  }
 
   def run(
       project: model.CrossProjectName,

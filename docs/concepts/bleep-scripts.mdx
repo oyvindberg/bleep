@@ -75,6 +75,17 @@ Your script gets three things:
   }
   ```
 
+  `link` hands back a `LinkReport` saying where the link put things. Read the path from there rather
+  than rebuilding `link-output/<mode>/js/main.js` yourself — that layout belongs to bleep and has
+  changed before:
+
+  ```java
+  Path js = commands.link(List.of(frontend), LinkOptions.DEBUG)
+      .forProject(frontend)
+      .mainArtifact();
+  Files.copy(js, serverResources.resolve("assets/main.js"), REPLACE_EXISTING);
+  ```
+
 - **`args`**: whatever the user passed on the command line after the script name.
 
 ### Working with the build model

@@ -74,6 +74,8 @@ case class BuildSummary(
     compilesCancelled: Int,
     /** Projects whose compile found nothing to do. See [[noOp]]. */
     upToDateProjects: List[CrossProjectName],
+    /** What each successful link wrote, in the order the links finished. See [[LinkedOutput]]. */
+    linkedOutputs: List[LinkedOutput],
     suitesTotal: Int,
     suitesCompleted: Int,
     suitesFailed: Int,
@@ -594,6 +596,7 @@ object BuildSummary {
     compilesSkipped = 0,
     compilesCancelled = 0,
     upToDateProjects = Nil,
+    linkedOutputs = Nil,
     suitesTotal = 0,
     suitesCompleted = 0,
     suitesFailed = 0,
@@ -638,6 +641,28 @@ case class LinkFailure(
     platform: LinkPlatformName,
     error: String
 )
+
+/** What one project's link wrote.
+  *
+  * `files` comes from the linker itself, not from listing the output directory afterwards. That distinction is the point of carrying this at all: the layout
+  * under `link-output/` is bleep's to change — it has been renamed once already, when `--release` grew minification and the directory had to follow the mode
+  * rather than the optimizer — so a caller rebuilding that path by hand is writing something bleep is free to break under it.
+  *
+  * Ordered as the linker reported, main artifact first. Prefer [[mainArtifact]] over `files.head`, so the convention has a name.
+  */
+case class LinkedOutput(
+    project: CrossProjectName,
+    platform: LinkPlatformName,
+    files: List[java.nio.file.Path]
+) {
+
+  /** The linked program: the JavaScript module a JS link produced, or the executable a native link produced. */
+  def mainArtifact: java.nio.file.Path =
+    files.headOption.getOrElse(
+      // A link that reported success and listed nothing is broken, not a case to hand back as an empty Option for the caller to explain to itself.
+      throw new bleep.BleepException.Text(s"${project.value}: the ${platform.wireValue} link reported success but listed no files")
+    )
+}
 
 case class TestFailure(
     project: CrossProjectName,

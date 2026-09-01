@@ -254,4 +254,40 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     // There was no compile to be a no-op about. Answering true here would tell a deploy script it may skip on the strength of a run that never looked.
     summaryOf(Nil).noOp shouldBe false
   }
+  // ==========================================================================
+  // linkedOutputs — where the link put things
+  // ==========================================================================
+
+  test("linkedOutputs: the linker's own file list is kept, main artifact first") {
+    // Kept rather than recomputed, because the directory layout under `link-output/` is bleep's and has been renamed before. A caller reconstructing it is
+    // guessing; this is the linker's own answer.
+    val summary = summaryOf(
+      Seq(
+        BuildEvent.LinkStarted(cpn("frontend"), bleep.bsp.protocol.LinkPlatformName.ScalaJs, ts),
+        BuildEvent.LinkSucceeded(
+          cpn("frontend"),
+          bleep.bsp.protocol.LinkPlatformName.ScalaJs,
+          durationMs = 12,
+          generatedFiles = List("/out/js/main.js", "/out/js/main.js.map"),
+          ts + 1
+        )
+      )
+    )
+
+    summary.linkedOutputs.map(_.project) shouldBe List(cpn("frontend"))
+    summary.linkedOutputs.head.mainArtifact shouldBe java.nio.file.Path.of("/out/js/main.js")
+    summary.linkedOutputs.head.files should have size 2
+  }
+
+  test("linkedOutputs: a failed link contributes nothing to report") {
+    val summary = summaryOf(
+      Seq(
+        BuildEvent.LinkStarted(cpn("frontend"), bleep.bsp.protocol.LinkPlatformName.ScalaJs, ts),
+        BuildEvent.LinkFailed(cpn("frontend"), bleep.bsp.protocol.LinkPlatformName.ScalaJs, durationMs = 3, error = "boom", ts + 1)
+      )
+    )
+
+    summary.linkedOutputs shouldBe empty
+    summary.linkFailures should have size 1
+  }
 }

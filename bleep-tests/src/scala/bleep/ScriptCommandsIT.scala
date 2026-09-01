@@ -69,18 +69,29 @@ class ScriptCommandsIT extends IntegrationTestHarness {
     )
     val (_, commands, _) = ws.start()
 
-    commands.link(List(myapp), LinkOptions.Debug)
+    val summary = commands.link(List(myapp), LinkOptions.Debug)
 
     // Asserted on the linked file, not on the call returning: `link` throws on failure, so "it did not throw" is also what a `link` that linked nothing would
     // look like.
-    val linked = Files
+    val onDisk = Files
       .walk(ws.root.resolve(".bleep"))
       .iterator()
       .asScala
       .filter(p => p.getFileName.toString == "main.js")
       .toList
-    assert(linked.nonEmpty, s"commands.link produced no main.js under ${ws.root}")
-    assert(Files.size(linked.head) > 0, s"commands.link produced an empty ${linked.head}")
+    assert(onDisk.nonEmpty, s"commands.link produced no main.js under ${ws.root}")
+    assert(Files.size(onDisk.head) > 0, s"commands.link produced an empty ${onDisk.head}")
+
+    // And the caller is told where it went. The whole reason for reporting this is that the alternative is rebuilding `link-output/<mode>/js/main.js` from a
+    // layout bleep owns and has already renamed once, so the assertion is that the reported path is the file that is really there — not merely that some path
+    // came back.
+    val reported = summary.linkedOutputs
+    assert(reported.map(_.project) == List(myapp), s"expected one linked output for myapp, got ${reported.map(_.project.value)}")
+    assert(
+      reported.head.mainArtifact.toAbsolutePath == onDisk.head.toAbsolutePath,
+      s"the reported main artifact ${reported.head.mainArtifact} is not the file the link wrote, ${onDisk.head}"
+    )
+    assert(Files.exists(reported.head.mainArtifact), s"the reported main artifact does not exist: ${reported.head.mainArtifact}")
     succeed
   }
 }

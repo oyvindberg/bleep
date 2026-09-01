@@ -18,10 +18,13 @@ public interface Commands {
    *
    * <p>Without this a script that packages linked JavaScript into a jar had to shell out to the
    * {@code bleep} command line, paying the start-up cost a second time.
+   *
+   * <p>The returned {@link LinkReport} says where the link put things, taken from the linker rather
+   * than from the directory layout — see {@link LinkedOutput}.
    */
-  void link(List<CrossProjectName> projects, LinkOptions options);
+  LinkReport link(List<CrossProjectName> projects, LinkOptions options);
 
-  void link(List<CrossProjectName> projects, LinkOptions options, boolean watch);
+  LinkReport link(List<CrossProjectName> projects, LinkOptions options, boolean watch);
 
   void test(List<CrossProjectName> projects);
 

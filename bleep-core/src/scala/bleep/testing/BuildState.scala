@@ -22,6 +22,8 @@ case class BuildState(
       * count so a caller can name them.
       */
     upToDateProjects: List[CrossProjectName],
+    /** What each successful link wrote, newest first during accumulation. See [[LinkedOutput]]. */
+    linkedOutputs: List[LinkedOutput],
     testsTotal: Int,
     testsPassed: Int,
     testsFailed: Int,
@@ -87,6 +89,7 @@ case class BuildState(
       compilesSkipped = compilesSkipped,
       compilesCancelled = compilesCancelled,
       upToDateProjects = upToDateProjects.reverse,
+      linkedOutputs = linkedOutputs.reverse,
       suitesTotal = suitesTotal,
       suitesCompleted = suitesCompleted,
       suitesFailed = suitesFailed,
@@ -129,6 +132,7 @@ object BuildState {
     compilesSkipped = 0,
     compilesCancelled = 0,
     upToDateProjects = Nil,
+    linkedOutputs = Nil,
     testsTotal = 0,
     testsPassed = 0,
     testsFailed = 0,
@@ -482,10 +486,14 @@ object BuildStateReducer {
     case BuildEvent.LinkStarted(project, _, _) =>
       state.copy(currentlyLinking = state.currentlyLinking + project)
 
-    case BuildEvent.LinkSucceeded(project, _, durationMs, _, _) =>
+    case BuildEvent.LinkSucceeded(project, platform, durationMs, generatedFiles, _) =>
+      // The linker's own list of what it wrote, kept rather than dropped. It is the only authority on where the output landed: the directory layout under
+      // `link-output/` belongs to bleep and has changed before, so a caller reconstructing that path is guessing. Handed to scripts via
+      // `bleep.Commands.link`.
       state.copy(
         currentlyLinking = state.currentlyLinking - project,
         linksCompleted = state.linksCompleted + 1,
+        linkedOutputs = LinkedOutput(project, platform, generatedFiles.map(java.nio.file.Path.of(_))) :: state.linkedOutputs,
         totalTaskTimeMs = state.totalTaskTimeMs + durationMs
       )
 
