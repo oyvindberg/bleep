@@ -60,11 +60,9 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
         kotlinVersion = "2.3.0",
         moduleName = "test-module",
         moduleKind = KotlinJsCompilerConfig.ModuleKind.CommonJS,
-        outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable,
         sourceMap = false,
         sourceMapPrefix = None,
         sourceMapEmbedSources = KotlinJsCompilerConfig.SourceMapEmbedSources.Never,
-        target = KotlinJsCompilerConfig.Target.Node,
         developmentMode = true,
         generateDts = false,
         additionalOptions = Seq.empty
@@ -111,11 +109,9 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
         kotlinVersion = "2.3.0",
         moduleName = "test-module",
         moduleKind = KotlinJsCompilerConfig.ModuleKind.CommonJS,
-        outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable,
         sourceMap = false,
         sourceMapPrefix = None,
         sourceMapEmbedSources = KotlinJsCompilerConfig.SourceMapEmbedSources.Never,
-        target = KotlinJsCompilerConfig.Target.Node,
         developmentMode = true,
         generateDts = false,
         additionalOptions = Seq.empty

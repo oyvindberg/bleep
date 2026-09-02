@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.commands.Publish
+import bleep.commands.{Publish, PublishVersion}
 import bleep.packaging.ManifestCreator
 
 class PublishToHttpMavenRepoIT extends IntegrationTestHarness {
@@ -66,8 +66,7 @@ class PublishToHttpMavenRepoIT extends IntegrationTestHarness {
 
       commands.publish(
         Publish.Options(
-          versionOverride = Some("1.0.0"),
-          versionFallback = None,
+          version = PublishVersion.Specified("1.0.0"),
           assertRelease = false,
           dryRun = false,
           target = Publish.Target.Resolver(model.ResolverName("company-releases")),
@@ -133,8 +132,7 @@ class PublishToHttpMavenRepoIT extends IntegrationTestHarness {
       val ex = intercept[Throwable] {
         commands.publish(
           Publish.Options(
-            versionOverride = Some("1.0.0"),
-            versionFallback = None,
+            version = PublishVersion.Specified("1.0.0"),
             assertRelease = false,
             dryRun = false,
             target = Publish.Target.Resolver(model.ResolverName("company-releases")),

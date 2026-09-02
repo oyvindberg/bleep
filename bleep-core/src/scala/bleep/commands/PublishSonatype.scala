@@ -4,7 +4,6 @@ package commands
 import bleep.nosbt.InteractionService
 import bleep.packaging.*
 import bleep.plugin.cirelease.CiReleasePlugin
-import bleep.plugin.dynver.DynVerPlugin
 import bleep.plugin.pgp.PgpPlugin
 import bleep.plugin.sonatype.Sonatype
 
@@ -12,7 +11,7 @@ import scala.collection.immutable.SortedMap
 
 object PublishSonatype {
   case class Options(
-      versionOverride: Option[String],
+      version: PublishVersion,
       assertRelease: Boolean,
       projectNames: Array[model.CrossProjectName],
       manifestCreator: ManifestCreator
@@ -39,20 +38,12 @@ case class PublishSonatype(options: PublishSonatype.Options, buildOpts: CommonBu
       )
       .run(started)
       .map { case () =>
-        val dynVer = new DynVerPlugin(
-          baseDirectory = started.buildPaths.buildDir.toFile,
-          dynverSonatypeSnapshots = true
-        )
+        // One rule, in one place, for every publish command. See PublishVersion.resolve.
+        val version = PublishVersion.resolve(options.version, started.buildPaths.buildDir, options.assertRelease).orThrow
 
-        if (options.assertRelease && options.versionOverride.isEmpty && dynVer.isSnapshot) {
-          throw new BleepException.Text(
-            "--assert-release: version would be a snapshot. " +
-              "Ensure you are on a clean git tag (no commits after tag, no dirty files). " +
-              s"Current version: ${dynVer.version}"
-          )
-        }
-
-        val version = options.versionOverride.getOrElse(dynVer.version)
+        // The release plugin wants the dynver object, not a version string — it reads the git state again to decide whether to release or to publish a
+        // snapshot. Built through the same function so `dynverSonatypeSnapshots = true` is stated once rather than in every place that needs a dynver.
+        val dynVer = PublishVersion.dynverFor(started.buildPaths.buildDir)
         started.logger.info(s"Publishing version: $version")
 
         val pgp = new PgpPlugin(

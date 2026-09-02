@@ -547,7 +547,9 @@ object BspServerDaemon {
         buildCache = buildCache,
         analysisCache = analysisCache,
         daemonInfo = daemonInfo,
-        connId = connId
+        connId = connId,
+        // The real daemon re-reads the user config per request on purpose; see `configOverride`.
+        configOverride = None
       )
 
       // Run server message loop

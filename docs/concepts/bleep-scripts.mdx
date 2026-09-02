@@ -55,6 +55,7 @@ Your script gets three things:
   ```java
   commands.compile(List.of(projectName));
   commands.test(List.of(projectName));
+  commands.link(List.of(jsProject), LinkOptions.DEBUG);
   commands.publishLocal(
       PublishOptions.builder()
           .groupId("com.example")
@@ -62,6 +63,32 @@ Your script gets three things:
           .toLocalIvy()
           .projects(projectName)
           .build());
+  ```
+
+  A publish takes its version from one of two places, and says which: `.version("1.0.0")` publishes
+  exactly that, and `.versionFromGit()` — the default when you set nothing — lets bleep derive it
+  from git tags when the publish runs. `--assert-release` applies only to the derived one; a version
+  you spelled out is published as given.
+
+  `compile` hands back a `CompileReport`. Its `noOp()` is true when every project it compiled was
+  already up to date, which is what a script tests before doing work that only matters when
+  something was rebuilt:
+
+  ```java
+  if (!commands.compile(List.of(projectName)).noOp()) {
+    deploy(projectName);
+  }
+  ```
+
+  `link` hands back a `LinkReport` saying where the link put things. Read the path from there rather
+  than rebuilding `link-output/<mode>/js/main.js` yourself — that layout belongs to bleep and has
+  changed before:
+
+  ```java
+  Path js = commands.link(List.of(frontend), LinkOptions.DEBUG)
+      .forProject(frontend)
+      .mainArtifact();
+  Files.copy(js, serverResources.resolve("assets/main.js"), REPLACE_EXISTING);
   ```
 
 - **`args`**: whatever the user passed on the command line after the script name.

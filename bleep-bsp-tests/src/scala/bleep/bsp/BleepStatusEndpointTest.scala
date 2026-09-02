@@ -52,7 +52,8 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
       buildCache = new BuildCache(4, analysisCache),
       analysisCache = analysisCache,
       daemonInfo = daemonInfo,
-      connId = 17
+      connId = 17,
+      configOverride = None
     )
 
     private val thread = new Thread(() => server.run(), "status-endpoint-test-server")

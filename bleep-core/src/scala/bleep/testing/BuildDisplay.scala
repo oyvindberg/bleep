@@ -72,6 +72,10 @@ case class BuildSummary(
     compilesFailed: Int,
     compilesSkipped: Int,
     compilesCancelled: Int,
+    /** Projects whose compile found nothing to do. See [[noOp]]. */
+    upToDateProjects: List[CrossProjectName],
+    /** What each successful link wrote, in the order the links finished. See [[LinkedOutput]]. */
+    linkedOutputs: List[LinkedOutput],
     suitesTotal: Int,
     suitesCompleted: Int,
     suitesFailed: Int,
@@ -104,6 +108,17 @@ case class BuildSummary(
     /** Id of the transcript the daemon persisted for this request (`bleep history show <id>` expands it). None when the response carried none. */
     historyId: Option[Long]
 ) {
+
+  /** True when every project that compiled was already up to date, so the run produced no new class files.
+    *
+    * This is BSP's `CompileReport.noOp` computed from what bleep already knows: the server reports a [[bleep.bsp.protocol.CompileReason]] per project, and
+    * `UpToDate` is the one that means the compiler ran and found nothing to do. A caller uses it to skip work that only matters when something recompiled — a
+    * deploy step, a docker build, a downstream publish.
+    *
+    * A run in which nothing compiled at all is NOT a no-op: there was no compile to be a no-op about, and answering `true` there would tell a deploy script it
+    * may skip on the strength of a run that never looked.
+    */
+  def noOp: Boolean = compilesCompleted > 0 && upToDateProjects.size == compilesCompleted
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
   def toEither: Either[bleep.BleepException, Unit] =
@@ -580,6 +595,8 @@ object BuildSummary {
     compilesFailed = 0,
     compilesSkipped = 0,
     compilesCancelled = 0,
+    upToDateProjects = Nil,
+    linkedOutputs = Nil,
     suitesTotal = 0,
     suitesCompleted = 0,
     suitesFailed = 0,
@@ -624,6 +641,28 @@ case class LinkFailure(
     platform: LinkPlatformName,
     error: String
 )
+
+/** What one project's link wrote.
+  *
+  * `files` comes from the linker itself, not from listing the output directory afterwards. That distinction is the point of carrying this at all: the layout
+  * under `link-output/` is bleep's to change — it has been renamed once already, when `--release` grew minification and the directory had to follow the mode
+  * rather than the optimizer — so a caller rebuilding that path by hand is writing something bleep is free to break under it.
+  *
+  * Ordered as the linker reported, main artifact first. Prefer [[mainArtifact]] over `files.head`, so the convention has a name.
+  */
+case class LinkedOutput(
+    project: CrossProjectName,
+    platform: LinkPlatformName,
+    files: List[java.nio.file.Path]
+) {
+
+  /** The linked program: the JavaScript module a JS link produced, or the executable a native link produced. */
+  def mainArtifact: java.nio.file.Path =
+    files.headOption.getOrElse(
+      // A link that reported success and listed nothing is broken, not a case to hand back as an empty Option for the caller to explain to itself.
+      throw new bleep.BleepException.Text(s"${project.value}: the ${platform.wireValue} link reported success but listed no files")
+    )
+}
 
 case class TestFailure(
     project: CrossProjectName,

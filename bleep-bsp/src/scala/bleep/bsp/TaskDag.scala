@@ -4,7 +4,7 @@ import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.{CrossProjectName, KotlinJsModuleKind, ScriptDef, SuiteName, TestName}
+import bleep.model.{CrossProjectName, KotlinJsModuleKind, KotlinJsSourceMapEmbedSources, ScriptDef, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -231,12 +231,20 @@ object TaskDag {
     case object Jvm extends LinkPlatform { val name: LinkPlatformName = LinkPlatformName.Jvm }
   }
 
-  /** Kotlin/JS configuration */
+  /** Kotlin/JS configuration.
+    *
+    * No `outputDir`: the field that used to be here had no reader. `LinkExecutor.execute` computes the output directory for every platform the same way, from
+    * the base directory it is handed plus the mode suffix, and Kotlin/JS was no exception — but the two callers filled this field with two *different*
+    * directories, which made the compile path and the test path look like they disagreed about where a link lands when neither was being consulted.
+    */
   case class KotlinJsConfig(
       moduleKind: KotlinJsModuleKind,
+      moduleName: Option[String],
       sourceMap: Boolean,
-      dce: Boolean, // Dead Code Elimination - true = smaller output
-      outputDir: java.nio.file.Path
+      sourceMapPrefix: Option[String],
+      sourceMapEmbedSources: KotlinJsSourceMapEmbedSources,
+      generateDts: Boolean,
+      dce: Boolean // Dead Code Elimination - true = smaller output
   )
 
   /** Kotlin/Native configuration */

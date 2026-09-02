@@ -81,18 +81,35 @@ object FileUtils {
     }
   }
 
+  /** Delete `dir` and everything under it.
+    *
+    * A read-only entry is made writable and deleted rather than refused. Windows will not unlink a read-only file at all, where POSIX only cares about the
+    * containing directory's permissions — so this is a difference in the platform, not in the caller. git marks every object in `.git/objects` read-only, which
+    * is how it showed up: deleting a temporary clone worked everywhere except Windows, and only in CI.
+    *
+    * The retry is narrow on purpose. Only `AccessDeniedException` is handled, only once, and the second attempt is allowed to throw — a directory that still
+    * cannot be emptied after the attribute is cleared is a real failure and not something to walk past.
+    */
   def deleteDirectory(dir: Path): Unit =
     if (FileUtils.exists(dir)) {
+      def deleteClearingReadOnly(path: Path): Unit =
+        try Files.deleteIfExists(path).discard()
+        catch {
+          case _: AccessDeniedException =>
+            path.toFile.setWritable(true).discard()
+            Files.deleteIfExists(path).discard()
+        }
+
       Files.walkFileTree(
         dir,
         new SimpleFileVisitor[Path] {
           override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-            Files.deleteIfExists(file)
+            deleteClearingReadOnly(file)
             FileVisitResult.CONTINUE
           }
 
           override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
-            Files.deleteIfExists(dir)
+            deleteClearingReadOnly(dir)
             FileVisitResult.CONTINUE
           }
         }

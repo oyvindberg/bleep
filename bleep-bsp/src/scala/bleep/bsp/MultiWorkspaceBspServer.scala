@@ -69,7 +69,15 @@ class MultiWorkspaceBspServer(
     buildCache: BuildCache,
     analysisCache: bleep.analysis.AnalysisCache,
     daemonInfo: DaemonInfo,
-    connId: Int
+    connId: Int,
+    /** The config to use instead of reading the user's `config.yaml`, when a caller already has one.
+      *
+      * Empty for the real daemon, which re-reads the file per request on purpose — `parallelism`, the heaps and the idle timeout are machine settings, and
+      * picking up an edit without a restart is the point. It is set by the in-process server, whose caller has a config it means: bleep's own integration tests
+      * were carefully setting `parallelism`, `testRunnerHeap` and `kspRunnerMaxMemory` and having every one of them ignored in favour of whatever the developer
+      * running the suite happened to have in their own file.
+      */
+    configOverride: Option[model.BleepConfig]
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -1008,7 +1016,7 @@ class MultiWorkspaceBspServer(
                     "The server does not resolve builds itself, so there is nothing to compile these from."
                 )
               )
-          bleepConfig <- BleepConfigOps.loadOrDefault(userPaths)
+          bleepConfig <- configOverride.map(Right(_)).getOrElse(BleepConfigOps.loadOrDefault(userPaths))
         } yield {
           val pre = Prebootstrapped(
             logger = logger,
@@ -1775,9 +1783,9 @@ class MultiWorkspaceBspServer(
     val recorder = new TranscriptRecorder
     registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
-      // Re-read user config fresh before starting (allows runtime config changes)
+      // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
-      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val freshConfig = configOverride.getOrElse(BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default))
       val serverConfig = freshConfig.bspServerConfigOrDefault
       // Sizes are resolved here, once, so a task can declare the same heap the fork is started with.
       val forkHeaps = TaskDag.ForkHeaps(
@@ -1818,20 +1826,13 @@ class MultiWorkspaceBspServer(
           (platformOpt, isKotlin) match {
             case (Some(model.PlatformId.Js), true) =>
               // Kotlin/JS
-              val projectPaths = started.projectPaths(crossName)
-              val outputDir = projectPaths.targetDir.resolve("link-output").resolve("js")
-              val moduleKind = linkOpts.moduleKind
-                .map {
-                  case "esmodule" => model.KotlinJsModuleKind.ESModule
-                  case "nomodule" => model.KotlinJsModuleKind.Plain
-                  case _          => model.KotlinJsModuleKind.CommonJS
-                }
-                .getOrElse(model.KotlinJsModuleKind.CommonJS)
-              val config = TaskDag.KotlinJsConfig(
+              val moduleKind = kotlinJsModuleKind(project, linkOpts.moduleKind)
+              val config = kotlinJsConfig(
+                project,
                 moduleKind = moduleKind,
-                sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
-                dce = linkOpts.optimize.getOrElse(isRelease),
-                outputDir = outputDir
+                sourceMap = linkOpts.sourceMaps,
+                sourceMapDefault = !isRelease,
+                dce = linkOpts.optimize.getOrElse(isRelease)
               )
               Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
 
@@ -1850,23 +1851,7 @@ class MultiWorkspaceBspServer(
                 emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
                 minify = linkOpts.minify.getOrElse(baseConfig.minify),
                 optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
-                // `--module-kind` first, then the project's own `jsKind`, and only then the constant.
-                //
-                // The project was never consulted: a build declaring `jsKind: esmodule` got a CommonJS link and no flag was needed to cause it, because the
-                // fallback was a hardcoded `CommonJSModule`. That also quietly disarmed the Closure rule below, which skips Closure for ESModule output because
-                // Scala.js rejects the pairing — a yaml-declared ESModule project reached it looking like CommonJS.
-                moduleKind = linkOpts.moduleKind
-                  .map {
-                    case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
-                    case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
-                    case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
-                  }
-                  .orElse(project.platform.flatMap(_.jsKind).map {
-                    case model.ModuleKindJS.NoModule       => ScalaJsLinkConfig.ModuleKind.NoModule
-                    case model.ModuleKindJS.CommonJSModule => ScalaJsLinkConfig.ModuleKind.CommonJSModule
-                    case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
-                  })
-                  .getOrElse(baseConfig.moduleKind)
+                moduleKind = scalaJsModuleKind(project, linkOpts.moduleKind, baseConfig.moduleKind)
               )
               Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
@@ -2337,9 +2322,9 @@ class MultiWorkspaceBspServer(
     val recorder = new TranscriptRecorder
     registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
-      // Re-read user config fresh before starting (allows runtime config changes)
+      // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
-      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val freshConfig = configOverride.getOrElse(BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default))
       val serverConfig = freshConfig.bspServerConfigOrDefault
       val maxParallelism = serverConfig.effectiveParallelism
       val forkHeaps = TaskDag.ForkHeaps(
@@ -2371,14 +2356,16 @@ class MultiWorkspaceBspServer(
 
         (platformOpt, isKotlin) match {
           case (Some(model.PlatformId.Js), true) =>
-            // Kotlin/JS - don't add "js" here; executeKotlinJs adds it
-            val projectPaths = started.projectPaths(crossName)
-            val outputDir = projectPaths.targetDir
-            val config = TaskDag.KotlinJsConfig(
-              moduleKind = model.KotlinJsModuleKind.UMD,
-              sourceMap = false,
-              dce = false, // Tests run without DCE
-              outputDir = outputDir
+            // Kotlin/JS. UMD is not an arbitrary default here, and not the project's to choose: bleep runs Kotlin/JS tests by generating a CommonJS script that
+            // installs a QUnit mock as a global and then `require`s the linked output. UMD is what satisfies that — an ES module makes `require` throw
+            // `ERR_REQUIRE_ESM`, and a plain or AMD module does not export what the runner reads. A project declaring one of those is warned rather than
+            // silently linked as something else; see `kotlinJsTestModuleKind`.
+            val config = kotlinJsConfig(
+              project,
+              moduleKind = kotlinJsTestModuleKind(started, crossName, project),
+              sourceMap = None,
+              sourceMapDefault = false,
+              dce = false // Tests run without DCE
             )
             Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
 
@@ -2390,7 +2377,11 @@ class MultiWorkspaceBspServer(
               .getOrElse(throw new IllegalStateException(s"Scala.js version not found for ${crossName.value}"))
             val scalaVersion =
               project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse(throw new IllegalStateException(s"Scala version not found for ${crossName.value}"))
-            val config = bleep.analysis.ScalaJsLinkConfig.Debug
+            // Debug semantics for a test link are deliberate — nobody wants their tests run through the optimizer — but the module kind is not a semantics
+            // choice, it is what the build declared. `Debug` carries `CommonJSModule`, and taking that wholesale meant a project declaring `jsKind: esmodule`
+            // had its tests linked as CommonJS with nothing to say so.
+            val base = bleep.analysis.ScalaJsLinkConfig.Debug
+            val config = base.copy(moduleKind = scalaJsModuleKind(project, None, base.moduleKind))
             Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
           case (Some(model.PlatformId.Native), true) =>
@@ -2594,7 +2585,14 @@ class MultiWorkspaceBspServer(
                   case (Some(model.PlatformId.Js), true) =>
                     runKotlinJsTestSuite(started, testTask, linkedArtifactOf(testTask.project, linkResult), testEnv, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Js), false) =>
-                    runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResult, eventQueue, taskKillSignal)
+                    // Read back off the platform this run's DAG was built with, so the runner is told how the program was emitted rather than deciding for
+                    // itself. A missing entry means a Scala.js test project reached the handler without a link node, which is a broken DAG, not a default.
+                    val moduleKind = platforms.get(testTask.project) match {
+                      case Some(TaskDag.LinkPlatform.ScalaJs(_, _, config)) => config.moduleKind
+                      case other                                            =>
+                        throw new IllegalStateException(s"No Scala.js link platform for test project ${testTask.project.value}, got $other")
+                    }
+                    runScalaJsTestSuite(started, testTask, classpath, testEnv, linkResult, moduleKind, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Native), true) =>
                     runKotlinNativeTestSuite(started, testTask, linkedArtifactOf(testTask.project, linkResult), testEnv, eventQueue, taskKillSignal)
                   case (Some(model.PlatformId.Native), false) =>
@@ -2644,7 +2642,9 @@ class MultiWorkspaceBspServer(
               IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
                 val projectPaths = started.projectPaths(linkTask.project)
                 val logger = createLinkLogger()
-                val outputDir = projectPaths.targetDir
+                // The same base directory the compile/link path uses. These were `targetDir/link-output` and `targetDir`, so `bleep link mytest` and `bleep
+                // test mytest` linked the same project into two trees, each with its own up-to-date check that could not see the other's output.
+                val outputDir = projectPaths.targetDir.resolve("link-output")
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
                   LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
                 }
@@ -3560,6 +3560,99 @@ class MultiWorkspaceBspServer(
   private def nodeBinaryFor(started: Started, project: model.Project): String =
     started.pre.fetchNode(project.platform.flatMap(_.jsNodeVersion).getOrElse(bleep.constants.Node)).toAbsolutePath.toString
 
+  /** The module kind a Scala.js link emits for `project`: an explicit `--module-kind` first, then the project's own `jsKind`, and only then the base
+    * configuration's own default.
+    *
+    * One function for the main link and the test link because there were two, and they disagreed. The test path declared `ScalaJsLinkConfig.Debug` and took its
+    * `CommonJSModule` along with the debug semantics it actually wanted, so a build declaring `jsKind: esmodule` had its tests linked as CommonJS and no flag
+    * could change it. The test path passes `None` for the flag — `bleep test` accepts no link options — and so always gets what the build declared.
+    */
+  private def scalaJsModuleKind(
+      project: model.Project,
+      fromFlag: Option[String],
+      fallback: ScalaJsLinkConfig.ModuleKind
+  ): ScalaJsLinkConfig.ModuleKind =
+    fromFlag
+      .map {
+        case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
+        case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
+        case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
+      }
+      .orElse(project.platform.flatMap(_.jsKind).map {
+        case model.ModuleKindJS.NoModule       => ScalaJsLinkConfig.ModuleKind.NoModule
+        case model.ModuleKindJS.CommonJSModule => ScalaJsLinkConfig.ModuleKind.CommonJSModule
+        case model.ModuleKindJS.ESModule       => ScalaJsLinkConfig.ModuleKind.ESModule
+      })
+      .getOrElse(fallback)
+
+  /** The module kind a Kotlin/JS link emits for `project`: an explicit `--module-kind` first, then the project's own `kotlin.js.moduleKind`, and only then
+    * CommonJS.
+    *
+    * The project was never consulted. `model.KotlinJs.moduleKind` has been in the build model — and in the schema, and presumably in someone's `bleep.yaml` —
+    * with no reader anywhere in the server, so a build declaring `es` got CommonJS and nothing said otherwise. This is the Kotlin half of the same defect
+    * `scalaJsModuleKind` fixes on the Scala.js side.
+    *
+    * The flag speaks the Scala.js vocabulary because it is one flag across both, so `nomodule` maps to Kotlin's `plain`.
+    */
+  private def kotlinJsModuleKind(project: model.Project, fromFlag: Option[String]): model.KotlinJsModuleKind =
+    fromFlag
+      .map {
+        case "esmodule" => model.KotlinJsModuleKind.ESModule
+        case "nomodule" => model.KotlinJsModuleKind.Plain
+        case _          => model.KotlinJsModuleKind.CommonJS
+      }
+      .orElse(project.kotlin.flatMap(_.js).flatMap(_.moduleKind))
+      .getOrElse(model.KotlinJsModuleKind.CommonJS)
+
+  /** The Kotlin/JS link settings for `project`.
+    *
+    * Every one of these has to have a value — bleep sets each on the compiler arguments unconditionally — so the question was never whether to support them but
+    * which constant to hardcode. They now come from the build where the build says something, in the same order as the module kind: an explicit flag first,
+    * then the project, then bleep's default.
+    *
+    * `sourceMapPrefix` is the one exception, and stays an `Option`: the compiler is only told about it when there is one.
+    */
+  private def kotlinJsConfig(
+      project: model.Project,
+      moduleKind: model.KotlinJsModuleKind,
+      sourceMap: Option[Boolean],
+      sourceMapDefault: Boolean,
+      dce: Boolean
+  ): TaskDag.KotlinJsConfig = {
+    val js = project.kotlin.flatMap(_.js)
+    TaskDag.KotlinJsConfig(
+      moduleKind = moduleKind,
+      moduleName = js.flatMap(_.moduleName),
+      sourceMap = sourceMap.orElse(js.flatMap(_.sourceMap)).getOrElse(sourceMapDefault),
+      sourceMapPrefix = js.flatMap(_.sourceMapPrefix),
+      sourceMapEmbedSources = js.flatMap(_.sourceMapEmbedSources).getOrElse(model.KotlinJsSourceMapEmbedSources.Never),
+      generateDts = js.flatMap(_.generateDts).getOrElse(false),
+      dce = dce
+    )
+  }
+
+  /** UMD, and a warning when the project asked for something else.
+    *
+    * Unlike a Scala.js test link — where the adapter picks its `Input` per module kind and all three work — the Kotlin/JS test path has exactly one shape it
+    * can load. `KotlinTestRunner.Js` generates a CommonJS script that installs a QUnit mock as a global and then `require`s the linked output. `ESModule` makes
+    * that `require` throw, and `Plain` and `AMD` do not put the tests where the runner reads them. UMD satisfies it and is compatible with the rest.
+    *
+    * So the declaration cannot be honoured here, and the honest thing is to say so rather than substitute in silence — which is what the hardcoded constant
+    * did. A warning rather than a failure: these builds' tests run today, and breaking them to report a limitation of the runner would be a poor trade.
+    */
+  private def kotlinJsTestModuleKind(started: Started, crossName: CrossProjectName, project: model.Project): model.KotlinJsModuleKind = {
+    project.kotlin.flatMap(_.js).flatMap(_.moduleKind).filterNot(_ == model.KotlinJsModuleKind.UMD).foreach { declared =>
+      started.logger
+        .withContext("project", crossName.value)
+        .withContext("declared", declared.value)
+        .warn(
+          s"Kotlin/JS tests link as UMD regardless of `kotlin.js.moduleKind: ${declared.value}` — bleep's test runner loads the output with `require`. " +
+            "The main link honours the declaration; only the test link overrides it."
+        )
+    }
+    model.KotlinJsModuleKind.UMD
+  }
+
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
   private def runScalaJsTestSuite(
       started: Started,
@@ -3567,6 +3660,7 @@ class MultiWorkspaceBspServer(
       classpath: List[Path],
       testEnv: Map[String, String],
       linkResult: Option[TaskDag.LinkResult],
+      moduleKind: ScalaJsLinkConfig.ModuleKind,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -3574,8 +3668,8 @@ class MultiWorkspaceBspServer(
     val sjsVersion = project.platform.flatMap(_.jsVersion).getOrElse {
       throw new IllegalStateException(s"Scala.js version not found for ${testTask.project.value}")
     }
-    // No Scala version needed here any more: it was only ever used to describe the link this function used to run itself.
-    val linkConfig = bleep.analysis.ScalaJsLinkConfig.Debug
+    // Taken from the link the DAG ran rather than declared again here. The adapter picks its `Input` from this — a NoModule program loaded as a module, or the
+    // reverse, fails before any test runs — so the one thing it must never be is a second opinion about how the program was emitted.
 
     for {
       startTs <- IO.realTime.map(_.toMillis)
@@ -3598,7 +3692,7 @@ class MultiWorkspaceBspServer(
               ScalaJsTestRunner
                 .runTests(
                   mainModule,
-                  linkConfig.moduleKind,
+                  moduleKind,
                   suites,
                   eventHandler,
                   ScalaJsTestRunner.NodeEnvironment.Node,

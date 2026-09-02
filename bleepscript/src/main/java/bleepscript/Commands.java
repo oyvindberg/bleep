@@ -4,13 +4,32 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Commands {
-  void compile(List<CrossProjectName> projects);
+  /**
+   * Compile {@code projects}. Throws when the compile fails; see {@link CompileReport} for what a
+   * successful one reports back.
+   */
+  CompileReport compile(List<CrossProjectName> projects);
 
-  void compile(List<CrossProjectName> projects, boolean watch);
+  CompileReport compile(List<CrossProjectName> projects, boolean watch);
 
-  void test(List<CrossProjectName> projects);
+  /**
+   * Link {@code projects} — Scala.js, Scala Native, Kotlin/JS or Kotlin/Native — the way {@code
+   * bleep link} does.
+   *
+   * <p>Without this a script that packages linked JavaScript into a jar had to shell out to the
+   * {@code bleep} command line, paying the start-up cost a second time.
+   *
+   * <p>The returned {@link LinkReport} says where the link put things, taken from the linker rather
+   * than from the directory layout — see {@link LinkedOutput}.
+   */
+  LinkReport link(List<CrossProjectName> projects, LinkOptions options);
 
-  void test(
+  LinkReport link(List<CrossProjectName> projects, LinkOptions options, boolean watch);
+
+  /** Run the tests in {@code projects}. Throws when a test fails; see {@link TestReport}. */
+  TestReport test(List<CrossProjectName> projects);
+
+  TestReport test(
       List<CrossProjectName> projects,
       boolean watch,
       Optional<List<String>> only,

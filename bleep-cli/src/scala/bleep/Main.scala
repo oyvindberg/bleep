@@ -941,7 +941,7 @@ object Main {
           Opts.subcommand("publish-local", "publishes your project locally (deprecated: use 'publish local-ivy')") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
-              Opts.option[String]("version", "version you will publish"),
+              Opts.option[String]("version", "version you will publish (default: from git tags)").orNone,
               Opts.option[Path]("to", s"publish to a maven repository at given path").orNone,
               projectNames,
               watch,
@@ -953,7 +953,7 @@ object Main {
               }
               val options = commands.PublishLocal.Options(
                 groupId = groupId,
-                version = version,
+                version = publishVersion(version),
                 publishTarget = publishTarget,
                 projects,
                 ManifestCreator.default
@@ -962,14 +962,6 @@ object Main {
             }
           },
           Opts.subcommand("publish", "publish artifacts to a named resolver, local-ivy, or sonatype") {
-            // `dynverSonatypeSnapshots = true` to match the two other places that derive a version from git:
-            // `GenerateResources` (which bakes `BleepVersion.current` into the client) and `PublishSonatype`.
-            // Without it a snapshot publishes as `1.0.0-M10+46-abc1234` while the client it was built alongside
-            // asks coursier for `1.0.0-M10+46-abc1234-SNAPSHOT` — so `bleep publish local-ivy` produced jars no
-            // client would ever resolve, silently leaving the previously released server in play.
-            val dynVerFallback: () => String =
-              () => new bleep.plugin.dynver.DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true).version
-
             def publishOpts(target: commands.Publish.Target): Opts[BleepBuildCommand] =
               publishOptsWith(Opts.unit.map(_ => target))
 
@@ -984,7 +976,7 @@ object Main {
               ).mapN { case (version, assertRel, dryRun, projects, buildOpts, target) =>
                 commands.Publish(
                   false,
-                  commands.Publish.Options(version, Some(dynVerFallback), assertRel, dryRun, target, projects, ManifestCreator.default),
+                  commands.Publish.Options(publishVersion(version), assertRel, dryRun, target, projects, ManifestCreator.default),
                   buildOpts
                 )
               }
@@ -1006,7 +998,7 @@ object Main {
                   commonBuildOpts
                 ).mapN { case (version, assertRel, projects, buildOpts) =>
                   commands.PublishSonatype(
-                    commands.PublishSonatype.Options(version, assertRel, projects, ManifestCreator.default),
+                    commands.PublishSonatype.Options(publishVersion(version), assertRel, projects, ManifestCreator.default),
                     buildOpts
                   )
                 }
@@ -1606,10 +1598,23 @@ object Main {
         }
       case Right(cmd) =>
         Try(runCommand(cmd)) match {
-          case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
-          case Success(Left(th))  => fatal("command failed", logger, th)
+          case Failure(th)        => failed("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+          case Success(Left(th))  => failed("command failed", logger, th)
           case Success(Right(())) => ExitCode.Success
         }
+    }
+
+  /** [[fatal]], except that a program bleep launched on the user's behalf is not a bleep failure.
+    *
+    * A script that exits 1 to signal something it has already reported gets one line and its own exit code, so `bleep <script>` answers what the script
+    * answered. Everything else keeps the old treatment. See [[BleepException.SubprocessExit]].
+    */
+  private def failed(context: String, logger: Logger, th: Throwable): ExitCode =
+    th match {
+      case sub: BleepException.SubprocessExit =>
+        logger.error(sub.message)
+        ExitCode.FromSubprocess(sub.code)
+      case other => fatal(context, logger, other)
     }
 
   /** Scripts receive their trailing arguments verbatim, including tokens that start with `--`.
@@ -1672,20 +1677,36 @@ object Main {
           Try(cmd.run(startedWithLogger)) match {
             case Failure(th: BleepException) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
-              ExitCode.Failure
+              exitCodeOf(th)
             case Failure(th) if machineOutput =>
               CommandResult.print(CommandResult.Failure(th.getMessage))
               ExitCode.Failure
-            case Failure(th)                        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
+            case Failure(th)                        => failed("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
             case Success(Left(th)) if machineOutput =>
               CommandResult.print(CommandResult.failure(th))
-              ExitCode.Failure
-            case Success(Left(th))  => fatal("command failed", logger, th)
+              exitCodeOf(th)
+            case Success(Left(th))  => failed("command failed", logger, th)
             case Success(Right(())) => ExitCode.Success
           }
         }
     }
   }
+
+  /** The code bleep exits with for an already-reported failure: a launched program's own code when it chose one, plain failure otherwise. */
+  private def exitCodeOf(th: BleepException): ExitCode =
+    th match {
+      case sub: BleepException.SubprocessExit => ExitCode.FromSubprocess(sub.code)
+      case _                                  => ExitCode.Failure
+    }
+
+  /** `--version` if the user gave one, dynver otherwise. Every publish subcommand answers this the same way, which is the point of the ADT: the choice is one
+    * value, not a pair of fields with an "exactly one of these" rule enforced somewhere else.
+    */
+  private def publishVersion(version: Option[String]): commands.PublishVersion =
+    version match {
+      case Some(value) => commands.PublishVersion.Specified(value)
+      case None        => commands.PublishVersion.Dynver
+    }
 
   /** Check if restArgs request machine-readable output (json or raw), logs should go to stderr. */
   private def hasMachineOutput(restArgs: List[String]): Boolean =

@@ -18,6 +18,12 @@ case class BuildState(
     compilesFailed: Int,
     compilesSkipped: Int,
     compilesCancelled: Int,
+    /** Projects whose compile reported [[bleep.bsp.protocol.CompileReason.UpToDate]] — the compiler ran and found nothing to do. Kept as a list rather than a
+      * count so a caller can name them.
+      */
+    upToDateProjects: List[CrossProjectName],
+    /** What each successful link wrote, newest first during accumulation. See [[LinkedOutput]]. */
+    linkedOutputs: List[LinkedOutput],
     testsTotal: Int,
     testsPassed: Int,
     testsFailed: Int,
@@ -82,6 +88,8 @@ case class BuildState(
       compilesFailed = compilesFailed,
       compilesSkipped = compilesSkipped,
       compilesCancelled = compilesCancelled,
+      upToDateProjects = upToDateProjects.reverse,
+      linkedOutputs = linkedOutputs.reverse,
       suitesTotal = suitesTotal,
       suitesCompleted = suitesCompleted,
       suitesFailed = suitesFailed,
@@ -123,6 +131,8 @@ object BuildState {
     compilesFailed = 0,
     compilesSkipped = 0,
     compilesCancelled = 0,
+    upToDateProjects = Nil,
+    linkedOutputs = Nil,
     testsTotal = 0,
     testsPassed = 0,
     testsFailed = 0,
@@ -186,9 +196,13 @@ object BuildStateReducer {
         compileStartTimes = state.compileStartTimes + (project -> timestamp)
       )
 
-    case BuildEvent.CompilationReason(_, _, _, _, _, _) =>
-      // CompilationReason is purely informational for display - no state change needed
-      state
+    case BuildEvent.CompilationReason(project, reason, _, _, _, _) =>
+      // Informational for display, except for one bit worth keeping: whether the compiler found anything to do. That is the only place a caller can learn a
+      // compile was a no-op, and `bleep.Commands.compile` hands it back so a script can skip work that only matters when something recompiled.
+      reason match {
+        case bleep.bsp.protocol.CompileReason.UpToDate => state.copy(upToDateProjects = project :: state.upToDateProjects)
+        case _                                         => state
+      }
 
     case BuildEvent.CompileFinished(project, status, durationMs, _, diagnostics, skippedBecause) =>
       import bleep.bsp.protocol.CompileStatus
@@ -472,10 +486,14 @@ object BuildStateReducer {
     case BuildEvent.LinkStarted(project, _, _) =>
       state.copy(currentlyLinking = state.currentlyLinking + project)
 
-    case BuildEvent.LinkSucceeded(project, _, durationMs, _, _) =>
+    case BuildEvent.LinkSucceeded(project, platform, durationMs, generatedFiles, _) =>
+      // The linker's own list of what it wrote, kept rather than dropped. It is the only authority on where the output landed: the directory layout under
+      // `link-output/` belongs to bleep and has changed before, so a caller reconstructing that path is guessing. Handed to scripts via
+      // `bleep.Commands.link`.
       state.copy(
         currentlyLinking = state.currentlyLinking - project,
         linksCompleted = state.linksCompleted + 1,
+        linkedOutputs = LinkedOutput(project, platform, generatedFiles.map(java.nio.file.Path.of(_))) :: state.linkedOutputs,
         totalTaskTimeMs = state.totalTaskTimeMs + durationMs
       )
 

@@ -196,6 +196,48 @@
         }
       }
     },
+    "KotlinJs": {
+      "type": "object",
+      "description": "Kotlin/JS settings. Only `moduleKind` is read; the other fields on this block in bleep's model are not wired to anything yet and are deliberately not listed here.",
+      "properties": {
+        "moduleKind": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "amd",
+            "commonjs",
+            "umd",
+            "es"
+          ],
+          "description": "Module format the Kotlin/JS linker emits. Default `commonjs`; `--module-kind` on `bleep link` overrides it. Not honoured for test links, which are always `umd` because bleep's Kotlin/JS test runner loads the output with `require`."
+        },
+        "moduleName": {
+          "type": "string",
+          "description": "Name of the emitted module, and of the file it lands in. Defaults to the project name with `-` replaced by `_`."
+        },
+        "sourceMap": {
+          "type": "boolean",
+          "description": "Emit a `.js.map` beside the module. Defaults to on for a debug link and off for `--release`; `--source-maps` / `--no-source-maps` override both."
+        },
+        "sourceMapPrefix": {
+          "type": "string",
+          "description": "Prefix prepended to source paths inside the source map. Unset means the compiler is not told about one at all."
+        },
+        "sourceMapEmbedSources": {
+          "type": "string",
+          "enum": [
+            "never",
+            "always",
+            "inlining"
+          ],
+          "description": "Whether the source map carries the sources themselves. Default `never`; `always` embeds every source, `inlining` embeds only sources that were inlined."
+        },
+        "generateDts": {
+          "type": "boolean",
+          "description": "Emit TypeScript declarations (`.d.ts`) next to the module. Default false."
+        }
+      }
+    },
     "Kotlin": {
       "type": "object",
       "properties": {
@@ -209,6 +251,9 @@
         "jvmTarget": {
           "type": "string",
           "description": "JVM bytecode target version (e.g., \"11\", \"17\", \"21\")"
+        },
+        "js": {
+          "$ref": "#/$defs/KotlinJs"
         },
         "kspVersion": {
           "type": "string",

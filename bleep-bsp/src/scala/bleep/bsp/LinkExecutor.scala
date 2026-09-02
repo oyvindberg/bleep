@@ -4,7 +4,7 @@ import bleep.analysis._
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.TaskDag._
 import bleep.bsp.protocol.ProcessExit
-import bleep.model.KotlinJsModuleKind
+import bleep.model.{KotlinJsModuleKind, KotlinJsSourceMapEmbedSources}
 import cats.effect.{Deferred, IO}
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
@@ -371,17 +371,22 @@ object LinkExecutor {
           case KotlinJsModuleKind.Plain    => KotlinJsCompilerConfig.ModuleKind.Plain
         }
 
+        val embedSources = platform.config.sourceMapEmbedSources match {
+          case KotlinJsSourceMapEmbedSources.Never    => KotlinJsCompilerConfig.SourceMapEmbedSources.Never
+          case KotlinJsSourceMapEmbedSources.Always   => KotlinJsCompilerConfig.SourceMapEmbedSources.Always
+          case KotlinJsSourceMapEmbedSources.Inlining => KotlinJsCompilerConfig.SourceMapEmbedSources.Inlining
+        }
+
         val config = KotlinJsCompilerConfig(
           kotlinVersion = platform.version,
-          moduleName = moduleName,
+          // The project's name for the module when it gave one; otherwise the project's own name, which is what it has always been.
+          moduleName = platform.config.moduleName.getOrElse(moduleName),
           moduleKind = moduleKind,
-          outputMode = KotlinJsCompilerConfig.OutputMode.JsExecutable,
           sourceMap = platform.config.sourceMap,
-          sourceMapPrefix = None,
-          sourceMapEmbedSources = KotlinJsCompilerConfig.SourceMapEmbedSources.Never,
-          target = KotlinJsCompilerConfig.Target.Node,
+          sourceMapPrefix = platform.config.sourceMapPrefix,
+          sourceMapEmbedSources = embedSources,
           developmentMode = !platform.config.dce, // DCE requires production mode
-          generateDts = false,
+          generateDts = platform.config.generateDts,
           additionalOptions = Seq.empty
         )
 
@@ -395,7 +400,7 @@ object LinkExecutor {
         }
 
         KotlinJsLinker
-          .link(klibs, jsOutputDir, config, diagnosticListener, cancellation)
+          .link(klibs, jsOutputDir, config, projectKlibName = moduleName, diagnosticListener, cancellation)
           .map {
             case Outcome.ThreadOutcome.Completed(result) =>
               logger.debug(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
@@ -410,8 +415,20 @@ object LinkExecutor {
                 val sourceMap = allFiles.find(_.toString.endsWith(".map"))
                 (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
               } else {
-                logger.error(s"[LINK] Kotlin/JS linking failed")
-                (TaskResult.Failure("Kotlin/JS linking failed", List.empty), LinkResult.Failure("Linking failed", List.empty))
+                // Two different failures used to share one message and one empty diagnostic list. A compiler that reported errors is one thing; a compiler that
+                // exited 0 while bleep could not find what it wrote is a bleep problem, and saying "linking failed" for it sends the reader to look for a
+                // compile error that was never emitted.
+                val reason =
+                  if (result.exitCode != 0) "Kotlin/JS linking failed"
+                  else {
+                    val found = scala.util
+                      .Using(Files.list(jsOutputDir))(_.iterator().asScala.map(_.getFileName.toString).toList.sorted)
+                      .getOrElse(Nil)
+                    val listed = if (found.isEmpty) "the directory is empty" else found.mkString(", ")
+                    s"Kotlin/JS linker reported success but produced no module in $jsOutputDir ($listed)"
+                  }
+                logger.error(s"[LINK] $reason")
+                (TaskResult.Failure(reason, List.empty), LinkResult.Failure(reason, List.empty))
               }
             case Outcome.ThreadOutcome.Cancelled(reason) =>
               (TaskResult.Killed(reason), LinkResult.Cancelled)
