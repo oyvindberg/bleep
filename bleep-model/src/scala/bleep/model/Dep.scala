@@ -50,9 +50,15 @@ object Dep {
   def parse(input: String): Either[String, Dep] =
     input.split(":") match {
       case Array(org, "", "", name, version) => Right(ScalaFullVersion(org, name, version))
+      case Array(org, "", "", name)          => Right(ScalaFullVersion(org, name, ""))
       case Array(org, "", name, version)     => Right(Scala(org, name, version))
+      case Array(org, "", name)              => Right(Scala(org, name, ""))
       case Array(org, name, version)         => Right(Java(org, name, version))
-      case _                                 => Left(s"Not a valid dependency string: $input")
+      // A dependency written without a version (`org:name`, `org::name`) is BOM-managed: the version is
+      // supplied by a Maven BOM the project imports (see `boms:`). An empty version resolves that way and,
+      // when nothing manages it, fails at resolution with coursier's own "no version" error.
+      case Array(org, name) => Right(Java(org, name, ""))
+      case _                => Left(s"Not a valid dependency string: $input")
     }
 
   object defaults {
@@ -90,7 +96,7 @@ object Dep {
         isSbtPlugin == defaults.isSbtPlugin
 
     override val repr: String =
-      organization.value + ":" + moduleName.value + ":" + version
+      organization.value + ":" + moduleName.value + (if (version.isEmpty) "" else ":" + version)
 
     override val baseModuleName: ModuleName = moduleName
 
@@ -143,7 +149,7 @@ object Dep {
         transitive == defaults.transitive
 
     override val repr: String =
-      s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}:$version"
+      s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}${if (version.isEmpty) "" else ":" + version}"
 
     override def withConfiguration(newConfiguration: Configuration): Dep.ScalaDependency =
       copy(configuration = newConfiguration)

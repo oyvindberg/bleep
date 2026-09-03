@@ -110,8 +110,14 @@ object buildFromMavenPom {
         case relPath                               => Some(relPath)
       }
 
+    // BOMs the module imports, and the coordinates whose version those (or any dependencyManagement) supply — a `<dependency>` written without a `<version>`
+    // in the raw pom. `mvn help:effective-pom` fills those versions in, but the author wrote them BOM-managed; with a `boms:` block to supply the version, bleep
+    // preserves that and emits the dependency version-less, so the imported build reads like the Maven one instead of freezing a version the BOM should own.
+    val boms = extractBoms(logger, mavenProject)
+    val bomManaged: Set[(String, String)] = if (boms.isEmpty) Set.empty else bomManagedCoordinates(mavenProject)
+
     // Separate main vs test dependencies
-    val (mainDeps, testDeps) = partitionDependencies(logger, mavenProject, reactorModules)
+    val (mainDeps, testDeps) = partitionDependencies(logger, mavenProject, reactorModules, bomManaged)
 
     // Inter-module dependsOn (main project)
     val mainDependsOn = detectInterModuleDeps(mavenProject, reactorModules, isTest = false)
@@ -224,7 +230,7 @@ object buildFromMavenPom {
       sources = model.JsonSet.fromIterable(allExtraMainSources),
       resources = model.JsonSet.empty[RelPath],
       dependencies = model.JsonSet.fromIterable(mainDeps),
-      boms = model.JsonSet.fromIterable(extractBoms(logger, mavenProject)),
+      boms = model.JsonSet.fromIterable(boms),
       jars = model.JsonSet.empty,
       java = configuredJava,
       scala = configuredScala,
@@ -457,7 +463,8 @@ object buildFromMavenPom {
   private def partitionDependencies(
       logger: Logger,
       mavenProject: MavenProject,
-      reactorModules: Map[(String, String), MavenProject]
+      reactorModules: Map[(String, String), MavenProject],
+      bomManaged: Set[(String, String)]
   ): (List[model.Dep], List[model.Dep]) = {
     val mainDeps = List.newBuilder[model.Dep]
     val testDeps = List.newBuilder[model.Dep]
@@ -471,7 +478,9 @@ object buildFromMavenPom {
       else if (isProvidedScalaArtifact(dep)) {
         // skip - bleep provides these
       } else {
-        convertDependency(logger, dep) match {
+        // The author wrote this version-less in the pom (a BOM manages it); emit it version-less too, so the `boms:` block owns the version. `mvn
+        // help:effective-pom` handed us the resolved version, but re-freezing it here is exactly the redundancy the BOM exists to remove.
+        convertDependency(logger, dep).map(d => if (bomManaged((dep.groupId, dep.artifactId))) d.withVersion("") else d) match {
           case Some(bleepDep) =>
             dep.scope match {
               case "test" =>
@@ -795,6 +804,27 @@ object buildFromMavenPom {
   /** The module's raw pom plus its `<parent>` chain, innermost first, bounded to files that exist on disk (a parent outside the repository resolves from a
     * repository instead and is not read).
     */
+  /** Coordinates a module (or its parent chain) declares as a `<dependency>` with no `<version>` — left to `<dependencyManagement>`, in practice a BOM import,
+    * to supply the version. Read from the RAW poms because `mvn help:effective-pom` fills those versions in, erasing exactly the distinction we want to keep.
+    * Only the top-level `<dependencies>` is read, not `<dependencyManagement>`.
+    */
+  private def bomManagedCoordinates(mavenProject: MavenProject): Set[(String, String)] = {
+    val poms = rawPomChain(mavenProject.directory.resolve("pom.xml"))
+    val props: Map[String, String] =
+      poms.reverse.flatMap { pom =>
+        (pom \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }
+      }.toMap ++ Map("project.version" -> mavenProject.version, "project.groupId" -> mavenProject.groupId)
+    val PropRef = "\\$\\{([^}]+)}".r
+    def interpolate(value: String): String =
+      PropRef.replaceAllIn(value, m => java.util.regex.Matcher.quoteReplacement(props.getOrElse(m.group(1), m.matched)))
+    poms.flatMap { pom =>
+      (pom \ "dependencies" \ "dependency").collect {
+        case d if (d \ "version").text.trim.isEmpty =>
+          (interpolate((d \ "groupId").text.trim), interpolate((d \ "artifactId").text.trim))
+      }
+    }.toSet
+  }
+
   private def rawPomChain(start: Path): List[scala.xml.Elem] = {
     def go(pomFile: Path, acc: List[scala.xml.Elem]): List[scala.xml.Elem] =
       if (!Files.isRegularFile(pomFile) || acc.length > 10) acc.reverse
