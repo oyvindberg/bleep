@@ -114,6 +114,60 @@ per project. Were that inherited, every project depending on
 `bleep-test-runner` would carry junit classes that shadow the ones
 the project actually resolved.
 
+## BOMs and version-less dependencies
+
+A project can import Maven BOMs with `boms:`. Each entry is an
+ordinary coordinate pointing at a BOM (a "platform" POM). Its
+`dependencyManagement` then pins every version in this project's
+resolutions — transitives included — the way Maven does with a
+`scope=import` entry.
+
+```yaml
+projects:
+  app:
+    boms:
+      - com.fasterxml.jackson:jackson-bom:2.17.2
+    dependencies:
+      - com.fasterxml.jackson.core:jackson-databind   # no version — the BOM supplies it
+      - com.fasterxml.jackson.core:jackson-annotations
+```
+
+Once a BOM manages a coordinate, you write the dependency **without a
+version** — `groupId:artifactId` (Java) or `groupId::artifactId`
+(Scala). The BOM fills it in, and so do the transitives: everything
+`jackson-*` above resolves at `2.17.2`. A version you write yourself
+still wins over the BOM (Maven's rule), and a version-less dependency
+that no BOM manages fails at resolution rather than resolving to
+something arbitrary.
+
+Sibling BOMs are first-wins: the first one to manage a coordinate
+keeps it.
+
+### BOMs travel along `dependsOn`
+
+A BOM declared on one project constrains every project that
+(transitively) `dependsOn` it. Put the platform BOM on a shared
+library and the whole application resolves against one version set —
+which is exactly how a Quarkus or Spring Boot platform governs an
+app's entire dependency universe from a single line:
+
+```yaml
+projects:
+  platform:
+    boms:
+      - io.quarkus.platform:quarkus-bom:3.17.2
+  app:
+    dependsOn: platform
+    dependencies:
+      - io.quarkus:quarkus-rest        # no version — pinned by platform's BOM
+```
+
+`bleep import-maven` produces this shape directly: it reads
+`<dependencyManagement>` imports out of the raw POM chain into
+`boms:`, and any dependency the POM wrote version-less stays
+version-less in `bleep.yaml`, so the imported build reads like the
+Maven one instead of freezing the versions the BOM owns.
+
 ## What this page doesn't cover
 
 - **Conflict resolution** (library version schemes, the eviction
@@ -128,9 +182,6 @@ the project actually resolved.
   [`bleep build update-dep`](/docs/reference/cli/build/update-dep/))
   is in the [Refactor your build](/docs/guides/refactor#bumping-dependencies)
   guide.
-- **BOM / `dependencyManagement`** is a known gap, every
-  dependency declares its version explicitly. Spring Boot users feel
-  this most. See [Project status](/docs/appendix/status).
 - **Custom configurations** beyond the standard four, **ivy
   resolvers** other than Maven-style, **custom artifact patterns**:
   by design. These aren't modelled. The intricate ivyisms were
@@ -148,5 +199,4 @@ the project actually resolved.
   edit dependencies in `bleep.yaml` for you.
 - [Inspect the build](/docs/guides/inspect): commands that
   read the build's dependency graph.
-- [Project status](/docs/appendix/status): the BOM gap and
-  other known limitations.
+- [Project status](/docs/appendix/status): the known limitations.

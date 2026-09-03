@@ -92,15 +92,6 @@ on Linux) is the first thing to attach to a bug report.
 
 ## What's not yet covered
 
-- **No BOM / `dependencyManagement`**: every dependency declares its
-  version explicitly. Spring Boot users feel this most, and it is worth
-  being blunt about the cost: adopting a Spring Boot release means
-  writing out the versions that `spring-boot-dependencies` would have
-  chosen for you, and revisiting them on every Boot upgrade. Templates
-  take the sting out — put the versions in one template and every
-  project that extends it inherits them, so it is one edit rather than
-  one per project — but that is a workaround, not the feature. If your
-  build leans on imported BOMs, this is the gap most likely to stop you.
 - **No KAPT** for Kotlin. KAPT is legacy; migrate to KSP1, which is
   supported (see [annotation processing](/docs/usage/annotation-processing#kotlin-ksp)).
   KSP runs from scratch on every compile today; per-file change

@@ -483,9 +483,9 @@ function MaturitySection() {
                 </Link>
                 , Maven import.
                 <br />
-                <strong>Partial</strong>: BOM /{" "}
-                <code>dependencyManagement</code> not yet, every dependency
-                declares its own version explicitly.
+                <strong>Supported</strong>: BOM /{" "}
+                <code>dependencyManagement</code> imports — declare{" "}
+                <code>boms:</code> and write dependencies without a version.
                 <br />
                 <strong>Not in scope</strong>: Android.
               </p>
