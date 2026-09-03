@@ -252,6 +252,19 @@ object JModel {
           k.javaOptions.asJava
         )
     }
+    val resolution: Option[bleepscript.ResolvedProject.Resolution] =
+      rp.resolution.map { r =>
+        new bleepscript.ResolvedProject.Resolution(
+          r.modules.map { m =>
+            new bleepscript.ResolvedProject.ResolvedModule(
+              m.organization,
+              m.name,
+              m.version,
+              m.artifacts.map(a => new bleepscript.ResolvedProject.ResolvedArtifact(a.name, a.classifier.toJava, a.path)).asJava
+            )
+          }.asJava
+        )
+      }
     new bleepscript.ResolvedProject(
       rp.name,
       rp.directory,
@@ -263,7 +276,9 @@ object JModel {
       language,
       rp.isTestProject,
       rp.dependencies.asJava,
-      rp.testFrameworks.asJava
+      rp.testFrameworks.asJava,
+      resolution.toJava,
+      rp.boms.map(dep).asJava
     )
   }
 

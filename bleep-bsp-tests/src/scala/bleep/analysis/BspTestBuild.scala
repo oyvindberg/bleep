@@ -103,7 +103,8 @@ object BspTestBuild {
       isTestProject = config.isTest,
       dependencies = config.dependsOn.toList.sorted,
       testFrameworks = Nil,
-      resolution = None
+      resolution = None,
+      boms = Nil
     )
 
   private def language(config: BspTestHarness.ProjectConfig): ResolvedProject.Language =

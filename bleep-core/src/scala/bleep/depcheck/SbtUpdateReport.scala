@@ -334,8 +334,20 @@ object SbtUpdateReport {
         librarymanagement.OrganizationArtifactReport(rep.module.organization, rep.module.name, Vector(rep))
       }
 
+      // coursier.graph.Conflict walks a module tree over the resolution, and as of coursier
+      // 2.1.25-M26 that walk `sys.error`s on an edge whose target a BOM-managed exclusion removed
+      // from the graph ("Cannot find <module> in reconciled versions"). The conflicts feed eviction
+      // DIAGNOSTICS — failing the whole resolution because its error analysis cannot run inverts
+      // the priorities, so under that specific upstream defect the conflict scan degrades to empty.
+      val conflicts =
+        try coursier.graph.Conflict(subRes)
+        catch {
+          case e: RuntimeException if e.getMessage != null && e.getMessage.contains("in reconciled versions") =>
+            Nil
+        }
+
       val evicted = for {
-        c <- coursier.graph.Conflict(subRes)
+        c <- conflicts
         // ideally, forceVersions should be taken into account by coursier.core.Resolution itself, when
         // it computes transitive dependencies. It only handles forced versions at a global level for now,
         // rather than handing them for each dependency (where each dependency could have its own forced

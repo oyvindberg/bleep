@@ -71,18 +71,27 @@ object CoursierResolver {
       overrideCacheFolder: Option[File],
       downloadSources: Boolean,
       authentications: Option[model.Authentications],
-      repos: List[model.Repository]
+      repos: List[model.Repository],
+      /** Maven BOMs applied as version constraints to the resolution (dependencyManagement imports). Carried in Params rather than as a per-call argument so
+        * the per-project override travels through every wrapper via `withParams`.
+        *
+        * NOTE: `Cached.computeHash`/`collisionHash` are hand-rolled selective hashes, NOT a hash of this whole case class. Any field added here that affects
+        * resolution output MUST be mixed into both, or the disk cache will serve results computed without it — which is exactly how the first version of this
+        * field shipped broken.
+        */
+      boms: SortedSet[model.Dep]
   )
   object Params {
     implicit val codec: Codec[Params] =
-      Codec.forProduct4[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository]](
+      Codec.forProduct5[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository], SortedSet[model.Dep]](
         "overrideCacheFolder",
         "downloadSources",
         "authentications",
-        "repos"
+        "repos",
+        "boms"
       )(
         Params.apply
-      )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos))
+      )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos, x.boms))
   }
 
   trait Factory {
@@ -107,7 +116,7 @@ object CoursierResolver {
         }
 
         val credentialProvider = new CredentialProvider(pre.logger, config.authentications)
-        val params = Params(None, downloadSources, config.authentications, resolvers)
+        val params = Params(None, downloadSources, config.authentications, resolvers, boms = SortedSet.empty)
         val direct = new Direct(pre.logger, pre.cacheLogger, params, credentialProvider)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version), Some(pre.buildPaths.buildDir))
@@ -215,6 +224,25 @@ object CoursierResolver {
     val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
     lazy val repos = coursierRepos(params.repos, params.authentications, credentialProvider, logger)
 
+    /** The version pins the declared BOMs imply, Maven-style. Computed once per resolver instance — params (and with them the BOM set) are immutable here. */
+    lazy val bomPins: BomPins.Pins =
+      if (params.boms.isEmpty) scala.collection.immutable.SortedMap.empty
+      else BomPins(params.boms, fetchPomFile)
+
+    private def fetchPomFile(g: String, a: String, v: String): Option[Path] = {
+      val dep = Dependency(Module(Organization(g), ModuleName(a), Map.empty), VersionConstraint(v))
+        .withTransitive(false)
+        .withPublication(Publication(a, Type.pom, Extension.pom, Classifier.empty))
+      Fetch[Task](fileCache)
+        .withRepositories(repos)
+        .withDependencies(Seq(dep))
+        .withArtifactTypes(Set(Type.pom))
+        .eitherResult() match {
+        case Right(res) => res.files.headOption.map(_.toPath)
+        case Left(_)    => None
+      }
+    }
+
     override def withParams(newParams: Params): CoursierResolver =
       new Direct(logger, cacheLogger, newParams, credentialProvider)
 
@@ -227,7 +255,7 @@ object CoursierResolver {
       val maybeCoursierDependencies: Either[CoursierError, List[Dependency]] =
         asCoursierDeps(bleepDeps, versionCombo)
 
-      def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
+      def go(deps: List[Dependency], bomDeps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
         // SIP-51: For Scala 2.13 and 3, don't force scala-library version to match scala.version.
@@ -276,25 +304,52 @@ object CoursierResolver {
               .withScalaVersionOpt0(versionCombo.asScala.map(x => VersionConstraint(x.scalaVersion.scalaVersion)))
         }
 
-        Fetch[Task](fileCache)
-          .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
-          .withRepositories(repos)
-          .withDependencies(deps)
-          .withResolutionParams(resolutionParams)
-          .withMainArtifacts(true)
-          .addClassifiers(newClassifiers*)
-          .eitherResult() match {
+        // BOM pins force transitive versions the way Maven's dependencyManagement does — except for
+        // modules the build declares directly, where Maven lets the explicit declaration win.
+        val directModules: Set[Module] = deps.iterator.map(_.module).toSet
+        val pinnedResolutionParams = bomPins.foldLeft(resolutionParams) { case (rp, ((g, a), v)) =>
+          val module = Module(Organization(g), ModuleName(a), Map.empty)
+          if (directModules(module)) rp else rp.addForceVersion0((module, VersionConstraint(v)))
+        }
+
+        (try
+          Fetch[Task](fileCache)
+            .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
+            .withRepositories(repos)
+            .withDependencies(deps)
+            // Deliberately NOT withForceOverrideVersions: that coursier path trips over BOM entries
+            // carrying exclusions (see BomPins). Maven's pin-the-transitives semantics come from the
+            // forceVersion entries computed above instead; the non-forced BOM contributes defaults
+            // for versionless requests and the managed exclusions.
+            .addBoms(bomDeps.map(_.asBomDependency)*)
+            .withResolutionParams(pinnedResolutionParams)
+            .withMainArtifacts(true)
+            .addClassifiers(newClassifiers*)
+            .eitherResult()
+        catch {
+          case e: RuntimeException =>
+            // coursier's conflict-error FORMATTING can itself crash (its tree walk chokes on modules
+            // that BOM-managed exclusions removed), hiding the actual conflict. Log everything we
+            // know before letting it fly, or the failure is undebuggable through the BSP channel.
+            logger
+              .withContext("deps", deps.map(_.module.repr).mkString(", "))
+              .withContext("boms", params.boms.map(_.repr).mkString(", "))
+              .withContext("pins", bomPins.size)
+              .error("dependency resolution failed while reporting its own error", e)
+            throw e
+        }) match {
           case Left(coursierError) if remainingAttempts > 0 =>
             val newRemainingAttempts = remainingAttempts - 1
             cacheLogger.retrying(coursierError, newRemainingAttempts)
-            go(deps, newRemainingAttempts)
+            go(deps, bomDeps, newRemainingAttempts)
           case other => other
         }
       }
 
       for {
         deps <- maybeCoursierDependencies
-        res <- go(deps, remainingAttempts = 3)
+        bomDeps <- asCoursierDeps(params.boms, versionCombo)
+        res <- go(deps, bomDeps, remainingAttempts = 3)
         _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger, Some(ignoreEvictionErrors))
       } yield res
     }
@@ -399,12 +454,17 @@ object CoursierResolver {
       h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
       h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
       params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      params.boms.foreach { bom =>
+        h = MurmurHash3.mix(h, bom.organization.value.hashCode)
+        h = MurmurHash3.mix(h, bom.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, bom.version.hashCode)
+      }
       libraryVersionSchemes.foreach { lvs =>
         h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
         h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
         h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
       }
-      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size + params.boms.size)
     }
 
     // Lean cache format - stores only what's needed for reconstruction
@@ -460,12 +520,17 @@ object CoursierResolver {
       h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
       h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
       params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      params.boms.foreach { bom =>
+        h = MurmurHash3.mix(h, bom.organization.value.hashCode)
+        h = MurmurHash3.mix(h, bom.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, bom.version.hashCode)
+      }
       libraryVersionSchemes.foreach { lvs =>
         h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
         h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
         h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
       }
-      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size + params.boms.size)
     }
 
     def readLeanCache(

@@ -161,7 +161,13 @@ object buildFromMavenPom {
       )
     }
 
-    val platform = model.Platform.Jvm(model.Options.empty, detectMainClass(logger, mavenProject), model.Options.empty)
+    // Maven's working-directory semantics: surefire (and exec) run in `${basedir}`, the module
+    // directory. bleep's global default emulates sbt instead (user.dir = build root), so imported
+    // projects state maven's behavior explicitly; stating it also keeps the sbt-flavored default
+    // from being added (see rewrites.Defaults).
+    val mavenUserDir = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.ProjectDir}")))
+
+    val platform = model.Platform.Jvm(mavenUserDir, detectMainClass(logger, mavenProject), model.Options.empty)
 
     val testFrameworks = detectTestFrameworks(mavenProject)
 
@@ -218,6 +224,7 @@ object buildFromMavenPom {
       sources = model.JsonSet.fromIterable(allExtraMainSources),
       resources = model.JsonSet.empty[RelPath],
       dependencies = model.JsonSet.fromIterable(mainDeps),
+      boms = model.JsonSet.fromIterable(extractBoms(logger, mavenProject)),
       jars = model.JsonSet.empty,
       java = configuredJava,
       scala = configuredScala,
@@ -242,7 +249,7 @@ object buildFromMavenPom {
       val testJvmOptions = if (surefireJvmArgs.nonEmpty) model.Options.parse(surefireJvmArgs, None) else model.Options.empty
 
       val testPlatform = model.Platform
-        .Jvm(testJvmOptions, None, model.Options.empty)
+        .Jvm(testJvmOptions.union(mavenUserDir), None, model.Options.empty)
         .copy(
           jvmAgents = model.JsonSet.fromIterable(surefireAgents)
         )
@@ -257,6 +264,7 @@ object buildFromMavenPom {
         sources = model.JsonSet.fromIterable(allExtraTestSources),
         resources = model.JsonSet.empty[RelPath],
         dependencies = model.JsonSet.fromIterable(allTestDeps),
+        boms = model.JsonSet.empty,
         jars = model.JsonSet.empty,
         java = configuredJava,
         scala = configuredScala,
@@ -315,7 +323,11 @@ object buildFromMavenPom {
     mavenProject.plugins.flatMap {
       case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
         val args = plugin.configuration \ "args" \ "arg"
-        args.map(_.text.trim).toList
+        // `<javaParameters>true</javaParameters>` maps to kotlinc's `-java-parameters`. Dropping it
+        // breaks runtime reflection over constructor parameter names — notably Jackson, which then
+        // cannot deserialize into Kotlin data classes ("no Creators, like default constructor, exist").
+        val javaParameters = (plugin.configuration \ "javaParameters").headOption.filter(_.text.trim == "true").map(_ => "-java-parameters")
+        args.map(_.text.trim).toList ++ javaParameters
       case _ => Nil
     }
 
@@ -327,15 +339,7 @@ object buildFromMavenPom {
 
   /** Extract Kotlin compiler plugin IDs from kotlin-maven-plugin configuration.
     *
-    * Maven POM format:
-    * {{{
-    * <configuration>
-    *   <compilerPlugins>
-    *     <plugin>spring</plugin>
-    *     <plugin>jpa</plugin>
-    *   </compilerPlugins>
-    * </configuration>
-    * }}}
+    * Maven POM format: {{ <configuration> <compilerPlugins> <plugin>spring</plugin> <plugin>jpa</plugin> </compilerPlugins> </configuration> }}
     */
   private def extractKotlinCompilerPlugins(mavenProject: MavenProject): List[String] =
     mavenProject.plugins.flatMap {
@@ -347,14 +351,7 @@ object buildFromMavenPom {
 
   /** Extract Kotlin plugin options from kotlin-maven-plugin configuration.
     *
-    * Maven POM format:
-    * {{{
-    * <configuration>
-    *   <pluginOptions>
-    *     <option>all-open:annotation=jakarta.ws.rs.Path</option>
-    *   </pluginOptions>
-    * </configuration>
-    * }}}
+    * Maven POM format: {{ <configuration> <pluginOptions> <option>all-open:annotation=jakarta.ws.rs.Path</option> </pluginOptions> </configuration> }}
     *
     * These map to `-P plugin:<pluginId>:<key>=<value>` kotlinc flags. The plugin ID mappings:
     *   - `all-open:` -> `plugin:org.jetbrains.kotlin.allopen:`
@@ -415,10 +412,10 @@ object buildFromMavenPom {
             jvmAgents += model.Dep.Java(groupId, artifactId, version)
           case arg if arg.startsWith("-javaagent:") =>
             () // skip unrecognizable agent paths (e.g. with unresolvable Maven properties)
-          case arg if !arg.contains("${") =>
+          case arg if !arg.contains("${") && !arg.contains("@{") =>
             jvmOptions += arg
           case _ =>
-            () // skip args with unresolved Maven properties
+            () // skip args with unresolved Maven properties, incl. surefire's late-evaluated @{...}
         }
 
         // Extract systemPropertyVariables as -D flags
@@ -758,6 +755,66 @@ object buildFromMavenPom {
           .toVector
       finally subDirs.close()
     }
+
+  /** BOM imports (`<dependencyManagement>` entries with `scope=import`) declared by the module or its parent chain.
+    *
+    * These cannot come from the effective pom: `mvn help:effective-pom` resolves imports away, leaving only the expanded version list — precisely the
+    * information-losing flattening `boms:` exists to avoid. So read the RAW pom.xml files, walking `<parent><relativePath>` while it stays inside the
+    * repository, and interpolate `${...}` property references from the same chain's `<properties>` sections.
+    */
+  private def extractBoms(logger: Logger, mavenProject: MavenProject): List[model.Dep] = {
+    val poms: List[scala.xml.Elem] = rawPomChain(mavenProject.directory.resolve("pom.xml"))
+
+    // parent properties first so a module can override its parent, matching Maven's rules
+    val props: Map[String, String] =
+      poms.reverse.flatMap { pom =>
+        (pom \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }
+      }.toMap ++ Map("project.version" -> mavenProject.version, "project.groupId" -> mavenProject.groupId)
+
+    val PropRef = "\\$\\{([^}]+)}".r
+    def interpolate(value: String): Option[String] = {
+      val out = PropRef.replaceAllIn(value, m => props.getOrElse(m.group(1), m.matched).replace("\\", "\\\\").replace("$", "\\$"))
+      if (out.contains("${")) None else Some(out)
+    }
+
+    poms.flatMap { pom =>
+      (pom \ "dependencyManagement" \ "dependencies" \ "dependency")
+        .filter(d => (d \ "scope").text.trim == "import")
+        .flatMap { d =>
+          val raw = ((d \ "groupId").text.trim, (d \ "artifactId").text.trim, (d \ "version").text.trim)
+          (interpolate(raw._1), interpolate(raw._2), interpolate(raw._3)) match {
+            case (Some(g), Some(a), Some(v)) => Some(model.Dep.Java(g, a, v))
+            case _                           =>
+              logger.warn(s"${mavenProject.artifactId}: skipping BOM import $raw: could not resolve all Maven property references from the raw pom chain")
+              None
+          }
+        }
+    }.distinct
+  }
+
+  /** The module's raw pom plus its `<parent>` chain, innermost first, bounded to files that exist on disk (a parent outside the repository resolves from a
+    * repository instead and is not read).
+    */
+  private def rawPomChain(start: Path): List[scala.xml.Elem] = {
+    def go(pomFile: Path, acc: List[scala.xml.Elem]): List[scala.xml.Elem] =
+      if (!Files.isRegularFile(pomFile) || acc.length > 10) acc.reverse
+      else {
+        val pom = scala.xml.XML.loadFile(pomFile.toFile)
+        val parentPom = (pom \ "parent").headOption.map { parent =>
+          val relativePath = (parent \ "relativePath").text.trim match {
+            case ""   => "../pom.xml"
+            case path => path
+          }
+          val resolved = pomFile.getParent.resolve(relativePath).normalize()
+          if (Files.isDirectory(resolved)) resolved.resolve("pom.xml") else resolved
+        }
+        parentPom match {
+          case Some(next) => go(next, pom :: acc)
+          case None       => (pom :: acc).reverse
+        }
+      }
+    go(start, Nil)
+  }
 
   private def sanitizeProjectName(artifactId: String): String =
     artifactId.replace('.', '-')

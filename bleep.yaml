@@ -72,25 +72,12 @@ projects:
   bleepscript:
     dependencies:
       - io.get-coursier:interface:1.0.28
-    java:
-      options: -proc:none --release 17
-    platform:
-      name: jvm
+    extends:
+    - template-common
+    - template-java-17
     sourcegen:
       main: bleep.scripts.GenerateResources
       project: scripts-init
-    publish:
-      groupId: build.bleep
-      url: https://github.com/oyvindberg/bleep/
-      description: A bleeping fast build tool!
-      developers:
-      - id: oyvindberg
-        name: Øyvind Raddum Berg
-        url: https://github.com/oyvindberg
-      licenses:
-      - name: MIT
-        url: http://opensource.org/licenses/MIT
-        distribution: repo
     sources: ./src/main/java
   docs-snippets-java:
     # Java code samples included in the documentation site. A normal
@@ -230,22 +217,11 @@ projects:
     - org.springframework.boot:spring-boot-loader-tools:3.4.0
     dependsOn:
     - bleepscript
-    java:
-      options: -proc:none --release 17
-    platform:
-      name: jvm
+    extends:
+    - template-common
+    - template-java-17
     publish:
-      groupId: build.bleep
-      url: https://github.com/oyvindberg/bleep/
       description: Spring Boot integration for bleep
-      developers:
-      - id: oyvindberg
-        name: Øyvind Raddum Berg
-        url: https://github.com/oyvindberg
-      licenses:
-      - name: MIT
-        url: http://opensource.org/licenses/MIT
-        distribution: repo
     sources: ./src/main/java
   bleep-test-runner:
     # The junit runtime is chosen per project by the rule table in MultiWorkspaceBspServer
@@ -515,6 +491,13 @@ templates:
       options: -Werror -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
       strict: true
+  template-java-17:
+    # The java-17 bytecode floor shared by bleepscript and the published pure-Java plugin/runtime
+    # artifacts. docs-snippets-java and scripts-java target 21, bleep-test-runner 8; those state
+    # their own value instead of extending this (java options merge as a union, so extending AND
+    # overriding would put two --release flags on the javac line).
+    java:
+      options: --release 17
   template-parcollection-ok:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-test:

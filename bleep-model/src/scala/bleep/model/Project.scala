@@ -15,6 +15,12 @@ case class Project(
     sources: JsonSet[RelPath],
     resources: JsonSet[RelPath],
     dependencies: JsonSet[Dep],
+    /** Maven BOMs (dependency management imports). Applied as version constraints to every dependency resolution this project participates in — its own, and
+      * that of any project that (transitively) dependsOn it. This is how e.g. a Quarkus platform pins the whole extension universe: transitive dependencies
+      * resolve at the BOM's versions rather than whatever intermediate POMs happen to request, matching what Maven does with a `scope=import`
+      * dependencyManagement entry.
+      */
+    boms: JsonSet[Dep],
     jars: JsonSet[RelPath],
     java: Option[Java],
     scala: Option[Scala],
@@ -45,6 +51,7 @@ case class Project(
       sources = sources.intersect(other.sources),
       resources = resources.intersect(other.resources),
       dependencies = dependencies.intersect(other.dependencies),
+      boms = boms.intersect(other.boms),
       jars = jars.intersect(other.jars),
       java = java.zipCompat(other.java).map { case (_1, _2) => _1.intersect(_2) },
       scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
@@ -70,6 +77,7 @@ case class Project(
       sources = sources.removeAll(other.sources),
       resources = resources.removeAll(other.resources),
       dependencies = dependencies.removeAll(other.dependencies),
+      boms = boms.removeAll(other.boms),
       jars = jars.removeAll(other.jars),
       java = removeAllFrom(java, other.java),
       scala = removeAllFrom(scala, other.scala),
@@ -98,6 +106,7 @@ case class Project(
       sources = sources.union(other.sources),
       resources = resources.union(other.resources),
       dependencies = dependencies.union(other.dependencies),
+      boms = boms.union(other.boms),
       jars = jars.union(other.jars),
       java = List(java, other.java).flatten.reduceOption(_ `union` _),
       scala = List(scala, other.scala).flatten.reduceOption(_ `union` _),
@@ -124,6 +133,7 @@ case class Project(
           sources,
           resources,
           dependencies,
+          boms,
           jars,
           java,
           scala,
@@ -146,6 +156,7 @@ case class Project(
       sources.isEmpty &&
       resources.isEmpty &&
       dependencies.isEmpty &&
+      boms.isEmpty &&
       jars.isEmpty &&
       java.fold(true)(_.isEmpty) &&
       scala.fold(true)(_.isEmpty) &&
@@ -172,6 +183,7 @@ object Project {
     sources = JsonSet.empty,
     resources = JsonSet.empty,
     dependencies = JsonSet.empty,
+    boms = JsonSet.empty,
     jars = JsonSet.empty,
     java = None,
     scala = None,

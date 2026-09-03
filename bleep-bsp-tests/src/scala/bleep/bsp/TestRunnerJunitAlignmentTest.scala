@@ -54,7 +54,8 @@ class TestRunnerJunitAlignmentTest extends AnyFunSuite with Matchers {
       isTestProject = true,
       dependencies = Nil,
       testFrameworks = Nil,
-      resolution = resolution
+      resolution = resolution,
+      boms = Nil
     )
 
   test("junit-platform 1.x maps to the jupiter/vintage 5.x of the same minor.patch") {

@@ -596,6 +596,20 @@
             }
           ]
         },
+        "boms": {
+          "description": "Maven BOMs (dependencyManagement imports, e.g. io.quarkus:quarkus-bom:3.37.4). Applied as version constraints to every dependency resolution this project participates in — its own, and that of any project that (transitively) dependsOn it.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Dependency"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              }
+            }
+          ]
+        },
         "jars": {
           "description": "Unmanaged jar files to add to the classpath. Paths are relative to the build root directory.",
           "oneOf": [
