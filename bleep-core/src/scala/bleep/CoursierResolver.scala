@@ -219,6 +219,11 @@ object CoursierResolver {
 
   case class InvalidVersionCombo(message: String) extends CoursierError(message)
 
+  /** A dependency was declared without a version (`org:name`), and no BOM in `boms:` manages its version. Raised BEFORE the fetch so the user gets an
+    * actionable configuration error instead of coursier retrying an empty-version download and reporting a cryptic `…:"" not found`.
+    */
+  case class MissingBomVersion(message: String) extends CoursierError(message)
+
   class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params, credentialProvider: CredentialProvider) extends CoursierResolver {
 
     val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
@@ -346,8 +351,32 @@ object CoursierResolver {
         }
       }
 
+      // A version-less dependency (`org:name`) resolves only if a BOM supplies its version, and the authority on what a BOM supplies is coursier's own `addBoms`
+      // below — NOT our `bomPins`, which is a re-derivation that can miss, say, a version written through a property it cannot interpolate. So only the
+      // provably-wrong case is caught here: a version-less dependency with NO BOMs imported at all, where nothing could possibly manage it. When BOMs ARE
+      // present we defer to coursier; if it still cannot fill the version, its resolution error surfaces rather than a false rejection from us.
+      // Judged on the MODEL deps, not the coursier ones: `version.isEmpty` means the user wrote `org:name` without a version, which is the only thing this
+      // catches. A coursier dependency can carry an empty version constraint for reasons that are not the user's doing (an inter-project or bleep-injected dep
+      // resolved elsewhere), and flagging those would break ordinary resolutions.
+      def checkManaged(): Either[CoursierError, Unit] =
+        if (params.boms.nonEmpty) Right(())
+        else {
+          val coords = bleepDeps.iterator.filter(_.version.isEmpty).map(_.repr).toList
+          if (coords.isEmpty) Right(())
+          else {
+            val what = if (coords.size == 1) "A dependency is" else s"${coords.size} dependencies are"
+            Left(
+              MissingBomVersion(
+                s"$what declared without a version, and no BOM is imported to supply one: ${coords.mkString(", ")}. " +
+                  "Give it a version, or import a BOM in `boms:` that provides one."
+              )
+            )
+          }
+        }
+
       for {
         deps <- maybeCoursierDependencies
+        _ <- checkManaged()
         bomDeps <- asCoursierDeps(params.boms, versionCombo)
         res <- go(deps, bomDeps, remainingAttempts = 3)
         _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger, Some(ignoreEvictionErrors))

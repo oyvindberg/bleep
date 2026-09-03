@@ -48,6 +48,23 @@ class BomIT extends IntegrationTestHarness {
     )
   }
 
+  integrationTest("a version-less dependency that no BOM manages fails with an actionable error, not a cryptic empty-version download") { ws =>
+    ws.yaml(
+      """projects:
+        |  app:
+        |    platform:
+        |      name: jvm
+        |    dependencies:
+        |      - com.fasterxml.jackson.core:jackson-databind
+        |""".stripMargin
+    )
+    val ex = intercept[BleepException](jars(ws.start()._1, "app", "jackson-databind"))
+    val msg = ex.getMessage + Option(ex.getCause).map(_.getMessage).getOrElse("")
+    assert(msg.contains("without a version"), s"expected an actionable 'without a version' message, got: $msg")
+    assert(msg.contains("jackson-databind"), s"expected the offending coordinate named, got: $msg")
+    assert(msg.contains("boms:"), s"expected the fix (import a BOM) named, got: $msg")
+  }
+
   integrationTest("a BOM declared on a library constrains a consumer that declares none") { ws =>
     ws.yaml(
       s"""projects:
