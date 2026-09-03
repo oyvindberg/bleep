@@ -1,0 +1,14 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "dev",
+  "projects" : {
+    "a" : {
+      "dependencies" : "com.example:libx:1.0.0"
+    },
+    "b" : {
+      "scala" : {
+        "version" : "2.13.18"
+      }
+    }
+  }
+}

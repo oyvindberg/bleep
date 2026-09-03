@@ -1,0 +1,46 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "dev",
+  "projects" : {
+    "a" : {
+      "extends" : "template-cross-all"
+    },
+    "b" : {
+      "extends" : "template-cross-all"
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "dependencies" : "com.example:libx:1.0.0"
+    },
+    "template-cross-all" : {
+      "cross" : {
+        "jvm211" : {
+          "extends" : "template-scala-2.11"
+        },
+        "jvm212" : {
+          "extends" : "template-scala-2.12"
+        },
+        "jvm213" : {
+          "extends" : "template-scala-2.13"
+        }
+      },
+      "extends" : "template-common"
+    },
+    "template-scala-2.11" : {
+      "scala" : {
+        "version" : "2.11.12"
+      }
+    },
+    "template-scala-2.12" : {
+      "scala" : {
+        "version" : "2.12.18"
+      }
+    },
+    "template-scala-2.13" : {
+      "scala" : {
+        "version" : "2.13.12"
+      }
+    }
+  }
+}
