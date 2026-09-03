@@ -1959,6 +1959,9 @@ class MultiWorkspaceBspServer(
         val testHandler: (TaskDag.TestSuiteTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
           (_, _, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
 
+        val testBatchHandler: (TaskDag.TestBatchTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+          (_, _) => sys.error("TestBatchTask should not appear in compile/link DAG")
+
         val apHandler = makeAnnotationProcessorHandler(started, params.originId, apResults)
         val kspHandler = makeSymbolProcessorHandler(started, params.originId)
 
@@ -1969,6 +1972,7 @@ class MultiWorkspaceBspServer(
             link = linkHandler,
             discover = discoverHandler,
             test = testHandler,
+            testBatch = testBatchHandler,
             sourcegen = sourcegenHandler,
             annotationProcessor = apHandler,
             symbolProcessor = kspHandler,
@@ -2471,6 +2475,10 @@ class MultiWorkspaceBspServer(
       def ioProgram(traceRecorder: TraceRecorder) = for {
         eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
         totalSuitesRef <- Ref.of[IO, Int](0)
+        // Suite completion counted from the per-suite SuiteFinished stream, not from finished DAG tasks — a batched project is one task standing in for many
+        // suites, so a task count would report zero completed for it. Every suite emits a SuiteFinished whether it ran alone or in a batch.
+        suitesCompletedRef <- Ref.of[IO, Int](0)
+        suitesFailedRef <- Ref.of[IO, Int](0)
         totalPassedRef <- Ref.of[IO, Int](0)
         totalFailedRef <- Ref.of[IO, Int](0)
         totalSkippedRef <- Ref.of[IO, Int](0)
@@ -2506,7 +2514,9 @@ class MultiWorkspaceBspServer(
                   started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
                 // Discovery runs on every target the client named, libraries included. Only a project that declared itself a test project is claiming there
                 // are suites here, so only that project's empty scan is a contradiction worth failing the run over.
-                val isTestProject = started.build.explodedProjects(discoverTask.project).isTestProject.getOrElse(false)
+                val discoverProject = started.build.explodedProjects(discoverTask.project)
+                val isTestProject = discoverProject.isTestProject.getOrElse(false)
+                val suiteParallelism = discoverProject.testSuiteParallelism
                 val tagFiltered =
                   if (!tagsActive) regexFiltered
                   else {
@@ -2514,6 +2524,20 @@ class MultiWorkspaceBspServer(
                     val (keptFqdns, _) = bleep.testing.TestTagFilter.filter(fqdns, manifest, includeTagsSet, excludeTagsSet)
                     val keptSet = keptFqdns.toSet
                     regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
+                  }
+                // Run the whole project as ONE JUnit execution when it asked for per-project mode AND every suite is JUnit-Platform (the only runner with a
+                // cross-class execution scope to preserve — a @QuarkusTest application built once, not per class). The degree is the project's testSuiteParallelism
+                // if it set one (1 serialises @QuarkusTest), else the machine's cores. sbt-interface frameworks fall through to suite-by-suite, on bleep's threads.
+                val batchParallelism: Option[Int] =
+                  discoverProject.testJvm match {
+                    case Some(model.TestJvmMode.PerProject)
+                        if tagFiltered.nonEmpty && tagFiltered.forall(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]) =>
+                      // The degree is what the project asked for (1 serialises @QuarkusTest), else a MODEST default so many projects' batches overlap rather than
+                      // each hogging every core and forcing projects to run one at a time. ~4 batches at once on this machine; the governor keeps the total
+                      // within the core count. Capped by the suite count — no reserving cores a small project cannot use.
+                      val default = math.max(2, Runtime.getRuntime.availableProcessors() / 4)
+                      Some(math.min(tagFiltered.size, suiteParallelism.getOrElse(default)))
+                    case _ => None
                   }
 
                 // Only treat an empty result as an error when the user asked to *include* something (--only or --only-tag).
@@ -2561,9 +2585,9 @@ class MultiWorkspaceBspServer(
                     else "filter"
                   val msg =
                     s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
-                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject))
+                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject, suiteParallelism, batchParallelism = None))
                 } else {
-                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size, isTestProject))
+                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size, isTestProject, suiteParallelism, batchParallelism))
                 }
               }
 
@@ -2601,17 +2625,45 @@ class MultiWorkspaceBspServer(
                     // JVM (default) - use JvmPool
                     val projectDir =
                       started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
-                    // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
-                    val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
+                    // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus).
+                    // This includes the `-Duser.dir` the build states (or the sbt-compatible build-dir default
+                    // from `Defaults`) — working-directory semantics are the BUILD's decision, expressed in
+                    // bleep.yaml, never adjusted here.
+                    val declaredJvmOptions = started.resolvedProject(testTask.project).platform match {
                       case Some(p: ResolvedProject.Platform.Jvm) => p.options
                       case _                                     => Nil
+                    }
+                    // A sourcegen may declare JVM options its output requires by writing them to the
+                    // project's `forkJvmOptions` file (one per line). This is how a Quarkus test
+                    // project's model-writer hands the fork the serialized-model path and the jboss
+                    // LogManager without every project restating them in bleep.yaml. Generic: bleep
+                    // knows nothing of what the options mean. Read here so a changed file re-forks
+                    // through the normal option-keyed pool.
+                    val sourcegenJvmOptions = {
+                      val f = started.projectPaths(testTask.project).forkJvmOptions
+                      if (java.nio.file.Files.exists(f))
+                        java.nio.file.Files
+                          .readAllLines(f)
+                          .asScala
+                          .map(_.trim)
+                          .filter(l => l.nonEmpty && !l.startsWith("#"))
+                          .toList
+                      else Nil
+                    }
+                    val projectJvmOptions = declaredJvmOptions ++ sourcegenJvmOptions
+                    // per-project (maven's one-JVM-per-module) runs every suite of this project in one shared fork; per-suite (the default) forks per suite.
+                    // The sharing key is the project, so all its suites land on the same fork. How many run at once is bounded by the DAG's suite-parallelism
+                    // chains, not here.
+                    val sharing: bleep.testing.SessionSharing = project.testJvm match {
+                      case Some(model.TestJvmMode.PerProject) => bleep.testing.SessionSharing.Shared(testTask.project.value)
+                      case _                                  => bleep.testing.SessionSharing.Exclusive
                     }
                     TestRunner.runSuite(
                       project = testTask.project,
                       suiteName = testTask.suiteName.value,
                       selection = testTask.selection,
                       classpath = classpath,
-                      pool = jvmPool,
+                      executor = jvmPool,
                       eventQueue = eventQueue,
                       options = TestRunner.Options(
                         // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
@@ -2622,7 +2674,8 @@ class MultiWorkspaceBspServer(
                         testArgs = testOptions.testArgs,
                         idleTimeout = idleTimeout,
                         environment = testEnv,
-                        workingDirectory = projectDir
+                        workingDirectory = projectDir,
+                        sharing = sharing
                       ),
                       resolveSourcePath = className =>
                         bleep.analysis.ZincSourceLookup.relativeSourceForProject(
@@ -2633,6 +2686,50 @@ class MultiWorkspaceBspServer(
                       killSignal = taskKillSignal
                     )
                 }
+              }
+
+          // A whole project's JUnit suites as one batched execution (per-project mode). JVM-only, so no platform branching; the fork does one execute so a
+          // @QuarkusTest application is built once and reused across the classes.
+          val testBatchHandler: (TaskDag.TestBatchTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+            (batchTask, taskKillSignal) =>
+              IO.blocking(getTestClasspath(started, batchTask.project)).flatMap { classpath =>
+                val testEnv = computeTestEnvironment(started, batchTask.project, testOptions.env)
+                val projectDir =
+                  started.build.explodedProjects.get(batchTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+                val declaredJvmOptions = started.resolvedProject(batchTask.project).platform match {
+                  case Some(p: ResolvedProject.Platform.Jvm) => p.options
+                  case _                                     => Nil
+                }
+                val sourcegenJvmOptions = {
+                  val f = started.projectPaths(batchTask.project).forkJvmOptions
+                  if (java.nio.file.Files.exists(f))
+                    java.nio.file.Files.readAllLines(f).asScala.map(_.trim).filter(l => l.nonEmpty && !l.startsWith("#")).toList
+                  else Nil
+                }
+                TestRunner.runBatch(
+                  project = batchTask.project,
+                  suites = batchTask.suites,
+                  parallelism = batchTask.parallelism,
+                  classpath = classpath,
+                  executor = jvmPool,
+                  eventQueue = eventQueue,
+                  options = TestRunner.Options(
+                    jvmOptions = declaredJvmOptions ++ sourcegenJvmOptions ++ testOptions.jvmOptions,
+                    defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
+                    testArgs = testOptions.testArgs,
+                    idleTimeout = idleTimeout,
+                    environment = testEnv,
+                    workingDirectory = projectDir,
+                    sharing = bleep.testing.SessionSharing.Exclusive
+                  ),
+                  resolveSourcePath = className =>
+                    bleep.analysis.ZincSourceLookup.relativeSourceForProject(
+                      bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey),
+                      started.buildPaths.variantBuildDir(batchTask.project).resolve(".zinc").resolve("analysis.zip"),
+                      className
+                    ),
+                  killSignal = taskKillSignal
+                )
               }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
@@ -2660,6 +2757,7 @@ class MultiWorkspaceBspServer(
               link = linkHandler,
               discover = discoverHandler,
               test = testHandler,
+              testBatch = testBatchHandler,
               sourcegen = sourcegenHandler,
               annotationProcessor = apHandler,
               symbolProcessor = kspHandler,
@@ -2679,6 +2777,8 @@ class MultiWorkspaceBspServer(
               eventQueue,
               params.originId,
               totalSuitesRef,
+              suitesCompletedRef,
+              suitesFailedRef,
               totalPassedRef,
               totalFailedRef,
               totalSkippedRef,
@@ -2754,7 +2854,9 @@ class MultiWorkspaceBspServer(
         skipped <- totalSkippedRef.get
         ignored <- totalIgnoredRef.get
         suites <- totalSuitesRef.get
-      } yield (testResult, passed, failed, skipped, ignored, suites)
+        suitesDone <- suitesCompletedRef.get
+        suitesFail <- suitesFailedRef.get
+      } yield (testResult, passed, failed, skipped, ignored, suites, suitesDone, suitesFail)
 
       for {
         // Create trace recorder (noop if not enabled)
@@ -2773,7 +2875,7 @@ class MultiWorkspaceBspServer(
         _ <- IO(clearStaleDiagnostics(diagnosticTracker))
 
         testResult <- IO(ioResult match {
-          case Right((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
+          case Right((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites, suitesCompletedTally, suitesFailedTally)) =>
             // Send TestRunFinished event
             val durationMs = System.currentTimeMillis() - startTime
             val timestamp = System.currentTimeMillis()
@@ -2793,10 +2895,14 @@ class MultiWorkspaceBspServer(
               else if (result.failed.nonEmpty || result.errored.nonEmpty || result.timedOut.nonEmpty || result.killed.nonEmpty) StatusCode.Error
               else StatusCode.Ok
 
-            // Compute suite-level counts from DAG result
-            val suiteTaskIds = result.tasks.collect { case (id, _: TaskDag.TestSuiteTask) => id }.toSet
-            val suitesCompleted = suiteTaskIds.count(id => result.completed.contains(id) || result.failed.contains(id) || result.timedOut.contains(id))
-            val suitesFailed = suiteTaskIds.count(id => result.failed.contains(id) || result.errored.contains(id))
+            // Suite completion/failure come from the per-suite SuiteFinished stream (batch-agnostic: a batched project is one task but many finished suites).
+            // Cancellation stays task-derived — a cancelled suite emits no SuiteFinished, so it is a task that reached neither completion nor failure.
+            val suitesCompleted = suitesCompletedTally
+            val suitesFailed = suitesFailedTally
+            val suiteTaskIds = result.tasks.collect {
+              case (id, _: TaskDag.TestSuiteTask) => id
+              case (id, _: TaskDag.TestBatchTask) => id
+            }.toSet
             val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
 
             bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
@@ -3962,6 +4068,7 @@ class MultiWorkspaceBspServer(
     case lt: TaskDag.LinkTask                         => (TraceCategory.Link, lt.project.value)
     case dt: TaskDag.DiscoverTask                     => (TraceCategory.Discover, dt.project.value)
     case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
+    case bt: TaskDag.TestBatchTask                    => (TraceCategory.Test, s"${bt.project.value} (batch of ${bt.suites.size})")
     case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
     case apt: TaskDag.ResolveAnnotationProcessorsTask => (TraceCategory.ResolveAnnotationProcessors, apt.project.value)
     case kspt: TaskDag.RunSymbolProcessorsTask        => (TraceCategory.RunSymbolProcessors, kspt.project.value)
@@ -4167,6 +4274,8 @@ class MultiWorkspaceBspServer(
       queue: Queue[IO, Option[TaskDag.DagEvent]],
       originId: Option[String],
       totalSuitesRef: Ref[IO, Int],
+      suitesCompletedRef: Ref[IO, Int],
+      suitesFailedRef: Ref[IO, Int],
       totalPassedRef: Ref[IO, Int],
       totalFailedRef: Ref[IO, Int],
       totalSkippedRef: Ref[IO, Int],
@@ -4189,6 +4298,8 @@ class MultiWorkspaceBspServer(
                 Some(BleepBspProtocol.Event.DiscoveryStarted(dt.project, timestamp))
               case tt: TaskDag.TestSuiteTask =>
                 Some(BleepBspProtocol.Event.SuiteStarted(tt.project, tt.suiteName, timestamp))
+              case _: TaskDag.TestBatchTask =>
+                None // A batch has no single suite to start; each suite's own SuiteFinished conveys its result as the batch runs.
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenStarted/Finished, not TaskStarted/Finished
               case _: TaskDag.ResolveAnnotationProcessorsTask =>
@@ -4196,8 +4307,23 @@ class MultiWorkspaceBspServer(
               case _: TaskDag.RunSymbolProcessorsTask =>
                 None // KSP execution is reported via DagEvent.RunSymbolProcessors{Started,Finished}
             }
-            traceRecorder.recordStart(cat, name) >>
-              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e, recorder)))
+            val emitStart = task match {
+              case bt: TaskDag.TestBatchTask =>
+                // One batch task stands in for many suites, so it announces the start of each — pairing every suite's own SuiteFinished the way a suite-by-suite
+                // run does, so the client tracks them as started-then-completed rather than never-started.
+                bt.suites.traverse_ { case (suite, _) =>
+                  IO(
+                    sendTestEvent(
+                      originId,
+                      s"suite:${bt.project.value}:${suite.value}",
+                      BleepBspProtocol.Event.SuiteStarted(bt.project, suite, timestamp),
+                      recorder
+                    )
+                  )
+                }
+              case _ => IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e, recorder)))
+            }
+            traceRecorder.recordStart(cat, name) >> emitStart
 
           case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
             val (cat, name) = taskCatName(task)
@@ -4253,6 +4379,12 @@ class MultiWorkspaceBspServer(
                   case TaskDag.TaskResult.TimedOut(threadDump) =>
                     Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project, tt.suiteName, durationMs, threadDump, timestamp))
                 }
+
+              case _: TaskDag.TestBatchTask =>
+                // Every suite's own SuiteFinished (or SuiteError/etc.) was already emitted as the batch ran, so the batch task's own result adds nothing —
+                // emitting a batch-level event here would double-count. An infra failure that killed the fork mid-batch leaves its unfinished suites uncounted,
+                // which is the honest picture: they did not run to completion.
+                None
 
               case _: TaskDag.SourcegenTask =>
                 None // Sourcegen is reported via DagEvent.SourcegenFinished, not TaskFinished
@@ -4318,6 +4450,9 @@ class MultiWorkspaceBspServer(
               totalFailedRef.update(_ + failedContribution) >>
               totalSkippedRef.update(_ + outcome.skippedCount) >>
               totalIgnoredRef.update(_ + outcome.ignoredCount) >>
+              // Every finished suite counts once toward completion, and once toward failed if its outcome is a failure — the batch-agnostic authoritative tally.
+              suitesCompletedRef.update(_ + 1) >>
+              suitesFailedRef.update(_ + (if (outcome.isFailure) 1 else 0)) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent, recorder))
 
           case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder, recorder)

@@ -269,6 +269,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         },
         discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
+        testBatch = (_, _) => sys.error("TestBatchTask should not appear in a link DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -316,6 +317,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
           ),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
+        testBatch = (_, _) => sys.error("TestBatchTask should not appear in a link DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
@@ -361,8 +363,10 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false))),
+        discover =
+          (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false, suiteParallelism = None, batchParallelism = None))),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in this DAG"),
+        testBatch = (_, _) => sys.error("TestBatchTask should not appear in this DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")

@@ -2,12 +2,20 @@ package bleep.testing.runner;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.Flushable;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
+import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -32,10 +40,17 @@ class JUnitPlatformRunner {
   /** Fully-qualified name of the session interface, absent before JUnit Platform 1.8. */
   private static final String LAUNCHER_SESSION = "org.junit.platform.launcher.LauncherSession";
 
-  private final PrintWriter protocolOut;
+  private final Consumer<String> sink;
 
-  JUnitPlatformRunner(PrintWriter protocolOut) {
-    this.protocolOut = protocolOut;
+  /**
+   * Streams to flush before a result is reported. Empty in process; the fork's captured pair
+   * otherwise.
+   */
+  private final List<Flushable> toFlush;
+
+  JUnitPlatformRunner(Consumer<String> sink, List<Flushable> toFlush) {
+    this.sink = sink;
+    this.toFlush = toFlush;
   }
 
   /** A {@link Launcher} plus whatever has to be closed afterwards. */
@@ -55,6 +70,51 @@ class JUnitPlatformRunner {
       if (session != null) {
         session.close();
       }
+    }
+  }
+
+  // ---- Shared-session mode (set by a fork, off in-process) ----
+  //
+  // In a forked JVM every suite shares ONE LauncherSession, so a LauncherSessionListener fires once
+  // for the whole fork rather than once per suite (and, with concurrent suites, N racing opens).
+  // The
+  // session is opened lazily by the first JUnit suite and closed at fork shutdown. In-process
+  // leaves
+  // this off: there the daemon JVM runs many projects' suites under different classloaders, and one
+  // shared session across them would be wrong — each opens its own, as before.
+  private static volatile boolean SHARE_SESSION = false;
+  private static volatile LauncherHandle SHARED_HANDLE = null;
+  private static final Object SHARED_LOCK = new Object();
+
+  /** Turn on one-session-per-JVM. Called once by a fork at startup, before any suite runs. */
+  static void enableSharedSession() {
+    SHARE_SESSION = true;
+  }
+
+  /**
+   * Close the shared session, if one was opened. Called once at fork shutdown; runs
+   * launcherSessionClosed SPI.
+   */
+  static void closeSharedSession() {
+    synchronized (SHARED_LOCK) {
+      if (SHARED_HANDLE != null) {
+        try {
+          SHARED_HANDLE.close();
+        } catch (Exception ignored) {
+          // Shutdown path: nothing useful to do if the session will not close.
+        }
+        SHARED_HANDLE = null;
+      }
+    }
+  }
+
+  /** The one shared launcher, opened on first use under lock. */
+  private LauncherHandle sharedHandle() {
+    LauncherHandle h = SHARED_HANDLE;
+    if (h != null) return h;
+    synchronized (SHARED_LOCK) {
+      if (SHARED_HANDLE == null) SHARED_HANDLE = openLauncher();
+      return SHARED_HANDLE;
     }
   }
 
@@ -109,10 +169,8 @@ class JUnitPlatformRunner {
    * Run a single test class using JUnit Platform Launcher with full session lifecycle.
    *
    * @param className fully qualified test class name
-   * @param capturedOut captured stdout stream
-   * @param capturedErr captured stderr stream
    */
-  void runSuite(String className, OutputStream capturedOut, OutputStream capturedErr) {
+  void runSuite(String className) {
 
     long startTime = System.currentTimeMillis();
     String currentSuite = className;
@@ -129,16 +187,22 @@ class JUnitPlatformRunner {
     int[] failed = {0};
     int[] skipped = {0};
     int[] ignored = {0};
+    Map<String, Long> testStartNanos = new ConcurrentHashMap<>();
 
     try {
       // Flush any pending output
-      capturedOut.flush();
-      capturedErr.flush();
+      flushAll();
 
-      // Open a LauncherSession where the platform has one — this triggers LauncherSessionListener
-      // SPI.
-      // Quarkus's CustomLauncherInterceptor creates FacadeClassLoader here.
-      try (LauncherHandle handle = openLauncher()) {
+      // A LauncherSession is where LauncherSessionListener SPI fires (the SmallRye/Mutiny
+      // registrar,
+      // Quarkus's CustomLauncherInterceptor that builds the FacadeClassLoader). In fork mode one
+      // session is opened for the whole JVM and shared by every suite, so those listeners fire
+      // exactly ONCE — maven surefire's one-session-per-fork semantics. That is the difference
+      // between a listener that pre-registers a global once and N concurrent suites each racing to
+      // register it. Per-suite otherwise (in-process, or a platform predating sessions).
+      boolean shareSession = SHARE_SESSION;
+      LauncherHandle handle = shareSession ? sharedHandle() : openLauncher();
+      try {
         Launcher launcher = handle.launcher;
 
         LauncherDiscoveryRequest request =
@@ -179,6 +243,7 @@ class JUnitPlatformRunner {
               @Override
               public void executionStarted(TestIdentifier testIdentifier) {
                 if (testIdentifier.isTest() && !isChildlessVintageClass(testIdentifier)) {
+                  testStartNanos.put(testIdentifier.getUniqueId(), System.nanoTime());
                   String testName = testIdentifier.getDisplayName();
                   send(TestProtocol.encodeTestStarted(currentSuite, testName));
                 }
@@ -199,7 +264,7 @@ class JUnitPlatformRunner {
                 }
 
                 String testName = testIdentifier.getDisplayName();
-                long durationMs = 0; // JUnit Platform doesn't provide per-test duration in listener
+                long durationMs = elapsedMs(testStartNanos.remove(testIdentifier.getUniqueId()));
 
                 String status;
                 String message = null;
@@ -245,8 +310,7 @@ class JUnitPlatformRunner {
 
                 // Flush output before reporting
                 try {
-                  capturedOut.flush();
-                  capturedErr.flush();
+                  flushAll();
                 } catch (Exception e) {
                   // Ignore
                 }
@@ -287,8 +351,7 @@ class JUnitPlatformRunner {
                 failed[0]++;
 
                 try {
-                  capturedOut.flush();
-                  capturedErr.flush();
+                  flushAll();
                 } catch (Exception e) {
                   // Ignore
                 }
@@ -352,11 +415,14 @@ class JUnitPlatformRunner {
         }
 
         launcher.execute(request, listener);
+      } finally {
+        // A shared session is closed once, at fork shutdown; a per-suite one is this suite's to
+        // close.
+        if (!shareSession) handle.close();
       }
 
       // Flush and report done
-      capturedOut.flush();
-      capturedErr.flush();
+      flushAll();
 
       long durationMs = System.currentTimeMillis() - startTime;
       int total = passed[0] + failed[0] + skipped[0] + ignored[0];
@@ -386,9 +452,232 @@ class JUnitPlatformRunner {
     }
   }
 
+  /**
+   * Run a whole set of classes in ONE JUnit Platform execution, at a bleep-chosen degree of
+   * parallelism.
+   *
+   * <p>This is the shape that makes an execution-scoped fixture — a {@code @QuarkusTest}
+   * application above all — build once and be reused by every class, exactly as it is under maven
+   * surefire's one-execute-per-module. Per-class results are still reported: the listener
+   * attributes each test and container to the requested class it belongs to (a {@code @Nested
+   * Foo$Bar} test back to {@code Foo}) and sends that class's own SuiteDone when its container
+   * finishes, so the parent demultiplexes per suite as before. Parallelism is bleep's: the
+   * configuration parameters set here override any {@code junit-platform.properties} on the
+   * classpath, so junit's engine runs exactly the number of classes at once that bleep decided (1
+   * serialises — what {@code @QuarkusTest} requires).
+   */
+  void runSuites(List<String> classNames, int parallelism) {
+    long batchStart = System.currentTimeMillis();
+    Set<String> requested = new LinkedHashSet<>(classNames);
+    Map<String, int[]> counts =
+        new ConcurrentHashMap<>(); // per class: [passed, failed, skipped, ignored]
+    Map<String, Long> startedAt = new ConcurrentHashMap<>();
+    Map<String, Long> testStartNanos = new ConcurrentHashMap<>();
+    Set<String> reported = ConcurrentHashMap.newKeySet();
+    for (String c : requested) counts.put(c, new int[4]);
+
+    // Emit a class's terminal exactly once. Idempotent via `reported.add`. Empty (nothing ran) is
+    // not a pass, matching runSuite.
+    Consumer<String> emitDone =
+        cls -> {
+          if (!reported.add(cls)) return;
+          int[] c = counts.getOrDefault(cls, new int[4]);
+          long dur = System.currentTimeMillis() - startedAt.getOrDefault(cls, batchStart);
+          if (c[0] + c[1] + c[2] + c[3] == 0) send(TestProtocol.encodeSuiteEmpty(cls, dur));
+          else send(TestProtocol.encodeSuiteExecuted(cls, c[0], c[1], c[2], c[3], dur));
+        };
+
+    try {
+      flushAll();
+      boolean shareSession = SHARE_SESSION;
+      LauncherHandle handle = shareSession ? sharedHandle() : openLauncher();
+      try {
+        Launcher launcher = handle.launcher;
+
+        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
+        for (String c : classNames) builder.selectors(selectClass(c));
+        boolean parallel = parallelism > 1;
+        // bleep decides the degree; these override any junit-platform.properties the project ships,
+        // so the number is ours, not junit's.
+        builder.configurationParameter(
+            "junit.jupiter.execution.parallel.enabled", Boolean.toString(parallel));
+        builder.configurationParameter("junit.jupiter.execution.parallel.config.strategy", "fixed");
+        builder.configurationParameter(
+            "junit.jupiter.execution.parallel.config.fixed.parallelism",
+            Integer.toString(Math.max(1, parallelism)));
+        builder.configurationParameter(
+            "junit.jupiter.execution.parallel.mode.classes.default", "concurrent");
+        builder.configurationParameter(
+            "junit.jupiter.execution.parallel.mode.default", "same_thread");
+        LauncherDiscoveryRequest request = builder.build();
+
+        TestExecutionListener listener =
+            new TestExecutionListener() {
+              private String suiteOf(TestIdentifier id) {
+                String cls = classOf(id);
+                if (cls == null) return null;
+                if (requested.contains(cls)) return cls;
+                for (String r : requested)
+                  if (cls.startsWith(r + "$")) return r; // @Nested Foo$Bar -> Foo
+                return null;
+              }
+
+              @Override
+              public void executionStarted(TestIdentifier id) {
+                String suite = suiteOf(id);
+                if (suite == null) return;
+                startedAt.putIfAbsent(suite, System.currentTimeMillis());
+                if (id.isTest()) {
+                  testStartNanos.put(id.getUniqueId(), System.nanoTime());
+                  send(TestProtocol.encodeTestStarted(suite, id.getDisplayName()));
+                }
+              }
+
+              @Override
+              public void executionFinished(TestIdentifier id, TestExecutionResult result) {
+                String suite = suiteOf(id);
+                if (id.isTest()) {
+                  if (suite == null) return;
+                  int[] c = counts.get(suite);
+                  String status;
+                  String message = null;
+                  String throwableStr = null;
+                  switch (result.getStatus()) {
+                    case SUCCESSFUL:
+                      status = "passed";
+                      c[0]++;
+                      break;
+                    case FAILED:
+                      status = "failed";
+                      c[1]++;
+                      if (result.getThrowable().isPresent()) {
+                        message = result.getThrowable().get().getMessage();
+                        throwableStr = stackTraceToString(result.getThrowable().get());
+                      }
+                      break;
+                    case ABORTED:
+                      status = "skipped";
+                      c[2]++;
+                      if (result.getThrowable().isPresent())
+                        message = result.getThrowable().get().getMessage();
+                      break;
+                    default:
+                      status = "unknown";
+                      break;
+                  }
+                  try {
+                    flushAll();
+                  } catch (Exception e) {
+                    // ignore
+                  }
+                  long durationMs = elapsedMs(testStartNanos.remove(id.getUniqueId()));
+                  send(
+                      TestProtocol.encodeTestFinished(
+                          suite, id.getDisplayName(), status, durationMs, message, throwableStr));
+                } else {
+                  // A failed container (@AfterAll/@BeforeAll, a class rule) is a failure not
+                  // attributable to one test — surface it as a synthetic one.
+                  if (result.getStatus() == TestExecutionResult.Status.FAILED && suite != null) {
+                    counts.get(suite)[1]++;
+                    String message = result.getThrowable().map(Throwable::getMessage).orElse(null);
+                    String throwableStr =
+                        result
+                            .getThrowable()
+                            .map(JUnitPlatformRunner::stackTraceToString)
+                            .orElse(null);
+                    String name = containerTestName(id);
+                    send(TestProtocol.encodeTestStarted(suite, name));
+                    send(
+                        TestProtocol.encodeTestFinished(
+                            suite, name, "failed", 0, message, throwableStr));
+                  }
+                  // The requested class's own container finishing is that suite's terminal.
+                  String cls = classOf(id);
+                  if (cls != null && requested.contains(cls)) emitDone.accept(cls);
+                }
+              }
+
+              @Override
+              public void executionSkipped(TestIdentifier id, String reason) {
+                String suite = suiteOf(id);
+                if (suite == null) return;
+                startedAt.putIfAbsent(suite, System.currentTimeMillis());
+                if (id.isTest()) {
+                  counts.get(suite)[2]++;
+                  send(
+                      TestProtocol.encodeTestFinished(
+                          suite, id.getDisplayName(), "skipped", 0, reason, null));
+                } else if (requested.contains(classOf(id))) {
+                  // A whole class disabled: no tests will fire, so this is its terminal — an empty
+                  // (nothing ran) suite.
+                  emitDone.accept(classOf(id));
+                }
+              }
+
+              @Override
+              public void reportingEntryPublished(TestIdentifier id, ReportEntry entry) {
+                send(TestProtocol.encodeLog("info", entry.toString()));
+              }
+            };
+
+        launcher.execute(request, listener);
+      } finally {
+        if (!shareSession) handle.close();
+      }
+      flushAll();
+      // Any requested class no engine claimed (filtered out, or a JUnit 4 class with no vintage
+      // engine) never got a container-finish. Report it, once.
+      for (String c : requested) emitDone.accept(c);
+      send(TestProtocol.encodeBatchComplete());
+    } catch (Throwable e) {
+      send(TestProtocol.encodeLog("error", stackTraceToString(e)));
+      long dur = System.currentTimeMillis() - batchStart;
+      for (String c : requested) {
+        if (reported.add(c))
+          send(
+              TestProtocol.encodeSuiteErrored(
+                  c,
+                  dur,
+                  "Batch execution failed: " + e.getClass().getName() + ": " + e.getMessage(),
+                  stackTraceToString(e)));
+      }
+      send(TestProtocol.encodeBatchComplete());
+    }
+  }
+
+  /**
+   * The class a test or container belongs to, from its source. Null for engine roots and anything
+   * without a class source.
+   */
+  private static String classOf(TestIdentifier id) {
+    return id.getSource()
+        .map(
+            s -> {
+              if (s instanceof MethodSource) return ((MethodSource) s).getClassName();
+              if (s instanceof ClassSource) return ((ClassSource) s).getClassName();
+              return null;
+            })
+        .orElse(null);
+  }
+
+  /**
+   * Wall-clock duration of one test, measured by the runner because JUnit Platform's {@link
+   * TestExecutionListener} does not carry one. The start is stamped in {@code executionStarted}
+   * (keyed by unique id, safe under the concurrent classes of a batch) and read back here with the
+   * entry removed. {@link System#nanoTime()} so a wall-clock adjustment mid-suite cannot make it
+   * negative; a missing start (a test that finished without a matching start, e.g. skipped) reads 0
+   * rather than a bogus age-of-the-map.
+   */
+  private static long elapsedMs(Long startNanos) {
+    return startNanos == null ? 0L : Math.max(0L, (System.nanoTime() - startNanos) / 1_000_000L);
+  }
+
   private void send(String message) {
-    protocolOut.println(message);
-    protocolOut.flush();
+    sink.accept(message);
+  }
+
+  private void flushAll() throws IOException {
+    for (Flushable f : toFlush) f.flush();
   }
 
   /**

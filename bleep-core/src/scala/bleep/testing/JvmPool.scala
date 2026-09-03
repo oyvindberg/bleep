@@ -28,7 +28,7 @@ import scala.util.control.NonFatal
   *   - Explicit shutdown (no shutdown hooks)
   *   - Health checks before reuse
   */
-trait JvmPool {
+trait JvmPool extends TestExecutor {
 
   /** Acquire a JVM suitable for the given classpath and options.
     *
@@ -47,6 +47,33 @@ trait JvmPool {
       workingDirectory: Option[Path]
   ): Resource[IO, TestJvm]
 
+  /** The [[TestExecutor]] shape of the above: same call, with the arguments gathered into the request every executor is handed.
+    *
+    * The one branch a pool makes on the way in: an [[SessionSharing.Exclusive]] request gets a fork of its own (the classic path above), a
+    * [[SessionSharing.Shared]] one joins the single fork its project shares (`acquireShared`). Everything past this point — `TestRunner`, the event stream, the
+    * idle timeout — is handed a [[TestSession]] and cannot tell which it got.
+    */
+  final override def acquire(request: TestSessionRequest): Resource[IO, TestSession] =
+    request.sharing match {
+      case SessionSharing.Exclusive =>
+        acquire(
+          request.label,
+          request.classpath,
+          request.jvmOptions,
+          request.defaultHeapMb,
+          request.runnerClass,
+          request.environment,
+          request.workingDirectory
+        )
+      case SessionSharing.Shared(key) =>
+        acquireShared(request, key)
+    }
+
+  /** Join (or, as the first of a project's suites, create) the one fork the project named by `key` shares. The fork is torn down when the last suite holding it
+    * releases. The returned session's `runSuite` may be called concurrently by different suites; how many do so at once is bounded by admission, not here.
+    */
+  def acquireShared(request: TestSessionRequest, key: String): Resource[IO, TestSession]
+
   /** Shutdown all JVMs in the pool.
     *
     * This MUST be called when done with the pool. Use guarantee to ensure it runs.
@@ -58,7 +85,7 @@ trait JvmPool {
 }
 
 /** A handle to a forked JVM running the test runner */
-trait TestJvm {
+trait TestJvm extends TestSession {
 
   /** Process ID of this JVM */
   def pid: Long
@@ -414,8 +441,20 @@ object JvmPool {
     @volatile private var _killedByUs: Option[String] = None
     def killedByUs: Option[String] = _killedByUs
 
-    def kill(reason: String): Unit = {
-      if (_killedByUs.isEmpty) _killedByUs = Some(reason)
+    /** Terminate the fork, escalating instead of going straight to SIGKILL.
+      *
+      * `graceMillis` is how long the child gets to die on its own terms: half after the socket close (which it reads as end-of-commands and exits on), half
+      * after SIGTERM. Both routes run the JVM's shutdown hooks — and for a Quarkus fork those hooks are what stop the application and the
+      * testcontainers/DevServices containers it started. With ryuk disabled (required for testcontainers reuse, and common) those hooks are the ONLY container
+      * cleanup there is; SIGKILLing first thing is how a machine ends up with dozens of orphaned databases.
+      *
+      * Pass 0 when the fork has forfeited its grace — it never completed the startup handshake, or a collective shutdown deadline already gave it time.
+      */
+    def kill(reason: String, graceMillis: Long): Unit = {
+      // Only claim the kill if there is something left to kill: a fork that already exited on its
+      // own (e.g. gracefully during shutdown's deadline) must not be attributed to bleep — this
+      // flag is the only thing separating our kills from natural exits and OS kills.
+      if (process.isAlive && _killedByUs.isEmpty) _killedByUs = Some(reason)
       alive = false
       try
         stdin.close()
@@ -424,9 +463,17 @@ object JvmPool {
       try
         protocolSocket.close()
       catch { case NonFatal(_) => }
-      // Kill the entire process tree, not just the direct child.
-      // If the test runner spawned sub-processes (e.g., for some test frameworks),
-      // those would otherwise be orphaned and consume system resources.
+      def waitForExit(millis: Long): Boolean =
+        millis > 0 && (try process.waitFor(millis, java.util.concurrent.TimeUnit.MILLISECONDS)
+        catch { case NonFatal(_) => false })
+      if (!waitForExit(graceMillis / 2)) {
+        process.destroy(): Unit // SIGTERM: shutdown hooks still run if the JVM is responsive
+        if (!waitForExit(graceMillis / 2)) {
+          process.destroyForcibly(): Unit
+        }
+      }
+      // Sweep whatever the child left behind, however it died. A gracefully-exited JVM reaps its
+      // own children; this catches the rest so orphaned sub-processes don't consume the machine.
       try
         process
           .descendants()
@@ -435,7 +482,6 @@ object JvmPool {
             catch { case _: Exception => () }
           )
       catch { case NonFatal(_) => }
-      process.destroyForcibly()
       try
         process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS): Unit
       catch { case NonFatal(_) => }
@@ -535,7 +581,8 @@ object JvmPool {
       * actually surrendered yet.
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
-      observeCost(jvm).attempt >> IO(jvm.kill(destroyReason)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >> jvm.releaseMemory
+      observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >>
+        jvm.releaseMemory
 
     /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
       * one the OS killed, since both report exit 137.
@@ -845,7 +892,9 @@ object JvmPool {
         // A slow start is not a dead JVM. Under load — 18 cores saturated, dozens of JVMs paging in a
         // large classpath — reaching Ready can legitimately take a while, and killing at 30s turned
         // "this machine is busy" into a SIGKILL we then blamed on the OS.
-        .onError { case _ => IO(jvm.kill("bleep: no Ready handshake within the startup timeout")) }
+        // No grace: a fork that never completed the handshake has not run any suite, so it has no
+        // application or containers to wind down.
+        .onError { case _ => IO.blocking(jvm.kill("bleep: no Ready handshake within the startup timeout", graceMillis = 0)) }
 
     override def shutdown: IO[Unit] =
       // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
@@ -861,10 +910,25 @@ object JvmPool {
               } catch { case NonFatal(_) => }
             }
           }
-          // Give them a moment to shutdown gracefully
-          _ <- IO.sleep(500.millis)
+          // Wait for graceful exits under one shared deadline. The Shutdown command makes a healthy
+          // runner exit on its own, running its shutdown hooks — for a Quarkus fork that is where
+          // the application stops and its DevServices/testcontainers containers get removed. The
+          // old fixed 500ms then SIGKILL truncated exactly those hooks, so every run leaked its
+          // containers when ryuk was disabled. Well-behaved forks exit as fast as ever; the
+          // deadline only costs time on forks that are actually winding something down.
           _ <- IO.blocking {
-            jvms.foreach(_.kill("bleep: pool shutdown"))
+            val deadlineNanos = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10)
+            jvms.foreach { jvm =>
+              val remaining = deadlineNanos - System.nanoTime()
+              if (remaining > 0) {
+                try jvm.process.waitFor(remaining, java.util.concurrent.TimeUnit.NANOSECONDS): Unit
+                catch { case NonFatal(_) => }
+              }
+            }
+          }
+          // Stragglers forfeited their grace; kill() with none escalates straight to SIGKILL.
+          _ <- IO.blocking {
+            jvms.foreach(_.kill("bleep: pool shutdown", graceMillis = 0))
           }
           // Shutdown kills directly rather than going through `destroy`, so without this the JVMs that survived to the end of a run — usually most of them —
           // would have a fork_start and never a fork_end, and their lifetimes would be unknowable.
@@ -933,6 +997,22 @@ object JvmPool {
         // (SuiteDone/Error consumed) — then the protocol is at a clean boundary and the JVM
         // is safe to re-pool. On cancellation the flag stays set, so `release` kills the JVM
         // rather than handing a mid-suite protocol stream to the next acquirer.
+        body.onFinalizeCase {
+          case Resource.ExitCase.Succeeded => IO(jvm.markSuiteFinished())
+          case _                           => IO.unit
+        }
+      }
+
+      override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection): Stream[IO, TestProtocol.TestResponse] = {
+        val command = TestProtocol.TestCommand.RunSuites(classNames, parallelism, selection)
+        val body =
+          Stream.eval(IO(jvm.markSuiteStarted()) >> sendCommand(command)) >>
+            readResponses.takeThrough {
+              // One execute for the whole set; every class's own SuiteDone already went by, so the batch ends at BatchComplete (or a fork-level Error).
+              case TestProtocol.TestResponse.BatchComplete => false
+              case _: TestProtocol.TestResponse.Error      => false
+              case _                                       => true
+            }
         body.onFinalizeCase {
           case Resource.ExitCase.Succeeded => IO(jvm.markSuiteFinished())
           case _                           => IO.unit
@@ -1013,7 +1093,241 @@ object JvmPool {
         IO(jvm.isAlive)
 
       override def kill: IO[Unit] =
-        IO(jvm.kill("bleep: explicit kill (suite timeout or cancellation)"))
+        // On cancellation the fork is healthy: the socket close makes it exit on its own, running
+        // the shutdown hooks that stop a Quarkus app's containers. On a suite timeout the JVM may
+        // be wedged, in which case the grace period merely delays the SIGKILL it was always
+        // getting — after the suite already burned its idle timeout, that delay is noise.
+        IO.blocking(jvm.kill("bleep: explicit kill (suite timeout or cancellation)", graceMillis = 10000))
+
+      override def killSuite(className: String): IO[Unit] =
+        // Exclusive: the fork runs only this suite, so stopping the suite is stopping the fork.
+        kill
+    }
+
+    // ============================ Shared per-project sessions ============================
+
+    /** One project's shared fork, and how many of its suites are currently holding it. The session is created behind a Deferred so that when several suites of
+      * a project ask at once, exactly one of them spawns the fork and the rest wait on it rather than each spawning their own.
+      */
+    private case class SharedSlot(session: Deferred[IO, Either[Throwable, SharedProjectSession]], refCount: Int)
+
+    // Allocated here rather than threaded through the constructor so `SharedProjectSession` can stay an inner class with direct access to `destroy`,
+    // `ManagedJvm` and the rest of the pool. Ref.unsafe is the same shortcut the pool's per-key queues take with `unsafeRunSync`.
+    private val sharedSlots: Ref[IO, Map[String, SharedSlot]] = Ref.unsafe(Map.empty)
+
+    override def acquireShared(request: TestSessionRequest, key: String): Resource[IO, TestSession] =
+      // One permit per suite, exactly as the exclusive path takes — this run's parallelism is bounded the same whether or not suites share a fork. The shared
+      // session underneath is refcounted separately, so the fork outlives any one suite and is torn down only when the last suite releases.
+      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
+        Resource.make(acquireSharedSession(request, key))(_ => releaseSharedSession(key)).map(s => s: TestSession)
+      }
+
+    private def acquireSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] =
+      Deferred[IO, Either[Throwable, SharedProjectSession]].flatMap { fresh =>
+        sharedSlots
+          .modify { slots =>
+            slots.get(key) match {
+              case Some(slot) => (slots.updated(key, slot.copy(refCount = slot.refCount + 1)), (slot.session, false))
+              case None       => (slots.updated(key, SharedSlot(fresh, refCount = 1)), (fresh, true))
+            }
+          }
+          .flatMap { case (deferred, isCreator) =>
+            if (isCreator)
+              // Drop the slot on failure so a later suite can try again; the waiters parked on this Deferred get the same failure and fail their own acquire,
+              // so none of them will release (Resource.make only releases what it acquired).
+              buildSharedSession(request, key).attempt.flatMap { outcome =>
+                val cleanup = outcome match {
+                  case Left(_)  => sharedSlots.update(_ - key)
+                  case Right(_) => IO.unit
+                }
+                cleanup >> deferred.complete(outcome) >> IO.fromEither(outcome)
+              }
+            else
+              deferred.get.flatMap(IO.fromEither)
+          }
+      }
+
+    private def releaseSharedSession(key: String): IO[Unit] =
+      sharedSlots
+        .modify { slots =>
+          slots.get(key) match {
+            case Some(slot) if slot.refCount > 1 => (slots.updated(key, slot.copy(refCount = slot.refCount - 1)), None)
+            case Some(slot)                      => (slots - key, Some(slot.session)) // last suite out
+            case None                            => (slots, None)
+          }
+        }
+        .flatMap {
+          case Some(deferred) => deferred.get.flatMap { case Right(s) => s.teardown; case Left(_) => IO.unit }
+          case None           => IO.unit
+        }
+
+    private def buildSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] = {
+      val _ = key
+      val boundedOptions = MachineResources.withHeapBound(request.jvmOptions, request.defaultHeapMb)
+      val jvmKey = JvmKey(request.classpath, boundedOptions, request.environment, request.workingDirectory)
+      getOrCreate(request.label, jvmKey, request.classpath, boundedOptions, request.runnerClass, request.environment, request.workingDirectory)
+        .flatMap(SharedProjectSession.start)
+    }
+
+    /** A [[TestSession]] over one fork that runs several suites at once.
+      *
+      * A single reader fiber pulls the fork's response lines off the socket and routes each to the queue of the suite it names — every response carries its
+      * suite, so no protocol change is needed to tell concurrent suites apart. `runSuite` registers a queue, sends the RunSuite, and streams from that queue
+      * until the suite's terminal; different suites call it concurrently. A fork-level Error (its death) is broadcast to every in-flight suite. Cancelling one
+      * suite's stream sends CancelSuite for it, interrupting just that suite's thread in the fork and leaving its siblings running.
+      */
+    private class SharedProjectSession private (
+        jvm: ManagedJvm,
+        reader: FiberIO[Unit],
+        queues: TrieMap[String, Queue[IO, TestProtocol.TestResponse]],
+        threadDumps: Queue[IO, TestProtocol.TestResponse.ThreadDump]
+    ) extends TestSession {
+
+      override def pid: Long = jvm.process.pid()
+
+      override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection): Stream[IO, TestProtocol.TestResponse] =
+        // A shared session multiplexes many independent suites; a batched one-execution run is the other model (an exclusive fork), and mixing them on the same
+        // fork would have two owners of the response stream. The batch path never acquires a shared session, so reaching here is a routing bug.
+        Stream.raiseError[IO](new IllegalStateException("runSuites (one-execution batch) must run on an exclusive fork, not a shared per-project session"))
+
+      override def runSuite(className: String, selection: FrameworkSelection, args: List[String]): Stream[IO, TestProtocol.TestResponse] =
+        Stream
+          .eval {
+            for {
+              q <- Queue.unbounded[IO, TestProtocol.TestResponse]
+              // Register the queue BEFORE the command, so a response cannot arrive before there is somewhere to route it.
+              _ <- IO(queues.put(className, q))
+              _ <- sendCommand(TestProtocol.TestCommand.RunSuite(className, selection, args))
+            } yield q
+          }
+          .flatMap { q =>
+            Stream
+              .fromQueueUnterminated(q)
+              .takeThrough {
+                case _: TestProtocol.TestResponse.SuiteDone => false
+                case _: TestProtocol.TestResponse.Error     => false
+                case _                                      => true
+              }
+              .onFinalizeCase {
+                // Clean exit: the terminal was consumed, just unregister. Cancelled/errored mid-suite: tell the fork to interrupt THIS suite (its siblings
+                // keep running), then unregister. Unlike an exclusive fork, we never kill the process here — it belongs to the whole project.
+                case Resource.ExitCase.Succeeded => IO(queues.remove(className)).void
+                case _                           => sendCommand(TestProtocol.TestCommand.CancelSuite(className)).attempt >> IO(queues.remove(className)).void
+              }
+          }
+
+      private def sendCommand(cmd: TestProtocol.TestCommand): IO[Unit] =
+        // Concurrent suites share this one writer; synchronize so two commands cannot interleave mid-line on the socket.
+        IO.blocking {
+          jvm.stdin.synchronized {
+            jvm.stdin.println(TestProtocol.encodeCommand(cmd))
+            jvm.stdin.flush()
+          }
+        }
+
+      override def getThreadDump: IO[Option[TestProtocol.TestResponse.ThreadDump]] =
+        (sendCommand(TestProtocol.TestCommand.GetThreadDump) >> threadDumps.take.map(Some(_))).timeout(5.seconds).handleError(_ => None)
+
+      override def dumpThreads: IO[List[String]] =
+        IO.blocking(jvm.dumpThreads())
+
+      override def drainStderr: IO[List[String]] =
+        IO.blocking {
+          val output = jvm.readStderr()
+          if (output.isEmpty) Nil else output.split('\n').toList
+        }
+
+      override def isAlive: IO[Boolean] =
+        IO(jvm.isAlive)
+
+      override def kill: IO[Unit] =
+        // Kills the whole fork — every suite on it. Used only when the session as a whole is being killed (a shared fork does not idle-timeout on one suite;
+        // that cancels the suite via CancelSuite instead, below).
+        IO.blocking(jvm.kill("bleep: explicit kill of shared project fork", graceMillis = 10000))
+
+      override def killSuite(className: String): IO[Unit] =
+        // The point of a shared fork: stop one suite without touching its siblings. CancelSuite interrupts just that suite's thread in the fork; the process
+        // and the other suites on it keep running. If the interrupt does not take (a genuinely wedged thread) the suite stays stuck, but the fork is still
+        // reclaimed when the project's last suite releases the session.
+        sendCommand(TestProtocol.TestCommand.CancelSuite(className)).attempt.void
+
+      /** Destroy the fork and reap the reader. Called once, when the last suite releases the session.
+        *
+        * Destroy FIRST, cancel second, and the order is load-bearing: the reader is blocked in a socket `readLine`, and a blocking socket read does not respond
+        * to `Thread.interrupt` — which is all `IO.interruptible`'s cancellation has. So cancelling first would hang forever on a still-open socket. Destroying
+        * closes the socket, the `readLine` returns end-of-stream, the reader loop ends on its own, and the `cancel` that follows just reaps an already-finished
+        * fiber.
+        */
+      def teardown: IO[Unit] =
+        destroy(jvm, "bleep: last suite of the project's shared fork released it") >> reader.cancel
+    }
+
+    private object SharedProjectSession {
+      def start(jvm: ManagedJvm): IO[SharedProjectSession] =
+        for {
+          queues <- IO(new TrieMap[String, Queue[IO, TestProtocol.TestResponse]]())
+          threadDumps <- Queue.unbounded[IO, TestProtocol.TestResponse.ThreadDump]
+          fiber <- readerLoop(jvm, queues, threadDumps).start
+        } yield new SharedProjectSession(jvm, fiber, queues, threadDumps)
+
+      /** Read the fork's response lines forever, routing each to the suite it names. Ends when the socket does (fork death), which it reports to every
+        * in-flight suite so none hangs waiting for a terminal that will never come.
+        */
+      private def readerLoop(
+          jvm: ManagedJvm,
+          queues: TrieMap[String, Queue[IO, TestProtocol.TestResponse]],
+          threadDumps: Queue[IO, TestProtocol.TestResponse.ThreadDump]
+      ): IO[Unit] = {
+        def broadcast(err: TestProtocol.TestResponse.Error): IO[Unit] =
+          IO(queues.values.toList).flatMap(_.traverse_(_.offer(err)))
+
+        def route(resp: TestProtocol.TestResponse): IO[Unit] =
+          resp match {
+            case TestProtocol.TestResponse.Ready          => IO.unit // consumed at spawn; never seen mid-session
+            case td: TestProtocol.TestResponse.ThreadDump => threadDumps.offer(td)
+            case e: TestProtocol.TestResponse.Error       => broadcast(e) // fork-level, names no suite: every suite on this JVM is affected
+            case other                                    =>
+              suiteOf(other) match {
+                case Some(suite) => queues.get(suite).fold(IO.unit)(_.offer(other)) // no subscriber => drop (a late or unattributed line)
+                case None        => IO.unit // a null-suite Log: unattributable console noise, dropped
+              }
+          }
+
+        // A read returning null (clean EOF) and a read THROWING (the socket closed under it — exactly what `teardown` does to unblock this reader) mean the same
+        // thing: no more lines. Fold them together with `.attempt` so a socket-closed exception is an ordinary end of stream, not an escaped failure that leaves
+        // in-flight suites hanging.
+        def endOfStream: IO[Unit] =
+          IO(jvm.markDead()) >> IO
+            .blocking {
+              val pid = jvm.process.pid()
+              val exit = JvmPool.describeExit(jvm.process, jvm.killedByUs)
+              TestProtocol.TestResponse.Error(s"Shared test JVM (pid=$pid) died unexpectedly (${exit.summary})", exit.detail)
+            }
+            .flatMap(broadcast)
+
+        def loop: IO[Unit] =
+          IO.interruptible(jvm.stdout.readLine()).attempt.flatMap {
+            case Left(_) | Right(null) => endOfStream
+            case Right(line)           =>
+              TestProtocol.decodeResponse(line) match {
+                case Right(resp) => route(resp) >> loop
+                case Left(err)   =>
+                  // A garbled line means the one shared stream is corrupt; there is no per-suite recovery, so fail every in-flight suite and stop.
+                  IO(jvm.markProtocolDirty()) >> broadcast(TestProtocol.TestResponse.Error(s"Protocol error: ${err.getMessage}", Some(s"Line: $line")))
+              }
+          }
+
+        loop
+      }
+
+      private def suiteOf(resp: TestProtocol.TestResponse): Option[String] =
+        resp match {
+          case ts: TestProtocol.TestResponse.TestStarted  => Some(ts.suite)
+          case tf: TestProtocol.TestResponse.TestFinished => Some(tf.suite)
+          case sd: TestProtocol.TestResponse.SuiteDone    => Some(sd.suite)
+          case l: TestProtocol.TestResponse.Log           => l.suite
+          case _                                          => None
+        }
     }
   }
 }

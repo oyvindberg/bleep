@@ -86,6 +86,8 @@ object generateBuild {
           isTestProject = None,
           testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
           testTags = model.JsonMap.empty,
+          testSuiteParallelism = None,
+          testJvm = None,
           sourcegen = model.JsonSet.empty[model.ScriptDef],
           libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
           ignoreEvictionErrors = None,

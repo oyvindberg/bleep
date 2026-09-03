@@ -35,6 +35,16 @@ case class Project(
       * runner discovers. CLI surface: `bleep test --only-tag slow --exclude-tag flaky`.
       */
     testTags: JsonMap[String, JsonSet[String]],
+    /** How many of this project's test suites may run in parallel forks. Unset = unbounded. `1` gives maven's one-JVM-per-module semantics: suites run
+      * sequentially (alphabetically) through one warm fork, so JVM-wide state — a booted Quarkus application, its dev-service containers, schema created by an
+      * earlier suite — carries across suites the way it does under surefire.
+      */
+    testSuiteParallelism: Option[Int],
+    /** Where this project's test suites run relative to the JVM hosting them: a fork per suite (the default) or one fork for the whole project. Unset =
+      * per-suite. See [[TestJvmMode]]. `testSuiteParallelism` bounds concurrency in both modes — across forks for per-suite, within the single fork for
+      * per-project.
+      */
+    testJvm: Option[TestJvmMode],
     sourcegen: JsonSet[ScriptDef],
     libraryVersionSchemes: JsonSet[LibraryVersionScheme],
     ignoreEvictionErrors: Option[IgnoreEvictionErrors],
@@ -60,6 +70,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
       testTags = testTags.intersect(other.testTags),
+      testSuiteParallelism = if (testSuiteParallelism == other.testSuiteParallelism) testSuiteParallelism else None,
+      testJvm = if (testJvm == other.testJvm) testJvm else None,
       sourcegen = sourcegen.intersect(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None,
@@ -89,6 +101,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
       testFrameworks = testFrameworks.removeAll(other.testFrameworks),
       testTags = testTags.removeAll(other.testTags),
+      testSuiteParallelism = if (testSuiteParallelism == other.testSuiteParallelism) None else testSuiteParallelism,
+      testJvm = if (testJvm == other.testJvm) None else testJvm,
       sourcegen = sourcegen.removeAll(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors,
@@ -116,6 +130,8 @@ case class Project(
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
       testTags = testTags.union(other.testTags),
+      testSuiteParallelism = testSuiteParallelism.orElse(other.testSuiteParallelism),
+      testJvm = testJvm.orElse(other.testJvm),
       sourcegen = sourcegen.union(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
@@ -142,6 +158,8 @@ case class Project(
           isTestProject,
           testFrameworks,
           testTags,
+          testSuiteParallelism,
+          testJvm,
           sourceGeneratorsScripts,
           libraryVersionSchemes,
           ignoreEvictionErrors,
@@ -165,6 +183,8 @@ case class Project(
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
       testTags.isEmpty &&
+      testSuiteParallelism.isEmpty &&
+      testJvm.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
       libraryVersionSchemes.isEmpty &&
       ignoreEvictionErrors.isEmpty &&
@@ -192,6 +212,8 @@ object Project {
     isTestProject = None,
     testFrameworks = JsonSet.empty,
     testTags = JsonMap.empty,
+    testSuiteParallelism = None,
+    testJvm = None,
     sourcegen = JsonSet.empty,
     libraryVersionSchemes = JsonSet.empty,
     ignoreEvictionErrors = None,

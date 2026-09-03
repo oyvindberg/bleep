@@ -637,6 +637,11 @@
         "platform": {
           "$ref": "#/$defs/Platform"
         },
+        "testSuiteParallelism": {
+          "description": "How many of this project's test suites may run in parallel forks. Unset = unbounded. 1 gives maven's one-JVM-per-module semantics: suites run sequentially (alphabetically) through one warm fork, so JVM-wide state (a booted Quarkus application, dev-service containers, schema created by an earlier suite) carries across suites.",
+          "type": "integer",
+          "minimum": 1
+        },
         "isTestProject": {
           "type": "boolean"
         },

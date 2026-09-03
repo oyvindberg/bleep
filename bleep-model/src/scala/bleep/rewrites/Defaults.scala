@@ -62,7 +62,21 @@ object Defaults {
     def project(proj: model.Project): model.Project =
       proj.copy(
         scala = proj.scala.map(x => x.copy(setup = Some(x.setup.fold(DefaultCompileSetup)(_.union(DefaultCompileSetup))))),
-        platform = proj.platform.map(x => if (x.name.contains(model.PlatformId.Jvm)) x.union(Defaults.Jvm) else x),
+        platform = proj.platform.map { x =>
+          if (x.name.contains(model.PlatformId.Jvm)) {
+            // The default `-Duser.dir=${BUILD_DIR}` preserves sbt's working-directory semantics
+            // (tests run from the build root there). It is a DEFAULT: a build that states its own
+            // `-Duser.dir` — the maven importer emits `${PROJECT_DIR}`, matching surefire's
+            // `${basedir}` — must not end up with two competing flags, since Options.union keeps
+            // both and the JVM then obeys whichever happens to render last.
+            val declaresUserDir = x.jvmOptions.values.exists {
+              case model.Options.Opt.Flag(name) => name.startsWith("-Duser.dir=")
+              case _                            => false
+            }
+            val defaults = if (declaresUserDir) Defaults.Jvm.copy(jvmOptions = model.Options.empty) else Defaults.Jvm
+            x.union(defaults)
+          } else x
+        },
         `source-layout` = proj.`source-layout`.orElse {
           Some(defaultSourceLayout(proj))
         }

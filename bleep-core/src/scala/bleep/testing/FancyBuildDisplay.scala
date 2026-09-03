@@ -23,6 +23,19 @@ import scala.jdk.CollectionConverters._
 /** Terminal UI for build execution - functional and readable */
 object FancyBuildDisplay {
 
+  /** How many test suites are running right now, for the "Tests (N running)" heading.
+    *
+    * Two sources, because the two test paths report at different granularities. A JVM project tracks every suite individually, so each of its running suites is
+    * already in `runningSuites` and the project itself must not be counted again. A JS or Native project reports only that it is testing — no suite events at
+    * all — so it contributes nothing to `runningSuites` and is counted once, as the one suite-ish thing known to be in flight.
+    *
+    * Counting every `Testing` item, as this did, added the project on top of its own suites: a run over nine JVM projects with nineteen suites in flight
+    * announced twenty-eight, and the number grew with the number of projects rather than with the work. It read as the runner over-subscribing the machine —
+    * which the governor will not do, since it admits one CPU permit per suite and holds it for the suite's whole life.
+    */
+  private[testing] def runningTestCount(runningSuites: Int, displayItems: List[ProjectDisplayItem]): Int =
+    runningSuites + displayItems.count(_.isInstanceOf[ProjectDisplayItem.Testing.Bsp])
+
   private val spinnerFrames = Array("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
   // Icons must be width-1 per Wcwidth to avoid rendering artifacts.
@@ -722,8 +735,10 @@ object FancyBuildDisplay {
 
     // Line 3: compile summary + parallelism + exit hint
     val wallTimeMs = state.elapsedMs
+    // A running suite's elapsed time IS the fork it occupies; the individual tests inside it are
+    // not separate fork-holders, so they must not be added on top (that double-counted, and the
+    // reducer likewise counts finished work per-suite, not per-test — see suiteOccupancyMs).
     val runningTaskTimeMs = state.compilingProjects.values.map(_.elapsedMs).sum +
-      state.runningTests.values.map(_.elapsedMs).sum +
       state.runningSuites.values.map(_.elapsedMs).sum
     val totalTaskTimeMs = state.core.totalTaskTimeMs + runningTaskTimeMs
     val parallelism =
@@ -1183,7 +1198,7 @@ object FancyBuildDisplay {
       }
     }
 
-    val runningCount = state.runningSuites.size + displayItems.count(_.isInstanceOf[ProjectDisplayItem.Testing])
+    val runningCount = FancyBuildDisplay.runningTestCount(state.runningSuites.size, displayItems)
     val title = if (runningCount > 0) s"Tests ($runningCount running)" else "Tests"
     PaneData(items.toArray, title, Palette.info, Palette.border)
   }

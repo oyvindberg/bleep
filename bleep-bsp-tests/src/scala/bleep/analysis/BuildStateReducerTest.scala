@@ -21,6 +21,43 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     events.foldLeft(BuildState.empty)(BuildStateReducer.reduce)
 
   // ==========================================================================
+  // Task-time / parallelism accounting
+  // ==========================================================================
+
+  test("totalTaskTimeMs counts a suite's whole fork occupancy, not the sum of its test durations") {
+    // A @QuarkusTest spends most of its wall time booting the app + DevServices before any test
+    // method runs. The suite occupied its fork for 27s (SuiteStarted..SuiteFinished); the two
+    // test methods report 5ms each. Task time must be the 27s, or parallelism reads ~1x under fan-out.
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.QuarkusIT"), ts),
+      BuildEvent.TestFinished(cpn("proj"), sn("com.example.QuarkusIT"), tn("a"), TestStatus.Passed, 5, None, None, ts + 26000, None),
+      BuildEvent.TestFinished(cpn("proj"), sn("com.example.QuarkusIT"), tn("b"), TestStatus.Passed, 5, None, None, ts + 26500, None),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.QuarkusIT"), SuiteOutcome.Executed(2, 0, 0, 0), 27000, ts + 27000)
+    )
+    state.totalTaskTimeMs shouldBe 27000L
+  }
+
+  test("totalTaskTimeMs sums two overlapping suites so parallelism exceeds wall time") {
+    // Two suites, each occupying a fork for 10s, started together: 20s of task time in 10s of wall.
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("a"), sn("A"), ts),
+      BuildEvent.SuiteStarted(cpn("b"), sn("B"), ts),
+      BuildEvent.SuiteFinished(cpn("a"), sn("A"), SuiteOutcome.Executed(1, 0, 0, 0), 10000, ts + 10000),
+      BuildEvent.SuiteFinished(cpn("b"), sn("B"), SuiteOutcome.Executed(1, 0, 0, 0), 10000, ts + 10000)
+    )
+    state.totalTaskTimeMs shouldBe 20000L
+  }
+
+  test("a suite whose end is reported by both SuiteFinished and SuiteError is counted once") {
+    val state = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("S"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("S"), SuiteOutcome.Executed(0, 1, 0, 0), 8000, ts + 8000),
+      BuildEvent.SuiteError(cpn("proj"), sn("S"), "exited 1", bleep.bsp.protocol.ProcessExit.ExitCode(1), 8000, ts + 8001)
+    )
+    state.totalTaskTimeMs shouldBe 8000L
+  }
+
+  // ==========================================================================
   // SuiteFinished synthetic failure tests
   // ==========================================================================
 

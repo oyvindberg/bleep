@@ -28,6 +28,28 @@ object TestProtocol {
         args: List[String]
     ) extends TestCommand
 
+    /** Run a whole project's JUnit-Platform suites in ONE launcher execution, at a bleep-chosen degree of parallelism.
+      *
+      * This is the maven-surefire shape for JUnit: all of a module's classes go through one `launcher.execute()`, so anything scoped to that one execution — a
+      * `@QuarkusTest` application, a shared `LauncherSessionListener` registration — is set up once and reused across every class, instead of rebuilt per
+      * class. `parallelism` is bleep's decision, not junit's: 1 serialises (what `@QuarkusTest` needs, its app being a JVM singleton), N runs N classes at
+      * once. junit's engine is the executor of that number, nothing more. Only the JUnit-Platform runner honours this; sbt test-interface frameworks are driven
+      * suite-by-suite on bleep's own threads, where there is no cross-suite execution scope to preserve.
+      */
+    case class RunSuites(
+        classNames: List[String],
+        parallelism: Int,
+        selection: FrameworkSelection
+    ) extends TestCommand
+
+    /** Cancel one in-flight suite by class name without touching the fork or its siblings.
+      *
+      * Only meaningful when the fork is running several suites at once (a per-project shared session): it interrupts just that suite's thread, so the other
+      * suites sharing the JVM keep running. An exclusive fork cancels by having its socket closed instead — there is only the one suite, and the whole process
+      * goes. See [[bleep.model.TestJvmMode]].
+      */
+    case class CancelSuite(className: String) extends TestCommand
+
     /** Gracefully shut down the forked JVM */
     case object Shutdown extends TestCommand
 
@@ -77,15 +99,46 @@ object TestProtocol {
       } yield RunSuite(className, selection, args)
     }
 
+    // Only JUnit-Platform suites are ever batched into one execution (that is the runner with a cross-class scope worth preserving), so the wire form carries
+    // the one runner + display name shared by all the classes, plus the class list and bleep's parallelism.
+    implicit val runSuitesEncoder: Encoder[RunSuites] = Encoder.instance { rs =>
+      val runner = rs.selection match {
+        case FrameworkSelection.JUnitPlatform(_) => RunnerWire.JUnitPlatform
+        case other                               => sys.error(s"RunSuites is only for JUnit-Platform; got $other for ${rs.classNames.mkString(", ")}")
+      }
+      Json.obj(
+        "classNames" -> rs.classNames.asJson,
+        "parallelism" -> rs.parallelism.asJson,
+        "framework" -> rs.selection.displayName.asJson,
+        "runner" -> runner.asJson
+      )
+    }
+
+    implicit val runSuitesDecoder: Decoder[RunSuites] = Decoder.instance { cursor =>
+      for {
+        classNames <- cursor.downField("classNames").as[List[String]]
+        parallelism <- cursor.downField("parallelism").as[Int]
+        displayName <- cursor.downField("framework").as[String]
+        runner <- cursor.downField("runner").as[String]
+        selection <-
+          if (runner == RunnerWire.JUnitPlatform) Right(FrameworkSelection.JUnitPlatform(displayName))
+          else Left(DecodingFailure(s"RunSuites is only for JUnit-Platform, got runner $runner", cursor.history))
+      } yield RunSuites(classNames, parallelism, selection)
+    }
+
     implicit val encoder: Encoder[TestCommand] = Encoder.instance {
-      case rs: RunSuite  => Json.obj("type" -> "RunSuite".asJson, "data" -> rs.asJson)
-      case Shutdown      => Json.obj("type" -> "Shutdown".asJson)
-      case GetThreadDump => Json.obj("type" -> "GetThreadDump".asJson)
+      case rs: RunSuite    => Json.obj("type" -> "RunSuite".asJson, "data" -> rs.asJson)
+      case rs: RunSuites   => Json.obj("type" -> "RunSuites".asJson, "data" -> rs.asJson)
+      case cs: CancelSuite => Json.obj("type" -> "CancelSuite".asJson, "className" -> cs.className.asJson)
+      case Shutdown        => Json.obj("type" -> "Shutdown".asJson)
+      case GetThreadDump   => Json.obj("type" -> "GetThreadDump".asJson)
     }
 
     implicit val decoder: Decoder[TestCommand] = Decoder.instance { cursor =>
       cursor.downField("type").as[String].flatMap {
         case "RunSuite"      => cursor.downField("data").as[RunSuite]
+        case "RunSuites"     => cursor.downField("data").as[RunSuites]
+        case "CancelSuite"   => cursor.downField("className").as[String].map(CancelSuite(_))
         case "Shutdown"      => Right(Shutdown)
         case "GetThreadDump" => Right(GetThreadDump)
         case other           => Left(DecodingFailure(s"Unknown command type: $other", cursor.history))
@@ -143,6 +196,11 @@ object TestProtocol {
         message: String,
         throwable: Option[String]
     ) extends TestResponse
+
+    /** The single batched execution (a `RunSuites`) has returned. Every class's own terminal (`SuiteDone`/error) has already been sent and demultiplexed to its
+      * suite; this just tells the parent the one execute is over, so it can stop reading without counting terminals against a class list.
+      */
+    case object BatchComplete extends TestResponse
 
     /** Thread dump from the forked JVM */
     case class ThreadDump(
@@ -226,18 +284,20 @@ object TestProtocol {
       case l: Log           => Json.obj("type" -> "Log".asJson, "data" -> l.asJson)
       case e: Error         => Json.obj("type" -> "Error".asJson, "data" -> e.asJson)
       case td: ThreadDump   => Json.obj("type" -> "ThreadDump".asJson, "data" -> td.asJson)
+      case BatchComplete    => Json.obj("type" -> "BatchComplete".asJson)
     }
 
     implicit val decoder: Decoder[TestResponse] = Decoder.instance { cursor =>
       cursor.downField("type").as[String].flatMap {
-        case "Ready"        => Right(Ready)
-        case "TestStarted"  => cursor.downField("data").as[TestStarted]
-        case "TestFinished" => cursor.downField("data").as[TestFinished]
-        case "SuiteDone"    => cursor.downField("data").as[SuiteDone]
-        case "Log"          => cursor.downField("data").as[Log]
-        case "Error"        => cursor.downField("data").as[Error]
-        case "ThreadDump"   => cursor.downField("data").as[ThreadDump]
-        case other          => Left(DecodingFailure(s"Unknown response type: $other", cursor.history))
+        case "Ready"         => Right(Ready)
+        case "TestStarted"   => cursor.downField("data").as[TestStarted]
+        case "TestFinished"  => cursor.downField("data").as[TestFinished]
+        case "SuiteDone"     => cursor.downField("data").as[SuiteDone]
+        case "Log"           => cursor.downField("data").as[Log]
+        case "Error"         => cursor.downField("data").as[Error]
+        case "ThreadDump"    => cursor.downField("data").as[ThreadDump]
+        case "BatchComplete" => Right(BatchComplete)
+        case other           => Left(DecodingFailure(s"Unknown response type: $other", cursor.history))
       }
     }
   }

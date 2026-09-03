@@ -16,6 +16,8 @@ public final class TestProtocol {
   // === Commands (parent -> forked JVM) ===
 
   public static final String CMD_RUN_SUITE = "RunSuite";
+  public static final String CMD_RUN_SUITES = "RunSuites";
+  public static final String CMD_CANCEL_SUITE = "CancelSuite";
   public static final String CMD_SHUTDOWN = "Shutdown";
   public static final String CMD_GET_THREAD_DUMP = "GetThreadDump";
 
@@ -273,6 +275,36 @@ public final class TestProtocol {
         return new ParsedCommand.Shutdown();
       } else if (CMD_GET_THREAD_DUMP.equals(type)) {
         return new ParsedCommand.GetThreadDump();
+      } else if (CMD_CANCEL_SUITE.equals(type)) {
+        String className = extractStringField(line, "className");
+        if (className == null) {
+          return new ParsedCommand.Invalid("Missing className for CancelSuite");
+        }
+        return new ParsedCommand.CancelSuite(className);
+      } else if (CMD_RUN_SUITES.equals(type)) {
+        int dataStart = line.indexOf("\"data\"");
+        if (dataStart < 0) {
+          return new ParsedCommand.Invalid("Missing data field for RunSuites");
+        }
+        String dataSection = line.substring(dataStart);
+        List<String> classNames = extractStringArray(dataSection, "classNames");
+        String framework = extractStringField(dataSection, "framework");
+        String runner = extractStringField(dataSection, "runner");
+        Integer parallelism = extractIntField(dataSection, "parallelism");
+        if (classNames == null
+            || classNames.isEmpty()
+            || framework == null
+            || runner == null
+            || parallelism == null) {
+          return new ParsedCommand.Invalid(
+              "Missing classNames, framework, runner or parallelism for RunSuites");
+        }
+        RunnerKind kind = RunnerKind.fromWire(runner);
+        if (kind != RunnerKind.JUNIT_PLATFORM) {
+          return new ParsedCommand.Invalid(
+              "RunSuites is only for JUnit-Platform, got runner " + runner);
+        }
+        return new ParsedCommand.RunSuites(classNames, parallelism, framework, kind);
       } else if (CMD_RUN_SUITE.equals(type)) {
         // Extract data object fields
         int dataStart = line.indexOf("\"data\"");
@@ -357,6 +389,25 @@ public final class TestProtocol {
     }
     sb.append('"');
     return sb.toString();
+  }
+
+  /** Extract an integer field value from JSON (simple parsing). Null if absent or unparseable. */
+  private static Integer extractIntField(String json, String fieldName) {
+    String pattern = "\"" + fieldName + "\"";
+    int idx = json.indexOf(pattern);
+    if (idx < 0) return null;
+    int colon = json.indexOf(':', idx + pattern.length());
+    if (colon < 0) return null;
+    int i = colon + 1;
+    while (i < json.length() && Character.isWhitespace(json.charAt(i))) i++;
+    int start = i;
+    while (i < json.length() && (json.charAt(i) == '-' || Character.isDigit(json.charAt(i)))) i++;
+    if (i == start) return null;
+    try {
+      return Integer.parseInt(json.substring(start, i));
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   /** Extract a string field value from JSON (simple parsing). */
@@ -515,6 +566,11 @@ public final class TestProtocol {
     return "{\"type\":\"Shutdown\"}";
   }
 
+  /** The single batched execution has returned; every class's own terminal was already sent. */
+  public static String encodeBatchComplete() {
+    return "{\"type\":\"BatchComplete\"}";
+  }
+
   // === Parsed command types ===
 
   public abstract static class ParsedCommand {
@@ -545,6 +601,34 @@ public final class TestProtocol {
         this.runner = runner;
         this.frameworkClass = frameworkClass;
         this.args = args;
+      }
+    }
+
+    /**
+     * Run a whole set of JUnit-Platform classes in one launcher execution, at the given
+     * parallelism.
+     */
+    public static final class RunSuites extends ParsedCommand {
+      public final List<String> classNames;
+      public final int parallelism;
+      public final String framework;
+      public final RunnerKind runner;
+
+      public RunSuites(
+          List<String> classNames, int parallelism, String framework, RunnerKind runner) {
+        this.classNames = classNames;
+        this.parallelism = parallelism;
+        this.framework = framework;
+        this.runner = runner;
+      }
+    }
+
+    /** Interrupt one in-flight suite by name; the fork and its other suites keep running. */
+    public static final class CancelSuite extends ParsedCommand {
+      public final String className;
+
+      public CancelSuite(String className) {
+        this.className = className;
       }
     }
 

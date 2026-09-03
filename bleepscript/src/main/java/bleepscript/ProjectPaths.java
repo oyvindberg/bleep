@@ -22,4 +22,13 @@ public record ProjectPaths(
     sourceDirs = List.copyOf(sourceDirs);
     resourceDirs = List.copyOf(resourceDirs);
   }
+
+  /**
+   * Extra JVM options a test fork of this project needs, one per line. A sourcegen may write this
+   * file to declare options its generated output requires at runtime; bleep appends them when it
+   * assembles the fork. Kept identical to {@code bleep.ProjectPaths.forkJvmOptions}.
+   */
+  public Path forkJvmOptions() {
+    return targetDir.resolve("bleep-fork-jvm-options");
+  }
 }

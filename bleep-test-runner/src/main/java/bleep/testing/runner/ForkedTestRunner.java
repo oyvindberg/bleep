@@ -6,11 +6,11 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import sbt.testing.*;
 
 /**
@@ -33,11 +33,20 @@ public class ForkedTestRunner {
   // Flag to indicate we're shutting down
   private static final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
-  // Currently running test task thread for cancellation
-  private static final AtomicReference<Thread> currentTask = new AtomicReference<>(null);
+  // Suites currently running, keyed by class name, so a CancelSuite can interrupt exactly one
+  // without touching the fork or its siblings. A project's class names are unique, so the name is a
+  // sufficient key. When the fork runs one suite at a time (an exclusive per-suite session) this
+  // map
+  // simply never holds more than one entry.
+  private static final Map<String, Thread> runningSuites = new ConcurrentHashMap<>();
 
-  // Currently running suite name (for output tagging)
-  private static volatile String currentSuite = null;
+  // The suite the CURRENT thread is running, for tagging that thread's captured output.
+  // Thread-local,
+  // not global: with several suites in flight at once, each runs on its own thread, and a line
+  // written on a suite's thread belongs to that suite. Output from framework/async threads that
+  // never
+  // set this (a Vert.x event loop, a Netty worker) has no owning suite and is tagged null.
+  private static final ThreadLocal<String> currentSuite = new ThreadLocal<>();
 
   public static void main(String[] args) {
     // Save original streams for protocol communication
@@ -101,6 +110,13 @@ public class ForkedTestRunner {
       // Install security manager to catch System.exit (if supported)
       installSecurityManager();
 
+      // One LauncherSession for this whole fork: a LauncherSessionListener (the SmallRye/Mutiny
+      // registrar, Quarkus's interceptor) fires once here, not once per suite — which is what a
+      // test
+      // harness written for maven's one-fork-per-module assumes, and what keeps concurrent suites
+      // from racing on a "register this global once" listener.
+      JUnitPlatformRunner.enableSharedSession();
+
       // Signal ready
       send(TestProtocol.encodeReady());
 
@@ -108,35 +124,38 @@ public class ForkedTestRunner {
           new BufferedReader(
               new InputStreamReader(protocolSocket.getInputStream(), StandardCharsets.UTF_8));
 
-      // Main command loop
+      // Main command loop.
+      //
+      // A RunSuite starts a thread and the loop goes straight back to reading, so several suites
+      // can
+      // be in flight at once (a per-project shared session dispatches them concurrently). The loop
+      // is
+      // never blocked on a running suite, which is what lets a CancelSuite for one suite — or a
+      // Shutdown — be acted on while others keep running. An exclusive per-suite session sends one
+      // RunSuite at a time and never overlaps them; the same code serves it with a map of size one.
       boolean running = true;
       while (running && !shuttingDown.get()) {
         try {
           String line = in.readLine();
           if (line == null) {
-            // EOF - parent process closed stdin, shut down
+            // EOF - parent closed the protocol socket, shut down
             running = false;
           } else {
             TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
             if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
               running = false;
             } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
-              TestProtocol.ParsedCommand.RunSuite runSuite =
-                  (TestProtocol.ParsedCommand.RunSuite) cmd;
-              // Run in current thread so we can interrupt it
-              currentTask.set(Thread.currentThread());
-              try {
-                runSuite(
-                    runSuite.className,
-                    runSuite.framework,
-                    runSuite.runner,
-                    runSuite.frameworkClass,
-                    runSuite.args,
-                    capturedOut,
-                    capturedErr);
-              } finally {
-                currentTask.set(null);
-              }
+              startSuiteThread((TestProtocol.ParsedCommand.RunSuite) cmd, capturedOut, capturedErr);
+            } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuites) {
+              startSuitesThread(
+                  (TestProtocol.ParsedCommand.RunSuites) cmd, capturedOut, capturedErr);
+            } else if (cmd instanceof TestProtocol.ParsedCommand.CancelSuite) {
+              String toCancel = ((TestProtocol.ParsedCommand.CancelSuite) cmd).className;
+              Thread t = runningSuites.get(toCancel);
+              // Interrupt only that suite's thread. A suite already finished (t == null) is a no-op
+              // —
+              // the cancel raced its completion, which is harmless.
+              if (t != null) t.interrupt();
             } else if (cmd instanceof TestProtocol.ParsedCommand.GetThreadDump) {
               send(generateThreadDump());
             } else if (cmd instanceof TestProtocol.ParsedCommand.Invalid) {
@@ -145,21 +164,37 @@ public class ForkedTestRunner {
             }
           }
         } catch (Exception e) {
-          if (e instanceof InterruptedException) {
-            // We were interrupted (cancellation) - continue loop to get next command
-            Thread.interrupted(); // Clear interrupt flag
-            continue;
-          }
           send(
               TestProtocol.encodeError(
-                  "Error in command loop: " + e.getMessage(), stackTraceToString(e)));
+                  "Error in command loop: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
+        }
+      }
+
+      // Leaving the loop (Shutdown or EOF): interrupt whatever is still running so a wedged or
+      // cancelled suite lets go, and give the threads a moment to emit their terminal responses
+      // before the JVM's shutdown hooks (which stop a Quarkus app and its containers) run.
+      shuttingDown.set(true);
+      for (Thread t : runningSuites.values()) t.interrupt();
+      long deadline = System.currentTimeMillis() + 5000;
+      for (Thread t : runningSuites.values()) {
+        long remaining = deadline - System.currentTimeMillis();
+        if (remaining > 0) {
+          try {
+            t.join(remaining);
+          } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+          }
         }
       }
     } catch (Exception e) {
       send(
           TestProtocol.encodeError(
-              "Fatal error in test runner: " + e.getMessage(), stackTraceToString(e)));
+              "Fatal error in test runner: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
     } finally {
+      // Close the shared LauncherSession, running its listeners' launcherSessionClosed — for a
+      // Quarkus
+      // fork that is where the application and its dev-service containers are asked to stop.
+      JUnitPlatformRunner.closeSharedSession();
       // Restore original streams
       System.setOut(originalOut);
       System.setErr(originalErr);
@@ -178,7 +213,10 @@ public class ForkedTestRunner {
    */
   static final String PROTOCOL_PORT_PROPERTY = "bleep.test.protocolPort";
 
-  private static void send(String message) {
+  // Synchronized: several suite threads share this one socket, and a response must reach the parent
+  // as one whole line. Without the lock two println/flush pairs could interleave mid-line and the
+  // parent would fail to decode the spliced JSON.
+  private static synchronized void send(String message) {
     protocolOut.println(message);
     protocolOut.flush();
   }
@@ -222,453 +260,81 @@ public class ForkedTestRunner {
     }
   }
 
-  private static void runSuite(
-      String className,
-      String frameworkName,
-      TestProtocol.RunnerKind runnerKind,
-      String frameworkClass,
-      List<String> args,
+  /**
+   * Start a suite on its own thread and return at once, so the command loop can keep serving.
+   *
+   * <p>Each suite gets a fresh {@link SuiteRunner} (which holds no static state, precisely so N of
+   * them can share this JVM). The thread registers itself under the suite's class name for the
+   * lifetime of the run so a CancelSuite can find and interrupt it, and tags its own captured
+   * output via the thread-local {@link #currentSuite}. What stays a fork's concern is what only a
+   * fork has: the socket the lines go out on and the streams the tests write to.
+   */
+  private static void startSuiteThread(
+      TestProtocol.ParsedCommand.RunSuite runSuite,
       OutputStream capturedOut,
       OutputStream capturedErr) {
-
-    // Set current suite for output tagging
-    currentSuite = className;
-
-    send(
-        TestProtocol.encodeLog(
-            // bleep talking to itself about which suite it was handed. Not the user's test output.
-            "debug",
-            "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
-
-    // The server decided this, with the project's classpath in front of it. Nothing here re-derives
-    // it from frameworkName, which is a display label.
-    if (runnerKind == TestProtocol.RunnerKind.JUNIT_PLATFORM) {
-      JUnitPlatformRunner junitRunner = new JUnitPlatformRunner(protocolOut);
-      junitRunner.runSuite(className, capturedOut, capturedErr);
-      return;
-    }
-
-    long startTime = System.currentTimeMillis();
-
-    // Counters declared outside try so they're accessible in catch for SuiteDone reporting
-    final int[] passed = {0};
-    final int[] failed = {0};
-    final int[] skipped = {0};
-    final int[] ignored = {0};
-
-    try {
-      // Flush any pending output before starting
-      capturedOut.flush();
-      capturedErr.flush();
-
-      // Load the framework
-      send(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkClass));
-      Framework framework = loadFramework(frameworkClass);
-      send(TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
-
-      // Get the runner
-      Runner runner =
-          framework.runner(
-              args.toArray(new String[0]), new String[0], ForkedTestRunner.class.getClassLoader());
-
-      // Try each fingerprint from the framework until we find one that produces tasks.
-      // Different fingerprints match different test patterns (e.g. @Test annotation vs
-      // TestCase subclass), so we need to find the right one for this class.
-      Fingerprint[] fingerprints = framework.fingerprints();
-
-      if (fingerprints.length == 0) {
-        send(TestProtocol.encodeError("Framework has no fingerprints: " + frameworkName, null));
-        return;
-      }
-
-      Task[] tasks = null;
-
-      // Try fingerprints that agree with what the class actually is before the rest.
-      //
-      // "First fingerprint that yields a task" is not enough on its own. A framework that declares
-      // both a class and a module fingerprint — specs2 does — is
-      // free to hand back a task for either without checking, and only fails later when it tries to
-      // load the form that does not exist: a `class Fixture extends
-      // Specification` matched against the module fingerprint produced a task whose whole error
-      // message was "example.Specs2Fixture$". Whether a suite is a
-      // Scala object is not a guess; the compiler emits `Fixture$` for one and not for the other.
-      Fingerprint[] ordered = orderFingerprintsFor(className, fingerprints);
-
-      for (Fingerprint fingerprint : ordered) {
-        TaskDef taskDef =
-            new TaskDef(className, fingerprint, true, new Selector[] {new SuiteSelector()});
-        Task[] candidate = runner.tasks(new TaskDef[] {taskDef});
-        if (candidate.length > 0) {
-          tasks = candidate;
-          send(
-              TestProtocol.encodeLog(
-                  "debug", "Matched fingerprint: " + describeFingerprint(fingerprint)));
-          break;
-        }
-      }
-
-      if (tasks == null || tasks.length == 0) {
-        // No fingerprint produced a task: the loaded framework does not recognize this class as
-        // a suite. Not an empty suite (the framework never claimed it) — a framework mismatch.
-        send(
-            TestProtocol.encodeSuiteNoFrameworkMatched(
-                className,
-                System.currentTimeMillis() - startTime,
-                "No test framework recognized " + className + " as a suite"));
-        return;
-      }
-
-      // Custom event handler to capture test events
-      EventHandler eventHandler =
-          new EventHandler() {
-            @Override
-            public void handle(Event event) {
-              String status;
-              switch (event.status()) {
-                case Success:
-                  status = "passed";
-                  passed[0]++;
-                  break;
-                case Failure:
-                  status = "failed";
-                  failed[0]++;
-                  break;
-                case Error:
-                  status = "error";
-                  failed[0]++;
-                  break;
-                case Skipped:
-                  status = "skipped";
-                  skipped[0]++;
-                  break;
-                case Ignored:
-                  status = "ignored";
-                  ignored[0]++;
-                  break;
-                case Canceled:
-                  status = "assumption-failed";
-                  skipped[0]++;
-                  break;
-                case Pending:
-                  status = "pending";
-                  ignored[0]++;
-                  break;
-                default:
-                  status = "unknown";
-                  break;
-              }
-
-              String throwableStr = null;
-              String message = null;
-              StackTraceElement location = null;
-              if (event.throwable() != null && event.throwable().isDefined()) {
-                Throwable t = event.throwable().get();
-                message = t.getMessage();
-                throwableStr = stackTraceToString(t);
-                location = failureLocation(t, className);
-              }
-
-              // Extract test name from selector if available
-              String testName = extractTestName(event);
-
-              // Flush output before reporting test finished
+    String className = runSuite.className;
+    Thread t =
+        new Thread(
+            () -> {
+              currentSuite.set(className);
               try {
-                capturedOut.flush();
-                capturedErr.flush();
-              } catch (IOException e) {
-                // Ignore
+                new SuiteRunner(
+                        ForkedTestRunner::send,
+                        ForkedTestRunner.class.getClassLoader(),
+                        Arrays.asList(capturedOut, capturedErr))
+                    .runSuite(
+                        className,
+                        runSuite.framework,
+                        runSuite.runner.name(),
+                        runSuite.frameworkClass,
+                        runSuite.args);
+              } finally {
+                currentSuite.remove();
+                runningSuites.remove(className, Thread.currentThread());
               }
-
-              send(
-                  TestProtocol.encodeTestFinished(
-                      className,
-                      testName,
-                      status,
-                      event.duration(),
-                      message,
-                      throwableStr,
-                      location == null ? null : location.getClassName(),
-                      location == null ? null : location.getFileName(),
-                      location == null ? 0 : location.getLineNumber()));
-            }
-          };
-
-      // Execute tasks
-      Logger logger = createLogger(className);
-      executeTasks(tasks, eventHandler, new Logger[] {logger});
-
-      // Done
-      runner.done();
-
-      // Final flush
-      capturedOut.flush();
-      capturedErr.flush();
-
-      long durationMs = System.currentTimeMillis() - startTime;
-      int total = passed[0] + failed[0] + skipped[0] + ignored[0];
-      if (total == 0) {
-        // The framework claimed the class (a task ran) but no test fired an event: an empty suite.
-        send(TestProtocol.encodeSuiteEmpty(className, durationMs));
-      } else {
-        send(
-            TestProtocol.encodeSuiteExecuted(
-                className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
-      }
-
-    } catch (InterruptedException e) {
-      // Cancelled - report and re-throw to exit the run
-      send(TestProtocol.encodeLog("warn", "Suite " + className + " was cancelled"));
-      throw new RuntimeException(e);
-    } catch (SecurityException e) {
-      if (e.getMessage() != null && e.getMessage().contains("System.exit")) {
-        send(
-            TestProtocol.encodeSuiteErrored(
-                className,
-                System.currentTimeMillis() - startTime,
-                "Test attempted a blocked System.exit",
-                null));
-      } else {
-        throw e;
-      }
-    } catch (Throwable e) {
-      // Must catch Throwable (not just Exception): a framework may let an Error (AssertionError,
-      // or a LinkageError propagated from executeTasks) escape. Report it as an errored suite —
-      // NOT SuiteExecuted with faked counts — so the outcome carries the real reason.
-      send(TestProtocol.encodeLog("error", stackTraceToString(e)));
-      Throwable reported =
-          (e instanceof SuiteExecutionException && e.getCause() != null) ? e.getCause() : e;
-      send(
-          TestProtocol.encodeSuiteErrored(
-              className,
-              System.currentTimeMillis() - startTime,
-              "Error running suite "
-                  + className
-                  + ": "
-                  + reported.getClass().getName()
-                  + ": "
-                  + reported.getMessage(),
-              stackTraceToString(reported)));
-    }
-  }
-
-  private static void executeTasks(Task[] tasks, EventHandler eventHandler, Logger[] loggers)
-      throws InterruptedException {
-    for (Task task : tasks) {
-      // Check for interruption before each task
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
-      }
-
-      try {
-        Task[] nestedTasks = task.execute(eventHandler, loggers);
-        // Recursively execute nested tasks
-        executeTasks(nestedTasks, eventHandler, loggers);
-      } catch (InterruptedException e) {
-        throw e;
-      } catch (Throwable e) {
-        // Do NOT swallow and continue. A Throwable escaping task.execute — LinkageError,
-        // NoClassDefFoundError, ExceptionInInitializerError, typically from a stale sibling
-        // compile — means this suite's classpath cannot be trusted, not that one test failed.
-        // Swallowing it here let the suite fall through to SuiteDone(...,0,0,0) and be reported
-        // PASSED: a green build over a suite that never ran. Propagate so the caller's handler
-        // records a real failure with a non-zero count.
-        throw new SuiteExecutionException(e);
-      }
-    }
+            },
+            "suite-" + className);
+    // Register before start so a CancelSuite arriving immediately still finds the thread.
+    runningSuites.put(className, t);
+    t.start();
   }
 
   /**
-   * Wraps a non-interruption Throwable that escaped {@code task.execute} so it propagates out of
-   * {@link #executeTasks} (whose only checked throw is InterruptedException) to runSuite's outer
-   * handler, which reports it as a suite failure.
-   */
-  private static final class SuiteExecutionException extends RuntimeException {
-    SuiteExecutionException(Throwable cause) {
-      super(cause);
-    }
-  }
-
-  /**
-   * Instantiate an sbt.testing.Framework by class name.
+   * Run a whole set of JUnit-Platform classes in ONE launcher execution on its own thread.
    *
-   * <p>One line, because the server sends the class rather than a label to guess from. This used to
-   * special-case JUnit, Kotest and TestNG, probe lists of candidate classes, and fall back to
-   * treating the display name as a class name — which is how "Spock" and "kotlin.test" arrived at
-   * Class.forName verbatim.
+   * <p>The batch is a single unit of work — junit's engine parallelises the classes inside it at
+   * the degree bleep chose — so it registers under one key and its per-class results come out of
+   * {@link JUnitPlatformRunner#runSuites} tagged by class. A {@link
+   * TestProtocol#encodeBatchComplete} is sent when the one execute returns, telling the parent to
+   * stop reading. Cancellation of a batch is fork-level (there is no per-class thread here to
+   * interrupt).
    */
-  private static Framework loadFramework(String frameworkClass) throws Exception {
-    Class<?> clazz = Class.forName(frameworkClass);
-    return (Framework) clazz.getDeclaredConstructor().newInstance();
-  }
-
-  /** Check if this framework should use JUnit Platform Launcher directly. */
-  private static Logger createLogger(final String suiteName) {
-    return new Logger() {
-      @Override
-      public boolean ansiCodesSupported() {
-        // Frameworks ask this before colourising. Answering an unconditional `true` meant `bleep
-        // test --no-color` still got ANSI escapes from ScalaTest,
-        // hedgehog and friends: the flag lives in the client JVM and this runs in a forked one, so
-        // the only thing that crosses is the environment. The
-        // client sets NO_COLOR when the user asks for no colour, and the no-color.org convention
-        // means a user who sets it themselves is honoured too.
-        String noColor = System.getenv("NO_COLOR");
-        return noColor == null || noColor.isEmpty();
-      }
-
-      @Override
-      public void error(String msg) {
-        send(TestProtocol.encodeLog("error", msg));
-      }
-
-      @Override
-      public void warn(String msg) {
-        send(TestProtocol.encodeLog("warn", msg));
-      }
-
-      @Override
-      public void info(String msg) {
-        send(TestProtocol.encodeLog("info", msg));
-      }
-
-      @Override
-      public void debug(String msg) {
-        send(TestProtocol.encodeLog("debug", msg));
-      }
-
-      @Override
-      public void trace(Throwable t) {
-        send(TestProtocol.encodeLog("error", stackTraceToString(t)));
-      }
-    };
+  private static void startSuitesThread(
+      TestProtocol.ParsedCommand.RunSuites runSuites,
+      OutputStream capturedOut,
+      OutputStream capturedErr) {
+    Thread t =
+        new Thread(
+            () -> {
+              try {
+                new JUnitPlatformRunner(
+                        ForkedTestRunner::send, Arrays.asList(capturedOut, capturedErr))
+                    .runSuites(runSuites.classNames, runSuites.parallelism);
+              } finally {
+                runningSuites.remove(BATCH_KEY, Thread.currentThread());
+              }
+            },
+            "suites-batch");
+    runningSuites.put(BATCH_KEY, t);
+    t.start();
   }
 
   /**
-   * Puts fingerprints whose `isModule` matches the class on disk first, keeping the framework's own
-   * order within each group. Nothing is discarded: a framework that disagrees with this reading
-   * still gets every fingerprint tried, just second.
+   * The single key a batched (RunSuites) execution registers under; a project runs at most one
+   * batch at a time.
    */
-  private static Fingerprint[] orderFingerprintsFor(String className, Fingerprint[] fingerprints) {
-    Class<?> asModule = loadClass(className + "$");
-    Class<?> asPlain = loadClass(className);
-    boolean isModule = asModule != null;
-
-    // Ranked, highest first, keeping the framework's own order within a rank:
-    //   2 — the class really does extend what the fingerprint names
-    //   1 — only the class/object shape agrees
-    //   0 — neither
-    //
-    // Shape alone is not enough to tell a framework's fingerprints apart when several describe
-    // objects. Weaver declares one for suites and another for global
-    // resources; picking by shape chose the resource one and the run died with
-    // "example.WeaverFixture$ is not an instance of weaver.IOGlobalResource". What the
-    // class extends is the question the fingerprint is actually asking, so ask that first.
-    List<List<Fingerprint>> byRank = new ArrayList<>();
-    for (int i = 0; i < 3; i++) byRank.add(new ArrayList<>());
-    for (Fingerprint fp : fingerprints) {
-      Boolean declaredModule = fingerprintIsModule(fp);
-      boolean shapeAgrees = declaredModule != null && declaredModule == isModule;
-      // Each fingerprint is checked against the class it is talking about: a module fingerprint
-      // means `Foo$`, a class fingerprint means `Foo`. Checking both against the object's class
-      // scored a class fingerprint naming `org.scalacheck.Properties` just as highly as the module
-      // one — `Foo$` extends Properties either way — and picking it made ScalaCheck unrunnable.
-      // A Scala 3 mirror class extends nothing, so the wrong shape now scores itself out.
-      Class<?> meant = (declaredModule != null && declaredModule) ? asModule : asPlain;
-      boolean extendsIt =
-          meant != null
-              && fingerprintSuperclass(fp).map(sup -> sup.isAssignableFrom(meant)).orElse(false);
-      int rank = extendsIt ? 2 : (shapeAgrees ? 1 : 0);
-      byRank.get(2 - rank).add(fp);
-    }
-
-    List<Fingerprint> ordered = new ArrayList<>();
-    for (List<Fingerprint> rank : byRank) ordered.addAll(rank);
-    return ordered.toArray(new Fingerprint[0]);
-  }
-
-  /** The class a SubclassFingerprint names, when it names one and it can be loaded. */
-  private static Optional<Class<?>> fingerprintSuperclass(Fingerprint fp) {
-    if (!(fp instanceof SubclassFingerprint)) return Optional.empty();
-    return Optional.ofNullable(loadClass(((SubclassFingerprint) fp).superclassName()));
-  }
-
-  private static Class<?> loadClass(String name) {
-    try {
-      return Class.forName(name, false, ForkedTestRunner.class.getClassLoader());
-    } catch (ClassNotFoundException | LinkageError e) {
-      return null;
-    }
-  }
-
-  /** Null when the fingerprint kind says nothing about module-ness. */
-  private static Boolean fingerprintIsModule(Fingerprint fp) {
-    if (fp instanceof SubclassFingerprint) return ((SubclassFingerprint) fp).isModule();
-    if (fp instanceof AnnotatedFingerprint) return ((AnnotatedFingerprint) fp).isModule();
-    return null;
-  }
-
-  private static String describeFingerprint(Fingerprint fp) {
-    if (fp instanceof SubclassFingerprint) {
-      SubclassFingerprint sfp = (SubclassFingerprint) fp;
-      return "SubclassFingerprint(" + sfp.superclassName() + ", isModule=" + sfp.isModule() + ")";
-    } else if (fp instanceof AnnotatedFingerprint) {
-      AnnotatedFingerprint afp = (AnnotatedFingerprint) fp;
-      return "AnnotatedFingerprint(" + afp.annotationName() + ", isModule=" + afp.isModule() + ")";
-    }
-    return fp.toString();
-  }
-
-  private static String stackTraceToString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    t.printStackTrace(new PrintWriter(sw));
-    return sw.toString();
-  }
-
-  /**
-   * The first stack frame belonging to the suite class itself, which is where the failing assertion
-   * lives for every framework we support — the frames above it are inside the assertion library.
-   *
-   * <p>Deliberately not "the first frame with a line number": that points at someone else's source,
-   * and an annotation on the wrong file is worse than no annotation. Returns null when the
-   * throwable has no frame in the suite, which is normal for a failure thrown from a helper or a
-   * fixture.
-   *
-   * <p>Inner and anonymous classes ({@code MyTest$$anon$1}) still belong to the suite, so match on
-   * the {@code $} boundary rather than equality alone. Causes are walked because assertion
-   * libraries routinely wrap.
-   */
-  private static StackTraceElement failureLocation(Throwable t, String suiteClass) {
-    for (Throwable current = t; current != null; current = current.getCause()) {
-      for (StackTraceElement frame : current.getStackTrace()) {
-        String cn = frame.getClassName();
-        boolean inSuite = cn.equals(suiteClass) || cn.startsWith(suiteClass + "$");
-        if (inSuite && frame.getFileName() != null && frame.getLineNumber() > 0) {
-          return frame;
-        }
-      }
-      if (current.getCause() == current) break; // self-referential cause, seen in the wild
-    }
-    return null;
-  }
-
-  /**
-   * Extract the test name from an event. Tries to get the test method name from the selector, falls
-   * back to fullyQualifiedName.
-   */
-  private static String extractTestName(Event event) {
-    Selector selector = event.selector();
-
-    if (selector instanceof TestSelector) {
-      // TestSelector contains the test method name
-      return ((TestSelector) selector).testName();
-    } else if (selector instanceof NestedTestSelector) {
-      // NestedTestSelector for nested tests
-      return ((NestedTestSelector) selector).testName();
-    } else {
-      // Fall back to fully qualified name for suite-level events
-      return event.fullyQualifiedName();
-    }
-  }
+  private static final String BATCH_KEY = " batch";
 
   /** Generate a thread dump of all threads in the JVM. Returns encoded JSON response. */
   private static String generateThreadDump() {
@@ -695,11 +361,19 @@ public class ForkedTestRunner {
     return TestProtocol.encodeThreadDump(entries);
   }
 
-  /** Output stream that captures writes and sends them via protocol. */
+  /**
+   * Output stream that captures writes and sends them via protocol, one buffer per writing thread.
+   *
+   * <p>System.out is one stream shared by every thread in the JVM, so with several suites running
+   * at once their bytes would interleave in a single buffer and a line could come out half from one
+   * suite and half from another. A per-thread buffer keeps each writer's partial line to itself,
+   * and the completed line is tagged with whatever suite that thread is running ({@link
+   * #currentSuite}) — or none, for a framework thread that belongs to no single suite. When only
+   * one suite runs at a time this is exactly the old behaviour with one live buffer.
+   */
   private static class CapturingOutputStream extends OutputStream {
     private final String name;
-    private final StringBuilder buffer = new StringBuilder();
-    private final Object lock = new Object();
+    private final ThreadLocal<StringBuilder> buffer = ThreadLocal.withInitial(StringBuilder::new);
 
     CapturingOutputStream(String name) {
       this.name = name;
@@ -707,39 +381,34 @@ public class ForkedTestRunner {
 
     @Override
     public void write(int b) {
-      synchronized (lock) {
-        if (b == '\n') {
-          flush();
-        } else {
-          buffer.append((char) b);
-        }
+      if (b == '\n') {
+        flush();
+      } else {
+        buffer.get().append((char) b);
       }
     }
 
     @Override
     public void write(byte[] b, int off, int len) {
-      synchronized (lock) {
-        String s = new String(b, off, len);
-        for (int i = 0; i < s.length(); i++) {
-          char c = s.charAt(i);
-          if (c == '\n') {
-            flush();
-          } else {
-            buffer.append(c);
-          }
+      StringBuilder buf = buffer.get();
+      String s = new String(b, off, len);
+      for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        if (c == '\n') {
+          flush();
+        } else {
+          buf.append(c);
         }
       }
     }
 
     @Override
     public void flush() {
-      synchronized (lock) {
-        if (buffer.length() > 0) {
-          String level = "stderr".equals(name) ? "error" : "info";
-          // Include current suite in log message if available
-          send(TestProtocol.encodeLog(currentSuite, level, buffer.toString()));
-          buffer.setLength(0);
-        }
+      StringBuilder buf = buffer.get();
+      if (buf.length() > 0) {
+        String level = "stderr".equals(name) ? "error" : "info";
+        send(TestProtocol.encodeLog(currentSuite.get(), level, buf.toString()));
+        buf.setLength(0);
       }
     }
   }
