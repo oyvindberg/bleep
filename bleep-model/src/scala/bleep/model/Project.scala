@@ -35,14 +35,15 @@ case class Project(
       * runner discovers. CLI surface: `bleep test --only-tag slow --exclude-tag flaky`.
       */
     testTags: JsonMap[String, JsonSet[String]],
-    /** How many of this project's test suites may run in parallel forks. Unset = unbounded. `1` gives maven's one-JVM-per-module semantics: suites run
-      * sequentially (alphabetically) through one warm fork, so JVM-wide state — a booted Quarkus application, its dev-service containers, schema created by an
-      * earlier suite — carries across suites the way it does under surefire.
+    /** How many of this project's test suites run at once. Its default and meaning follow `testJvm`: in per-project mode (the default) it bounds concurrency
+      * *inside the one shared fork* and defaults to ~cores/4, with `1` serialising suites (alphabetically) so JVM-wide state — a booted Quarkus application,
+      * its dev-service containers, schema created by an earlier suite — carries across the way it does under surefire; in per-suite mode it bounds how many
+      * *forks* run at once and is unbounded by default. Either way the machine-wide governor caps the total across all projects.
       */
     testSuiteParallelism: Option[Int],
-    /** Where this project's test suites run relative to the JVM hosting them: a fork per suite (the default) or one fork for the whole project. Unset =
-      * per-suite. See [[TestJvmMode]]. `testSuiteParallelism` bounds concurrency in both modes — across forks for per-suite, within the single fork for
-      * per-project.
+    /** Where this project's test suites run relative to the JVM hosting them: one fork for the whole project (`per-project`, the default — maven's
+      * `forkCount=1 reuseForks=true`) or a fork per suite (`per-suite`, OS-level isolation). Unset = per-project. See [[TestJvmMode]]. `testSuiteParallelism`
+      * bounds concurrency in both modes — inside the one fork for per-project, across forks for per-suite.
       */
     testJvm: Option[TestJvmMode],
     sourcegen: JsonSet[ScriptDef],

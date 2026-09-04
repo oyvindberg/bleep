@@ -5,12 +5,13 @@ import io.circe.{Decoder, DecodingFailure, Encoder}
 
 /** Where a project's test suites run relative to the JVM that hosts them.
   *
-  *   - [[PerSuite]] (the default) forks a JVM per suite, pooled by classpath. Suites are isolated by the operating system: one that calls `System.exit`, wedges
-  *     a thread or corrupts a static kills a process bleep can replace. `testSuiteParallelism` bounds how many such forks run at once.
-  *   - [[PerProject]] runs every one of the project's suites in a single forked JVM — maven surefire's `forkCount=1 reuseForks=true`. JVM-wide state carries
-  *     across suites: a booted application and its dev-service containers, a shared Testcontainers instance, schema an earlier suite created.
-  *     `testSuiteParallelism` then bounds how many of the project's suites run *concurrently inside that one fork* (`1` = sequential, the safe default for
-  *     frameworks whose per-JVM state is a singleton, e.g. `@QuarkusTest`).
+  *   - [[PerProject]] (the default) runs every one of the project's suites in a single forked JVM — maven surefire's `forkCount=1 reuseForks=true`. JVM-wide
+  *     state carries across suites: a booted application and its dev-service containers, a shared Testcontainers instance, schema an earlier suite created.
+  *     `testSuiteParallelism` bounds how many of the project's suites run *concurrently inside that one fork*; unset it defaults to ~cores/4, and `1`
+  *     serialises them — the safe setting for frameworks whose per-JVM state is a singleton, e.g. `@QuarkusTest`.
+  *   - [[PerSuite]] forks a JVM per suite, pooled by classpath. Suites are isolated by the operating system: one that calls `System.exit`, wedges a thread or
+  *     corrupts a static kills a process bleep can replace. `testSuiteParallelism` then bounds how many such forks run at once (unset = unbounded; the
+  *     machine-wide governor still caps the total).
   */
 sealed abstract class TestJvmMode(val value: String)
 

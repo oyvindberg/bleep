@@ -1,0 +1,138 @@
+---
+title: Running tests
+---
+
+# Running tests
+
+A test project in bleep is an ordinary project with `isTestProject: true`. There is no
+separate test scope and no second source root to configure — tests are a project that
+depends on the code under test:
+
+```yaml
+projects:
+  myapp: {}
+  myapp-test:
+    isTestProject: true
+    dependsOn: myapp
+    dependencies:
+      - org.scalatest::scalatest:3.2.19
+```
+
+```bash
+bleep test                 # every test project
+bleep test myapp-test      # one project (deps compile first)
+bleep test -w              # watch mode: re-run on change
+```
+
+`bleep test` with no project argument runs every test project; naming non-test projects
+just compiles them. Test frameworks are **auto-detected** from the classpath — ScalaTest,
+JUnit 4/5 (JUnit Platform), MUnit, utest, Specs2, ScalaCheck, and weaver all work without
+configuration.
+
+## How a project's suites run
+
+This is the one decision worth understanding, and it has two knobs:
+
+| Setting | Question it answers | Default |
+| --- | --- | --- |
+| `testJvm` | *Where* do a project's suites run? | `per-project` |
+| `testSuiteParallelism` | *How many* run at once? | ~cores/4 (per-project) |
+
+### `testJvm: per-project` (the default)
+
+Every one of a project's suites runs in **one forked JVM** — the same model as maven
+surefire's `forkCount=1 reuseForks=true`. JVM-wide state is built once and reused across
+suites: a booted application, dev-service containers, a shared Testcontainers instance,
+a schema an earlier suite created. `testSuiteParallelism` bounds how many suites run
+**concurrently inside that one fork** — unset, it defaults to roughly a quarter of your
+cores so that several *projects* overlap rather than one project claiming every core.
+
+```yaml
+myapp-test:
+  isTestProject: true
+  # testJvm: per-project        # implied
+  # testSuiteParallelism: 4     # implied (~cores/4)
+```
+
+Set `testSuiteParallelism: 1` to run the project's suites **sequentially** in that one
+JVM. This is the safe setting for frameworks whose per-JVM state is a singleton — most
+importantly `@QuarkusTest`, where the application is booted once and every suite shares it:
+
+```yaml
+myapp-it:
+  isTestProject: true
+  testSuiteParallelism: 1       # one warm JVM, suites one at a time
+```
+
+> When every suite in a per-project run is JUnit Platform (JUnit 5, `@QuarkusTest`),
+> bleep runs the whole project as a **single JUnit execution**, so an execution-scoped
+> fixture — a Quarkus application, a `@BeforeAll` container — is built once for the project
+> rather than once per class. This is automatic; you never configure it.
+
+### `testJvm: per-suite`
+
+Each suite runs in **its own forked JVM**, pooled by classpath. Suites are isolated by the
+operating system: one that calls `System.exit`, wedges a thread, or corrupts a static kills
+a process bleep can replace, without touching the others. `testSuiteParallelism` then bounds
+how many **forks** run at once; unset, it is unbounded and the machine-wide governor caps the
+total across all projects.
+
+```yaml
+flaky-tests:
+  isTestProject: true
+  testJvm: per-suite            # OS-level isolation, one suite can't poison another
+```
+
+### Choosing between them
+
+| Reach for | When |
+| --- | --- |
+| `per-project` (default) | Normal unit tests; anything that boots an app or shares expensive fixtures (Quarkus, Testcontainers, an embedded DB). Fewer JVM starts, warm reuse. |
+| `per-project` + `testSuiteParallelism: 1` | Singleton per-JVM state that isn't concurrency-safe — `@QuarkusTest`, a global static, a fixed port. |
+| `per-suite` | Suites that must not share a JVM — `System.exit`, thread leaks, static corruption, or a framework that isn't re-entrant. |
+
+Both modes are bounded by a single machine-wide governor, so `bleep test` across many
+projects never oversubscribes your cores regardless of the per-project settings.
+
+## JVM options and heap
+
+Options for the forked test JVM come from three places, applied in order:
+
+1. the project's `platform.jvmOptions` (also picked up from maven's surefire `argLine` on import);
+2. any fork options a sourcegen step declared for the project;
+3. `--jvm-opt` on the command line.
+
+```bash
+bleep test myapp-test --jvm-opt -Dmy.flag=true --jvm-opt -Duser.timezone=UTC
+```
+
+The per-fork heap defaults to a fixed size; change it once for the whole build with
+`bleep config test-runner-heap <size>` (and `test-runner-heap-clear` to reset). A project
+`-Xmx` in `platform.jvmOptions` still wins for that project's fork.
+
+## Selecting what runs
+
+```bash
+bleep test --only FooSpec            # suites whose name matches (substring, or FQDN to disambiguate)
+bleep test --exclude SlowSpec        # drop matching suites (takes precedence over --only)
+bleep test --test-arg -oD            # pass arguments straight to the framework
+```
+
+For **tag-based** selection across frameworks (`--only-tag`, `--exclude-tag`, and the
+project pre-filter that skips compiling untagged projects), see [Test tags](./test-tags).
+
+## Reports and history
+
+* `--junit-report <dir>` writes one JUnit XML per suite, for CI test-reporting UIs.
+* Every run is recorded as a transcript; `bleep test --diff` shows only what changed
+  versus a previous run. See [Run history & diffs](./run-history).
+
+## Reference
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `isTestProject` | `true` | Marks the project as tests; turns on suite discovery. |
+| `testJvm` | `per-project` \| `per-suite` | Fork granularity. Default `per-project`. |
+| `testSuiteParallelism` | integer | Suites at once. Per-project: inside the one fork (default ~cores/4, `1` = sequential). Per-suite: number of forks (default unbounded). |
+| `testFrameworks` | list | Escape hatch to name a framework bleep doesn't auto-detect; normally unset. |
+| `testTags` | map | Tag → suite class-name patterns for `--only-tag`/`--exclude-tag`. See [Test tags](./test-tags). |

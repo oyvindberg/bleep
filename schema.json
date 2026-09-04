@@ -638,9 +638,14 @@
           "$ref": "#/$defs/Platform"
         },
         "testSuiteParallelism": {
-          "description": "How many of this project's test suites may run in parallel forks. Unset = unbounded. 1 gives maven's one-JVM-per-module semantics: suites run sequentially (alphabetically) through one warm fork, so JVM-wide state (a booted Quarkus application, dev-service containers, schema created by an earlier suite) carries across suites.",
+          "description": "How many of this project's test suites run at once. Its default follows testJvm: in per-project mode (the default) it bounds concurrency inside the one shared fork and defaults to ~cores/4, with 1 serialising suites (alphabetically) so JVM-wide state (a booted Quarkus application, dev-service containers, schema created by an earlier suite) carries across; in per-suite mode it bounds how many forks run at once and is unbounded by default. The machine-wide governor caps the total across all projects either way.",
           "type": "integer",
           "minimum": 1
+        },
+        "testJvm": {
+          "description": "Where this project's test suites run relative to the JVM hosting them. 'per-project' (the default) runs every suite in one forked JVM (maven's forkCount=1 reuseForks=true), so a booted application or shared fixture is reused across suites; testSuiteParallelism bounds concurrency inside it. 'per-suite' forks a JVM per suite for OS-level isolation. Unset = per-project.",
+          "type": "string",
+          "enum": ["per-project", "per-suite"]
         },
         "isTestProject": {
           "type": "boolean"

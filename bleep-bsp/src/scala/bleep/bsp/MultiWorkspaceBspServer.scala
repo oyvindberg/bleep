@@ -2516,7 +2516,15 @@ class MultiWorkspaceBspServer(
                 // are suites here, so only that project's empty scan is a contradiction worth failing the run over.
                 val discoverProject = started.build.explodedProjects(discoverTask.project)
                 val isTestProject = discoverProject.isTestProject.getOrElse(false)
-                val suiteParallelism = discoverProject.testSuiteParallelism
+                // How many of a project's suites run at once. Mode-aware default: per-project (the default mode) shares ONE fork, so an unset value means a
+                // MODEST concurrency inside it (~cores/4) rather than unbounded — one project's suites should not swamp their shared JVM, and many projects
+                // overlap instead. per-suite forks per suite, so an unset value stays unbounded — the machine-wide governor bounds how many forks run at once.
+                val suiteParallelism: Option[Int] =
+                  discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
+                    case model.TestJvmMode.PerProject =>
+                      Some(discoverProject.testSuiteParallelism.getOrElse(math.max(2, Runtime.getRuntime.availableProcessors() / 4)))
+                    case model.TestJvmMode.PerSuite => discoverProject.testSuiteParallelism
+                  }
                 val tagFiltered =
                   if (!tagsActive) regexFiltered
                   else {
@@ -2525,18 +2533,17 @@ class MultiWorkspaceBspServer(
                     val keptSet = keptFqdns.toSet
                     regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
                   }
-                // Run the whole project as ONE JUnit execution when it asked for per-project mode AND every suite is JUnit-Platform (the only runner with a
+                // Run the whole project as ONE JUnit execution in per-project mode (the default) AND every suite is JUnit-Platform (the only runner with a
                 // cross-class execution scope to preserve — a @QuarkusTest application built once, not per class). The degree is the project's testSuiteParallelism
                 // if it set one (1 serialises @QuarkusTest), else the machine's cores. sbt-interface frameworks fall through to suite-by-suite, on bleep's threads.
                 val batchParallelism: Option[Int] =
-                  discoverProject.testJvm match {
-                    case Some(model.TestJvmMode.PerProject)
+                  discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
+                    case model.TestJvmMode.PerProject
                         if tagFiltered.nonEmpty && tagFiltered.forall(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]) =>
-                      // The degree is what the project asked for (1 serialises @QuarkusTest), else a MODEST default so many projects' batches overlap rather than
-                      // each hogging every core and forcing projects to run one at a time. ~4 batches at once on this machine; the governor keeps the total
-                      // within the core count. Capped by the suite count — no reserving cores a small project cannot use.
-                      val default = math.max(2, Runtime.getRuntime.availableProcessors() / 4)
-                      Some(math.min(tagFiltered.size, suiteParallelism.getOrElse(default)))
+                      // The degree is the resolved suiteParallelism (the user's value, or the per-project default of ~cores/4 computed above — 1 serialises
+                      // @QuarkusTest), capped by the suite count so a small project does not reserve cores it cannot use. The governor keeps the machine-wide
+                      // total within the core count as many projects' batches overlap.
+                      Some(math.min(tagFiltered.size, suiteParallelism.getOrElse(1)))
                     case _ => None
                   }
 
@@ -2651,12 +2658,12 @@ class MultiWorkspaceBspServer(
                       else Nil
                     }
                     val projectJvmOptions = declaredJvmOptions ++ sourcegenJvmOptions
-                    // per-project (maven's one-JVM-per-module) runs every suite of this project in one shared fork; per-suite (the default) forks per suite.
+                    // per-project (the default, maven's one-JVM-per-module) runs every suite of this project in one shared fork; per-suite forks per suite.
                     // The sharing key is the project, so all its suites land on the same fork. How many run at once is bounded by the DAG's suite-parallelism
                     // chains, not here.
-                    val sharing: bleep.testing.SessionSharing = project.testJvm match {
-                      case Some(model.TestJvmMode.PerProject) => bleep.testing.SessionSharing.Shared(testTask.project.value)
-                      case _                                  => bleep.testing.SessionSharing.Exclusive
+                    val sharing: bleep.testing.SessionSharing = project.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
+                      case model.TestJvmMode.PerProject => bleep.testing.SessionSharing.Shared(testTask.project.value)
+                      case model.TestJvmMode.PerSuite   => bleep.testing.SessionSharing.Exclusive
                     }
                     TestRunner.runSuite(
                       project = testTask.project,
