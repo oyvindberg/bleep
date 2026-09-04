@@ -34,4 +34,21 @@ object FrameworkSelection {
     * producing a command the other side would have to interpret.
     */
   case class PlatformRunner(displayName: String) extends FrameworkSelection
+
+  /** sbt frameworks that report a suite's failure detail from `Runner.done()` — called once per run — or on their own threads after the suite's tasks return,
+    * so running a project's suites through one shared Runner (one `done()`, per-project mode) drops that per-suite output. Keyed by framework class, the real
+    * identifier. Such a suite gets its own fork instead, where `done()` fires for it alone. Add to this only for a framework proven to lose output when it
+    * shares a fork — most do not.
+    */
+  private val needsIsolatedForkClasses: Set[String] = Set(
+    "weaver.framework.CatsEffect",
+    "hedgehog.sbt.Framework"
+  )
+
+  /** Whether this suite must run in a fork of its own rather than share one across the project's suites. See [[needsIsolatedForkClasses]]. */
+  def needsIsolatedFork(selection: FrameworkSelection): Boolean =
+    selection match {
+      case SbtTestInterface(_, frameworkClass) => needsIsolatedForkClasses(frameworkClass)
+      case _                                   => false
+    }
 }

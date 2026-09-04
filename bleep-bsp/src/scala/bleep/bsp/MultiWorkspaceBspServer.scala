@@ -2553,7 +2553,12 @@ class MultiWorkspaceBspServer(
                         else List((junit, math.min(junit.size, userParallelism.getOrElse(1))))
                       val sbtGroups =
                         tagFiltered.toList
-                          .collect { case s @ (_, sel: bleep.testing.FrameworkSelection.SbtTestInterface) => (sel.frameworkClass, s) }
+                          .collect {
+                            // A framework that reports per-suite output from Runner.done() cannot share a Runner across suites (one done() for the batch would
+                            // drop it); it is left out of the batch and runs in its own fork, below.
+                            case s @ (_, sel: bleep.testing.FrameworkSelection.SbtTestInterface) if !bleep.testing.FrameworkSelection.needsIsolatedFork(sel) =>
+                              (sel.frameworkClass, s)
+                          }
                           .groupBy(_._1)
                           .toList
                           .sortBy(_._1)
@@ -2677,12 +2682,16 @@ class MultiWorkspaceBspServer(
                     }
                     val projectJvmOptions = declaredJvmOptions ++ sourcegenJvmOptions
                     // per-project (the default, maven's one-JVM-per-module) runs every suite of this project in one shared fork; per-suite forks per suite.
-                    // The sharing key is the project, so all its suites land on the same fork. How many run at once is bounded by the DAG's suite-parallelism
-                    // chains, not here.
-                    val sharing: bleep.testing.SessionSharing = project.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
-                      case model.TestJvmMode.PerProject => bleep.testing.SessionSharing.Shared(testTask.project.value)
-                      case model.TestJvmMode.PerSuite   => bleep.testing.SessionSharing.Exclusive
-                    }
+                    // The sharing key is the project, so all its suites land on the same fork. A framework that must not share a fork (it reports per-suite
+                    // output from a once-per-run done()) always gets its own, whatever the project's mode. How many run at once is bounded by the DAG's
+                    // suite-parallelism chains, not here.
+                    val sharing: bleep.testing.SessionSharing =
+                      if (bleep.testing.FrameworkSelection.needsIsolatedFork(testTask.selection)) bleep.testing.SessionSharing.Exclusive
+                      else
+                        project.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
+                          case model.TestJvmMode.PerProject => bleep.testing.SessionSharing.Shared(testTask.project.value)
+                          case model.TestJvmMode.PerSuite   => bleep.testing.SessionSharing.Exclusive
+                        }
                     TestRunner.runSuite(
                       project = testTask.project,
                       suiteName = testTask.suiteName.value,
