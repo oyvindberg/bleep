@@ -2534,14 +2534,15 @@ class MultiWorkspaceBspServer(
                     regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
                   }
                 // Run the whole project as ONE JUnit execution in per-project mode (the default) AND every suite is JUnit-Platform (the only runner with a
-                // cross-class execution scope to preserve — a @QuarkusTest application built once, not per class). The degree is the project's testSuiteParallelism
-                // if it set one (1 serialises @QuarkusTest), else the machine's cores. sbt-interface frameworks fall through to suite-by-suite, on bleep's threads.
+                // cross-class execution scope to preserve — an application-scoped fixture built once, not per class). The degree is the project's
+                // testSuiteParallelism if it set one (1 serialises singleton-state suites), else the machine's cores. sbt-interface frameworks fall through to
+                // suite-by-suite, on bleep's threads.
                 val batchParallelism: Option[Int] =
                   discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
                     case model.TestJvmMode.PerProject
                         if tagFiltered.nonEmpty && tagFiltered.forall(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]) =>
                       // The degree is the resolved suiteParallelism (the user's value, or the per-project default of ~cores/4 computed above — 1 serialises
-                      // @QuarkusTest), capped by the suite count so a small project does not reserve cores it cannot use. The governor keeps the machine-wide
+                      // singleton-state suites), capped by the suite count so a small project does not reserve cores it cannot use. The governor keeps the machine-wide
                       // total within the core count as many projects' batches overlap.
                       Some(math.min(tagFiltered.size, suiteParallelism.getOrElse(1)))
                     case _ => None
@@ -2632,7 +2633,7 @@ class MultiWorkspaceBspServer(
                     // JVM (default) - use JvmPool
                     val projectDir =
                       started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
-                    // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus).
+                    // Project-level JVM options from platform config (e.g. a custom -Djava.util.logging.manager).
                     // This includes the `-Duser.dir` the build states (or the sbt-compatible build-dir default
                     // from `Defaults`) — working-directory semantics are the BUILD's decision, expressed in
                     // bleep.yaml, never adjusted here.
@@ -2641,9 +2642,9 @@ class MultiWorkspaceBspServer(
                       case _                                     => Nil
                     }
                     // A sourcegen may declare JVM options its output requires by writing them to the
-                    // project's `forkJvmOptions` file (one per line). This is how a Quarkus test
-                    // project's model-writer hands the fork the serialized-model path and the jboss
-                    // LogManager without every project restating them in bleep.yaml. Generic: bleep
+                    // project's `forkJvmOptions` file (one per line). This is how a code-generating test
+                    // project's model-writer hands the fork a generated path or a custom LogManager
+                    // without every project restating them in bleep.yaml. Generic: bleep
                     // knows nothing of what the options mean. Read here so a changed file re-forks
                     // through the normal option-keyed pool.
                     val sourcegenJvmOptions = {
@@ -2695,8 +2696,8 @@ class MultiWorkspaceBspServer(
                 }
               }
 
-          // A whole project's JUnit suites as one batched execution (per-project mode). JVM-only, so no platform branching; the fork does one execute so a
-          // @QuarkusTest application is built once and reused across the classes.
+          // A whole project's JUnit suites as one batched execution (per-project mode). JVM-only, so no platform branching; the fork does one execute so an
+          // application-scoped fixture is built once and reused across the classes.
           val testBatchHandler: (TaskDag.TestBatchTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
             (batchTask, taskKillSignal) =>
               IO.blocking(getTestClasspath(started, batchTask.project)).flatMap { classpath =>

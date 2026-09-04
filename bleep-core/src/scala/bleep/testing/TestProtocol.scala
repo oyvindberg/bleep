@@ -30,10 +30,10 @@ object TestProtocol {
 
     /** Run a whole project's JUnit-Platform suites in ONE launcher execution, at a bleep-chosen degree of parallelism.
       *
-      * This is the maven-surefire shape for JUnit: all of a module's classes go through one `launcher.execute()`, so anything scoped to that one execution — a
-      * `@QuarkusTest` application, a shared `LauncherSessionListener` registration — is set up once and reused across every class, instead of rebuilt per
-      * class. `parallelism` is bleep's decision, not junit's: 1 serialises (what `@QuarkusTest` needs, its app being a JVM singleton), N runs N classes at
-      * once. junit's engine is the executor of that number, nothing more. Only the JUnit-Platform runner honours this; sbt test-interface frameworks are driven
+      * This is the maven-surefire shape for JUnit: all of a module's classes go through one `launcher.execute()`, so anything scoped to that one execution — an
+      * application booted for the run, a shared `LauncherSessionListener` registration — is set up once and reused across every class, instead of rebuilt per
+      * class. `parallelism` is bleep's decision, not junit's: 1 serialises (what a singleton-per-JVM application needs), N runs N classes at once. junit's
+      * engine is the executor of that number, nothing more. Only the JUnit-Platform runner honours this; sbt test-interface frameworks are driven
       * suite-by-suite on bleep's own threads, where there is no cross-suite execution scope to preserve.
       */
     case class RunSuites(

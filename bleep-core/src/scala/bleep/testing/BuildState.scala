@@ -293,8 +293,8 @@ object BuildStateReducer {
         skipped = updatedSkipped
         // NOT totalTaskTimeMs: an individual test's duration is time already inside its suite's
         // fork occupancy, which the suite-terminal handlers count. Adding it here double-counted
-        // the test methods and, worse, ignored the suite-level boot — a @QuarkusTest spends ~25s
-        // starting the app and DevServices before any test method runs, so summing test durations
+        // the test methods and, worse, ignored the suite-level boot — a slow-booting suite spends ~25s
+        // starting an app and its containers before any test method runs, so summing test durations
         // saw ~2s for a suite that held a fork for 27s, and parallelism read ~1x under real fan-out.
       )
 

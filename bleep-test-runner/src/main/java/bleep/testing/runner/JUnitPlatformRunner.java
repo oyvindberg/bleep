@@ -28,12 +28,11 @@ import org.junit.platform.launcher.core.LauncherFactory;
  * Runs JUnit 5 tests via JUnit Platform Launcher directly, bypassing sbt test-interface.
  *
  * <p>This enables proper JUnit Platform lifecycle including LauncherSessionListener SPI, which is
- * required for frameworks like Quarkus that set up custom classloaders (FacadeClassLoader) during
- * session initialization.
+ * required for frameworks that set up custom classloaders during session initialization.
  *
- * <p>Using openSession() instead of create() triggers: - Quarkus's CustomLauncherInterceptor →
- * FacadeClassLoader as TCCL - Spring Boot's test context management - Any other
- * LauncherSessionListener implementations
+ * <p>Using openSession() instead of create() triggers any registered LauncherSessionListener
+ * implementations — e.g. a framework that installs a custom classloader as the thread-context
+ * classloader, or a test-context manager.
  */
 class JUnitPlatformRunner {
 
@@ -144,8 +143,7 @@ class JUnitPlatformRunner {
           TestProtocol.encodeLog(
               "debug",
               "JUnit Platform predates LauncherSession (1.8); using LauncherFactory.create()."
-                  + " LauncherSessionListener extensions (Quarkus, Spring Boot) do not exist on"
-                  + " this version."));
+                  + " LauncherSessionListener extensions do not exist on this version."));
       return new LauncherHandle(LauncherFactory.create(), null);
     }
 
@@ -193,9 +191,8 @@ class JUnitPlatformRunner {
       // Flush any pending output
       flushAll();
 
-      // A LauncherSession is where LauncherSessionListener SPI fires (the SmallRye/Mutiny
-      // registrar,
-      // Quarkus's CustomLauncherInterceptor that builds the FacadeClassLoader). In fork mode one
+      // A LauncherSession is where LauncherSessionListener SPI fires (a framework's registrar, or
+      // an interceptor that builds a custom classloader). In fork mode one
       // session is opened for the whole JVM and shared by every suite, so those listeners fire
       // exactly ONCE — maven surefire's one-session-per-fork semantics. That is the difference
       // between a listener that pre-registers a global once and N concurrent suites each racing to
@@ -456,15 +453,15 @@ class JUnitPlatformRunner {
    * Run a whole set of classes in ONE JUnit Platform execution, at a bleep-chosen degree of
    * parallelism.
    *
-   * <p>This is the shape that makes an execution-scoped fixture — a {@code @QuarkusTest}
-   * application above all — build once and be reused by every class, exactly as it is under maven
-   * surefire's one-execute-per-module. Per-class results are still reported: the listener
-   * attributes each test and container to the requested class it belongs to (a {@code @Nested
-   * Foo$Bar} test back to {@code Foo}) and sends that class's own SuiteDone when its container
-   * finishes, so the parent demultiplexes per suite as before. Parallelism is bleep's: the
-   * configuration parameters set here override any {@code junit-platform.properties} on the
-   * classpath, so junit's engine runs exactly the number of classes at once that bleep decided (1
-   * serialises — what {@code @QuarkusTest} requires).
+   * <p>This is the shape that makes an execution-scoped fixture — an application booted for the run
+   * — build once and be reused by every class, exactly as it is under maven surefire's
+   * one-execute-per-module. Per-class results are still reported: the listener attributes each test
+   * and container to the requested class it belongs to (a {@code @Nested Foo$Bar} test back to
+   * {@code Foo}) and sends that class's own SuiteDone when its container finishes, so the parent
+   * demultiplexes per suite as before. Parallelism is bleep's: the configuration parameters set
+   * here override any {@code junit-platform.properties} on the classpath, so junit's engine runs
+   * exactly the number of classes at once that bleep decided (1 serialises — what a
+   * singleton-per-JVM application requires).
    */
   void runSuites(List<String> classNames, int parallelism) {
     long batchStart = System.currentTimeMillis();

@@ -55,8 +55,9 @@ myapp-test:
 ```
 
 Set `testSuiteParallelism: 1` to run the project's suites **sequentially** in that one
-JVM. This is the safe setting for frameworks whose per-JVM state is a singleton — most
-importantly `@QuarkusTest`, where the application is booted once and every suite shares it:
+JVM. This is the safe setting when the project's per-JVM state is a singleton the suites
+must not touch at the same time — an application booted once and shared, a fixed port, a
+global static, one embedded database:
 
 ```yaml
 myapp-it:
@@ -64,10 +65,12 @@ myapp-it:
   testSuiteParallelism: 1       # one warm JVM, suites one at a time
 ```
 
-> When every suite in a per-project run is JUnit Platform (JUnit 5, `@QuarkusTest`),
-> bleep runs the whole project as a **single JUnit execution**, so an execution-scoped
-> fixture — a Quarkus application, a `@BeforeAll` container — is built once for the project
-> rather than once per class. This is automatic; you never configure it.
+> When every suite in a per-project run is JUnit Platform (JUnit 5), bleep runs the whole
+> project as a **single JUnit execution**, so an execution-scoped fixture — an application
+> the framework boots for the run, a `@BeforeAll` container — is built once for the project
+> rather than once per class. This is automatic; you never configure it. See
+> [Framework support](#framework-support-sbt-interface-vs-junit-platform) below for what
+> per-project means for the other frameworks.
 
 ### `testJvm: per-suite`
 
@@ -87,9 +90,33 @@ flaky-tests:
 
 | Reach for | When |
 | --- | --- |
-| `per-project` (default) | Normal unit tests; anything that boots an app or shares expensive fixtures (Quarkus, Testcontainers, an embedded DB). Fewer JVM starts, warm reuse. |
-| `per-project` + `testSuiteParallelism: 1` | Singleton per-JVM state that isn't concurrency-safe — `@QuarkusTest`, a global static, a fixed port. |
+| `per-project` (default) | Normal unit tests; anything that boots an app or shares expensive fixtures (Testcontainers, an embedded DB). Fewer JVM starts, warm reuse. |
+| `per-project` + `testSuiteParallelism: 1` | Singleton per-JVM state that isn't concurrency-safe — a global static, a fixed port, one shared embedded server. |
 | `per-suite` | Suites that must not share a JVM — `System.exit`, thread leaks, static corruption, or a framework that isn't re-entrant. |
+
+### Framework support: sbt test interface vs JUnit Platform
+
+Bleep discovers and runs suites through two runner surfaces, and both execution modes
+apply to both:
+
+* **sbt test interface** — ScalaTest, MUnit, utest, Specs2, ScalaCheck, weaver, ZIO Test,
+  and the rest of the Scala ecosystem. Each suite is an individual dispatch: bleep sends
+  the fork one suite at a time.
+* **JUnit Platform** — JUnit 5. The whole project can run as one execution.
+
+What the modes mean for each:
+
+| | per-suite | per-project |
+| --- | --- | --- |
+| **sbt interface** | one fork per suite | all suites dispatched to **one shared fork**, `testSuiteParallelism` at a time; the JVM stays warm and its statics/singletons persist across suites |
+| **JUnit Platform** | one fork per suite | the project runs as a **single JUnit execution** (batch), so execution-scoped fixtures build once |
+
+The practical difference in per-project mode: with an sbt-interface framework the suites
+still arrive as **separate framework invocations** — they share the JVM (and anything a
+prior suite left in a static), but there is no cross-suite execution scope, and by default
+`~cores/4` of them run **concurrently** in that one fork. So shared *mutable* state wants
+`testSuiteParallelism: 1`. JUnit Platform additionally gets the single-execution semantics,
+which is what lets an execution-scoped `@BeforeAll` build once for the entire project.
 
 Both modes are bounded by a single machine-wide governor, so `bleep test` across many
 projects never oversubscribes your cores regardless of the per-project settings.

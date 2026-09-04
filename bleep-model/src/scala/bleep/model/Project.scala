@@ -36,9 +36,9 @@ case class Project(
       */
     testTags: JsonMap[String, JsonSet[String]],
     /** How many of this project's test suites run at once. Its default and meaning follow `testJvm`: in per-project mode (the default) it bounds concurrency
-      * *inside the one shared fork* and defaults to ~cores/4, with `1` serialising suites (alphabetically) so JVM-wide state — a booted Quarkus application,
-      * its dev-service containers, schema created by an earlier suite — carries across the way it does under surefire; in per-suite mode it bounds how many
-      * *forks* run at once and is unbounded by default. Either way the machine-wide governor caps the total across all projects.
+      * *inside the one shared fork* and defaults to ~cores/4, with `1` serialising suites (alphabetically) so JVM-wide state — a booted application, an
+      * embedded server, schema created by an earlier suite — carries across the way it does under surefire; in per-suite mode it bounds how many *forks* run at
+      * once and is unbounded by default. Either way the machine-wide governor caps the total across all projects.
       */
     testSuiteParallelism: Option[Int],
     /** Where this project's test suites run relative to the JVM hosting them: one fork for the whole project (`per-project`, the default — maven's

@@ -85,8 +85,8 @@ trait TestSession {
   ): Stream[IO, TestProtocol.TestResponse]
 
   /** Run a whole set of JUnit-Platform classes in ONE execution at bleep's chosen `parallelism`, streaming every class's responses (each already tagged with
-    * its suite) until the batch terminator. This is the shape that keeps an execution-scoped fixture — a `@QuarkusTest` application — built once and reused
-    * across the classes, instead of rebuilt per class. Only the forked JVM session honours it; other sessions run suite-by-suite.
+    * its suite) until the batch terminator. This is the shape that keeps an execution-scoped fixture — an application booted for the run — built once and
+    * reused across the classes, instead of rebuilt per class. Only the forked JVM session honours it; other sessions run suite-by-suite.
     */
   def runSuites(
       classNames: List[String],

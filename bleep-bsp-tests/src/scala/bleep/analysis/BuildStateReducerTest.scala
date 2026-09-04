@@ -25,14 +25,15 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("totalTaskTimeMs counts a suite's whole fork occupancy, not the sum of its test durations") {
-    // A @QuarkusTest spends most of its wall time booting the app + DevServices before any test
-    // method runs. The suite occupied its fork for 27s (SuiteStarted..SuiteFinished); the two
-    // test methods report 5ms each. Task time must be the 27s, or parallelism reads ~1x under fan-out.
+    // A slow-booting integration suite spends most of its wall time on setup — starting an app and
+    // its containers — before any test method runs. The suite occupied its fork for 27s
+    // (SuiteStarted..SuiteFinished); the two test methods report 5ms each. Task time must be the 27s,
+    // or parallelism reads ~1x under fan-out.
     val state = reduce(
-      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.QuarkusIT"), ts),
-      BuildEvent.TestFinished(cpn("proj"), sn("com.example.QuarkusIT"), tn("a"), TestStatus.Passed, 5, None, None, ts + 26000, None),
-      BuildEvent.TestFinished(cpn("proj"), sn("com.example.QuarkusIT"), tn("b"), TestStatus.Passed, 5, None, None, ts + 26500, None),
-      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.QuarkusIT"), SuiteOutcome.Executed(2, 0, 0, 0), 27000, ts + 27000)
+      BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.SlowBootIT"), ts),
+      BuildEvent.TestFinished(cpn("proj"), sn("com.example.SlowBootIT"), tn("a"), TestStatus.Passed, 5, None, None, ts + 26000, None),
+      BuildEvent.TestFinished(cpn("proj"), sn("com.example.SlowBootIT"), tn("b"), TestStatus.Passed, 5, None, None, ts + 26500, None),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.SlowBootIT"), SuiteOutcome.Executed(2, 0, 0, 0), 27000, ts + 27000)
     )
     state.totalTaskTimeMs shouldBe 27000L
   }

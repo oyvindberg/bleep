@@ -444,9 +444,9 @@ object JvmPool {
     /** Terminate the fork, escalating instead of going straight to SIGKILL.
       *
       * `graceMillis` is how long the child gets to die on its own terms: half after the socket close (which it reads as end-of-commands and exits on), half
-      * after SIGTERM. Both routes run the JVM's shutdown hooks — and for a Quarkus fork those hooks are what stop the application and the
-      * testcontainers/DevServices containers it started. With ryuk disabled (required for testcontainers reuse, and common) those hooks are the ONLY container
-      * cleanup there is; SIGKILLing first thing is how a machine ends up with dozens of orphaned databases.
+      * after SIGTERM. Both routes run the JVM's shutdown hooks — and for a fork that started an application those hooks are what stop it and the testcontainers
+      * it started. With ryuk disabled (required for testcontainers reuse, and common) those hooks are the ONLY container cleanup there is; SIGKILLing first
+      * thing is how a machine ends up with dozens of orphaned databases.
       *
       * Pass 0 when the fork has forfeited its grace — it never completed the startup handshake, or a collective shutdown deadline already gave it time.
       */
@@ -911,8 +911,8 @@ object JvmPool {
             }
           }
           // Wait for graceful exits under one shared deadline. The Shutdown command makes a healthy
-          // runner exit on its own, running its shutdown hooks — for a Quarkus fork that is where
-          // the application stops and its DevServices/testcontainers containers get removed. The
+          // runner exit on its own, running its shutdown hooks — for a fork running an application that is where
+          // it stops and its testcontainers get removed. The
           // old fixed 500ms then SIGKILL truncated exactly those hooks, so every run leaked its
           // containers when ryuk was disabled. Well-behaved forks exit as fast as ever; the
           // deadline only costs time on forks that are actually winding something down.
@@ -1094,7 +1094,7 @@ object JvmPool {
 
       override def kill: IO[Unit] =
         // On cancellation the fork is healthy: the socket close makes it exit on its own, running
-        // the shutdown hooks that stop a Quarkus app's containers. On a suite timeout the JVM may
+        // the shutdown hooks that stop an app's containers. On a suite timeout the JVM may
         // be wedged, in which case the grace period merely delays the SIGKILL it was always
         // getting — after the suite already burned its idle timeout, that delay is noise.
         IO.blocking(jvm.kill("bleep: explicit kill (suite timeout or cancellation)", graceMillis = 10000))

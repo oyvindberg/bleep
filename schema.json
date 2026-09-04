@@ -638,7 +638,7 @@
           "$ref": "#/$defs/Platform"
         },
         "testSuiteParallelism": {
-          "description": "How many of this project's test suites run at once. Its default follows testJvm: in per-project mode (the default) it bounds concurrency inside the one shared fork and defaults to ~cores/4, with 1 serialising suites (alphabetically) so JVM-wide state (a booted Quarkus application, dev-service containers, schema created by an earlier suite) carries across; in per-suite mode it bounds how many forks run at once and is unbounded by default. The machine-wide governor caps the total across all projects either way.",
+          "description": "How many of this project's test suites run at once. Its default follows testJvm: in per-project mode (the default) it bounds concurrency inside the one shared fork and defaults to ~cores/4, with 1 serialising suites (alphabetically) so JVM-wide state (a booted application, an embedded server, schema created by an earlier suite) carries across; in per-suite mode it bounds how many forks run at once and is unbounded by default. The machine-wide governor caps the total across all projects either way.",
           "type": "integer",
           "minimum": 1
         },

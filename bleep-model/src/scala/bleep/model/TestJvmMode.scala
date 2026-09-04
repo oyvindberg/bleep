@@ -8,7 +8,7 @@ import io.circe.{Decoder, DecodingFailure, Encoder}
   *   - [[PerProject]] (the default) runs every one of the project's suites in a single forked JVM — maven surefire's `forkCount=1 reuseForks=true`. JVM-wide
   *     state carries across suites: a booted application and its dev-service containers, a shared Testcontainers instance, schema an earlier suite created.
   *     `testSuiteParallelism` bounds how many of the project's suites run *concurrently inside that one fork*; unset it defaults to ~cores/4, and `1`
-  *     serialises them — the safe setting for frameworks whose per-JVM state is a singleton, e.g. `@QuarkusTest`.
+  *     serialises them — the safe setting when the per-JVM state is a singleton the suites must not touch at once (a shared embedded server, a fixed port).
   *   - [[PerSuite]] forks a JVM per suite, pooled by classpath. Suites are isolated by the operating system: one that calls `System.exit`, wedges a thread or
   *     corrupts a static kills a process bleep can replace. `testSuiteParallelism` then bounds how many such forks run at once (unset = unbounded; the
   *     machine-wide governor still caps the total).

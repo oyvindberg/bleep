@@ -122,10 +122,10 @@ object TestRunner {
 
   /** Run a whole project's JUnit suites as ONE batched execution.
     *
-    * The maven one-execute-per-module shape: all the classes go through a single execution in one fork, so an execution-scoped fixture (a `@QuarkusTest`
-    * application above all) is built once and reused across them instead of rebuilt per class. junit's engine runs `parallelism` classes at once, a number
-    * bleep chose. The per-suite events emitted are exactly what a suite-by-suite run emits (each response carries its own suite), so nothing downstream can
-    * tell the difference — only the fork does one execute instead of N.
+    * The maven one-execute-per-module shape: all the classes go through a single execution in one fork, so an execution-scoped fixture (an application the
+    * framework boots for the run) is built once and reused across them instead of rebuilt per class. junit's engine runs `parallelism` classes at once, a
+    * number bleep chose. The per-suite events emitted are exactly what a suite-by-suite run emits (each response carries its own suite), so nothing downstream
+    * can tell the difference — only the fork does one execute instead of N.
     */
   def runBatch(
       project: CrossProjectName,

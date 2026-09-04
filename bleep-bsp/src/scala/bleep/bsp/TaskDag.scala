@@ -296,8 +296,8 @@ object TaskDag {
         */
       suiteParallelism: Option[Int],
       /** Set when this project's suites should run as ONE batched JUnit execution (maven surefire's one-execute-per-module), carrying the degree of parallelism
-        * bleep chose for it (1 for `@QuarkusTest`, more for plain suites). Decided by the discover handler from `testJvm == per-project` AND every discovered
-        * suite being JUnit-Platform — the only runner with a cross-class execution scope worth preserving. None = run suite-by-suite as before.
+        * bleep chose for it (1 for singleton-state suites, more for plain suites). Decided by the discover handler from `testJvm == per-project` AND every
+        * discovered suite being JUnit-Platform — the only runner with a cross-class execution scope worth preserving. None = run suite-by-suite as before.
         */
       batchParallelism: Option[Int]
   )
@@ -321,8 +321,9 @@ object TaskDag {
   }
 
   /** Run ALL of a project's JUnit suites as one batched execution in a single fork — maven surefire's one-execute-per-module, which is what keeps an
-    * execution-scoped fixture (a `@QuarkusTest` application above all) built once and reused across the classes rather than rebuilt per class. junit's engine
-    * runs `parallelism` classes at once inside the fork, a number bleep chose. One task, not one per suite: the resource cost is one fork doing that much work.
+    * execution-scoped fixture (an application the framework boots for the run) built once and reused across the classes rather than rebuilt per class. junit's
+    * engine runs `parallelism` classes at once inside the fork, a number bleep chose. One task, not one per suite: the resource cost is one fork doing that
+    * much work.
     */
   case class TestBatchTask(
       project: CrossProjectName,
