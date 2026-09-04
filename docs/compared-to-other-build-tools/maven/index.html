@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs Maven | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/maven/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs Maven | Bleep"><meta data-rh="true" name="description" content="Maven is the build tool that brought sanity to the JVM ecosystem. It&#x27;s"><meta data-rh="true" property="og:description" content="Maven is the build tool that brought sanity to the JVM ecosystem. It&#x27;s"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/maven/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Maven","item":"https://bleep.build/docs/compared-to-other-build-tools/maven"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.9dc63a67.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.1306f48e.js" defer="defer"></script>
 <script src="/assets/js/main.3b9b9017.js" defer="defer"></script>
 </head>
 <body>
@@ -69,14 +69,6 @@ walkthrough, what gets preserved, what gets stripped, and what to do
 about Maven plugins that don&#x27;t carry over.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="honest-trade-offs">Honest trade-offs<a href="#honest-trade-offs" class="hash-link" aria-label="Direct link to Honest trade-offs" title="Direct link to Honest trade-offs" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>No BOM / <code>dependencyManagement</code> yet.</strong> Spring Boot Parent / Quarkus
-Platform users feel this most: every dependency declares its own
-version explicitly. See
-<a class="" href="/docs/appendix/status/">Project status</a> for the gap.
-<a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> inlines the
-BOM-resolved versions at import time, so an existing Spring Boot
-service comes across with explicit versions; new services need a
-template that lists them.</li>
 <li class=""><strong>Plugin ecosystem.</strong> Maven Central has thousands of plugins. Bleep
 plugins are Scala/Java libraries published to Maven Central; there are
 fewer of them, mostly because the script model means you reach for them

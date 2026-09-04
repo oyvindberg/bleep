@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Project status | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/status/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project status | Bleep"><meta data-rh="true" name="description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><meta data-rh="true" property="og:description" content="Bleep exists because the existing JVM build tools couldn&#x27;t keep up"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/status/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/status/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project status","item":"https://bleep.build/docs/appendix/status"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.9dc63a67.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.1306f48e.js" defer="defer"></script>
 <script src="/assets/js/main.3b9b9017.js" defer="defer"></script>
 </head>
 <body>
@@ -81,15 +81,6 @@ this warning have mostly been closed rather than merely acknowledged.</p>
 on Linux) is the first thing to attach to a bug report.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="whats-not-yet-covered">What&#x27;s not yet covered<a href="#whats-not-yet-covered" class="hash-link" aria-label="Direct link to What&#x27;s not yet covered" title="Direct link to What&#x27;s not yet covered" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>No BOM / <code>dependencyManagement</code></strong>: every dependency declares its
-version explicitly. Spring Boot users feel this most, and it is worth
-being blunt about the cost: adopting a Spring Boot release means
-writing out the versions that <code>spring-boot-dependencies</code> would have
-chosen for you, and revisiting them on every Boot upgrade. Templates
-take the sting out — put the versions in one template and every
-project that extends it inherits them, so it is one edit rather than
-one per project — but that is a workaround, not the feature. If your
-build leans on imported BOMs, this is the gap most likely to stop you.</li>
 <li class=""><strong>No KAPT</strong> for Kotlin. KAPT is legacy; migrate to KSP1, which is
 supported (see <a class="" href="/docs/usage/annotation-processing/#kotlin-ksp">annotation processing</a>).
 KSP runs from scratch on every compile today; per-file change

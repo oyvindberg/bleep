@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Maven plugin coverage | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Maven plugin coverage | Bleep"><meta data-rh="true" name="description" content="Bleep refuses the plugin system Maven, Gradle, and sbt all settled on."><meta data-rh="true" property="og:description" content="Bleep refuses the plugin system Maven, Gradle, and sbt all settled on."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Maven plugin coverage","item":"https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.9dc63a67.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.1306f48e.js" defer="defer"></script>
 <script src="/assets/js/main.3b9b9017.js" defer="defer"></script>
 </head>
 <body>
@@ -175,14 +175,16 @@ more <code>SpringBoot*</code> class wrapping <code>spring-boot-buildpack-platfor
 <code>spring-aot</code>. Open an issue or send a PR if either matters for your
 project.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-about-bom-and-dependencymanagement">What about BOM and <code>dependencyManagement</code>?<a href="#what-about-bom-and-dependencymanagement" class="hash-link" aria-label="Direct link to what-about-bom-and-dependencymanagement" title="Direct link to what-about-bom-and-dependencymanagement" translate="no">​</a></h2>
-<p>Not a plugin, but worth mentioning. Maven&#x27;s BOM and
-<code>dependencyManagement</code> machinery is the one piece of Maven that bleep
-has acknowledged as a real gap.
-<a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> inlines the
-BOM-resolved versions at import time, so an existing service comes
-across with explicit versions. New services need a template that lists
-them. See <a class="" href="/docs/appendix/status/">Project status</a> for the underlying
-work.</p>
+<p>Not a plugin, but worth mentioning. Bleep supports BOM imports: a
+project lists <code>boms:</code> and Maven&#x27;s <code>dependencyManagement</code>-import
+semantics pin every version in its resolutions, transitives included,
+travelling along <code>dependsOn</code> to consumers. Dependencies a BOM manages
+are written without a version.
+<a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> carries this
+over — <code>&lt;dependencyManagement&gt;</code> imports become <code>boms:</code>, and
+BOM-managed dependencies come across version-less. See
+<a class="" href="/docs/concepts/dependencies/#boms-and-version-less-dependencies">Dependencies</a>
+for the model.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="plugins-dropped-from-this-list">Plugins dropped from this list<a href="#plugins-dropped-from-this-list" class="hash-link" aria-label="Direct link to Plugins dropped from this list" title="Direct link to Plugins dropped from this list" translate="no">​</a></h2>
 <p>These appeared in the raw mvnrepository.com rankings but were dropped
 here as anachronistic or superseded:</p>
