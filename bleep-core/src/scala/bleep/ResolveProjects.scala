@@ -294,6 +294,17 @@ object ResolveProjects {
         // conflict between a version bleep chose and one a test framework declared, neither of which the user wrote.
         versionCombo.testLibraryVersionSchemes(explodedProject.isTestProject.getOrElse(false))
 
+    /** BOMs apply to every resolution this project participates in, and travel along `dependsOn` the same way `libraryVersionSchemes` do: a library project
+      * declaring `boms: io.quarkus:quarkus-bom:X` constrains its consumers' resolutions too, so the whole dependency subtree resolves against one version
+      * universe — Maven's dependencyManagement-import semantics.
+      */
+    val boms: SortedSet[model.Dep] =
+      SortedSet.empty[model.Dep] ++
+        explodedProject.boms.values ++
+        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.boms.values }
+
+    val bomResolver = if (boms.isEmpty) resolver else resolver.updatedParams(_.copy(boms = boms))
+
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromPlatform =
         versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
@@ -307,7 +318,7 @@ object ResolveProjects {
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
       val deps = explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)
-      val normal = resolver.force(
+      val normal = bomResolver.force(
         deps,
         versionCombo,
         libraryVersionSchemes,
@@ -327,7 +338,7 @@ object ResolveProjects {
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
           val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet
-          resolver.force(
+          bomResolver.force(
             deps,
             versionCombo,
             libraryVersionSchemes,
@@ -541,7 +552,8 @@ object ResolveProjects {
       isTestProject = isTest,
       dependencies = model.JsonSet.fromIterable(allTransitiveResolved.keys.map(_.value)).values.toList,
       testFrameworks = explodedProject.testFrameworks.values.toList.map(_.value),
-      resolution = Some(resolution)
+      resolution = Some(resolution),
+      boms = boms.toList
     )
   }
 

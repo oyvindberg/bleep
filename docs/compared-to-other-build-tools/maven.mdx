@@ -189,14 +189,6 @@ about Maven plugins that don't carry over.
 
 ## Honest trade-offs
 
-- **No BOM / `dependencyManagement` yet.** Spring Boot Parent / Quarkus
-  Platform users feel this most: every dependency declares its own
-  version explicitly. See
-  [Project status](/docs/appendix/status) for the gap.
-  [`bleep import-maven`](/docs/reference/cli/import-maven/) inlines the
-  BOM-resolved versions at import time, so an existing Spring Boot
-  service comes across with explicit versions; new services need a
-  template that lists them.
 - **Plugin ecosystem.** Maven Central has thousands of plugins. Bleep
   plugins are Scala/Java libraries published to Maven Central; there are
   fewer of them, mostly because the script model means you reach for them

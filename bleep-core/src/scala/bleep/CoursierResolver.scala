@@ -71,18 +71,38 @@ object CoursierResolver {
       overrideCacheFolder: Option[File],
       downloadSources: Boolean,
       authentications: Option[model.Authentications],
-      repos: List[model.Repository]
+      repos: List[model.Repository],
+      /** Maven BOMs applied as version constraints to the resolution (dependencyManagement imports). Carried in Params rather than as a per-call argument so
+        * the per-project override travels through every wrapper via `withParams`.
+        *
+        * NOTE: `Cached.computeHash`/`collisionHash` are hand-rolled selective hashes, NOT a hash of this whole case class. Any field added here that affects
+        * resolution output MUST be mixed into both, or the disk cache will serve results computed without it — which is exactly how the first version of this
+        * field shipped broken.
+        */
+      boms: SortedSet[model.Dep]
   )
   object Params {
-    implicit val codec: Codec[Params] =
-      Codec.forProduct4[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository]](
+    implicit val encoder: Encoder[Params] =
+      Encoder.forProduct5[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository], SortedSet[model.Dep]](
         "overrideCacheFolder",
         "downloadSources",
         "authentications",
-        "repos"
-      )(
-        Params.apply
-      )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos))
+        "repos",
+        "boms"
+      )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos, x.boms))
+
+    // `boms` was added after the on-disk resolve cache format existed, so it must decode as absent-means-empty: an entry written before the field carried no
+    // boms, which is exactly the empty set. Making it required instead would reject every pre-existing cache file.
+    implicit val decoder: Decoder[Params] =
+      Decoder.instance { c =>
+        for {
+          overrideCacheFolder <- c.get[Option[File]]("overrideCacheFolder")
+          downloadSources <- c.get[Boolean]("downloadSources")
+          authentications <- c.get[Option[model.Authentications]]("authentications")
+          repos <- c.get[List[model.Repository]]("repos")
+          boms <- c.getOrElse[SortedSet[model.Dep]]("boms")(SortedSet.empty)
+        } yield Params(overrideCacheFolder, downloadSources, authentications, repos, boms)
+      }
   }
 
   trait Factory {
@@ -107,7 +127,7 @@ object CoursierResolver {
         }
 
         val credentialProvider = new CredentialProvider(pre.logger, config.authentications)
-        val params = Params(None, downloadSources, config.authentications, resolvers)
+        val params = Params(None, downloadSources, config.authentications, resolvers, boms = SortedSet.empty)
         val direct = new Direct(pre.logger, pre.cacheLogger, params, credentialProvider)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version), Some(pre.buildPaths.buildDir))
@@ -210,10 +230,34 @@ object CoursierResolver {
 
   case class InvalidVersionCombo(message: String) extends CoursierError(message)
 
+  /** A dependency was declared without a version (`org:name`), and no BOM in `boms:` manages its version. Raised BEFORE the fetch so the user gets an
+    * actionable configuration error instead of coursier retrying an empty-version download and reporting a cryptic `…:"" not found`.
+    */
+  case class MissingBomVersion(message: String) extends CoursierError(message)
+
   class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params, credentialProvider: CredentialProvider) extends CoursierResolver {
 
     val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
     lazy val repos = coursierRepos(params.repos, params.authentications, credentialProvider, logger)
+
+    /** The version pins the declared BOMs imply, Maven-style. Computed once per resolver instance — params (and with them the BOM set) are immutable here. */
+    lazy val bomPins: BomPins.Pins =
+      if (params.boms.isEmpty) scala.collection.immutable.SortedMap.empty
+      else BomPins(params.boms, fetchPomFile)
+
+    private def fetchPomFile(g: String, a: String, v: String): Option[Path] = {
+      val dep = Dependency(Module(Organization(g), ModuleName(a), Map.empty), VersionConstraint(v))
+        .withTransitive(false)
+        .withPublication(Publication(a, Type.pom, Extension.pom, Classifier.empty))
+      Fetch[Task](fileCache)
+        .withRepositories(repos)
+        .withDependencies(Seq(dep))
+        .withArtifactTypes(Set(Type.pom))
+        .eitherResult() match {
+        case Right(res) => res.files.headOption.map(_.toPath)
+        case Left(_)    => None
+      }
+    }
 
     override def withParams(newParams: Params): CoursierResolver =
       new Direct(logger, cacheLogger, newParams, credentialProvider)
@@ -227,7 +271,7 @@ object CoursierResolver {
       val maybeCoursierDependencies: Either[CoursierError, List[Dependency]] =
         asCoursierDeps(bleepDeps, versionCombo)
 
-      def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
+      def go(deps: List[Dependency], bomDeps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
         // SIP-51: For Scala 2.13 and 3, don't force scala-library version to match scala.version.
@@ -276,25 +320,76 @@ object CoursierResolver {
               .withScalaVersionOpt0(versionCombo.asScala.map(x => VersionConstraint(x.scalaVersion.scalaVersion)))
         }
 
-        Fetch[Task](fileCache)
-          .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
-          .withRepositories(repos)
-          .withDependencies(deps)
-          .withResolutionParams(resolutionParams)
-          .withMainArtifacts(true)
-          .addClassifiers(newClassifiers*)
-          .eitherResult() match {
+        // BOM pins force transitive versions the way Maven's dependencyManagement does — except for
+        // modules the build declares directly, where Maven lets the explicit declaration win.
+        val directModules: Set[Module] = deps.iterator.map(_.module).toSet
+        val pinnedResolutionParams = bomPins.foldLeft(resolutionParams) { case (rp, ((g, a), v)) =>
+          val module = Module(Organization(g), ModuleName(a), Map.empty)
+          if (directModules(module)) rp else rp.addForceVersion0((module, VersionConstraint(v)))
+        }
+
+        (try
+          Fetch[Task](fileCache)
+            .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
+            .withRepositories(repos)
+            .withDependencies(deps)
+            // Deliberately NOT withForceOverrideVersions: that coursier path trips over BOM entries
+            // carrying exclusions (see BomPins). Maven's pin-the-transitives semantics come from the
+            // forceVersion entries computed above instead; the non-forced BOM contributes defaults
+            // for versionless requests and the managed exclusions.
+            .addBoms(bomDeps.map(_.asBomDependency)*)
+            .withResolutionParams(pinnedResolutionParams)
+            .withMainArtifacts(true)
+            .addClassifiers(newClassifiers*)
+            .eitherResult()
+        catch {
+          case e: RuntimeException =>
+            // coursier's conflict-error FORMATTING can itself crash (its tree walk chokes on modules
+            // that BOM-managed exclusions removed), hiding the actual conflict. Log everything we
+            // know before letting it fly, or the failure is undebuggable through the BSP channel.
+            logger
+              .withContext("deps", deps.map(_.module.repr).mkString(", "))
+              .withContext("boms", params.boms.map(_.repr).mkString(", "))
+              .withContext("pins", bomPins.size)
+              .error("dependency resolution failed while reporting its own error", e)
+            throw e
+        }) match {
           case Left(coursierError) if remainingAttempts > 0 =>
             val newRemainingAttempts = remainingAttempts - 1
             cacheLogger.retrying(coursierError, newRemainingAttempts)
-            go(deps, newRemainingAttempts)
+            go(deps, bomDeps, newRemainingAttempts)
           case other => other
         }
       }
 
+      // A version-less dependency (`org:name`) resolves only if a BOM supplies its version, and the authority on what a BOM supplies is coursier's own `addBoms`
+      // below — NOT our `bomPins`, which is a re-derivation that can miss, say, a version written through a property it cannot interpolate. So only the
+      // provably-wrong case is caught here: a version-less dependency with NO BOMs imported at all, where nothing could possibly manage it. When BOMs ARE
+      // present we defer to coursier; if it still cannot fill the version, its resolution error surfaces rather than a false rejection from us.
+      // Judged on the MODEL deps, not the coursier ones: `version.isEmpty` means the user wrote `org:name` without a version, which is the only thing this
+      // catches. A coursier dependency can carry an empty version constraint for reasons that are not the user's doing (an inter-project or bleep-injected dep
+      // resolved elsewhere), and flagging those would break ordinary resolutions.
+      def checkManaged(): Either[CoursierError, Unit] =
+        if (params.boms.nonEmpty) Right(())
+        else {
+          val coords = bleepDeps.iterator.filter(_.version.isEmpty).map(_.repr).toList
+          if (coords.isEmpty) Right(())
+          else {
+            val what = if (coords.size == 1) "A dependency is" else s"${coords.size} dependencies are"
+            Left(
+              MissingBomVersion(
+                s"$what declared without a version, and no BOM is imported to supply one: ${coords.mkString(", ")}. " +
+                  "Give it a version, or import a BOM in `boms:` that provides one."
+              )
+            )
+          }
+        }
+
       for {
         deps <- maybeCoursierDependencies
-        res <- go(deps, remainingAttempts = 3)
+        _ <- checkManaged()
+        bomDeps <- asCoursierDeps(params.boms, versionCombo)
+        res <- go(deps, bomDeps, remainingAttempts = 3)
         _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger, Some(ignoreEvictionErrors))
       } yield res
     }
@@ -399,12 +494,17 @@ object CoursierResolver {
       h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
       h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
       params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      params.boms.foreach { bom =>
+        h = MurmurHash3.mix(h, bom.organization.value.hashCode)
+        h = MurmurHash3.mix(h, bom.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, bom.version.hashCode)
+      }
       libraryVersionSchemes.foreach { lvs =>
         h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
         h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
         h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
       }
-      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size + params.boms.size)
     }
 
     // Lean cache format - stores only what's needed for reconstruction
@@ -460,12 +560,17 @@ object CoursierResolver {
       h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
       h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
       params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      params.boms.foreach { bom =>
+        h = MurmurHash3.mix(h, bom.organization.value.hashCode)
+        h = MurmurHash3.mix(h, bom.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, bom.version.hashCode)
+      }
       libraryVersionSchemes.foreach { lvs =>
         h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
         h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
         h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
       }
-      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size + params.boms.size)
     }
 
     def readLeanCache(

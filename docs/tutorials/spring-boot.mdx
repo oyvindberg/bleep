@@ -51,10 +51,12 @@ lives in the `scripts` project as a regular dependency.
 Worth pointing out:
 
 - **`myapp` dependencies.** Plain Maven coordinates pinned to the same
-  Spring Boot version. Bleep does not do BOM-style version inheritance
-  yet ([status](/docs/appendix/status)); when every starter you pull
-  in is on the same Spring Boot version, the transitive graph stays
-  consistent.
+  Spring Boot version. You can instead import Spring Boot's own BOM and
+  drop the versions — add
+  `boms: [org.springframework.boot:spring-boot-dependencies:<version>]`
+  and write each starter version-less (`org.springframework.boot:spring-boot-starter-web`),
+  letting the BOM pin the whole graph. See
+  [BOMs and version-less dependencies](/docs/concepts/dependencies#boms-and-version-less-dependencies).
 - **`myapp.sourcegen`** references
   `bleep.plugin.springboot.SpringBootBuildInfo` directly. The plugin
   ships a `BleepCodegenScript` you can use as-is — no wrapper class
@@ -327,5 +329,5 @@ much they would expand the example:
 - [Scripts concept](/docs/concepts/scripts)
 - [Sourcegen concept](/docs/concepts/sourcegen)
 - [Maven plugin coverage](/docs/compared-to-other-build-tools/maven-plugin-coverage) — Spring Boot in the broader picture
-- [Project status](/docs/appendix/status) — what's missing, including BOM support
+- [Project status](/docs/appendix/status) — what's missing
 - The example workspace: [`docs-snippets-from-tests/spring-boot-myapp`](https://github.com/oyvindberg/bleep/tree/bleep-plugin-spring-boot/docs-snippets-from-tests/spring-boot-myapp)

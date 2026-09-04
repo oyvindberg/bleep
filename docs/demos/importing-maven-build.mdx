@@ -56,7 +56,7 @@ Bleep:
 | junit test dependencies | nothing to declare — bleep finds junit suites by scanning and runs them on the JUnit Platform |
 | `<repositories>` (non-Maven Central) | `resolvers:` |
 | `maven-compiler-plugin <release>` | `jvm.name: temurin:NN` |
-| `<dependencyManagement>` resolved versions | inlined into `dependencies:` (since bleep has no BOM model yet) |
+| `<dependencyManagement>` BOM imports | extracted to `boms:`; the dependencies they manage come across version-less |
 
 ## What gets stripped
 
@@ -107,8 +107,9 @@ hit gaps:
   and out again via
   [`bleep export-maven`](/docs/reference/cli/export-maven/) — see the
   [exit strategy](/docs/guides/exit-strategy).
-- **BOMs are inlined** at import time; bleep has no `dependencyManagement`
-  equivalent yet, so dependencies imported through `spring-boot-dependencies`
-  or similar will end up with explicit versions in `bleep.yaml`.
+- **BOMs are extracted to `boms:`**, and the versions they manage are
+  stripped, so a build imported through `spring-boot-dependencies`,
+  `quarkus-bom` or similar keeps its BOM and its version-less
+  dependencies rather than freezing the versions the BOM owns.
 - **Profiles**: only the `mvn help:effective-pom` default activation
   is captured.

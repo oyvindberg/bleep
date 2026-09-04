@@ -259,14 +259,16 @@ project.
 
 ## What about BOM and `dependencyManagement`?
 
-Not a plugin, but worth mentioning. Maven's BOM and
-`dependencyManagement` machinery is the one piece of Maven that bleep
-has acknowledged as a real gap.
-[`bleep import-maven`](/docs/reference/cli/import-maven/) inlines the
-BOM-resolved versions at import time, so an existing service comes
-across with explicit versions. New services need a template that lists
-them. See [Project status](/docs/appendix/status) for the underlying
-work.
+Not a plugin, but worth mentioning. Bleep supports BOM imports: a
+project lists `boms:` and Maven's `dependencyManagement`-import
+semantics pin every version in its resolutions, transitives included,
+travelling along `dependsOn` to consumers. Dependencies a BOM manages
+are written without a version.
+[`bleep import-maven`](/docs/reference/cli/import-maven/) carries this
+over — `<dependencyManagement>` imports become `boms:`, and
+BOM-managed dependencies come across version-less. See
+[Dependencies](/docs/concepts/dependencies#boms-and-version-less-dependencies)
+for the model.
 
 ## Plugins dropped from this list
 

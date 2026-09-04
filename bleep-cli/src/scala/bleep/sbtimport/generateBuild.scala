@@ -77,6 +77,7 @@ object generateBuild {
           sources = model.JsonSet.empty,
           resources = model.JsonSet.empty,
           dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-core", bleepTasksVersion.value)),
+          boms = model.JsonSet.empty,
           jars = model.JsonSet.empty,
           java = None,
           scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),

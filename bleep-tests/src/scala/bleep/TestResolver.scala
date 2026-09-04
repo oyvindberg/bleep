@@ -108,7 +108,8 @@ object TestResolver {
         overrideCacheFolder = None,
         downloadSources = false,
         authentications = None,
-        repos = resolvers
+        repos = resolvers,
+        boms = scala.collection.immutable.SortedSet.empty
       )
       val credentialProvider = new CredentialProvider(pre.logger, None)
       val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params, credentialProvider)

@@ -86,7 +86,8 @@
     },
     "DependencyShort": {
       "type": "string",
-      "pattern": "^[^:]+:{1,3}[^:]+:[^:]+$"
+      "description": "A dependency coordinate: `org:name:version` (Java), `org::name:version` (Scala), `org:::name:version` (Scala full cross-version). The `:version` may be omitted (`org:name`, `org::name`) when a Maven BOM in `boms:` supplies it.",
+      "pattern": "^[^:]+:{1,3}[^:]+(:[^:]+)?$"
     },
     "DependencyLong": {
       "type": "object",
@@ -584,6 +585,20 @@
           ]
         },
         "dependencies": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Dependency"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              }
+            }
+          ]
+        },
+        "boms": {
+          "description": "Maven BOMs (dependencyManagement imports, e.g. io.quarkus:quarkus-bom:3.37.4). Applied as version constraints to every dependency resolution this project participates in — its own, and that of any project that (transitively) dependsOn it.",
           "oneOf": [
             {
               "$ref": "#/$defs/Dependency"

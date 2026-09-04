@@ -23,7 +23,9 @@ case class ResolvedProject(
     isTestProject: Boolean,
     dependencies: List[String],
     testFrameworks: List[String],
-    resolution: Option[ResolvedProject.Resolution]
+    resolution: Option[ResolvedProject.Resolution],
+    /** The BOMs (dependency management imports) this project's resolution ran under: its own plus those inherited along dependsOn. */
+    boms: List[model.Dep]
 )
 
 object ResolvedProject {

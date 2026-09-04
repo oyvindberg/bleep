@@ -183,6 +183,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       |        <version>2.1.20</version>
       |        <configuration>
       |          <jvmTarget>21</jvmTarget>
+      |          <javaParameters>true</javaParameters>
       |        </configuration>
       |      </plugin>
       |    </plugins>
@@ -219,6 +220,9 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       assert(project.kotlin.isDefined)
       assert(project.kotlin.get.version === Some(model.VersionKotlin("2.1.20")))
       assert(project.kotlin.get.jvmTarget === Some("21"))
+      // `<javaParameters>true</javaParameters>` must survive as kotlinc's `-java-parameters`:
+      // without it Jackson cannot deserialize into Kotlin data classes at runtime
+      assert(project.kotlin.get.options.render.contains("-java-parameters"))
     } finally {
       Files.deleteIfExists(tempFile)
       bleep.internal.FileUtils.deleteDirectory(tempDir)

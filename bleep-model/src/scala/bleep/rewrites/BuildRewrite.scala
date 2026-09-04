@@ -95,8 +95,23 @@ object BuildRewrite {
 
     val withDroppedEmptyTemplates = rebalancedCross.mapBuildFile { bf =>
       val keptTemplates = bf.templates.value.collect { case (name, project) if !project.isEmpty => name }.toSet
+
+      // cross ids a project inherits by (transitively) extending a cross-template
+      def inheritedCrossIds(extendsList: Set[model.TemplateId], seen: Set[model.TemplateId]): Set[model.CrossId] =
+        extendsList.filterNot(seen).flatMap { t =>
+          bf.templates.value.get(t) match {
+            case Some(tp) => tp.cross.value.keySet ++ inheritedCrossIds(tp.`extends`.values, seen + t)
+            case None     => Set.empty
+          }
+        }
+
       val newProjects = bf.projects.map { case (name, p) =>
-        (name, templatesInfer.keepOnly(keptTemplates, p))
+        val kept = templatesInfer.keepOnly(keptTemplates, p)
+        // An empty `cross: {}` entry whose cross id is already provided by an extended template is redundant noise: dropping it is semantically identical (the
+        // project still cross-builds that id, at the template's config). Only such template-covered empties are dropped, so no cross id is ever lost.
+        val inherited = inheritedCrossIds(kept.`extends`.values, Set.empty)
+        val prunedCross = kept.cross.filter { case (crossId, cp) => !(cp.isEmpty && inherited.contains(crossId)) }
+        (name, kept.copy(cross = prunedCross))
       }
       bf.copy(projects = newProjects)
     }

@@ -74,6 +74,63 @@ class TemplateTest extends SnapshotTest {
     // should probably have some assertions, but let's be lazy and lean on the snapshots for now
   }
 
+  private val depX = model.Dep.parse("com.example:libx:1.0.0").getOrElse(sys.error("bad dep"))
+
+  test("a dependency shared by two projects lands in a template, is not inlined, and survives the round-trip") {
+    val projects = Map(
+      a -> p.copy(dependencies = model.JsonSet(depX)),
+      b -> p.copy(dependencies = model.JsonSet(depX))
+    )
+    // `run` fails if templating dropped or otherwise changed anything (its diffProjects round-trip check).
+    val build = run(projects, "shared_dependency.yaml")
+    val common = requireBuildHasTemplate(build, TemplateDef.Common)
+    assert(
+      common.dependencies.values.contains(depX),
+      s"the shared dependency should live in the common template; template deps = ${common.dependencies.values}"
+    )
+    requireProjectsHaveTemplate(build, TemplateDef.Common, a.name, b.name).discard()
+    assert(
+      build.projects.value(a.name).dependencies.values.isEmpty,
+      s"the dependency should be in the template, not also inlined in a: ${build.projects.value(a.name).dependencies.values}"
+    )
+  }
+
+  test("a dependency on a single project stays on that project (nothing to templatize) and survives the round-trip") {
+    val projects = Map(a -> p.copy(dependencies = model.JsonSet(depX)), b -> p.copy(scala = Some(scala)))
+    val build = run(projects, "single_dependency.yaml")
+    assert(build.projects.value(a.name).dependencies.values.contains(depX), s"a lost its dependency: ${build.projects.value(a.name).dependencies.values}")
+  }
+
+  private def scalaV(v: String) = model.Scala(Some(model.VersionScala(v)), model.Options.empty, None, model.JsonSet.empty, None)
+  private def crossName(name: String, id: String) = model.CrossProjectName(model.ProjectName(name), Some(model.CrossId(id)))
+
+  test("cross-projects sharing a dependency collapse without empty cross entries and keep the dependency") {
+    val projects = Map(
+      crossName("a", "jvm211") -> p.copy(scala = Some(scalaV("2.11.12")), dependencies = model.JsonSet(depX)),
+      crossName("a", "jvm212") -> p.copy(scala = Some(scalaV("2.12.18")), dependencies = model.JsonSet(depX)),
+      crossName("a", "jvm213") -> p.copy(scala = Some(scalaV("2.13.12")), dependencies = model.JsonSet(depX))
+    )
+    val build = run(projects, "cross_shared_dependency.yaml")
+    val ap = build.projects.value(model.ProjectName("a"))
+    val emptyCross = ap.cross.value.collect { case (id, cp) if cp.isEmpty => id.value }
+    assert(emptyCross.isEmpty, s"empty `cross: {}` entries leaked into the collapsed build: ${emptyCross.mkString(", ")}")
+  }
+
+  test("a cross-template shared by multiple projects does not leak empty cross entries") {
+    // Two projects with the same cross shape → a cross-template is inferred (step 2). This is the scalameta shape where empty `cross: {}` entries appeared.
+    def crossBuilt(name: String) = Map(
+      crossName(name, "jvm211") -> p.copy(scala = Some(scalaV("2.11.12")), dependencies = model.JsonSet(depX)),
+      crossName(name, "jvm212") -> p.copy(scala = Some(scalaV("2.12.18")), dependencies = model.JsonSet(depX)),
+      crossName(name, "jvm213") -> p.copy(scala = Some(scalaV("2.13.12")), dependencies = model.JsonSet(depX))
+    )
+    val projects = crossBuilt("a") ++ crossBuilt("b")
+    val build = run(projects, "cross_template.yaml")
+    val leaks = build.projects.value.flatMap { case (name, proj) =>
+      proj.cross.value.collect { case (id, cp) if cp.isEmpty => s"$name/${id.value}" }
+    }
+    assert(leaks.isEmpty, s"empty `cross: {}` entries leaked: ${leaks.mkString(", ")}")
+  }
+
   def run(
       projects: Map[model.CrossProjectName, model.Project],
       testName: String,

@@ -479,9 +479,10 @@ function MaturitySection() {
                 </Link>
                 , Maven import.
                 <br />
-                <strong>Partial</strong>: BOM /{" "}
-                <code>dependencyManagement</code> not yet, every
-                dependency declares its own version explicitly.
+                <strong>Supported</strong>: BOM /{" "}
+                <code>dependencyManagement</code> imports — declare{" "}
+                <code>boms:</code> and write dependencies without a
+                version.
                 <br />
                 <strong>Not in scope</strong>: Android.
               </p>
@@ -1017,8 +1018,7 @@ function HonestySection() {
           discounting yourself. Save the trip: bleep is for Java,
           Kotlin, and Scala on the JVM (with JS and Native
           cross-builds). No Android. No Gradle import yet — Maven and
-          sbt import exist, Gradle is a hand-port today. BOM support
-          is on the list, not in the tool. The{" "}
+          sbt import exist, Gradle is a hand-port today. The{" "}
           <Link to="/docs/appendix/status/">status page</Link> keeps the
           full account. If your dealbreaker is on it, we&rsquo;d rather
           you find out here than three days in — and if it isn&rsquo;t,

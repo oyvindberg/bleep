@@ -184,6 +184,7 @@ object buildFromBloopFiles {
         sources = sources.sources,
         resources = sources.resources,
         dependencies = model.JsonSet.fromIterable(dependencies),
+        boms = model.JsonSet.empty,
         jars = model.JsonSet.empty,
         java = configuredJava,
         scala = configuredScala,

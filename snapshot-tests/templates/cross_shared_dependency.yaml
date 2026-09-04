@@ -1,0 +1,26 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "dev",
+  "projects" : {
+    "a" : {
+      "cross" : {
+        "jvm211" : {
+          "scala" : {
+            "version" : "2.11.12"
+          }
+        },
+        "jvm212" : {
+          "scala" : {
+            "version" : "2.12.18"
+          }
+        },
+        "jvm213" : {
+          "scala" : {
+            "version" : "2.13.12"
+          }
+        }
+      },
+      "dependencies" : "com.example:libx:1.0.0"
+    }
+  }
+}
