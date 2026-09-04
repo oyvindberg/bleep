@@ -110,12 +110,20 @@ public class ForkedTestRunner {
       // Install security manager to catch System.exit (if supported)
       installSecurityManager();
 
-      // One LauncherSession for this whole fork: a LauncherSessionListener (the SmallRye/Mutiny
-      // registrar, Quarkus's interceptor) fires once here, not once per suite — which is what a
-      // test
-      // harness written for maven's one-fork-per-module assumes, and what keeps concurrent suites
-      // from racing on a "register this global once" listener.
-      JUnitPlatformRunner.enableSharedSession();
+      // One LauncherSession for this whole fork: a LauncherSessionListener fires once here, not
+      // once
+      // per suite — which is what a test harness written for maven's one-fork-per-module assumes,
+      // and what keeps concurrent suites from racing on a "register this global once" listener.
+      //
+      // Guarded because it is a JUnit-Platform concept and JUnitPlatformRunner links against
+      // org.junit.platform.launcher.*. A fork for an sbt test-interface project (ScalaTest, MUnit,
+      // utest, ...) has no JUnit Platform on its runtime classpath (junit-platform-launcher is a
+      // `provided`, compile-only dependency of bleep-test-runner), so merely referencing that class
+      // would NoClassDefFoundError and kill the fork before it reaches Ready. No JUnit suites will
+      // run in such a fork, so there is nothing to share; skip it.
+      if (junitPlatformOnClasspath()) {
+        JUnitPlatformRunner.enableSharedSession();
+      }
 
       // Signal ready
       send(TestProtocol.encodeReady());
@@ -191,10 +199,14 @@ public class ForkedTestRunner {
           TestProtocol.encodeError(
               "Fatal error in test runner: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
     } finally {
-      // Close the shared LauncherSession, running its listeners' launcherSessionClosed — for a
-      // Quarkus
-      // fork that is where the application and its dev-service containers are asked to stop.
-      JUnitPlatformRunner.closeSharedSession();
+      // Close the shared LauncherSession, running its listeners' launcherSessionClosed — where a
+      // booted application and its containers are asked to stop. Guarded for the same reason as the
+      // open above: an sbt-interface fork has no JUnit Platform on its classpath, so touching
+      // JUnitPlatformRunner here would NoClassDefFoundError in the finally and mask the real
+      // result.
+      if (junitPlatformOnClasspath()) {
+        JUnitPlatformRunner.closeSharedSession();
+      }
       // Restore original streams
       System.setOut(originalOut);
       System.setErr(originalErr);
@@ -219,6 +231,27 @@ public class ForkedTestRunner {
   private static synchronized void send(String message) {
     protocolOut.println(message);
     protocolOut.flush();
+  }
+
+  /**
+   * Is JUnit Platform's launcher on this fork's classpath? Only then may we touch {@link
+   * JUnitPlatformRunner}, which links against {@code org.junit.platform.launcher.*}. sbt
+   * test-interface forks (ScalaTest, MUnit, utest, ...) have no JUnit Platform — {@code
+   * junit-platform-launcher} is a {@code provided}, compile-only dependency of bleep-test-runner —
+   * so referencing that class in such a fork NoClassDefFoundErrors. Probed with the class the
+   * runner's shared-session lifecycle needs; loaded lazily (initialize=false) so the check itself
+   * never triggers the failure it is guarding against.
+   */
+  private static boolean junitPlatformOnClasspath() {
+    try {
+      Class.forName(
+          "org.junit.platform.launcher.TestExecutionListener",
+          false,
+          ForkedTestRunner.class.getClassLoader());
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 
   /**
