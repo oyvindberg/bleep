@@ -48,6 +48,28 @@ public class ForkedTestRunner {
   // set this (a Vert.x event loop, a Netty worker) has no owning suite and is tagged null.
   private static final ThreadLocal<String> currentSuite = new ThreadLocal<>();
 
+  // The suite a batch is currently running, across all threads. A batch runs one suite at a time by
+  // default, so this is unambiguous, and it is the fallback that lets output from a framework's own
+  // threads (which never set the thread-local `currentSuite`) still be attributed to the right
+  // suite.
+  private static volatile String activeBatchSuite = null;
+
+  /**
+   * Set (or clear, with null) the suite whose output a batch is currently producing. Passed to
+   * {@link SuiteRunner#runSuites} and used by the JUnit batch loop so output — on the running
+   * thread or on a framework's own — is attributed to the suite in flight, the way {@link
+   * #startSuiteThread} does for a single suite on its own thread.
+   */
+  static void setCurrentSuite(String suite) {
+    if (suite == null) {
+      currentSuite.remove();
+      activeBatchSuite = null;
+    } else {
+      currentSuite.set(suite);
+      activeBatchSuite = suite;
+    }
+  }
+
   public static void main(String[] args) {
     // Save original streams for protocol communication
     PrintStream originalOut = System.out;
@@ -351,9 +373,26 @@ public class ForkedTestRunner {
         new Thread(
             () -> {
               try {
-                new JUnitPlatformRunner(
-                        ForkedTestRunner::send, Arrays.asList(capturedOut, capturedErr))
-                    .runSuites(runSuites.classNames, runSuites.parallelism);
+                if (runSuites.runner == TestProtocol.RunnerKind.JUNIT_PLATFORM) {
+                  new JUnitPlatformRunner(
+                          ForkedTestRunner::send, Arrays.asList(capturedOut, capturedErr))
+                      .runSuites(runSuites.classNames, runSuites.parallelism);
+                } else {
+                  // sbt test-interface: one Framework/Runner for all the project's suites of this
+                  // framework, done() once — maven's forkCount=1 reuseForks=true, which stateful
+                  // frameworks need. setCurrentSuite tags captured output with the running suite.
+                  new SuiteRunner(
+                          ForkedTestRunner::send,
+                          ForkedTestRunner.class.getClassLoader(),
+                          Arrays.asList(capturedOut, capturedErr))
+                      .runSuites(
+                          runSuites.classNames,
+                          runSuites.framework,
+                          runSuites.frameworkClass,
+                          runSuites.args,
+                          runSuites.parallelism,
+                          ForkedTestRunner::setCurrentSuite);
+                }
               } finally {
                 runningSuites.remove(BATCH_KEY, Thread.currentThread());
               }
@@ -440,7 +479,16 @@ public class ForkedTestRunner {
       StringBuilder buf = buffer.get();
       if (buf.length() > 0) {
         String level = "stderr".equals(name) ? "error" : "info";
-        send(TestProtocol.encodeLog(currentSuite.get(), level, buf.toString()));
+        // Prefer the writing thread's own suite; fall back to the batch's active suite for output
+        // on
+        // a framework/async thread (a ZIO fiber, a specs2 worker) that never set the thread-local.
+        // Correct because a batch runs one suite at a time by default; without it such output has
+        // no
+        // owning suite and, on a batch's shared fork, is dropped instead of landing in
+        // <system-out>.
+        String suite = currentSuite.get();
+        if (suite == null) suite = activeBatchSuite;
+        send(TestProtocol.encodeLog(suite, level, buf.toString()));
         buf.setLength(0);
       }
     }

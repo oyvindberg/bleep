@@ -300,11 +300,24 @@ public final class TestProtocol {
               "Missing classNames, framework, runner or parallelism for RunSuites");
         }
         RunnerKind kind = RunnerKind.fromWire(runner);
-        if (kind != RunnerKind.JUNIT_PLATFORM) {
-          return new ParsedCommand.Invalid(
-              "RunSuites is only for JUnit-Platform, got runner " + runner);
+        if (kind == null) {
+          return new ParsedCommand.Invalid("Unknown runner: " + runner);
         }
-        return new ParsedCommand.RunSuites(classNames, parallelism, framework, kind);
+        // frameworkClass + args are the sbt-interface batch's payload (which Framework to build and
+        // its args); JUnit Platform ignores them (it configures via parameters and needs no class).
+        String frameworkClass = extractStringField(dataSection, "frameworkClass");
+        List<String> args = extractStringArray(dataSection, "args");
+        if (kind == RunnerKind.SBT_TEST_INTERFACE && frameworkClass == null) {
+          return new ParsedCommand.Invalid(
+              "RunSuites for sbt-test-interface requires frameworkClass");
+        }
+        return new ParsedCommand.RunSuites(
+            classNames,
+            parallelism,
+            framework,
+            kind,
+            frameworkClass,
+            args == null ? java.util.Collections.emptyList() : args);
       } else if (CMD_RUN_SUITE.equals(type)) {
         // Extract data object fields
         int dataStart = line.indexOf("\"data\"");
@@ -614,12 +627,27 @@ public final class TestProtocol {
       public final String framework;
       public final RunnerKind runner;
 
+      /** sbt-interface only: the Framework class to instantiate. Null for JUnit Platform. */
+      public final String frameworkClass;
+
+      /**
+       * Framework args (sbt-interface); empty for JUnit Platform, which configures via parameters.
+       */
+      public final List<String> args;
+
       public RunSuites(
-          List<String> classNames, int parallelism, String framework, RunnerKind runner) {
+          List<String> classNames,
+          int parallelism,
+          String framework,
+          RunnerKind runner,
+          String frameworkClass,
+          List<String> args) {
         this.classNames = classNames;
         this.parallelism = parallelism;
         this.framework = framework;
         this.runner = runner;
+        this.frameworkClass = frameworkClass;
+        this.args = args;
       }
     }
 

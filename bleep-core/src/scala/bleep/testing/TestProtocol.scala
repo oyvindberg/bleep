@@ -39,7 +39,8 @@ object TestProtocol {
     case class RunSuites(
         classNames: List[String],
         parallelism: Int,
-        selection: FrameworkSelection
+        selection: FrameworkSelection,
+        args: List[String]
     ) extends TestCommand
 
     /** Cancel one in-flight suite by class name without touching the fork or its siblings.
@@ -102,15 +103,19 @@ object TestProtocol {
     // Only JUnit-Platform suites are ever batched into one execution (that is the runner with a cross-class scope worth preserving), so the wire form carries
     // the one runner + display name shared by all the classes, plus the class list and bleep's parallelism.
     implicit val runSuitesEncoder: Encoder[RunSuites] = Encoder.instance { rs =>
-      val runner = rs.selection match {
-        case FrameworkSelection.JUnitPlatform(_) => RunnerWire.JUnitPlatform
-        case other                               => sys.error(s"RunSuites is only for JUnit-Platform; got $other for ${rs.classNames.mkString(", ")}")
+      // A batch's classes all share one framework, so one runner + (for sbt) one frameworkClass covers them. JUnit Platform needs no frameworkClass; sbt does.
+      val (runner, frameworkClass) = rs.selection match {
+        case FrameworkSelection.JUnitPlatform(_)         => (RunnerWire.JUnitPlatform, None)
+        case FrameworkSelection.SbtTestInterface(_, cls) => (RunnerWire.SbtTestInterface, Some(cls))
+        case other => sys.error(s"RunSuites is for JUnit-Platform or sbt-test-interface; got $other for ${rs.classNames.mkString(", ")}")
       }
       Json.obj(
         "classNames" -> rs.classNames.asJson,
         "parallelism" -> rs.parallelism.asJson,
         "framework" -> rs.selection.displayName.asJson,
-        "runner" -> runner.asJson
+        "runner" -> runner.asJson,
+        "frameworkClass" -> frameworkClass.asJson,
+        "args" -> rs.args.asJson
       )
     }
 
@@ -120,10 +125,15 @@ object TestProtocol {
         parallelism <- cursor.downField("parallelism").as[Int]
         displayName <- cursor.downField("framework").as[String]
         runner <- cursor.downField("runner").as[String]
-        selection <-
-          if (runner == RunnerWire.JUnitPlatform) Right(FrameworkSelection.JUnitPlatform(displayName))
-          else Left(DecodingFailure(s"RunSuites is only for JUnit-Platform, got runner $runner", cursor.history))
-      } yield RunSuites(classNames, parallelism, selection)
+        frameworkClass <- cursor.downField("frameworkClass").as[Option[String]]
+        args <- cursor.downField("args").as[List[String]]
+        selection <- (runner, frameworkClass) match {
+          case (RunnerWire.JUnitPlatform, _)            => Right(FrameworkSelection.JUnitPlatform(displayName))
+          case (RunnerWire.SbtTestInterface, Some(cls)) => Right(FrameworkSelection.SbtTestInterface(displayName, cls))
+          case (RunnerWire.SbtTestInterface, None) => Left(DecodingFailure(s"${RunnerWire.SbtTestInterface} RunSuites requires frameworkClass", cursor.history))
+          case (other, _)                          => Left(DecodingFailure(s"Unknown runner for RunSuites: $other", cursor.history))
+        }
+      } yield RunSuites(classNames, parallelism, selection, args)
     }
 
     implicit val encoder: Encoder[TestCommand] = Encoder.instance {

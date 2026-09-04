@@ -1003,8 +1003,13 @@ object JvmPool {
         }
       }
 
-      override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection): Stream[IO, TestProtocol.TestResponse] = {
-        val command = TestProtocol.TestCommand.RunSuites(classNames, parallelism, selection)
+      override def runSuites(
+          classNames: List[String],
+          parallelism: Int,
+          selection: FrameworkSelection,
+          args: List[String]
+      ): Stream[IO, TestProtocol.TestResponse] = {
+        val command = TestProtocol.TestCommand.RunSuites(classNames, parallelism, selection, args)
         val body =
           Stream.eval(IO(jvm.markSuiteStarted()) >> sendCommand(command)) >>
             readResponses.takeThrough {
@@ -1185,7 +1190,12 @@ object JvmPool {
 
       override def pid: Long = jvm.process.pid()
 
-      override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection): Stream[IO, TestProtocol.TestResponse] =
+      override def runSuites(
+          classNames: List[String],
+          parallelism: Int,
+          selection: FrameworkSelection,
+          args: List[String]
+      ): Stream[IO, TestProtocol.TestResponse] =
         // A shared session multiplexes many independent suites; a batched one-execution run is the other model (an exclusive fork), and mixing them on the same
         // fork would have two owners of the response stream. The batch path never acquires a shared session, so reaching here is a routing bug.
         Stream.raiseError[IO](new IllegalStateException("runSuites (one-execution batch) must run on an exclusive fork, not a shared per-project session"))

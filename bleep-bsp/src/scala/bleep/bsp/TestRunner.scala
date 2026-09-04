@@ -155,7 +155,7 @@ object TestRunner {
     executor.acquire(request).use { jvm =>
       val startedAt = System.currentTimeMillis()
       IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, s"<batch:${suites.size}>", selection.displayName)).attempt >>
-        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, resolveSourcePath, killSignal)
+        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, options.testArgs, resolveSourcePath, killSignal)
           .flatTap { result =>
             IO(
               BspMetrics.recordSuiteFinished(
@@ -178,6 +178,7 @@ object TestRunner {
       jvm: TestSession,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       idleTimeout: FiniteDuration,
+      args: List[String],
       resolveSourcePath: String => Option[String],
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -193,7 +194,7 @@ object TestRunner {
 
       processResponses =
         jvm
-          .runSuites(classNames, parallelism, selection)
+          .runSuites(classNames, parallelism, selection, args)
           .evalMap {
             case TestProtocol.TestResponse.TestStarted(suite, test) =>
               now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suite), TestName(test), ts)))

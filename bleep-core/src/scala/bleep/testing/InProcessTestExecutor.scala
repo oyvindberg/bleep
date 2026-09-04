@@ -243,7 +243,7 @@ private class InProcessSession(loader: URLClassLoader, suiteEc: ExecutionContext
     // Each in-process session runs a single suite on its own thread, so stopping that suite is the same interrupt as `kill`.
     kill
 
-  override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection): Stream[IO, TestProtocol.TestResponse] =
+  override def runSuites(classNames: List[String], parallelism: Int, selection: FrameworkSelection, args: List[String]): Stream[IO, TestProtocol.TestResponse] =
     // In-process runs one suite per session on its own thread; a batched one-execution run belongs to a forked JVM, where reuse across classes is worth having.
     Stream.raiseError[IO](new IllegalStateException("runSuites (one-execution batch) is a forked-JVM path; in-process runs suites individually"))
 }

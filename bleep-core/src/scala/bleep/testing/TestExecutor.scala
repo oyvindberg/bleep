@@ -84,14 +84,17 @@ trait TestSession {
       args: List[String]
   ): Stream[IO, TestProtocol.TestResponse]
 
-  /** Run a whole set of JUnit-Platform classes in ONE execution at bleep's chosen `parallelism`, streaming every class's responses (each already tagged with
-    * its suite) until the batch terminator. This is the shape that keeps an execution-scoped fixture — an application booted for the run — built once and
-    * reused across the classes, instead of rebuilt per class. Only the forked JVM session honours it; other sessions run suite-by-suite.
+  /** Run a whole set of classes of ONE framework through a single execution — for JUnit Platform, one `launcher.execute()`; for sbt test-interface, one
+    * `Framework`/`Runner` with all their tasks and one `done()` (maven's `forkCount=1 reuseForks=true`). Streams every class's responses, each tagged with its
+    * suite, until the batch terminator. This is what keeps an execution-scoped fixture — an application booted for the run — built once and reused across the
+    * classes rather than rebuilt per class, and (for sbt) what stateful frameworks require. `parallelism` bounds how many classes run at once (1 = sequential).
+    * Only the forked JVM session honours it; other sessions run suite-by-suite.
     */
   def runSuites(
       classNames: List[String],
       parallelism: Int,
-      selection: FrameworkSelection
+      selection: FrameworkSelection,
+      args: List[String]
   ): Stream[IO, TestProtocol.TestResponse]
 
   /** A thread dump, as the protocol carries it. */

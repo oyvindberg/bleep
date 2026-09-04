@@ -95,6 +95,170 @@ public final class SuiteRunner {
       return;
     }
 
+    Framework framework;
+    Runner runner;
+    try {
+      flushAll();
+      sink.accept(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkClass));
+      framework = loadFramework(frameworkClass);
+      sink.accept(
+          TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
+      runner = framework.runner(args.toArray(new String[0]), new String[0], loader);
+    } catch (Throwable e) {
+      sink.accept(TestProtocol.encodeLog("error", stackTraceToString(e)));
+      sink.accept(
+          TestProtocol.encodeSuiteErrored(
+              className,
+              0,
+              "Error loading framework "
+                  + frameworkClass
+                  + ": "
+                  + e.getClass().getName()
+                  + ": "
+                  + e.getMessage(),
+              stackTraceToString(e)));
+      return;
+    }
+
+    // One Runner, one done() — even for a single suite. The lifecycle lives in the caller so the
+    // batch path ([[runSuites]]) can share one Runner across a project's suites, which is the sbt
+    // interface's contract (one runner per framework per run) and what stateful frameworks need.
+    try {
+      runOneSuiteOn(framework, runner, frameworkName, className);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        runner.done();
+      } catch (Throwable ignored) {
+        // done() is best-effort cleanup; a failure here must not mask the suite's own result.
+      }
+    }
+  }
+
+  /**
+   * Run every suite in {@code classNames} through ONE {@link Runner} — maven surefire's {@code
+   * forkCount=1 reuseForks=true}, and what sbt and mill do: {@link Framework#runner} once, all
+   * suites through it, {@link Runner#done()} once. A fresh Runner (and done()) per suite — the
+   * shape a shared fork used before — breaks frameworks that keep per-JVM state (munit, ZIO Test),
+   * which set up on runner creation and tear down on done(); N of each in one JVM corrupted their
+   * results.
+   *
+   * <p>{@code degree} suites run at once — 1 is sequential, the safe default that matches surefire.
+   * Each suite's events are attributed by the class name bound to it here, so concurrent suites
+   * never cross. {@code setCurrentSuite} lets the caller tag captured output with the suite running
+   * on the current thread (null clears it).
+   */
+  public void runSuites(
+      List<String> classNames,
+      String frameworkName,
+      String frameworkClass,
+      List<String> args,
+      int degree,
+      java.util.function.Consumer<String> setCurrentSuite) {
+    Framework framework;
+    Runner runner;
+    try {
+      flushAll();
+      framework = loadFramework(frameworkClass);
+      runner = framework.runner(args.toArray(new String[0]), new String[0], loader);
+    } catch (Throwable e) {
+      sink.accept(TestProtocol.encodeLog("error", stackTraceToString(e)));
+      for (String className : classNames) {
+        sink.accept(
+            TestProtocol.encodeSuiteErrored(
+                className,
+                0,
+                "Error loading framework "
+                    + frameworkClass
+                    + ": "
+                    + e.getClass().getName()
+                    + ": "
+                    + e.getMessage(),
+                stackTraceToString(e)));
+      }
+      return;
+    }
+
+    try {
+      if (degree <= 1) {
+        for (String className : classNames) {
+          if (Thread.interrupted()) break;
+          setCurrentSuite.accept(className);
+          try {
+            runOneSuiteOn(framework, runner, frameworkName, className);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            break;
+          } finally {
+            setCurrentSuite.accept(null);
+          }
+        }
+      } else {
+        java.util.concurrent.ExecutorService pool =
+            java.util.concurrent.Executors.newFixedThreadPool(
+                Math.min(degree, Math.max(1, classNames.size())));
+        try {
+          java.util.List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
+          for (String className : classNames) {
+            futures.add(
+                pool.submit(
+                    () -> {
+                      setCurrentSuite.accept(className);
+                      try {
+                        runOneSuiteOn(framework, runner, frameworkName, className);
+                      } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                      } finally {
+                        setCurrentSuite.accept(null);
+                      }
+                      return null;
+                    }));
+          }
+          for (java.util.concurrent.Future<?> f : futures) {
+            try {
+              f.get();
+            } catch (java.util.concurrent.ExecutionException e) {
+              sink.accept(
+                  TestProtocol.encodeLog(
+                      "error", stackTraceToString(e.getCause() == null ? e : e.getCause())));
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              break;
+            }
+          }
+        } finally {
+          pool.shutdownNow();
+        }
+      }
+    } finally {
+      try {
+        runner.done();
+      } catch (Throwable ignored) {
+        // best-effort cleanup
+      }
+      try {
+        flushAll();
+      } catch (IOException ignored) {
+        // best-effort
+      }
+      // The batch terminator: the parent's runSuites stream ends on this (each suite's own
+      // SuiteDone
+      // has already gone by). Without it the parent waits forever for a run that has finished.
+      sink.accept(TestProtocol.encodeBatchComplete());
+    }
+  }
+
+  /**
+   * Run one suite on an already-created {@link Runner}. Does NOT create the runner or call {@link
+   * Runner#done()} — the caller owns that lifecycle so a batch can share one Runner across a
+   * project's suites. Reports the suite's terminal outcome; a per-suite failure is reported and
+   * swallowed so a batch's other suites still run, while an interruption propagates to stop the
+   * run.
+   */
+  private void runOneSuiteOn(
+      Framework framework, Runner runner, String frameworkName, String className)
+      throws InterruptedException {
     long startTime = System.currentTimeMillis();
 
     // Counters declared outside try so they're accessible in catch for SuiteDone reporting
@@ -104,18 +268,6 @@ public final class SuiteRunner {
     final int[] ignored = {0};
 
     try {
-      // Flush any pending output before starting
-      flushAll();
-
-      // Load the framework
-      sink.accept(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkClass));
-      Framework framework = loadFramework(frameworkClass);
-      sink.accept(
-          TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
-
-      // Get the runner
-      Runner runner = framework.runner(args.toArray(new String[0]), new String[0], loader);
-
       // Try each fingerprint from the framework until we find one that produces tasks.
       // Different fingerprints match different test patterns (e.g. @Test annotation vs
       // TestCase subclass), so we need to find the right one for this class.
@@ -242,8 +394,8 @@ public final class SuiteRunner {
       Logger logger = createLogger(className);
       executeTasks(tasks, eventHandler, new Logger[] {logger});
 
-      // Done
-      runner.done();
+      // NB: no runner.done() here — the caller owns the Runner's lifecycle and calls done() once,
+      // after all of a batch's suites, per the sbt interface's one-runner-per-framework contract.
 
       // Final flush
       flushAll();
@@ -260,9 +412,9 @@ public final class SuiteRunner {
       }
 
     } catch (InterruptedException e) {
-      // Cancelled - report and re-throw to exit the run
+      // Cancelled — report and propagate so a batch stops rather than starting its next suite.
       sink.accept(TestProtocol.encodeLog("warn", "Suite " + className + " was cancelled"));
-      throw new RuntimeException(e);
+      throw e;
     } catch (SecurityException e) {
       if (e.getMessage() != null && e.getMessage().contains("System.exit")) {
         sink.accept(
@@ -272,7 +424,20 @@ public final class SuiteRunner {
                 "Test attempted a blocked System.exit",
                 null));
       } else {
-        throw e;
+        // Report and swallow (do not abort a batch's siblings); a non-exit SecurityException here
+        // is unexpected, so it is surfaced as this suite's error rather than rethrown.
+        sink.accept(TestProtocol.encodeLog("error", stackTraceToString(e)));
+        sink.accept(
+            TestProtocol.encodeSuiteErrored(
+                className,
+                System.currentTimeMillis() - startTime,
+                "Error running suite "
+                    + className
+                    + ": "
+                    + e.getClass().getName()
+                    + ": "
+                    + e.getMessage(),
+                stackTraceToString(e)));
       }
     } catch (Throwable e) {
       // Must catch Throwable (not just Exception): a framework may let an Error (AssertionError,

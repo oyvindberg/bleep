@@ -2533,19 +2533,36 @@ class MultiWorkspaceBspServer(
                     val keptSet = keptFqdns.toSet
                     regexFiltered.filter { case (fqdn, _) => keptSet(fqdn) }
                   }
-                // Run the whole project as ONE JUnit execution in per-project mode (the default) AND every suite is JUnit-Platform (the only runner with a
-                // cross-class execution scope to preserve — an application-scoped fixture built once, not per class). The degree is the project's
-                // testSuiteParallelism if it set one (1 serialises singleton-state suites), else the machine's cores. sbt-interface frameworks fall through to
-                // suite-by-suite, on bleep's threads.
-                val batchParallelism: Option[Int] =
+                // In per-project mode (the default) a project's suites of ONE framework run through a single execution: for JUnit Platform one
+                // `launcher.execute()`; for sbt test-interface one `Framework`/`Runner` with all their tasks and one `done()` — maven's `forkCount=1
+                // reuseForks=true`, which is what stateful frameworks (munit, ZIO Test) need and what the sbt interface's one-runner-per-framework contract
+                // specifies. Group the JVM suites by framework into batches. A batch's degree is the user's testSuiteParallelism if set; else ~cores/4 for JUnit
+                // Platform (built for concurrent classes) or 1 for sbt test-interface (surefire-sequential, the safe default). PlatformRunner (JS/Native) suites
+                // are never batched here — they run through their platform's own runner.
+                val batchGroups: List[(List[(String, bleep.testing.FrameworkSelection)], Int)] =
                   discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
-                    case model.TestJvmMode.PerProject
-                        if tagFiltered.nonEmpty && tagFiltered.forall(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]) =>
-                      // The degree is the resolved suiteParallelism (the user's value, or the per-project default of ~cores/4 computed above — 1 serialises
-                      // singleton-state suites), capped by the suite count so a small project does not reserve cores it cannot use. The governor keeps the machine-wide
-                      // total within the core count as many projects' batches overlap.
-                      Some(math.min(tagFiltered.size, suiteParallelism.getOrElse(1)))
-                    case _ => None
+                    case model.TestJvmMode.PerProject =>
+                      // Default degree 1: a project's suites run one at a time through the one shared fork — maven's forkCount=1 reuseForks=true, which is
+                      // sequential. It is the safe default for both runners: sharing a JVM is where per-project's value is (a booted app, warm classes), and
+                      // running a framework's classes concurrently through one Runner / one LauncherSession is where engines break (jqwik's engine, singleton
+                      // state). A project opts into concurrency with testSuiteParallelism > 1 once it knows its frameworks tolerate it.
+                      val userParallelism = discoverProject.testSuiteParallelism
+                      val junit = tagFiltered.filter(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]).toList
+                      val junitGroup =
+                        if (junit.isEmpty) Nil
+                        else List((junit, math.min(junit.size, userParallelism.getOrElse(1))))
+                      val sbtGroups =
+                        tagFiltered.toList
+                          .collect { case s @ (_, sel: bleep.testing.FrameworkSelection.SbtTestInterface) => (sel.frameworkClass, s) }
+                          .groupBy(_._1)
+                          .toList
+                          .sortBy(_._1)
+                          .map { case (_, pairs) =>
+                            val groupSuites = pairs.map(_._2)
+                            (groupSuites, math.min(groupSuites.size, userParallelism.getOrElse(1)))
+                          }
+                      junitGroup ++ sbtGroups
+                    case model.TestJvmMode.PerSuite => Nil
                   }
 
                 // Only treat an empty result as an error when the user asked to *include* something (--only or --only-tag).
@@ -2593,9 +2610,9 @@ class MultiWorkspaceBspServer(
                     else "filter"
                   val msg =
                     s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
-                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject, suiteParallelism, batchParallelism = None))
+                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject, suiteParallelism, batches = Nil))
                 } else {
-                  (result, TaskDag.DiscoveryResult(tagFiltered, suites.size, isTestProject, suiteParallelism, batchParallelism))
+                  (result, TaskDag.DiscoveryResult(tagFiltered.toList, suites.size, isTestProject, suiteParallelism, batches = batchGroups))
                 }
               }
 

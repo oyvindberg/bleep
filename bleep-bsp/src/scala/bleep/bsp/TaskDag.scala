@@ -295,11 +295,11 @@ object TaskDag {
         * sequentially through one warm fork, maven-style.
         */
       suiteParallelism: Option[Int],
-      /** Set when this project's suites should run as ONE batched JUnit execution (maven surefire's one-execute-per-module), carrying the degree of parallelism
-        * bleep chose for it (1 for singleton-state suites, more for plain suites). Decided by the discover handler from `testJvm == per-project` AND every
-        * discovered suite being JUnit-Platform — the only runner with a cross-class execution scope worth preserving. None = run suite-by-suite as before.
+      /** Per-project batches, one per framework: the suites to run through a single execution (JUnit Platform: one `launcher.execute()`; sbt test-interface:
+        * one `Framework`/`Runner`, one `done()` — maven's one-execute-per-module), paired with the degree of parallelism bleep chose. Decided by the discover
+        * handler from `testJvm == per-project`, grouping JVM suites by framework. Empty = run suite-by-suite (per-suite mode, and any PlatformRunner suites).
         */
-      batchParallelism: Option[Int]
+      batches: List[(List[(String, bleep.testing.FrameworkSelection)], Int)]
   )
 
   /** Execute a test suite */
@@ -1162,25 +1162,27 @@ object TaskDag {
                         (result, discovery) <- handlers.discover(dt, linkOutput, taskKill)
                         _ <- result match {
                           case TaskResult.Success =>
-                            val orderedSuites = discovery.suites.sortBy(_._1)
-                            val newTasks: List[Task] =
-                              discovery.batchParallelism match {
-                                case Some(degree) =>
-                                  // One batched JUnit execution for the whole project: a single task, so an execution-scoped fixture builds once. junit runs
-                                  // `degree` classes at once inside the fork.
-                                  List(TestBatchTask(dt.project, orderedSuites.map { case (n, sel) => (SuiteName(n), sel) }, degree))
-                                case None =>
-                                  // Suite-by-suite. With a suite-parallelism bound, a project's suites form that many round-robin chains, alphabetically
-                                  // ordered — surefire's usual class order, which schema-bootstrapping setups rely on. At bound 1 all suites run through one
-                                  // warm fork sequentially.
-                                  val bound = discovery.suiteParallelism.getOrElse(Int.MaxValue)
-                                  orderedSuites.zipWithIndex.map { case ((suiteName, selection), idx) =>
-                                    val after: Set[TaskId] =
-                                      if (idx < bound) Set.empty
-                                      else Set(TaskId.Test(dt.project, SuiteName(orderedSuites(idx - bound)._1)))
-                                    TestSuiteTask(dt.project, SuiteName(suiteName), selection, runAfter = after)
-                                  }
+                            // One batched execution per framework group (per-project mode) — an execution-scoped fixture / a framework's Runner is built once for
+                            // all its classes. Whatever a batch does not cover (per-suite mode, or PlatformRunner suites) runs suite-by-suite.
+                            val batchTasks: List[Task] =
+                              discovery.batches.map { case (groupSuites, degree) =>
+                                val ordered = groupSuites.sortBy(_._1).map { case (n, sel) => (SuiteName(n), sel) }
+                                TestBatchTask(dt.project, ordered, degree)
                               }
+                            val batchedNames: Set[String] = discovery.batches.flatMap(_._1.map(_._1)).toSet
+                            // Suite-by-suite for the rest. With a suite-parallelism bound, a project's suites form that many round-robin chains, alphabetically
+                            // ordered — surefire's usual class order, which schema-bootstrapping setups rely on. At bound 1 all suites run through one warm fork
+                            // sequentially.
+                            val perSuite = discovery.suites.filterNot { case (n, _) => batchedNames(n) }.sortBy(_._1)
+                            val bound = discovery.suiteParallelism.getOrElse(Int.MaxValue)
+                            val suiteTasks: List[Task] =
+                              perSuite.zipWithIndex.map { case ((suiteName, selection), idx) =>
+                                val after: Set[TaskId] =
+                                  if (idx < bound) Set.empty
+                                  else Set(TaskId.Test(dt.project, SuiteName(perSuite(idx - bound)._1)))
+                                TestSuiteTask(dt.project, SuiteName(suiteName), selection, runAfter = after)
+                              }
+                            val newTasks: List[Task] = batchTasks ++ suiteTasks
                             dagRef.update(dag => newTasks.foldLeft(dag)(_.addTask(_))) >>
                               emit(
                                 DagEvent.SuitesDiscovered(

@@ -6,10 +6,8 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.junit.platform.engine.TestExecutionResult;
@@ -464,180 +462,61 @@ class JUnitPlatformRunner {
    * singleton-per-JVM application requires).
    */
   void runSuites(List<String> classNames, int parallelism) {
-    long batchStart = System.currentTimeMillis();
-    Set<String> requested = new LinkedHashSet<>(classNames);
-    Map<String, int[]> counts =
-        new ConcurrentHashMap<>(); // per class: [passed, failed, skipped, ignored]
-    Map<String, Long> startedAt = new ConcurrentHashMap<>();
-    Map<String, Long> testStartNanos = new ConcurrentHashMap<>();
-    Set<String> reported = ConcurrentHashMap.newKeySet();
-    for (String c : requested) counts.put(c, new int[4]);
-
-    // Emit a class's terminal exactly once. Idempotent via `reported.add`. Empty (nothing ran) is
-    // not a pass, matching runSuite.
-    Consumer<String> emitDone =
-        cls -> {
-          if (!reported.add(cls)) return;
-          int[] c = counts.getOrDefault(cls, new int[4]);
-          long dur = System.currentTimeMillis() - startedAt.getOrDefault(cls, batchStart);
-          if (c[0] + c[1] + c[2] + c[3] == 0) send(TestProtocol.encodeSuiteEmpty(cls, dur));
-          else send(TestProtocol.encodeSuiteExecuted(cls, c[0], c[1], c[2], c[3], dur));
-        };
-
+    // One launcher.execute PER class, on the shared LauncherSession — not one execute selecting all
+    // classes. The one-execute form lost tests for engines whose test tree is not keyed by the
+    // selected class: a cucumber scenario's class source is the glue/feature, a spek test's is the
+    // spec node, so neither maps back to the requested Fixture and it reported zero. Per-class
+    // execute attributes every test in that execute to the one class it selected — exactly what the
+    // single-suite path already does correctly. The session is opened once (SHARE_SESSION) and
+    // reused across the classes, so a session-scoped fixture — a @QuarkusTest application, a
+    // LauncherSessionListener — is still built once, which was the point of batching. `parallelism`
+    // bounds how many classes execute at once (1 = sequential, the safe default).
     try {
-      flushAll();
-      boolean shareSession = SHARE_SESSION;
-      LauncherHandle handle = shareSession ? sharedHandle() : openLauncher();
-      try {
-        Launcher launcher = handle.launcher;
-
-        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
-        for (String c : classNames) builder.selectors(selectClass(c));
-        boolean parallel = parallelism > 1;
-        // bleep decides the degree; these override any junit-platform.properties the project ships,
-        // so the number is ours, not junit's.
-        builder.configurationParameter(
-            "junit.jupiter.execution.parallel.enabled", Boolean.toString(parallel));
-        builder.configurationParameter("junit.jupiter.execution.parallel.config.strategy", "fixed");
-        builder.configurationParameter(
-            "junit.jupiter.execution.parallel.config.fixed.parallelism",
-            Integer.toString(Math.max(1, parallelism)));
-        builder.configurationParameter(
-            "junit.jupiter.execution.parallel.mode.classes.default", "concurrent");
-        builder.configurationParameter(
-            "junit.jupiter.execution.parallel.mode.default", "same_thread");
-        LauncherDiscoveryRequest request = builder.build();
-
-        TestExecutionListener listener =
-            new TestExecutionListener() {
-              private String suiteOf(TestIdentifier id) {
-                String cls = classOf(id);
-                if (cls == null) return null;
-                if (requested.contains(cls)) return cls;
-                for (String r : requested)
-                  if (cls.startsWith(r + "$")) return r; // @Nested Foo$Bar -> Foo
-                return null;
-              }
-
-              @Override
-              public void executionStarted(TestIdentifier id) {
-                String suite = suiteOf(id);
-                if (suite == null) return;
-                startedAt.putIfAbsent(suite, System.currentTimeMillis());
-                if (id.isTest()) {
-                  testStartNanos.put(id.getUniqueId(), System.nanoTime());
-                  send(TestProtocol.encodeTestStarted(suite, id.getDisplayName()));
-                }
-              }
-
-              @Override
-              public void executionFinished(TestIdentifier id, TestExecutionResult result) {
-                String suite = suiteOf(id);
-                if (id.isTest()) {
-                  if (suite == null) return;
-                  int[] c = counts.get(suite);
-                  String status;
-                  String message = null;
-                  String throwableStr = null;
-                  switch (result.getStatus()) {
-                    case SUCCESSFUL:
-                      status = "passed";
-                      c[0]++;
-                      break;
-                    case FAILED:
-                      status = "failed";
-                      c[1]++;
-                      if (result.getThrowable().isPresent()) {
-                        message = result.getThrowable().get().getMessage();
-                        throwableStr = stackTraceToString(result.getThrowable().get());
+      if (parallelism <= 1) {
+        for (String c : classNames) {
+          ForkedTestRunner.setCurrentSuite(c);
+          try {
+            runSuite(c);
+          } finally {
+            ForkedTestRunner.setCurrentSuite(null);
+          }
+        }
+      } else {
+        java.util.concurrent.ExecutorService pool =
+            java.util.concurrent.Executors.newFixedThreadPool(
+                Math.min(parallelism, Math.max(1, classNames.size())));
+        try {
+          java.util.List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
+          for (String c : classNames) {
+            futures.add(
+                pool.submit(
+                    () -> {
+                      ForkedTestRunner.setCurrentSuite(c);
+                      try {
+                        runSuite(c);
+                      } finally {
+                        ForkedTestRunner.setCurrentSuite(null);
                       }
-                      break;
-                    case ABORTED:
-                      status = "skipped";
-                      c[2]++;
-                      if (result.getThrowable().isPresent())
-                        message = result.getThrowable().get().getMessage();
-                      break;
-                    default:
-                      status = "unknown";
-                      break;
-                  }
-                  try {
-                    flushAll();
-                  } catch (Exception e) {
-                    // ignore
-                  }
-                  long durationMs = elapsedMs(testStartNanos.remove(id.getUniqueId()));
-                  send(
-                      TestProtocol.encodeTestFinished(
-                          suite, id.getDisplayName(), status, durationMs, message, throwableStr));
-                } else {
-                  // A failed container (@AfterAll/@BeforeAll, a class rule) is a failure not
-                  // attributable to one test — surface it as a synthetic one.
-                  if (result.getStatus() == TestExecutionResult.Status.FAILED && suite != null) {
-                    counts.get(suite)[1]++;
-                    String message = result.getThrowable().map(Throwable::getMessage).orElse(null);
-                    String throwableStr =
-                        result
-                            .getThrowable()
-                            .map(JUnitPlatformRunner::stackTraceToString)
-                            .orElse(null);
-                    String name = containerTestName(id);
-                    send(TestProtocol.encodeTestStarted(suite, name));
-                    send(
-                        TestProtocol.encodeTestFinished(
-                            suite, name, "failed", 0, message, throwableStr));
-                  }
-                  // The requested class's own container finishing is that suite's terminal.
-                  String cls = classOf(id);
-                  if (cls != null && requested.contains(cls)) emitDone.accept(cls);
-                }
-              }
-
-              @Override
-              public void executionSkipped(TestIdentifier id, String reason) {
-                String suite = suiteOf(id);
-                if (suite == null) return;
-                startedAt.putIfAbsent(suite, System.currentTimeMillis());
-                if (id.isTest()) {
-                  counts.get(suite)[2]++;
-                  send(
-                      TestProtocol.encodeTestFinished(
-                          suite, id.getDisplayName(), "skipped", 0, reason, null));
-                } else if (requested.contains(classOf(id))) {
-                  // A whole class disabled: no tests will fire, so this is its terminal — an empty
-                  // (nothing ran) suite.
-                  emitDone.accept(classOf(id));
-                }
-              }
-
-              @Override
-              public void reportingEntryPublished(TestIdentifier id, ReportEntry entry) {
-                send(TestProtocol.encodeLog("info", entry.toString()));
-              }
-            };
-
-        launcher.execute(request, listener);
-      } finally {
-        if (!shareSession) handle.close();
+                      return null;
+                    }));
+          }
+          for (java.util.concurrent.Future<?> f : futures) {
+            try {
+              f.get();
+            } catch (java.util.concurrent.ExecutionException e) {
+              send(
+                  TestProtocol.encodeLog(
+                      "error", stackTraceToString(e.getCause() == null ? e : e.getCause())));
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              break;
+            }
+          }
+        } finally {
+          pool.shutdownNow();
+        }
       }
-      flushAll();
-      // Any requested class no engine claimed (filtered out, or a JUnit 4 class with no vintage
-      // engine) never got a container-finish. Report it, once.
-      for (String c : requested) emitDone.accept(c);
-      send(TestProtocol.encodeBatchComplete());
-    } catch (Throwable e) {
-      send(TestProtocol.encodeLog("error", stackTraceToString(e)));
-      long dur = System.currentTimeMillis() - batchStart;
-      for (String c : requested) {
-        if (reported.add(c))
-          send(
-              TestProtocol.encodeSuiteErrored(
-                  c,
-                  dur,
-                  "Batch execution failed: " + e.getClass().getName() + ": " + e.getMessage(),
-                  stackTraceToString(e)));
-      }
+    } finally {
       send(TestProtocol.encodeBatchComplete());
     }
   }
