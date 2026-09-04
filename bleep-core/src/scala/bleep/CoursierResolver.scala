@@ -82,16 +82,27 @@ object CoursierResolver {
       boms: SortedSet[model.Dep]
   )
   object Params {
-    implicit val codec: Codec[Params] =
-      Codec.forProduct5[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository], SortedSet[model.Dep]](
+    implicit val encoder: Encoder[Params] =
+      Encoder.forProduct5[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository], SortedSet[model.Dep]](
         "overrideCacheFolder",
         "downloadSources",
         "authentications",
         "repos",
         "boms"
-      )(
-        Params.apply
       )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos, x.boms))
+
+    // `boms` was added after the on-disk resolve cache format existed, so it must decode as absent-means-empty: an entry written before the field carried no
+    // boms, which is exactly the empty set. Making it required instead would reject every pre-existing cache file.
+    implicit val decoder: Decoder[Params] =
+      Decoder.instance { c =>
+        for {
+          overrideCacheFolder <- c.get[Option[File]]("overrideCacheFolder")
+          downloadSources <- c.get[Boolean]("downloadSources")
+          authentications <- c.get[Option[model.Authentications]]("authentications")
+          repos <- c.get[List[model.Repository]]("repos")
+          boms <- c.getOrElse[SortedSet[model.Dep]]("boms")(SortedSet.empty)
+        } yield Params(overrideCacheFolder, downloadSources, authentications, repos, boms)
+      }
   }
 
   trait Factory {
