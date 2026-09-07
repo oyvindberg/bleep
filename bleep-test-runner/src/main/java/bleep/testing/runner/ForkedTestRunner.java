@@ -164,39 +164,59 @@ public class ForkedTestRunner {
       // Shutdown — be acted on while others keep running. An exclusive per-suite session sends one
       // RunSuite at a time and never overlaps them; the same code serves it with a map of size one.
       boolean running = true;
+      // A failure to READ the protocol socket means the parent (bleep) is gone, and every
+      // subsequent
+      // read will fail the same way — so exit, do not retry. This loop used to wrap the read in the
+      // same catch as dispatch and go straight back to reading: an IOException from a broken/reset
+      // socket (the parent gave up on the fork, or the client disconnected) turned an abandoned
+      // fork
+      // into an immortal 100%-CPU zombie that re-encoded the same error forever. Observed in the
+      // wild: a fork stuck ~2h with `main` pegged in TestProtocol.encodeError. Those zombies pile
+      // up
+      // and starve the machine, which then kills freshly-spawned forks at startup — a
+      // self-inflicted
+      // cascade. Dispatch errors (a single bad command) are still reported and tolerated, bounded
+      // by
+      // a consecutive-error cap so no other persistently-failing state can spin either.
+      int consecutiveErrors = 0;
       while (running && !shuttingDown.get()) {
+        String line;
         try {
-          String line = in.readLine();
-          if (line == null) {
-            // EOF - parent closed the protocol socket, shut down
+          line = in.readLine();
+        } catch (IOException e) {
+          // Protocol socket broken — the parent is unreachable. Stop; the finally block cleans up.
+          break;
+        }
+        if (line == null) {
+          // EOF - parent closed the protocol socket, shut down
+          break;
+        }
+        try {
+          TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
+          if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
             running = false;
-          } else {
-            TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
-            if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
-              running = false;
-            } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
-              startSuiteThread((TestProtocol.ParsedCommand.RunSuite) cmd, capturedOut, capturedErr);
-            } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuites) {
-              startSuitesThread(
-                  (TestProtocol.ParsedCommand.RunSuites) cmd, capturedOut, capturedErr);
-            } else if (cmd instanceof TestProtocol.ParsedCommand.CancelSuite) {
-              String toCancel = ((TestProtocol.ParsedCommand.CancelSuite) cmd).className;
-              Thread t = runningSuites.get(toCancel);
-              // Interrupt only that suite's thread. A suite already finished (t == null) is a no-op
-              // —
-              // the cancel raced its completion, which is harmless.
-              if (t != null) t.interrupt();
-            } else if (cmd instanceof TestProtocol.ParsedCommand.GetThreadDump) {
-              send(generateThreadDump());
-            } else if (cmd instanceof TestProtocol.ParsedCommand.Invalid) {
-              TestProtocol.ParsedCommand.Invalid invalid = (TestProtocol.ParsedCommand.Invalid) cmd;
-              send(TestProtocol.encodeError("Failed to decode command: " + invalid.message, null));
-            }
+          } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
+            startSuiteThread((TestProtocol.ParsedCommand.RunSuite) cmd, capturedOut, capturedErr);
+          } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuites) {
+            startSuitesThread((TestProtocol.ParsedCommand.RunSuites) cmd, capturedOut, capturedErr);
+          } else if (cmd instanceof TestProtocol.ParsedCommand.CancelSuite) {
+            String toCancel = ((TestProtocol.ParsedCommand.CancelSuite) cmd).className;
+            Thread t = runningSuites.get(toCancel);
+            // Interrupt only that suite's thread. A suite already finished (t == null) is a no-op —
+            // the cancel raced its completion, which is harmless.
+            if (t != null) t.interrupt();
+          } else if (cmd instanceof TestProtocol.ParsedCommand.GetThreadDump) {
+            send(generateThreadDump());
+          } else if (cmd instanceof TestProtocol.ParsedCommand.Invalid) {
+            TestProtocol.ParsedCommand.Invalid invalid = (TestProtocol.ParsedCommand.Invalid) cmd;
+            send(TestProtocol.encodeError("Failed to decode command: " + invalid.message, null));
           }
+          consecutiveErrors = 0;
         } catch (Exception e) {
           send(
               TestProtocol.encodeError(
                   "Error in command loop: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
+          if (++consecutiveErrors >= 50) break;
         }
       }
 
