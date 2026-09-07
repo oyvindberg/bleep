@@ -356,14 +356,15 @@ public class ForkedTestRunner {
   }
 
   /**
-   * Run a whole set of JUnit-Platform classes in ONE launcher execution on its own thread.
+   * Run a project's suites of one framework as a single batch on its own thread — JUnit Platform
+   * classes through {@link JUnitPlatformRunner#runSuites} (each class its own execution on the
+   * shared session, up to the degree bleep chose at once), sbt-interface suites sequentially
+   * through one {@link SuiteRunner#runSuites} ({@code Runner}/{@code done()} once).
    *
-   * <p>The batch is a single unit of work — junit's engine parallelises the classes inside it at
-   * the degree bleep chose — so it registers under one key and its per-class results come out of
-   * {@link JUnitPlatformRunner#runSuites} tagged by class. A {@link
-   * TestProtocol#encodeBatchComplete} is sent when the one execute returns, telling the parent to
-   * stop reading. Cancellation of a batch is fork-level (there is no per-class thread here to
-   * interrupt).
+   * <p>The batch is a single unit of work: it registers under one key, its per-suite results are
+   * tagged by class, and a {@link TestProtocol#encodeBatchComplete} is sent when it finishes,
+   * telling the parent to stop reading. Cancellation of a batch is fork-level (there is no
+   * per-suite thread here to interrupt).
    */
   private static void startSuitesThread(
       TestProtocol.ParsedCommand.RunSuites runSuites,
@@ -380,7 +381,8 @@ public class ForkedTestRunner {
                 } else {
                   // sbt test-interface: one Framework/Runner for all the project's suites of this
                   // framework, done() once — maven's forkCount=1 reuseForks=true, which stateful
-                  // frameworks need. setCurrentSuite tags captured output with the running suite.
+                  // frameworks need. Suites run sequentially (these frameworks have no lock-aware
+                  // scheduler); setCurrentSuite tags captured output with the running suite.
                   new SuiteRunner(
                           ForkedTestRunner::send,
                           ForkedTestRunner.class.getClassLoader(),
@@ -390,7 +392,6 @@ public class ForkedTestRunner {
                           runSuites.framework,
                           runSuites.frameworkClass,
                           runSuites.args,
-                          runSuites.parallelism,
                           ForkedTestRunner::setCurrentSuite);
                 }
               } finally {

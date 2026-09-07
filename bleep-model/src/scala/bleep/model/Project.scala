@@ -35,17 +35,17 @@ case class Project(
       * runner discovers. CLI surface: `bleep test --only-tag slow --exclude-tag flaky`.
       */
     testTags: JsonMap[String, JsonSet[String]],
-    /** How many of this project's test suites run at once. Its default and meaning follow `testJvm`: in per-project mode (the default) it bounds concurrency
-      * *inside the one shared fork* and defaults to `1` — suites run sequentially (alphabetically), maven's `reuseForks=true`, so JVM-wide state (a booted
-      * application, an embedded server, schema created by an earlier suite) carries across; a larger value runs that many at once. In per-suite mode it bounds
-      * how many *forks* run at once and is unbounded by default. Either way the machine-wide governor caps the total across all projects.
+    /** Ceiling on how many of this project's test suites run at once. Default `1` — suites run one at a time. Its reach depends on `testFork`: in per-project
+      * mode (the default) it only speeds up JUnit Platform suites (the JUnit engine runs that many of the project's JUnit classes at once inside the one shared
+      * fork); sbt-interface frameworks always run sequentially there, so a value > 1 on an sbt-only project has no effect (bleep warns). In per-suite mode it
+      * bounds how many *forks* run at once (unset = unbounded). Either way the machine-wide governor caps the total across all projects.
       */
-    testSuiteParallelism: Option[Int],
+    maxConcurrentSuites: Option[Int],
     /** Where this project's test suites run relative to the JVM hosting them: one fork for the whole project (`per-project`, the default — maven's
-      * `forkCount=1 reuseForks=true`) or a fork per suite (`per-suite`, OS-level isolation). Unset = per-project. See [[TestJvmMode]]. `testSuiteParallelism`
-      * bounds concurrency in both modes — inside the one fork for per-project, across forks for per-suite.
+      * `forkCount=1 reuseForks=true`) or a fork per suite (`per-suite`, OS-level isolation). Unset = per-project. See [[TestForkMode]]. `maxConcurrentSuites`
+      * bounds concurrency in both modes — inside the one fork for per-project (JUnit only), across forks for per-suite.
       */
-    testJvm: Option[TestJvmMode],
+    testFork: Option[TestForkMode],
     sourcegen: JsonSet[ScriptDef],
     libraryVersionSchemes: JsonSet[LibraryVersionScheme],
     ignoreEvictionErrors: Option[IgnoreEvictionErrors],
@@ -71,8 +71,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
       testTags = testTags.intersect(other.testTags),
-      testSuiteParallelism = if (testSuiteParallelism == other.testSuiteParallelism) testSuiteParallelism else None,
-      testJvm = if (testJvm == other.testJvm) testJvm else None,
+      maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) maxConcurrentSuites else None,
+      testFork = if (testFork == other.testFork) testFork else None,
       sourcegen = sourcegen.intersect(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None,
@@ -102,8 +102,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
       testFrameworks = testFrameworks.removeAll(other.testFrameworks),
       testTags = testTags.removeAll(other.testTags),
-      testSuiteParallelism = if (testSuiteParallelism == other.testSuiteParallelism) None else testSuiteParallelism,
-      testJvm = if (testJvm == other.testJvm) None else testJvm,
+      maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) None else maxConcurrentSuites,
+      testFork = if (testFork == other.testFork) None else testFork,
       sourcegen = sourcegen.removeAll(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors,
@@ -131,8 +131,8 @@ case class Project(
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
       testTags = testTags.union(other.testTags),
-      testSuiteParallelism = testSuiteParallelism.orElse(other.testSuiteParallelism),
-      testJvm = testJvm.orElse(other.testJvm),
+      maxConcurrentSuites = maxConcurrentSuites.orElse(other.maxConcurrentSuites),
+      testFork = testFork.orElse(other.testFork),
       sourcegen = sourcegen.union(other.sourcegen),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
@@ -159,8 +159,8 @@ case class Project(
           isTestProject,
           testFrameworks,
           testTags,
-          testSuiteParallelism,
-          testJvm,
+          maxConcurrentSuites,
+          testFork,
           sourceGeneratorsScripts,
           libraryVersionSchemes,
           ignoreEvictionErrors,
@@ -184,8 +184,8 @@ case class Project(
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
       testTags.isEmpty &&
-      testSuiteParallelism.isEmpty &&
-      testJvm.isEmpty &&
+      maxConcurrentSuites.isEmpty &&
+      testFork.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
       libraryVersionSchemes.isEmpty &&
       ignoreEvictionErrors.isEmpty &&
@@ -213,8 +213,8 @@ object Project {
     isTestProject = None,
     testFrameworks = JsonSet.empty,
     testTags = JsonMap.empty,
-    testSuiteParallelism = None,
-    testJvm = None,
+    maxConcurrentSuites = None,
+    testFork = None,
     sourcegen = JsonSet.empty,
     libraryVersionSchemes = JsonSet.empty,
     ignoreEvictionErrors = None,

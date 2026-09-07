@@ -2516,14 +2516,14 @@ class MultiWorkspaceBspServer(
                 // are suites here, so only that project's empty scan is a contradiction worth failing the run over.
                 val discoverProject = started.build.explodedProjects(discoverTask.project)
                 val isTestProject = discoverProject.isTestProject.getOrElse(false)
-                // How many of a project's suites run at once. Mode-aware default: per-project (the default mode) shares ONE fork, so an unset value means a
-                // MODEST concurrency inside it (~cores/4) rather than unbounded — one project's suites should not swamp their shared JVM, and many projects
-                // overlap instead. per-suite forks per suite, so an unset value stays unbounded — the machine-wide governor bounds how many forks run at once.
+                // How many of a project's suites run at once. Mode-aware default: per-project (the default mode) shares ONE fork and runs suites SEQUENTIALLY —
+                // maven's forkCount=1 reuseForks=true, the safe, memory-frugal default (one live suite's heap at a time; cores are saturated by running many
+                // projects' forks at once, not many suites within one). An unset value is 1. per-suite forks per suite, so an unset value stays unbounded — the
+                // machine-wide governor bounds how many forks run at once. Either way maxConcurrentSuites raises the ceiling.
                 val suiteParallelism: Option[Int] =
-                  discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
-                    case model.TestJvmMode.PerProject =>
-                      Some(discoverProject.testSuiteParallelism.getOrElse(math.max(2, Runtime.getRuntime.availableProcessors() / 4)))
-                    case model.TestJvmMode.PerSuite => discoverProject.testSuiteParallelism
+                  discoverProject.testFork.getOrElse(model.TestForkMode.PerProject) match {
+                    case model.TestForkMode.PerProject => Some(discoverProject.maxConcurrentSuites.getOrElse(1))
+                    case model.TestForkMode.PerSuite   => discoverProject.maxConcurrentSuites
                   }
                 val tagFiltered =
                   if (!tagsActive) regexFiltered
@@ -2536,17 +2536,17 @@ class MultiWorkspaceBspServer(
                 // In per-project mode (the default) a project's suites of ONE framework run through a single execution: for JUnit Platform one
                 // `launcher.execute()`; for sbt test-interface one `Framework`/`Runner` with all their tasks and one `done()` — maven's `forkCount=1
                 // reuseForks=true`, which is what stateful frameworks (munit, ZIO Test) need and what the sbt interface's one-runner-per-framework contract
-                // specifies. Group the JVM suites by framework into batches. A batch's degree is the user's testSuiteParallelism if set; else ~cores/4 for JUnit
-                // Platform (built for concurrent classes) or 1 for sbt test-interface (surefire-sequential, the safe default). PlatformRunner (JS/Native) suites
-                // are never batched here — they run through their platform's own runner.
+                // specifies. Group the JVM suites by framework into batches, and choose each batch's degree of concurrency:
+                //   - JUnit Platform: the user's `maxConcurrentSuites` (default 1). The JUnit engine owns a lock-aware scheduler (`@ResourceLock`/`@Execution`),
+                //     so running several of its classes at once is a knob its ecosystem is built for.
+                //   - sbt test-interface: ALWAYS 1 (sequential). These frameworks share one `Runner` and have no conflict graph, so concurrent suites in a
+                //     shared JVM are unsafe (shared statics, unattributable async output). Concurrency for sbt suites is `testFork: per-suite` — a fork each,
+                //     OS-isolated. `maxConcurrentSuites` has no effect on sbt suites here; we warn if a project set it with no JUnit suites to apply it to.
+                // PlatformRunner (JS/Native) suites are never batched here — they run through their platform's own runner.
                 val batchGroups: List[(List[(String, bleep.testing.FrameworkSelection)], Int)] =
-                  discoverProject.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
-                    case model.TestJvmMode.PerProject =>
-                      // Default degree 1: a project's suites run one at a time through the one shared fork — maven's forkCount=1 reuseForks=true, which is
-                      // sequential. It is the safe default for both runners: sharing a JVM is where per-project's value is (a booted app, warm classes), and
-                      // running a framework's classes concurrently through one Runner / one LauncherSession is where engines break (jqwik's engine, singleton
-                      // state). A project opts into concurrency with testSuiteParallelism > 1 once it knows its frameworks tolerate it.
-                      val userParallelism = discoverProject.testSuiteParallelism
+                  discoverProject.testFork.getOrElse(model.TestForkMode.PerProject) match {
+                    case model.TestForkMode.PerProject =>
+                      val userParallelism = discoverProject.maxConcurrentSuites
                       val junit = tagFiltered.filter(_._2.isInstanceOf[bleep.testing.FrameworkSelection.JUnitPlatform]).toList
                       val junitGroup =
                         if (junit.isEmpty) Nil
@@ -2562,12 +2562,16 @@ class MultiWorkspaceBspServer(
                           .groupBy(_._1)
                           .toList
                           .sortBy(_._1)
-                          .map { case (_, pairs) =>
-                            val groupSuites = pairs.map(_._2)
-                            (groupSuites, math.min(groupSuites.size, userParallelism.getOrElse(1)))
-                          }
+                          // sbt-interface groups always run sequentially in the shared fork (degree 1); concurrency for them is testFork: per-suite.
+                          .map { case (_, pairs) => (pairs.map(_._2), 1) }
+                      if (junit.isEmpty && userParallelism.exists(_ > 1))
+                        sendLogMessage(
+                          s"${discoverTask.project.value}: maxConcurrentSuites=${userParallelism.get} has no effect — all its frameworks are sbt-interface, " +
+                            "which run sequentially in per-project mode. Use `testFork: per-suite` to run these suites concurrently (a fork per suite).",
+                          MessageType.Warning
+                        )
                       junitGroup ++ sbtGroups
-                    case model.TestJvmMode.PerSuite => Nil
+                    case model.TestForkMode.PerSuite => Nil
                   }
 
                 // Only treat an empty result as an error when the user asked to *include* something (--only or --only-tag).
@@ -2688,9 +2692,9 @@ class MultiWorkspaceBspServer(
                     val sharing: bleep.testing.SessionSharing =
                       if (bleep.testing.FrameworkSelection.needsIsolatedFork(testTask.selection)) bleep.testing.SessionSharing.Exclusive
                       else
-                        project.testJvm.getOrElse(model.TestJvmMode.PerProject) match {
-                          case model.TestJvmMode.PerProject => bleep.testing.SessionSharing.Shared(testTask.project.value)
-                          case model.TestJvmMode.PerSuite   => bleep.testing.SessionSharing.Exclusive
+                        project.testFork.getOrElse(model.TestForkMode.PerProject) match {
+                          case model.TestForkMode.PerProject => bleep.testing.SessionSharing.Shared(testTask.project.value)
+                          case model.TestForkMode.PerSuite   => bleep.testing.SessionSharing.Exclusive
                         }
                     TestRunner.runSuite(
                       project = testTask.project,

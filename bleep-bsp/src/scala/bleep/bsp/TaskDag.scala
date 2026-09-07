@@ -291,13 +291,13 @@ object TaskDag {
       discoveredBeforeFilters: Int,
       /** Whether the project declares `isTestProject: true` — not whether it was named as a target, which every discovered project was. */
       isTestProject: Boolean,
-      /** The project's `testSuiteParallelism`: how many of its suites may run in parallel forks. None = unbounded (the default). 1 = all suites run
-        * sequentially through one warm fork, maven-style.
+      /** The project's `maxConcurrentSuites`: how many of its suites may run in parallel forks. None = unbounded (the default). 1 = all suites run sequentially
+        * through one warm fork, maven-style.
         */
       suiteParallelism: Option[Int],
       /** Per-project batches, one per framework: the suites to run through a single execution (JUnit Platform: one `launcher.execute()`; sbt test-interface:
         * one `Framework`/`Runner`, one `done()` — maven's one-execute-per-module), paired with the degree of parallelism bleep chose. Decided by the discover
-        * handler from `testJvm == per-project`, grouping JVM suites by framework. Empty = run suite-by-suite (per-suite mode, and any PlatformRunner suites).
+        * handler from `testFork == per-project`, grouping JVM suites by framework. Empty = run suite-by-suite (per-suite mode, and any PlatformRunner suites).
         */
       batches: List[(List[(String, bleep.testing.FrameworkSelection)], Int)]
   )
@@ -308,8 +308,8 @@ object TaskDag {
       suiteName: SuiteName,
       selection: bleep.testing.FrameworkSelection,
       /** Ordering-only predecessors: this suite waits for them to reach a terminal state but does NOT inherit their failure — a red suite must not skip the
-        * rest of its project's chain, just as maven's surefire keeps going after a failing class. Used by `testSuiteParallelism` to serialize a project's
-        * suites through one warm fork.
+        * rest of its project's chain, just as maven's surefire keeps going after a failing class. Used by `maxConcurrentSuites` to serialize a project's suites
+        * through one warm fork.
         */
       override val runAfter: Set[TaskId]
   ) extends Task {

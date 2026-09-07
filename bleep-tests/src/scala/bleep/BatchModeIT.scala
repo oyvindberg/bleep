@@ -5,8 +5,8 @@ import ryddig.{Stored, TypedLogger}
 
 import java.nio.file.{Files, Path}
 
-/** Per-project batch mode (`testJvm: per-project`) runs every one of a project's JUnit-Platform suites through a SINGLE `launcher.execute()` in one fork, so an
-  * execution-scoped fixture — an application booted for the run — is built once and reused, the way maven surefire's one-execute-per-module works.
+/** Per-project batch mode (`testFork: per-project`) runs every one of a project's JUnit-Platform suites through a SINGLE `launcher.execute()` in one fork, so
+  * an execution-scoped fixture — an application booted for the run — is built once and reused, the way maven surefire's one-execute-per-module works.
   *
   * The whole promise is that nothing downstream can tell the difference: each suite must still report its own result, its own captured output, and real
   * per-test durations, exactly as a suite-by-suite run does — only the fork does one execute instead of N. These tests pin that promise against the JUnit XML
@@ -17,7 +17,7 @@ class BatchModeIT extends IntegrationTestHarness {
 
   private val project = model.CrossProjectName(model.ProjectName("batched-test"), None)
 
-  /** Three JUnit-Platform suites in one project, `testJvm: per-project` so they batch into one fork. `testSuiteParallelism: 2` runs them concurrently, which is
+  /** Three JUnit-Platform suites in one project, `testFork: per-project` so they batch into one fork. `maxConcurrentSuites: 2` runs them concurrently, which is
     * the path where per-thread output capture and per-suite attribution have to hold under interleaving.
     */
   private def yamlFor(jupiter: String): String =
@@ -26,8 +26,8 @@ class BatchModeIT extends IntegrationTestHarness {
        |    platform:
        |      name: jvm
        |    isTestProject: true
-       |    testJvm: per-project
-       |    testSuiteParallelism: 2
+       |    testFork: per-project
+       |    maxConcurrentSuites: 2
        |    dependencies:
        |      - org.junit.jupiter:junit-jupiter:$jupiter
        |""".stripMargin

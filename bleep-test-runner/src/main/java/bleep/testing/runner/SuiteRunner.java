@@ -144,18 +144,19 @@ public final class SuiteRunner {
    * which set up on runner creation and tear down on done(); N of each in one JVM corrupted their
    * results.
    *
-   * <p>{@code degree} suites run at once — 1 is sequential, the safe default that matches surefire.
-   * Each suite's events are attributed by the class name bound to it here, so concurrent suites
-   * never cross. {@code setCurrentSuite} lets the caller tag captured output with the suite running
-   * on the current thread (null clears it).
+   * <p>Suites run sequentially, one at a time — surefire's {@code reuseForks=true}. sbt-interface
+   * frameworks share one {@code Runner} and have no lock-aware scheduler, so bleep never runs their
+   * suites concurrently in a shared fork; concurrency for them is a fork per suite (per-suite
+   * mode). Each suite's events are attributed by the class name bound to it here. {@code
+   * setCurrentSuite} lets the caller tag captured output with the suite running on the current
+   * thread (null clears it).
    */
   public void runSuites(
       List<String> classNames,
       String frameworkName,
       String frameworkClass,
       List<String> args,
-      int degree,
-      java.util.function.Consumer<String> setCurrentSuite) {
+      Consumer<String> setCurrentSuite) {
     Framework framework;
     Runner runner;
     try {
@@ -181,54 +182,16 @@ public final class SuiteRunner {
     }
 
     try {
-      if (degree <= 1) {
-        for (String className : classNames) {
-          if (Thread.interrupted()) break;
-          setCurrentSuite.accept(className);
-          try {
-            runOneSuiteOn(framework, runner, frameworkName, className);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            break;
-          } finally {
-            setCurrentSuite.accept(null);
-          }
-        }
-      } else {
-        java.util.concurrent.ExecutorService pool =
-            java.util.concurrent.Executors.newFixedThreadPool(
-                Math.min(degree, Math.max(1, classNames.size())));
+      for (String className : classNames) {
+        if (Thread.interrupted()) break;
+        setCurrentSuite.accept(className);
         try {
-          java.util.List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
-          for (String className : classNames) {
-            futures.add(
-                pool.submit(
-                    () -> {
-                      setCurrentSuite.accept(className);
-                      try {
-                        runOneSuiteOn(framework, runner, frameworkName, className);
-                      } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                      } finally {
-                        setCurrentSuite.accept(null);
-                      }
-                      return null;
-                    }));
-          }
-          for (java.util.concurrent.Future<?> f : futures) {
-            try {
-              f.get();
-            } catch (java.util.concurrent.ExecutionException e) {
-              sink.accept(
-                  TestProtocol.encodeLog(
-                      "error", stackTraceToString(e.getCause() == null ? e : e.getCause())));
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              break;
-            }
-          }
+          runOneSuiteOn(framework, runner, frameworkName, className);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
         } finally {
-          pool.shutdownNow();
+          setCurrentSuite.accept(null);
         }
       }
     } finally {

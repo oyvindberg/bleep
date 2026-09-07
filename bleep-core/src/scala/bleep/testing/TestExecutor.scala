@@ -7,10 +7,10 @@ import java.nio.file.Path
 
 /** Whether the session this request asks for is the caller's alone, or shared with the rest of its project's suites.
   *
-  * This is what makes [[bleep.model.TestJvmMode]] real at the pool: `per-suite` asks for [[Exclusive]] and gets a fork to itself (one suite in flight, the pool
-  * reuses forks serially); `per-project` asks for [[Shared]] and every one of the project's suites lands on the SAME fork, which runs them concurrently. The
-  * key is what "same" means — all of a project's suites pass the same key. How many run at once is not this type's business: admission decides it (the DAG
-  * serialises a project's suites into `testSuiteParallelism` chains), so a suite that is not allowed to start yet never reaches the pool holding a machine
+  * This is what makes [[bleep.model.TestForkMode]] real at the pool: `per-suite` asks for [[Exclusive]] and gets a fork to itself (one suite in flight, the
+  * pool reuses forks serially); `per-project` asks for [[Shared]] and every one of the project's suites lands on the SAME fork, which runs them concurrently.
+  * The key is what "same" means — all of a project's suites pass the same key. How many run at once is not this type's business: admission decides it (the DAG
+  * serialises a project's suites into `maxConcurrentSuites` chains), so a suite that is not allowed to start yet never reaches the pool holding a machine
   * permit.
   */
 sealed trait SessionSharing

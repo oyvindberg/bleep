@@ -47,7 +47,7 @@ object TestProtocol {
       *
       * Only meaningful when the fork is running several suites at once (a per-project shared session): it interrupts just that suite's thread, so the other
       * suites sharing the JVM keep running. An exclusive fork cancels by having its socket closed instead — there is only the one suite, and the whole process
-      * goes. See [[bleep.model.TestJvmMode]].
+      * goes. See [[bleep.model.TestForkMode]].
       */
     case class CancelSuite(className: String) extends TestCommand
 

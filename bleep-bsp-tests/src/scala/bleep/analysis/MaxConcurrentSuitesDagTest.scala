@@ -10,13 +10,13 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-/** `testSuiteParallelism` turns a project's discovered suites into round-robin chains of ordering-only `runAfter` edges. The properties that matter:
+/** `maxConcurrentSuites` turns a project's discovered suites into round-robin chains of ordering-only `runAfter` edges. The properties that matter:
   *
   *   - at bound 1 the suites run strictly sequentially in alphabetical order — surefire's usual class order, which schema-bootstrapping test setups rely on
   *   - a failing suite does NOT skip the rest of its chain: `runAfter` is ordering, not failure propagation
   *   - without a bound no chains exist and every suite is schedulable at once
   */
-class TestSuiteParallelismDagTest extends AnyFunSuite with Matchers {
+class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
 
   private def testMachine(cpu: Int): bleep.MachineResources =
     bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
@@ -63,7 +63,7 @@ class TestSuiteParallelismDagTest extends AnyFunSuite with Matchers {
                   suiteNames.size,
                   isTestProject = true,
                   suiteParallelism = parallelism,
-                  batchParallelism = None
+                  batches = Nil
                 )
               )
             ),

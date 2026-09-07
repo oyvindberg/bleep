@@ -31,7 +31,7 @@ object TestRunner {
       idleTimeout: FiniteDuration,
       environment: Map[String, String],
       workingDirectory: Option[Path],
-      /** Shared (the default — this suite's project runs all its suites in one fork) or Exclusive (a fork per suite). Set from the project's `testJvm`. */
+      /** Shared (the default — this suite's project runs all its suites in one fork) or Exclusive (a fork per suite). Set from the project's `testFork`. */
       sharing: SessionSharing
   )
 

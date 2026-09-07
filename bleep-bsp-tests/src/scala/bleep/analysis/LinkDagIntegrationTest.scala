@@ -363,8 +363,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-        discover =
-          (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false, suiteParallelism = None, batchParallelism = None))),
+        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false, suiteParallelism = None, batches = Nil))),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in this DAG"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear in this DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
