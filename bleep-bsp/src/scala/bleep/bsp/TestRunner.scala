@@ -170,6 +170,27 @@ object TestRunner {
     }
   }
 
+  /** Why a batch fork stopped without reporting the rest of its suites. The fork's own stderr (fd 2) is where a JVM records an OutOfMemoryError, a native
+    * crash, or a `System.exit` — none of which travels over the per-suite protocol — so drain it here; say whether the fork is still alive (wedged) or gone;
+    * and add a thread dump when it is wedged. Best-effort: every probe is `.attempt`ed, so producing the diagnostic can never itself fail the run.
+    */
+  private def forkDeathDiagnostic(jvm: TestSession): IO[String] =
+    for {
+      alive <- jvm.isAlive.attempt.map(_.getOrElse(true))
+      stderr <- jvm.drainStderr.attempt.map(_.getOrElse(Nil))
+      dump <- if (alive) jvm.dumpThreads.attempt.map(_.getOrElse(Nil)) else IO.pure(Nil)
+    } yield {
+      val liveNote =
+        if (alive) " The fork is still alive — it stopped producing results without exiting, so it is wedged rather than dead."
+        else " The fork had exited."
+      val errNote =
+        if (stderr.nonEmpty) s"\n  fork stderr (tail):\n${stderr.takeRight(50).map("    " + _).mkString("\n")}"
+        else " It wrote nothing to its own stderr."
+      val dumpNote =
+        if (dump.nonEmpty) s"\n  fork thread dump (head):\n${dump.take(80).map("    " + _).mkString("\n")}" else ""
+      liveNote + errNote + dumpNote
+    }
+
   private def executeBatch(
       project: CrossProjectName,
       classNames: List[String],
@@ -267,20 +288,41 @@ object TestRunner {
             fe <- forkError.get
             outs <- outcomes.get
             fps <- failuresPerSuite.get
-          } yield fe match {
-            case Some(msg) => TaskDag.TaskResult.Error(error = msg, processExit = ProcessExit.Unknown)
-            case None      =>
-              val missing = classNames.filterNot(outs.contains)
-              if (missing.nonEmpty)
-                TaskDag.TaskResult.Error(error = s"batched suites produced no result: ${missing.mkString(", ")}", processExit = ProcessExit.Unknown)
-              else {
-                val perSuite = classNames.map(c => taskResultFor(c, outs(c), fps.getOrElse(c, Nil)))
-                perSuite
-                  .collectFirst { case f: TaskDag.TaskResult.Failure => f }
-                  .orElse(perSuite.collectFirst { case e: TaskDag.TaskResult.Error => e })
-                  .getOrElse(TaskDag.TaskResult.Success)
-              }
-          })
+            result <- fe match {
+              case Some(msg) =>
+                IO(System.err.println(s"[bleep] batch fork sent error for ${project.value}:\n$msg")) >>
+                  IO.pure(TaskDag.TaskResult.Error(error = msg, processExit = ProcessExit.Unknown))
+              case None =>
+                val missing = classNames.filterNot(outs.contains)
+                if (missing.nonEmpty)
+                  // The fork stopped after reporting some suites but not these. It almost always died mid-run, and a JVM that dies of an OutOfMemoryError, a
+                  // native crash, or `System.exit` says so on its OWN stderr (fd 2) — which the protocol, carrying only per-suite events, never delivered. So
+                  // this used to be a dead end: "produced no result", cause unknown. Drain that stderr (and note whether the fork is even still alive) so the
+                  // reason travels with the failure.
+                  forkDeathDiagnostic(jvm).flatMap { diag =>
+                    val msg = s"${missing.size} of ${classNames.size} batched suites never reported a result " +
+                      s"(${missing.take(8).mkString(", ")}${if (missing.size > 8) ", …" else ""}).$diag"
+                    // The DAG keeps only the errored task's id and drops this message, so emit it as output too — attributed to the first suite that never
+                    // reported (the one the fork was on when it went) — so the reason reaches history and the client, not just this returned value.
+                    IO(System.err.println(s"[bleep] batch fork diagnostic for ${project.value}:\n$msg")) >>
+                      now.flatMap { ts =>
+                        msg.linesIterator.toList
+                          .traverse_(line =>
+                            emit(TaskDag.DagEvent.Output(project, SuiteName(missing.head), line, OutputChannel.fromIsError(isError = true), ts))
+                          )
+                      } >> IO.pure(TaskDag.TaskResult.Error(error = msg, processExit = ProcessExit.Unknown))
+                  }
+                else {
+                  val perSuite = classNames.map(c => taskResultFor(c, outs(c), fps.getOrElse(c, Nil)))
+                  IO.pure(
+                    perSuite
+                      .collectFirst { case f: TaskDag.TaskResult.Failure => f }
+                      .orElse(perSuite.collectFirst { case e: TaskDag.TaskResult.Error => e })
+                      .getOrElse(TaskDag.TaskResult.Success)
+                  )
+                }
+            }
+          } yield result)
 
         case Right((suiteFiber, raceOutcome)) =>
           // Idle timeout or kill: the whole fork goes (there is one execute; there is no per-suite thread to interrupt without ending the run).
