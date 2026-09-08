@@ -40,6 +40,40 @@ class ExitAttributionTest extends AnyFunSuite with Matchers {
   }
 }
 
+/** Capturing what a fork wrote before it died — the diagnostic that turns "N suites never reported a result" into a reason.
+  *
+  * The failure that motivated this: a JVM handed an option it rejects prints "Unrecognized VM option ..." to stderr and exits non-zero, but bleep read only the
+  * bytes `available()` at the instant the process was seen dead — which is usually zero, because the flush lands a beat later — and dropped the message.
+  * Draining an exited fork to EOF is what actually gets it. Tested against real processes (a bare `Process`, no pool, no BSP server), because the bug lived
+  * entirely in how the streams of a just-exited process are read.
+  */
+class DescribeChildOutputTest extends AnyFunSuite with Matchers {
+
+  private def run(cmd: List[String]): Process = {
+    val p = new ProcessBuilder(cmd*).start()
+    p.waitFor()
+    p
+  }
+
+  test("an exited fork's stderr is drained to EOF, not just what was already available at exit") {
+    // The exact failure this exists for, without depending on any particular JVM: a process that writes to stderr and exits. `available()` reports 0 the instant
+    // the process is seen dead, so the old read missed this; draining to EOF gets it. (A real bad-JVM-option failure — "Unrecognized VM option ..." — is this same
+    // shape; that end-to-end path, on the project's resolved JVM, is covered by an integration test rather than here.)
+    val marker = "STARTUP-FAILURE-MARKER"
+    val cmd =
+      if (scala.util.Properties.isWin) List("cmd", "/c", s"echo $marker 1>&2 & exit 3")
+      else List("/bin/sh", "-c", s"echo $marker 1>&2; exit 3")
+    val described = JvmPool.describeChildOutput(run(cmd), exited = true)
+    described should include("stderr")
+    described should include(marker)
+  }
+
+  test("a fork that wrote nothing says so, rather than returning an empty diagnostic") {
+    val cmd = if (scala.util.Properties.isWin) List("cmd", "/c", "exit 0") else List("/bin/sh", "-c", "exit 0")
+    JvmPool.describeChildOutput(run(cmd), exited = true) should include("no output")
+  }
+}
+
 /** The start-stagger scales with the run, rather than being a constant tuned on one machine. */
 class MaxConcurrentStartsTest extends AnyFunSuite with Matchers {
 

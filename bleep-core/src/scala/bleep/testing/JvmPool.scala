@@ -282,6 +282,57 @@ object JvmPool {
     }
   }
 
+  /** Whatever a fork wrote before it stopped, for a spawn-failure diagnostic — the message the user reads when a test JVM never connects back.
+    *
+    * `exited` decides HOW to read, and it is the whole point of this existing. An exited fork has flushed and closed its streams: drain to EOF, because that is
+    * the only way to get the tail — the JVM's "Unrecognized VM option ...", "Could not create the Java Virtual Machine", an `hs_err` pointer — lands on stderr
+    * a beat AFTER the process is seen dead, and `available()` reports 0 at that instant. Reading only what was `available()` is exactly how that message got
+    * lost, turning a fully-explained failure into a bare "N suites never reported a result". A still-running fork has open streams, so take only what is
+    * already buffered, without blocking the very code whose job is to report a hang. Bounded to `maxBytes` per stream.
+    *
+    * Takes a bare [[Process]] so it is unit-testable without a pool or a BSP server: spawn `java <bad-option> -version`, which exits non-zero with the reason
+    * on stderr, and assert it comes back here.
+    */
+  private[testing] def describeChildOutput(process: Process, exited: Boolean, maxBytes: Int = MaxChildOutputBytes): String = {
+    def read(stream: InputStream): String = if (exited) drainToEof(stream, maxBytes) else drainAvailable(stream, maxBytes)
+    val quoted =
+      List("stderr" -> read(process.getErrorStream), "stdout" -> read(process.getInputStream))
+        .collect { case (name, text) if text.trim.nonEmpty => s"\n  $name: ${text.trim}" }
+    if (quoted.isEmpty) " The fork wrote no output." else quoted.mkString
+  }
+
+  /** Bytes already sitting in the pipe, never blocking — safe on a process that may still be running. Stops as soon as nothing more is buffered, so a live fork
+    * that has more to say later is not waited on.
+    */
+  private[testing] def drainAvailable(stream: InputStream, maxBytes: Int): String = {
+    val collected = new ByteArrayOutputStream
+    val buf = new Array[Byte](8192)
+    var more = true
+    while (more && collected.size < maxBytes) {
+      val ready = stream.available()
+      if (ready <= 0) more = false
+      else {
+        val n = stream.read(buf, 0, math.min(buf.length, math.min(ready, maxBytes - collected.size)))
+        if (n <= 0) more = false else collected.write(buf, 0, n)
+      }
+    }
+    new String(collected.toByteArray, StandardCharsets.UTF_8)
+  }
+
+  /** Read to EOF. Safe ONLY on a process that has already exited — its writer is closed, so `read` returns -1 rather than blocking. This is what actually
+    * captures a startup failure's full stderr, which `drainAvailable` races and misses. Bounded to `maxBytes`.
+    */
+  private[testing] def drainToEof(stream: InputStream, maxBytes: Int): String = {
+    val collected = new ByteArrayOutputStream
+    val buf = new Array[Byte](8192)
+    var more = true
+    while (more && collected.size < maxBytes) {
+      val n = stream.read(buf, 0, math.min(buf.length, maxBytes - collected.size))
+      if (n < 0) more = false else collected.write(buf, 0, n)
+    }
+    new String(collected.toByteArray, StandardCharsets.UTF_8)
+  }
+
   /** Key for pooling JVMs */
   private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String) {
 
@@ -677,33 +728,6 @@ object JvmPool {
         }
       } yield jvm
 
-    /** Whatever the fork wrote before it stopped, read without ever blocking.
-      *
-      * Only bytes already sitting in the pipe are taken, and only up to [[MaxChildOutputBytes]]. Nothing is draining these streams at this point — the reader
-      * threads belong to `ManagedJvm`, which does not exist yet on this path — so a blocking read here would hang the very code whose job is to report a hang.
-      */
-    private def describeChildOutput(process: Process): String = {
-      val quoted =
-        List("stderr" -> drainAvailable(process.getErrorStream), "stdout" -> drainAvailable(process.getInputStream))
-          .collect { case (name, text) if text.trim.nonEmpty => s"\n  $name: ${text.trim}" }
-      if (quoted.isEmpty) " The fork wrote no output." else quoted.mkString
-    }
-
-    private def drainAvailable(stream: InputStream): String = {
-      val collected = new ByteArrayOutputStream
-      val buf = new Array[Byte](8192)
-      var more = true
-      while (more && collected.size < MaxChildOutputBytes) {
-        val ready = stream.available()
-        if (ready <= 0) more = false
-        else {
-          val n = stream.read(buf, 0, math.min(buf.length, math.min(ready, MaxChildOutputBytes - collected.size)))
-          if (n <= 0) more = false else collected.write(buf, 0, n)
-        }
-      }
-      new String(collected.toByteArray, StandardCharsets.UTF_8)
-    }
-
     /** Wait for a freshly spawned fork to connect back, giving up the moment that becomes impossible rather than always serving the full sentence.
       *
       * Polled instead of one long `accept`, because the answer is usually available long before the deadline: a fork that died during JVM startup is never
@@ -719,10 +743,15 @@ object JvmPool {
       val deadlineNanos = System.nanoTime() + ProtocolConnectTimeout.toNanos
       listener.setSoTimeout(ProtocolPollInterval.toMillis.toInt)
 
-      def giveUp(reason: String): Nothing = {
+      def giveUp(reason: String, exited: Boolean): Nothing = {
         // Read what the fork wrote before killing it. `destroyForcibly` closes these pipes as the process is reaped, and a read landing on the far side of
         // that comes back "Stream closed", replacing the diagnosis this exists to produce.
-        val childOutput = describeChildOutput(process)
+        //
+        // `exited` decides HOW we read. A fork that already exited (a bad JVM option, a startup crash) has written its whole story to stderr — "Unrecognized VM
+        // option", "Could not create the Java Virtual Machine" — and closed it; we must drain to EOF to get it, because `available()` races the flush and
+        // usually reports 0 the instant the process is detected dead, which is exactly how that message got lost. A fork still running has an open stderr, so we
+        // can only take what is already buffered without blocking the very code meant to report a hang.
+        val childOutput = describeChildOutput(process, exited)
         if (process.isAlive) {
           process.destroyForcibly(): Unit
           process.waitFor(5, TimeUnit.SECONDS): Unit
@@ -735,11 +764,12 @@ object JvmPool {
         try connected = listener.accept()
         catch {
           case _: SocketTimeoutException =>
-            if (!process.isAlive) giveUp(s"the fork exited with code ${process.exitValue()} without ever connecting")
+            if (!process.isAlive) giveUp(s"the fork exited with code ${process.exitValue()} without ever connecting", exited = true)
             else if (System.nanoTime() >= deadlineNanos)
               giveUp(
                 s"the fork was still running $ProtocolConnectTimeout later and had not connected, so it is not speaking this server's protocol — check " +
-                  "whether another bleep-test-runner is shadowing the one bleep puts on the test classpath"
+                  "whether another bleep-test-runner is shadowing the one bleep puts on the test classpath",
+                exited = false
               )
         }
       connected
