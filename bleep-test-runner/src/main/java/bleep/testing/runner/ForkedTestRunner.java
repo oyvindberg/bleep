@@ -54,6 +54,15 @@ public class ForkedTestRunner {
   // suite.
   private static volatile String activeBatchSuite = null;
 
+  // Set true once the command loop exits on its own terms (Shutdown, EOF, or a broken protocol). A
+  // JVM shutdown that happens while this is still false was NOT
+  // asked for by bleep — a test called System.exit()/Runtime.halt(), which on JDK 24+ (no
+  // SecurityManager) bleep cannot block. The exit diagnostic hook below
+  // fires only in that case, and dumps every thread so the one blocked in Shutdown.exit names the
+  // caller. Without it a System.exit is a silent exit-0 the parent
+  // can only guess at ("likely System.exit()").
+  private static volatile boolean loopExitedNormally = false;
+
   /**
    * Set (or clear, with null) the suite whose output a batch is currently producing. Passed to
    * {@link SuiteRunner#runSuites} and used by the JUnit batch loop so output — on the running
@@ -74,6 +83,36 @@ public class ForkedTestRunner {
     // Save original streams for protocol communication
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
+
+    // Name who kills the fork out from under a run. A test that calls System.exit()/Runtime.halt()
+    // ends the whole JVM — every suite that had not reported is
+    // simply lost, and the parent sees only a clean exit it can do no better than call "likely
+    // System.exit()". This hook fires ONLY on such an unrequested
+    // shutdown (loopExitedNormally is still false) and writes a full thread dump to the ORIGINAL
+    // stderr (fd 2, which the parent drains — not the protocol, which
+    // is already tearing down): the thread blocked in `Shutdown`/`Runtime.exit` is the caller,
+    // stack and all. Written straight to fd 2, no allocation-heavy
+    // machinery, because a shutdown is not a good time to need the heap.
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  if (loopExitedNormally) return;
+                  originalErr.println(
+                      "bleep test runner: the fork is shutting down before the run finished — a"
+                          + " test called System.exit()/Runtime.halt(), which bleep cannot block on"
+                          + " JDK 24+. Every unreported suite is lost. Thread dump follows; the"
+                          + " thread in java.lang.Shutdown / Runtime.exit is the caller:");
+                  for (Map.Entry<Thread, StackTraceElement[]> e :
+                      Thread.getAllStackTraces().entrySet()) {
+                    originalErr.println(
+                        "  \"" + e.getKey().getName() + "\" " + e.getKey().getState());
+                    for (StackTraceElement frame : e.getValue())
+                      originalErr.println("      at " + frame);
+                  }
+                  originalErr.flush();
+                },
+                "bleep-exit-diagnostic"));
 
     // The protocol runs over a loopback socket the parent is already listening on, NOT over this
     // process's stdin/stdout.
@@ -219,6 +258,12 @@ public class ForkedTestRunner {
           if (++consecutiveErrors >= 50) break;
         }
       }
+
+      // The loop ended on its own terms (Shutdown, EOF, a broken protocol, or too many errors), so
+      // the shutdown that follows is expected — the exit diagnostic
+      // hook stays quiet. Anything that shut the JVM down BEFORE reaching here was a test's own
+      // System.exit/halt, which is exactly what the hook reports.
+      loopExitedNormally = true;
 
       // Leaving the loop (Shutdown or EOF): interrupt whatever is still running so a wedged or
       // cancelled suite lets go, and give the threads a moment to emit their terminal responses

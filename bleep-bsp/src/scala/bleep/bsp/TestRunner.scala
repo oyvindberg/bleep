@@ -290,8 +290,13 @@ object TestRunner {
             fps <- failuresPerSuite.get
             result <- fe match {
               case Some(msg) =>
-                IO(System.err.println(s"[bleep] batch fork sent error for ${project.value}:\n$msg")) >>
-                  IO.pure(TaskDag.TaskResult.Error(error = msg, processExit = ProcessExit.Unknown))
+                // The fork reported a death (or bleep synthesised one when its stream ended). Append the fork diagnostic — its own stderr, where a shutdown
+                // hook prints the thread dump that names a System.exit caller — so a clean-looking "exited 0" carries the reason with it.
+                forkDeathDiagnostic(jvm).flatMap { diag =>
+                  val full = s"$msg$diag"
+                  IO(System.err.println(s"[bleep] batch fork error for ${project.value}:\n$full")) >>
+                    IO.pure(TaskDag.TaskResult.Error(error = full, processExit = ProcessExit.Unknown))
+                }
               case None =>
                 val missing = classNames.filterNot(outs.contains)
                 if (missing.nonEmpty)
