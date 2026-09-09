@@ -49,6 +49,11 @@ object TaskDag {
       val value: String = s"test:${project.value}:${suiteName.value}"
     }
 
+    /** A whole project's JUnit suites run as one batched execution — one task, not one per suite. */
+    case class TestBatch(project: CrossProjectName) extends TaskId {
+      val value: String = s"test-batch:${project.value}"
+    }
+
     /** Identity for a sourcegen script in the DAG.
       *
       * Two `ScriptDef.Main` values collapse to the same task iff they share the same script project + main class. A single `SourcegenTask` runs the script once
@@ -83,6 +88,9 @@ object TaskDag {
     def id: TaskId
     def project: CrossProjectName
     def dependencies: Set[TaskId]
+
+    /** Ordering-only predecessors: scheduling waits for these to finish (in any state) without propagating their failure. See TestSuiteTask. */
+    def runAfter: Set[TaskId] = Set.empty
   }
 
   /** A task's claim on the machine. `cpu` is in cores; `memoryMb` is off-heap memory for a forked process. */
@@ -113,6 +121,8 @@ object TaskDag {
       // (measured RSS), and only the pool knows which. It holds that reservation itself, for a
       // lifetime this task does not share — one JVM serves many suites.
       case _: TestSuiteTask => Cost(MachineResources.ResourceKind.TestFork, cpu = 1, memoryMb = 0L)
+      // One fork running `parallelism` classes at once, so it claims that many cores (never more than it has suites to run). Fork memory is the pool's, as above.
+      case bt: TestBatchTask => Cost(MachineResources.ResourceKind.TestFork, cpu = math.max(1, math.min(bt.parallelism, bt.suites.size)), memoryMb = 0L)
     }
 
   /** Compile a project.
@@ -280,20 +290,48 @@ object TaskDag {
       suites: List[(String, bleep.testing.FrameworkSelection)],
       discoveredBeforeFilters: Int,
       /** Whether the project declares `isTestProject: true` — not whether it was named as a target, which every discovered project was. */
-      isTestProject: Boolean
+      isTestProject: Boolean,
+      /** The project's `maxConcurrentSuites`: how many of its suites may run in parallel forks. None = unbounded (the default). 1 = all suites run sequentially
+        * through one warm fork, maven-style.
+        */
+      suiteParallelism: Option[Int],
+      /** Per-project batches, one per framework: the suites to run through a single execution (JUnit Platform: one `launcher.execute()`; sbt test-interface:
+        * one `Framework`/`Runner`, one `done()` — maven's one-execute-per-module), paired with the degree of parallelism bleep chose. Decided by the discover
+        * handler from `testFork == per-project`, grouping JVM suites by framework. Empty = run suite-by-suite (per-suite mode, and any PlatformRunner suites).
+        */
+      batches: List[(List[(String, bleep.testing.FrameworkSelection)], Int)]
   )
 
   /** Execute a test suite */
   case class TestSuiteTask(
       project: CrossProjectName,
       suiteName: SuiteName,
-      selection: bleep.testing.FrameworkSelection
+      selection: bleep.testing.FrameworkSelection,
+      /** Ordering-only predecessors: this suite waits for them to reach a terminal state but does NOT inherit their failure — a red suite must not skip the
+        * rest of its project's chain, just as maven's surefire keeps going after a failing class. Used by `maxConcurrentSuites` to serialize a project's suites
+        * through one warm fork.
+        */
+      override val runAfter: Set[TaskId]
   ) extends Task {
     val id: TaskId = TaskId.Test(project, suiteName)
     val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
     // A core, but no fork memory declared here: acquiring a JVM from the pool may reuse a warm one
     // (free) or spawn a new one (measured RSS), and only the pool knows which. It holds that
     // reservation itself, from spawn until the process is destroyed — a lifetime this task does not
+  }
+
+  /** Run ALL of a project's JUnit suites as one batched execution in a single fork — maven surefire's one-execute-per-module, which is what keeps an
+    * execution-scoped fixture (an application the framework boots for the run) built once and reused across the classes rather than rebuilt per class. junit's
+    * engine runs `parallelism` classes at once inside the fork, a number bleep chose. One task, not one per suite: the resource cost is one fork doing that
+    * much work.
+    */
+  case class TestBatchTask(
+      project: CrossProjectName,
+      suites: List[(SuiteName, bleep.testing.FrameworkSelection)],
+      parallelism: Int
+  ) extends Task {
+    val id: TaskId = TaskId.TestBatch(project)
+    val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
   }
 
   /** Result of task execution.
@@ -511,10 +549,12 @@ object TaskDag {
         val task = tasks(taskId)
         // A task is complete if it's in any terminal state (including timedOut)
         val depsComplete = task.dependencies.forall(d => finished.contains(d))
+        // runAfter is ordering only: wait for a terminal state, ignore what that state was
+        val orderingComplete = task.runAfter.forall(d => finished.contains(d))
         val depsFailed = task.dependencies.exists(propagatesFailure)
 
         if (depsFailed) None // Will be skipped
-        else if (depsComplete) Some(task)
+        else if (depsComplete && orderingComplete) Some(task)
         else None
       }
     }
@@ -916,6 +956,8 @@ object TaskDag {
         * path from convention: the linker already knows where it wrote, and a second derivation is a second thing to keep in step with it.
         */
       test: (TestSuiteTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[TaskResult],
+      /** Run a whole project's JUnit suites as one batched execution. JVM-only (JUnit Platform has no non-JVM linked form), so no LinkResult. */
+      testBatch: (TestBatchTask, Deferred[IO, KillReason]) => IO[TaskResult],
       sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
       symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
@@ -1120,11 +1162,28 @@ object TaskDag {
                         (result, discovery) <- handlers.discover(dt, linkOutput, taskKill)
                         _ <- result match {
                           case TaskResult.Success =>
-                            // Add test tasks for discovered suites
-                            val testTasks = discovery.suites.map { case (suiteName, selection) =>
-                              TestSuiteTask(dt.project, SuiteName(suiteName), selection)
-                            }
-                            dagRef.update(dag => testTasks.foldLeft(dag)(_.addTask(_))) >>
+                            // One batched execution per framework group (per-project mode) — an execution-scoped fixture / a framework's Runner is built once for
+                            // all its classes. Whatever a batch does not cover (per-suite mode, or PlatformRunner suites) runs suite-by-suite.
+                            val batchTasks: List[Task] =
+                              discovery.batches.map { case (groupSuites, degree) =>
+                                val ordered = groupSuites.sortBy(_._1).map { case (n, sel) => (SuiteName(n), sel) }
+                                TestBatchTask(dt.project, ordered, degree)
+                              }
+                            val batchedNames: Set[String] = discovery.batches.flatMap(_._1.map(_._1)).toSet
+                            // Suite-by-suite for the rest. With a suite-parallelism bound, a project's suites form that many round-robin chains, alphabetically
+                            // ordered — surefire's usual class order, which schema-bootstrapping setups rely on. At bound 1 all suites run through one warm fork
+                            // sequentially.
+                            val perSuite = discovery.suites.filterNot { case (n, _) => batchedNames(n) }.sortBy(_._1)
+                            val bound = discovery.suiteParallelism.getOrElse(Int.MaxValue)
+                            val suiteTasks: List[Task] =
+                              perSuite.zipWithIndex.map { case ((suiteName, selection), idx) =>
+                                val after: Set[TaskId] =
+                                  if (idx < bound) Set.empty
+                                  else Set(TaskId.Test(dt.project, SuiteName(perSuite(idx - bound)._1)))
+                                TestSuiteTask(dt.project, SuiteName(suiteName), selection, runAfter = after)
+                              }
+                            val newTasks: List[Task] = batchTasks ++ suiteTasks
+                            dagRef.update(dag => newTasks.foldLeft(dag)(_.addTask(_))) >>
                               emit(
                                 DagEvent.SuitesDiscovered(
                                   dt.project,
@@ -1153,6 +1212,10 @@ object TaskDag {
                       val linkResult = dag.linkResults.get(TaskId.Link(tt.project))
                       withRecovery(s"Test ${tt.suiteName.value}", taskKill)(handlers.test(tt, linkResult, taskKill))
                     }
+
+                  case bt: TestBatchTask =>
+                    // Same cancellation story as TestSuiteTask: the handler races execution vs the kill signal internally.
+                    withRecovery(s"Test batch ${bt.project.value}", taskKill)(handlers.testBatch(bt, taskKill))
 
                   // These three emit their own Started/Finished pair, and the Finished carries the
                   // error message. Recovery therefore wraps ONLY the handler call, with the emit

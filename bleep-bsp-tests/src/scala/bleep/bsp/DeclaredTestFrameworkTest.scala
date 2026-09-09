@@ -2,6 +2,7 @@ package bleep.bsp
 
 import bleep.model
 import bleep.testing.FrameworkSelection
+import ryddig.TypedLogger
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import sbt.testing._
@@ -60,7 +61,8 @@ class DeclaredTestFrameworkTest extends AnyFunSuite with Matchers {
       project,
       classesDirContaining(classOf[MarkerSuite]),
       currentClasspath,
-      declaredFrameworks = List(classOf[MarkerFramework].getName)
+      declaredFrameworks = List(classOf[MarkerFramework].getName),
+      logger = TypedLogger.DevNull
     )
 
     suites.map(_.className) shouldBe List(classOf[MarkerSuite].getName)
@@ -74,7 +76,8 @@ class DeclaredTestFrameworkTest extends AnyFunSuite with Matchers {
         project,
         classesDirContaining(classOf[MarkerSuite]),
         currentClasspath,
-        declaredFrameworks = List("com.novocode.junit.JUnitFramework")
+        declaredFrameworks = List("com.novocode.junit.JUnitFramework"),
+        logger = TypedLogger.DevNull
       )
     }
     thrown.getMessage should include("mytest")
@@ -88,7 +91,8 @@ class DeclaredTestFrameworkTest extends AnyFunSuite with Matchers {
       project,
       classesDirContaining(classOf[MarkerSuite]),
       currentClasspath,
-      declaredFrameworks = Nil
+      declaredFrameworks = Nil,
+      logger = TypedLogger.DevNull
     )
     withClue("nothing built in should match a class whose only marker is a base class bleep does not know: ")(suites shouldBe empty)
   }

@@ -139,6 +139,7 @@ case class BuildSummary(
     else {
       val testProblems = testsFailed + testsTimedOut + testsCancelled
       val testsObserved = testsPassed + testsFailed + testsSkipped + testsIgnored + testsTimedOut + testsCancelled
+      val suitesUnaccounted = suitesTotal - suitesCompleted - suitesCancelled
       if (testProblems > 0 || suitesCancelled > 0) {
         val parts = List.newBuilder[String]
         parts += s"$testsPassed passed"
@@ -147,6 +148,16 @@ case class BuildSummary(
         if (testsCancelled > 0) parts += s"$testsCancelled cancelled"
         if (suitesCancelled > 0) parts += s"$suitesCancelled suites cancelled"
         Left(new bleep.BleepException.Text(s"Tests failed: ${parts.result().mkString(", ")}"))
+      } else if (suitesUnaccounted > 0) {
+        // Suites were discovered and their run announced, but fewer reported a result than were announced — the run stopped short of executing all of them.
+        // Whatever the mechanism (a fork that died mid-run, a scheduler that returned before every suite ran), a partial run is NOT a pass: the same silent-green
+        // hazard as a zero-suite build, one level up. A green `bleep test` that ran 10 of 29 suites lets CI's "test every project" gate mistake a fraction for full
+        // coverage. This mirrors what [[BuildDisplay]] already shows as "N did not finish"; the verdict must agree with the summary the user is reading.
+        Left(
+          new bleep.BleepException.Text(
+            s"Tests did not finish: $suitesCompleted of $suitesTotal suites completed, $suitesUnaccounted never reported a result. A partial run is not a pass."
+          )
+        )
       } else if (testProjectsWithoutSuites.nonEmpty) {
         // A project reaches discovery only when it is `isTestProject: true` and its classes compiled, and the count checked here is the one taken *before*
         // `--only` / `--exclude` / tag filters. So this is not the user narrowing a run to nothing: it is compiled test classes that no framework recognised —

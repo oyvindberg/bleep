@@ -4,18 +4,20 @@ import bleep.MachineResources
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
-import bleep.testing.{FrameworkSelection, JvmPool, TestJvm, TestProtocol}
+import bleep.testing.{FrameworkSelection, SessionSharing, TestExecutor, TestProtocol, TestSession, TestSessionRequest}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
 
 import java.nio.file.Path
+import ryddig.Logger
 import scala.concurrent.duration._
 
-/** Test runner that executes test suites in forked JVMs.
+/** Test runner that executes test suites and streams their events back through the DAG event queue.
   *
-  * Uses JvmPool for efficient JVM reuse and streams test events back through the DAG event queue. Uses Deferred-based kill signals for explicit cancellation
-  * handling.
+  * Where a suite runs is [[TestExecutor]]'s business, not this one's: a pooled forked JVM talking over a socket, or a classloader in the server itself. This
+  * drives whichever it is handed through the same protocol, with the same idle timeout and the same Deferred-based kill signal — so cancellation, timeouts and
+  * reporting behave identically whether or not there is a process on the other end.
   */
 object TestRunner {
 
@@ -29,7 +31,9 @@ object TestRunner {
       testArgs: List[String],
       idleTimeout: FiniteDuration,
       environment: Map[String, String],
-      workingDirectory: Option[Path]
+      workingDirectory: Option[Path],
+      /** Shared (the default — this suite's project runs all its suites in one fork) or Exclusive (a fork per suite). Set from the project's `testFork`. */
+      sharing: SessionSharing
   )
 
   object Options {
@@ -39,7 +43,8 @@ object TestRunner {
       testArgs = Nil,
       idleTimeout = 2.minutes,
       environment = Map.empty,
-      workingDirectory = None
+      workingDirectory = None,
+      sharing = SessionSharing.Exclusive
     )
   }
 
@@ -53,8 +58,8 @@ object TestRunner {
     *   how to run the suite: which runner, and for the sbt path which `Framework` class
     * @param classpath
     *   full classpath for the test JVM
-    * @param pool
-    *   the JVM pool to acquire from
+    * @param executor
+    *   where to run the suite: a pool of forked JVMs, or this process
     * @param eventQueue
     *   queue to emit DAG events to
     * @param options
@@ -72,7 +77,7 @@ object TestRunner {
       suiteName: String,
       selection: FrameworkSelection,
       classpath: List[Path],
-      pool: JvmPool,
+      executor: TestExecutor,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       options: Options,
       resolveSourcePath: String => Option[String],
@@ -80,7 +85,18 @@ object TestRunner {
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
-    pool.acquire(suiteName, classpath, options.jvmOptions, options.defaultHeapMb, runnerClass, options.environment, options.workingDirectory).use { jvm =>
+    val request = TestSessionRequest(
+      label = suiteName,
+      classpath = classpath,
+      jvmOptions = options.jvmOptions,
+      defaultHeapMb = options.defaultHeapMb,
+      runnerClass = runnerClass,
+      environment = options.environment,
+      workingDirectory = options.workingDirectory,
+      sharing = options.sharing
+    )
+
+    executor.acquire(request).use { jvm =>
       // Recorded here rather than in the pool because this is the only place that knows both which JVM was handed out and what is about to run on it. The pid
       // joins these to the fork_start/fork_end pair, which is what lets a test run be reconstructed: which suites shared a JVM, and which JVM was killed
       // under which suite.
@@ -105,6 +121,240 @@ object TestRunner {
     }
   }
 
+  /** Run a whole project's JUnit suites as ONE batched execution.
+    *
+    * The maven one-execute-per-module shape: all the classes go through a single execution in one fork, so an execution-scoped fixture (an application the
+    * framework boots for the run) is built once and reused across them instead of rebuilt per class. junit's engine runs `parallelism` classes at once, a
+    * number bleep chose. The per-suite events emitted are exactly what a suite-by-suite run emits (each response carries its own suite), so nothing downstream
+    * can tell the difference — only the fork does one execute instead of N.
+    */
+  def runBatch(
+      project: CrossProjectName,
+      suites: List[(SuiteName, FrameworkSelection)],
+      parallelism: Int,
+      classpath: List[Path],
+      executor: TestExecutor,
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
+      options: Options,
+      resolveSourcePath: String => Option[String],
+      killSignal: Deferred[IO, KillReason],
+      logger: Logger
+  ): IO[TaskDag.TaskResult] = {
+    val runnerClass = "bleep.testing.runner.ForkedTestRunner"
+    val classNames = suites.map(_._1.value)
+    val selection = suites.head._2 // all JUnit-Platform (the batch is only formed for JUnit)
+    val request = TestSessionRequest(
+      label = s"${project.value} (batch of ${suites.size})",
+      classpath = classpath,
+      jvmOptions = options.jvmOptions,
+      defaultHeapMb = options.defaultHeapMb,
+      runnerClass = runnerClass,
+      environment = options.environment,
+      workingDirectory = options.workingDirectory,
+      // One execute, one fork: exclusive. (A shared session multiplexes independent suites — the opposite model.)
+      sharing = SessionSharing.Exclusive
+    )
+    executor.acquire(request).use { jvm =>
+      val startedAt = System.currentTimeMillis()
+      IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, s"<batch:${suites.size}>", selection.displayName)).attempt >>
+        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, options.testArgs, resolveSourcePath, killSignal, logger)
+          .flatTap { result =>
+            IO(
+              BspMetrics.recordSuiteFinished(
+                jvm.pid,
+                project.value,
+                s"<batch:${suites.size}>",
+                System.currentTimeMillis() - startedAt,
+                result.getClass.getSimpleName.stripSuffix("$")
+              )
+            ).attempt
+          }
+    }
+  }
+
+  /** Why a batch fork stopped without reporting the rest of its suites. The fork's own stderr (fd 2) is where a JVM records an OutOfMemoryError, a native
+    * crash, or a `System.exit` — none of which travels over the per-suite protocol — so drain it here; say whether the fork is still alive (wedged) or gone;
+    * and add a thread dump when it is wedged. Best-effort: every probe is `.attempt`ed, so producing the diagnostic can never itself fail the run.
+    */
+  private def forkDeathDiagnostic(jvm: TestSession): IO[String] =
+    for {
+      alive <- jvm.isAlive.attempt.map(_.getOrElse(true))
+      stderr <- jvm.drainStderr.attempt.map(_.getOrElse(Nil))
+      dump <- if (alive) jvm.dumpThreads.attempt.map(_.getOrElse(Nil)) else IO.pure(Nil)
+    } yield {
+      val liveNote =
+        if (alive) " The fork is still alive — it stopped producing results without exiting, so it is wedged rather than dead."
+        else " The fork had exited."
+      val errNote =
+        if (stderr.nonEmpty) s"\n  fork stderr (tail):\n${stderr.takeRight(50).map("    " + _).mkString("\n")}"
+        else " It wrote nothing to its own stderr."
+      val dumpNote =
+        if (dump.nonEmpty) s"\n  fork thread dump (head):\n${dump.take(80).map("    " + _).mkString("\n")}" else ""
+      liveNote + errNote + dumpNote
+    }
+
+  private def executeBatch(
+      project: CrossProjectName,
+      classNames: List[String],
+      parallelism: Int,
+      selection: FrameworkSelection,
+      jvm: TestSession,
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
+      idleTimeout: FiniteDuration,
+      args: List[String],
+      resolveSourcePath: String => Option[String],
+      killSignal: Deferred[IO, KillReason],
+      logger: Logger
+  ): IO[TaskDag.TaskResult] = {
+    def now: IO[Long] = IO.realTime.map(_.toMillis)
+    def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(Some(event))
+    val startTime = System.currentTimeMillis()
+
+    for {
+      lastActivityAt <- Ref.of[IO, Long](startTime)
+      outcomes <- Ref.of[IO, Map[String, SuiteOutcome]](Map.empty)
+      failuresPerSuite <- Ref.of[IO, Map[String, List[String]]](Map.empty)
+      forkError <- Ref.of[IO, Option[String]](None)
+
+      processResponses =
+        jvm
+          .runSuites(classNames, parallelism, selection, args)
+          .evalMap {
+            case TestProtocol.TestResponse.TestStarted(suite, test) =>
+              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suite), TestName(test), ts)))
+
+            case TestProtocol.TestResponse.TestFinished(suite, test, statusStr, durationMs, message, throwable, location) =>
+              val status = TestStatus.fromString(statusStr)
+              val track = if (status.isFailure) failuresPerSuite.update(m => m.updated(suite, test :: m.getOrElse(suite, Nil))) else IO.unit
+              track >> now.flatMap { ts =>
+                lastActivityAt.set(ts) >>
+                  emit(
+                    TaskDag.DagEvent.TestFinished(
+                      project,
+                      SuiteName(suite),
+                      TestName(test),
+                      status,
+                      durationMs,
+                      message,
+                      throwable,
+                      ts,
+                      location.map(loc => loc.copy(path = resolveSourcePath(loc.declaringClass)))
+                    )
+                  )
+              }
+
+            case TestProtocol.TestResponse.SuiteDone(suite, outcome, durationMs) =>
+              outcomes.update(_ + (suite -> outcome)) >>
+                now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.SuiteFinished(project, SuiteName(suite), outcome, durationMs, ts)))
+
+            case TestProtocol.TestResponse.Log(level, message, suite) =>
+              if (level == "debug") IO.delay(MultiWorkspaceBspServer.debugLogStatic(s"[${suite.getOrElse(project.value)}] $message"))
+              else
+                suite match {
+                  case Some(s) =>
+                    now.flatMap(ts =>
+                      emit(TaskDag.DagEvent.Output(project, SuiteName(s), message, OutputChannel.fromIsError(level == "error" || level == "stderr"), ts))
+                    )
+                  case None =>
+                    IO.unit // batch output not attributable to a single suite (a framework thread) — dropped, as its structured events already carried the result
+                }
+
+            case TestProtocol.TestResponse.Error(message, details) =>
+              // A fork-level error (the JVM died) has no suite — it fails the whole batch. Carry the
+              // runner's detail (the "likely System.exit()" hint and the fork's stderr tail) so the
+              // batch's failure says why, not just that it died.
+              forkError.set(Some(withDetail(message, details)))
+
+            case TestProtocol.TestResponse.BatchComplete => IO.unit
+            case TestProtocol.TestResponse.Ready         => IO.unit
+            case TestProtocol.TestResponse.ThreadDump(_) => IO.unit
+          }
+          .compile
+          .drain
+
+      idleTimeoutIO = {
+        val checkInterval = 1.second
+        def loop: IO[Unit] = for {
+          nowMs <- IO.realTime.map(_.toMillis)
+          lastActivity <- lastActivityAt.get
+          elapsed = nowMs - lastActivity
+          _ <- if (elapsed >= idleTimeout.toMillis) IO.unit else IO.sleep(checkInterval) >> loop
+        } yield ()
+        loop
+      }
+
+      result <- IO.racePair(processResponses, IO.race(idleTimeoutIO, killSignal.get)).flatMap {
+        case Left((_, raceFiber)) =>
+          // The batch completed. Aggregate: a fork-level death is an Error; a class that never reported is an Error; otherwise the first failing suite decides,
+          // else Success. Per-suite results already went out as SuiteFinished events, so this is only the batch task's own status.
+          raceFiber.cancel >> (for {
+            fe <- forkError.get
+            outs <- outcomes.get
+            fps <- failuresPerSuite.get
+            result <- fe match {
+              case Some(msg) =>
+                // The fork reported a death (or bleep synthesised one when its stream ended). Append the fork diagnostic — its own stderr, where a shutdown
+                // hook prints the thread dump that names a System.exit caller — so a clean-looking "exited 0" carries the reason with it.
+                forkDeathDiagnostic(jvm).flatMap { diag =>
+                  val full = s"$msg$diag"
+                  IO(logger.warn(s"batch fork error for ${project.value}:\n$full")) >>
+                    IO.pure(TaskDag.TaskResult.Error(error = full, processExit = ProcessExit.Unknown))
+                }
+              case None =>
+                val missing = classNames.filterNot(outs.contains)
+                if (missing.nonEmpty)
+                  // The fork stopped after reporting some suites but not these. It almost always died mid-run, and a JVM that dies of an OutOfMemoryError, a
+                  // native crash, or `System.exit` says so on its OWN stderr (fd 2) — which the protocol, carrying only per-suite events, never delivered. So
+                  // this used to be a dead end: "produced no result", cause unknown. Drain that stderr (and note whether the fork is even still alive) so the
+                  // reason travels with the failure.
+                  forkDeathDiagnostic(jvm).flatMap { diag =>
+                    val msg = s"${missing.size} of ${classNames.size} batched suites never reported a result " +
+                      s"(${missing.take(8).mkString(", ")}${if (missing.size > 8) ", …" else ""}).$diag"
+                    // The DAG keeps only the errored task's id and drops this message, so emit it as output too — attributed to the first suite that never
+                    // reported (the one the fork was on when it went) — so the reason reaches history and the client, not just this returned value.
+                    IO(logger.warn(s"batch fork diagnostic for ${project.value}:\n$msg")) >>
+                      now.flatMap { ts =>
+                        msg.linesIterator.toList
+                          .traverse_(line =>
+                            emit(TaskDag.DagEvent.Output(project, SuiteName(missing.head), line, OutputChannel.fromIsError(isError = true), ts))
+                          )
+                      } >> IO.pure(TaskDag.TaskResult.Error(error = msg, processExit = ProcessExit.Unknown))
+                  }
+                else {
+                  val perSuite = classNames.map(c => taskResultFor(c, outs(c), fps.getOrElse(c, Nil)))
+                  IO.pure(
+                    perSuite
+                      .collectFirst { case f: TaskDag.TaskResult.Failure => f }
+                      .orElse(perSuite.collectFirst { case e: TaskDag.TaskResult.Error => e })
+                      .getOrElse(TaskDag.TaskResult.Success)
+                  )
+                }
+            }
+          } yield result)
+
+        case Right((suiteFiber, raceOutcome)) =>
+          // Idle timeout or kill: the whole fork goes (there is one execute; there is no per-suite thread to interrupt without ending the run).
+          val cleanup: IO[Unit] = IO.uncancelable(_ => jvm.kill.attempt >> suiteFiber.cancel.attempt.void)
+          raceOutcome match {
+            case Outcome.Succeeded(fa) =>
+              fa.flatMap {
+                case Left(_) =>
+                  IO.race(jvm.dumpThreads.attempt, IO.sleep(5.seconds))
+                    .map {
+                      case Left(Right(lines)) if lines.nonEmpty => Some(lines.mkString("\n"))
+                      case _                                    => None
+                    }
+                    .flatMap(dump => cleanup >> IO.pure(TaskDag.TaskResult.TimedOut(dump)))
+                case Right(reason) => cleanup >> IO.pure(TaskDag.TaskResult.Killed(reason))
+              }
+            case Outcome.Errored(e) =>
+              cleanup >> IO.pure(TaskDag.TaskResult.Error(error = s"Error during batch: ${e.getMessage}", processExit = ProcessExit.Unknown))
+            case Outcome.Canceled() => cleanup >> IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
+          }
+      }
+    } yield result
+  }
+
   /** Execute a test suite with idle timeout and kill signal handling.
     *
     * The idle timeout resets each time a test completes. If no test completes within the timeout period, the suite is considered hung and killed.
@@ -113,7 +363,7 @@ object TestRunner {
       project: CrossProjectName,
       suiteName: String,
       selection: FrameworkSelection,
-      jvm: TestJvm,
+      jvm: TestSession,
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       testArgs: List[String],
       idleTimeout: FiniteDuration,
@@ -189,16 +439,22 @@ object TestRunner {
                   now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
                 }
 
-              case TestProtocol.TestResponse.Error(message, _) =>
+              case TestProtocol.TestResponse.Error(message, details) =>
                 // Infrastructure error (JVM died mid-stream, or malformed response) — no authoritative
                 // SuiteDone. Record it as the terminal signal so we emit SuiteError, not a green suite.
-                terminal.set(Some(Left(message)))
+                // Keep the runner's diagnostic detail: JvmPool assembles the "likely System.exit()" hint
+                // and the fork's stderr tail here, and dropping them leaves the user with a bare "died
+                // unexpectedly" that cannot be acted on.
+                terminal.set(Some(Left(withDetail(message, details))))
 
               case TestProtocol.TestResponse.Ready =>
                 IO.unit
 
               case TestProtocol.TestResponse.ThreadDump(_) =>
                 IO.unit
+
+              case TestProtocol.TestResponse.BatchComplete =>
+                IO.unit // a single-suite run never batches; only runSuites produces this
             }
             .compile
             .drain
@@ -283,9 +539,12 @@ object TestRunner {
               }
               .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}"))
 
-          // Helper for cleanup - uncancelable and recovers from errors
+          // Helper for cleanup - uncancelable and recovers from errors.
+          // killSuite, not kill: on an exclusive fork the two are the same (the fork is this suite), but on a per-project shared fork this stops ONLY this
+          // suite (a CancelSuite interrupting its thread) and leaves its siblings running. Killing the whole fork here would take a project's other in-flight
+          // suites down with a single one's timeout or cancellation.
           def cleanup: IO[Unit] = IO.uncancelable { _ =>
-            drainStderrToEvents.attempt >> jvm.kill.attempt >> suiteFiber.cancel.attempt.void
+            drainStderrToEvents.attempt >> jvm.killSuite(suiteName).attempt >> suiteFiber.cancel.attempt.void
           }
 
           // On idle timeout the test runner JVM is alive but stuck. Run jstack against it so
@@ -355,6 +614,13 @@ object TestRunner {
     * [[SuiteOutcome.isFailure]], which decides the same question for the summary; when these two disagreed, the run showed "1 failed" with no failure to point
     * at.
     */
+  /** Append the runner's diagnostic detail to a fork-death message, on its own lines. The detail is what makes such a death actionable — the exit-status
+    * reading ("likely called System.exit()") and the fork's stderr tail, both assembled in [[bleep.testing.JvmPool]] — and the display renders a multi-line
+    * message verbatim, so the user finally sees why the JVM went instead of only that it did.
+    */
+  private def withDetail(message: String, details: Option[String]): String =
+    details.filter(_.trim.nonEmpty).fold(message)(d => s"$message\n$d")
+
   private def taskResultFor(suiteName: String, outcome: SuiteOutcome, failures: List[String]): TaskDag.TaskResult =
     outcome match {
       case SuiteOutcome.Executed(_, failed, _, _) if failed > 0 =>

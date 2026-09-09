@@ -2,6 +2,7 @@ package bleep.bsp
 
 import bleep.model.CrossProjectName
 import bleep.testing.FrameworkSelection
+import ryddig.Logger
 import sbt.testing._
 
 import java.io.File
@@ -10,6 +11,7 @@ import java.net.URLClassLoader
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /** Discovered test suite ready for execution.
   *
@@ -191,7 +193,8 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classesDir: Path,
       classpath: List[Path],
-      declaredFrameworks: List[String]
+      declaredFrameworks: List[String],
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     if (!Files.isDirectory(classesDir)) {
       return Nil
@@ -206,14 +209,14 @@ object ClasspathTestDiscovery {
       val classNames = classFiles.map(f => classFileToClassName(classesDir, f))
 
       // Strategy 1: sbt-testing Framework fingerprints
-      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks)
+      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks, logger)
 
       // Get classes not yet discovered
       val discoveredClassNames = frameworkDiscovered.map(_.className).toSet
       val remainingClasses = classNames.filterNot(discoveredClassNames.contains)
 
       // Strategy 2: Direct annotation scanning (JUnit 4/5, TestNG, kotlin.test)
-      val annotationDiscovered = discoverViaAnnotations(project, remainingClasses, classLoader)
+      val annotationDiscovered = discoverViaAnnotations(project, remainingClasses, classLoader, logger)
 
       // Get classes still not discovered
       val annotationDiscoveredNames = annotationDiscovered.map(_.className).toSet
@@ -247,7 +250,8 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classNames: List[String],
       classLoader: URLClassLoader,
-      declaredFrameworks: List[String]
+      declaredFrameworks: List[String],
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     val frameworks = loadFrameworks(project, classLoader, declaredFrameworks)
 
@@ -261,7 +265,7 @@ object ClasspathTestDiscovery {
     }
 
     classNames.flatMap { className =>
-      matchFingerprint(className, classLoader, fingerprintsByFramework).map { case (fw, _) =>
+      matchFingerprint(className, classLoader, fingerprintsByFramework, logger).map { case (fw, _) =>
         DiscoveredTestSuite(project, className, selectionForFramework(fw))
       }
     }
@@ -317,58 +321,82 @@ object ClasspathTestDiscovery {
   private def instantiateFramework(classLoader: URLClassLoader, fqn: String): Framework =
     classLoader.loadClass(fqn).getDeclaredConstructor().newInstance().asInstanceOf[Framework]
 
+  /** Reflecting over a project's compiled classes can land on one whose supertypes or annotations name a type no longer on the classpath — almost always an
+    * orphaned `.class` an incremental compile left behind after a package rename, whose source is gone but whose output lingers. `Class.getDeclaredMethods` /
+    * `getAnnotations` / `Class.isAssignableFrom` then throw a `LinkageError` (`NoClassDefFoundError`). That is an `Error`, not an `Exception`, so
+    * `scala.util.Try` and `scala.util.control.NonFatal` do NOT hold it: it used to escape discovery, tear down the whole client handler, and surface to the
+    * user as "BSP server connection lost (server may have crashed)" — pointing at memory when the real cause was a stale build. One un-reflectable class must
+    * cost only that class: skip it, name it and the likely remedy, and let discovery continue.
+    *
+    * `LinkageError` is caught deliberately and separately from `NonFatal`; it is not a `VirtualMachineError`, so this does not swallow `OutOfMemoryError` or
+    * `StackOverflowError`, which still propagate.
+    */
+  private def skipUnreflectable[A](className: String, logger: Logger)(f: => Option[A]): Option[A] =
+    try f
+    catch {
+      case e: LinkageError =>
+        logger.warn(
+          s"test discovery skipping $className: ${e.getClass.getSimpleName}: ${e.getMessage}. " +
+            "This is usually an orphaned .class an incremental compile left after a rename — `bleep clean` on that project clears it."
+        )
+        None
+      case NonFatal(_) => None
+    }
+
   /** Try to match a class against fingerprints */
   private def matchFingerprint(
       className: String,
       classLoader: ClassLoader,
-      fingerprints: List[(Framework, Fingerprint)]
-  ): Option[(Framework, Fingerprint)] = {
-    val clazz = Try(classLoader.loadClass(className)).toOption
+      fingerprints: List[(Framework, Fingerprint)],
+      logger: Logger
+  ): Option[(Framework, Fingerprint)] =
+    skipUnreflectable(className, logger) {
+      val clazz = Try(classLoader.loadClass(className)).toOption
 
-    clazz.flatMap { cls =>
-      // Skip abstract classes and interfaces
-      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
-      else
-        fingerprints.find { case (_, fp) =>
-          fp match {
-            case sfp: SubclassFingerprint =>
-              Try {
-                val superclass = classLoader.loadClass(sfp.superclassName())
-                // A module fingerprint describes the object's own class, so every question — does it extend the right thing, does it have the constructor the
-                // fingerprint asks for — has to be asked of that class rather than of the name the scan happened to land on.
-                val subject: Option[Class[?]] =
-                  if (!sfp.isModule) Some(cls)
-                  // The scan yields `Foo` when the compiler emitted a mirror class beside `Foo$`, and `Foo$` when it did not. Appending `$` unconditionally
-                  // asked for `Foo$$` in the second case, which exists for nothing, so any framework whose only fingerprint is a module one went undiscovered:
-                  // minitest declares exactly one, and its suites were never found.
-                  else if (className.endsWith("$")) Some(cls)
-                  else Try(classLoader.loadClass(className + "$")).toOption
+      clazz.flatMap { cls =>
+        // Skip abstract classes and interfaces
+        if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
+        else
+          fingerprints.find { case (_, fp) =>
+            fp match {
+              case sfp: SubclassFingerprint =>
+                Try {
+                  val superclass = classLoader.loadClass(sfp.superclassName())
+                  // A module fingerprint describes the object's own class, so every question — does it extend the right thing, does it have the constructor the
+                  // fingerprint asks for — has to be asked of that class rather than of the name the scan happened to land on.
+                  val subject: Option[Class[?]] =
+                    if (!sfp.isModule) Some(cls)
+                    // The scan yields `Foo` when the compiler emitted a mirror class beside `Foo$`, and `Foo$` when it did not. Appending `$` unconditionally
+                    // asked for `Foo$$` in the second case, which exists for nothing, so any framework whose only fingerprint is a module one went undiscovered:
+                    // minitest declares exactly one, and its suites were never found.
+                    else if (className.endsWith("$")) Some(cls)
+                    else Try(classLoader.loadClass(className + "$")).toOption
 
-                subject.exists { subjectClass =>
-                  // Checked against `subjectClass`, not `cls`. A Scala 3 mirror class declares no constructor at all, so asking it this question rejected every
-                  // module suite whose fingerprint required one — which is all of them.
-                  val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(subjectClass)
-                  hasConstructor && superclass.isAssignableFrom(subjectClass)
+                  subject.exists { subjectClass =>
+                    // Checked against `subjectClass`, not `cls`. A Scala 3 mirror class declares no constructor at all, so asking it this question rejected every
+                    // module suite whose fingerprint required one — which is all of them.
+                    val hasConstructor = !sfp.requireNoArgConstructor || hasNoArgConstructor(subjectClass)
+                    hasConstructor && superclass.isAssignableFrom(subjectClass)
+                  }
+                }.getOrElse(false)
+
+              case afp: AnnotatedFingerprint =>
+                val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
+                annotationClass.exists { annClass =>
+                  if (afp.isModule) {
+                    val moduleClass = if (className.endsWith("$")) Some(cls) else Try(classLoader.loadClass(className + "$")).toOption
+                    moduleClass.exists(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
+                  } else {
+                    cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
+                  }
                 }
-              }.getOrElse(false)
 
-            case afp: AnnotatedFingerprint =>
-              val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
-              annotationClass.exists { annClass =>
-                if (afp.isModule) {
-                  val moduleClass = if (className.endsWith("$")) Some(cls) else Try(classLoader.loadClass(className + "$")).toOption
-                  moduleClass.exists(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
-                } else {
-                  cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
-                }
-              }
-
-            case _ =>
-              false
+              case _ =>
+                false
+            }
           }
-        }
+      }
     }
-  }
 
   // ============================================================================
   // Strategy 2: Direct annotation scanning
@@ -378,13 +406,14 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classNames: List[String],
       // URLClassLoader, not ClassLoader: the runtime probes need to ask what is on *these* URLs, not what the parent can also reach.
-      classLoader: URLClassLoader
+      classLoader: URLClassLoader,
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     val junitAvailable = junitRuntimeOnClasspath(classLoader)
     val testngBridge = testngBridgeClasses.find(c => onProjectClasspath(classLoader, c))
 
     classNames.flatMap { className =>
-      detectFrameworkByAnnotation(className, classLoader).flatMap { displayName =>
+      detectFrameworkByAnnotation(className, classLoader, logger).flatMap { displayName =>
         selectionForAnnotation(displayName, junitAvailable, testngBridge)
           .map(selection => DiscoveredTestSuite(project, className, selection))
       }
@@ -452,29 +481,32 @@ object ClasspathTestDiscovery {
   /** Detect test framework by scanning for test annotations */
   private def detectFrameworkByAnnotation(
       className: String,
-      classLoader: ClassLoader
+      classLoader: ClassLoader,
+      logger: Logger
   ): Option[String] =
-    Try(classLoader.loadClass(className)).toOption.flatMap { cls =>
-      // Skip abstract classes and interfaces
-      if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
-      else {
-        // Check for class-level @Test annotation (TestNG style)
-        val classLevelAnnotation = findTestAnnotation(cls.getAnnotations, classLoader)
+    skipUnreflectable(className, logger) {
+      Try(classLoader.loadClass(className)).toOption.flatMap { cls =>
+        // Skip abstract classes and interfaces
+        if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None
+        else {
+          // Check for class-level @Test annotation (TestNG style)
+          val classLevelAnnotation = findTestAnnotation(cls.getAnnotations, classLoader)
 
-        // Check for method-level test annotations
-        val methodLevelAnnotation = cls.getDeclaredMethods.flatMap { method =>
-          findTestAnnotation(method.getAnnotations, classLoader)
-        }.headOption
+          // Check for method-level test annotations
+          val methodLevelAnnotation = cls.getDeclaredMethods.flatMap { method =>
+            findTestAnnotation(method.getAnnotations, classLoader)
+          }.headOption
 
-        // Determine framework from annotation
-        (classLevelAnnotation orElse methodLevelAnnotation).map {
-          case ann if ann.contains("jupiter") => "JUnit Jupiter"
-          case ann if ann.contains("junit")   => "JUnit"
-          case ann if ann.contains("testng")  => "TestNG"
-          case ann if ann.contains("kotlin")  => "kotlin.test"
-          case ann if ann.contains("jqwik")   => "jqwik"
-          case ann if ann.contains("suite")   => "JUnit Platform Suite"
-          case _                              => "JUnit" // Default
+          // Determine framework from annotation
+          (classLevelAnnotation orElse methodLevelAnnotation).map {
+            case ann if ann.contains("jupiter") => "JUnit Jupiter"
+            case ann if ann.contains("junit")   => "JUnit"
+            case ann if ann.contains("testng")  => "TestNG"
+            case ann if ann.contains("kotlin")  => "kotlin.test"
+            case ann if ann.contains("jqwik")   => "jqwik"
+            case ann if ann.contains("suite")   => "JUnit Platform Suite"
+            case _                              => "JUnit" // Default
+          }
         }
       }
     }

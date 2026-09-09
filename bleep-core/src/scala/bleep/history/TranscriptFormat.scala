@@ -287,6 +287,16 @@ object TranscriptFormat {
     fields += "ignored" -> Json.fromInt(summary.testsIgnored)
     durationMs.foreach(d => fields += "durationMs" -> Json.fromLong(d))
 
+    // Suite-level coverage, so a caller reading only this JSON can see whether every discovered suite actually ran. `success` alone cannot convey it (and used to
+    // hide it entirely over MCP): a run that executed 10 of 29 suites is not the same as one that ran all 29, even when both report `failed: 0`. `toEither`
+    // already turns a shortfall into `success: false`, but these fields let an agent act on the exact gap rather than parse the summary string.
+    if (summary.suitesTotal > 0) {
+      fields += "suitesTotal" -> Json.fromInt(summary.suitesTotal)
+      fields += "suitesCompleted" -> Json.fromInt(summary.suitesCompleted)
+      val suitesDidNotFinish = summary.suitesTotal - summary.suitesCompleted - summary.suitesCancelled
+      if (suitesDidNotFinish > 0) fields += "suitesDidNotFinish" -> Json.fromInt(suitesDidNotFinish)
+    }
+
     val summaryParts = List.newBuilder[String]
     problem match {
       case None =>

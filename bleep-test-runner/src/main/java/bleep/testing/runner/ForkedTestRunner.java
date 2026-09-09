@@ -6,11 +6,11 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import sbt.testing.*;
 
 /**
@@ -33,16 +33,103 @@ public class ForkedTestRunner {
   // Flag to indicate we're shutting down
   private static final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
-  // Currently running test task thread for cancellation
-  private static final AtomicReference<Thread> currentTask = new AtomicReference<>(null);
+  // Suites currently running, keyed by class name, so a CancelSuite can interrupt exactly one
+  // without touching the fork or its siblings. A project's class names are unique, so the name is a
+  // sufficient key. When the fork runs one suite at a time (an exclusive per-suite session) this
+  // map
+  // simply never holds more than one entry.
+  private static final Map<String, Thread> runningSuites = new ConcurrentHashMap<>();
 
-  // Currently running suite name (for output tagging)
-  private static volatile String currentSuite = null;
+  // The suite the CURRENT thread is running, for tagging that thread's captured output.
+  // Thread-local,
+  // not global: with several suites in flight at once, each runs on its own thread, and a line
+  // written on a suite's thread belongs to that suite. Output from framework/async threads that
+  // never
+  // set this (a Vert.x event loop, a Netty worker) has no owning suite and is tagged null.
+  private static final ThreadLocal<String> currentSuite = new ThreadLocal<>();
+
+  // The suite a batch is currently running, across all threads. A batch runs one suite at a time by
+  // default, so this is unambiguous, and it is the fallback that lets output from a framework's own
+  // threads (which never set the thread-local `currentSuite`) still be attributed to the right
+  // suite.
+  private static volatile String activeBatchSuite = null;
+
+  // Set true once the command loop exits on its own terms (Shutdown, EOF, or a broken protocol). A
+  // JVM shutdown that happens while this is still false was NOT
+  // asked for by bleep — a test called System.exit()/Runtime.halt(), which on JDK 24+ (no
+  // SecurityManager) bleep cannot block. The exit diagnostic hook below
+  // fires only in that case, and dumps every thread so the one blocked in Shutdown.exit names the
+  // caller. Without it a System.exit is a silent exit-0 the parent
+  // can only guess at ("likely System.exit()").
+  private static volatile boolean loopExitedNormally = false;
+
+  /**
+   * Set (or clear, with null) the suite whose output a batch is currently producing. Passed to
+   * {@link SuiteRunner#runSuites} and used by the JUnit batch loop so output — on the running
+   * thread or on a framework's own — is attributed to the suite in flight, the way {@link
+   * #startSuiteThread} does for a single suite on its own thread.
+   */
+  static void setCurrentSuite(String suite) {
+    if (suite == null) {
+      currentSuite.remove();
+      activeBatchSuite = null;
+    } else {
+      currentSuite.set(suite);
+      activeBatchSuite = suite;
+    }
+  }
 
   public static void main(String[] args) {
     // Save original streams for protocol communication
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
+
+    // Name who kills the fork out from under a run. A test that calls System.exit()/Runtime.halt()
+    // ends the whole JVM — every suite that had not reported is
+    // simply lost, and the parent sees only a clean exit it can do no better than call "likely
+    // System.exit()". This hook fires ONLY on such an unrequested
+    // shutdown (loopExitedNormally is still false) and writes a full thread dump to the ORIGINAL
+    // stderr (fd 2, which the parent drains — not the protocol, which
+    // is already tearing down): the thread blocked in `Shutdown`/`Runtime.exit` is the caller,
+    // stack and all. Written straight to fd 2, no allocation-heavy
+    // machinery, because a shutdown is not a good time to need the heap.
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  if (loopExitedNormally) return;
+                  originalErr.println(
+                      "bleep test runner: the fork is shutting down before the run finished — a"
+                          + " test called System.exit()/Runtime.halt(), which bleep cannot block on"
+                          + " JDK 24+. Every unreported suite is lost. Thread dump follows; the"
+                          + " thread in java.lang.Shutdown / Runtime.exit is the caller:");
+                  for (Map.Entry<Thread, StackTraceElement[]> e :
+                      Thread.getAllStackTraces().entrySet()) {
+                    originalErr.println(
+                        "  \"" + e.getKey().getName() + "\" " + e.getKey().getState());
+                    for (StackTraceElement frame : e.getValue())
+                      originalErr.println("      at " + frame);
+                  }
+                  originalErr.flush();
+                },
+                "bleep-exit-diagnostic"));
+
+    // Always-on companion to the fd-2 hook above, writing the same account to a FILE the parent
+    // reads after the fork dies. fd 2 is lost when the exit races the pipe teardown (the case that
+    // left "N suites never reported a result" with no cause); a file is not. It runs on every
+    // orderly shutdown — including one bleep asked for — so it is unconditional; the parent decides
+    // what to make of it. It does NOT run on Runtime.halt or a hard kill, so an absent file is
+    // itself the answer: no shutdown hook ran.
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () ->
+                    writeExitLog(
+                        loopExitedNormally
+                            ? "shutdown after the command loop ended on its own terms"
+                            : "shutdown while the command loop was still running (System.exit by a"
+                                + " test, or the JVM tearing down)"),
+                "bleep-exit-logfile"));
 
     // The protocol runs over a loopback socket the parent is already listening on, NOT over this
     // process's stdin/stdout.
@@ -101,6 +188,21 @@ public class ForkedTestRunner {
       // Install security manager to catch System.exit (if supported)
       installSecurityManager();
 
+      // One LauncherSession for this whole fork: a LauncherSessionListener fires once here, not
+      // once
+      // per suite — which is what a test harness written for maven's one-fork-per-module assumes,
+      // and what keeps concurrent suites from racing on a "register this global once" listener.
+      //
+      // Guarded because it is a JUnit-Platform concept and JUnitPlatformRunner links against
+      // org.junit.platform.launcher.*. A fork for an sbt test-interface project (ScalaTest, MUnit,
+      // utest, ...) has no JUnit Platform on its runtime classpath (junit-platform-launcher is a
+      // `provided`, compile-only dependency of bleep-test-runner), so merely referencing that class
+      // would NoClassDefFoundError and kill the fork before it reaches Ready. No JUnit suites will
+      // run in such a fork, so there is nothing to share; skip it.
+      if (junitPlatformOnClasspath()) {
+        JUnitPlatformRunner.enableSharedSession();
+      }
+
       // Signal ready
       send(TestProtocol.encodeReady());
 
@@ -108,58 +210,147 @@ public class ForkedTestRunner {
           new BufferedReader(
               new InputStreamReader(protocolSocket.getInputStream(), StandardCharsets.UTF_8));
 
-      // Main command loop
+      // Main command loop.
+      //
+      // A RunSuite starts a thread and the loop goes straight back to reading, so several suites
+      // can
+      // be in flight at once (a per-project shared session dispatches them concurrently). The loop
+      // is
+      // never blocked on a running suite, which is what lets a CancelSuite for one suite — or a
+      // Shutdown — be acted on while others keep running. An exclusive per-suite session sends one
+      // RunSuite at a time and never overlaps them; the same code serves it with a map of size one.
       boolean running = true;
+      // A failure to READ the protocol socket means the parent (bleep) is gone, and every
+      // subsequent
+      // read will fail the same way — so exit, do not retry. This loop used to wrap the read in the
+      // same catch as dispatch and go straight back to reading: an IOException from a broken/reset
+      // socket (the parent gave up on the fork, or the client disconnected) turned an abandoned
+      // fork
+      // into an immortal 100%-CPU zombie that re-encoded the same error forever. Observed in the
+      // wild: a fork stuck ~2h with `main` pegged in TestProtocol.encodeError. Those zombies pile
+      // up
+      // and starve the machine, which then kills freshly-spawned forks at startup — a
+      // self-inflicted
+      // cascade. Dispatch errors (a single bad command) are still reported and tolerated, bounded
+      // by
+      // a consecutive-error cap so no other persistently-failing state can spin either.
+      int consecutiveErrors = 0;
+      // Why the loop ended, recorded at each exit so the fork's own stderr (fd 2, drained by the
+      // parent) says which side hung up. "The fork exited while a suite was still running" is
+      // otherwise undiagnosable from the parent, which only sees the socket go quiet: EOF and a
+      // reset both look like "died unexpectedly". This names the cause on the fork side.
+      String loopExitCause = "loop condition became false without an explicit cause";
       while (running && !shuttingDown.get()) {
+        String line;
         try {
-          String line = in.readLine();
-          if (line == null) {
-            // EOF - parent process closed stdin, shut down
+          line = in.readLine();
+        } catch (IOException e) {
+          // Protocol socket broken — the parent is unreachable. Stop; the finally block cleans up.
+          loopExitCause = "IOException reading the command socket (parent unreachable): " + e;
+          break;
+        }
+        if (line == null) {
+          // EOF - parent closed the protocol socket, shut down
+          loopExitCause = "EOF on the command socket (parent closed its end)";
+          break;
+        }
+        try {
+          TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
+          if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
+            loopExitCause = "received an explicit Shutdown command";
             running = false;
-          } else {
-            TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
-            if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
-              running = false;
-            } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
-              TestProtocol.ParsedCommand.RunSuite runSuite =
-                  (TestProtocol.ParsedCommand.RunSuite) cmd;
-              // Run in current thread so we can interrupt it
-              currentTask.set(Thread.currentThread());
-              try {
-                runSuite(
-                    runSuite.className,
-                    runSuite.framework,
-                    runSuite.runner,
-                    runSuite.frameworkClass,
-                    runSuite.args,
-                    capturedOut,
-                    capturedErr);
-              } finally {
-                currentTask.set(null);
-              }
-            } else if (cmd instanceof TestProtocol.ParsedCommand.GetThreadDump) {
-              send(generateThreadDump());
-            } else if (cmd instanceof TestProtocol.ParsedCommand.Invalid) {
-              TestProtocol.ParsedCommand.Invalid invalid = (TestProtocol.ParsedCommand.Invalid) cmd;
-              send(TestProtocol.encodeError("Failed to decode command: " + invalid.message, null));
-            }
+          } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
+            startSuiteThread((TestProtocol.ParsedCommand.RunSuite) cmd, capturedOut, capturedErr);
+          } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuites) {
+            startSuitesThread((TestProtocol.ParsedCommand.RunSuites) cmd, capturedOut, capturedErr);
+          } else if (cmd instanceof TestProtocol.ParsedCommand.CancelSuite) {
+            String toCancel = ((TestProtocol.ParsedCommand.CancelSuite) cmd).className;
+            Thread t = runningSuites.get(toCancel);
+            // Interrupt only that suite's thread. A suite already finished (t == null) is a no-op —
+            // the cancel raced its completion, which is harmless.
+            if (t != null) t.interrupt();
+          } else if (cmd instanceof TestProtocol.ParsedCommand.GetThreadDump) {
+            send(generateThreadDump());
+          } else if (cmd instanceof TestProtocol.ParsedCommand.Invalid) {
+            TestProtocol.ParsedCommand.Invalid invalid = (TestProtocol.ParsedCommand.Invalid) cmd;
+            send(TestProtocol.encodeError("Failed to decode command: " + invalid.message, null));
           }
+          consecutiveErrors = 0;
         } catch (Exception e) {
-          if (e instanceof InterruptedException) {
-            // We were interrupted (cancellation) - continue loop to get next command
-            Thread.interrupted(); // Clear interrupt flag
-            continue;
-          }
           send(
               TestProtocol.encodeError(
-                  "Error in command loop: " + e.getMessage(), stackTraceToString(e)));
+                  "Error in command loop: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
+          if (++consecutiveErrors >= 50) {
+            loopExitCause = "hit the consecutive-error cap (50) in the command loop";
+            break;
+          }
         }
+      }
+
+      // The loop ended on its own terms (Shutdown, EOF, a broken protocol, or too many errors), so
+      // the shutdown that follows is expected — the exit diagnostic
+      // hook stays quiet. Anything that shut the JVM down BEFORE reaching here was a test's own
+      // System.exit/halt, which is exactly what the hook reports.
+      loopExitedNormally = true;
+
+      // Leaving the loop (Shutdown or EOF): interrupt whatever is still running so a wedged or
+      // cancelled suite lets go, and give the threads a moment to emit their terminal responses
+      // before the JVM's shutdown hooks (which stop a Quarkus app and its containers) run.
+      //
+      // Record the teardown to fd 2 (drained by the parent). If the loop ended while suites were
+      // still running, those suites are being ABANDONED — their results never reach the parent,
+      // which reports them as "never reported a result". Naming them, and the cause, here is what
+      // turns that dead end into a reason.
+      java.util.Collection<Thread> stillRunning = new java.util.ArrayList<>(runningSuites.values());
+      originalErr.println(
+          "bleep test runner: command loop ended — "
+              + loopExitCause
+              + ". "
+              + stillRunning.size()
+              + " suite thread(s) still running at teardown"
+              + (stillRunning.isEmpty()
+                  ? "."
+                  : " (they will be interrupted and, if they do not stop, abandoned): "
+                      + runningSuites.keySet()));
+      originalErr.flush();
+      shuttingDown.set(true);
+      for (Thread t : runningSuites.values()) t.interrupt();
+      long deadline = System.currentTimeMillis() + 5000;
+      for (Thread t : runningSuites.values()) {
+        long remaining = deadline - System.currentTimeMillis();
+        if (remaining > 0) {
+          try {
+            t.join(remaining);
+          } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
+      java.util.List<String> abandoned = new java.util.ArrayList<>();
+      for (Map.Entry<String, Thread> e : runningSuites.entrySet())
+        if (e.getValue().isAlive()) abandoned.add(e.getKey());
+      if (!abandoned.isEmpty()) {
+        originalErr.println(
+            "bleep test runner: "
+                + abandoned.size()
+                + " suite thread(s) did not stop within 5s of interrupt and are being abandoned"
+                + " (the JVM will exit with them still running): "
+                + abandoned);
+        originalErr.flush();
       }
     } catch (Exception e) {
       send(
           TestProtocol.encodeError(
-              "Fatal error in test runner: " + e.getMessage(), stackTraceToString(e)));
+              "Fatal error in test runner: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
     } finally {
+      // Close the shared LauncherSession, running its listeners' launcherSessionClosed — where a
+      // booted application and its containers are asked to stop. Guarded for the same reason as the
+      // open above: an sbt-interface fork has no JUnit Platform on its classpath, so touching
+      // JUnitPlatformRunner here would NoClassDefFoundError in the finally and mask the real
+      // result.
+      if (junitPlatformOnClasspath()) {
+        JUnitPlatformRunner.closeSharedSession();
+      }
       // Restore original streams
       System.setOut(originalOut);
       System.setErr(originalErr);
@@ -178,9 +369,72 @@ public class ForkedTestRunner {
    */
   static final String PROTOCOL_PORT_PROPERTY = "bleep.test.protocolPort";
 
-  private static void send(String message) {
+  /**
+   * System property carrying the file this fork writes its exit diagnostic to. A file, not fd 2:
+   * when the JVM tears down, whatever a shutdown hook writes to stderr races the pipe closing and
+   * is routinely lost — which is how a fork that exits from under a run leaves the parent with a
+   * bare "exited 0" and no cause. A file survives that; the parent reads it after the fork dies.
+   * Must match {@code bleep.testing.ForkedTestRunnerProtocol.ExitLogProperty}.
+   */
+  static final String EXIT_LOG_PROPERTY = "bleep.test.exitLog";
+
+  /**
+   * Write the fork's exit diagnostic — whether the command loop had exited on its own terms, which
+   * suites were still running, and a full thread dump — to {@link #EXIT_LOG_PROPERTY}'s file.
+   * Called from a shutdown hook, so it runs on any orderly exit ({@code System.exit}, main
+   * returning) but NOT on {@code Runtime.halt} or a hard OS kill, which run no hooks: the file's
+   * ABSENCE afterwards tells the parent it was one of those. Best-effort and swallows its own
+   * errors — a shutdown is no time to throw, and a missing diagnostic must never mask the exit it
+   * was trying to explain.
+   */
+  private static void writeExitLog(String cause) {
+    String path = System.getProperty(EXIT_LOG_PROPERTY);
+    if (path == null) return;
+    try (PrintWriter w =
+        new PrintWriter(
+            new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
+      w.println("bleep test fork exit diagnostic");
+      w.println("  cause: " + cause);
+      w.println("  loopExitedNormally: " + loopExitedNormally);
+      w.println("  suites still registered as running: " + runningSuites.keySet());
+      w.println("  thread dump:");
+      for (Map.Entry<Thread, StackTraceElement[]> e : Thread.getAllStackTraces().entrySet()) {
+        w.println("    \"" + e.getKey().getName() + "\" " + e.getKey().getState());
+        for (StackTraceElement frame : e.getValue()) w.println("        at " + frame);
+      }
+      w.flush();
+    } catch (Throwable ignored) {
+      // best-effort; never let the diagnostic's failure mask the exit
+    }
+  }
+
+  // Synchronized: several suite threads share this one socket, and a response must reach the parent
+  // as one whole line. Without the lock two println/flush pairs could interleave mid-line and the
+  // parent would fail to decode the spliced JSON.
+  private static synchronized void send(String message) {
     protocolOut.println(message);
     protocolOut.flush();
+  }
+
+  /**
+   * Is JUnit Platform's launcher on this fork's classpath? Only then may we touch {@link
+   * JUnitPlatformRunner}, which links against {@code org.junit.platform.launcher.*}. sbt
+   * test-interface forks (ScalaTest, MUnit, utest, ...) have no JUnit Platform — {@code
+   * junit-platform-launcher} is a {@code provided}, compile-only dependency of bleep-test-runner —
+   * so referencing that class in such a fork NoClassDefFoundErrors. Probed with the class the
+   * runner's shared-session lifecycle needs; loaded lazily (initialize=false) so the check itself
+   * never triggers the failure it is guarding against.
+   */
+  private static boolean junitPlatformOnClasspath() {
+    try {
+      Class.forName(
+          "org.junit.platform.launcher.TestExecutionListener",
+          false,
+          ForkedTestRunner.class.getClassLoader());
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 
   /**
@@ -222,453 +476,99 @@ public class ForkedTestRunner {
     }
   }
 
-  private static void runSuite(
-      String className,
-      String frameworkName,
-      TestProtocol.RunnerKind runnerKind,
-      String frameworkClass,
-      List<String> args,
+  /**
+   * Start a suite on its own thread and return at once, so the command loop can keep serving.
+   *
+   * <p>Each suite gets a fresh {@link SuiteRunner} (which holds no static state, precisely so N of
+   * them can share this JVM). The thread registers itself under the suite's class name for the
+   * lifetime of the run so a CancelSuite can find and interrupt it, and tags its own captured
+   * output via the thread-local {@link #currentSuite}. What stays a fork's concern is what only a
+   * fork has: the socket the lines go out on and the streams the tests write to.
+   */
+  private static void startSuiteThread(
+      TestProtocol.ParsedCommand.RunSuite runSuite,
       OutputStream capturedOut,
       OutputStream capturedErr) {
-
-    // Set current suite for output tagging
-    currentSuite = className;
-
-    send(
-        TestProtocol.encodeLog(
-            // bleep talking to itself about which suite it was handed. Not the user's test output.
-            "debug",
-            "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
-
-    // The server decided this, with the project's classpath in front of it. Nothing here re-derives
-    // it from frameworkName, which is a display label.
-    if (runnerKind == TestProtocol.RunnerKind.JUNIT_PLATFORM) {
-      JUnitPlatformRunner junitRunner = new JUnitPlatformRunner(protocolOut);
-      junitRunner.runSuite(className, capturedOut, capturedErr);
-      return;
-    }
-
-    long startTime = System.currentTimeMillis();
-
-    // Counters declared outside try so they're accessible in catch for SuiteDone reporting
-    final int[] passed = {0};
-    final int[] failed = {0};
-    final int[] skipped = {0};
-    final int[] ignored = {0};
-
-    try {
-      // Flush any pending output before starting
-      capturedOut.flush();
-      capturedErr.flush();
-
-      // Load the framework
-      send(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkClass));
-      Framework framework = loadFramework(frameworkClass);
-      send(TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
-
-      // Get the runner
-      Runner runner =
-          framework.runner(
-              args.toArray(new String[0]), new String[0], ForkedTestRunner.class.getClassLoader());
-
-      // Try each fingerprint from the framework until we find one that produces tasks.
-      // Different fingerprints match different test patterns (e.g. @Test annotation vs
-      // TestCase subclass), so we need to find the right one for this class.
-      Fingerprint[] fingerprints = framework.fingerprints();
-
-      if (fingerprints.length == 0) {
-        send(TestProtocol.encodeError("Framework has no fingerprints: " + frameworkName, null));
-        return;
-      }
-
-      Task[] tasks = null;
-
-      // Try fingerprints that agree with what the class actually is before the rest.
-      //
-      // "First fingerprint that yields a task" is not enough on its own. A framework that declares
-      // both a class and a module fingerprint — specs2 does — is
-      // free to hand back a task for either without checking, and only fails later when it tries to
-      // load the form that does not exist: a `class Fixture extends
-      // Specification` matched against the module fingerprint produced a task whose whole error
-      // message was "example.Specs2Fixture$". Whether a suite is a
-      // Scala object is not a guess; the compiler emits `Fixture$` for one and not for the other.
-      Fingerprint[] ordered = orderFingerprintsFor(className, fingerprints);
-
-      for (Fingerprint fingerprint : ordered) {
-        TaskDef taskDef =
-            new TaskDef(className, fingerprint, true, new Selector[] {new SuiteSelector()});
-        Task[] candidate = runner.tasks(new TaskDef[] {taskDef});
-        if (candidate.length > 0) {
-          tasks = candidate;
-          send(
-              TestProtocol.encodeLog(
-                  "debug", "Matched fingerprint: " + describeFingerprint(fingerprint)));
-          break;
-        }
-      }
-
-      if (tasks == null || tasks.length == 0) {
-        // No fingerprint produced a task: the loaded framework does not recognize this class as
-        // a suite. Not an empty suite (the framework never claimed it) — a framework mismatch.
-        send(
-            TestProtocol.encodeSuiteNoFrameworkMatched(
-                className,
-                System.currentTimeMillis() - startTime,
-                "No test framework recognized " + className + " as a suite"));
-        return;
-      }
-
-      // Custom event handler to capture test events
-      EventHandler eventHandler =
-          new EventHandler() {
-            @Override
-            public void handle(Event event) {
-              String status;
-              switch (event.status()) {
-                case Success:
-                  status = "passed";
-                  passed[0]++;
-                  break;
-                case Failure:
-                  status = "failed";
-                  failed[0]++;
-                  break;
-                case Error:
-                  status = "error";
-                  failed[0]++;
-                  break;
-                case Skipped:
-                  status = "skipped";
-                  skipped[0]++;
-                  break;
-                case Ignored:
-                  status = "ignored";
-                  ignored[0]++;
-                  break;
-                case Canceled:
-                  status = "assumption-failed";
-                  skipped[0]++;
-                  break;
-                case Pending:
-                  status = "pending";
-                  ignored[0]++;
-                  break;
-                default:
-                  status = "unknown";
-                  break;
-              }
-
-              String throwableStr = null;
-              String message = null;
-              StackTraceElement location = null;
-              if (event.throwable() != null && event.throwable().isDefined()) {
-                Throwable t = event.throwable().get();
-                message = t.getMessage();
-                throwableStr = stackTraceToString(t);
-                location = failureLocation(t, className);
-              }
-
-              // Extract test name from selector if available
-              String testName = extractTestName(event);
-
-              // Flush output before reporting test finished
+    String className = runSuite.className;
+    Thread t =
+        new Thread(
+            () -> {
+              currentSuite.set(className);
               try {
-                capturedOut.flush();
-                capturedErr.flush();
-              } catch (IOException e) {
-                // Ignore
+                new SuiteRunner(
+                        ForkedTestRunner::send,
+                        ForkedTestRunner.class.getClassLoader(),
+                        Arrays.asList(capturedOut, capturedErr))
+                    .runSuite(
+                        className,
+                        runSuite.framework,
+                        runSuite.runner.name(),
+                        runSuite.frameworkClass,
+                        runSuite.args);
+              } finally {
+                currentSuite.remove();
+                runningSuites.remove(className, Thread.currentThread());
               }
-
-              send(
-                  TestProtocol.encodeTestFinished(
-                      className,
-                      testName,
-                      status,
-                      event.duration(),
-                      message,
-                      throwableStr,
-                      location == null ? null : location.getClassName(),
-                      location == null ? null : location.getFileName(),
-                      location == null ? 0 : location.getLineNumber()));
-            }
-          };
-
-      // Execute tasks
-      Logger logger = createLogger(className);
-      executeTasks(tasks, eventHandler, new Logger[] {logger});
-
-      // Done
-      runner.done();
-
-      // Final flush
-      capturedOut.flush();
-      capturedErr.flush();
-
-      long durationMs = System.currentTimeMillis() - startTime;
-      int total = passed[0] + failed[0] + skipped[0] + ignored[0];
-      if (total == 0) {
-        // The framework claimed the class (a task ran) but no test fired an event: an empty suite.
-        send(TestProtocol.encodeSuiteEmpty(className, durationMs));
-      } else {
-        send(
-            TestProtocol.encodeSuiteExecuted(
-                className, passed[0], failed[0], skipped[0], ignored[0], durationMs));
-      }
-
-    } catch (InterruptedException e) {
-      // Cancelled - report and re-throw to exit the run
-      send(TestProtocol.encodeLog("warn", "Suite " + className + " was cancelled"));
-      throw new RuntimeException(e);
-    } catch (SecurityException e) {
-      if (e.getMessage() != null && e.getMessage().contains("System.exit")) {
-        send(
-            TestProtocol.encodeSuiteErrored(
-                className,
-                System.currentTimeMillis() - startTime,
-                "Test attempted a blocked System.exit",
-                null));
-      } else {
-        throw e;
-      }
-    } catch (Throwable e) {
-      // Must catch Throwable (not just Exception): a framework may let an Error (AssertionError,
-      // or a LinkageError propagated from executeTasks) escape. Report it as an errored suite —
-      // NOT SuiteExecuted with faked counts — so the outcome carries the real reason.
-      send(TestProtocol.encodeLog("error", stackTraceToString(e)));
-      Throwable reported =
-          (e instanceof SuiteExecutionException && e.getCause() != null) ? e.getCause() : e;
-      send(
-          TestProtocol.encodeSuiteErrored(
-              className,
-              System.currentTimeMillis() - startTime,
-              "Error running suite "
-                  + className
-                  + ": "
-                  + reported.getClass().getName()
-                  + ": "
-                  + reported.getMessage(),
-              stackTraceToString(reported)));
-    }
-  }
-
-  private static void executeTasks(Task[] tasks, EventHandler eventHandler, Logger[] loggers)
-      throws InterruptedException {
-    for (Task task : tasks) {
-      // Check for interruption before each task
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
-      }
-
-      try {
-        Task[] nestedTasks = task.execute(eventHandler, loggers);
-        // Recursively execute nested tasks
-        executeTasks(nestedTasks, eventHandler, loggers);
-      } catch (InterruptedException e) {
-        throw e;
-      } catch (Throwable e) {
-        // Do NOT swallow and continue. A Throwable escaping task.execute — LinkageError,
-        // NoClassDefFoundError, ExceptionInInitializerError, typically from a stale sibling
-        // compile — means this suite's classpath cannot be trusted, not that one test failed.
-        // Swallowing it here let the suite fall through to SuiteDone(...,0,0,0) and be reported
-        // PASSED: a green build over a suite that never ran. Propagate so the caller's handler
-        // records a real failure with a non-zero count.
-        throw new SuiteExecutionException(e);
-      }
-    }
+            },
+            "suite-" + className);
+    // Register before start so a CancelSuite arriving immediately still finds the thread.
+    runningSuites.put(className, t);
+    t.start();
   }
 
   /**
-   * Wraps a non-interruption Throwable that escaped {@code task.execute} so it propagates out of
-   * {@link #executeTasks} (whose only checked throw is InterruptedException) to runSuite's outer
-   * handler, which reports it as a suite failure.
-   */
-  private static final class SuiteExecutionException extends RuntimeException {
-    SuiteExecutionException(Throwable cause) {
-      super(cause);
-    }
-  }
-
-  /**
-   * Instantiate an sbt.testing.Framework by class name.
+   * Run a project's suites of one framework as a single batch on its own thread — JUnit Platform
+   * classes through {@link JUnitPlatformRunner#runSuites} (each class its own execution on the
+   * shared session, up to the degree bleep chose at once), sbt-interface suites sequentially
+   * through one {@link SuiteRunner#runSuites} ({@code Runner}/{@code done()} once).
    *
-   * <p>One line, because the server sends the class rather than a label to guess from. This used to
-   * special-case JUnit, Kotest and TestNG, probe lists of candidate classes, and fall back to
-   * treating the display name as a class name — which is how "Spock" and "kotlin.test" arrived at
-   * Class.forName verbatim.
+   * <p>The batch is a single unit of work: it registers under one key, its per-suite results are
+   * tagged by class, and a {@link TestProtocol#encodeBatchComplete} is sent when it finishes,
+   * telling the parent to stop reading. Cancellation of a batch is fork-level (there is no
+   * per-suite thread here to interrupt).
    */
-  private static Framework loadFramework(String frameworkClass) throws Exception {
-    Class<?> clazz = Class.forName(frameworkClass);
-    return (Framework) clazz.getDeclaredConstructor().newInstance();
-  }
-
-  /** Check if this framework should use JUnit Platform Launcher directly. */
-  private static Logger createLogger(final String suiteName) {
-    return new Logger() {
-      @Override
-      public boolean ansiCodesSupported() {
-        // Frameworks ask this before colourising. Answering an unconditional `true` meant `bleep
-        // test --no-color` still got ANSI escapes from ScalaTest,
-        // hedgehog and friends: the flag lives in the client JVM and this runs in a forked one, so
-        // the only thing that crosses is the environment. The
-        // client sets NO_COLOR when the user asks for no colour, and the no-color.org convention
-        // means a user who sets it themselves is honoured too.
-        String noColor = System.getenv("NO_COLOR");
-        return noColor == null || noColor.isEmpty();
-      }
-
-      @Override
-      public void error(String msg) {
-        send(TestProtocol.encodeLog("error", msg));
-      }
-
-      @Override
-      public void warn(String msg) {
-        send(TestProtocol.encodeLog("warn", msg));
-      }
-
-      @Override
-      public void info(String msg) {
-        send(TestProtocol.encodeLog("info", msg));
-      }
-
-      @Override
-      public void debug(String msg) {
-        send(TestProtocol.encodeLog("debug", msg));
-      }
-
-      @Override
-      public void trace(Throwable t) {
-        send(TestProtocol.encodeLog("error", stackTraceToString(t)));
-      }
-    };
+  private static void startSuitesThread(
+      TestProtocol.ParsedCommand.RunSuites runSuites,
+      OutputStream capturedOut,
+      OutputStream capturedErr) {
+    Thread t =
+        new Thread(
+            () -> {
+              try {
+                if (runSuites.runner == TestProtocol.RunnerKind.JUNIT_PLATFORM) {
+                  new JUnitPlatformRunner(
+                          ForkedTestRunner::send, Arrays.asList(capturedOut, capturedErr))
+                      .runSuites(runSuites.classNames, runSuites.parallelism);
+                } else {
+                  // sbt test-interface: one Framework/Runner for all the project's suites of this
+                  // framework, done() once — maven's forkCount=1 reuseForks=true, which stateful
+                  // frameworks need. Suites run sequentially (these frameworks have no lock-aware
+                  // scheduler); setCurrentSuite tags captured output with the running suite.
+                  new SuiteRunner(
+                          ForkedTestRunner::send,
+                          ForkedTestRunner.class.getClassLoader(),
+                          Arrays.asList(capturedOut, capturedErr))
+                      .runSuites(
+                          runSuites.classNames,
+                          runSuites.framework,
+                          runSuites.frameworkClass,
+                          runSuites.args,
+                          ForkedTestRunner::setCurrentSuite);
+                }
+              } finally {
+                runningSuites.remove(BATCH_KEY, Thread.currentThread());
+              }
+            },
+            "suites-batch");
+    runningSuites.put(BATCH_KEY, t);
+    t.start();
   }
 
   /**
-   * Puts fingerprints whose `isModule` matches the class on disk first, keeping the framework's own
-   * order within each group. Nothing is discarded: a framework that disagrees with this reading
-   * still gets every fingerprint tried, just second.
+   * The single key a batched (RunSuites) execution registers under; a project runs at most one
+   * batch at a time.
    */
-  private static Fingerprint[] orderFingerprintsFor(String className, Fingerprint[] fingerprints) {
-    Class<?> asModule = loadClass(className + "$");
-    Class<?> asPlain = loadClass(className);
-    boolean isModule = asModule != null;
-
-    // Ranked, highest first, keeping the framework's own order within a rank:
-    //   2 — the class really does extend what the fingerprint names
-    //   1 — only the class/object shape agrees
-    //   0 — neither
-    //
-    // Shape alone is not enough to tell a framework's fingerprints apart when several describe
-    // objects. Weaver declares one for suites and another for global
-    // resources; picking by shape chose the resource one and the run died with
-    // "example.WeaverFixture$ is not an instance of weaver.IOGlobalResource". What the
-    // class extends is the question the fingerprint is actually asking, so ask that first.
-    List<List<Fingerprint>> byRank = new ArrayList<>();
-    for (int i = 0; i < 3; i++) byRank.add(new ArrayList<>());
-    for (Fingerprint fp : fingerprints) {
-      Boolean declaredModule = fingerprintIsModule(fp);
-      boolean shapeAgrees = declaredModule != null && declaredModule == isModule;
-      // Each fingerprint is checked against the class it is talking about: a module fingerprint
-      // means `Foo$`, a class fingerprint means `Foo`. Checking both against the object's class
-      // scored a class fingerprint naming `org.scalacheck.Properties` just as highly as the module
-      // one — `Foo$` extends Properties either way — and picking it made ScalaCheck unrunnable.
-      // A Scala 3 mirror class extends nothing, so the wrong shape now scores itself out.
-      Class<?> meant = (declaredModule != null && declaredModule) ? asModule : asPlain;
-      boolean extendsIt =
-          meant != null
-              && fingerprintSuperclass(fp).map(sup -> sup.isAssignableFrom(meant)).orElse(false);
-      int rank = extendsIt ? 2 : (shapeAgrees ? 1 : 0);
-      byRank.get(2 - rank).add(fp);
-    }
-
-    List<Fingerprint> ordered = new ArrayList<>();
-    for (List<Fingerprint> rank : byRank) ordered.addAll(rank);
-    return ordered.toArray(new Fingerprint[0]);
-  }
-
-  /** The class a SubclassFingerprint names, when it names one and it can be loaded. */
-  private static Optional<Class<?>> fingerprintSuperclass(Fingerprint fp) {
-    if (!(fp instanceof SubclassFingerprint)) return Optional.empty();
-    return Optional.ofNullable(loadClass(((SubclassFingerprint) fp).superclassName()));
-  }
-
-  private static Class<?> loadClass(String name) {
-    try {
-      return Class.forName(name, false, ForkedTestRunner.class.getClassLoader());
-    } catch (ClassNotFoundException | LinkageError e) {
-      return null;
-    }
-  }
-
-  /** Null when the fingerprint kind says nothing about module-ness. */
-  private static Boolean fingerprintIsModule(Fingerprint fp) {
-    if (fp instanceof SubclassFingerprint) return ((SubclassFingerprint) fp).isModule();
-    if (fp instanceof AnnotatedFingerprint) return ((AnnotatedFingerprint) fp).isModule();
-    return null;
-  }
-
-  private static String describeFingerprint(Fingerprint fp) {
-    if (fp instanceof SubclassFingerprint) {
-      SubclassFingerprint sfp = (SubclassFingerprint) fp;
-      return "SubclassFingerprint(" + sfp.superclassName() + ", isModule=" + sfp.isModule() + ")";
-    } else if (fp instanceof AnnotatedFingerprint) {
-      AnnotatedFingerprint afp = (AnnotatedFingerprint) fp;
-      return "AnnotatedFingerprint(" + afp.annotationName() + ", isModule=" + afp.isModule() + ")";
-    }
-    return fp.toString();
-  }
-
-  private static String stackTraceToString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    t.printStackTrace(new PrintWriter(sw));
-    return sw.toString();
-  }
-
-  /**
-   * The first stack frame belonging to the suite class itself, which is where the failing assertion
-   * lives for every framework we support — the frames above it are inside the assertion library.
-   *
-   * <p>Deliberately not "the first frame with a line number": that points at someone else's source,
-   * and an annotation on the wrong file is worse than no annotation. Returns null when the
-   * throwable has no frame in the suite, which is normal for a failure thrown from a helper or a
-   * fixture.
-   *
-   * <p>Inner and anonymous classes ({@code MyTest$$anon$1}) still belong to the suite, so match on
-   * the {@code $} boundary rather than equality alone. Causes are walked because assertion
-   * libraries routinely wrap.
-   */
-  private static StackTraceElement failureLocation(Throwable t, String suiteClass) {
-    for (Throwable current = t; current != null; current = current.getCause()) {
-      for (StackTraceElement frame : current.getStackTrace()) {
-        String cn = frame.getClassName();
-        boolean inSuite = cn.equals(suiteClass) || cn.startsWith(suiteClass + "$");
-        if (inSuite && frame.getFileName() != null && frame.getLineNumber() > 0) {
-          return frame;
-        }
-      }
-      if (current.getCause() == current) break; // self-referential cause, seen in the wild
-    }
-    return null;
-  }
-
-  /**
-   * Extract the test name from an event. Tries to get the test method name from the selector, falls
-   * back to fullyQualifiedName.
-   */
-  private static String extractTestName(Event event) {
-    Selector selector = event.selector();
-
-    if (selector instanceof TestSelector) {
-      // TestSelector contains the test method name
-      return ((TestSelector) selector).testName();
-    } else if (selector instanceof NestedTestSelector) {
-      // NestedTestSelector for nested tests
-      return ((NestedTestSelector) selector).testName();
-    } else {
-      // Fall back to fully qualified name for suite-level events
-      return event.fullyQualifiedName();
-    }
-  }
+  private static final String BATCH_KEY = " batch";
 
   /** Generate a thread dump of all threads in the JVM. Returns encoded JSON response. */
   private static String generateThreadDump() {
@@ -695,11 +595,19 @@ public class ForkedTestRunner {
     return TestProtocol.encodeThreadDump(entries);
   }
 
-  /** Output stream that captures writes and sends them via protocol. */
+  /**
+   * Output stream that captures writes and sends them via protocol, one buffer per writing thread.
+   *
+   * <p>System.out is one stream shared by every thread in the JVM, so with several suites running
+   * at once their bytes would interleave in a single buffer and a line could come out half from one
+   * suite and half from another. A per-thread buffer keeps each writer's partial line to itself,
+   * and the completed line is tagged with whatever suite that thread is running ({@link
+   * #currentSuite}) — or none, for a framework thread that belongs to no single suite. When only
+   * one suite runs at a time this is exactly the old behaviour with one live buffer.
+   */
   private static class CapturingOutputStream extends OutputStream {
     private final String name;
-    private final StringBuilder buffer = new StringBuilder();
-    private final Object lock = new Object();
+    private final ThreadLocal<StringBuilder> buffer = ThreadLocal.withInitial(StringBuilder::new);
 
     CapturingOutputStream(String name) {
       this.name = name;
@@ -707,39 +615,43 @@ public class ForkedTestRunner {
 
     @Override
     public void write(int b) {
-      synchronized (lock) {
-        if (b == '\n') {
-          flush();
-        } else {
-          buffer.append((char) b);
-        }
+      if (b == '\n') {
+        flush();
+      } else {
+        buffer.get().append((char) b);
       }
     }
 
     @Override
     public void write(byte[] b, int off, int len) {
-      synchronized (lock) {
-        String s = new String(b, off, len);
-        for (int i = 0; i < s.length(); i++) {
-          char c = s.charAt(i);
-          if (c == '\n') {
-            flush();
-          } else {
-            buffer.append(c);
-          }
+      StringBuilder buf = buffer.get();
+      String s = new String(b, off, len);
+      for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        if (c == '\n') {
+          flush();
+        } else {
+          buf.append(c);
         }
       }
     }
 
     @Override
     public void flush() {
-      synchronized (lock) {
-        if (buffer.length() > 0) {
-          String level = "stderr".equals(name) ? "error" : "info";
-          // Include current suite in log message if available
-          send(TestProtocol.encodeLog(currentSuite, level, buffer.toString()));
-          buffer.setLength(0);
-        }
+      StringBuilder buf = buffer.get();
+      if (buf.length() > 0) {
+        String level = "stderr".equals(name) ? "error" : "info";
+        // Prefer the writing thread's own suite; fall back to the batch's active suite for output
+        // on
+        // a framework/async thread (a ZIO fiber, a specs2 worker) that never set the thread-local.
+        // Correct because a batch runs one suite at a time by default; without it such output has
+        // no
+        // owning suite and, on a batch's shared fork, is dropped instead of landing in
+        // <system-out>.
+        String suite = currentSuite.get();
+        if (suite == null) suite = activeBatchSuite;
+        send(TestProtocol.encodeLog(suite, level, buf.toString()));
+        buf.setLength(0);
       }
     }
   }

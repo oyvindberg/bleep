@@ -1,0 +1,183 @@
+---
+title: Running tests
+---
+
+# Running tests
+
+A test project in bleep is an ordinary project with `isTestProject: true`. There is no
+separate test scope and no second source root to configure — tests are a project that
+depends on the code under test:
+
+```yaml
+projects:
+  myapp: {}
+  myapp-test:
+    isTestProject: true
+    dependsOn: myapp
+    dependencies:
+      - org.scalatest::scalatest:3.2.19
+```
+
+```bash
+bleep test                 # every test project
+bleep test myapp-test      # one project (deps compile first)
+bleep test -w              # watch mode: re-run on change
+```
+
+`bleep test` with no project argument runs every test project; naming non-test projects
+just compiles them. Test frameworks are **auto-detected** from the classpath — ScalaTest,
+JUnit 4/5 (JUnit Platform), MUnit, utest, Specs2, ScalaCheck, and weaver all work without
+configuration.
+
+## How a project's suites run
+
+Two knobs, each answering one question, plus one rule:
+
+| Setting | Question it answers | Default |
+| --- | --- | --- |
+| `testFork` | *Where* do a project's suites run? | `per-project` (one shared JVM) |
+| `maxConcurrentSuites` | *How many* run at once? | `1` — sequential |
+
+**The rule:** in a shared JVM, only JUnit Platform parallelizes; for sbt-interface
+frameworks, concurrency means separate forks (`per-suite`). Everything below follows from it.
+
+### `testFork: per-project` (the default)
+
+Every one of a project's suites runs in **one forked JVM** — the same model as maven
+surefire's `forkCount=1 reuseForks=true`. JVM-wide state is built once and reused across
+suites: a booted application, dev-service containers, a shared Testcontainers instance,
+a schema an earlier suite created. Suites run **one at a time** by default (`maxConcurrentSuites: 1`),
+which is memory-frugal — one live suite's heap at a time — and correct for every framework.
+Your cores stay busy because bleep runs **many projects' forks at once** (bounded by the
+machine-wide governor), not many suites within one fork.
+
+```yaml
+myapp-test:
+  isTestProject: true
+  # testFork: per-project         # implied
+  # maxConcurrentSuites: 1        # implied (sequential)
+```
+
+Raising `maxConcurrentSuites` in per-project mode **only affects JUnit Platform** suites:
+it runs that many of the project's JUnit classes at once inside the one fork, each as its own
+JUnit launcher execution. bleep sets **no** JUnit configuration parameters of its own — so a
+`junit-platform.properties` you ship still governs parallelism *within* a class (jupiter's own
+parallel execution, `@ResourceLock`/`@Execution` and all), and bleep neither enables nor
+overrides it. One consequence worth knowing: because bleep runs each class in a *separate*
+execution, `@ResourceLock` is not coordinated *across* classes — so keep `maxConcurrentSuites` at
+`1` when a project's classes share mutable state (or express that concurrency through
+`junit-platform.properties` within a single class, where the engine does honor the locks).
+**sbt-interface frameworks always run sequentially here** (they share one `Runner`, have no
+conflict graph, and aren't generally written for concurrent execution in a shared JVM). If you
+set `maxConcurrentSuites` on an sbt-only project, bleep warns that it has no effect.
+
+```yaml
+web-test:
+  isTestProject: true
+  maxConcurrentSuites: 4          # JUnit 5 classes run up to 4 at once, lock-aware
+```
+
+> Under the hood, per-project runs each suite as its own execution on a context built once
+> for the fork: for JUnit Platform, one launcher execution per class on a single
+> `LauncherSession` — so a session-scoped fixture (a booted application, a
+> `LauncherSessionListener`) is set up once; for sbt frameworks, all the suites through one
+> `Runner` with a single `done()`. This is automatic; you never configure it. See
+> [Framework support](#framework-support-sbt-interface-vs-junit-platform) below.
+
+### `testFork: per-suite`
+
+Each suite runs in **its own forked JVM**, pooled by classpath. Suites are isolated by the
+operating system: one that calls `System.exit`, wedges a thread, or corrupts a static kills
+a process bleep can replace, without touching the others. This is also **how you run
+sbt-interface suites concurrently** — a fork each, safely isolated. `maxConcurrentSuites`
+then bounds how many **forks** run at once; unset, it is unbounded and the machine-wide
+governor caps the total across all projects.
+
+```yaml
+flaky-tests:
+  isTestProject: true
+  testFork: per-suite             # OS-level isolation, one suite can't poison another
+```
+
+```yaml
+scalatest-test:
+  isTestProject: true
+  testFork: per-suite             # concurrency for sbt suites: a fork each
+  maxConcurrentSuites: 4          # up to 4 forks at once
+```
+
+### Choosing between them
+
+| Reach for | When |
+| --- | --- |
+| `per-project` (default) | Normal unit tests; anything that boots an app or shares expensive fixtures (Testcontainers, an embedded DB). Fewer JVM starts, warm reuse, one live suite's heap at a time. |
+| `per-project` + `maxConcurrentSuites` > 1 | JUnit Platform suites you want to run concurrently in that one JVM — the engine schedules them lock-aware. No effect on sbt frameworks. |
+| `per-suite` | Suites that must not share a JVM (`System.exit`, thread leaks, static corruption), **or** sbt-interface suites you want to run concurrently. |
+
+### Framework support: sbt test interface vs JUnit Platform
+
+Bleep discovers and runs suites through two runner surfaces, and both execution modes
+apply to both:
+
+* **sbt test interface** — ScalaTest, MUnit, utest, Specs2, ScalaCheck, weaver, ZIO Test,
+  and the rest of the Scala ecosystem.
+* **JUnit Platform** — JUnit 5 and the engines built on it (Cucumber, Spek, jqwik, …).
+
+What per-project does for each, and why it's correct:
+
+| | per-suite | per-project |
+| --- | --- | --- |
+| **sbt interface** | one fork per suite | all the project's suites of one framework through **one `Runner`, one `done()`** in the shared fork — the interface's one-runner-per-framework contract, so stateful frameworks (munit, ZIO) behave. Always **sequential** — `maxConcurrentSuites` does not apply |
+| **JUnit Platform** | one fork per suite | each class its own execution on **one shared `LauncherSession`** in the shared fork — session-scoped fixtures (a booted application, a `LauncherSessionListener`) build once, and per-class attribution is exact. `maxConcurrentSuites` runs that many classes at once |
+
+In per-project mode, `maxConcurrentSuites` raises concurrency **only for JUnit Platform**,
+because JUnit's tests are the ones written for parallel execution (and its engine can schedule
+them lock-aware within a class); sbt frameworks run one suite at a time.
+To run sbt suites concurrently, use `testFork: per-suite` (a fork each). A framework that
+reports a suite's failure detail only from its once-per-run `done()` can't share a `Runner`
+at all; bleep gives such frameworks their own fork per suite automatically (weaver, hedgehog
+today). And the machine-wide governor bounds the total across all projects, so `bleep test`
+never oversubscribes your cores.
+
+## JVM options and heap
+
+Options for the forked test JVM come from three places, applied in order:
+
+1. the project's `platform.jvmOptions` (also picked up from maven's surefire `argLine` on import);
+2. any fork options a sourcegen step declared for the project;
+3. `--jvm-opt` on the command line.
+
+```bash
+bleep test myapp-test --jvm-opt -Dmy.flag=true --jvm-opt -Duser.timezone=UTC
+```
+
+The per-fork heap defaults to a fixed size; change it once for the whole build with
+`bleep config test-runner-heap <size>` (and `test-runner-heap-clear` to reset). A project
+`-Xmx` in `platform.jvmOptions` still wins for that project's fork.
+
+## Selecting what runs
+
+```bash
+bleep test --only FooSpec            # suites whose name matches (substring, or FQDN to disambiguate)
+bleep test --exclude SlowSpec        # drop matching suites (takes precedence over --only)
+bleep test --test-arg -oD            # pass arguments straight to the framework
+```
+
+For **tag-based** selection across frameworks (`--only-tag`, `--exclude-tag`, and the
+project pre-filter that skips compiling untagged projects), see [Test tags](./test-tags).
+
+## Reports and history
+
+* `--junit-report <dir>` writes one JUnit XML per suite, for CI test-reporting UIs.
+* Every run is recorded as a transcript; `bleep test --diff` shows only what changed
+  versus a previous run. See [Run history & diffs](./run-history).
+
+## Reference
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `isTestProject` | `true` | Marks the project as tests; turns on suite discovery. |
+| `testFork` | `per-project` \| `per-suite` | Fork granularity. Default `per-project`. |
+| `maxConcurrentSuites` | integer | Ceiling on suites at once (default `1`). Per-project: JUnit classes inside the one fork (no effect on sbt frameworks — they stay sequential). Per-suite: number of forks (default unbounded). |
+| `testFrameworks` | list | Escape hatch to name a framework bleep doesn't auto-detect; normally unset. |
+| `testTags` | map | Tag → suite class-name patterns for `--only-tag`/`--exclude-tag`. See [Test tags](./test-tags). |

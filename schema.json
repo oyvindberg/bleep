@@ -637,6 +637,16 @@
         "platform": {
           "$ref": "#/$defs/Platform"
         },
+        "maxConcurrentSuites": {
+          "description": "Ceiling on how many of this project's test suites run at once. Default 1 — suites run one at a time. Its reach depends on testFork: in per-project mode (the default) it only speeds up JUnit Platform suites — the JUnit engine runs that many of the project's JUnit classes at once inside the one shared fork, scheduled with its @ResourceLock/@Execution graph. sbt-interface frameworks (ScalaTest, MUnit, utest, Specs2, ScalaCheck, weaver, …) always run sequentially in per-project mode, so a value > 1 on an sbt-only project has no effect (bleep warns); use testFork: per-suite to run sbt suites concurrently, a fork each. In per-suite mode it bounds how many forks run at once and is unbounded by default. The machine-wide governor caps the total across all projects either way.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "testFork": {
+          "description": "Where this project's test suites run relative to the JVM hosting them — the fork granularity. 'per-project' (the default) runs every suite in one forked JVM (maven's forkCount=1 reuseForks=true), so a booted application or shared fixture is reused across suites and suites run sequentially; raise maxConcurrentSuites to run JUnit Platform classes concurrently inside it (sbt frameworks stay sequential). 'per-suite' forks a JVM per suite for OS-level isolation, and is how you run sbt suites concurrently; maxConcurrentSuites then bounds how many forks run at once. Unset = per-project.",
+          "type": "string",
+          "enum": ["per-project", "per-suite"]
+        },
         "isTestProject": {
           "type": "boolean"
         },

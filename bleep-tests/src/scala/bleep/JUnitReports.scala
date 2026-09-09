@@ -20,7 +20,7 @@ object JUnitReports {
     * Both matter and frameworks disagree about which to use: munit puts a full diff in the attribute, while ScalaTest and hedgehog leave it empty and write the
     * failure into the body. Reading only one of the two makes half the frameworks look like they report failures with nothing to say.
     */
-  case class Case(name: String, className: String, status: String, message: Option[String], detail: String)
+  case class Case(name: String, className: String, status: String, message: Option[String], detail: String, timeSeconds: Double)
 
   /** `systemOut` and `systemErr` are the `<system-out>` / `<system-err>` sections: everything the test program printed.
     *
@@ -72,7 +72,8 @@ object JUnitReports {
             className = tc.getAttribute("classname"),
             status = child.map(_.getTagName).getOrElse("passed"),
             message = child.map(_.getAttribute("message")).filter(_.nonEmpty),
-            detail = child.map(c => (c.getAttribute("message") + "\n" + c.getTextContent).trim).getOrElse("")
+            detail = child.map(c => (c.getAttribute("message") + "\n" + c.getTextContent).trim).getOrElse(""),
+            timeSeconds = doubleAttr(tc, "time")
           )
         }
       )
@@ -82,6 +83,11 @@ object JUnitReports {
   private def intAttr(e: Element, name: String): Int = {
     val raw = e.getAttribute(name)
     if (raw.isEmpty) 0 else raw.toInt
+  }
+
+  private def doubleAttr(e: Element, name: String): Double = {
+    val raw = e.getAttribute(name)
+    if (raw.isEmpty) 0.0 else raw.toDouble
   }
 
   private def elements(parent: Element, tag: String): List[Element] =
