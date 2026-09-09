@@ -75,7 +75,7 @@ web-test:
 
 > Under the hood, per-project runs each suite as its own execution on a context built once
 > for the fork: for JUnit Platform, one launcher execution per class on a single
-> `LauncherSession` — so a session-scoped fixture (a `@QuarkusTest` application, a
+> `LauncherSession` — so a session-scoped fixture (a booted application, a
 > `LauncherSessionListener`) is set up once; for sbt frameworks, all the suites through one
 > `Runner` with a single `done()`. This is automatic; you never configure it. See
 > [Framework support](#framework-support-sbt-interface-vs-junit-platform) below.
@@ -124,7 +124,7 @@ What per-project does for each, and why it's correct:
 | | per-suite | per-project |
 | --- | --- | --- |
 | **sbt interface** | one fork per suite | all the project's suites of one framework through **one `Runner`, one `done()`** in the shared fork — the interface's one-runner-per-framework contract, so stateful frameworks (munit, ZIO) behave. Always **sequential** — `maxConcurrentSuites` does not apply |
-| **JUnit Platform** | one fork per suite | each class its own execution on **one shared `LauncherSession`** in the shared fork — session-scoped fixtures (a `@QuarkusTest` application) build once, and per-class attribution is exact. `maxConcurrentSuites` runs that many classes at once |
+| **JUnit Platform** | one fork per suite | each class its own execution on **one shared `LauncherSession`** in the shared fork — session-scoped fixtures (a booted application, a `LauncherSessionListener`) build once, and per-class attribution is exact. `maxConcurrentSuites` runs that many classes at once |
 
 In per-project mode, `maxConcurrentSuites` raises concurrency **only for JUnit Platform**,
 because JUnit's tests are the ones written for parallel execution (and its engine can schedule
