@@ -396,7 +396,16 @@ object BspMetrics {
     def onForkStart(pid: Long, label: String, xmxMb: Option[Long]): Unit = recordForkStart(pid, label, xmxMb)
     def onForkEnd(pid: Long, lifetimeMs: Long, exit: String, killedByUs: Option[String]): Unit = recordForkEnd(pid, lifetimeMs, exit, killedByUs)
     def onForkReused(pid: Long, label: String): Unit = recordForkReused(pid, label)
+    def onForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit = recordForkKill(pid, reason, wasAlive, graceMillis)
   }
+
+  /** Every bleep-initiated kill, so a fork's death can be attributed after the fact: a `fork_end` for a pid with no preceding `fork_kill` was not bleep's
+    * doing. `was_alive=false` marks a redundant escalation over an already-dead fork.
+    */
+  def recordForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit =
+    writeEvent(
+      s"""{"type":"fork_kill","ts":${now()},"pid":$pid,"reason":"${esc(reason)}","was_alive":$wasAlive,"grace_ms":$graceMillis}"""
+    )
 
   def recordForkStart(pid: Long, label: String, xmxMb: Option[Long]): Unit =
     writeEvent(

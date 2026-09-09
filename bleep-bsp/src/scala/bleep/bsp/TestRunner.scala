@@ -10,6 +10,7 @@ import cats.effect.std.Queue
 import cats.syntax.all._
 
 import java.nio.file.Path
+import ryddig.Logger
 import scala.concurrent.duration._
 
 /** Test runner that executes test suites and streams their events back through the DAG event queue.
@@ -136,7 +137,8 @@ object TestRunner {
       eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       options: Options,
       resolveSourcePath: String => Option[String],
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      logger: Logger
   ): IO[TaskDag.TaskResult] = {
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
     val classNames = suites.map(_._1.value)
@@ -155,7 +157,7 @@ object TestRunner {
     executor.acquire(request).use { jvm =>
       val startedAt = System.currentTimeMillis()
       IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, s"<batch:${suites.size}>", selection.displayName)).attempt >>
-        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, options.testArgs, resolveSourcePath, killSignal)
+        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, options.testArgs, resolveSourcePath, killSignal, logger)
           .flatTap { result =>
             IO(
               BspMetrics.recordSuiteFinished(
@@ -201,7 +203,8 @@ object TestRunner {
       idleTimeout: FiniteDuration,
       args: List[String],
       resolveSourcePath: String => Option[String],
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      logger: Logger
   ): IO[TaskDag.TaskResult] = {
     def now: IO[Long] = IO.realTime.map(_.toMillis)
     def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(Some(event))
@@ -294,7 +297,7 @@ object TestRunner {
                 // hook prints the thread dump that names a System.exit caller — so a clean-looking "exited 0" carries the reason with it.
                 forkDeathDiagnostic(jvm).flatMap { diag =>
                   val full = s"$msg$diag"
-                  IO(System.err.println(s"[bleep] batch fork error for ${project.value}:\n$full")) >>
+                  IO(logger.warn(s"batch fork error for ${project.value}:\n$full")) >>
                     IO.pure(TaskDag.TaskResult.Error(error = full, processExit = ProcessExit.Unknown))
                 }
               case None =>
@@ -309,7 +312,7 @@ object TestRunner {
                       s"(${missing.take(8).mkString(", ")}${if (missing.size > 8) ", …" else ""}).$diag"
                     // The DAG keeps only the errored task's id and drops this message, so emit it as output too — attributed to the first suite that never
                     // reported (the one the fork was on when it went) — so the reason reaches history and the client, not just this returned value.
-                    IO(System.err.println(s"[bleep] batch fork diagnostic for ${project.value}:\n$msg")) >>
+                    IO(logger.warn(s"batch fork diagnostic for ${project.value}:\n$msg")) >>
                       now.flatMap { ts =>
                         msg.linesIterator.toList
                           .traverse_(line =>

@@ -396,6 +396,10 @@ object JvmPool {
         * is the only surviving account of an exit the parent otherwise sees as a bare "exited 0".
         */
       val exitLogPath: Path,
+      /** Where [[kill]] announces itself. Not the pool's `listener` field reached directly, because this class is not nested in `JvmPoolImpl`; the pool passes
+        * it at construction so the single kill chokepoint can report every termination on the same channel as the other fork events.
+        */
+      val listener: JvmPoolListener,
       /** When this fork was created. Taken at construction, not from `process.info().startInstant()` when it dies: by then the process has been killed and the
         * OS no longer reports a start instant for it, which is why every fork_end carried a lifetime of -1.
         *
@@ -516,16 +520,13 @@ object JvmPool {
       */
     def kill(reason: String, graceMillis: Long): Unit = {
       // Every bleep-initiated socket close funnels through here (stdin/protocolSocket close below),
-      // so this one line accounts for every fork bleep tears down. If a fork's socket goes to EOF
-      // and NO "[bleep] killing fork" line names it, bleep did not close it — the fork exited on
+      // so this one announcement accounts for every fork bleep tears down. If a fork's socket goes
+      // to EOF and no onForkKill named its pid first, bleep did not close it — the fork exited on
       // its own (a test's System.exit, a natural end, or an OS kill). That distinction is exactly
-      // what was ambiguous when "N suites never reported a result" had no cause; logging every kill
-      // with its reason, the pid, and whether the process was still alive settles it in one run.
+      // what was ambiguous when "N suites never reported a result" had no cause; recording every
+      // kill on the fork-event channel (joined to fork_end by pid) settles it after the fact.
       val wasAlive = process.isAlive
-      System.err.println(
-        s"[bleep] killing fork pid=${process.pid()} alive=$wasAlive graceMillis=$graceMillis reason=$reason" +
-          (if (_killedByUs.nonEmpty) s" (already attributed: ${_killedByUs.get})" else "")
-      )
+      listener.onForkKill(process.pid(), reason, wasAlive, graceMillis)
       // Only claim the kill if there is something left to kill: a fork that already exited on its
       // own (e.g. gracefully during shutdown's deadline) must not be attributed to bleep — this
       // flag is the only thing separating our kills from natural exits and OS kills.
@@ -912,7 +913,7 @@ object JvmPool {
                 val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
                 val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
 
-                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath)
+                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath, listener)
               }
               .flatTap(jvm => allJvms.update(_ + jvm))
               .flatTap(jvm =>

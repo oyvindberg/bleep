@@ -2,6 +2,7 @@ package bleep.bsp
 
 import bleep.model.CrossProjectName
 import bleep.testing.FrameworkSelection
+import ryddig.Logger
 import sbt.testing._
 
 import java.io.File
@@ -192,7 +193,8 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classesDir: Path,
       classpath: List[Path],
-      declaredFrameworks: List[String]
+      declaredFrameworks: List[String],
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     if (!Files.isDirectory(classesDir)) {
       return Nil
@@ -207,14 +209,14 @@ object ClasspathTestDiscovery {
       val classNames = classFiles.map(f => classFileToClassName(classesDir, f))
 
       // Strategy 1: sbt-testing Framework fingerprints
-      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks)
+      val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks, logger)
 
       // Get classes not yet discovered
       val discoveredClassNames = frameworkDiscovered.map(_.className).toSet
       val remainingClasses = classNames.filterNot(discoveredClassNames.contains)
 
       // Strategy 2: Direct annotation scanning (JUnit 4/5, TestNG, kotlin.test)
-      val annotationDiscovered = discoverViaAnnotations(project, remainingClasses, classLoader)
+      val annotationDiscovered = discoverViaAnnotations(project, remainingClasses, classLoader, logger)
 
       // Get classes still not discovered
       val annotationDiscoveredNames = annotationDiscovered.map(_.className).toSet
@@ -248,7 +250,8 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classNames: List[String],
       classLoader: URLClassLoader,
-      declaredFrameworks: List[String]
+      declaredFrameworks: List[String],
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     val frameworks = loadFrameworks(project, classLoader, declaredFrameworks)
 
@@ -262,7 +265,7 @@ object ClasspathTestDiscovery {
     }
 
     classNames.flatMap { className =>
-      matchFingerprint(className, classLoader, fingerprintsByFramework).map { case (fw, _) =>
+      matchFingerprint(className, classLoader, fingerprintsByFramework, logger).map { case (fw, _) =>
         DiscoveredTestSuite(project, className, selectionForFramework(fw))
       }
     }
@@ -328,12 +331,12 @@ object ClasspathTestDiscovery {
     * `LinkageError` is caught deliberately and separately from `NonFatal`; it is not a `VirtualMachineError`, so this does not swallow `OutOfMemoryError` or
     * `StackOverflowError`, which still propagate.
     */
-  private def skipUnreflectable[A](className: String)(f: => Option[A]): Option[A] =
+  private def skipUnreflectable[A](className: String, logger: Logger)(f: => Option[A]): Option[A] =
     try f
     catch {
       case e: LinkageError =>
-        System.err.println(
-          s"[bleep] test discovery skipping $className: ${e.getClass.getSimpleName}: ${e.getMessage}. " +
+        logger.warn(
+          s"test discovery skipping $className: ${e.getClass.getSimpleName}: ${e.getMessage}. " +
             "This is usually an orphaned .class an incremental compile left after a rename — `bleep clean` on that project clears it."
         )
         None
@@ -344,9 +347,10 @@ object ClasspathTestDiscovery {
   private def matchFingerprint(
       className: String,
       classLoader: ClassLoader,
-      fingerprints: List[(Framework, Fingerprint)]
+      fingerprints: List[(Framework, Fingerprint)],
+      logger: Logger
   ): Option[(Framework, Fingerprint)] =
-    skipUnreflectable(className) {
+    skipUnreflectable(className, logger) {
       val clazz = Try(classLoader.loadClass(className)).toOption
 
       clazz.flatMap { cls =>
@@ -402,13 +406,14 @@ object ClasspathTestDiscovery {
       project: CrossProjectName,
       classNames: List[String],
       // URLClassLoader, not ClassLoader: the runtime probes need to ask what is on *these* URLs, not what the parent can also reach.
-      classLoader: URLClassLoader
+      classLoader: URLClassLoader,
+      logger: Logger
   ): List[DiscoveredTestSuite] = {
     val junitAvailable = junitRuntimeOnClasspath(classLoader)
     val testngBridge = testngBridgeClasses.find(c => onProjectClasspath(classLoader, c))
 
     classNames.flatMap { className =>
-      detectFrameworkByAnnotation(className, classLoader).flatMap { displayName =>
+      detectFrameworkByAnnotation(className, classLoader, logger).flatMap { displayName =>
         selectionForAnnotation(displayName, junitAvailable, testngBridge)
           .map(selection => DiscoveredTestSuite(project, className, selection))
       }
@@ -476,9 +481,10 @@ object ClasspathTestDiscovery {
   /** Detect test framework by scanning for test annotations */
   private def detectFrameworkByAnnotation(
       className: String,
-      classLoader: ClassLoader
+      classLoader: ClassLoader,
+      logger: Logger
   ): Option[String] =
-    skipUnreflectable(className) {
+    skipUnreflectable(className, logger) {
       Try(classLoader.loadClass(className)).toOption.flatMap { cls =>
         // Skip abstract classes and interfaces
         if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface) None

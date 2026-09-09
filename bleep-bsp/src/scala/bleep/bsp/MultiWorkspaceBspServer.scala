@@ -2766,7 +2766,8 @@ class MultiWorkspaceBspServer(
                       started.buildPaths.variantBuildDir(batchTask.project).resolve(".zinc").resolve("analysis.zip"),
                       className
                     ),
-                  killSignal = taskKillSignal
+                  killSignal = taskKillSignal,
+                  logger = logger
                 )
               }
 
@@ -3454,7 +3455,7 @@ class MultiWorkspaceBspServer(
           val resolved = started.resolvedProject(project)
           val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
 
-          val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath, resolved.testFrameworks)
+          val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath, resolved.testFrameworks, logger)
 
           if (suites.isEmpty) {
             debugLog(s"No test suites discovered in ${project.value}")
@@ -5051,7 +5052,7 @@ class MultiWorkspaceBspServer(
         val resolved = started.resolvedProject(crossName)
         val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
 
-        val suites = ClasspathTestDiscovery.discover(crossName, classesDir, classpath, resolved.testFrameworks)
+        val suites = ClasspathTestDiscovery.discover(crossName, classesDir, classpath, resolved.testFrameworks, logger)
 
         debugLog(s"handleScalaTestClasses: project=${crossName.value}, classesDir=$classesDir, found ${suites.size} test classes")
 
