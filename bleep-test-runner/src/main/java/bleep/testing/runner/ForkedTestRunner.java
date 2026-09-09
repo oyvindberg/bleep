@@ -114,6 +114,23 @@ public class ForkedTestRunner {
                 },
                 "bleep-exit-diagnostic"));
 
+    // Always-on companion to the fd-2 hook above, writing the same account to a FILE the parent
+    // reads after the fork dies. fd 2 is lost when the exit races the pipe teardown (the case that
+    // left "N suites never reported a result" with no cause); a file is not. It runs on every
+    // orderly shutdown — including one bleep asked for — so it is unconditional; the parent decides
+    // what to make of it. It does NOT run on Runtime.halt or a hard kill, so an absent file is
+    // itself the answer: no shutdown hook ran.
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () ->
+                    writeExitLog(
+                        loopExitedNormally
+                            ? "shutdown after the command loop ended on its own terms"
+                            : "shutdown while the command loop was still running (System.exit by a"
+                                + " test, or the JVM tearing down)"),
+                "bleep-exit-logfile"));
+
     // The protocol runs over a loopback socket the parent is already listening on, NOT over this
     // process's stdin/stdout.
     //
@@ -218,21 +235,29 @@ public class ForkedTestRunner {
       // by
       // a consecutive-error cap so no other persistently-failing state can spin either.
       int consecutiveErrors = 0;
+      // Why the loop ended, recorded at each exit so the fork's own stderr (fd 2, drained by the
+      // parent) says which side hung up. "The fork exited while a suite was still running" is
+      // otherwise undiagnosable from the parent, which only sees the socket go quiet: EOF and a
+      // reset both look like "died unexpectedly". This names the cause on the fork side.
+      String loopExitCause = "loop condition became false without an explicit cause";
       while (running && !shuttingDown.get()) {
         String line;
         try {
           line = in.readLine();
         } catch (IOException e) {
           // Protocol socket broken — the parent is unreachable. Stop; the finally block cleans up.
+          loopExitCause = "IOException reading the command socket (parent unreachable): " + e;
           break;
         }
         if (line == null) {
           // EOF - parent closed the protocol socket, shut down
+          loopExitCause = "EOF on the command socket (parent closed its end)";
           break;
         }
         try {
           TestProtocol.ParsedCommand cmd = TestProtocol.parseCommand(line);
           if (cmd instanceof TestProtocol.ParsedCommand.Shutdown) {
+            loopExitCause = "received an explicit Shutdown command";
             running = false;
           } else if (cmd instanceof TestProtocol.ParsedCommand.RunSuite) {
             startSuiteThread((TestProtocol.ParsedCommand.RunSuite) cmd, capturedOut, capturedErr);
@@ -255,7 +280,10 @@ public class ForkedTestRunner {
           send(
               TestProtocol.encodeError(
                   "Error in command loop: " + e.getMessage(), SuiteRunner.stackTraceToString(e)));
-          if (++consecutiveErrors >= 50) break;
+          if (++consecutiveErrors >= 50) {
+            loopExitCause = "hit the consecutive-error cap (50) in the command loop";
+            break;
+          }
         }
       }
 
@@ -268,6 +296,23 @@ public class ForkedTestRunner {
       // Leaving the loop (Shutdown or EOF): interrupt whatever is still running so a wedged or
       // cancelled suite lets go, and give the threads a moment to emit their terminal responses
       // before the JVM's shutdown hooks (which stop a Quarkus app and its containers) run.
+      //
+      // Record the teardown to fd 2 (drained by the parent). If the loop ended while suites were
+      // still running, those suites are being ABANDONED — their results never reach the parent,
+      // which reports them as "never reported a result". Naming them, and the cause, here is what
+      // turns that dead end into a reason.
+      java.util.Collection<Thread> stillRunning = new java.util.ArrayList<>(runningSuites.values());
+      originalErr.println(
+          "bleep test runner: command loop ended — "
+              + loopExitCause
+              + ". "
+              + stillRunning.size()
+              + " suite thread(s) still running at teardown"
+              + (stillRunning.isEmpty()
+                  ? "."
+                  : " (they will be interrupted and, if they do not stop, abandoned): "
+                      + runningSuites.keySet()));
+      originalErr.flush();
       shuttingDown.set(true);
       for (Thread t : runningSuites.values()) t.interrupt();
       long deadline = System.currentTimeMillis() + 5000;
@@ -280,6 +325,18 @@ public class ForkedTestRunner {
             Thread.currentThread().interrupt();
           }
         }
+      }
+      java.util.List<String> abandoned = new java.util.ArrayList<>();
+      for (Map.Entry<String, Thread> e : runningSuites.entrySet())
+        if (e.getValue().isAlive()) abandoned.add(e.getKey());
+      if (!abandoned.isEmpty()) {
+        originalErr.println(
+            "bleep test runner: "
+                + abandoned.size()
+                + " suite thread(s) did not stop within 5s of interrupt and are being abandoned"
+                + " (the JVM will exit with them still running): "
+                + abandoned);
+        originalErr.flush();
       }
     } catch (Exception e) {
       send(
@@ -311,6 +368,45 @@ public class ForkedTestRunner {
    * System property carrying the port the parent listens on for this fork's protocol connection.
    */
   static final String PROTOCOL_PORT_PROPERTY = "bleep.test.protocolPort";
+
+  /**
+   * System property carrying the file this fork writes its exit diagnostic to. A file, not fd 2:
+   * when the JVM tears down, whatever a shutdown hook writes to stderr races the pipe closing and
+   * is routinely lost — which is how a fork that exits from under a run leaves the parent with a
+   * bare "exited 0" and no cause. A file survives that; the parent reads it after the fork dies.
+   * Must match {@code bleep.testing.ForkedTestRunnerProtocol.ExitLogProperty}.
+   */
+  static final String EXIT_LOG_PROPERTY = "bleep.test.exitLog";
+
+  /**
+   * Write the fork's exit diagnostic — whether the command loop had exited on its own terms, which
+   * suites were still running, and a full thread dump — to {@link #EXIT_LOG_PROPERTY}'s file.
+   * Called from a shutdown hook, so it runs on any orderly exit ({@code System.exit}, main
+   * returning) but NOT on {@code Runtime.halt} or a hard OS kill, which run no hooks: the file's
+   * ABSENCE afterwards tells the parent it was one of those. Best-effort and swallows its own
+   * errors — a shutdown is no time to throw, and a missing diagnostic must never mask the exit it
+   * was trying to explain.
+   */
+  private static void writeExitLog(String cause) {
+    String path = System.getProperty(EXIT_LOG_PROPERTY);
+    if (path == null) return;
+    try (PrintWriter w =
+        new PrintWriter(
+            new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
+      w.println("bleep test fork exit diagnostic");
+      w.println("  cause: " + cause);
+      w.println("  loopExitedNormally: " + loopExitedNormally);
+      w.println("  suites still registered as running: " + runningSuites.keySet());
+      w.println("  thread dump:");
+      for (Map.Entry<Thread, StackTraceElement[]> e : Thread.getAllStackTraces().entrySet()) {
+        w.println("    \"" + e.getKey().getName() + "\" " + e.getKey().getState());
+        for (StackTraceElement frame : e.getValue()) w.println("        at " + frame);
+      }
+      w.flush();
+    } catch (Throwable ignored) {
+      // best-effort; never let the diagnostic's failure mask the exit
+    }
+  }
 
   // Synchronized: several suite threads share this one socket, and a response must reach the parent
   // as one whole line. Without the lock two println/flush pairs could interleave mid-line and the

@@ -9,6 +9,7 @@ import fs2.Stream
 import java.io._
 import java.net.{InetAddress, ServerSocket, Socket, SocketTimeoutException}
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
@@ -254,7 +255,15 @@ object JvmPool {
         else
           process.exitValue() match {
             case 0 =>
-              ExitDescription("EOF on stdout, exited 0", Some("The JVM exited cleanly without sending a suite result — it likely called System.exit()."))
+              ExitDescription(
+                "EOF on stdout, exited 0",
+                Some(
+                  "The JVM exited cleanly (0) without sending a suite result. Something ended the process out from under the run: a System.exit(0), a " +
+                    "Runtime.halt(0), or its last non-daemon thread finishing. The fork's exit log distinguishes them — if one was written, a shutdown hook " +
+                    "ran (System.exit or a normal exit) and it names the caller; its ABSENCE means no hook ran at all, i.e. Runtime.halt(0) or a hard kill. A " +
+                    "daemon-thread watchdog that calls halt() to bound a subprocess is a classic source when it is armed inside a shared, long-lived fork."
+                )
+              )
             case 137 =>
               ExitDescription(
                 "killed by SIGKILL (exit 137)",
@@ -383,6 +392,10 @@ object JvmPool {
         * is actually destroyed. Must be run exactly where the process is killed — see `JvmPoolImpl.destroy`.
         */
       val releaseMemory: IO[Unit],
+      /** File the fork writes its exit diagnostic to (see [[ForkedTestRunnerProtocol.ExitLogProperty]]). Read by [[readExitLog]] after the fork dies, when it
+        * is the only surviving account of an exit the parent otherwise sees as a bare "exited 0".
+        */
+      val exitLogPath: Path,
       /** When this fork was created. Taken at construction, not from `process.info().startInstant()` when it dies: by then the process has been killed and the
         * OS no longer reports a start instant for it, which is why every fork_end carried a lifetime of -1.
         *
@@ -502,10 +515,21 @@ object JvmPool {
       * Pass 0 when the fork has forfeited its grace — it never completed the startup handshake, or a collective shutdown deadline already gave it time.
       */
     def kill(reason: String, graceMillis: Long): Unit = {
+      // Every bleep-initiated socket close funnels through here (stdin/protocolSocket close below),
+      // so this one line accounts for every fork bleep tears down. If a fork's socket goes to EOF
+      // and NO "[bleep] killing fork" line names it, bleep did not close it — the fork exited on
+      // its own (a test's System.exit, a natural end, or an OS kill). That distinction is exactly
+      // what was ambiguous when "N suites never reported a result" had no cause; logging every kill
+      // with its reason, the pid, and whether the process was still alive settles it in one run.
+      val wasAlive = process.isAlive
+      System.err.println(
+        s"[bleep] killing fork pid=${process.pid()} alive=$wasAlive graceMillis=$graceMillis reason=$reason" +
+          (if (_killedByUs.nonEmpty) s" (already attributed: ${_killedByUs.get})" else "")
+      )
       // Only claim the kill if there is something left to kill: a fork that already exited on its
       // own (e.g. gracefully during shutdown's deadline) must not be attributed to bleep — this
       // flag is the only thing separating our kills from natural exits and OS kills.
-      if (process.isAlive && _killedByUs.isEmpty) _killedByUs = Some(reason)
+      if (wasAlive && _killedByUs.isEmpty) _killedByUs = Some(reason)
       alive = false
       try
         stdin.close()
@@ -548,6 +572,19 @@ object JvmPool {
       }
       sb.toString()
     }
+
+    /** The fork's exit diagnostic, if it wrote one, then deleted. Empty when the file is absent — which is itself informative: a `Runtime.halt` or a hard OS
+      * kill runs no shutdown hooks, so the fork never got to write it, distinguishing those from a `System.exit` (hooks run, file present).
+      */
+    def readExitLog(): String =
+      try
+        if (java.nio.file.Files.exists(exitLogPath)) {
+          val content = new String(java.nio.file.Files.readAllBytes(exitLogPath), StandardCharsets.UTF_8)
+          try java.nio.file.Files.deleteIfExists(exitLogPath): Unit
+          catch { case NonFatal(_) => }
+          content
+        } else ""
+      catch { case NonFatal(_) => "" }
   }
 
   /** Max consecutive spawn failures per key before refusing to spawn. Prevents infinite retry when test runner jar is incompatible. */
@@ -835,7 +872,13 @@ object JvmPool {
                 val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
                 val protocolPort = protocolListener.getLocalPort
 
-                val cmdWithProtocol = cmd.head :: s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" :: cmd.tail
+                val exitLogPath = Files.createTempFile("bleep-test-fork-exit-", ".log")
+                Files.delete(exitLogPath) // the fork (re)creates it only if it actually reaches its shutdown; its absence is a signal (see ExitLogProperty)
+                val cmdWithProtocol =
+                  cmd.head ::
+                    s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" ::
+                    s"-D${ForkedTestRunnerProtocol.ExitLogProperty}=$exitLogPath" ::
+                    cmd.tail
                 val pb = new ProcessBuilder(cmdWithProtocol*)
                 pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
                 pb.redirectErrorStream(false)
@@ -869,7 +912,7 @@ object JvmPool {
                 val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
                 val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
 
-                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory)
+                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath)
               }
               .flatTap(jvm => allJvms.update(_ + jvm))
               .flatTap(jvm =>
@@ -1072,13 +1115,24 @@ object JvmPool {
               // `SuiteError`, not the silent `SuiteFinished(0,0,0,0,...)` path. Previously this returned `None` + `unNoneTerminate` — silent zero-count finish.
               jvm.markDead()
               val pid = jvm.process.pid()
+              // Give a just-closed process a beat to finish dying so its exit code is final and its shutdown-hook exit log is fully written before we read them.
+              try jvm.process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS): Unit
+              catch { case NonFatal(_) => }
               val stderrTail = jvm.readStderr()
+              val exitLog = jvm.readExitLog()
               // Reap it and say HOW it died. "EOF on stdout" alone is undiagnosable — it looks the
               // same whether the JVM exited, crashed, or was killed by the OS. The exit status
               // distinguishes them, and an externally-signalled death (128+signal, so 137 = SIGKILL)
               // is the fingerprint of the kernel reclaiming memory, which no in-process log can show.
               val exitDescription = JvmPool.describeExit(jvm.process, jvm.killedByUs)
-              val details = List(exitDescription.detail, Option.when(stderrTail.nonEmpty)(s"stderr tail:\n$stderrTail")).flatten match {
+              // The exit log is the fork's own account, written to a FILE that survives the pipe teardown that loses stderr. Its ABSENCE is a signal too: on a
+              // clean exit-0 death with no log, no shutdown hook ran — a `Runtime.halt` or a hard kill, not a `System.exit`.
+              val exitLogPart =
+                if (exitLog.nonEmpty) Some(s"fork exit log:\n$exitLog")
+                else if (exitDescription.summary.contains("exited 0"))
+                  Some("fork wrote no exit log — no shutdown hook ran (Runtime.halt, or a hard external kill), not a System.exit.")
+                else None
+              val details = List(exitDescription.detail, exitLogPart, Option.when(stderrTail.nonEmpty)(s"stderr tail:\n$stderrTail")).flatten match {
                 case Nil   => None
                 case lines => Some(lines.mkString("\n"))
               }
