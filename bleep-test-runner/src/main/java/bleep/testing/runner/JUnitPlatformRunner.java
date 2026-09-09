@@ -448,18 +448,23 @@ class JUnitPlatformRunner {
   }
 
   /**
-   * Run a whole set of classes in ONE JUnit Platform execution, at a bleep-chosen degree of
-   * parallelism.
+   * Run a project's classes through the shared LauncherSession — one {@code launcher.execute} per
+   * class — at a bleep-chosen degree of parallelism.
    *
-   * <p>This is the shape that makes an execution-scoped fixture — an application booted for the run
-   * — build once and be reused by every class, exactly as it is under maven surefire's
+   * <p>The shared session is what makes an execution-scoped fixture — an application booted for the
+   * run — build once and be reused by every class, as under maven surefire's
    * one-execute-per-module. Per-class results are still reported: the listener attributes each test
    * and container to the requested class it belongs to (a {@code @Nested Foo$Bar} test back to
    * {@code Foo}) and sends that class's own SuiteDone when its container finishes, so the parent
-   * demultiplexes per suite as before. Parallelism is bleep's: the configuration parameters set
-   * here override any {@code junit-platform.properties} on the classpath, so junit's engine runs
-   * exactly the number of classes at once that bleep decided (1 serialises — what a
-   * singleton-per-JVM application requires).
+   * demultiplexes per suite.
+   *
+   * <p>Parallelism is bleep's own: a fixed thread pool runs {@code parallelism} classes at once,
+   * each as its own {@code launcher.execute}. bleep sets NO JUnit configuration parameters, so a
+   * {@code junit-platform.properties} on the classpath still governs parallelism WITHIN a class
+   * (jupiter's own parallel execution) — bleep neither enables nor overrides it. And because each
+   * class runs in a separate execution, {@code @ResourceLock} across classes is not coordinated by
+   * the engine; keep {@code parallelism} at 1 (the default) when a project's classes share mutable
+   * state, which is also what a singleton-per-JVM application requires.
    */
   void runSuites(List<String> classNames, int parallelism) {
     // One launcher.execute PER class, on the shared LauncherSession — not one execute selecting all
@@ -468,7 +473,7 @@ class JUnitPlatformRunner {
     // spec node, so neither maps back to the requested Fixture and it reported zero. Per-class
     // execute attributes every test in that execute to the one class it selected — exactly what the
     // single-suite path already does correctly. The session is opened once (SHARE_SESSION) and
-    // reused across the classes, so a session-scoped fixture — a @QuarkusTest application, a
+    // reused across the classes, so a session-scoped fixture — a booted application, a
     // LauncherSessionListener — is still built once, which was the point of batching. `parallelism`
     // bounds how many classes execute at once (1 = sequential, the safe default).
     try {

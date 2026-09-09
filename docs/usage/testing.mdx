@@ -59,13 +59,17 @@ myapp-test:
 ```
 
 Raising `maxConcurrentSuites` in per-project mode **only affects JUnit Platform** suites:
-it runs that many of the project's JUnit classes at once inside the one fork. JUnit is the
-one runner whose ecosystem is built for parallel execution — its tests can declare what they
-share with `@ResourceLock`/`@Execution`, and a `junit-platform.properties` on the classpath
-turns on the engine's own lock-aware scheduling within each class. **sbt-interface frameworks
-always run sequentially here** (they share one `Runner`, have no conflict graph, and aren't
-generally written for concurrent execution in a shared JVM). If you set `maxConcurrentSuites`
-on an sbt-only project, bleep warns that it has no effect.
+it runs that many of the project's JUnit classes at once inside the one fork, each as its own
+JUnit launcher execution. bleep sets **no** JUnit configuration parameters of its own — so a
+`junit-platform.properties` you ship still governs parallelism *within* a class (jupiter's own
+parallel execution, `@ResourceLock`/`@Execution` and all), and bleep neither enables nor
+overrides it. One consequence worth knowing: because bleep runs each class in a *separate*
+execution, `@ResourceLock` is not coordinated *across* classes — so keep `maxConcurrentSuites` at
+`1` when a project's classes share mutable state (or express that concurrency through
+`junit-platform.properties` within a single class, where the engine does honor the locks).
+**sbt-interface frameworks always run sequentially here** (they share one `Runner`, have no
+conflict graph, and aren't generally written for concurrent execution in a shared JVM). If you
+set `maxConcurrentSuites` on an sbt-only project, bleep warns that it has no effect.
 
 ```yaml
 web-test:
