@@ -3457,12 +3457,21 @@ class MultiWorkspaceBspServer(
 
           val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath, resolved.testFrameworks, logger)
 
+          // Scala.js and Scala Native enumerate through the same classpath scan — their JVM-facing `.class` frontend is present — but they must never run in a
+          // JVM fork: the test framework on their classpath is the JS/Native artifact (`munit_sjs1`, `munit_native0.5`), which throws "trying to run Scala.js
+          // binaries on the JVM" the instant it is instantiated. Their suites run through the platform's own linked runner (node / native binary), which
+          // `testHandler` selects by project platform. So their selection is PlatformRunner, matching Kotlin JS/Native above — and, crucially, keeping them out
+          // of the per-project JVM batch, which regroups SbtTestInterface selections into one fork and has no platform branch of its own.
+          val isScalaJsOrNative = platformOpt.contains(model.PlatformId.Js) || platformOpt.contains(model.PlatformId.Native)
+          def selectionOf(s: DiscoveredTestSuite): bleep.testing.FrameworkSelection =
+            if (isScalaJsOrNative) bleep.testing.FrameworkSelection.PlatformRunner(s.selection.displayName) else s.selection
+
           if (suites.isEmpty) {
             debugLog(s"No test suites discovered in ${project.value}")
             (TaskDag.TaskResult.Success, Nil)
           } else {
             debugLog(s"Discovered ${suites.size} test suites in ${project.value}: ${suites.map(_.className).mkString(", ")}")
-            (TaskDag.TaskResult.Success, suites.map(s => (s.className, s.selection)))
+            (TaskDag.TaskResult.Success, suites.map(s => (s.className, selectionOf(s))))
           }
         }
     }
