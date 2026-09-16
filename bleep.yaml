@@ -369,11 +369,14 @@ projects:
       # wall-time. The full `build` job in GHA still runs them; native-image jobs exclude them with `--exclude-tag slow`.
       slow:
       - "**IT"
-      # The framework version sweep: every framework x every version it declares x every Scala version x every platform, each one a full inner build resolved
-      # from Maven Central. It exists to catch what the pinned matrix cannot — an older framework release whose suites bleep discovers or dispatches wrongly —
-      # and the axes only move when someone edits TestFrameworkFixture. So no CI job runs it; run it deliberately with `--only-tag matrix` when changing
-      # discovery, runner selection or the fork protocol. The `build` job excludes it explicitly.
+      # The framework matrices, run deliberately with `--only-tag matrix`, never by a CI job (the `build` job excludes it explicitly). Each case is a full inner
+      # build that links and runs a real project on a real toolchain (node for JS, LLVM for Native) resolving frameworks from Maven Central — the slowest and
+      # most environment-sensitive suites we have, and their axes only move when someone edits TestFrameworkFixture, so they belong to a deliberate run rather
+      # than every PR:
+      #   - `**TestFrameworkIT`        the pinned matrix: each framework at its pinned version x every Scala version x every platform (JVM/JS/Native/Kotlin).
+      #   - `**TestFrameworkVersionIT` the version sweep: additionally every version a framework declares, to catch an older release bleep dispatches wrongly.
       matrix:
+      - "**TestFrameworkIT"
       - "**TestFrameworkVersionIT"
   scripts:
     dependencies:
