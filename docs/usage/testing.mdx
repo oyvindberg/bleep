@@ -66,7 +66,7 @@ the total across all projects.
 
 One caveat: bleep runs each class as its own JUnit execution today, so `@ResourceLock` is not
 coordinated *across* classes — keep it at `1` when a project's classes share mutable state. (The full
-sbt-vs-JUnit story is in [Test frameworks](../appendix/test-frameworks).)
+sbt-vs-JUnit story is in [Test frameworks](/docs/appendix/test-frameworks).)
 
 ```yaml
 web-test:
@@ -161,13 +161,13 @@ bleep test --test-arg -oD            # pass arguments straight to the framework
 ```
 
 For **tag-based** selection across frameworks (`--only-tag`, `--exclude-tag`, and the
-project pre-filter that skips compiling untagged projects), see [Test tags](./test-tags).
+project pre-filter that skips compiling untagged projects), see [Test tags](/docs/usage/test-tags).
 
 ## Reports and history
 
 * `--junit-report <dir>` writes one JUnit XML per suite, for CI test-reporting UIs.
 * Every run is recorded as a transcript; `bleep test --diff` shows only what changed
-  versus a previous run. See [Run history & diffs](./run-history).
+  versus a previous run. See [Run history & diffs](/docs/usage/run-history).
 
 ## Reference
 
@@ -177,4 +177,4 @@ project pre-filter that skips compiling untagged projects), see [Test tags](./te
 | `testFork` | `per-project` \| `per-suite` | Fork granularity. Default `per-project`. |
 | `maxConcurrentSuites` | integer | Ceiling on **this project's** suites at once (default `1`); the machine-wide governor caps the total across all projects. Per-project: JUnit classes inside the one fork (no effect on sbt frameworks — they stay sequential). Per-suite: number of forks (default unbounded). |
 | `testFrameworks` | list | Escape hatch to name an **sbt test-interface** `Framework` class bleep doesn't auto-detect; normally unset. JUnit Platform engines are found via the platform SPI and cannot be named here. |
-| `testTags` | map | Tag → suite class-name patterns for `--only-tag`/`--exclude-tag`. See [Test tags](./test-tags). |
+| `testTags` | map | Tag → suite class-name patterns for `--only-tag`/`--exclude-tag`. See [Test tags](/docs/usage/test-tags). |
