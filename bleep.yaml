@@ -375,9 +375,15 @@ projects:
       # than every PR:
       #   - `**TestFrameworkIT`        the pinned matrix: each framework at its pinned version x every Scala version x every platform (JVM/JS/Native/Kotlin).
       #   - `**TestFrameworkVersionIT` the version sweep: additionally every version a framework declares, to catch an older release bleep dispatches wrongly.
+      #   - the JS/Native link-behaviour suites below are not framework sweeps, but they belong here for the same reason: each links and runs a real project on
+      #     a real toolchain (node for JS, LLVM for Native), resolving frameworks from Maven Central, so they are slow and environment-sensitive and have no
+      #     place gating every PR. They run on demand with `--only-tag matrix`.
       matrix:
       - "**TestFrameworkIT"
       - "**TestFrameworkVersionIT"
+      - "**ScalaJsTestModuleKindIT"
+      - "**ScalaNativeSharedBinaryIT"
+      - "**TestLinkOutputDirIT"
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}
