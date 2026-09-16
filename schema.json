@@ -651,6 +651,7 @@
           "type": "boolean"
         },
         "testFrameworks": {
+          "description": "Escape hatch to name an sbt test-interface Framework class (implements sbt.testing.Framework) that bleep does not auto-detect; normally unset. The class is instantiated and its fingerprints drive discovery, so it must be a Framework, not a suite. JUnit Platform engines are NOT named here — they are found through the platform's own SPI whenever a JUnit runtime is on the classpath.",
           "oneOf": [
             {
               "$ref": "#/$defs/TestFrameworkName"

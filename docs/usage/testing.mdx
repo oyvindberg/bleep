@@ -58,23 +58,20 @@ myapp-test:
   # maxConcurrentSuites: 1        # implied (sequential)
 ```
 
-Raising `maxConcurrentSuites` in per-project mode **only affects JUnit Platform** suites:
-it runs that many of the project's JUnit classes at once inside the one fork, each as its own
-JUnit launcher execution. bleep sets **no** JUnit configuration parameters of its own — so a
-`junit-platform.properties` you ship still governs parallelism *within* a class (jupiter's own
-parallel execution, `@ResourceLock`/`@Execution` and all), and bleep neither enables nor
-overrides it. One consequence worth knowing: because bleep runs each class in a *separate*
-execution, `@ResourceLock` is not coordinated *across* classes — so keep `maxConcurrentSuites` at
-`1` when a project's classes share mutable state (or express that concurrency through
-`junit-platform.properties` within a single class, where the engine does honor the locks).
-**sbt-interface frameworks always run sequentially here** (they share one `Runner`, have no
-conflict graph, and aren't generally written for concurrent execution in a shared JVM). If you
-set `maxConcurrentSuites` on an sbt-only project, bleep warns that it has no effect.
+In per-project mode, `maxConcurrentSuites` **only affects JUnit Platform** suites — it runs that
+many of the project's JUnit classes at once in the one fork. **sbt-interface frameworks always run
+sequentially here** (they share one `Runner`); set it on an sbt-only project and bleep warns it has
+no effect. Either way it bounds **this project's** concurrency — the machine-wide governor still caps
+the total across all projects.
+
+One caveat: bleep runs each class as its own JUnit execution today, so `@ResourceLock` is not
+coordinated *across* classes — keep it at `1` when a project's classes share mutable state. (The full
+sbt-vs-JUnit story is in [Test frameworks](../appendix/test-frameworks).)
 
 ```yaml
 web-test:
   isTestProject: true
-  maxConcurrentSuites: 4          # JUnit 5 classes run up to 4 at once, lock-aware
+  maxConcurrentSuites: 4          # up to 4 of this project's JUnit classes at once
 ```
 
 > Under the hood, per-project runs each suite as its own execution on a context built once
@@ -90,8 +87,8 @@ Each suite runs in **its own forked JVM**, pooled by classpath. Suites are isola
 operating system: one that calls `System.exit`, wedges a thread, or corrupts a static kills
 a process bleep can replace, without touching the others. This is also **how you run
 sbt-interface suites concurrently** — a fork each, safely isolated. `maxConcurrentSuites`
-then bounds how many **forks** run at once; unset, it is unbounded and the machine-wide
-governor caps the total across all projects.
+then bounds how many of **this project's** forks run at once (unset = unbounded); the
+machine-wide governor still caps the total across all projects.
 
 ```yaml
 flaky-tests:
@@ -111,7 +108,7 @@ scalatest-test:
 | Reach for | When |
 | --- | --- |
 | `per-project` (default) | Normal unit tests; anything that boots an app or shares expensive fixtures (Testcontainers, an embedded DB). Fewer JVM starts, warm reuse, one live suite's heap at a time. |
-| `per-project` + `maxConcurrentSuites` > 1 | JUnit Platform suites you want to run concurrently in that one JVM — the engine schedules them lock-aware. No effect on sbt frameworks. |
+| `per-project` + `maxConcurrentSuites` > 1 | JUnit Platform suites you want to run concurrently in that one JVM (that many classes at once). No effect on sbt frameworks. |
 | `per-suite` | Suites that must not share a JVM (`System.exit`, thread leaks, static corruption), **or** sbt-interface suites you want to run concurrently. |
 
 ### Framework support: sbt test interface vs JUnit Platform
@@ -131,8 +128,8 @@ What per-project does for each, and why it's correct:
 | **JUnit Platform** | one fork per suite | each class its own execution on **one shared `LauncherSession`** in the shared fork — session-scoped fixtures (a booted application, a `LauncherSessionListener`) build once, and per-class attribution is exact. `maxConcurrentSuites` runs that many classes at once |
 
 In per-project mode, `maxConcurrentSuites` raises concurrency **only for JUnit Platform**,
-because JUnit's tests are the ones written for parallel execution (and its engine can schedule
-them lock-aware within a class); sbt frameworks run one suite at a time.
+because JUnit's tests are the ones written for parallel execution; sbt frameworks share one
+`Runner` and run one suite at a time.
 To run sbt suites concurrently, use `testFork: per-suite` (a fork each). A framework that
 reports a suite's failure detail only from its once-per-run `done()` can't share a `Runner`
 at all; bleep gives such frameworks their own fork per suite automatically (weaver, hedgehog
@@ -178,6 +175,6 @@ project pre-filter that skips compiling untagged projects), see [Test tags](./te
 | --- | --- | --- |
 | `isTestProject` | `true` | Marks the project as tests; turns on suite discovery. |
 | `testFork` | `per-project` \| `per-suite` | Fork granularity. Default `per-project`. |
-| `maxConcurrentSuites` | integer | Ceiling on suites at once (default `1`). Per-project: JUnit classes inside the one fork (no effect on sbt frameworks — they stay sequential). Per-suite: number of forks (default unbounded). |
-| `testFrameworks` | list | Escape hatch to name a framework bleep doesn't auto-detect; normally unset. |
+| `maxConcurrentSuites` | integer | Ceiling on **this project's** suites at once (default `1`); the machine-wide governor caps the total across all projects. Per-project: JUnit classes inside the one fork (no effect on sbt frameworks — they stay sequential). Per-suite: number of forks (default unbounded). |
+| `testFrameworks` | list | Escape hatch to name an **sbt test-interface** `Framework` class bleep doesn't auto-detect; normally unset. JUnit Platform engines are found via the platform SPI and cannot be named here. |
 | `testTags` | map | Tag → suite class-name patterns for `--only-tag`/`--exclude-tag`. See [Test tags](./test-tags). |
