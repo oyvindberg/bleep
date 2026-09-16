@@ -154,22 +154,48 @@ object TestRunner {
       // One execute, one fork: exclusive. (A shared session multiplexes independent suites — the opposite model.)
       sharing = SessionSharing.Exclusive
     )
-    executor.acquire(request).use { jvm =>
-      val startedAt = System.currentTimeMillis()
-      IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, s"<batch:${suites.size}>", selection.displayName)).attempt >>
-        executeBatch(project, classNames, parallelism, selection, jvm, eventQueue, options.idleTimeout, options.testArgs, resolveSourcePath, killSignal, logger)
-          .flatTap { result =>
-            IO(
-              BspMetrics.recordSuiteFinished(
-                jvm.pid,
-                project.value,
-                s"<batch:${suites.size}>",
-                System.currentTimeMillis() - startedAt,
-                result.getClass.getSimpleName.stripSuffix("$")
-              )
-            ).attempt
-          }
-    }
+    executor
+      .acquire(request)
+      .use { jvm =>
+        val startedAt = System.currentTimeMillis()
+        IO(BspMetrics.recordSuiteScheduled(jvm.pid, project.value, s"<batch:${suites.size}>", selection.displayName)).attempt >>
+          executeBatch(
+            project,
+            classNames,
+            parallelism,
+            selection,
+            jvm,
+            eventQueue,
+            options.idleTimeout,
+            options.testArgs,
+            resolveSourcePath,
+            killSignal,
+            logger
+          )
+            .flatTap { result =>
+              IO(
+                BspMetrics.recordSuiteFinished(
+                  jvm.pid,
+                  project.value,
+                  s"<batch:${suites.size}>",
+                  System.currentTimeMillis() - startedAt,
+                  result.getClass.getSimpleName.stripSuffix("$")
+                )
+              ).attempt
+            }
+      }
+      .handleErrorWith { e =>
+        // A fork that dies before the protocol handshake (a bad -Xmx, an `Unrecognized VM option`, a shadowing test-runner) fails here, in acquisition, before
+        // executeBatch runs — so no suite ever reported, and awaitProtocolConnection has drained the fork's own stderr onto this exception. Left to propagate,
+        // it becomes only the DAG's errored-task record, which the batch mapping drops (a batch's suites normally speak for themselves). Attribute the death to
+        // each suite in the batch so the cause — the fork's stderr, "without ever connecting" — reaches the client and history, then re-raise so the task is
+        // still Errored.
+        val msg = Option(e.getMessage).getOrElse(e.getClass.getName)
+        val ts = System.currentTimeMillis()
+        suites.traverse_ { case (suite, _) =>
+          eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(project, suite, SuiteOutcome.Errored(msg, None), 0L, ts)))
+        } >> IO.raiseError(e)
+      }
   }
 
   /** Why a batch fork stopped without reporting the rest of its suites. The fork's own stderr (fd 2) is where a JVM records an OutOfMemoryError, a native
@@ -344,7 +370,16 @@ object TestRunner {
                       case Left(Right(lines)) if lines.nonEmpty => Some(lines.mkString("\n"))
                       case _                                    => None
                     }
-                    .flatMap(dump => cleanup >> IO.pure(TaskDag.TaskResult.TimedOut(dump)))
+                    .flatMap { dump =>
+                      // The idle watchdog kills the whole fork, so every suite that had not reported is a casualty of the timeout — name each one, so the run
+                      // counts it as timed out (and the verdict says so) instead of the anonymous "N suites never reported a result". The batch task's own
+                      // TimedOut result names no suite; this is where the suite identities live.
+                      (outcomes.get, now).flatMapN { (outs, ts) =>
+                        classNames.filterNot(outs.contains).traverse_ { c =>
+                          emit(TaskDag.DagEvent.SuiteTimedOut(project, SuiteName(c), idleTimeout.toMillis, dump, ts))
+                        }
+                      } >> cleanup >> IO.pure(TaskDag.TaskResult.TimedOut(dump))
+                    }
                 case Right(reason) => cleanup >> IO.pure(TaskDag.TaskResult.Killed(reason))
               }
             case Outcome.Errored(e) =>

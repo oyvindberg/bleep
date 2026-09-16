@@ -4494,6 +4494,14 @@ class MultiWorkspaceBspServer(
               suitesFailedRef.update(_ + (if (outcome.isFailure) 1 else 0)) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent, recorder))
 
+          case TaskDag.DagEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
+            // Same authoritative tallies as a finished suite: one completed, one failed — a timeout is a failure. The client-side reducer additionally counts
+            // it toward `testsTimedOut`, which is what makes the run's verdict say "timed out" rather than "did not finish".
+            val protocolEvent = BleepBspProtocol.Event.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp)
+            suitesCompletedRef.update(_ + 1) >>
+              suitesFailedRef.update(_ + 1) >>
+              IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent, recorder))
+
           case linkEvent: TaskDag.DagEvent.LinkStarted                       => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
           case linkEvent: TaskDag.DagEvent.LinkProgress                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)
           case linkEvent: TaskDag.DagEvent.LinkFinished                      => processLinkEvent(linkEvent, originId, traceRecorder, recorder)

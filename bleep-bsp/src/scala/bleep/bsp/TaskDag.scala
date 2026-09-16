@@ -464,6 +464,18 @@ object TaskDag {
         timestamp: Long
     ) extends DagEvent
 
+    // A suite the idle-timeout watchdog stopped before it reported a result. A per-project batch kills the whole fork on timeout, so its own TimedOut result
+    // names no suite; each suite that had not reported is emitted here so the run counts it as a timeout (and the verdict says "timed out") instead of the
+    // anonymous "N suites never reported a result". A TestSuiteTask reports its own timeout from the task result (see abnormalTaskEvent), so this is the
+    // batch-only equivalent.
+    case class SuiteTimedOut(
+        project: CrossProjectName,
+        suite: SuiteName,
+        timeoutMs: Long,
+        threadDump: Option[String],
+        timestamp: Long
+    ) extends DagEvent
+
     // Sourcegen events (mirror Link events: Started around handler, Finished with result)
     case class SourcegenStarted(
         scriptProject: CrossProjectName,
