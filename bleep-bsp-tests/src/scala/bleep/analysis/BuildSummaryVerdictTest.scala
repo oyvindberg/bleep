@@ -23,6 +23,40 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     state.toSummary(durationMs = 0L, wasCancelled = false).toEither
   }
 
+  /** Fold in the authoritative per-run counts the server sends as its response payload, exactly as `bleep test` and the MCP tools do via
+    * [[bleep.history.TranscriptFormat]] — the path where `suitesTotal`/`suitesCompleted` are set from discovery rather than accumulated from streamed events.
+    */
+  private def verdictWithResult(events: List[E], trr: BleepBspProtocol.TestRunResult): Either[bleep.BleepException, Unit] = {
+    val trrEvent = BuildEvent.TestRunCompleted(
+      totalPassed = trr.totalPassed,
+      totalFailed = trr.totalFailed,
+      totalSkipped = trr.totalSkipped,
+      totalIgnored = trr.totalIgnored,
+      suitesTotal = trr.suitesTotal,
+      suitesCompleted = trr.suitesCompleted,
+      suitesFailed = trr.suitesFailed,
+      suitesCancelled = trr.suitesCancelled,
+      durationMs = trr.durationMs,
+      timestamp = 0L
+    )
+    val state = (events.flatMap(BuildEvent.fromProtocol) :+ trrEvent).foldLeft(BuildState.empty)(BuildStateReducer.reduce)
+    state.toSummary(durationMs = 0L, wasCancelled = false).toEither
+  }
+
+  private def runResult(passed: Int, suitesTotal: Int, suitesCompleted: Int): BleepBspProtocol.TestRunResult =
+    BleepBspProtocol.TestRunResult(
+      totalPassed = passed,
+      totalFailed = 0,
+      totalSkipped = 0,
+      totalIgnored = 0,
+      suitesTotal = suitesTotal,
+      suitesCompleted = suitesCompleted,
+      suitesFailed = 0,
+      suitesCancelled = 0,
+      durationMs = 0L,
+      historyId = None
+    )
+
   private def leftMessage(events: List[E]): String =
     verdict(events).left.map(_.getMessage) match {
       case Left(msg) => msg
@@ -207,6 +241,38 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
         discovered("myapp", suites = Nil, beforeFilters = 0, isTestProject = false)
       )
     ) shouldBe Right(())
+  }
+
+  test("a run that completed fewer suites than it discovered is not a pass, even with zero failures") {
+    // The `bleep test dfmt/test` report: 64 passed, 0 failed, yet only 10 of 29 discovered suites ran. `failed: 0` made it look green; the 19 that never
+    // reported a result are the whole story. The verdict must fail so CI's "test every project" gate cannot mistake a fraction for full coverage.
+    val msg = verdictWithResult(Nil, runResult(passed = 64, suitesTotal = 29, suitesCompleted = 10)).left.map(_.getMessage) match {
+      case Left(m)   => m
+      case Right(()) => fail("a run that left 19 of 29 suites unaccounted must be judged a failure")
+    }
+    msg should include("did not finish")
+    msg should include("10 of 29")
+    msg should include("19")
+  }
+
+  test("the same shortfall from streamed SuiteStarted/SuiteFinished events (batch announces every suite up front) also fails") {
+    // Per-project batch mode announces a SuiteStarted for every suite when the batch begins, then a SuiteFinished as each completes. If the fork stops after a
+    // subset, `suitesTotal` (announced) exceeds `suitesCompleted` (finished) with no failure event anywhere — the verdict has to catch it from the counts alone.
+    verdict(
+      List(
+        E.SuiteStarted(proj("app"), SuiteName("A"), timestamp = 1L),
+        E.SuiteStarted(proj("app"), SuiteName("B"), timestamp = 1L),
+        E.SuiteStarted(proj("app"), SuiteName("C"), timestamp = 1L)
+      ) ++ passedTest("app").map {
+        case ts: E.TestFinished  => ts.copy(suite = SuiteName("A"))
+        case sf: E.SuiteFinished => sf.copy(suite = SuiteName("A"))
+        case other               => other
+      }
+    ).isLeft shouldBe true
+  }
+
+  test("a run where every discovered suite completed is Right") {
+    verdictWithResult(passedTest("app"), runResult(passed = 42, suitesTotal = 29, suitesCompleted = 29)) shouldBe Right(())
   }
 
   test("a clean run is Right") {

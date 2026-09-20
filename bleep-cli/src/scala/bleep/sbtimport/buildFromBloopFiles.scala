@@ -195,6 +195,8 @@ object buildFromBloopFiles {
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
         testTags = model.JsonMap.empty,
+        maxConcurrentSuites = None,
+        testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
         ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),

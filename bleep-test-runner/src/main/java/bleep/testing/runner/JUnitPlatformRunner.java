@@ -2,12 +2,18 @@ package bleep.testing.runner;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.Flushable;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
+import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -20,22 +26,28 @@ import org.junit.platform.launcher.core.LauncherFactory;
  * Runs JUnit 5 tests via JUnit Platform Launcher directly, bypassing sbt test-interface.
  *
  * <p>This enables proper JUnit Platform lifecycle including LauncherSessionListener SPI, which is
- * required for frameworks like Quarkus that set up custom classloaders (FacadeClassLoader) during
- * session initialization.
+ * required for frameworks that set up custom classloaders during session initialization.
  *
- * <p>Using openSession() instead of create() triggers: - Quarkus's CustomLauncherInterceptor →
- * FacadeClassLoader as TCCL - Spring Boot's test context management - Any other
- * LauncherSessionListener implementations
+ * <p>Using openSession() instead of create() triggers any registered LauncherSessionListener
+ * implementations — e.g. a framework that installs a custom classloader as the thread-context
+ * classloader, or a test-context manager.
  */
 class JUnitPlatformRunner {
 
   /** Fully-qualified name of the session interface, absent before JUnit Platform 1.8. */
   private static final String LAUNCHER_SESSION = "org.junit.platform.launcher.LauncherSession";
 
-  private final PrintWriter protocolOut;
+  private final Consumer<String> sink;
 
-  JUnitPlatformRunner(PrintWriter protocolOut) {
-    this.protocolOut = protocolOut;
+  /**
+   * Streams to flush before a result is reported. Empty in process; the fork's captured pair
+   * otherwise.
+   */
+  private final List<Flushable> toFlush;
+
+  JUnitPlatformRunner(Consumer<String> sink, List<Flushable> toFlush) {
+    this.sink = sink;
+    this.toFlush = toFlush;
   }
 
   /** A {@link Launcher} plus whatever has to be closed afterwards. */
@@ -55,6 +67,51 @@ class JUnitPlatformRunner {
       if (session != null) {
         session.close();
       }
+    }
+  }
+
+  // ---- Shared-session mode (set by a fork, off in-process) ----
+  //
+  // In a forked JVM every suite shares ONE LauncherSession, so a LauncherSessionListener fires once
+  // for the whole fork rather than once per suite (and, with concurrent suites, N racing opens).
+  // The
+  // session is opened lazily by the first JUnit suite and closed at fork shutdown. In-process
+  // leaves
+  // this off: there the daemon JVM runs many projects' suites under different classloaders, and one
+  // shared session across them would be wrong — each opens its own, as before.
+  private static volatile boolean SHARE_SESSION = false;
+  private static volatile LauncherHandle SHARED_HANDLE = null;
+  private static final Object SHARED_LOCK = new Object();
+
+  /** Turn on one-session-per-JVM. Called once by a fork at startup, before any suite runs. */
+  static void enableSharedSession() {
+    SHARE_SESSION = true;
+  }
+
+  /**
+   * Close the shared session, if one was opened. Called once at fork shutdown; runs
+   * launcherSessionClosed SPI.
+   */
+  static void closeSharedSession() {
+    synchronized (SHARED_LOCK) {
+      if (SHARED_HANDLE != null) {
+        try {
+          SHARED_HANDLE.close();
+        } catch (Exception ignored) {
+          // Shutdown path: nothing useful to do if the session will not close.
+        }
+        SHARED_HANDLE = null;
+      }
+    }
+  }
+
+  /** The one shared launcher, opened on first use under lock. */
+  private LauncherHandle sharedHandle() {
+    LauncherHandle h = SHARED_HANDLE;
+    if (h != null) return h;
+    synchronized (SHARED_LOCK) {
+      if (SHARED_HANDLE == null) SHARED_HANDLE = openLauncher();
+      return SHARED_HANDLE;
     }
   }
 
@@ -84,8 +141,7 @@ class JUnitPlatformRunner {
           TestProtocol.encodeLog(
               "debug",
               "JUnit Platform predates LauncherSession (1.8); using LauncherFactory.create()."
-                  + " LauncherSessionListener extensions (Quarkus, Spring Boot) do not exist on"
-                  + " this version."));
+                  + " LauncherSessionListener extensions do not exist on this version."));
       return new LauncherHandle(LauncherFactory.create(), null);
     }
 
@@ -109,10 +165,8 @@ class JUnitPlatformRunner {
    * Run a single test class using JUnit Platform Launcher with full session lifecycle.
    *
    * @param className fully qualified test class name
-   * @param capturedOut captured stdout stream
-   * @param capturedErr captured stderr stream
    */
-  void runSuite(String className, OutputStream capturedOut, OutputStream capturedErr) {
+  void runSuite(String className) {
 
     long startTime = System.currentTimeMillis();
     String currentSuite = className;
@@ -129,16 +183,21 @@ class JUnitPlatformRunner {
     int[] failed = {0};
     int[] skipped = {0};
     int[] ignored = {0};
+    Map<String, Long> testStartNanos = new ConcurrentHashMap<>();
 
     try {
       // Flush any pending output
-      capturedOut.flush();
-      capturedErr.flush();
+      flushAll();
 
-      // Open a LauncherSession where the platform has one — this triggers LauncherSessionListener
-      // SPI.
-      // Quarkus's CustomLauncherInterceptor creates FacadeClassLoader here.
-      try (LauncherHandle handle = openLauncher()) {
+      // A LauncherSession is where LauncherSessionListener SPI fires (a framework's registrar, or
+      // an interceptor that builds a custom classloader). In fork mode one
+      // session is opened for the whole JVM and shared by every suite, so those listeners fire
+      // exactly ONCE — maven surefire's one-session-per-fork semantics. That is the difference
+      // between a listener that pre-registers a global once and N concurrent suites each racing to
+      // register it. Per-suite otherwise (in-process, or a platform predating sessions).
+      boolean shareSession = SHARE_SESSION;
+      LauncherHandle handle = shareSession ? sharedHandle() : openLauncher();
+      try {
         Launcher launcher = handle.launcher;
 
         LauncherDiscoveryRequest request =
@@ -179,6 +238,7 @@ class JUnitPlatformRunner {
               @Override
               public void executionStarted(TestIdentifier testIdentifier) {
                 if (testIdentifier.isTest() && !isChildlessVintageClass(testIdentifier)) {
+                  testStartNanos.put(testIdentifier.getUniqueId(), System.nanoTime());
                   String testName = testIdentifier.getDisplayName();
                   send(TestProtocol.encodeTestStarted(currentSuite, testName));
                 }
@@ -199,7 +259,7 @@ class JUnitPlatformRunner {
                 }
 
                 String testName = testIdentifier.getDisplayName();
-                long durationMs = 0; // JUnit Platform doesn't provide per-test duration in listener
+                long durationMs = elapsedMs(testStartNanos.remove(testIdentifier.getUniqueId()));
 
                 String status;
                 String message = null;
@@ -245,8 +305,7 @@ class JUnitPlatformRunner {
 
                 // Flush output before reporting
                 try {
-                  capturedOut.flush();
-                  capturedErr.flush();
+                  flushAll();
                 } catch (Exception e) {
                   // Ignore
                 }
@@ -287,8 +346,7 @@ class JUnitPlatformRunner {
                 failed[0]++;
 
                 try {
-                  capturedOut.flush();
-                  capturedErr.flush();
+                  flushAll();
                 } catch (Exception e) {
                   // Ignore
                 }
@@ -352,11 +410,14 @@ class JUnitPlatformRunner {
         }
 
         launcher.execute(request, listener);
+      } finally {
+        // A shared session is closed once, at fork shutdown; a per-suite one is this suite's to
+        // close.
+        if (!shareSession) handle.close();
       }
 
       // Flush and report done
-      capturedOut.flush();
-      capturedErr.flush();
+      flushAll();
 
       long durationMs = System.currentTimeMillis() - startTime;
       int total = passed[0] + failed[0] + skipped[0] + ignored[0];
@@ -386,9 +447,118 @@ class JUnitPlatformRunner {
     }
   }
 
+  /**
+   * Run a project's classes through the shared LauncherSession — one {@code launcher.execute} per
+   * class — at a bleep-chosen degree of parallelism.
+   *
+   * <p>The shared session is what makes an execution-scoped fixture — an application booted for the
+   * run — build once and be reused by every class, as under maven surefire's
+   * one-execute-per-module. Per-class results are still reported: the listener attributes each test
+   * and container to the requested class it belongs to (a {@code @Nested Foo$Bar} test back to
+   * {@code Foo}) and sends that class's own SuiteDone when its container finishes, so the parent
+   * demultiplexes per suite.
+   *
+   * <p>Parallelism is bleep's own: a fixed thread pool runs {@code parallelism} classes at once,
+   * each as its own {@code launcher.execute}. bleep sets NO JUnit configuration parameters, so a
+   * {@code junit-platform.properties} on the classpath still governs parallelism WITHIN a class
+   * (jupiter's own parallel execution) — bleep neither enables nor overrides it. And because each
+   * class runs in a separate execution, {@code @ResourceLock} across classes is not coordinated by
+   * the engine; keep {@code parallelism} at 1 (the default) when a project's classes share mutable
+   * state, which is also what a singleton-per-JVM application requires.
+   */
+  void runSuites(List<String> classNames, int parallelism) {
+    // One launcher.execute PER class, on the shared LauncherSession — not one execute selecting all
+    // classes. The one-execute form lost tests for engines whose test tree is not keyed by the
+    // selected class: a cucumber scenario's class source is the glue/feature, a spek test's is the
+    // spec node, so neither maps back to the requested Fixture and it reported zero. Per-class
+    // execute attributes every test in that execute to the one class it selected — exactly what the
+    // single-suite path already does correctly. The session is opened once (SHARE_SESSION) and
+    // reused across the classes, so a session-scoped fixture — a booted application, a
+    // LauncherSessionListener — is still built once, which was the point of batching. `parallelism`
+    // bounds how many classes execute at once (1 = sequential, the safe default).
+    try {
+      if (parallelism <= 1) {
+        for (String c : classNames) {
+          ForkedTestRunner.setCurrentSuite(c);
+          try {
+            runSuite(c);
+          } finally {
+            ForkedTestRunner.setCurrentSuite(null);
+          }
+        }
+      } else {
+        java.util.concurrent.ExecutorService pool =
+            java.util.concurrent.Executors.newFixedThreadPool(
+                Math.min(parallelism, Math.max(1, classNames.size())));
+        try {
+          java.util.List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
+          for (String c : classNames) {
+            futures.add(
+                pool.submit(
+                    () -> {
+                      ForkedTestRunner.setCurrentSuite(c);
+                      try {
+                        runSuite(c);
+                      } finally {
+                        ForkedTestRunner.setCurrentSuite(null);
+                      }
+                      return null;
+                    }));
+          }
+          for (java.util.concurrent.Future<?> f : futures) {
+            try {
+              f.get();
+            } catch (java.util.concurrent.ExecutionException e) {
+              send(
+                  TestProtocol.encodeLog(
+                      "error", stackTraceToString(e.getCause() == null ? e : e.getCause())));
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              break;
+            }
+          }
+        } finally {
+          pool.shutdownNow();
+        }
+      }
+    } finally {
+      send(TestProtocol.encodeBatchComplete());
+    }
+  }
+
+  /**
+   * The class a test or container belongs to, from its source. Null for engine roots and anything
+   * without a class source.
+   */
+  private static String classOf(TestIdentifier id) {
+    return id.getSource()
+        .map(
+            s -> {
+              if (s instanceof MethodSource) return ((MethodSource) s).getClassName();
+              if (s instanceof ClassSource) return ((ClassSource) s).getClassName();
+              return null;
+            })
+        .orElse(null);
+  }
+
+  /**
+   * Wall-clock duration of one test, measured by the runner because JUnit Platform's {@link
+   * TestExecutionListener} does not carry one. The start is stamped in {@code executionStarted}
+   * (keyed by unique id, safe under the concurrent classes of a batch) and read back here with the
+   * entry removed. {@link System#nanoTime()} so a wall-clock adjustment mid-suite cannot make it
+   * negative; a missing start (a test that finished without a matching start, e.g. skipped) reads 0
+   * rather than a bogus age-of-the-map.
+   */
+  private static long elapsedMs(Long startNanos) {
+    return startNanos == null ? 0L : Math.max(0L, (System.nanoTime() - startNanos) / 1_000_000L);
+  }
+
   private void send(String message) {
-    protocolOut.println(message);
-    protocolOut.flush();
+    sink.accept(message);
+  }
+
+  private void flushAll() throws IOException {
+    for (Flushable f : toFlush) f.flush();
   }
 
   /**

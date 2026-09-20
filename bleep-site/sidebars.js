@@ -247,6 +247,16 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Running tests",
+          id: "usage/testing",
+        },
+        {
+          type: "doc",
+          label: "Test tags",
+          id: "usage/test-tags",
+        },
+        {
+          type: "doc",
           label: "Proxies, TLS & air-gapped networks",
           id: "usage/networking",
         },

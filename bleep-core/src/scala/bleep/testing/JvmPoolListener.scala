@@ -27,6 +27,13 @@ trait JvmPoolListener {
     * saving, which is otherwise invisible.
     */
   def onForkReused(pid: Long, label: String): Unit
+
+  /** The pool moved to terminate a fork — the single chokepoint every bleep-initiated kill passes through (eviction, suite-idle timeout, cancellation, pool
+    * shutdown). Recorded so a fork's death can be told apart from a self-inflicted one: if a fork exits and no `onForkKill` names its pid first, bleep did not
+    * end it — a test's `System.exit`/`Runtime.halt`, a natural end, or an OS kill did. `wasAlive` is whether the process was still running when the kill was
+    * issued (a redundant escalation over an already-dead fork reports `false`). Joins the other fork events on pid.
+    */
+  def onForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit
 }
 
 object JvmPoolListener {
@@ -34,5 +41,6 @@ object JvmPoolListener {
     def onForkStart(pid: Long, label: String, xmxMb: Option[Long]): Unit = ()
     def onForkEnd(pid: Long, lifetimeMs: Long, exit: String, killedByUs: Option[String]): Unit = ()
     def onForkReused(pid: Long, label: String): Unit = ()
+    def onForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit = ()
   }
 }

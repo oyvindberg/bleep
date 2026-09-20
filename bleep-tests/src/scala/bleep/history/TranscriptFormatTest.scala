@@ -119,6 +119,43 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
   private def formatTest(events: List[E]): io.circe.Json =
     TranscriptFormat.formatTestResult(events, testRunResult = None, includeThrowables = false, query = None, limit = None, offset = None)
 
+  private def formatTestWith(events: List[E], trr: BleepBspProtocol.TestRunResult): io.circe.Json =
+    TranscriptFormat.formatTestResult(events, testRunResult = Some(trr), includeThrowables = false, query = None, limit = None, offset = None)
+
+  private def runResult(passed: Int, suitesTotal: Int, suitesCompleted: Int): BleepBspProtocol.TestRunResult =
+    BleepBspProtocol.TestRunResult(
+      totalPassed = passed,
+      totalFailed = 0,
+      totalSkipped = 0,
+      totalIgnored = 0,
+      suitesTotal = suitesTotal,
+      suitesCompleted = suitesCompleted,
+      suitesFailed = 0,
+      suitesCancelled = 0,
+      durationMs = 0L,
+      historyId = None
+    )
+
+  test("a partial run — fewer suites completed than discovered — is success:false over MCP and carries the suite counts") {
+    // The `bleep_test dfmt/test` report: the MCP surface returned {"success":true,"passed":64,...} with NO suite line at all, so an agent driving bleep over MCP
+    // could not know 19 of 29 suites never ran. The `success` boolean is the only verdict it has, and it lied. This pins both halves of the fix: the verdict flips
+    // to false, and the discovered-vs-completed counts are present in the JSON so the gap is actionable, not merely implied by a summary string.
+    val json = formatTestWith(Nil, runResult(passed = 64, suitesTotal = 29, suitesCompleted = 10))
+    json.hcursor.get[Boolean]("success") shouldBe Right(false)
+    json.hcursor.get[String]("summary").toOption.get should include("did not finish")
+    json.hcursor.get[Int]("suitesTotal") shouldBe Right(29)
+    json.hcursor.get[Int]("suitesCompleted") shouldBe Right(10)
+    json.hcursor.get[Int]("suitesDidNotFinish") shouldBe Right(19)
+  }
+
+  test("a run where every discovered suite completed is success:true and omits the did-not-finish count") {
+    val json = formatTestWith(List(passedTest("app")), runResult(passed = 29, suitesTotal = 29, suitesCompleted = 29))
+    json.hcursor.get[Boolean]("success") shouldBe Right(true)
+    json.hcursor.get[Int]("suitesTotal") shouldBe Right(29)
+    json.hcursor.get[Int]("suitesCompleted") shouldBe Right(29)
+    json.hcursor.get[Int]("suitesDidNotFinish").toOption shouldBe None
+  }
+
   private def passedTest(p: String): E =
     E.TestFinished(
       proj(p),

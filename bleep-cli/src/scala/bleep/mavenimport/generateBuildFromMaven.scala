@@ -86,6 +86,8 @@ object generateBuildFromMaven {
         isTestProject = None,
         testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
         testTags = model.JsonMap.empty,
+        maxConcurrentSuites = None,
+        testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,

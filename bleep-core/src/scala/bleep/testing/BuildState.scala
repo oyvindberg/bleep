@@ -172,6 +172,14 @@ object BuildState {
   */
 object BuildStateReducer {
 
+  /** How long a suite occupied its fork, for the task-time / parallelism metric: from when it started to `now`. Guarded on `runningSuites` so that a suite
+    * whose end is reported by two events (SuiteFinished then SuiteError) is counted once — whichever removes it from `runningSuites` first. A suite with no
+    * recorded start (its SuiteStarted was lost) contributes 0 rather than a bogus large delta.
+    */
+  private def suiteOccupancyMs(state: BuildState, key: SuiteKey, now: Long): Long =
+    if (state.runningSuites.contains(key)) state.suiteStartTimes.get(key).map(now - _).getOrElse(0L)
+    else 0L
+
   def reduce(state: BuildState, event: BuildEvent): BuildState = event match {
 
     case BuildEvent.SourcegenStarted(scriptMain, _, _) =>
@@ -282,11 +290,15 @@ object BuildStateReducer {
         testsSkipped = state.testsSkipped + (if (status == TestStatus.Skipped || status == TestStatus.AssumptionFailed) 1 else 0),
         testsIgnored = state.testsIgnored + (if (status == TestStatus.Ignored || status == TestStatus.Pending) 1 else 0),
         failures = updatedFailures,
-        skipped = updatedSkipped,
-        totalTaskTimeMs = state.totalTaskTimeMs + durationMs
+        skipped = updatedSkipped
+        // NOT totalTaskTimeMs: an individual test's duration is time already inside its suite's
+        // fork occupancy, which the suite-terminal handlers count. Adding it here double-counted
+        // the test methods and, worse, ignored the suite-level boot — a slow-booting suite spends ~25s
+        // starting an app and its containers before any test method runs, so summing test durations
+        // saw ~2s for a suite that held a fork for 27s, and parallelism read ~1x under real fan-out.
       )
 
-    case BuildEvent.SuiteFinished(project, suite, outcome, _, _) =>
+    case BuildEvent.SuiteFinished(project, suite, outcome, _, timestamp) =>
       val key = SuiteKey(project, suite)
       // Check if SuiteError already counted this suite (SuiteError can arrive before SuiteFinished)
       val alreadyCounted = state.failures.exists(f => f.project == project && f.suite == suite && f.category == FailureCategory.ProcessError)
@@ -343,7 +355,8 @@ object BuildStateReducer {
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
-        failures = syntheticFailures ++ failuresWithSuiteOutput
+        failures = syntheticFailures ++ failuresWithSuiteOutput,
+        totalTaskTimeMs = state.totalTaskTimeMs + suiteOccupancyMs(state, key, timestamp)
       )
 
     case BuildEvent.Output(project, suite, line, _, _) =>
@@ -377,8 +390,9 @@ object BuildStateReducer {
     case _: BuildEvent.LockContention | _: BuildEvent.LockAcquired =>
       state // Lock contention events don't affect build state — handled by display
 
-    case BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDumpInfo, _) =>
+    case BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDumpInfo, timestamp) =>
       val key = SuiteKey(project, suite)
+      val occupancy = suiteOccupancyMs(state, key, timestamp)
       // jstack dump arrives via `threadDumpInfo.singleThreadStack` (see ReactiveBsp's SuiteTimedOut translation);
       // expose it as `failure.throwable` so BuildDisplay's summary Timeouts section renders it under "Stack trace:".
       val timeoutFailure = TestFailure(
@@ -399,11 +413,13 @@ object BuildStateReducer {
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
-        failures = timeoutFailure :: state.failures
+        failures = timeoutFailure :: state.failures,
+        totalTaskTimeMs = state.totalTaskTimeMs + occupancy
       )
 
-    case BuildEvent.SuiteError(project, suite, error, processExit, _, _) =>
+    case BuildEvent.SuiteError(project, suite, error, processExit, _, timestamp) =>
       val key = SuiteKey(project, suite)
+      val occupancy = suiteOccupancyMs(state, key, timestamp)
       val desc = processExit match {
         case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
         case ProcessExit.ExitCode(code) => s"Process exited with code $code"
@@ -430,7 +446,8 @@ object BuildStateReducer {
             runningSuites = state.runningSuites - key,
             suiteStartTimes = state.suiteStartTimes - key,
             pendingOutput = state.pendingOutput - key,
-            failures = state.failures.map(f => if (f eq existing) merged else f)
+            failures = state.failures.map(f => if (f eq existing) merged else f),
+            totalTaskTimeMs = state.totalTaskTimeMs + occupancy
           )
         case None =>
           val errorFailure = TestFailure(
@@ -451,7 +468,8 @@ object BuildStateReducer {
             runningSuites = state.runningSuites - key,
             suiteStartTimes = state.suiteStartTimes - key,
             pendingOutput = state.pendingOutput - key,
-            failures = errorFailure :: state.failures
+            failures = errorFailure :: state.failures,
+            totalTaskTimeMs = state.totalTaskTimeMs + occupancy
           )
       }
 
@@ -473,14 +491,15 @@ object BuildStateReducer {
         failures = errorFailure :: state.failures
       )
 
-    case BuildEvent.SuiteCancelled(project, suite, reason, _) =>
+    case BuildEvent.SuiteCancelled(project, suite, reason, timestamp) =>
       val key = SuiteKey(project, suite)
       state.copy(
         suitesCompleted = state.suitesCompleted + 1,
         suitesCancelled = state.suitesCancelled + 1,
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
-        cancelledSuites = CancelledSuite(project, suite, reason) :: state.cancelledSuites
+        cancelledSuites = CancelledSuite(project, suite, reason) :: state.cancelledSuites,
+        totalTaskTimeMs = state.totalTaskTimeMs + suiteOccupancyMs(state, key, timestamp)
       )
 
     case BuildEvent.LinkStarted(project, _, _) =>
