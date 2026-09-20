@@ -48,14 +48,22 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
 
   private def capture(lines: String*): StreamCapture = lines.foldLeft(StreamCapture.empty)(_.append(_))
 
-  /** Wait for the probe to record its pid, i.e. for it to actually be running. */
+  /** Wait for the probe to record its pid, i.e. for it to actually be running.
+    *
+    * Polls for a readable pid rather than for the path: file creation and file content are two events, and waiting only on `Files.exists` read an empty marker
+    * on a slow macOS runner and died in `toLong`. The probe writes atomically now, so this should never spin — but a test that can flake in CI is worse than a
+    * test that is slightly patient.
+    */
   private def awaitPid(marker: Path): Long = {
     val deadline = System.currentTimeMillis() + 30000
-    while (System.currentTimeMillis() < deadline && !Files.exists(marker)) Thread.sleep(50)
+    var pid: Option[Long] = None
+    while (System.currentTimeMillis() < deadline && pid.isEmpty) {
+      pid = if (Files.exists(marker)) Files.readString(marker).trim.toLongOption else None
+      if (pid.isEmpty) Thread.sleep(50)
+    }
     // A process that never started would make every "it was killed" assertion below pass vacuously — which is exactly
     // how the `/bin/sh` version of these tests reported green on Windows while spawning nothing at all.
-    if (!Files.exists(marker)) fail(s"the probe never started: $marker was never written")
-    Files.readString(marker).trim.toLong
+    pid.getOrElse(fail(s"the probe never started: $marker never carried a pid"))
   }
 
   /** Ask the OS whether the process is gone, rather than out-waiting the work it would have done. */
@@ -248,7 +256,12 @@ object SubprocessRunnerTest {
        |        case "err"   -> System.err.println(args[++i]);
        |        case "ansi"  -> System.out.println($Esc + "[31mred-text" + $Esc + "[0m");
        |        case "sleep" -> Thread.sleep(Long.parseLong(args[++i]));
-       |        case "touch" -> Files.writeString(Path.of(args[++i]), String.valueOf(ProcessHandle.current().pid()));
+       |        case "touch" -> {
+      |          Path target = Path.of(args[++i]);
+      |          Path tmp = Path.of(target + ".tmp");
+      |          Files.writeString(tmp, String.valueOf(ProcessHandle.current().pid()));
+      |          Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE);
+      |        }
        |        case "exit"  -> { System.out.flush(); System.err.flush(); System.exit(Integer.parseInt(args[++i])); }
        |        case "lines" -> {
        |          int n = Integer.parseInt(args[++i]);
