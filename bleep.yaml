@@ -375,9 +375,9 @@ projects:
       # than every PR:
       #   - `**TestFrameworkIT`        the pinned matrix: each framework at its pinned version x every Scala version x every platform (JVM/JS/Native/Kotlin).
       #   - `**TestFrameworkVersionIT` the version sweep: additionally every version a framework declares, to catch an older release bleep dispatches wrongly.
-      #   - the JS/Native link-behaviour suites below are not framework sweeps, but they belong here for the same reason: each links and runs a real project on
-      #     a real toolchain (node for JS, LLVM for Native), resolving frameworks from Maven Central, so they are slow and environment-sensitive and have no
-      #     place gating every PR. They run on demand with `--only-tag matrix`.
+      #   - the JS/Native link-behaviour suites below are not framework sweeps, but they are kept manual for the same reason: each links and runs a real project
+      #     on a real toolchain (node for JS, LLVM for Native), resolving frameworks from Maven Central. They pass — run them with `--only-tag matrix` — but need
+      #     a toolchain the plain `build` job should not have to carry, so they run deliberately rather than on every PR.
       matrix:
       - "**TestFrameworkIT"
       - "**TestFrameworkVersionIT"
