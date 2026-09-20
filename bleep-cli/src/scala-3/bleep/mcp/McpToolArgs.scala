@@ -361,7 +361,9 @@ object RunArgs {
         ),
         "timeoutSeconds" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("Timeout in seconds. Default 60.")
+          "description" -> Json.fromString(
+            "Timeout for the program itself in seconds, default 60. Does not cover the compile that precedes it. On timeout the program is killed and the call still returns, with timedOut=true and the output captured so far."
+          )
         )
       ),
       "required" -> Json.arr(Json.fromString("directory"), Json.fromString("name"))

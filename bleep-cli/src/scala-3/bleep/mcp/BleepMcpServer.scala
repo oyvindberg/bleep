@@ -23,6 +23,17 @@ import scala.jdk.CollectionConverters.*
 private[mcp] val AnsiPattern = java.util.regex.Pattern.compile("\u001b\\[[0-9;]*[a-zA-Z]")
 private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAll("")
 
+/** The command as something a person can read. The classpath is thousands of characters nobody wants, and the reason to show the command at all is to say which
+  * JVM, which options and which main class are about to run.
+  */
+private[mcp] def abbreviateCommand(cmd: List[String]): String =
+  cmd.zipWithIndex
+    .map { case (part, i) =>
+      val isClasspathValue = i > 0 && (cmd(i - 1) == "-classpath" || cmd(i - 1) == "-cp")
+      if (isClasspathValue) s"<${part.split(java.io.File.pathSeparatorChar).length} classpath entries>" else part
+    }
+    .mkString(" ")
+
 /** MCP server for bleep that exposes compile, test and project info to AI agents.
   *
   * Stateless by design: every tool call carries a required `directory`, is bootstrapped fresh from that workspace's bleep.yaml, opens its own connection to the
@@ -536,7 +547,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.run",
         Some("Run"),
         Some(
-          "Compile and run a project or script. Executes that program in a forked JVM with your privileges — whatever it does to the filesystem, the network or any system it reaches, it does for real. Checks scripts first, then projects. Returns stdout/stderr and exit code. Has a timeout to prevent hanging on long-running processes."
+          "Compile and run a project or script. Executes that program in a forked JVM with your privileges — whatever it does to the filesystem, the network or any system it reaches, it does for real. Checks scripts first, then projects. Progress is reported while it runs: compile progress per project, then elapsed time, output line counts and the program's newest line. Returns exitCode, timedOut, durationMs, pid and stdout/stderr (first and last 200 lines each, with omitted counts). Hitting timeoutSeconds kills the program and returns what it printed with timedOut=true, rather than failing."
         ),
         // NOT read-only: this is arbitrary code execution by definition, preceded by a compile (which runs sourcegen/annotation processors/macros).
         ToolFunction.Effect.Destructive(idempotent = false),
@@ -970,7 +981,13 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       }
     }
 
-    /** Compile and run a single project. Captures stdout/stderr. */
+    /** Compile and run a single project, saying what is happening while it happens.
+      *
+      * Both phases used to be mute. The compile went through a BSP client that collected nothing, so a `bleep.run` that spent twelve minutes compiling reported
+      * twelve minutes of nothing and a compile failure reported only a status code. The subprocess drained into a byte buffer that by construction could not be
+      * read until the process exited. Now the compile streams exactly what `bleep.compile` streams, and the subprocess reports its own latest output once a
+      * second.
+      */
     private def runProject(
         started: Started,
         project: model.CrossProjectName,
@@ -980,91 +997,96 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         context: CallContext[IO]
     ): IO[String] =
       for {
-        // Compile first
-        _ <- context.log(protocol.LoggingLevel.Info, s"Compiling ${project.value}...")
-        _ <- compileSilently(started, Array(project))
+        _ <- compileForRun(started, Array(project), context)
 
-        // Resolve main class
         mainClass <- IO {
           mainClassOverride
             .orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
             .getOrElse(throw new BleepException.Text(s"No main class for ${project.value}. Specify with 'mainClass' parameter."))
         }
 
-        // Build JVM command
         cmd <- IO.fromEither(
           internal.jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, Some(mainClass), args)
         )
 
-        _ <- context.log(protocol.LoggingLevel.Info, s"Running $mainClass...")
+        _ <- streamNotification(context, protocol.LoggingLevel.Info, s"[run] executing ${abbreviateCommand(cmd)}")
 
-        // Execute subprocess with timeout
-        result <- executeSubprocess(cmd, started.buildPaths.cwd, timeoutSeconds)
+        outcome <- SubprocessRunner.run(
+          cmd,
+          started.buildPaths.cwd,
+          timeoutSeconds,
+          status => streamNotification(context, protocol.LoggingLevel.Info, s"[run] $mainClass $status")
+        )
+
+        _ <-
+          if (outcome.timedOut)
+            streamNotification(
+              context,
+              protocol.LoggingLevel.Error,
+              s"[run] $mainClass (pid ${outcome.pid}) killed after ${timeoutSeconds}s; the output it produced up to that point is in the result"
+            )
+          else
+            streamNotification(
+              context,
+              protocol.LoggingLevel.Info,
+              s"[run] $mainClass exited ${outcome.exitCode.get} after ${outcome.durationMs}ms"
+            )
       } yield {
-        val (stdout, stderr, exitCode) = result
-        Json
-          .obj(
-            "exitCode" -> Json.fromInt(exitCode),
-            "stdout" -> Json.fromString(stdout),
-            "stderr" -> Json.fromString(stderr)
-          )
-          .noSpaces
+        val fields = List(
+          "project" -> Json.fromString(project.value),
+          "mainClass" -> Json.fromString(mainClass),
+          "pid" -> Json.fromLong(outcome.pid),
+          "exitCode" -> outcome.exitCode.fold(Json.Null)(Json.fromInt),
+          "timedOut" -> Json.fromBoolean(outcome.timedOut),
+          "timeoutSeconds" -> Json.fromInt(timeoutSeconds),
+          "durationMs" -> Json.fromLong(outcome.durationMs),
+          "stdout" -> Json.fromString(outcome.stdout.render),
+          "stderr" -> Json.fromString(outcome.stderr.render)
+        )
+        Json.obj(fields ++ outcome.stdout.countsJson("stdout") ++ outcome.stderr.countsJson("stderr")*).noSpaces
       }
 
-    /** Compile projects via BSP without collecting events (for run tool). */
-    private def compileSilently(started: Started, targetProjects: Array[model.CrossProjectName]): IO[Unit] =
+    /** The compile that precedes a run.
+      *
+      * Identical machinery to `executeCompile` — same event-collecting client, same per-second heartbeat, same streamed failure lines — because the compile is
+      * usually the long part of a run, and it is the part bleep already knows the most about. On failure it raises the diagnostics themselves plus the history
+      * id to expand them with, where it used to raise a bare status code.
+      */
+    private def compileForRun(started: Started, targetProjects: Array[model.CrossProjectName], context: CallContext[IO]): IO[Unit] =
       for {
         bspConfig <- IO.fromEither(setupBspConfig(started))
+        eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
+        collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
+        done <- Ref.of[IO, Boolean](false)
+        client = new McpBspClient(eventQueue, started.logger)
+
+        consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
+        heartbeatFiber <- heartbeat(collectedEvents, done, "run/compile", internal.TransitiveProjects(started.build, targetProjects).all.length, context).start
+
         result <- diagnoseOomOnFailure(bspConfig) {
           val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-          bspSession(started, bspConfig, BspClientDisplayProgress(started.logger)).use { lifecycle =>
+          bspSession(started, bspConfig, client).use { lifecycle =>
             BspRequestHelper.callCancellable(
               {
                 val params = new bsp4j.CompileParams(targets)
+                params.setOriginId(UUID.randomUUID().toString)
                 lifecycle.server.buildTargetCompile(params)
               },
               lifecycle.listening
             )
           }
-        }
+        }.guarantee(
+          eventQueue.offer(None) >>
+            consumerFiber.joinWithNever >>
+            done.set(true) >>
+            heartbeatFiber.cancel
+        )
+
+        events <- collectedEvents.get.map(_.reverse)
         _ <- IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
-          new BleepException.Text(s"Compilation failed with status ${result.getStatusCode}")
+          new BleepException.Text(BleepMcpServer.compileFailureMessage(events, result.getStatusCode, historyIdFromCompileResult(result)))
         )
       } yield ()
-
-    /** Execute a subprocess, capturing stdout and stderr separately. Returns (stdout, stderr, exitCode). */
-    private def executeSubprocess(
-        cmd: List[String],
-        cwd: java.nio.file.Path,
-        timeoutSeconds: Int
-    ): IO[(String, String, Int)] = IO.interruptible {
-      val builder = new java.lang.ProcessBuilder(cmd.asJava)
-      builder.directory(cwd.toFile)
-      val proc = builder.start()
-
-      // Read stdout and stderr in daemon threads to prevent buffer deadlock
-      val stdoutBuf = new java.io.ByteArrayOutputStream()
-      val stderrBuf = new java.io.ByteArrayOutputStream()
-
-      val stdoutThread = new Thread((() => { proc.getInputStream.transferTo(stdoutBuf); () }): Runnable)
-      val stderrThread = new Thread((() => { proc.getErrorStream.transferTo(stderrBuf); () }): Runnable)
-      stdoutThread.setDaemon(true)
-      stderrThread.setDaemon(true)
-      stdoutThread.start()
-      stderrThread.start()
-
-      val completed = proc.waitFor(timeoutSeconds.toLong, java.util.concurrent.TimeUnit.SECONDS)
-      if (!completed) {
-        proc.destroyForcibly()
-        stdoutThread.join(1000)
-        stderrThread.join(1000)
-        throw new RuntimeException(s"Process timed out after ${timeoutSeconds}s")
-      }
-
-      stdoutThread.join(5000)
-      stderrThread.join(5000)
-      (stripAnsi(stdoutBuf.toString()), stripAnsi(stderrBuf.toString()), proc.exitValue())
-    }
 
     // ========================================================================
     // Event consumption
@@ -1231,9 +1253,28 @@ object BleepMcpServer {
       |results. A numeric historyId pins a fixed base (e.g. the last green run); the base is validated before
       |the build starts, so a bad id fails without costing a build.""".stripMargin
 
-  /** The definitive redirect for a `directory` that is not inside any bleep build. Worded for an agent mid-task: it must read as a final answer about the
-    * project (so the agent switches to the right build tool immediately) and never as a transient bleep failure worth retrying.
+  val MaxCompileFailureDiagnostics = 5
+
+  /** Why the compile that precedes a `bleep.run` failed, in the failure itself.
+    *
+    * A failed tool call returns no result JSON, so this string is everything the agent sees. It used to be `Compilation failed with status ERROR` and nothing
+    * else — the diagnostics existed, streamed past, and were dropped on the floor.
     */
+  def compileFailureMessage(events: List[BleepBspProtocol.Event], status: bsp4j.StatusCode, historyId: Option[Long]): String = {
+    import BleepBspProtocol.Event as E
+    val perProject = events.collect { case e: E.CompileFinished if e.status.isFailure => e }.flatMap { e =>
+      val errors = e.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+      val shown = errors.take(MaxCompileFailureDiagnostics).map { d =>
+        s"  ${e.project.value}: ${d.displayPath.fold("")(p => s"$p: ")}${stripAnsi(d.message)}"
+      }
+      val rest =
+        if (errors.sizeIs > MaxCompileFailureDiagnostics) List(s"  ${e.project.value}: (+${errors.size - MaxCompileFailureDiagnostics} more errors)") else Nil
+      shown ++ rest
+    }
+    val expand = historyId.map(id => s"Full diagnostics: bleep.history.show with historyId $id").toList
+    (s"Compilation failed with status $status" :: perProject ::: expand).mkString("\n")
+  }
+
   /** Say which names failed, and — where it can be worked out — why.
     *
     * The cross-target case is worth its own sentence because it is the one people actually hit: `MyProjectTest@jvm` names a cross target of a project that has
@@ -1260,6 +1301,9 @@ object BleepMcpServer {
     s"$header\n${explanations.mkString("\n")}\n\nknown ${what}s: $all"
   }
 
+  /** The definitive redirect for a `directory` that is not inside any bleep build. Worded for an agent mid-task: it must read as a final answer about the
+    * project (so the agent switches to the right build tool immediately) and never as a transient bleep failure worth retrying.
+    */
   def notABleepBuild(directory: String): BleepException =
     new BleepException.Text(
       s"$directory is not part of a bleep build: no ${BuildLoader.BuildFileName} exists there or in any parent directory. " +

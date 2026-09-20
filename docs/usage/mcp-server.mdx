@@ -26,6 +26,10 @@ multiple checkouts of the same build at the same time:
   notifications the instant that project finishes, not at the end of
   the whole build. The latency floor for a real failure is
   milliseconds.
+- **Long calls narrate.** Compile, test and run report progress once a
+  second — projects done, suites done, and for a running program its
+  elapsed time and newest line of output. An agent can tell a slow call
+  from a hung one.
 
 ## Setup
 
@@ -75,7 +79,7 @@ nothing else.
 | --------------------------- | ----------- | --------------------------- | -------------------------------------------------------- |
 | `bleep.compile`             | destructive | yes                         | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
 | `bleep.test`                | destructive | yes                         | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
-| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Returns stdout/stderr and exit code.             |
+| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Reports compile and run progress while it works. Returns `exitCode`, `timedOut`, `durationMs`, `pid` and bounded stdout/stderr. |
 | `bleep.sourcegen`       | destructive | yes                         | Run sourcegen scripts for selected projects.                                          |
 | `bleep.test.suites`         | additive    | yes                         | List test suite class names without running them. Requires projects to be compiled.   |
 | `bleep.fmt`             | destructive | no                          | Format Scala and Java sources via scalafmt and google-java-format. Rewrites files in place. |
@@ -258,6 +262,38 @@ about a compile error the instant the project finishes, not 30
 seconds later when the rest of the build wraps. So per-project
 errors stream as notifications during the call, while the summary
 that wraps up the call is the counts.
+
+### A long call still says what it is doing
+
+An agent cannot tell a slow call from a hung one, so every tool that
+takes time reports progress once a second. `bleep.compile` and
+`bleep.test` report what the build knows: projects compiled out of
+total, which ones are still going and for how long, suites and tests
+done.
+
+`bleep.run` reports both of its phases. The compile in front of a run
+is usually the long part, and it now streams exactly what
+`bleep.compile` streams — including the diagnostics if it fails, which
+used to be swallowed in favour of a bare status code. Then the program
+itself: elapsed time, how many lines it has printed on each stream,
+and the newest line. That last field is the one that matters, because
+elapsed time alone cannot separate a program doing work from one stuck
+on a socket, while the line it printed four seconds ago can.
+
+### A run that times out still returns its output
+
+`timeoutSeconds` (default 60, covering the program and not the compile
+in front of it) kills the program, and the call still returns —
+`timedOut: true`, no `exitCode`, and everything the program printed
+before it was killed. A hung program's output is the reason to look at
+it at all, so throwing it away was exactly backwards.
+
+Output is bounded: the first and last 200 lines of each stream, with
+`stdoutOmittedLines` / `stderrOmittedLines` counting what was dropped
+in between and `stdoutLines` / `stderrLines` giving the totals. Head
+and tail answer the two questions worth asking — how it started, and
+where it got to — without letting one chatty program crowd out
+everything else in the agent's context.
 
 ## See also
 
