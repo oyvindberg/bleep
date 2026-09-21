@@ -51,9 +51,9 @@ final class MachineResources private (
       // Enqueue + grant is a single atomic Ref update (uncancelable — makeFull masks it).
       result <- state.modify { st =>
         val id = st.nextId
-        // Clamp against the CURRENT total: it moves as the machine's spare capacity moves, so a
-        // request larger than the machine waits for the whole machine rather than never fitting.
-        val memReq = math.max(0L, math.min(memoryMb, st.totalMemoryMb))
+        // Queued with what it asked for, not clamped here: the budget moves while it waits, and
+        // [[grantEligible]] clamps against whatever the budget is when it next looks.
+        val memReq = math.max(0L, memoryMb)
         val queued = st.copy(nextId = id + 1, waiting = st.waiting :+ Waiter(id, kind, label, cpuReq, memReq, now, gate))
         val (next, granted) = grantEligible(queued)
         (next, (id, granted))
@@ -222,6 +222,10 @@ object MachineResources {
 
   /** Grant every currently-fitting waiter, oldest first (work-conserving: a waiter that doesn't fit is skipped rather than head-of-line-blocking). Pure:
     * returns the updated state and the waiters that were granted (whose gates the caller then completes).
+    *
+    * A waiter's memory is clamped to the budget in force NOW, and charged at that clamped size. Clamping once at enqueue is how a test fork waited forever on
+    * an idle CI runner: it queued asking 2560MB against a 3420MB budget, the retune loop then dropped the budget to its 2048MB floor, and from then on the most
+    * that could ever be free was less than the request.
     */
   private def grantEligible(st: St): (St, List[Waiter]) = {
     var freeCpu = st.freeCpu
@@ -230,10 +234,11 @@ object MachineResources {
     val granted = List.newBuilder[Waiter]
     val stillWaiting = Vector.newBuilder[Waiter]
     st.waiting.foreach { w =>
-      if (fits(w.cpu, w.memoryMb, freeCpu, freeMem)) {
+      val memReq = math.min(w.memoryMb, st.totalMemoryMb)
+      if (fits(w.cpu, memReq, freeCpu, freeMem)) {
         freeCpu -= w.cpu
-        freeMem -= w.memoryMb
-        active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, w.memoryMb, w.sinceMs))
+        freeMem -= memReq
+        active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, memReq, w.sinceMs))
         granted += w
       } else stillWaiting += w
     }
