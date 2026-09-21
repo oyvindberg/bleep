@@ -1,12 +1,11 @@
 package bleep
 
-import bleep.internal.{bleepLoggers, fatal, logException, BspClientDisplayProgress, FileUtils}
+import bleep.internal.{bleepLoggers, fatal, logException, BspClientDisplayProgress, FileUtils, NativeExecve, Slf4jBridge}
 import bleep.packaging.ManifestCreator
 import cats.data.{NonEmptyList, Validated}
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
 import com.monovore.decline.*
-import coursier.jvm.Execve
 import ryddig.Logger
 
 import java.nio.file.{Path, Paths}
@@ -1364,7 +1363,7 @@ object Main {
                   val status = scala.sys.process.Process(binaryPath.toString :: args.toList, FileUtils.cwd.toFile, sys.env.toSeq*).!<
                   sys.exit(status)
                 case Right(path) =>
-                  Execve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
+                  NativeExecve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
                   sys.error("should not be reached")
               }
             case other =>
@@ -1421,6 +1420,34 @@ object Main {
     * `UserPaths.fromAppDirs` before anything else, so linking is already covered by any command — printing the result is what makes a *wrong* answer visible,
     * and the absolute-path check turns a silently degraded resolution into a failed CI step rather than a cache directory in the wrong place.
     */
+  /** Ends `selftest` by exec'ing into a shell that prints the `OK`, so the step fails if the launcher cannot exec.
+    *
+    * That is how a binary hands off to the bleep release a build file pins, and it was broken from M11 to M13 without CI noticing: every CI binary is a
+    * snapshot, and snapshots never hand off. A coursier bump had left the exec throwing NoClassDefFoundError in the native image. See [[NativeExecve]].
+    */
+  private def selftestExecve(): ExitCode =
+    if (isGraalvmNativeImage && OsArch.current.os != model.Os.Windows) {
+      NativeExecve.execve("/bin/sh", Array("/bin/sh", "-c", "echo OK"), sys.env.map { case (k, v) => s"$k=$v" }.toArray)
+      sys.error("should not be reached")
+    } else {
+      println("OK")
+      ExitCode.Success
+    }
+
+  /** lsp4j reads a JSON-RPC error with Gson's reflective adapter, so `ResponseError` needs reflection metadata in the native image. Without it Gson builds an
+    * empty one, and every error the BSP server sent reached the user as `ResponseErrorException: null`, naming neither the request nor the cause. The JVM never
+    * shows this, so check it where the binary runs.
+    */
+  private def selftestJsonRpcErrors(): Unit = {
+    val handler = new org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler(java.util.Collections.emptyMap())
+    handler.parseMessage("""{"jsonrpc":"2.0","id":"1","error":{"code":-32603,"message":"selftest"}}""") match {
+      case response: org.eclipse.lsp4j.jsonrpc.messages.ResponseMessage if response.getError != null && response.getError.getMessage == "selftest" =>
+        println("JSON-RPC errors keep their message")
+      case other =>
+        throw new IllegalStateException(s"lsp4j parsed a JSON-RPC error without its message ($other): ResponseError is missing reflection metadata")
+    }
+  }
+
   private def selftestUserPaths(userPaths: UserPaths): Unit = {
     println(s"user cache dir: ${userPaths.cacheDir}")
     println(s"user config dir: ${userPaths.configDir}")
@@ -1430,6 +1457,9 @@ object Main {
   }
 
   def _main(_args: Array[String]): ExitCode = {
+    // Before anything can reach coursier: unpacking an archive logs through SLF4J, which throws until a logger is installed.
+    // Commands that set up full logging re-install through `bleepLoggers.installLoggingBridges`.
+    Slf4jBridge.install(bleepLoggers.stderrWarn(PreBootstrapOpts.parse(_args.toList)._1.toLoggingOpts))
     val userPaths = UserPaths.fromAppDirs
 
     // Enable ANSI support on Windows
@@ -1469,8 +1499,8 @@ object Main {
         BspClientDisplayProgress(logger).discard()
         selftestWindowsKernel32()
         selftestUserPaths(userPaths)
-        println("OK")
-        ExitCode.Success
+        selftestJsonRpcErrors()
+        selftestExecve()
 
       case "bsp" :: args =>
         val (preOpts, _) = PreBootstrapOpts.parse(args)

@@ -206,6 +206,9 @@ class Workspace(
       case None    =>
         val storingLogger = ThreadSafeStoringLogger()
         val stdLogger = parentLogger.withContext("testName", testName)
+        // SLF4J has one process-wide target and throws without one. Tests share this JVM, so a library's SLF4J line
+        // lands in whichever test installed last; that only matters for plexus-archiver while unpacking.
+        bleep.internal.Slf4jBridge.install(storingLogger.zipWith(stdLogger))
         val existingBuild = BuildLoader.find(root).existing.orThrow
         val buildPaths = BuildPaths(cwd = root, existingBuild, model.BuildVariant.Normal)
         val effectiveConfig =

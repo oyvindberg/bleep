@@ -248,11 +248,9 @@ case class ReactiveBsp(
       consumeCount = new AtomicInteger(0)
       eventConsumerFiber <- consumeEvents(eventQueue, display, diagLog, consumeCount, junitCollector).start
 
-      // Pass the rewritten build to BSP server so it can use ReplaceBleepDependencies-rewritten
+      // Pass the rewritten build to BSP server so it uses the ReplaceBleepDependencies-rewritten
       // build (with build.bleep::* deps removed and classpath overrides applied).
-      // Without this, the BSP server loads the build from disk and tries to resolve
-      // build.bleep::bleep-core:dev via Coursier, which fails in tests.
-      buildData = Some(bsp.BspBuildData.Payload.from(started))
+      buildData = bsp.BspBuildData.Payload.from(started)
 
       _ <- connect(bspLogger).use { connection =>
         BspServerBuilder.create(connection, bspClient, None).use { lifecycle =>
@@ -319,9 +317,9 @@ case class ReactiveBsp(
     val isDiffWatch = effectiveMode == DisplayMode.DiffWatch
     val bspLogger = effectiveMode match {
       case DisplayMode.Tui =>
-        // Reinstall JUL bridge to file-only logger so lsp4j warnings don't clobber the TUI
+        // Reinstall the logging bridges to a file-only logger so lsp4j warnings don't clobber the TUI
         val fileLoggerResource = bleepLoggers.fileOnly(started.buildPaths.logFile).acquire()
-        bleepLoggers.installJulBridge(fileLoggerResource.value)
+        bleepLoggers.installLoggingBridges(fileLoggerResource.value)
         bleepLoggers.silent
       case DisplayMode.NoTui     => started.logger
       case DisplayMode.DiffWatch => started.logger
@@ -422,7 +420,7 @@ case class ReactiveBsp(
                 rootUri = started.buildPaths.buildDir.toUri.toString,
                 // The client owns the build. Sending it means the daemon compiles exactly what we
                 // resolved, instead of loading and resolving a build of its own that may differ.
-                buildData = Some(bsp.BspBuildData.Payload.from(started)),
+                buildData = bsp.BspBuildData.Payload.from(started),
                 listening = lifecycle.listening
               )
 

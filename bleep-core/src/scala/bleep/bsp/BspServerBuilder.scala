@@ -102,14 +102,14 @@ object BspServerBuilder {
     * Sends buildInitialize and buildInitialized notifications.
     *
     * @param buildData
-    *   Optional build data to pass to the BSP server (for bleep-to-bleep communication)
+    *   The build this client resolved. Required: bleep-bsp never loads a build itself and refuses an initialize without one.
     */
   def initializeSession(
       server: BuildServer,
       clientName: String,
       clientVersion: String,
       rootUri: String,
-      buildData: Option[BspBuildData.Payload],
+      buildData: BspBuildData.Payload,
       listening: java.util.concurrent.Future[Void]
   ): IO[ch.epfl.scala.bsp4j.InitializeBuildResult] = {
     import ch.epfl.scala.bsp4j._
@@ -124,16 +124,13 @@ object BspServerBuilder {
       capabilities
     )
 
-    // Pass rewritten build if available
     // Note: setData takes an Object that Gson will serialize. If we pass a String,
     // Gson will serialize it as a JSON string (adding quotes). We need to pass
     // a Gson JsonElement so it serializes as a JSON object.
-    buildData.foreach { data =>
-      params.setDataKind(BspBuildData.DataKind)
-      val wrapper = new com.google.gson.JsonObject
-      wrapper.add(BspBuildData.DataField, com.google.gson.JsonParser.parseString(BspBuildData.Payload.encode(data)))
-      params.setData(wrapper)
-    }
+    params.setDataKind(BspBuildData.DataKind)
+    val wrapper = new com.google.gson.JsonObject
+    wrapper.add(BspBuildData.DataField, com.google.gson.JsonParser.parseString(BspBuildData.Payload.encode(buildData)))
+    params.setData(wrapper)
 
     BspRequestHelper.callCancellable(server.buildInitialize(params), listening).flatMap { result =>
       IO.blocking(server.onBuildInitialized()).as(result)

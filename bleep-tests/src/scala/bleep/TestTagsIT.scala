@@ -220,4 +220,18 @@ class TestTagsIT extends IntegrationTestHarness {
     assert(log.contains("pre-filtered by --only-tag slow"), s"expected pre-filter reason in summary, got:\n$log")
     assert(log.contains("untagged"), s"expected dropped project name in summary, got:\n$log")
   }
+
+  integrationTest("list-tests lists discovered suites with their tags") { ws =>
+    ws.yaml(TaggedYaml)
+    ws.file("mytest/src/scala/FastTest.scala", FastTest)
+    ws.file("mytest/src/scala/HeavyIT.scala", SlowIT)
+    val (started, commands, storingLogger) = ws.start()
+    commands.compile(List(mytest))
+    // `list-tests` opens its own short-lived BSP session. It must hand the server the build like compile/test do,
+    // or the server refuses the session and the query fails with nothing listed.
+    bleep.commands.ListTests(Array(mytest), OutputMode.Text).run(started).orThrow
+    val log = storingLogger.underlying.iterator.map(_.message.plainText).mkString("\n")
+    assert(log.contains("  example.FastTest\n"), s"expected untagged FastTest listed, got:\n$log")
+    assert(log.contains("  example.HeavyIT (slow)"), s"expected HeavyIT listed with its tag, got:\n$log")
+  }
 }

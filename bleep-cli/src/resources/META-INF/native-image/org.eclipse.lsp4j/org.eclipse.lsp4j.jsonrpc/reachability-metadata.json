@@ -1,0 +1,16 @@
+{
+  "comment": [
+    "lsp4j reads a JSON-RPC error with Gson's reflective adapter. With ResponseError unregistered, native-image reports it as having no fields,",
+    "Gson builds an empty one (`\"error\": {}`), and every error the BSP server returns reaches the user as `ResponseErrorException: null`.",
+    "",
+    "`bleep selftest` parses a JSON-RPC error with lsp4j so CI fails if this goes missing -- see Main.selftestJsonRpcErrors."
+  ],
+  "reflection": [
+    {
+      "type": "org.eclipse.lsp4j.jsonrpc.messages.ResponseError",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    }
+  ]
+}

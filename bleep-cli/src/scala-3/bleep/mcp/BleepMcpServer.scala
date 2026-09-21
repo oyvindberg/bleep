@@ -126,7 +126,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           clientName = "bleep-mcp",
           clientVersion = model.BleepVersion.current.value,
           rootUri = started.buildPaths.buildDir.toUri.toString,
-          buildData = Some(BspBuildData.Payload.from(started)),
+          buildData = BspBuildData.Payload.from(started),
           listening = lifecycle.listening
         )
       )
