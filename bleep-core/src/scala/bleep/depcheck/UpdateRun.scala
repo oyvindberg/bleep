@@ -39,11 +39,11 @@ object UpdateRun {
   ): Set[Dependency] =
     allDependenciesByConfig(res, depsByConfig, configs)
       .flatMap { case (config, deps) =>
-        deps.map(dep => dep.withVariantSelector(VariantSelector.ConfigurationBased(config --> dep.configurationOrThrow)))
+        deps.map(dep => dep.copy(variantSelector = VariantSelector.ConfigurationBased(config --> dep.configurationOrThrow)))
       }
-      .groupBy(_.withVariantSelector(VariantSelector.emptyConfiguration))
+      .groupBy(_.copy(variantSelector = VariantSelector.emptyConfiguration))
       .map { case (dep, l) =>
-        dep.withVariantSelector(VariantSelector.ConfigurationBased(Configuration.join(l.map(_.configurationOrThrow).toSeq*)))
+        dep.copy(variantSelector = VariantSelector.ConfigurationBased(Configuration.join(l.map(_.configurationOrThrow).toSeq*)))
       }
       .toSet
 

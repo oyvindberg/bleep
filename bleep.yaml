@@ -71,7 +71,7 @@ projects:
     - ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleepscript:
     dependencies:
-      - io.get-coursier:interface:1.0.28
+      - io.get-coursier:interface:1.0.29
     extends:
     - template-common
     - template-java-17
@@ -135,12 +135,8 @@ projects:
     - io.circe::circe-generic:0.14.15
     - io.circe::circe-parser:0.14.15
     - io.circe::circe-yaml-v12:1.15.0
-    - for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.25-M26
-    - for3Use213: true
-      module: io.get-coursier::coursier-sbt-maven-repository:2.1.25-M26
-    - for3Use213: true
-      module: io.get-coursier::coursier:2.1.25-M26
+    - io.get-coursier::coursier-jvm:2.1.25
+    - io.get-coursier::coursier:2.1.25
     - org.snakeyaml:snakeyaml-engine:2.9
     extends:
     - template-common
@@ -274,10 +270,10 @@ projects:
     source-layout: kotlin
   bleep-bsp:
     dependencies:
-    - org.scala-lang::scala3-compiler:3.8.3
+    - org.scala-lang::scala3-compiler:3.9.0
     - org.jetbrains.kotlin:kotlin-compiler:2.3.0
     - org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
-    - ch.epfl.scala::tasty-query:1.7.0
+    - ch.epfl.scala::tasty-query:1.9.0
     - org.ow2.asm:asm:9.7.1
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
@@ -310,8 +306,7 @@ projects:
     dependencies:
     - org.scalatest::scalatest:3.2.19
     - org.typelevel::cats-effect-testkit:3.6.1
-    - for3Use213: true
-      module: io.get-coursier::coursier:2.1.25-M26
+    - io.get-coursier::coursier:2.1.25
     dependsOn: bleep-bsp
     extends:
     - template-common
@@ -519,4 +514,4 @@ templates:
   template-scala-3:
     scala:
       options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error
-      version: 3.8.3
+      version: 3.9.0

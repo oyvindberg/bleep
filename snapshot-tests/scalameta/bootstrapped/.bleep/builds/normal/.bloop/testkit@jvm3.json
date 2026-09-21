@@ -127,17 +127,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_3",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.rauschig",
           "name": "jarchivelib",
           "version": "1.2.0",
@@ -145,17 +134,6 @@
             {
               "name": "jarchivelib",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/rauschig/jarchivelib/1.2.0/jarchivelib-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.6",
-          "artifacts": [
-            {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
             }
           ]
         },
@@ -172,6 +150,17 @@
         },
         {
           "organization": "com.lihaoyi",
+          "name": "geny_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
           "name": "sourcecode_3",
           "version": "0.4.2",
           "artifacts": [
@@ -182,13 +171,24 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "geny_3",
-          "version": "1.1.0",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
           "artifacts": [
             {
-              "name": "geny_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_3",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
             }
           ]
         },

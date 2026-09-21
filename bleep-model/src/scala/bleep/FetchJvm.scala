@@ -2,7 +2,6 @@ package bleep
 
 import coursier.cache.{ArchiveCache, CacheLogger}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel}
-import coursier.util.Task
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.Duration
@@ -51,11 +50,10 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
 
 object FetchJvm {
   def doFetch(cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext, arch: String): Path = {
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = BleepFileCache().copy(logger = cacheLogger)
     val jvmCache = JvmCache()
-      .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))
+      .copy(archiveCache = ArchiveCache().copy(cache = fileCache), architecture = arch)
       .withIndex(jvm.index.getOrElse(JvmChannel.gitHubIndexUrl))
-      .withArchitecture(arch)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
     javaBin
   }

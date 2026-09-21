@@ -67,7 +67,7 @@ class CredentialProvider(logger: Logger, authentications: Option[Authentications
       _ => fetchToken(PrivateRepoScheme.GitLab, List("glab", "config", "get", "token", "--host", host), None)
     )
     // GitLab accepts both Private-Token header and basic auth. Use both for compatibility.
-    Authentication("Private-Token").withPassword(token).withHttpHeaders(List(("Private-Token", token)))
+    Authentication("Private-Token").withPassword(token).copy(httpHeaders = List(("Private-Token", token)))
   }
 
   /** Find the best-matching PrivateRepo config entry for a given URI by longest prefix match. */

@@ -112,83 +112,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.12",
-          "version": "0.4.2",
-          "artifacts": [
-            {
-              "name": "sourcecode_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.12",
-          "version": "3.1.0",
-          "artifacts": [
-            {
-              "name": "fastparse_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "junit-interface",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.1.0/junit-interface-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "junit",
-          "name": "junit",
-          "version": "4.13.2",
-          "artifacts": [
-            {
-              "name": "junit",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "munit_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.12/1.1.0/munit_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalameta",
           "name": "munit-diff_2.12",
           "version": "1.1.0",
@@ -211,6 +134,17 @@
           ]
         },
         {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
@@ -218,6 +152,72 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "munit_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.12/1.1.0/munit_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.1.0/junit-interface-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.12",
+          "version": "3.1.0",
+          "artifacts": [
+            {
+              "name": "fastparse_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.12",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
             }
           ]
         }

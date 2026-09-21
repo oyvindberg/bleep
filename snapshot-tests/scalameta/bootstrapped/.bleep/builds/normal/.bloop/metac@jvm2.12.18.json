@@ -129,13 +129,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.12",
-          "version": "0.4.2",
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "3.19.6",
           "artifacts": [
             {
-              "name": "sourcecode_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar"
             }
           ]
         },
@@ -151,79 +151,13 @@
           ]
         },
         {
-          "organization": "com.thesamet.scalapb",
-          "name": "lenses_2.12",
-          "version": "0.11.17",
-          "artifacts": [
-            {
-              "name": "lenses_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.12/0.11.17/lenses_2.12-0.11.17.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
-          "name": "geny_2.12",
-          "version": "1.1.0",
+          "name": "fastparse_2.12",
+          "version": "3.1.0",
           "artifacts": [
             {
-              "name": "geny_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.protobuf",
-          "name": "protobuf-java",
-          "version": "3.19.6",
-          "artifacts": [
-            {
-              "name": "protobuf-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.18/scala-library-2.12.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.18",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.18/scala-reflect-2.12.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.12.18",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.18/scala-compiler-2.12.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.12",
-          "version": "2.12.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.12.0/scala-collection-compat_2.12-2.12.0.jar"
+              "name": "fastparse_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar"
             }
           ]
         },
@@ -250,13 +184,79 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.12",
-          "version": "3.1.0",
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.18",
           "artifacts": [
             {
-              "name": "fastparse_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar"
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.18/scala-compiler-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.12",
+          "version": "0.11.17",
+          "artifacts": [
+            {
+              "name": "lenses_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.12/0.11.17/lenses_2.12-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.12.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.12.0/scala-collection-compat_2.12-2.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.18",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.18/scala-reflect-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.18/scala-library-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.12",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
             }
           ]
         }

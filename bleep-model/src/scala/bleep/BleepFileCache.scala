@@ -36,7 +36,7 @@ object BleepFileCache {
       System.setProperty("sun.net.client.defaultReadTimeout", readTimeoutMs.toString): Unit
   }
 
-  def apply(): FileCache[Task] = FileCache[Task]()
+  def apply(): FileCache[Task] = FileCache()
 
   def at(location: java.io.File): FileCache[Task] = FileCache[Task](location)
 }

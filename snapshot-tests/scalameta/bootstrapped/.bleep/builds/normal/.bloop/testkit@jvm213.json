@@ -124,28 +124,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.apache.commons",
-          "name": "commons-compress",
-          "version": "1.21",
-          "artifacts": [
-            {
-              "name": "commons-compress",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.13",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
           "name": "geny_2.13",
           "version": "1.1.0",
@@ -168,6 +146,17 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
@@ -175,6 +164,17 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.21",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
             }
           ]
         },

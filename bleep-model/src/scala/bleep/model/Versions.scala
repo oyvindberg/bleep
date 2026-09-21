@@ -13,7 +13,7 @@ object Versions {
   // ── Scala ecosystem defaults (new builds, sbt/maven import when unspecified) ──
   val Scala212: String = "2.12.21"
   val Scala213: String = "2.13.18"
-  val Scala3: String = "3.8.4"
+  val Scala3: String = "3.9.0"
   val ScalaJs1: String = "1.22.0"
   val ScalaNative05: String = "0.5.12"
 
@@ -50,7 +50,7 @@ object Versions {
   val CompilerBridge: String = "1.12.0"
 
   /** The Scala version zinc infrastructure runs on for java-only projects. MUST match bleep-bsp's own scala version (template-scala-3 in bleep.yaml). */
-  val ZincScala: String = "3.8.3"
+  val ZincScala: String = "3.9.0"
 
   // ── Test-framework artifacts bleep injects into user test classpaths ──
   /** sbt test interface — 1.0 is final, there will never be another */

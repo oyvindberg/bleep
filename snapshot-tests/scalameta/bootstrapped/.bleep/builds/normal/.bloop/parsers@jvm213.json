@@ -122,17 +122,6 @@
       "modules": [
         {
           "organization": "com.lihaoyi",
-          "name": "fastparse_2.13",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
           "name": "geny_2.13",
           "version": "1.1.0",
           "artifacts": [
@@ -143,13 +132,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
             }
           ]
         },
@@ -165,6 +154,17 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.13",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
@@ -176,13 +176,13 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.13",
-          "version": "0.4.2",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
           "artifacts": [
             {
-              "name": "sourcecode_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         }

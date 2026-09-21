@@ -20,7 +20,7 @@ object FetchScalafmt {
     }
 
     val url = s"https://github.com/scalameta/scalafmt/releases/download/v$version/${asset.filename}"
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = BleepFileCache().copy(logger = cacheLogger)
 
     if (asset.isArchive) fetchArchive(fileCache, ec, url)
     else fetchStandalone(fileCache, ec, url)
@@ -37,7 +37,7 @@ object FetchScalafmt {
   }
 
   private def fetchArchive(fileCache: FileCache[Task], ec: ExecutionContext, url: String): Path = {
-    val cache = ArchiveCache[Task]().withCache(fileCache)
+    val cache = ArchiveCache().copy(cache = fileCache)
     val bin = Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf)
     bin match {
       case Left(err)  => throw new BleepException.ArtifactResolveError(err, "scalafmt")

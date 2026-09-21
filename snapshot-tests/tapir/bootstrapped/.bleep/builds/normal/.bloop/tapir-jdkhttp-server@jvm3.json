@@ -111,28 +111,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_3",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "commons-logging",
-          "name": "commons-logging",
-          "version": "1.2",
-          "artifacts": [
-            {
-              "name": "commons-logging",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.apache.httpcomponents",
           "name": "httpclient",
           "version": "4.5.14",
@@ -144,13 +122,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.6",
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_3",
+          "version": "1.7.14",
           "artifacts": [
             {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
             }
           ]
         },
@@ -166,6 +144,39 @@
           ]
         },
         {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_3",
+          "name": "magnolia_3",
+          "version": "1.3.18",
+          "artifacts": [
+            {
+              "name": "magnolia_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.apache.httpcomponents",
           "name": "httpcore",
           "version": "4.4.16",
@@ -173,17 +184,6 @@
             {
               "name": "httpcore",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         },
@@ -221,13 +221,13 @@
           ]
         },
         {
-          "organization": "com.softwaremill.magnolia1_3",
-          "name": "magnolia_3",
-          "version": "1.3.18",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
           "artifacts": [
             {
-              "name": "magnolia_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         }

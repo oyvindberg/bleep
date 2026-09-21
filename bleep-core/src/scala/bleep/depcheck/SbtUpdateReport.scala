@@ -153,8 +153,8 @@ object SbtUpdateReport {
     val depArtifacts1 = fullArtifactsOpt match {
       case Some(map) =>
         deps.map { case (d, p, a) =>
-          val d0 = d.withAttributes(d.attributes.withClassifier(p.classifier))
-          val a0 = if (missingOk) a.withOptional(true) else a
+          val d0 = d.withAttributes(d.attributes.copy(classifier = p.classifier))
+          val a0 = if (missingOk) a.copy(optional = true) else a
           val f = map.get((d0, p, a0)).flatten
           (d, p, a0, f) // not d0
         }
@@ -177,8 +177,7 @@ object SbtUpdateReport {
           depArtifacts0.flatMap { case (dep, pub, a, f) =>
             val sigPub = pub
               // not too sure about those
-              .withExt(Extension(pub.ext.value))
-              .withType(Type(pub.`type`.value))
+              .copy(ext = Extension(pub.ext.value), `type` = Type(pub.`type`.value))
             Seq((dep, pub, a, f)) ++
               a.extra.get("sig").toSeq.map((dep, sigPub, _, None))
           }
@@ -207,8 +206,7 @@ object SbtUpdateReport {
 
     def clean(dep: Dependency): Dependency =
       dep
-        .withVariantSelector(VariantSelector.emptyConfiguration)
-        .withMinimizedExclusions(MinimizedExclusions.zero)
+        .copy(variantSelector = VariantSelector.emptyConfiguration, minimizedExclusions = MinimizedExclusions.zero)
         .withOptional(false)
 
     def lookupProject(mv: coursier.core.Resolution.ModuleVersionConstraint): Option[Project] =
@@ -224,7 +222,7 @@ object SbtUpdateReport {
     val m = Dependency(thisModule._1, VersionConstraint(""))
     val directReverseDependencies = res.rootDependencies.toSet
       .map(clean)
-      .map(_.withVersionConstraint(VersionConstraint("")))
+      .map(_.copy(versionConstraint = VersionConstraint("")))
       .map(dep => dep -> Vector(m))
       .toMap
 
@@ -246,10 +244,10 @@ object SbtUpdateReport {
 
       // FIXME Likely flaky...
       val dependees = reverseDependencies
-        .getOrElse(clean(dep.withVersionConstraint(VersionConstraint(""))), Vector.empty)
+        .getOrElse(clean(dep.copy(versionConstraint = VersionConstraint(""))), Vector.empty)
         .flatMap { dependee0 =>
           val version = versions(dependee0.module)
-          val dependee = dependee0.withVersionConstraint(version)
+          val dependee = dependee0.copy(versionConstraint = version)
           lookupProject(dependee.moduleVersionConstraint) match {
             case Some(dependeeProj) =>
               Vector(
@@ -367,7 +365,7 @@ object SbtUpdateReport {
             // should not happen
             ProjectInfo(c.dependeeVersionConstraint.asString, Vector.empty, Vector.empty)
         }
-        val rep = moduleReport((dep, Seq((dependee, dependeeProj)), proj.withVersion0(Version(c.wantedVersionConstraint.asString)), Nil, classLoaders))
+        val rep = moduleReport((dep, Seq((dependee, dependeeProj)), proj.copy(version0 = Version(c.wantedVersionConstraint.asString)), Nil, classLoaders))
           .withEvicted(true)
           .withEvictedData(Some("version selection")) // ??? put latest-revision like sbt/ivy here?
         librarymanagement.OrganizationArtifactReport(c.module.organization.value, c.module.name.value, Vector(rep))

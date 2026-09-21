@@ -121,7 +121,7 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
       resolvedLibrary match {
         case Some(version) =>
           assert(
-            coursier.core.Version(version) >= coursier.core.Version(scalaVersion),
+            coursier.version.Version(version) >= coursier.version.Version(scalaVersion),
             s"scala-library ($version) must be >= scalaVersion ($scalaVersion). " +
               "SIP-51 requires scalaVersion as the floor for scala-library resolution."
           )
@@ -198,7 +198,7 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
         case Some(version) =>
           // ZIO 2.1.24 needs 2.13.18, so scala-library should be upgraded
           assert(
-            coursier.core.Version(version) >= coursier.core.Version("2.13.18"),
+            coursier.version.Version(version) >= coursier.version.Version("2.13.18"),
             s"scala-library ($version) should be upgraded to at least 2.13.18 because ZIO 2.1.24 requires it."
           )
         case None =>
@@ -233,7 +233,7 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
         case Some(version) =>
           // For Scala 3, we should at least have the scala-library version that Scala 3.3.3 was compiled with
           assert(
-            coursier.core.Version(version) >= coursier.core.Version(scalaVersion),
+            coursier.version.Version(version) >= coursier.version.Version(scalaVersion),
             s"scala-library ($version) must be >= $scalaVersion for Scala 3.3.3"
           )
         case None =>

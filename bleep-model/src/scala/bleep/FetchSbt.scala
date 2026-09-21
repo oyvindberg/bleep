@@ -2,7 +2,7 @@ package bleep
 
 import coursier.cache.{ArchiveCache, CacheLogger}
 import coursier.jvm.JvmChannel
-import coursier.util.{Artifact, Task}
+import coursier.util.Artifact
 
 import java.nio.file.Path
 import scala.concurrent.duration.Duration
@@ -11,8 +11,8 @@ import scala.concurrent.{Await, ExecutionContext}
 class FetchSbt(logger: CacheLogger, ec: ExecutionContext) {
   def apply(version: String): Path = {
     val url = s"https://github.com/sbt/sbt/releases/download/v$version/sbt-$version.zip"
-    val fileCache = BleepFileCache().withLogger(logger)
-    val cache = ArchiveCache[Task]().withCache(fileCache)
+    val fileCache = BleepFileCache().copy(logger = logger)
+    val cache = ArchiveCache().copy(cache = fileCache)
     val os = JvmChannel.defaultOs()
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {

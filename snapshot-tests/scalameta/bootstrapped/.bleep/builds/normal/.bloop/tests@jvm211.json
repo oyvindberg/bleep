@@ -146,35 +146,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.11",
-          "version": "3.0.2",
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "1.0.0-M10",
           "artifacts": [
             {
-              "name": "fastparse_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0-M10/junit-interface-1.0.0-M10.jar"
             }
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.11",
-          "version": "0.3.1",
+          "organization": "io.get-coursier",
+          "name": "coursier_2.11",
+          "version": "2.0.0-RC5-6",
           "artifacts": [
             {
-              "name": "sourcecode_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+              "name": "coursier_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.11/2.0.0-RC5-6/coursier_2.11-2.0.0-RC5-6.jar"
             }
           ]
         },
@@ -191,61 +180,6 @@
         },
         {
           "organization": "io.get-coursier",
-          "name": "coursier_2.11",
-          "version": "2.0.0-RC5-6",
-          "artifacts": [
-            {
-              "name": "coursier_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.11/2.0.0-RC5-6/coursier_2.11-2.0.0-RC5-6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.11",
-          "version": "1.2.0",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.2.0/scala-xml_2.11-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "junit-interface",
-          "version": "1.0.0-M10",
-          "artifacts": [
-            {
-              "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0-M10/junit-interface-1.0.0-M10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "junit",
-          "name": "junit",
-          "version": "4.13.2",
-          "artifacts": [
-            {
-              "name": "junit",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.get-coursier",
           "name": "coursier-core_2.11",
           "version": "2.0.0-RC5-6",
           "artifacts": [
@@ -256,35 +190,46 @@
           ]
         },
         {
+          "organization": "io.argonaut",
+          "name": "argonaut_2.11",
+          "version": "6.2.3",
+          "artifacts": [
+            {
+              "name": "argonaut_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.11/6.2.3/argonaut_2.11-6.2.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.alexarchambault",
+          "name": "argonaut-shapeless_6.2_2.11",
+          "version": "1.2.0-M11",
+          "artifacts": [
+            {
+              "name": "argonaut-shapeless_6.2_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.2_2.11/1.2.0-M11/argonaut-shapeless_6.2_2.11-1.2.0-M11.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.lihaoyi",
-          "name": "geny_2.11",
-          "version": "1.0.0",
+          "name": "sourcecode_2.11",
+          "version": "0.3.1",
           "artifacts": [
             {
-              "name": "geny_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
+              "name": "sourcecode_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
             }
           ]
         },
         {
-          "organization": "org.apache.commons",
-          "name": "commons-compress",
-          "version": "1.21",
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
           "artifacts": [
             {
-              "name": "commons-compress",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit_2.11",
-          "version": "1.0.0-M10",
-          "artifacts": [
-            {
-              "name": "munit_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.11/1.0.0-M10/munit_2.11-1.0.0-M10.jar"
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
             }
           ]
         },
@@ -300,13 +245,112 @@
           ]
         },
         {
-          "organization": "com.github.alexarchambault",
-          "name": "argonaut-shapeless_6.2_2.11",
-          "version": "1.2.0-M11",
+          "organization": "com.lihaoyi",
+          "name": "geny_2.11",
+          "version": "1.0.0",
           "artifacts": [
             {
-              "name": "argonaut-shapeless_6.2_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.2_2.11/1.2.0-M11/argonaut-shapeless_6.2_2.11-1.2.0-M11.jar"
+              "name": "geny_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/1.0.0/geny_2.11-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.11",
+          "version": "2.3.3",
+          "artifacts": [
+            {
+              "name": "shapeless_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.11/2.3.3/shapeless_2.11-2.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_2.11",
+          "version": "1.0.0-M10",
+          "artifacts": [
+            {
+              "name": "munit_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.11/1.0.0-M10/munit_2.11-1.0.0-M10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.11",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.2.0/scala-xml_2.11-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.11",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "fastparse_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.21",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
             }
           ]
         },
@@ -329,50 +373,6 @@
             {
               "name": "coursier-cache_2.11",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.11/2.0.0-RC5-6/coursier-cache_2.11-2.0.0-RC5-6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.argonaut",
-          "name": "argonaut_2.11",
-          "version": "6.2.3",
-          "artifacts": [
-            {
-              "name": "argonaut_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.11/6.2.3/argonaut_2.11-6.2.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.11",
-          "version": "2.3.3",
-          "artifacts": [
-            {
-              "name": "shapeless_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.11/2.3.3/shapeless_2.11-2.3.3.jar"
             }
           ]
         }

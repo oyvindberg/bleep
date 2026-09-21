@@ -49,7 +49,7 @@ object generateBuildFromMaven {
       // Scripts project must use a Scala 3 version compatible with bleep-core's TASTy files.
       // Keep in sync with template-scala-3 in bleep's own bleep.yaml: scripts need a compiler at
       // least as new as the one bleep-core was built with, or they fail reading its TASTy.
-      val bleepScala3 = model.VersionScala("3.8.3")
+      val bleepScala3 = model.VersionScala("3.9.0")
 
       val scalaVersion =
         normalizedBuild.explodedProjects.values

@@ -213,57 +213,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "io.circe",
-          "name": "circe-core_2.12",
-          "version": "0.14.14",
-          "artifacts": [
-            {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.yaml",
-          "name": "snakeyaml",
-          "version": "2.2",
-          "artifacts": [
-            {
-              "name": "snakeyaml",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
-          "name": "cats-core_2.12",
+          "name": "cats-kernel_2.12",
           "version": "2.13.0",
           "artifacts": [
             {
-              "name": "cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
-          "name": "circe-numbers_2.12",
-          "version": "0.14.14",
+          "name": "circe-yaml_2.12",
+          "version": "0.15.2",
           "artifacts": [
             {
-              "name": "circe-numbers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.13",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+              "name": "circe-yaml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar"
             }
           ]
         },
@@ -290,35 +257,35 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
-          "name": "circe-yaml_2.12",
-          "version": "0.15.2",
+          "name": "circe-core_2.12",
+          "version": "0.14.14",
           "artifacts": [
             {
-              "name": "circe-yaml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar"
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.14/circe-core_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.2",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
             }
           ]
         },
@@ -334,13 +301,46 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.13.0",
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
           "artifacts": [
             {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.14",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.14/circe-numbers_2.12-0.14.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         }

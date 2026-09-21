@@ -18,7 +18,7 @@ object BspQuery {
 
   /** Connect to the BSP server, run a query, and disconnect. */
   def withServer[A](started: Started)(f: BuildServer => Either[BleepException, A]): Either[BleepException, A] = {
-    val (connectionResource, traceFile): (Resource[IO, BspConnection], Option[java.nio.file.Path]) =
+    val connectionAndTrace: (Resource[IO, BspConnection], Option[java.nio.file.Path]) =
       started.bspServerClasspathSource match {
         case BspServerClasspathSource.InProcess(connect) =>
           (connect(started.logger), None)
@@ -36,6 +36,8 @@ object BspQuery {
             case Right(config) => (BspRifle.ensureRunningAndConnect(config, started.logger), config.traceFile)
           }
       }
+
+    val (connectionResource, traceFile) = connectionAndTrace
 
     val program: IO[Either[BleepException, A]] = connectionResource.use { connection =>
       val client = BspClientDisplayProgress(started.logger)

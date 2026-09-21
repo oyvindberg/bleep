@@ -121,6 +121,17 @@
     "resolution": {
       "modules": [
         {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.lihaoyi",
           "name": "geny_3",
           "version": "1.1.0",
@@ -133,12 +144,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "fastparse_3",
-          "version": "3.1.1",
+          "name": "sourcecode_3",
+          "version": "0.4.2",
           "artifacts": [
             {
-              "name": "fastparse_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
+              "name": "sourcecode_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
             }
           ]
         },
@@ -154,24 +165,13 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_3",
-          "version": "0.4.2",
+          "name": "fastparse_3",
+          "version": "3.1.1",
           "artifacts": [
             {
-              "name": "sourcecode_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
+              "name": "fastparse_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
             }
           ]
         }

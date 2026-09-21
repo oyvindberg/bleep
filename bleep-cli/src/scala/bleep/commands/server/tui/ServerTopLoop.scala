@@ -167,7 +167,6 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
       // Horizontal scroll has nothing to move here, but it must still be matched rather than left to fall through as an unknown event.
       case _: _root_.tui.crossterm.MouseEventKind.ScrollLeft  => None
       case _: _root_.tui.crossterm.MouseEventKind.ScrollRight => None
-      case _                                                  => None
     }
     kind.map(k => new jatatui.react.MouseEvent(event.column, event.row, event.modifiers, k))
   }

@@ -132,6 +132,28 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_sjs1_2.13",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs1_2.13/3.1.1/fastparse_sjs1_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.18.2",
@@ -144,12 +166,23 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "fastparse_sjs1_2.13",
-          "version": "3.1.1",
+          "name": "sourcecode_sjs1_2.13",
+          "version": "0.4.2",
           "artifacts": [
             {
-              "name": "fastparse_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs1_2.13/3.1.1/fastparse_sjs1_2.13-3.1.1.jar"
+              "name": "sourcecode_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.4.2/sourcecode_sjs1_2.13-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.18.2",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.18.2/scalajs-javalib-1.18.2.jar"
             }
           ]
         },
@@ -166,45 +199,12 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_sjs1_2.13",
-          "version": "0.4.2",
-          "artifacts": [
-            {
-              "name": "sourcecode_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.4.2/sourcecode_sjs1_2.13-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
           "name": "geny_sjs1_2.13",
           "version": "1.1.0",
           "artifacts": [
             {
               "name": "geny_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_sjs1_2.13/1.1.0/geny_sjs1_2.13-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-javalib",
-          "version": "1.18.2",
-          "artifacts": [
-            {
-              "name": "scalajs-javalib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.18.2/scalajs-javalib-1.18.2.jar"
             }
           ]
         },
@@ -221,12 +221,12 @@
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala-compiler",
+          "name": "scala-library",
           "version": "2.13.16",
           "artifacts": [
             {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         }

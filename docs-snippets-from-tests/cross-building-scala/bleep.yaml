@@ -19,6 +19,6 @@ templates:
           version: 2.13.18
       jvm3:
         scala:
-          version: 3.8.4
+          version: 3.9.0
     platform:
       name: jvm

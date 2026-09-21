@@ -19,5 +19,5 @@ templates:
     scala:
       options: -encoding utf8 -feature -unchecked
       strict: true
-      version: 3.8.4
+      version: 3.9.0
     source-layout: cross-full

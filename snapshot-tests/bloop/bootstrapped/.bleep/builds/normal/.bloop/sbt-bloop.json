@@ -168,6 +168,17 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.13.5.2",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.5.2/jsoniter-scala-core_2.12-2.13.5.2.jar"
+            }
+          ]
+        },
+        {
           "organization": "ch.epfl.scala",
           "name": "bloop-config_2.12",
           "version": "2.3.2",
@@ -175,17 +186,6 @@
             {
               "name": "bloop-config_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/2.3.2/bloop-config_2.12-2.3.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "unroll-annotation_2.12",
-          "version": "0.1.12",
-          "artifacts": [
-            {
-              "name": "unroll-annotation_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
             }
           ]
         },
@@ -201,6 +201,17 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "unroll-annotation_2.12",
+          "version": "0.1.12",
+          "artifacts": [
+            {
+              "name": "unroll-annotation_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_2.12/0.1.12/unroll-annotation_2.12-0.1.12.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
@@ -208,17 +219,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.github.plokhotnyuk.jsoniter-scala",
-          "name": "jsoniter-scala-core_2.12",
-          "version": "2.13.5.2",
-          "artifacts": [
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.5.2/jsoniter-scala-core_2.12-2.13.5.2.jar"
             }
           ]
         }

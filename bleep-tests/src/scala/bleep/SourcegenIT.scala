@@ -21,7 +21,7 @@ class SourcegenIT extends IntegrationTestHarness {
                  |    platform:
                  |      name: jvm
                  |    scala:
-                 |      version: 3.8.3
+                 |      version: 3.9.0
                  |""".stripMargin
 
   private val Main = """package test
@@ -101,7 +101,7 @@ class SourcegenIT extends IntegrationTestHarness {
         |    platform:
         |      name: jvm
         |    scala:
-        |      version: 3.8.3
+        |      version: 3.9.0
         |""".stripMargin
     )
     ws.file(

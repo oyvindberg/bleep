@@ -150,13 +150,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "ch.qos.logback",
-          "name": "logback-classic",
-          "version": "1.5.18",
+          "organization": "org.http4s",
+          "name": "http4s-blaze-server_2.12",
+          "version": "0.23.17",
           "artifacts": [
             {
-              "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
+              "name": "http4s-blaze-server_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-server_2.12/0.23.17/http4s-blaze-server_2.12-0.23.17.jar"
             }
           ]
         },
@@ -172,68 +172,13 @@
           ]
         },
         {
-          "organization": "com.twitter",
-          "name": "hpack",
-          "version": "1.0.2",
-          "artifacts": [
-            {
-              "name": "hpack",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "jawn-fs2_2.12",
-          "version": "2.4.0",
-          "artifacts": [
-            {
-              "name": "jawn-fs2_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.12/2.4.0/jawn-fs2_2.12-2.4.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.http4s",
-          "name": "http4s-blaze-server_2.12",
-          "version": "0.23.17",
-          "artifacts": [
-            {
-              "name": "http4s-blaze-server_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-server_2.12/0.23.17/http4s-blaze-server_2.12-0.23.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.http4s",
-          "name": "http4s-circe_2.12",
+          "name": "http4s-dsl_2.12",
           "version": "0.23.30",
           "artifacts": [
             {
-              "name": "http4s-circe_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-circe_2.12/0.23.30/http4s-circe_2.12-0.23.30.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.12",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.5.7/cats-effect-kernel_2.12-3.5.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.12",
-          "version": "0.14.8",
-          "artifacts": [
-            {
-              "name": "circe-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.8/circe-core_2.12-0.14.8.jar"
+              "name": "http4s-dsl_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-dsl_2.12/0.23.30/http4s-dsl_2.12-0.23.30.jar"
             }
           ]
         },
@@ -249,46 +194,24 @@
           ]
         },
         {
-          "organization": "org.http4s",
-          "name": "http4s-blaze-core_2.12",
-          "version": "0.23.17",
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.5.18",
           "artifacts": [
             {
-              "name": "http4s-blaze-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-core_2.12/0.23.17/http4s-blaze-core_2.12-0.23.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.log4s",
-          "name": "log4s_2.12",
-          "version": "1.10.0",
-          "artifacts": [
-            {
-              "name": "log4s_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.12/1.10.0/log4s_2.12-1.10.0.jar"
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
             }
           ]
         },
         {
           "organization": "org.http4s",
-          "name": "http4s-crypto_2.12",
-          "version": "0.2.4",
+          "name": "http4s-core_2.12",
+          "version": "0.23.30",
           "artifacts": [
             {
-              "name": "http4s-crypto_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.12/0.2.4/http4s-crypto_2.12-0.2.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.12",
-          "version": "3.5.7",
-          "artifacts": [
-            {
-              "name": "cats-effect-std_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.5.7/cats-effect-std_2.12-3.5.7.jar"
+              "name": "http4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-core_2.12/0.23.30/http4s-core_2.12-0.23.30.jar"
             }
           ]
         },
@@ -300,50 +223,6 @@
             {
               "name": "literally_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.http4s",
-          "name": "blaze-http_2.12",
-          "version": "0.23.17",
-          "artifacts": [
-            {
-              "name": "blaze-http_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-http_2.12/0.23.17/blaze-http_2.12-0.23.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "case-insensitive_2.12",
-          "version": "1.4.2",
-          "artifacts": [
-            {
-              "name": "case-insensitive_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.12/1.4.2/case-insensitive_2.12-1.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.http4s",
-          "name": "http4s-jawn_2.12",
-          "version": "0.23.30",
-          "artifacts": [
-            {
-              "name": "http4s-jawn_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-jawn_2.12/0.23.30/http4s-jawn_2.12-0.23.30.jar"
             }
           ]
         },
@@ -360,12 +239,67 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "log4cats-core_2.12",
-          "version": "2.7.0",
+          "name": "jawn-fs2_2.12",
+          "version": "2.4.0",
           "artifacts": [
             {
-              "name": "log4cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.12/2.7.0/log4cats-core_2.12-2.7.0.jar"
+              "name": "jawn-fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.12/2.4.0/jawn-fs2_2.12-2.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive_2.12",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "case-insensitive_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.12/1.4.2/case-insensitive_2.12-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.12",
+          "version": "3.11.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.11.0/fs2-core_2.12-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "vault_2.12",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "vault_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.12/3.6.0/vault_2.12-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.http4s",
+          "name": "blaze-http_2.12",
+          "version": "0.23.17",
+          "artifacts": [
+            {
+              "name": "blaze-http_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-http_2.12/0.23.17/blaze-http_2.12-0.23.17.jar"
             }
           ]
         },
@@ -381,13 +315,101 @@
           ]
         },
         {
+          "organization": "org.typelevel",
+          "name": "log4cats-core_2.12",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "log4cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.12/2.7.0/log4cats-core_2.12-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-slf4j_2.12",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "log4cats-slf4j_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-slf4j_2.12/2.7.0/log4cats-slf4j_2.12-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.8",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.8/circe-jawn_2.12-0.14.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.http4s",
-          "name": "http4s-dsl_2.12",
+          "name": "http4s-circe_2.12",
           "version": "0.23.30",
           "artifacts": [
             {
-              "name": "http4s-dsl_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-dsl_2.12/0.23.30/http4s-dsl_2.12-0.23.30.jar"
+              "name": "http4s-circe_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-circe_2.12/0.23.30/http4s-circe_2.12-0.23.30.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.http4s",
+          "name": "http4s-crypto_2.12",
+          "version": "0.2.4",
+          "artifacts": [
+            {
+              "name": "http4s-crypto_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.12/0.2.4/http4s-crypto_2.12-0.2.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.http4s",
+          "name": "http4s-blaze-core_2.12",
+          "version": "0.23.17",
+          "artifacts": [
+            {
+              "name": "http4s-blaze-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-core_2.12/0.23.17/http4s-blaze-core_2.12-0.23.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.12",
+          "version": "3.5.4",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.5.4/cats-effect_2.12-3.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.12",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
             }
           ]
         },
@@ -404,12 +426,34 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-effect_2.12",
-          "version": "3.5.4",
+          "name": "cats-effect-kernel_2.12",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "cats-effect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.5.4/cats-effect_2.12-3.5.4.jar"
+              "name": "cats-effect-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.5.7/cats-effect-kernel_2.12-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.12",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "hpack",
+          "version": "1.0.2",
+          "artifacts": [
+            {
+              "name": "hpack",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
             }
           ]
         },
@@ -426,100 +470,23 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "vault_2.12",
-          "version": "3.6.0",
+          "name": "cats-effect-std_2.12",
+          "version": "3.5.7",
           "artifacts": [
             {
-              "name": "vault_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.12/3.6.0/vault_2.12-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.5.18",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "log4cats-slf4j_2.12",
-          "version": "2.7.0",
-          "artifacts": [
-            {
-              "name": "log4cats-slf4j_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-slf4j_2.12/2.7.0/log4cats-slf4j_2.12-2.7.0.jar"
+              "name": "cats-effect-std_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.5.7/cats-effect-std_2.12-3.5.7.jar"
             }
           ]
         },
         {
           "organization": "org.http4s",
-          "name": "http4s-core_2.12",
+          "name": "http4s-jawn_2.12",
           "version": "0.23.30",
           "artifacts": [
             {
-              "name": "http4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-core_2.12/0.23.30/http4s-core_2.12-0.23.30.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.http4s",
-          "name": "blaze-core_2.12",
-          "version": "0.23.17",
-          "artifacts": [
-            {
-              "name": "blaze-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-core_2.12/0.23.17/blaze-core_2.12-0.23.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.12",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.12",
-          "version": "3.11.0",
-          "artifacts": [
-            {
-              "name": "fs2-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.11.0/fs2-core_2.12-3.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-jawn_2.12",
-          "version": "0.14.8",
-          "artifacts": [
-            {
-              "name": "circe-jawn_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.8/circe-jawn_2.12-0.14.8.jar"
+              "name": "http4s-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-jawn_2.12/0.23.30/http4s-jawn_2.12-0.23.30.jar"
             }
           ]
         },
@@ -546,13 +513,46 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.12",
-          "version": "1.1.38",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
           "artifacts": [
             {
-              "name": "scodec-bits_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.log4s",
+          "name": "log4s_2.12",
+          "version": "1.10.0",
+          "artifacts": [
+            {
+              "name": "log4s_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.12/1.10.0/log4s_2.12-1.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.http4s",
+          "name": "blaze-core_2.12",
+          "version": "0.23.17",
+          "artifacts": [
+            {
+              "name": "blaze-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-core_2.12/0.23.17/blaze-core_2.12-0.23.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.12",
+          "version": "0.14.8",
+          "artifacts": [
+            {
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.8/circe-core_2.12-0.14.8.jar"
             }
           ]
         }

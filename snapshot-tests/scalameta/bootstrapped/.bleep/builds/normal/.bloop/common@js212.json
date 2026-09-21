@@ -95,13 +95,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_sjs1_2.12",
-          "version": "0.4.2",
+          "organization": "org.scala-js",
+          "name": "scalajs-library_2.12",
+          "version": "1.18.2",
           "artifacts": [
             {
-              "name": "sourcecode_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.12/0.4.2/sourcecode_sjs1_2.12-0.4.2.jar"
+              "name": "scalajs-library_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.18.2/scalajs-library_2.12-1.18.2.jar"
             }
           ]
         },
@@ -118,34 +118,23 @@
         },
         {
           "organization": "org.scala-js",
-          "name": "scalajs-library_2.12",
-          "version": "1.18.2",
-          "artifacts": [
-            {
-              "name": "scalajs-library_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.18.2/scalajs-library_2.12-1.18.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.18.2",
           "artifacts": [
             {
               "name": "scalajs-javalib",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.18.2/scalajs-javalib-1.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_sjs1_2.12",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.12/0.4.2/sourcecode_sjs1_2.12-0.4.2.jar"
             }
           ]
         },
@@ -157,6 +146,17 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         }

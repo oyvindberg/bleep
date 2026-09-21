@@ -11,7 +11,7 @@ object FetchGoogleJavaFormat {
   val DefaultVersion = model.Versions.GoogleJavaFormat
 
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = BleepFileCache().copy(logger = cacheLogger)
     val artifact = Artifact.apply(
       s"https://github.com/google/google-java-format/releases/download/v$version/google-java-format-$version-all-deps.jar"
     )

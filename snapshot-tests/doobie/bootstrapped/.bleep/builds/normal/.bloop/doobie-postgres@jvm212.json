@@ -135,13 +135,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "net.postgis",
-          "name": "postgis-jdbc",
-          "version": "2024.1.0",
+          "organization": "org.postgresql",
+          "name": "postgresql",
+          "version": "42.7.5",
           "artifacts": [
             {
-              "name": "postgis-jdbc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2024.1.0/postgis-jdbc-2024.1.0.jar"
+              "name": "postgresql",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.7.5/postgresql-42.7.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
             }
           ]
         },
@@ -158,111 +169,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-core_2.12",
-          "version": "2.13.0",
+          "name": "cats-mtl_2.12",
+          "version": "1.3.1",
           "artifacts": [
             {
-              "name": "cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.12",
-          "version": "2.3.13",
-          "artifacts": [
-            {
-              "name": "shapeless_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.postgresql",
-          "name": "postgresql",
-          "version": "42.7.5",
-          "artifacts": [
-            {
-              "name": "postgresql",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.7.5/postgresql-42.7.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.12",
-          "version": "3.6.0",
-          "artifacts": [
-            {
-              "name": "ip4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.tpolecat",
-          "name": "typename_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "typename_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.12/1.1.0/typename_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.12",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.12",
-          "version": "3.6.1",
-          "artifacts": [
-            {
-              "name": "cats-effect-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.6.1/cats-effect-kernel_2.12-3.6.1.jar"
+              "name": "cats-mtl_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
             }
           ]
         },
@@ -279,12 +191,12 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "literally_2.12",
-          "version": "1.1.0",
+          "name": "cats-core_2.12",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "literally_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
             }
           ]
         },
@@ -300,17 +212,6 @@
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-mtl_2.12",
-          "version": "1.3.1",
-          "artifacts": [
-            {
-              "name": "cats-mtl_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.12.0",
@@ -322,13 +223,101 @@
           ]
         },
         {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.6.1/cats-effect_2.12-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.12",
+          "version": "3.6.0",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.6.0/ip4s-core_2.12-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.12",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.6.1/cats-effect-kernel_2.12-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.12",
+          "version": "1.1.38",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "literally_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.tpolecat",
+          "name": "typename_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "typename_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.12/1.1.0/typename_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
-          "name": "scala-library",
+          "name": "scala-reflect",
           "version": "2.12.20",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
             }
           ]
         },
@@ -344,13 +333,24 @@
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.12",
-          "version": "1.1.38",
+          "organization": "net.postgis",
+          "name": "postgis-jdbc",
+          "version": "2024.1.0",
           "artifacts": [
             {
-              "name": "scodec-bits_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.38/scodec-bits_2.12-1.1.38.jar"
+              "name": "postgis-jdbc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2024.1.0/postgis-jdbc-2024.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         }
