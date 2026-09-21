@@ -264,6 +264,31 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
+  test("a fork that queued before the budget shrank below its size still runs once the machine is free") {
+    // The macos-latest CI hang: a 3-core, 7GB runner. A test fork (2048MB heap, charged 2560MB) queued
+    // while the budget was 3420MB, then the retune loop dropped the budget to its 2048MB floor because
+    // other processes held 2.7GB. The request had been clamped against the budget at enqueue time, so it
+    // stayed 2560MB against a budget that could never free more than 2048MB, and the fork waited forever
+    // on an idle machine until CI killed the job.
+    val m = machine(cpu = 3, memMb = 3420)
+    val prog = for {
+      held <- CountDownLatch[IO](1)
+      release <- CountDownLatch[IO](1)
+      first <- m.reserve(TestFork, "running", cpu = 1, memoryMb = 2560).use(_ => held.release *> release.await).start
+      _ <- held.await
+      queued <- m.reserve(TestFork, "queued", cpu = 1, memoryMb = 2560).use(_ => IO.unit).start
+      early <- queued.join.as(true).timeoutTo(300.millis, IO.pure(false))
+      _ = early shouldBe false
+      _ <- m.retuneMemoryBudget(2048)
+      _ <- release.release
+      _ <- first.join
+      // The whole machine is free: a request larger than the budget waits for the whole budget, not forever.
+      _ <- queued.join.timeout(5.seconds)
+      end <- m.snapshot
+    } yield end.usedMemoryMb shouldBe 0
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
   test("shrinking the budget stops new admissions but never evicts a running fork") {
     // Reclaiming from live processes would mean killing suites that are doing nothing wrong, so a
     // shrink only closes the door; usage falls back under the line as forks finish naturally.
