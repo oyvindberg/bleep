@@ -4,6 +4,8 @@ package commands
 import cats.syntax.apply.*
 import com.monovore.decline.Opts
 
+import java.nio.file.Path
+
 import scala.collection.immutable.SortedSet
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -77,6 +79,28 @@ object BuildInvalidated {
     * one new dependency, buying nothing in return. The one case it would catch — two repositories serving different bytes under one coordinate — is a
     * supply-chain incident, not a build-selection problem. This mirrors, deliberately, the same decision documented in `ProjectDigest`.
     */
+  /** Absolute paths of every file that differs from `base`, as git sees it.
+    *
+    * `-z` is load-bearing: without it git *quotes* any path it considers unusual — a space is enough, and so is any byte above ASCII — and escapes the bytes in
+    * octal, so `src/scala/café.scala` arrives as `"src/scala/caf\303\251.scala"`. Resolving that spelling yields a path under no project's source directory,
+    * and a project whose only change was such a file was reported as untouched: `bleep compile --invalidated` then skipped exactly the project that changed.
+    * With `-z` the records are NUL-separated and the paths verbatim, so there is nothing to unquote and `core.quotePath` cannot reach the result.
+    */
+  def changedFiles(buildDir: Path, base: String): Set[Path] = {
+    val output =
+      try internal.gitOutput(buildDir, List("git", "diff", "--name-only", "-z", base))
+      catch {
+        case NonFatal(th) =>
+          throw new BleepException.Cause(th, s"couldn't run git diff against $base")
+      }
+    output
+      .split('\u0000')
+      .iterator
+      .filter(_.nonEmpty)
+      .map(line => buildDir.resolve(line).normalize())
+      .toSet
+  }
+
   def compute(started: Started, base: String): SortedSet[model.CrossProjectName] = {
     val buildDir = started.buildPaths.buildDir
 
@@ -130,30 +154,13 @@ object BuildInvalidated {
     }
 
     // Step 3: Source-invalidated projects
-    val changedFiles: Set[java.nio.file.Path] = {
-      val output =
-        try
-          scala.sys.process
-            .Process(
-              List("git", "diff", "--name-only", base),
-              buildDir.toFile
-            )
-            .!!
-        catch {
-          case NonFatal(th) =>
-            throw new BleepException.Cause(th, s"couldn't run git diff against $base")
-        }
-      output.linesIterator
-        .filter(_.nonEmpty)
-        .map(line => buildDir.resolve(line).normalize())
-        .toSet
-    }
+    val changed: Set[java.nio.file.Path] = changedFiles(buildDir, base)
 
     currentBuild.explodedProjects.foreach { case (crossName, project) =>
       if (!directlyInvalidated.contains(crossName)) {
         val projectPaths = started.buildPaths.project(crossName, project)
         val allDirs = ProjectInputs.all(project, projectPaths)
-        val hasChangedSource = changedFiles.exists { changedFile =>
+        val hasChangedSource = changed.exists { changedFile =>
           allDirs.exists(dir => changedFile.startsWith(dir))
         }
         if (hasChangedSource)

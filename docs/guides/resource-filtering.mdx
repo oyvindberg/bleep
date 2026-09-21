@@ -17,6 +17,8 @@ debug it in your IDE, and version it alongside the rest of your build.
 
 ## Example: substitute build-time values into `application.properties`
 
+> **If what you're substituting is a version, a commit or a build id, use [build stamps](/docs/usage/stamps) instead.** A value derived from git isn't an input this script watches, so it goes stale without warning; and because its output is part of the cache key, a value that changes on every commit makes the project and everything downstream miss the remote cache. Stamps put those values into the artifact without either problem. The example below is still the right shape for everything else — names, environment-specific configuration, anything that comes from your own inputs.
+
 Hand-written `src/main/resources/application.properties.template`:
 
 ```properties

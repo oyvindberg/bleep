@@ -34,6 +34,9 @@ export BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
+# Generate sources first — see below for why
+bleep sourcegen
+
 # Pull cached classes before building
 bleep remote-cache pull
 
@@ -44,15 +47,39 @@ bleep build invalidated --base origin/main | xargs -r bleep compile
 bleep remote-cache push
 ```
 
+### The cache helps an empty workspace, not a warm one
+
+`pull` skips any project whose classes directory already has something in it, **without looking at its digest**:
+
+```
+Remote cache pull: 0 pulled, 169 already compiled, 0 not cached
+```
+
+That is deliberate — a pull must never clobber a build you are in the middle of — but it has two consequences worth knowing before you plan around the cache:
+
+- **A pull cannot repair state that is present but wrong.** Only `bleep clean` (or a fresh checkout) gets you back to a state a pull can populate.
+- **Switching branches in place does not earn a cache hit.** The cache pays off where workspaces start empty: CI checkouts, fresh clones, and new git worktrees.
+
+### Run `bleep sourcegen` before `pull` and `push`
+
+Generated sources are part of a project's digest. In a workspace where sourcegen has not run yet, every project that consumes a generator — and everything downstream of it — hashes as *"no generated file"*, which is a key nothing was ever pushed under. The pull silently misses, and you compile what you could have downloaded.
+
+On a 169-project build this was the difference between 148 and 167 projects restored, and between 53 s and 25 s of compiling afterwards. `bleep sourcegen` is cheap and idempotent; put it ahead of `remote-cache pull` in CI.
+
 ## How it works
 
 Each project gets a SHA-256 **digest** computed from:
 - The bleep version
 - The build-level toolchain JVM — `jvm:` in `bleep.yaml`, name and index url (bump the JDK and every project's digest changes)
 - Project configuration (dependencies, compiler flags, Scala version, platform, etc.)
-- Source file contents (using git blob hashes for speed, with filesystem fallback)
+- Source file contents (using git blob hashes for speed, with filesystem fallback), including what [sourcegen scripts](/docs/concepts/sourcegen) generate
 - Resource file contents (affects the digest but resources are NOT cached)
 - Transitive dependency project digests (changes propagate downstream)
+
+Deliberately **not** included:
+
+- The output of annotation processors and KSP. It is a function of the sources and processor coordinates already listed above — the same way a macro's expansion is — so hashing it added nothing, except that a processor embedding a timestamp moved the digest on every build. See [annotation processing](/docs/usage/annotation-processing#not-part-of-the-cache-key) for the trust assumption that comes with it.
+- [Build stamps](/docs/usage/stamps), and the `stamp:` declaration itself. A stamp is derived *from* the build — `project-digest` is this very digest — so hashing it would be circular, and a git-derived one would change the key on every commit. They never reach the compiler, which is what makes leaving them out safe.
 
 A build without a `jvm:` cannot be cached: the compiler would be whatever `java` is on `PATH`, which is not something bleep can hash, so `remote-cache pull`/`push` fail with an error instead of keying entries on an unknown toolchain.
 

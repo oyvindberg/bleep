@@ -47,6 +47,10 @@ case class Project(
       */
     testFork: Option[TestForkMode],
     sourcegen: JsonSet[ScriptDef],
+    /** Values bleep derives from the build and writes into this project's artifact — see [[StampKind]]. They reach the runtime classpath and the packaged jar,
+      * never the compiler and never the cache key.
+      */
+    stamp: JsonSet[StampKind],
     libraryVersionSchemes: JsonSet[LibraryVersionScheme],
     ignoreEvictionErrors: Option[IgnoreEvictionErrors],
     publish: Option[PublishConfig]
@@ -74,6 +78,7 @@ case class Project(
       maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) maxConcurrentSuites else None,
       testFork = if (testFork == other.testFork) testFork else None,
       sourcegen = sourcegen.intersect(other.sourcegen),
+      stamp = stamp.intersect(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None,
       publish = publish.zipCompat(other.publish).map { case (_1, _2) => _1.intersect(_2) }
@@ -105,6 +110,7 @@ case class Project(
       maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) None else maxConcurrentSuites,
       testFork = if (testFork == other.testFork) None else testFork,
       sourcegen = sourcegen.removeAll(other.sourcegen),
+      stamp = stamp.removeAll(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors,
       publish = removeAllFrom(publish, other.publish)
@@ -134,6 +140,7 @@ case class Project(
       maxConcurrentSuites = maxConcurrentSuites.orElse(other.maxConcurrentSuites),
       testFork = testFork.orElse(other.testFork),
       sourcegen = sourcegen.union(other.sourcegen),
+      stamp = stamp.union(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
       publish = List(publish, other.publish).flatten.reduceOption(_ `union` _)
@@ -162,6 +169,7 @@ case class Project(
           maxConcurrentSuites,
           testFork,
           sourceGeneratorsScripts,
+          stamp,
           libraryVersionSchemes,
           ignoreEvictionErrors,
           publish
@@ -187,6 +195,7 @@ case class Project(
       maxConcurrentSuites.isEmpty &&
       testFork.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
+      stamp.isEmpty &&
       libraryVersionSchemes.isEmpty &&
       ignoreEvictionErrors.isEmpty &&
       publish.fold(true)(_.isEmpty)
@@ -216,6 +225,7 @@ object Project {
     maxConcurrentSuites = None,
     testFork = None,
     sourcegen = JsonSet.empty,
+    stamp = JsonSet.empty,
     libraryVersionSchemes = JsonSet.empty,
     ignoreEvictionErrors = None,
     publish = None

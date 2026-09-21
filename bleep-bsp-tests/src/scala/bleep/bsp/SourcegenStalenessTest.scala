@@ -28,7 +28,7 @@ class SourcegenStalenessTest extends AnyFunSuite with Matchers {
     model.ScriptDef.Main(cpn("scripts"), "gen.Main", model.JsonSet(SortedSet.from(globs.map(RelPath.force))))
 
   private def emptyDirs: ProjectPaths.DirsByOrigin =
-    ProjectPaths.DirsByOrigin(SortedSet.empty, Map.empty, Map.empty, None, Nil)
+    ProjectPaths.DirsByOrigin(SortedSet.empty, Map.empty, Map.empty, None, Nil, stamps = None)
 
   /** ProjectPaths for a consumer: no sources of its own, one generated output directory per script. */
   private def consumerPaths(workspace: Path, name: String, forScript: model.ScriptDef.Main): ProjectPaths = {

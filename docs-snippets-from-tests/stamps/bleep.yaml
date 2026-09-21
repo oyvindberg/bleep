@@ -1,0 +1,21 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: BLEEP_LATEST_VERSION
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  lib:
+    platform:
+      name: jvm
+    stamp: [dynver, git-sha, project-digest, build-digest]
+    publish:
+      groupId: com.example
+  app:
+    platform:
+      name: jvm
+    dependsOn: lib
+  app-test:
+    platform:
+      name: jvm
+    dependsOn: app
+    isTestProject: true
+    dependencies: org.junit.jupiter:junit-jupiter:5.14.4

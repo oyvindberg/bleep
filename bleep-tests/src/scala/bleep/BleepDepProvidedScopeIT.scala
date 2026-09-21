@@ -44,7 +44,7 @@ class BleepDepProvidedScopeIT extends IntegrationTestHarness {
 
     // Asserted on the classpath rather than only on the run succeeding, because this is a statement about what a dependency drags along. The floor is what to
     // look for: any `org.junit.platform` here should be the project's own, and this project declares none.
-    val floor = started.resolvedProject(mytest).classpath.map(_.toString).filter(_.contains("junit-platform")).toList
+    val floor = started.resolvedProject(mytest).classpath(Usage.Runtime).map(_.toString).filter(_.contains("junit-platform")).toList
     assert(
       floor.isEmpty,
       s"bleep-test-runner's provided junit-platform floor reached a consumer's classpath:\n${floor.mkString("\n")}"

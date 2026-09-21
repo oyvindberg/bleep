@@ -124,8 +124,11 @@ object ResolveProjects {
       // Resource directories live under the source tree (`<project>/src/resources` etc.), not inside `.bleep/`, so they're layout-agnostic — same value for v1
       // and v2 builds. Included on the dev classpath so SPI registration files (META-INF/services/...) reach forked sourcegen JVMs the same way published JARs
       // would expose them to consumers.
-      def resolveResourceDirs(crossName: model.CrossProjectName): List[java.nio.file.Path] =
-        bleepBuild.forceGet.projectPaths(crossName).resourcesDirs.all.toList.filter(java.nio.file.Files.isDirectory(_))
+      def resolveResourceDirs(crossName: model.CrossProjectName): List[PathsByUsage.Entry] =
+        bleepBuild.forceGet.projectPaths(crossName).resourcesDirs.byUsage.entries.filter(e => java.nio.file.Files.isDirectory(e.path))
+
+      def classesEntry(crossName: model.CrossProjectName): PathsByUsage.Entry =
+        PathsByUsage.Entry(resolveClassesDir(crossName), Usage.Compile)
 
       // Verify upfront that every required class dir resolves. Same error semantics as before; just expressed via resolveClassesDir.
       b.values.flatten.toList.distinct.foreach(crossName => resolveClassesDir(crossName).discard())
@@ -145,7 +148,7 @@ object ResolveProjects {
         // consumer might be Java-only with no Scala version to resolve bleep-core's Scala 3 deps); we can't fetch bleep-core via Coursier from the forked
         // sourcegen JVM either (the in-dev SNAPSHOT coord doesn't exist anywhere). So we hand its already-resolved jars + classes/resources directly to the
         // consumer's classpath. The SPI lookup in `BleepscriptServices.Holder.load()` then finds the impl on the classpath the fast way, no Coursier needed.
-        val coreSpiClasspath: List[java.nio.file.Path] = {
+        val coreSpiClasspath: List[PathsByUsage.Entry] = {
           val coreCpn = model.CrossProjectName(model.ProjectName("bleep-core"), None)
           val needsBleepCoreSpi =
             transitiveBleep.exists(_.name.value == "bleepscript") && !transitiveBleep.contains(coreCpn)
@@ -156,18 +159,20 @@ object ResolveProjects {
             // have populated).
             val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) ++ List(coreCpn)
             val bleepInternalPaths =
-              coreBleepProjects.toList.map(resolveClassesDir) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
-            val coreCoursierJars: List[java.nio.file.Path] =
+              coreBleepProjects.toList.map(classesEntry) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
+            val coreCoursierJars: List[PathsByUsage.Entry] =
               bleepBuild.forceGet.resolvedProjects
                 .get(coreCpn)
-                .map(_.forceGet.classpath)
+                .map(_.forceGet.classpath(Usage.Compile))
                 .getOrElse(Nil)
                 .filter(p => p.getFileName.toString.endsWith(".jar"))
+                .map(PathsByUsage.Entry(_, Usage.Compile))
             bleepInternalPaths ::: coreCoursierJars
           }
         }
-        val newClassPath = transitiveBleep.map(resolveClassesDir) ::: transitiveBleep.flatMap(resolveResourceDirs) ::: coreSpiClasspath
-        resolved.copy(classpath = newClassPath ++ resolved.classpath)
+        // Prepended, not merged: bleep's own development classes must shadow whatever the resolved classpath already carries.
+        val newClassPath = transitiveBleep.map(classesEntry) ::: transitiveBleep.flatMap(resolveResourceDirs) ::: coreSpiClasspath
+        resolved.copy(classpath = PathsByUsage(newClassPath) ++ resolved.classpath)
       }
 
       Result(rewrittenBuild, projects, bspServerClasspathSource)
@@ -381,9 +386,12 @@ object ResolveProjects {
     val unmanagedJars: List[Path] =
       explodedProject.jars.values.map(rp => pre.buildPaths.buildDir.resolve(rp.toString)).toList
 
-    val classPath: model.JsonSet[Path] =
-      model.JsonSet.fromIterable(
-        allTransitiveResolved.values.flatMap(x => x.classesDir :: x.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars ++ unmanagedJars
+    // Each dependency contributes its classes and its resources with the tiers they already carry, so a dependency's stamps directory arrives tagged
+    // `Runtime` and javac, which asks for `Compile`, never sees it. Sorted and deduplicated as before, when this was a `JsonSet`.
+    val classPath: PathsByUsage =
+      PathsByUsage.sortedDistinct(
+        allTransitiveResolved.values.flatMap(x => PathsByUsage.Entry(x.classesDir, Usage.Compile) :: x.resources.entries) ++
+          (resolvedRuntimeDependencies.jars ++ unmanagedJars).map(PathsByUsage.Entry(_, Usage.Compile))
       )
 
     // Annotation-processor wiring is split between this function and the AP DAG task:
@@ -543,10 +551,10 @@ object ResolveProjects {
       name = crossName.value,
       directory = projectPaths.targetDir,
       workspaceDir = pre.buildPaths.buildDir,
-      sources = projectPaths.sourcesDirs.all.toList ++ annotationProcessingGenSourcesDir.toList,
-      classpath = classPath.values.toList,
+      sources = projectPaths.sourcesDirs.all(Usage.Compile).toList ++ annotationProcessingGenSourcesDir.toList,
+      classpath = classPath,
       classesDir = projectPaths.classes,
-      resources = Some(projectPaths.resourcesDirs.all.toList),
+      resources = projectPaths.resourcesDirs.byUsage,
       language = language,
       platform = resolvedPlatform,
       isTestProject = isTest,

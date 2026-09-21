@@ -52,6 +52,8 @@ case class PublishLocal(watch: Boolean, options: PublishLocal.Options, buildOpts
       .map { case () =>
         // No `--assert-release` here: publishing a snapshot into the local cache is the normal case, and the flag is about what leaves the machine.
         val version = PublishVersion.resolve(options.version, started.buildPaths.buildDir, assertRelease = false).orThrow
+        // So the jar carries the coordinate it is published under, see `Publish`.
+        Stamps.materialize(started, publishingAs = Some(version))
         val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
           packageLibraries(
             started,

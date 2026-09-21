@@ -20,7 +20,7 @@ object CoordinatesFor {
   }
 
   private def fromGroupId(groupId: String, version: String, crossName: model.CrossProjectName, explodedProject: model.Project): model.Dep = {
-    val name = crossName.name.value.replace('/', '-')
+    val name = crossName.name.fileSafeValue
 
     // Check for an actual Scala version, not just the presence of a `scala:` block. Projects can
     // inherit Scala options (encoding, language flags, strict mode) from shared templates without

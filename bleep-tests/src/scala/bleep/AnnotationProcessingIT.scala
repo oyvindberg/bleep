@@ -102,7 +102,7 @@ class AnnotationProcessingIT extends IntegrationTestHarness {
 
     // mapstruct-processor must NOT be on the runtime classpath — annotationProcessors entries
     // resolve in isolation and are passed to javac via -processorpath only.
-    val classpathPaths = resolved.classpath.map(_.toString)
+    val classpathPaths = resolved.classpath(Usage.Runtime).map(_.toString)
     assert(
       !classpathPaths.exists(_.contains("mapstruct-processor")),
       s"mapstruct-processor must NOT be on runtime classpath, got $classpathPaths"

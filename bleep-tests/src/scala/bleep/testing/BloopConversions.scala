@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.{model, ResolvedProject}
+import bleep.{model, ResolvedProject, Usage}
 import bloop.config.Config
 
 import java.nio.file.Paths
@@ -134,10 +134,10 @@ object BloopConversions {
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = resolved.dependencies,
-        classpath = resolved.classpath,
+        classpath = resolved.classpath(Usage.Compile),
         out = resolved.directory,
         classesDir = resolved.classesDir,
-        resources = resolved.resources,
+        resources = Some(resolved.resources(Usage.Runtime)),
         scala = scalaConfig,
         java = javaConfig,
         sbt = None,

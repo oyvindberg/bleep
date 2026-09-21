@@ -4,9 +4,5 @@ import java.nio.file.Path
 
 object fixedClasspath {
   def apply(project: ResolvedProject): List[Path] =
-    List(
-      List(project.classesDir),
-      project.resources.getOrElse(Nil),
-      project.classpath
-    ).flatten
+    project.classesDir :: project.resources(Usage.Runtime) ::: project.classpath(Usage.Runtime)
 }

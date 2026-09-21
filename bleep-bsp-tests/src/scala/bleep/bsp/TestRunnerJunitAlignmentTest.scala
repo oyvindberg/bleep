@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.{BleepException, ResolvedProject}
+import bleep.{BleepException, PathsByUsage, ResolvedProject}
 import bleep.model
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -46,9 +46,9 @@ class TestRunnerJunitAlignmentTest extends AnyFunSuite with Matchers {
       directory = Path.of("/ws/mytest"),
       workspaceDir = Path.of("/ws"),
       sources = Nil,
-      classpath = Nil,
+      classpath = PathsByUsage.empty,
       classesDir = Path.of("/ws/mytest/classes"),
-      resources = None,
+      resources = PathsByUsage.empty,
       language = ResolvedProject.Language.Java(Nil),
       platform = None,
       isTestProject = true,

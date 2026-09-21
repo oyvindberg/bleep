@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.{BspBuildData, BuildLoader}
-import bleep.{model, BuildPaths, ResolvedProject}
+import bleep.{model, BuildPaths, PathsByUsage, ResolvedProject, Usage}
 
 import java.nio.file.Path
 
@@ -95,9 +95,9 @@ object BspTestBuild {
       directory = buildPaths.buildDir,
       workspaceDir = buildPaths.buildDir,
       sources = config.sources.toList,
-      classpath = config.classpath,
+      classpath = PathsByUsage.of(Usage.Compile, config.classpath),
       classesDir = classesDirIn(buildPaths, config),
-      resources = None,
+      resources = PathsByUsage.empty,
       language = language(config),
       platform = platform(config),
       isTestProject = config.isTest,

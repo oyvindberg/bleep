@@ -148,7 +148,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
           val base = generatedSourcesDir(crossName, "ksp")
           List(base / "kotlin", base / "java")
         }
-      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, annotationProcessing, ksp)
+      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, annotationProcessing, ksp, stamps = None)
     }
 
     val resources = {
@@ -158,7 +158,8 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
       // KSP resources land at .bleep/projects/<cross>/generated-sources/ksp/resources/; expose them so they're packaged like normal resources.
       val ksp: List[Path] =
         p.kotlin.filter(_.hasSymbolProcessing).toList.map(_ => generatedSourcesDir(crossName, "ksp") / "resources")
-      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, None, ksp)
+      val stamps: Option[Path] = if (p.stamp.values.nonEmpty) Some(generatedResourcesDir(crossName, StampFile.rootFolder)) else None
+      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, None, ksp, stamps)
     }
 
     ProjectPaths(dir = dir, targetDir = targetDir, sourcesDirs = sources, resourcesDirs = resources, isTestProject = p.isTestProject.getOrElse(false))

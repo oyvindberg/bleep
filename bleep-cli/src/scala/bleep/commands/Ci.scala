@@ -165,8 +165,8 @@ object Ci {
     *
     * The trick is that this is just a test run whose targets are *every* project instead of only the test projects. The test task graph already compiles the
     * transitive closure of its targets, so handing it the whole build gives one task graph that compiles every project — libraries upstream of a test project,
-    * and projects no test depends on at all — and runs the suites of the projects that have them, at full parallelism. A project with no test suites simply
-    * discovers none and is left compiled, which is what `bleep test some-library` has always done.
+    * and projects no test depends on at all — at full parallelism. Suites still run only where `isTestProject: true` says there are suites: `TaskDag` separates
+    * "compile this" from "discover suites here", so widening the targets widens what compiles and nothing else.
     *
     * Running compile and then test instead would compile everything twice over (the second pass finding it up to date, but still paying a full BSP round trip
     * and serializing the two halves), and would report two summaries and two history entries for one CI job.

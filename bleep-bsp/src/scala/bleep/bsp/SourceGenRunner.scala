@@ -160,7 +160,7 @@ object SourceGenRunner {
     val scriptProjectWithDeps = started.build.transitiveDependenciesFor(script.project).keySet + script.project
     val scriptInputPaths: Array[Path] = scriptProjectWithDeps.flatMap { projectName =>
       val paths = started.projectPaths(projectName)
-      paths.sourcesDirs.all ++ paths.resourcesDirs.all
+      paths.sourcesDirs.all(Usage.Input) ++ paths.resourcesDirs.all(Usage.Input)
     }.toArray
 
     projectsNeedingRegeneration(script, forProjects, scriptInputPaths, started.projectPaths)

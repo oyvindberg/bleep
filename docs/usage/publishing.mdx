@@ -182,6 +182,10 @@ DynVer examples:
 
 For Sonatype, snapshot versions (any version not cleanly on a tag) get `-SNAPSHOT` appended.
 
+### Getting the version into the artifact
+
+To read the version at runtime, declare `stamp: [dynver]` on the project and read `bleep-stamp/<project>.properties` from the classpath — see [build stamps](/docs/usage/stamps). It comes from the same derivation as the version above, and `--version X` stamps `X`, so the coordinate a jar is published under and the value inside it cannot disagree.
+
 ## Project Selection
 
 - [`bleep publish local mylib mylib2`](/docs/reference/cli/publish/): publish specific projects

@@ -320,6 +320,9 @@ object ExportMaven extends BleepScript("ExportMaven") {
         dirs.filterNot(dir => dir.startsWith(legacyBase) && dirs.contains(currentBase.resolve(legacyBase.relativize(dir))))
       }
 
+      // No `Usage` argument here, and that is not an oversight: `scripts` depends on `build.bleep::...:${BLEEP_VERSION}`, so it compiles against the
+      // RELEASED bleep, where `all` is still a no-arg val. Both calls want `Usage.Runtime` and must gain it when `$version` is next bumped to a release
+      // that has it.
       val sourceDirs: List[String] = dropLegacyGenerated(projectPaths.sourcesDirs.all.toList, "generated-sources").map(relativeTo)
       val resourceDirs: List[String] = dropLegacyGenerated(projectPaths.resourcesDirs.all.toList, "generated-resources").map(relativeTo)
 

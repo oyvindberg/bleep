@@ -81,6 +81,63 @@ class CiCommandIT extends IntegrationTestHarness {
     succeed
   }
 
+  /** `isTestProject` is the single answer to "are there suites here", whichever command is asking.
+    *
+    * `bleep ci` hands the build server *every* project as a target so that everything compiles in one pass, and `TaskDag.buildTestDag` used to read that same
+    * set as "the projects to discover suites in". A project that happened to carry a test framework therefore had its suites run by `bleep ci` while
+    * `bleep test` skipped it — a CI job migrating from `compile` + `test` to `ci` silently started running more.
+    */
+  integrationTest("bleep ci compiles a non-test project but does not run its suites") { ws =>
+    ws.bleepNew(BuildCreateNew.Language.Java, "myapp")
+
+    // A second suite-bearing project, identical to the generated `myapp-test` except that it never claims to be a test project.
+    // Inserted into the `projects:` block — `templates:` follows it in the generated file, so appending at the end would declare a template instead.
+    val yaml = Files.readString(ws.root.resolve(BuildLoader.BuildFileName))
+    val notATestProject =
+      s"""|  myapp-not-a-test-project:
+          |    dependencies: org.junit.jupiter:junit-jupiter:${model.Versions.JunitJupiter}
+          |    dependsOn: myapp
+          |    extends: template-common
+          |""".stripMargin
+    assert(yaml.contains("projects:\n"), s"expected a projects block to insert into:\n$yaml")
+    ws.file(BuildLoader.BuildFileName, yaml.replace("projects:\n", "projects:\n" + notATestProject))
+    ws.file(
+      "myapp-not-a-test-project/src/java/com/example/SneakyTest.java",
+      """|package com.example;
+         |
+         |import static org.junit.jupiter.api.Assertions.assertTrue;
+         |
+         |import org.junit.jupiter.api.Test;
+         |
+         |public class SneakyTest {
+         |  @Test
+         |  void passes() {
+         |    assertTrue(true);
+         |  }
+         |}
+         |""".stripMargin
+    )
+
+    val (started, _, _) = ws.start()
+    assert(
+      started.chosenTestProjects(None).map(_.value).toSet == Set("myapp-test"),
+      s"bleep test selects test projects only, got ${started.chosenTestProjects(None).map(_.value).toSet}"
+    )
+
+    commands.Ci(ciPhase, commands.Ci.Scope.Everything(None), watch = false).run(started).orThrow
+
+    val transcript = TranscriptStore.read(started.buildPaths, TranscriptStore.list(started.buildPaths).head)
+    assert(
+      compiledProjects(transcript) == Set("myapp", "myapp-test", "myapp-not-a-test-project"),
+      s"ci compiles every project, got ${compiledProjects(transcript)}"
+    )
+    assert(
+      testedProjects(transcript) == Set("myapp-test"),
+      s"suites run only where isTestProject says there are suites, got ${testedProjects(transcript)}"
+    )
+    succeed
+  }
+
   integrationTest("--invalidated: an empty set builds nothing at all, a changed source builds it and its dependents") { ws =>
     ws.bleepNew(BuildCreateNew.Language.Java, "myapp")
     commitAll(ws.root)

@@ -14,6 +14,10 @@
     "TestFrameworkName": {
       "type": "string"
     },
+    "StampKind": {
+      "type": "string",
+      "enum": ["dynver", "git-sha", "project-digest", "build-digest"]
+    },
     "PlatformName": {
       "type": "string",
       "enum": [
@@ -580,6 +584,20 @@
               "type": "array",
               "items": {
                 "$ref": "#/$defs/Script"
+              }
+            }
+          ]
+        },
+        "stamp": {
+          "description": "Values bleep derives from the build and writes into this project's artifact, as bleep-stamp/<project>.properties on the runtime classpath and in the jar. 'dynver': the version bleep publish would use (bleep publish --version X stamps X). 'git-sha': the commit, even on a clean tag. 'project-digest': this project's content digest, the one the remote cache keys on — not free, a plain compile computes no digests. 'build-digest': a portable digest of the whole build. Stamps never reach the compiler and are never part of the cache key, so they are recomputed on every build at no cost to caching.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/StampKind"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/StampKind"
               }
             }
           ]

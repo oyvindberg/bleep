@@ -242,6 +242,7 @@ object buildFromMavenPom {
       maxConcurrentSuites = None,
       testFork = None,
       sourcegen = model.JsonSet.empty[model.ScriptDef],
+      stamp = model.JsonSet.empty[model.StampKind],
       libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
       ignoreEvictionErrors = None,
       publish = None
@@ -284,6 +285,7 @@ object buildFromMavenPom {
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
+        stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
         publish = None

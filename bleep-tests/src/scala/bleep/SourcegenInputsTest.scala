@@ -206,7 +206,8 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       )
       val projectPaths = buildPaths.project(cpn("myapp"), myapp)
 
-      ProjectInputs.all(myapp, projectPaths) shouldBe (projectPaths.sourcesDirs.all ++ projectPaths.resourcesDirs.all)
+      ProjectInputs
+        .all(myapp, projectPaths) shouldBe (projectPaths.sourcesDirs.all(Usage.Input) ++ projectPaths.resourcesDirs.all(Usage.Input))
     }
   }
 }

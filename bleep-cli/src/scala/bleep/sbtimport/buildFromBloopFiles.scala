@@ -198,6 +198,7 @@ object buildFromBloopFiles {
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
+        stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
         ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),
         publish = None

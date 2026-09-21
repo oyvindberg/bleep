@@ -1,0 +1,92 @@
+---
+title: Build stamps
+---
+
+import Snippet from '@site/src/components/Snippet';
+
+# Build stamps
+
+A build stamp puts a value bleep derives from your build — the version, the commit, a digest of the content — into your artifact, where your code can read it at runtime. It does that **without putting the value in the compile graph**, which is the part that matters.
+
+## Quick start
+
+Say which stamps a project carries:
+
+<Snippet path="docs-snippets-from-tests/stamps/bleep.yaml" lang="yaml" />
+
+Every build writes them to a properties file named after the project, `bleep-stamp/lib.properties`, which is on the runtime classpath and inside the published jar. Read it with the JDK — no dependency on bleep:
+
+<Snippet path="docs-snippets-from-tests/stamps/ReadsLibStampTest.java" lang="java" />
+
+That test lives in `app-test`, two projects downstream of `lib`, which is the point: a project sees its dependencies' stamps at runtime, the same way it sees their classes.
+
+## The four stamps
+
+| Stamp | What it tells you | Cost |
+| --- | --- | --- |
+| `dynver` | The version, exactly as `bleep publish` would derive it — `1.0.0` on a clean tag, `1.0.0+3-abcdef12` past one. `bleep publish --version X` stamps `X`. | One `git describe` per build |
+| `git-sha` | The commit, always — including on a clean tag, where `dynver` carries no sha. | Negligible |
+| `project-digest` | What is in *this* artifact: the project's content digest, the same one the [remote cache](/docs/usage/remote-cache) keys on. It changes if and only if the project's inputs change; a sha only tells you what was checked out. | One digest pass per build |
+| `build-digest` | Which build produced this: a digest over every project's content digest, so it correlates all the artifacts of one build even when `dynver` can't tell them apart. | Shares the pass with `project-digest` |
+
+The two digests are the only stamps with a real cost. A plain `bleep compile` computes no digests at all, so opting into either adds one pass over the build. Both are portable: two machines building the same commit stamp the same value.
+
+There is deliberately no timestamp stamp. It would make every artifact byte-different, and the stamps above answer "which build?" better.
+
+## Where it goes, and who can see it
+
+```
+.bleep/projects/lib/generated-resources/bleep-stamps/   ← on the runtime classpath
+  └── bleep-stamp/
+        └── lib.properties                              ← bleep-stamp/lib.properties in the jar
+```
+
+- **Named per cross project**, so every stamped project on one classpath coexists. A cross-built project includes its cross id — `lib@jvm3` writes `bleep-stamp/lib@jvm3.properties` — and a `/` in a project name becomes `-`: `dlab/version` writes `bleep-stamp/dlab-version.properties`.
+- **`bleep-stamp/` can't be a Java package** (it has a hyphen), so it can never collide with anyone's classes. It is also deliberately not under `META-INF/`, which proguard and shading tools carry filter rules for.
+- **On the runtime classpath and in the jar — never the compiler.** `bleep run`, the test fork, `bleep dist`, `bleep publish` and IDE run configurations all see it. javac and scalac never do, and neither does the cache key.
+- **Absent means absent.** A project that declares no stamps has no file. Code reading one gets `null` from `getResourceAsStream` and should treat that as "not stamped", not substitute a made-up value.
+
+## Platforms
+
+A stamp is a classpath resource, so it's only readable where the running program has one.
+
+| platform | readable? |
+| --- | --- |
+| JVM | always |
+| Scala Native | only when resources are embedded in the binary. bleep hands stamps to the linker, and embeds resources in release links, not debug ones |
+| Scala.js, Kotlin/JS, Kotlin/Native | no — there's no classpath at runtime |
+
+## Why not just generate a source file?
+
+The usual approach — a [sourcegen script](/docs/concepts/sourcegen) that asks git for the version and writes it into a constant — has two problems, and they compound.
+
+**It goes stale silently.** A sourcegen reruns when its inputs change, and git state isn't one of them. Commit, tag, rebuild: the generator reports "already up to date", and every project compiles against the old version. Nothing tells you that you should have run `bleep sourcegen`.
+
+**It makes the cache useless downstream.** Generated sources are part of a project's cache key — they have to be, since a generator might read anything. So a generated file that changes on every commit gives its project a new key on every commit, and the same goes for every project that depends on it. On a real 169-project build that meant the version project plus 20 dependents never hit the cache.
+
+A version is data in the artifact, not an input to the compiler. Stamps treat it that way: the file sits outside every cache key by construction, so bleep can recompute it on every build without invalidating anything.
+
+## Computing versions yourself is fine
+
+Stamps are opt-in, and nothing about them deprecates doing it yourself. A sourcegen, a script, an environment variable your CI bakes in — all of it keeps working exactly as before.
+
+Just don't turn `stamp:` on for a project that already gets its version another way. The two would both be telling the artifact what version it is, and there's no reason to believe they'd agree.
+
+If you do generate a version yourself, the two problems above are yours to manage: remember to run `bleep sourcegen` after tagging, and expect the generating project and its dependents to miss the remote cache.
+
+## Publishing
+
+The version inside the jar and the version the jar is published under come from one derivation, so they can't disagree:
+
+- `bleep publish` with no `--version` stamps the same dynver value it publishes under.
+- `bleep publish --version 2.1.0` rewrites the stamp to `2.1.0` before packaging.
+
+See [publishing](/docs/usage/publishing) for how the version itself is chosen.
+
+## Limits worth knowing
+
+- **Written by the compile step, every time.** bleep writes a project's stamp when it compiles the project, including when the project is already up to date or was just restored from the remote cache. Every link, test and run depends on that step, and every client goes through it: `bleep compile`/`test`/`run`/`link`/`ci`, each `--watch` cycle, your IDE's compiles, and the MCP server. So a stamp is never older than the last compile.
+- **Never checked for staleness.** That's deliberate. Git state, especially an uncommitted working tree, is exactly what a staleness check gets wrong, and recomputing a value nothing is keyed on costs nothing but one `git describe`. The file is only rewritten when its content changes.
+- **A dirty working tree makes `dynver` time-dependent.** dynver appends a timestamp to a dirty-tree version (`1.0.0+0-abcdef12+20260327-1430`), just as it does for a publish. A stamp from a clean commit is reproducible; one from a dirty tree is not.
+- **`git-sha` needs a commit.** In a directory that isn't a git repository, or one with nothing committed yet, a project that declares `git-sha` fails the build with a message saying so, rather than stamping something invented. `dynver` follows whatever `bleep publish` would do.
+- **Values must survive a `.properties` round trip.** Everything bleep derives does. A `--version` containing a newline, a non-ASCII character or a leading space is refused rather than written in a form a reader would get back differently.

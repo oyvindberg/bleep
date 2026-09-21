@@ -10,6 +10,11 @@ case class CrossProjectName(name: ProjectName, crossId: Option[CrossId]) {
     }
 
   override def toString: String = value
+
+  /** [[value]] usable as a single file-name segment: a project name may contain `/` (`dlab/version`), which would otherwise nest directories. `@` is left
+    * alone, so the spelling matches every other place a cross-project is shown. For the name without the cross id, see [[ProjectName.fileSafeValue]].
+    */
+  val fileSafeValue: String = value.replace('/', '-')
 }
 
 object CrossProjectName {

@@ -337,6 +337,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Build Stamps",
+          id: "usage/stamps",
+        },
+        {
+          type: "doc",
           label: "Unmanaged Jars",
           id: "usage/unmanaged-jars",
         },

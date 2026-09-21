@@ -4,6 +4,7 @@ import bleep.commands.BuildInvalidated
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.nio.file.Files
 import scala.collection.immutable.SortedSet
 
 class BuildInvalidatedTest extends AnyFunSuite with Matchers {
@@ -142,4 +143,39 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
     val reverse = Map(a -> Set(b))
     BuildInvalidated.transitiveDependents(Set(a), reverse) shouldBe Set(a, b)
   }
+
+  // ============================================================================
+  // changedFiles tests
+  // ============================================================================
+
+  test("changedFiles sees files whose names git would quote") {
+    // Regression: `git diff --name-only` without `-z` quotes and octal-escapes any path with a space or a
+    // non-ASCII byte. Resolving that spelling gives a path under no source directory, so a project whose only
+    // change was such a file was never invalidated and `bleep compile --invalidated` skipped exactly it.
+    val workspace = Files.createTempDirectory("bleep-invalidated-quoted-")
+    try {
+      def git(args: String*): Unit =
+        scala.sys.process.Process("git" :: args.toList, workspace.toFile).!!.discard()
+
+      git("init")
+      git("config", "user.email", "test@test.com")
+      git("config", "user.name", "test")
+
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      val names = List("with space.scala", "caf\u00e9.scala", "Plain.scala")
+      names.foreach(name => Files.writeString(srcDir.resolve(name), "object Foo"))
+      git("add", ".")
+      git("commit", "-m", "init")
+
+      names.foreach(name => Files.writeString(srcDir.resolve(name), "object Foo { val x = 1 }"))
+      git("add", ".")
+      git("commit", "-m", "change")
+
+      val changed = BuildInvalidated.changedFiles(workspace, "HEAD~1")
+
+      changed shouldBe names.map(srcDir.resolve).toSet
+    } finally bleep.internal.FileUtils.deleteDirectory(workspace)
+  }
+
 }

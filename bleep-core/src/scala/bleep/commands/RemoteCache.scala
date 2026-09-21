@@ -62,7 +62,12 @@ object RemoteCache {
                   val key = cacheKey(prefix, crossName, digest)
                   val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
 
-                  if (Files.isDirectory(projectPaths.classes) && Files.list(projectPaths.classes).findAny().isPresent) {
+                  // `Files.list` holds an open directory stream until it is closed; one leaked descriptor per project adds up on a large build.
+                  def alreadyCompiled: Boolean =
+                    Files.isDirectory(projectPaths.classes) &&
+                      scala.util.Using.resource(Files.list(projectPaths.classes))(_.findAny().isPresent)
+
+                  if (alreadyCompiled) {
                     skipped.incrementAndGet()
                     started.logger.debug(s"${crossName.value}: already compiled, skipping")
                   } else if (client.headObject(key)) {
@@ -128,7 +133,12 @@ object RemoteCache {
                   val key = cacheKey(prefix, crossName, digest)
                   val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
 
-                  if (!Files.isDirectory(projectPaths.classes) || !Files.list(projectPaths.classes).findAny().isPresent) {
+                  // Closed, for the same reason as in [[Pull]].
+                  def notCompiledYet: Boolean =
+                    !Files.isDirectory(projectPaths.classes) ||
+                      !scala.util.Using.resource(Files.list(projectPaths.classes))(_.findAny().isPresent)
+
+                  if (notCompiledYet) {
                     notCompiled.incrementAndGet()
                     started.logger.debug(s"${crossName.value}: not compiled, skipping")
                   } else if (!force && client.headObject(key)) {
@@ -190,7 +200,7 @@ object RemoteCache {
     }
 
   private def cacheKey(prefix: String, crossName: model.CrossProjectName, digest: String): String = {
-    val projectKey = crossName.value.replace('/', '-')
+    val projectKey = crossName.fileSafeValue
     if (prefix.isEmpty) s"$projectKey/$digest.tar.gz"
     else s"$prefix/$projectKey/$digest.tar.gz"
   }
@@ -222,7 +232,7 @@ object RemoteCache {
     val analysisFile = projectPaths.targetDir.resolve(".zinc").resolve("analysis.zip")
     if (!Files.exists(analysisFile)) return
 
-    val sourceDirs = projectPaths.sourcesDirs.all.toSet
+    val sourceDirs = projectPaths.sourcesDirs.all(Usage.Compile).toSet
     val sourceFiles = sourceDirs.toList.sorted.flatMap { dir =>
       if (Files.isDirectory(dir))
         scala.util

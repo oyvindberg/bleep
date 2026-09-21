@@ -15,9 +15,13 @@ case class ResolvedProject(
     directory: Path,
     workspaceDir: Path,
     sources: List[Path],
-    classpath: List[Path],
+    /** Every other project's output this one needs, plus third-party jars — each entry tagged, so javac asks for [[Usage.Compile]] and the test fork for
+      * [[Usage.Runtime]] rather than both receiving the same list. Excludes this project's own classes and resources.
+      */
+    classpath: PathsByUsage,
     classesDir: Path,
-    resources: Option[List[Path]],
+    /** This project's own resource directories, tagged. Was `Option[List[Path]]`, whose `None` never occurred outside test fixtures. */
+    resources: PathsByUsage,
     language: ResolvedProject.Language,
     platform: Option[ResolvedProject.Platform],
     isTestProject: Boolean,
