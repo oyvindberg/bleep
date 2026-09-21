@@ -168,46 +168,24 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_3",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_3",
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalactic_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.18/scalactic_3-3.2.18.jar"
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "upickle_3",
-          "version": "3.3.1",
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_3",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "upickle_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/3.3.1/upickle_3-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "upickle-core_3",
-          "version": "3.3.1",
-          "artifacts": [
-            {
-              "name": "upickle-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/3.3.1/upickle-core_3-3.3.1.jar"
+              "name": "scalatest-funsuite_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.18/scalatest-funsuite_3-3.2.18.jar"
             }
           ]
         },
@@ -223,35 +201,35 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest_3",
-          "version": "3.2.18",
+          "organization": "com.lihaoyi",
+          "name": "upickle-core_3",
+          "version": "3.3.1",
           "artifacts": [
             {
-              "name": "scalatest_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.18/scalatest_3-3.2.18.jar"
+              "name": "upickle-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/3.3.1/upickle-core_3-3.3.1.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-featurespec_3",
+          "name": "scalatest-matchers-core_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-featurespec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.18/scalatest-featurespec_3-3.2.18.jar"
+              "name": "scalatest-matchers-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.18/scalatest-matchers-core_3-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-diagrams_3",
-          "version": "3.2.18",
+          "organization": "com.softwaremill.magnolia1_3",
+          "name": "magnolia_3",
+          "version": "1.3.18",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.18/scalatest-diagrams_3-3.2.18.jar"
+              "name": "magnolia_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
             }
           ]
         },
@@ -268,45 +246,12 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-flatspec_3",
+          "name": "scalatest-funspec_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-flatspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.18/scalatest-flatspec_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.18/scalatest-propspec_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.18/scalatest-funsuite_3-3.2.18.jar"
+              "name": "scalatest-funspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.18/scalatest-funspec_3-3.2.18.jar"
             }
           ]
         },
@@ -323,111 +268,12 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-mustmatchers_3",
+          "name": "scalatest-shouldmatchers_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-mustmatchers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.18/scalatest-mustmatchers_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_3",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "ujson_3",
-          "version": "3.3.1",
-          "artifacts": [
-            {
-              "name": "ujson_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/3.3.1/ujson_3-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_3",
-          "name": "magnolia_3",
-          "version": "1.3.18",
-          "artifacts": [
-            {
-              "name": "magnolia_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-compatible",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.18/scalatest-matchers-core_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_3",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-refspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.18/scalatest-refspec_3-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "upack_3",
-          "version": "3.3.1",
-          "artifacts": [
-            {
-              "name": "upack_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/3.3.1/upack_3-3.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+              "name": "scalatest-shouldmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.18/scalatest-shouldmatchers_3-3.2.18.jar"
             }
           ]
         },
@@ -444,23 +290,155 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_3",
+          "name": "scalatest-refspec_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-shouldmatchers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.18/scalatest-shouldmatchers_3-3.2.18.jar"
+              "name": "scalatest-refspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.18/scalatest-refspec_3-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-funspec_3",
+          "name": "scalatest-freespec_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-funspec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.18/scalatest-funspec_3-3.2.18.jar"
+              "name": "scalatest-freespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.18/scalatest-freespec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "ujson_3",
+          "version": "3.3.1",
+          "artifacts": [
+            {
+              "name": "ujson_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/3.3.1/ujson_3-3.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_3",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "upickle_3",
+          "version": "3.3.1",
+          "artifacts": [
+            {
+              "name": "upickle_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/3.3.1/upickle_3-3.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.18/scalatest-featurespec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.18/scalatest_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.18/scalatest-mustmatchers_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.18/scalatest-diagrams_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.18/scalatest-propspec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "upack_3",
+          "version": "3.3.1",
+          "artifacts": [
+            {
+              "name": "upack_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/3.3.1/upack_3-3.3.1.jar"
             }
           ]
         },
@@ -477,12 +455,34 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_3",
+          "name": "scalatest-flatspec_3",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-freespec_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.18/scalatest-freespec_3-3.2.18.jar"
+              "name": "scalatest-flatspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.18/scalatest-flatspec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_3",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalactic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.18/scalactic_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
             }
           ]
         }

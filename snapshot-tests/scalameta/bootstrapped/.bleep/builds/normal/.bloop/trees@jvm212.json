@@ -117,17 +117,6 @@
       "modules": [
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_2.12",
-          "version": "0.4.2",
-          "artifacts": [
-            {
-              "name": "sourcecode_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
           "name": "fastparse_2.12",
           "version": "3.1.0",
           "artifacts": [
@@ -138,24 +127,13 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.12",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang",
-          "name": "scala-library",
+          "name": "scala-compiler",
           "version": "2.12.17",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar"
             }
           ]
         },
@@ -172,12 +150,34 @@
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala-compiler",
+          "name": "scala-library",
           "version": "2.12.17",
           "artifacts": [
             {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.12",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.12",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
             }
           ]
         }

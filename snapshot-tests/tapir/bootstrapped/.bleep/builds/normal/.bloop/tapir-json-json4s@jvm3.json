@@ -117,28 +117,6 @@
           ]
         },
         {
-          "organization": "org.json4s",
-          "name": "json4s-core_3",
-          "version": "4.0.7",
-          "artifacts": [
-            {
-              "name": "json4s-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_3/4.0.7/json4s-core_3-4.0.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.3.6",
-          "artifacts": [
-            {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
           "version": "1.5.0",
@@ -150,35 +128,24 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.18",
+          "organization": "org.json4s",
+          "name": "json4s-core_3",
+          "version": "4.0.7",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+              "name": "json4s-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_3/4.0.7/json4s-core_3-4.0.7.jar"
             }
           ]
         },
         {
           "organization": "org.json4s",
-          "name": "json4s-ast_3",
+          "name": "json4s-scalap_3",
           "version": "4.0.7",
           "artifacts": [
             {
-              "name": "json4s-ast_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_3/4.0.7/json4s-ast_3-4.0.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_3",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+              "name": "json4s-scalap_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_3/4.0.7/json4s-scalap_3-4.0.7.jar"
             }
           ]
         },
@@ -195,12 +162,34 @@
         },
         {
           "organization": "org.json4s",
-          "name": "json4s-scalap_3",
+          "name": "json4s-ast_3",
           "version": "4.0.7",
           "artifacts": [
             {
-              "name": "json4s-scalap_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_3/4.0.7/json4s-scalap_3-4.0.7.jar"
+              "name": "json4s-ast_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_3/4.0.7/json4s-ast_3-4.0.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
             }
           ]
         },
@@ -212,6 +201,17 @@
             {
               "name": "paranamer",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
             }
           ]
         }

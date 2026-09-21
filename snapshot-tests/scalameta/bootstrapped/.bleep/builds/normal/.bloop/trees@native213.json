@@ -145,28 +145,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-native",
-          "name": "nativelib_native0.5_2.13",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "nativelib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.6/nativelib_native0.5_2.13-0.5.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "posixlib_native0.5_2.13",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "posixlib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.6/posixlib_native0.5_2.13-0.5.6.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
           "name": "fastparse_native0.5_2.13",
           "version": "3.1.1",
@@ -179,12 +157,23 @@
         },
         {
           "organization": "org.scala-native",
-          "name": "scalalib_native0.5_2.13",
-          "version": "2.13.16+0.5.6",
+          "name": "clib_native0.5_2.13",
+          "version": "0.5.6",
           "artifacts": [
             {
-              "name": "scalalib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.6/scalalib_native0.5_2.13-2.13.16%2B0.5.6.jar"
+              "name": "clib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.6/clib_native0.5_2.13-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_native0.5_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.13/1.1.0/geny_native0.5_2.13-1.1.0.jar"
             }
           ]
         },
@@ -196,39 +185,6 @@
             {
               "name": "javalib_native0.5_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.6/javalib_native0.5_2.13-0.5.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "auxlib_native0.5_2.13",
-          "version": "0.5.6",
-          "artifacts": [
-            {
-              "name": "auxlib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.6/auxlib_native0.5_2.13-0.5.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
             }
           ]
         },
@@ -255,6 +211,28 @@
           ]
         },
         {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_2.13",
+          "version": "0.5.6",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.6/posixlib_native0.5_2.13-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.5_2.13",
+          "version": "2.13.16+0.5.6",
+          "artifacts": [
+            {
+              "name": "scalalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.6/scalalib_native0.5_2.13-2.13.16%2B0.5.6.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.lihaoyi",
           "name": "sourcecode_native0.5_2.13",
           "version": "0.4.2",
@@ -266,24 +244,46 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "geny_native0.5_2.13",
-          "version": "1.1.0",
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
           "artifacts": [
             {
-              "name": "geny_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.13/1.1.0/geny_native0.5_2.13-1.1.0.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "clib_native0.5_2.13",
+          "name": "auxlib_native0.5_2.13",
           "version": "0.5.6",
           "artifacts": [
             {
-              "name": "clib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.6/clib_native0.5_2.13-0.5.6.jar"
+              "name": "auxlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.6/auxlib_native0.5_2.13-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_2.13",
+          "version": "0.5.6",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.6/nativelib_native0.5_2.13-0.5.6.jar"
             }
           ]
         }

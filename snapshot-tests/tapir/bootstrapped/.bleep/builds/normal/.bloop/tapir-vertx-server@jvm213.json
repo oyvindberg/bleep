@@ -147,79 +147,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "io.netty",
-          "name": "netty-transport-native-unix-common",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-transport-native-unix-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.121.Final/netty-transport-native-unix-common-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-dns",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.121.Final/netty-codec-dns-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-resolver-dns",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-resolver-dns",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.121.Final/netty-resolver-dns-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.vertx",
-          "name": "vertx-auth-common",
+          "name": "vertx-codegen",
           "version": "4.5.15",
           "artifacts": [
             {
-              "name": "vertx-auth-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/4.5.15/vertx-auth-common-4.5.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.vertx",
-          "name": "vertx-web-common",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-web-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-common/4.5.15/vertx-web-common-4.5.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http2",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http2",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.121.Final/netty-codec-http2-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec-http",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec-http",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.121.Final/netty-codec-http-4.1.121.Final.jar"
+              "name": "vertx-codegen",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/4.5.15/vertx-codegen-4.5.15.jar"
             }
           ]
         },
@@ -235,17 +169,6 @@
           ]
         },
         {
-          "organization": "io.vertx",
-          "name": "vertx-codegen",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-codegen",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/4.5.15/vertx-codegen-4.5.15.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.1.121.Final",
@@ -253,6 +176,61 @@
             {
               "name": "netty-transport",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.121.Final/netty-transport-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.121.Final/netty-buffer-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.121.Final/netty-transport-native-unix-common-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.121.Final/netty-codec-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.121.Final/netty-handler-proxy-4.1.121.Final.jar"
             }
           ]
         },
@@ -268,6 +246,17 @@
           ]
         },
         {
+          "organization": "io.vertx",
+          "name": "vertx-core",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/4.5.15/vertx-core-4.5.15.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
@@ -279,24 +268,24 @@
           ]
         },
         {
-          "organization": "io.netty",
-          "name": "netty-codec-socks",
-          "version": "4.1.121.Final",
+          "organization": "io.vertx",
+          "name": "vertx-auth-common",
+          "version": "4.5.15",
           "artifacts": [
             {
-              "name": "netty-codec-socks",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.121.Final/netty-codec-socks-4.1.121.Final.jar"
+              "name": "vertx-auth-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/4.5.15/vertx-auth-common-4.5.15.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.1.121.Final",
           "artifacts": [
             {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.121.Final/netty-codec-http-4.1.121.Final.jar"
             }
           ]
         },
@@ -313,34 +302,12 @@
         },
         {
           "organization": "io.netty",
-          "name": "netty-handler-proxy",
+          "name": "netty-handler",
           "version": "4.1.121.Final",
           "artifacts": [
             {
-              "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.121.Final/netty-handler-proxy-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-buffer",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.121.Final/netty-buffer-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.vertx",
-          "name": "vertx-bridge-common",
-          "version": "4.5.15",
-          "artifacts": [
-            {
-              "name": "vertx-bridge-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/4.5.15/vertx-bridge-common-4.5.15.jar"
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.121.Final/netty-handler-4.1.121.Final.jar"
             }
           ]
         },
@@ -357,34 +324,45 @@
         },
         {
           "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-bridge-common",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-bridge-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/4.5.15/vertx-bridge-common-4.5.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.121.Final/netty-codec-dns-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
           "artifacts": [
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-handler",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.121.Final/netty-handler-4.1.121.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-codec",
-          "version": "4.1.121.Final",
-          "artifacts": [
-            {
-              "name": "netty-codec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.121.Final/netty-codec-4.1.121.Final.jar"
             }
           ]
         },
@@ -400,24 +378,46 @@
           ]
         },
         {
-          "organization": "io.vertx",
-          "name": "vertx-core",
-          "version": "4.5.15",
+          "organization": "io.netty",
+          "name": "netty-resolver-dns",
+          "version": "4.1.121.Final",
           "artifacts": [
             {
-              "name": "vertx-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/4.5.15/vertx-core-4.5.15.jar"
+              "name": "netty-resolver-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.121.Final/netty-resolver-dns-4.1.121.Final.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
+          "organization": "io.netty",
+          "name": "netty-codec-http2",
+          "version": "4.1.121.Final",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.121.Final/netty-codec-http2-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.1.121.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.121.Final/netty-codec-socks-4.1.121.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-web-common",
+          "version": "4.5.15",
+          "artifacts": [
+            {
+              "name": "vertx-web-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-common/4.5.15/vertx-web-common-4.5.15.jar"
             }
           ]
         }

@@ -16,8 +16,8 @@
       
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.9.0/scala3-library_3-3.9.0.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/projects/myapp/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/projects/myapp/builds/normal/classes",
@@ -28,7 +28,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala3-compiler_3",
-      "version": "3.8.4",
+      "version": "3.9.0",
       "options": [
         "-Wnonunit-statement",
         "-Wunused:explicits",
@@ -49,14 +49,14 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.8.4/scala3-compiler_3-3.8.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.8.4/scala3-interfaces-3.8.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.8.4/tasty-core_3-3.8.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.9.0/scala3-compiler_3-3.9.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.9.0/scala3-interfaces-3.9.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.9.0/tasty-core_3-3.9.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.9.0/scala3-library_3-3.9.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.12.0/compiler-interface-1.12.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.11.5/util-interface-1.11.5.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/projects/myapp/builds/normal/inc_compile.zip",
       "setup": {
@@ -89,22 +89,22 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "3.8.4",
+          "version": "3.9.0",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
-          "version": "3.8.4",
+          "version": "3.9.0",
           "artifacts": [
             {
               "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.9.0/scala3-library_3-3.9.0.jar"
             }
           ]
         }

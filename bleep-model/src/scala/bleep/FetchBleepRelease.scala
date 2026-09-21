@@ -1,7 +1,7 @@
 package bleep
 
 import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger, FileCache}
-import coursier.util.{Artifact, Task}
+import coursier.util.Artifact
 
 import java.io.File
 import java.nio.file.Path
@@ -57,8 +57,8 @@ object FetchBleepRelease {
     maybeUrl match {
       case Left(msg)  => Left(new BleepException.Text(msg))
       case Right(uri) =>
-        val fetching: Future[Either[ArtifactError, File]] = ArchiveCache[Task]()
-          .withCache(FileCache().withLogger(cacheLogger))
+        val fetching: Future[Either[ArtifactError, File]] = ArchiveCache()
+          .copy(cache = FileCache().copy(logger = cacheLogger))
           .get(Artifact(uri))
           .value(executionContext)
 

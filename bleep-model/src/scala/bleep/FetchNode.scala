@@ -1,7 +1,7 @@
 package bleep
 
 import coursier.cache.{ArchiveCache, CacheLogger}
-import coursier.util.{Artifact, Task}
+import coursier.util.Artifact
 
 import java.nio.file.Path
 import scala.concurrent.duration.Duration
@@ -17,8 +17,8 @@ class FetchNode(logger: CacheLogger, ec: ExecutionContext) {
       case OsArch.LinuxArm64    => s"https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-linux-arm64.tar.gz"
       case other                => throw new BleepException.Text(s"todo: implement FetchNode for $other")
     }
-    val fileCache = BleepFileCache().withLogger(logger)
-    val cache = ArchiveCache[Task]().withCache(fileCache)
+    val fileCache = BleepFileCache().copy(logger = logger)
+    val cache = ArchiveCache().copy(cache = fileCache)
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {
       case Left(value)   => throw new BleepException.Cause(value, s"couldn't download node $nodeVersion from url $url")

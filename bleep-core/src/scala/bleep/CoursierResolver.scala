@@ -156,7 +156,7 @@ object CoursierResolver {
       jarFiles.map(_.toPath)
   }
 
-  private object Result {
+  private[bleep] object Result {
     // format: off
     implicit val codecModule: Codec[Module] =
       Codec.forProduct3[Module, Organization, ModuleName, Map[String, String]]("organization", "name", "attributes")(Module.apply)(mod => (mod.organization, mod.name, mod.attributes))
@@ -165,10 +165,10 @@ object CoursierResolver {
       Codec.forProduct4[Publication, String, Type, Extension, Classifier]("name", "type", "ext", "classifier")(Publication.apply)(mod => (mod.name, mod.`type`, mod.ext, mod.classifier))
 
     implicit val codecDependency: Codec[Dependency] =
-      Codec.forProduct7[Dependency, Module, String, Configuration, Set[(Organization, ModuleName)], Publication, Boolean, Boolean]("module", "version", "configuration", "exclusions", "publication", "optional", "transitive")((module, version, configuration, exclusions, publication, optional, transitive) => Dependency(module, VersionConstraint(version), VariantSelector.ConfigurationBased(configuration), exclusions, publication, optional, transitive))(x => (x.module, x.versionConstraint.asString, x.configurationOrThrow, x.minimizedExclusions.toSet(), x.publication, x.optional, x.transitive))
+      Codec.forProduct7[Dependency, Module, String, Configuration, Set[(Organization, ModuleName)], Publication, Boolean, Boolean]("module", "version", "configuration", "exclusions", "publication", "optional", "transitive")((module, version, configuration, exclusions, publication, optional, transitive) => Dependency(module, VersionConstraint(version), VariantSelector.ConfigurationBased(configuration), exclusions, publication, optional, transitive))(x => (x.module, x.versionConstraint.asString, x.configurationOrThrow, x.minimizedExclusions.toSet(), x.publication, x.optional0.contains(true), x.transitive))
 
     implicit val codecAuthentication: Codec[Authentication] =
-      Codec.forProduct7[Authentication, Option[String], Option[String], Seq[(String, String)], Boolean, Option[String], Boolean, Boolean]("user", "passwordOpt", "httpHeaders", "optional", "realmOpt", "httpsOnly", "passOnRedirect")(Authentication.apply)(x => (x.userOpt, x.passwordOpt, x.httpHeaders, x.optional, x.realmOpt, x.httpsOnly, x.passOnRedirect))
+      Codec.forProduct7[Authentication, Option[String], Option[String], Seq[(String, String)], Boolean, Option[String], Boolean, Boolean]("user", "passwordOpt", "httpHeaders", "optional", "realmOpt", "httpsOnly", "passOnRedirect")((user, password, headers, optional, realm, httpsOnly, passOnRedirect) => Authentication(user, password, headers, optional, realm, httpsOnly, passOnRedirect, byNameHttpHeaders = Nil))(x => if (x.byNameHttpHeaders.nonEmpty) sys.error("cannot serialize an Authentication with byNameHttpHeaders: they are functions") else (x.userOpt, x.passwordOpt, x.httpHeaders, x.optional, x.realmOpt, x.httpsOnly, x.passOnRedirect))
 
     // break circular structure
     private implicit lazy val encoderMap: Encoder[Map[String, Artifact]] =
@@ -213,7 +213,7 @@ object CoursierResolver {
             )
             (uri, staticAuth)
         }
-        SbtMavenRepository(resolvedUri.toString).withAuthentication(auth)
+        SbtMavenRepository(resolvedUri.toString).copy(authentication = auth)
       case bleep.model.Repository.Ivy(_, uri) =>
         val (resolvedUri, auth) = model.PrivateRepoScheme.fromUri(uri) match {
           case Some(scheme) =>
@@ -224,7 +224,7 @@ object CoursierResolver {
             )
             (uri, staticAuth)
         }
-        IvyRepository.fromPattern(resolvedUri.toString +: coursier.ivy.Pattern.default).withAuthentication(auth)
+        IvyRepository.fromPattern(resolvedUri.toString +: coursier.ivy.Pattern.default).copy(authentication = auth)
     }
   }
 
@@ -237,7 +237,7 @@ object CoursierResolver {
 
   class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params, credentialProvider: CredentialProvider) extends CoursierResolver {
 
-    val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
+    val fileCache = BleepFileCache.at(params.overrideCacheFolder.getOrElse(CacheDefaults.location)).copy(logger = cacheLogger)
     lazy val repos = coursierRepos(params.repos, params.authentications, credentialProvider, logger)
 
     /** The version pins the declared BOMs imply, Maven-style. Computed once per resolver instance — params (and with them the BOM set) are immutable here. */
@@ -247,8 +247,7 @@ object CoursierResolver {
 
     private def fetchPomFile(g: String, a: String, v: String): Option[Path] = {
       val dep = Dependency(Module(Organization(g), ModuleName(a), Map.empty), VersionConstraint(v))
-        .withTransitive(false)
-        .withPublication(Publication(a, Type.pom, Extension.pom, Classifier.empty))
+        .copy(transitive = false, publication = Publication(a, Type.pom, Extension.pom, Classifier.empty))
       Fetch[Task](fileCache)
         .withRepositories(repos)
         .withDependencies(Seq(dep))
@@ -304,20 +303,20 @@ object CoursierResolver {
             // SameVersion rule (scala-reflect/scala-compiler don't exist as 3.x artifacts).
             ResolutionParams()
               .withForceScalaVersion(false)
-              .withScalaVersionOpt0(Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
+              .copy(scalaVersionOpt0 = Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
           case Some(sv) if sv.scalaVersion.is3Or213 =>
             // Scala 2.13/3 (pre-3.8): disable forceScalaVersion to allow scala-library upgrades.
             // scala-library IS added as an explicit dependency with scalaVersion, which acts as
             // a floor constraint. The SameVersion rule ensures all Scala artifacts stay aligned.
             ResolutionParams()
               .withForceScalaVersion(false)
-              .withScalaVersionOpt0(Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
+              .copy(scalaVersionOpt0 = Some(VersionConstraint(sv.scalaVersion.scalaVersion)))
               .addRule(scalaArtifactsSameVersionRule)
           case _ =>
             // Scala 2.12 and older: force the scala version for forward binary compatibility
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)
-              .withScalaVersionOpt0(versionCombo.asScala.map(x => VersionConstraint(x.scalaVersion.scalaVersion)))
+              .copy(scalaVersionOpt0 = versionCombo.asScala.map(x => VersionConstraint(x.scalaVersion.scalaVersion)))
         }
 
         // BOM pins force transitive versions the way Maven's dependencyManagement does — except for
@@ -330,7 +329,7 @@ object CoursierResolver {
 
         (try
           Fetch[Task](fileCache)
-            .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
+            .copy(artifacts = Artifacts.apply(fileCache).withResolution(Resolution.apply()))
             .withRepositories(repos)
             .withDependencies(deps)
             // Deliberately NOT withForceOverrideVersions: that coursier path trips over BOM entries

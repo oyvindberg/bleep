@@ -3,7 +3,7 @@ package bleep.analysis
 import bleep.BleepFileCache
 import cats.effect.IO
 import coursier.cache.{ArchiveCache, CacheLogger}
-import coursier.util.{Artifact, Task}
+import coursier.util.Artifact
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -92,8 +92,8 @@ object KotlinNativeCompiler {
     val artifactFileName = s"kotlin-native-prebuilt-$kotlinVersion-$platform"
     val extractedFolderName = s"kotlin-native-prebuilt-$platform-$kotlinVersion"
     val url = s"https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-native-prebuilt/$kotlinVersion/$artifactFileName.tar.gz"
-    val fileCache = BleepFileCache().withLogger(CacheLogger.nop)
-    val cache = ArchiveCache[Task]().withCache(fileCache)
+    val fileCache = BleepFileCache().copy(logger = CacheLogger.nop)
+    val cache = ArchiveCache().copy(cache = fileCache)
     val extractedRoot = Await.result(cache.get(Artifact(url)).value(ExecutionContext.global), Duration.Inf) match {
       case Left(err)     => throw new RuntimeException(s"Failed to fetch Kotlin/Native prebuilt $kotlinVersion ($platform): $err", err)
       case Right(folder) => folder.toPath

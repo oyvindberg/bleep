@@ -111,12 +111,12 @@
       "modules": [
         {
           "organization": "com.eed3si9n",
-          "name": "shaded-jawn-parser_2.12",
-          "version": "1.3.2",
+          "name": "shaded-scalajson_2.12",
+          "version": "1.0.0-M4",
           "artifacts": [
             {
-              "name": "shaded-jawn-parser_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/1.3.2/shaded-jawn-parser_2.12-1.3.2.jar"
+              "name": "shaded-scalajson_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar"
             }
           ]
         },
@@ -133,34 +133,23 @@
         },
         {
           "organization": "com.eed3si9n",
+          "name": "shaded-jawn-parser_2.12",
+          "version": "1.3.2",
+          "artifacts": [
+            {
+              "name": "shaded-jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/1.3.2/shaded-jawn-parser_2.12-1.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.10.1/sjson-new-scalajson_2.12-0.10.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "shaded-scalajson_2.12",
-          "version": "1.0.0-M4",
-          "artifacts": [
-            {
-              "name": "shaded-scalajson_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
@@ -172,6 +161,17 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         }

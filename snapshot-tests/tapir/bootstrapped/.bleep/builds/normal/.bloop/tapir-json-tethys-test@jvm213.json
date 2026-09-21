@@ -188,50 +188,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.tethys-json",
-          "name": "tethys-derivation_2.13",
-          "version": "0.29.5",
-          "artifacts": [
-            {
-              "name": "tethys-derivation_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-derivation_2.13/0.29.5/tethys-derivation_2.13-0.29.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.tethys-json",
-          "name": "tethys-core_2.13",
-          "version": "0.29.5",
-          "artifacts": [
-            {
-              "name": "tethys-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.29.5/tethys-core_2.13-0.29.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-core",
-          "version": "2.13.5",
-          "artifacts": [
-            {
-              "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.5/jackson-core-2.13.5.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
@@ -244,34 +200,23 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-diagrams_2.13",
+          "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-diagrams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "com.tethys-json",
-          "name": "tethys-jackson213_2.13",
+          "name": "tethys-core_2.13",
           "version": "0.29.5",
           "artifacts": [
             {
-              "name": "tethys-jackson213_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson213_2.13/0.29.5/tethys-jackson213_2.13-0.29.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalactic",
-          "name": "scalactic_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
+              "name": "tethys-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.29.5/tethys-core_2.13-0.29.5.jar"
             }
           ]
         },
@@ -298,17 +243,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
@@ -321,12 +255,89 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-freespec_2.13",
+          "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-freespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
+              "name": "scalatest-funsuite_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.tethys-json",
+          "name": "tethys-derivation_2.13",
+          "version": "0.29.5",
+          "artifacts": [
+            {
+              "name": "tethys-derivation_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-derivation_2.13/0.29.5/tethys-derivation_2.13-0.29.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.18/scalactic_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.tethys-json",
+          "name": "tethys-jackson213_2.13",
+          "version": "0.29.5",
+          "artifacts": [
+            {
+              "name": "tethys-jackson213_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson213_2.13/0.29.5/tethys-jackson213_2.13-0.29.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -354,34 +365,34 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-wordspec_2.13",
+          "name": "scalatest_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-wordspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
+          "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.18/scalatest-freespec_2.13-3.2.18.jar"
             }
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.5.0",
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.13",
+          "version": "3.2.18",
           "artifacts": [
             {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
             }
           ]
         },
@@ -398,12 +409,34 @@
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest_2.13",
+          "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar"
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.18/scalatest-matchers-core_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -420,67 +453,34 @@
         },
         {
           "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.13",
+          "name": "core_2.13",
           "version": "1.5.0",
           "artifacts": [
             {
-              "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "2.1.0",
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.13.5",
           "artifacts": [
             {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.18/scalatest-propspec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.5/jackson-core-2.13.5.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
-          "name": "scalatest-featurespec_2.13",
+          "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
           "artifacts": [
             {
-              "name": "scalatest-featurespec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.18/scalatest-funsuite_2.13-3.2.18.jar"
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar"
             }
           ]
         }

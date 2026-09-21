@@ -134,46 +134,13 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.sttp.client3",
-          "name": "core_2.12",
-          "version": "3.11.0",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
           "artifacts": [
             {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.12/3.11.0/core_2.12-3.11.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_2.12",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.12",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
@@ -189,13 +156,46 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.20",
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "core_2.12",
+          "version": "3.11.0",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.12/3.11.0/core_2.12-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
             }
           ]
         }

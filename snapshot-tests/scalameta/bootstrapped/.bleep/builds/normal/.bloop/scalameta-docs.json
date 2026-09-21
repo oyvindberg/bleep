@@ -171,112 +171,35 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scalameta",
-          "name": "metaconfig-core_2.13",
-          "version": "0.15.0",
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-gfm-issues",
+          "version": "0.64.8",
           "artifacts": [
             {
-              "name": "metaconfig-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/metaconfig-core_2.13/0.15.0/metaconfig-core_2.13-0.15.0.jar"
+              "name": "flexmark-ext-gfm-issues",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-issues/0.64.8/flexmark-ext-gfm-issues-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-gitlab",
+          "name": "flexmark-profile-pegdown",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-gitlab",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gitlab/0.64.8/flexmark-ext-gitlab-0.64.8.jar"
+              "name": "flexmark-profile-pegdown",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-profile-pegdown/0.64.8/flexmark-profile-pegdown-0.64.8.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.13.16",
+          "organization": "com.openhtmltopdf",
+          "name": "openhtmltopdf-pdfbox",
+          "version": "1.0.10",
           "artifacts": [
             {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-wikilink",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-wikilink",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-wikilink/0.64.8/flexmark-ext-wikilink-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-all",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-all",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/0.64.8/flexmark-all-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "pprint_2.13",
-          "version": "0.9.0",
-          "artifacts": [
-            {
-              "name": "pprint_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.13/0.9.0/pprint_2.13-0.9.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-gfm-tasklist",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-gfm-tasklist",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tasklist/0.64.8/flexmark-ext-gfm-tasklist-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-youtrack-converter",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-youtrack-converter",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-youtrack-converter/0.64.8/flexmark-youtrack-converter-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "trees_2.13",
-          "version": "4.13.4",
-          "artifacts": [
-            {
-              "name": "trees_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.13.4/trees_2.13-4.13.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-admonition",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-admonition",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-admonition/0.64.8/flexmark-ext-admonition-0.64.8.jar"
+              "name": "openhtmltopdf-pdfbox",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-pdfbox/1.0.10/openhtmltopdf-pdfbox-1.0.10.jar"
             }
           ]
         },
@@ -292,101 +215,46 @@
           ]
         },
         {
-          "organization": "org.jetbrains",
-          "name": "annotations",
-          "version": "24.0.1",
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.3",
           "artifacts": [
             {
-              "name": "annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/24.0.1/annotations-24.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.nibor.autolink",
-          "name": "autolink",
-          "version": "0.6.0",
-          "artifacts": [
-            {
-              "name": "autolink",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/nibor/autolink/autolink/0.6.0/autolink-0.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "commons-logging",
-          "name": "commons-logging",
-          "version": "1.2",
-          "artifacts": [
-            {
-              "name": "commons-logging",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-visitor",
+          "name": "flexmark-ext-macros",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-util-visitor",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-visitor/0.64.8/flexmark-util-visitor-0.64.8.jar"
+              "name": "flexmark-ext-macros",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-macros/0.64.8/flexmark-ext-macros-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.xnio",
+          "name": "xnio-nio",
+          "version": "3.8.16.Final",
+          "artifacts": [
+            {
+              "name": "xnio-nio",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-nio/3.8.16.Final/xnio-nio-3.8.16.Final.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-definition",
+          "name": "flexmark-ext-aside",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-definition",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-definition/0.64.8/flexmark-ext-definition-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-builder",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-builder",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-builder/0.64.8/flexmark-util-builder-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-youtube-embedded",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-youtube-embedded",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-youtube-embedded/0.64.8/flexmark-ext-youtube-embedded-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-format",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-format",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-format/0.64.8/flexmark-util-format-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-gfm-issues",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-gfm-issues",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-issues/0.64.8/flexmark-ext-gfm-issues-0.64.8.jar"
+              "name": "flexmark-ext-aside",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-aside/0.64.8/flexmark-ext-aside-0.64.8.jar"
             }
           ]
         },
@@ -402,6 +270,28 @@
           ]
         },
         {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-misc",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-misc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-misc/0.64.8/flexmark-util-misc-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "interface",
+          "version": "1.0.28",
+          "artifacts": [
+            {
+              "name": "interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.28/interface-1.0.28.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.googlecode.java-diff-utils",
           "name": "diffutils",
           "version": "1.3.0",
@@ -409,127 +299,6 @@
             {
               "name": "diffutils",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.openhtmltopdf",
-          "name": "openhtmltopdf-rtl-support",
-          "version": "1.0.10",
-          "artifacts": [
-            {
-              "name": "openhtmltopdf-rtl-support",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-rtl-support/1.0.10/openhtmltopdf-rtl-support-1.0.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "io_2.13",
-          "version": "4.13.4",
-          "artifacts": [
-            {
-              "name": "io_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/io_2.13/4.13.4/io_2.13-4.13.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-xwiki-macros",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-xwiki-macros",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-xwiki-macros/0.64.8/flexmark-ext-xwiki-macros-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pdfbox",
-          "name": "xmpbox",
-          "version": "2.0.24",
-          "artifacts": [
-            {
-              "name": "xmpbox",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/xmpbox/2.0.24/xmpbox-2.0.24.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-ins",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-ins",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-ins/0.64.8/flexmark-ext-ins-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.virtuslab",
-          "name": "using_directives",
-          "version": "1.1.4",
-          "artifacts": [
-            {
-              "name": "using_directives",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/using_directives/1.1.4/using_directives-1.1.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "mdoc_2.13",
-          "version": "2.7.1",
-          "artifacts": [
-            {
-              "name": "mdoc_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc_2.13/2.7.1/mdoc_2.13-2.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.pdfbox",
-          "name": "fontbox",
-          "version": "2.0.24",
-          "artifacts": [
-            {
-              "name": "fontbox",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/fontbox/2.0.24/fontbox-2.0.24.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jboss.xnio",
-          "name": "xnio-api",
-          "version": "3.8.16.Final",
-          "artifacts": [
-            {
-              "name": "xnio-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.16.Final/xnio-api-3.8.16.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.methvin",
-          "name": "directory-watcher",
-          "version": "0.18.0",
-          "artifacts": [
-            {
-              "name": "directory-watcher",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.18.0/directory-watcher-0.18.0.jar"
             }
           ]
         },
@@ -545,28 +314,6 @@
           ]
         },
         {
-          "organization": "org.jsoup",
-          "name": "jsoup",
-          "version": "1.15.4",
-          "artifacts": [
-            {
-              "name": "jsoup",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.15.4/jsoup-1.15.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-toc",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-toc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-toc/0.64.8/flexmark-ext-toc-0.64.8.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "paiges-core_2.13",
           "version": "0.4.4",
@@ -578,79 +325,101 @@
           ]
         },
         {
-          "organization": "org.wildfly.common",
-          "name": "wildfly-common",
-          "version": "1.5.4.Final",
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-xwiki-macros",
+          "version": "0.64.8",
           "artifacts": [
             {
-              "name": "wildfly-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/common/wildfly-common/1.5.4.Final/wildfly-common-1.5.4.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.3",
-          "artifacts": [
-            {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "scalameta_2.13",
-          "version": "4.13.4",
-          "artifacts": [
-            {
-              "name": "scalameta_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.13.4/scalameta_2.13-4.13.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.openhtmltopdf",
-          "name": "openhtmltopdf-core",
-          "version": "1.0.10",
-          "artifacts": [
-            {
-              "name": "openhtmltopdf-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-core/1.0.10/openhtmltopdf-core-1.0.10.jar"
+              "name": "flexmark-ext-xwiki-macros",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-xwiki-macros/0.64.8/flexmark-ext-xwiki-macros-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-escaped-character",
+          "name": "flexmark-ext-gfm-strikethrough",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-escaped-character",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-escaped-character/0.64.8/flexmark-ext-escaped-character-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-collection",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-collection",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-collection/0.64.8/flexmark-util-collection-0.64.8.jar"
+              "name": "flexmark-ext-gfm-strikethrough",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-strikethrough/0.64.8/flexmark-ext-gfm-strikethrough-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "org.scalameta",
-          "name": "metaconfig-typesafe-config_2.13",
-          "version": "0.15.0",
+          "name": "mdoc-parser_2.13",
+          "version": "2.7.1",
           "artifacts": [
             {
-              "name": "metaconfig-typesafe-config_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/metaconfig-typesafe-config_2.13/0.15.0/metaconfig-typesafe-config_2.13-0.15.0.jar"
+              "name": "mdoc-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-parser_2.13/2.7.1/mdoc-parser_2.13-2.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.threads",
+          "name": "jboss-threads",
+          "version": "3.1.0.Final",
+          "artifacts": [
+            {
+              "name": "jboss-threads",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/threads/jboss-threads/3.1.0.Final/jboss-threads-3.1.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-gfm-tasklist",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-gfm-tasklist",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tasklist/0.64.8/flexmark-ext-gfm-tasklist-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pdfbox",
+          "name": "pdfbox",
+          "version": "2.0.24",
+          "artifacts": [
+            {
+              "name": "pdfbox",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/pdfbox/2.0.24/pdfbox-2.0.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jsoup",
+          "name": "jsoup",
+          "version": "1.15.4",
+          "artifacts": [
+            {
+              "name": "jsoup",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.15.4/jsoup-1.15.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.xnio",
+          "name": "xnio-api",
+          "version": "3.8.16.Final",
+          "artifacts": [
+            {
+              "name": "xnio-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.16.Final/xnio-api-3.8.16.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util/0.64.8/flexmark-util-0.64.8.jar"
             }
           ]
         },
@@ -667,12 +436,156 @@
         },
         {
           "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-resizable-image",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-resizable-image",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-resizable-image/0.64.8/flexmark-ext-resizable-image-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-sequence",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-sequence",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-sequence/0.64.8/flexmark-util-sequence-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-jekyll-tag",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-jekyll-tag",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-tag/0.64.8/flexmark-ext-jekyll-tag-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "24.0.1",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/24.0.1/annotations-24.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
           "name": "flexmark",
           "version": "0.64.8",
           "artifacts": [
             {
               "name": "flexmark",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark/0.64.8/flexmark-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-wikilink",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-wikilink",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-wikilink/0.64.8/flexmark-ext-wikilink-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.nibor.autolink",
+          "name": "autolink",
+          "version": "0.6.0",
+          "artifacts": [
+            {
+              "name": "autolink",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/nibor/autolink/autolink/0.6.0/autolink-0.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wildfly.common",
+          "name": "wildfly-common",
+          "version": "1.5.4.Final",
+          "artifacts": [
+            {
+              "name": "wildfly-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/common/wildfly-common/1.5.4.Final/wildfly-common-1.5.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-anchorlink",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-anchorlink",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-anchorlink/0.64.8/flexmark-ext-anchorlink-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-emoji",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-emoji",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-emoji/0.64.8/flexmark-ext-emoji-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.openhtmltopdf",
+          "name": "openhtmltopdf-core",
+          "version": "1.0.10",
+          "artifacts": [
+            {
+              "name": "openhtmltopdf-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-core/1.0.10/openhtmltopdf-core-1.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.27.1",
+          "artifacts": [
+            {
+              "name": "jline",
+              "classifier": "jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "mdoc-interfaces",
+          "version": "2.7.1",
+          "artifacts": [
+            {
+              "name": "mdoc-interfaces",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-interfaces/2.7.1/mdoc-interfaces-2.7.1.jar"
             }
           ]
         },
@@ -688,46 +601,145 @@
           ]
         },
         {
-          "organization": "io.undertow",
-          "name": "undertow-core",
-          "version": "2.2.30.Final",
-          "artifacts": [
-            {
-              "name": "undertow-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/undertow/undertow-core/2.2.30.Final/undertow-core-2.2.30.Final.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalameta",
-          "name": "mdoc-parser_2.13",
-          "version": "2.7.1",
+          "name": "io_2.13",
+          "version": "4.13.4",
           "artifacts": [
             {
-              "name": "mdoc-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-parser_2.13/2.7.1/mdoc-parser_2.13-2.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "mdoc-runtime_2.13",
-          "version": "2.7.1",
-          "artifacts": [
-            {
-              "name": "mdoc-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-runtime_2.13/2.7.1/mdoc-runtime_2.13-2.7.1.jar"
+              "name": "io_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/io_2.13/4.13.4/io_2.13-4.13.4.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-attributes",
+          "name": "flexmark-ext-gfm-users",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-attributes",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-attributes/0.64.8/flexmark-ext-attributes-0.64.8.jar"
+              "name": "flexmark-ext-gfm-users",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-users/0.64.8/flexmark-ext-gfm-users-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.virtuslab",
+          "name": "using_directives",
+          "version": "1.1.4",
+          "artifacts": [
+            {
+              "name": "using_directives",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/using_directives/1.1.4/using_directives-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fansi_2.13",
+          "version": "0.5.0",
+          "artifacts": [
+            {
+              "name": "fansi_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.5.0/fansi_2.13-0.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "common_2.13",
+          "version": "4.13.4",
+          "artifacts": [
+            {
+              "name": "common_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/common_2.13/4.13.4/common_2.13-4.13.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "mdoc-cli_2.13",
+          "version": "2.7.1",
+          "artifacts": [
+            {
+              "name": "mdoc-cli_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-cli_2.13/2.7.1/mdoc-cli_2.13-2.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.java-diff-utils",
+          "name": "java-diff-utils",
+          "version": "4.15",
+          "artifacts": [
+            {
+              "name": "java-diff-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "mdoc_2.13",
+          "version": "2.7.1",
+          "artifacts": [
+            {
+              "name": "mdoc_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc_2.13/2.7.1/mdoc_2.13-2.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-pdf-converter",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-pdf-converter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-pdf-converter/0.64.8/flexmark-pdf-converter-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-visitor",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-visitor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-visitor/0.64.8/flexmark-util-visitor-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-gitlab",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-gitlab",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gitlab/0.64.8/flexmark-ext-gitlab-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-youtube-embedded",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-youtube-embedded",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-youtube-embedded/0.64.8/flexmark-ext-youtube-embedded-0.64.8.jar"
             }
           ]
         },
@@ -754,24 +766,57 @@
           ]
         },
         {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-superscript",
-          "version": "0.64.8",
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.12.1",
           "artifacts": [
             {
-              "name": "flexmark-ext-superscript",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-superscript/0.64.8/flexmark-ext-superscript-0.64.8.jar"
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.1/jna-5.12.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.13",
+          "version": "2.33.2",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.33.2/jsoniter-scala-core_2.13-2.33.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-emoji",
+          "name": "flexmark-ext-definition",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-emoji",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-emoji/0.64.8/flexmark-ext-emoji-0.64.8.jar"
+              "name": "flexmark-ext-definition",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-definition/0.64.8/flexmark-ext-definition-0.64.8.jar"
             }
           ]
         },
@@ -787,101 +832,57 @@
           ]
         },
         {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-options",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-options",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-options/0.64.8/flexmark-util-options-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jboss.threads",
-          "name": "jboss-threads",
-          "version": "3.1.0.Final",
-          "artifacts": [
-            {
-              "name": "jboss-threads",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/threads/jboss-threads/3.1.0.Final/jboss-threads-3.1.0.Final.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.apache.pdfbox",
-          "name": "pdfbox",
+          "name": "fontbox",
           "version": "2.0.24",
           "artifacts": [
             {
-              "name": "pdfbox",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/pdfbox/2.0.24/pdfbox-2.0.24.jar"
+              "name": "fontbox",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/fontbox/2.0.24/fontbox-2.0.24.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-jekyll-tag",
+          "name": "flexmark-ext-footnotes",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-jekyll-tag",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-tag/0.64.8/flexmark-ext-jekyll-tag-0.64.8.jar"
+              "name": "flexmark-ext-footnotes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-footnotes/0.64.8/flexmark-ext-footnotes-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-yaml-front-matter",
+          "name": "flexmark-ext-escaped-character",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-yaml-front-matter",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-yaml-front-matter/0.64.8/flexmark-ext-yaml-front-matter-0.64.8.jar"
+              "name": "flexmark-ext-escaped-character",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-escaped-character/0.64.8/flexmark-ext-escaped-character-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-html2md-converter",
+          "name": "flexmark-ext-toc",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-html2md-converter",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-html2md-converter/0.64.8/flexmark-html2md-converter-0.64.8.jar"
+              "name": "flexmark-ext-toc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-toc/0.64.8/flexmark-ext-toc-0.64.8.jar"
             }
           ]
         },
         {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-anchorlink",
-          "version": "0.64.8",
+          "organization": "org.jboss.logging",
+          "name": "jboss-logging",
+          "version": "3.4.3.Final",
           "artifacts": [
             {
-              "name": "flexmark-ext-anchorlink",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-anchorlink/0.64.8/flexmark-ext-anchorlink-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-resizable-image",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-resizable-image",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-resizable-image/0.64.8/flexmark-ext-resizable-image-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "mdoc-cli_2.13",
-          "version": "2.7.1",
-          "artifacts": [
-            {
-              "name": "mdoc-cli_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-cli_2.13/2.7.1/mdoc-cli_2.13-2.7.1.jar"
+              "name": "jboss-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.4.3.Final/jboss-logging-3.4.3.Final.jar"
             }
           ]
         },
@@ -897,36 +898,57 @@
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline",
-          "version": "3.27.1",
+          "organization": "com.lihaoyi",
+          "name": "pprint_2.13",
+          "version": "0.9.0",
           "artifacts": [
             {
-              "name": "jline",
-              "classifier": "jdk8",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jboss.xnio",
-          "name": "xnio-nio",
-          "version": "3.8.16.Final",
-          "artifacts": [
-            {
-              "name": "xnio-nio",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-nio/3.8.16.Final/xnio-nio-3.8.16.Final.jar"
+              "name": "pprint_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.13/0.9.0/pprint_2.13-0.9.0.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-profile-pegdown",
+          "name": "flexmark-util-ast",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-profile-pegdown",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-profile-pegdown/0.64.8/flexmark-profile-pegdown-0.64.8.jar"
+              "name": "flexmark-util-ast",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-ast/0.64.8/flexmark-util-ast-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pdfbox",
+          "name": "xmpbox",
+          "version": "2.0.24",
+          "artifacts": [
+            {
+              "name": "xmpbox",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/xmpbox/2.0.24/xmpbox-2.0.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-html2md-converter",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-html2md-converter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-html2md-converter/0.64.8/flexmark-html2md-converter-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wildfly.client",
+          "name": "wildfly-client-config",
+          "version": "1.0.1.Final",
+          "artifacts": [
+            {
+              "name": "wildfly-client-config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/client/wildfly-client-config/1.0.1.Final/wildfly-client-config-1.0.1.Final.jar"
             }
           ]
         },
@@ -953,145 +975,90 @@
           ]
         },
         {
-          "organization": "org.jboss.logging",
-          "name": "jboss-logging",
-          "version": "3.4.3.Final",
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-all",
+          "version": "0.64.8",
           "artifacts": [
             {
-              "name": "jboss-logging",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.4.3.Final/jboss-logging-3.4.3.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.java.dev.jna",
-          "name": "jna",
-          "version": "5.12.1",
-          "artifacts": [
-            {
-              "name": "jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.1/jna-5.12.1.jar"
+              "name": "flexmark-all",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/0.64.8/flexmark-all-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-gfm-users",
+          "name": "flexmark-util-options",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-gfm-users",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-users/0.64.8/flexmark-ext-gfm-users-0.64.8.jar"
+              "name": "flexmark-util-options",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-options/0.64.8/flexmark-util-options-0.64.8.jar"
             }
           ]
         },
         {
-          "organization": "io.github.java-diff-utils",
-          "name": "java-diff-utils",
-          "version": "4.15",
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-format",
+          "version": "0.64.8",
           "artifacts": [
             {
-              "name": "java-diff-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
+              "name": "flexmark-util-format",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-format/0.64.8/flexmark-util-format-0.64.8.jar"
             }
           ]
         },
         {
-          "organization": "io.get-coursier",
-          "name": "interface",
-          "version": "1.0.28",
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-typographic",
+          "version": "0.64.8",
           "artifacts": [
             {
-              "name": "interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.28/interface-1.0.28.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.github.plokhotnyuk.jsoniter-scala",
-          "name": "jsoniter-scala-core_2.13",
-          "version": "2.33.2",
-          "artifacts": [
-            {
-              "name": "jsoniter-scala-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.33.2/jsoniter-scala-core_2.13-2.33.2.jar"
+              "name": "flexmark-ext-typographic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-typographic/0.64.8/flexmark-ext-typographic-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "org.scalameta",
-          "name": "common_2.13",
+          "name": "scalameta_2.13",
           "version": "4.13.4",
           "artifacts": [
             {
-              "name": "common_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/common_2.13/4.13.4/common_2.13-4.13.4.jar"
+              "name": "scalameta_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.13.4/scalameta_2.13-4.13.4.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
+          "organization": "io.methvin",
+          "name": "directory-watcher",
+          "version": "0.18.0",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "name": "directory-watcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.18.0/directory-watcher-0.18.0.jar"
             }
           ]
         },
         {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-dependency",
-          "version": "0.64.8",
+          "organization": "org.scalameta",
+          "name": "trees_2.13",
+          "version": "4.13.4",
           "artifacts": [
             {
-              "name": "flexmark-util-dependency",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-dependency/0.64.8/flexmark-util-dependency-0.64.8.jar"
+              "name": "trees_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.13.4/trees_2.13-4.13.4.jar"
             }
           ]
         },
         {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util",
-          "version": "0.64.8",
+          "organization": "org.scalameta",
+          "name": "metaconfig-core_2.13",
+          "version": "0.15.0",
           "artifacts": [
             {
-              "name": "flexmark-util",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util/0.64.8/flexmark-util-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.github.plokhotnyuk.jsoniter-scala",
-          "name": "jsoniter-scala-macros_2.13",
-          "version": "2.33.2",
-          "artifacts": [
-            {
-              "name": "jsoniter-scala-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.13/2.33.2/jsoniter-scala-macros_2.13-2.33.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.wildfly.client",
-          "name": "wildfly-client-config",
-          "version": "1.0.1.Final",
-          "artifacts": [
-            {
-              "name": "wildfly-client-config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/client/wildfly-client-config/1.0.1.Final/wildfly-client-config-1.0.1.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.openhtmltopdf",
-          "name": "openhtmltopdf-pdfbox",
-          "version": "1.0.10",
-          "artifacts": [
-            {
-              "name": "openhtmltopdf-pdfbox",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-pdfbox/1.0.10/openhtmltopdf-pdfbox-1.0.10.jar"
+              "name": "metaconfig-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/metaconfig-core_2.13/0.15.0/metaconfig-core_2.13-0.15.0.jar"
             }
           ]
         },
@@ -1108,56 +1075,89 @@
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-footnotes",
+          "name": "flexmark-ext-ins",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-ext-footnotes",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-footnotes/0.64.8/flexmark-ext-footnotes-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+              "name": "flexmark-ext-ins",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-ins/0.64.8/flexmark-ext-ins-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-ast",
+          "name": "flexmark-ext-yaml-front-matter",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-util-ast",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-ast/0.64.8/flexmark-util-ast-0.64.8.jar"
+              "name": "flexmark-ext-yaml-front-matter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-yaml-front-matter/0.64.8/flexmark-ext-yaml-front-matter-0.64.8.jar"
             }
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.13",
-          "version": "0.4.0",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "sourcecode_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.0/sourcecode_2.13-0.4.0.jar"
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
             }
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "fansi_2.13",
-          "version": "0.5.0",
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
           "artifacts": [
             {
-              "name": "fansi_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.5.0/fansi_2.13-0.5.0.jar"
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-superscript",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-superscript",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-superscript/0.64.8/flexmark-ext-superscript-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-macros_2.13",
+          "version": "2.33.2",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.13/2.33.2/jsoniter-scala-macros_2.13-2.33.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-collection",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-collection",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-collection/0.64.8/flexmark-util-collection-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-youtrack-converter",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-youtrack-converter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-youtrack-converter/0.64.8/flexmark-youtrack-converter-0.64.8.jar"
             }
           ]
         },
@@ -1174,100 +1174,100 @@
         },
         {
           "organization": "com.vladsch.flexmark",
-          "name": "flexmark-pdf-converter",
+          "name": "flexmark-ext-admonition",
           "version": "0.64.8",
           "artifacts": [
             {
-              "name": "flexmark-pdf-converter",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-pdf-converter/0.64.8/flexmark-pdf-converter-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-gfm-strikethrough",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-gfm-strikethrough",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-strikethrough/0.64.8/flexmark-ext-gfm-strikethrough-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-sequence",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-sequence",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-sequence/0.64.8/flexmark-util-sequence-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-typographic",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-typographic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-typographic/0.64.8/flexmark-ext-typographic-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-aside",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-aside",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-aside/0.64.8/flexmark-ext-aside-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-util-misc",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-util-misc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-misc/0.64.8/flexmark-util-misc-0.64.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.vladsch.flexmark",
-          "name": "flexmark-ext-macros",
-          "version": "0.64.8",
-          "artifacts": [
-            {
-              "name": "flexmark-ext-macros",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-macros/0.64.8/flexmark-ext-macros-0.64.8.jar"
+              "name": "flexmark-ext-admonition",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-admonition/0.64.8/flexmark-ext-admonition-0.64.8.jar"
             }
           ]
         },
         {
           "organization": "org.scalameta",
-          "name": "mdoc-interfaces",
+          "name": "metaconfig-typesafe-config_2.13",
+          "version": "0.15.0",
+          "artifacts": [
+            {
+              "name": "metaconfig-typesafe-config_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/metaconfig-typesafe-config_2.13/0.15.0/metaconfig-typesafe-config_2.13-0.15.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-ext-attributes",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-ext-attributes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-attributes/0.64.8/flexmark-ext-attributes-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.undertow",
+          "name": "undertow-core",
+          "version": "2.2.30.Final",
+          "artifacts": [
+            {
+              "name": "undertow-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/undertow/undertow-core/2.2.30.Final/undertow-core-2.2.30.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "mdoc-runtime_2.13",
           "version": "2.7.1",
           "artifacts": [
             {
-              "name": "mdoc-interfaces",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-interfaces/2.7.1/mdoc-interfaces-2.7.1.jar"
+              "name": "mdoc-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-runtime_2.13/2.7.1/mdoc-runtime_2.13-2.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.13",
+          "version": "0.4.0",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.0/sourcecode_2.13-0.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-builder",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-builder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-builder/0.64.8/flexmark-util-builder-0.64.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.openhtmltopdf",
+          "name": "openhtmltopdf-rtl-support",
+          "version": "1.0.10",
+          "artifacts": [
+            {
+              "name": "openhtmltopdf-rtl-support",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-rtl-support/1.0.10/openhtmltopdf-rtl-support-1.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vladsch.flexmark",
+          "name": "flexmark-util-dependency",
+          "version": "0.64.8",
+          "artifacts": [
+            {
+              "name": "flexmark-util-dependency",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-dependency/0.64.8/flexmark-util-dependency-0.64.8.jar"
             }
           ]
         }

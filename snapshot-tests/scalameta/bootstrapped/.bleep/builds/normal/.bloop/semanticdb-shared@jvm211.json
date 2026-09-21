@@ -132,39 +132,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.11",
-          "version": "0.3.1",
-          "artifacts": [
-            {
-              "name": "sourcecode_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "lenses_2.11",
-          "version": "0.9.8",
-          "artifacts": [
-            {
-              "name": "lenses_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.8/lenses_2.11-0.9.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.11",
-          "version": "1.0.5",
-          "artifacts": [
-            {
-              "name": "scala-xml_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.8.0",
@@ -177,34 +144,12 @@
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala-library",
+          "name": "scalap",
           "version": "2.11.12",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parser-combinators_2.11",
-          "version": "1.0.4",
-          "artifacts": [
-            {
-              "name": "scala-parser-combinators_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+              "name": "scalap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.11.12/scalap-2.11.12.jar"
             }
           ]
         },
@@ -231,17 +176,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scalap",
-          "version": "2.11.12",
-          "artifacts": [
-            {
-              "name": "scalap",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.11.12/scalap-2.11.12.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.11",
           "version": "0.9.8",
@@ -253,6 +187,39 @@
           ]
         },
         {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.11",
+          "version": "0.9.8",
+          "artifacts": [
+            {
+              "name": "lenses_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.8/lenses_2.11-0.9.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.11",
+          "version": "1.0.5",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.lihaoyi",
           "name": "fastparse_2.11",
           "version": "3.0.2",
@@ -260,6 +227,39 @@
             {
               "name": "fastparse_2.11",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/3.0.2/fastparse_2.11-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.11.12",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.11",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.11",
+          "version": "0.3.1",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.1/sourcecode_2.11-0.3.1.jar"
             }
           ]
         }

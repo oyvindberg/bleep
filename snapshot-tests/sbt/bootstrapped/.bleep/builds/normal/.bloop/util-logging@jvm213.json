@@ -128,46 +128,79 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.eed3si9n",
-          "name": "shaded-scalajson_2.13",
-          "version": "1.0.0-M4",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parallel-collections_2.13",
+          "version": "0.2.0",
           "artifacts": [
             {
-              "name": "shaded-scalajson_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "sjson-new-scalajson_2.13",
-          "version": "0.10.1",
-          "artifacts": [
-            {
-              "name": "sjson-new-scalajson_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.10.1/sjson-new-scalajson_2.13-0.10.1.jar"
+              "name": "scala-parallel-collections_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/0.2.0/scala-parallel-collections_2.13-0.2.0.jar"
             }
           ]
         },
         {
           "organization": "org.apache.logging.log4j",
-          "name": "log4j-core",
+          "name": "log4j-api",
           "version": "2.17.1",
           "artifacts": [
             {
-              "name": "log4j-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
+              "name": "log4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.swoval",
+          "name": "file-tree-views",
+          "version": "2.1.12",
+          "artifacts": [
+            {
+              "name": "file-tree-views",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt.jline",
+          "name": "jline",
+          "version": "2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar"
             }
           ]
         },
         {
           "organization": "org.jline",
-          "name": "jline-native",
+          "name": "jline-terminal-jni",
           "version": "3.27.1",
           "artifacts": [
             {
-              "name": "jline-native",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+              "name": "jline-terminal-jni",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lmax",
+          "name": "disruptor",
+          "version": "3.4.2",
+          "artifacts": [
+            {
+              "name": "disruptor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar"
             }
           ]
         },
@@ -183,24 +216,35 @@
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline-terminal",
-          "version": "3.27.1",
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-core",
+          "version": "2.17.1",
           "artifacts": [
             {
-              "name": "jline-terminal",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar"
+              "name": "log4j-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "io_2.13",
-          "version": "1.10.5",
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-scalajson_2.13",
+          "version": "0.10.1",
           "artifacts": [
             {
-              "name": "io_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.10.5/io_2.13-1.10.5.jar"
+              "name": "sjson-new-scalajson_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.10.1/sjson-new-scalajson_2.13-0.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-native",
+          "version": "3.27.1",
+          "artifacts": [
+            {
+              "name": "jline-native",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
             }
           ]
         },
@@ -228,101 +272,13 @@
           ]
         },
         {
-          "organization": "io.github.java-diff-utils",
-          "name": "java-diff-utils",
-          "version": "4.15",
-          "artifacts": [
-            {
-              "name": "java-diff-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.apache.logging.log4j",
-          "name": "log4j-api",
-          "version": "2.17.1",
-          "artifacts": [
-            {
-              "name": "log4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.swoval",
-          "name": "file-tree-views",
-          "version": "2.1.12",
-          "artifacts": [
-            {
-              "name": "file-tree-views",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.jline",
-          "name": "jline-terminal-jni",
+          "name": "jline-terminal",
           "version": "3.27.1",
           "artifacts": [
             {
-              "name": "jline-terminal-jni",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt.jline",
-          "name": "jline",
-          "version": "2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18",
-          "artifacts": [
-            {
-              "name": "jline",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parallel-collections_2.13",
-          "version": "0.2.0",
-          "artifacts": [
-            {
-              "name": "scala-parallel-collections_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/0.2.0/scala-parallel-collections_2.13-0.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lmax",
-          "name": "disruptor",
-          "version": "3.4.2",
-          "artifacts": [
-            {
-              "name": "disruptor",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar"
+              "name": "jline-terminal",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar"
             }
           ]
         },
@@ -338,13 +294,57 @@
           ]
         },
         {
+          "organization": "io.github.java-diff-utils",
+          "name": "java-diff-utils",
+          "version": "4.15",
+          "artifacts": [
+            {
+              "name": "java-diff-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "io_2.13",
+          "version": "1.10.5",
+          "artifacts": [
+            {
+              "name": "io_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.10.5/io_2.13-1.10.5.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
-          "name": "scala-compiler",
+          "name": "scala-reflect",
           "version": "2.13.16",
           "artifacts": [
             {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-scalajson_2.13",
+          "version": "1.0.0-M4",
+          "artifacts": [
+            {
+              "name": "shaded-scalajson_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         }

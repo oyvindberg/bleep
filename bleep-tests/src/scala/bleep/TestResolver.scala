@@ -122,7 +122,7 @@ object TestResolver {
       if (!isCi) {
         val vector = inMemoryCache.toVector.map { case (req, res) =>
           val trimmedRes = res.copy(fullDetailedArtifacts = res.fullDetailedArtifacts.map { case (dep, p, a, of) =>
-            val slimmedArtifact = a.withExtra(Map.empty).withChecksumUrls(Map.empty)
+            val slimmedArtifact = a.copy(extra = Map.empty, checksumUrls = Map.empty)
             val templatedFile = of.map(replacements.templatize.file)
             (dep, p, slimmedArtifact, templatedFile)
           })

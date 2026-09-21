@@ -214,72 +214,6 @@
       "modules": [
         {
           "organization": "io.github.cquiroz",
-          "name": "scala-java-locales_native0.5_2.13",
-          "version": "1.5.4",
-          "artifacts": [
-            {
-              "name": "scala-java-locales_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_2.13/1.5.4/scala-java-locales_native0.5_2.13-1.5.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-internal-macros_native0.5_2.13",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-internal-macros_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_native0.5_2.13/2.1.19/zio-internal-macros_native0.5_2.13-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "posixlib_native0.5_2.13",
-          "version": "0.5.8",
-          "artifacts": [
-            {
-              "name": "posixlib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.8/posixlib_native0.5_2.13-0.5.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "scalalib_native0.5_2.13",
-          "version": "2.13.16+0.5.8",
-          "artifacts": [
-            {
-              "name": "scalalib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.8/scalalib_native0.5_2.13-2.13.16%2B0.5.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-time_native0.5_2.13",
-          "version": "2.6.0",
-          "artifacts": [
-            {
-              "name": "scala-java-time_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_2.13/2.6.0/scala-java-time_native0.5_2.13-2.6.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "javalib_native0.5_2.13",
-          "version": "0.5.8",
-          "artifacts": [
-            {
-              "name": "javalib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.8/javalib_native0.5_2.13-0.5.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
           "name": "scala-java-time-tzdb_native0.5_2.13",
           "version": "2.6.0",
           "artifacts": [
@@ -290,24 +224,24 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_native0.5_2.13",
-          "version": "1.5.0",
+          "organization": "dev.zio",
+          "name": "zio-test_native0.5_2.13",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "core_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_native0.5_2.13/1.5.0/core_native0.5_2.13-1.5.0.jar"
+              "name": "zio-test_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_native0.5_2.13/2.1.19/zio-test_native0.5_2.13-2.1.19.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-native",
-          "name": "auxlib_native0.5_2.13",
-          "version": "0.5.8",
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_native0.5_2.13",
+          "version": "2.13.0",
           "artifacts": [
             {
-              "name": "auxlib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.8/auxlib_native0.5_2.13-0.5.8.jar"
+              "name": "scala-collection-compat_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_2.13/2.13.0/scala-collection-compat_native0.5_2.13-2.13.0.jar"
             }
           ]
         },
@@ -319,17 +253,6 @@
             {
               "name": "clib_native0.5_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.8/clib_native0.5_2.13-0.5.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -346,45 +269,45 @@
         },
         {
           "organization": "dev.zio",
-          "name": "zio-streams_native0.5_2.13",
-          "version": "2.1.19",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
+          "version": "3.0.1",
           "artifacts": [
             {
-              "name": "zio-streams_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_native0.5_2.13/2.1.19/zio-streams_native0.5_2.13-2.1.19.jar"
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13-3.0.1.jar"
             }
           ]
         },
         {
-          "organization": "org.portable-scala",
-          "name": "portable-scala-reflect_native0.5_2.13",
-          "version": "1.1.3",
+          "organization": "org.scala-native",
+          "name": "javalib_native0.5_2.13",
+          "version": "0.5.8",
           "artifacts": [
             {
-              "name": "portable-scala-reflect_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.model",
-          "name": "core_native0.5_2.13",
-          "version": "1.7.14",
-          "artifacts": [
-            {
-              "name": "core_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_native0.5_2.13/1.7.14/core_native0.5_2.13-1.7.14.jar"
+              "name": "javalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.8/javalib_native0.5_2.13-0.5.8.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
-          "name": "cldr-api_native0.5_2.13",
-          "version": "4.5.0",
+          "name": "scala-java-time_native0.5_2.13",
+          "version": "2.6.0",
           "artifacts": [
             {
-              "name": "cldr-api_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_2.13/4.5.0/cldr-api_native0.5_2.13-4.5.0.jar"
+              "name": "scala-java-time_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_2.13/2.6.0/scala-java-time_native0.5_2.13-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_2.13",
+          "version": "0.5.8",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.8/posixlib_native0.5_2.13-0.5.8.jar"
             }
           ]
         },
@@ -400,101 +323,24 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_native0.5_2.13",
-          "version": "1.5.0",
-          "artifacts": [
-            {
-              "name": "zio_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_native0.5_2.13/1.5.0/zio_native0.5_2.13-1.5.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_native0.5_2.13",
-          "version": "2.13.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_2.13/2.13.0/scala-collection-compat_native0.5_2.13-2.13.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio_native0.5_2.13",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_native0.5_2.13/2.1.19/zio_native0.5_2.13-2.1.19.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.magnolia1_2",
-          "name": "magnolia_native0.5_2.13",
-          "version": "1.1.10",
-          "artifacts": [
-            {
-              "name": "magnolia_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_native0.5_2.13/1.1.10/magnolia_native0.5_2.13-1.1.10.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-native",
-          "name": "nativelib_native0.5_2.13",
-          "version": "0.5.8",
+          "name": "scalalib_native0.5_2.13",
+          "version": "2.13.16+0.5.8",
           "artifacts": [
             {
-              "name": "nativelib_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.8/nativelib_native0.5_2.13-0.5.8.jar"
+              "name": "scalalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.8/scalalib_native0.5_2.13-2.13.16%2B0.5.8.jar"
             }
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
-          "version": "3.0.1",
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_native0.5_2.13",
+          "version": "1.5.4",
           "artifacts": [
             {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13-3.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "test-interface-sbt-defs_native0.5_2.13",
-          "version": "0.5.8",
-          "artifacts": [
-            {
-              "name": "test-interface-sbt-defs_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_2.13/0.5.8/test-interface-sbt-defs_native0.5_2.13-0.5.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.16",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-test-sbt_native0.5_2.13",
-          "version": "2.1.19",
-          "artifacts": [
-            {
-              "name": "zio-test-sbt_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test-sbt_native0.5_2.13/2.1.19/zio-test-sbt_native0.5_2.13-2.1.19.jar"
+              "name": "scala-java-locales_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_2.13/1.5.4/scala-java-locales_native0.5_2.13-1.5.4.jar"
             }
           ]
         },
@@ -521,13 +367,79 @@
           ]
         },
         {
-          "organization": "com.github.lolgab",
-          "name": "scala-native-crypto_native0.5_2.13",
-          "version": "0.2.0",
+          "organization": "dev.zio",
+          "name": "zio_native0.5_2.13",
+          "version": "2.1.19",
           "artifacts": [
             {
-              "name": "scala-native-crypto_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_2.13/0.2.0/scala-native-crypto_native0.5_2.13-0.2.0.jar"
+              "name": "zio_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_native0.5_2.13/2.1.19/zio_native0.5_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface-sbt-defs_native0.5_2.13",
+          "version": "0.5.8",
+          "artifacts": [
+            {
+              "name": "test-interface-sbt-defs_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_2.13/0.5.8/test-interface-sbt-defs_native0.5_2.13-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_native0.5_2.13",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-streams_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_native0.5_2.13/2.1.19/zio-streams_native0.5_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_native0.5_2.13",
+          "version": "4.5.0",
+          "artifacts": [
+            {
+              "name": "cldr-api_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_2.13/4.5.0/cldr-api_native0.5_2.13-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_native0.5_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "core_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_native0.5_2.13/1.5.0/core_native0.5_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -543,13 +455,101 @@
           ]
         },
         {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_native0.5_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.lolgab",
+          "name": "scala-native-crypto_native0.5_2.13",
+          "version": "0.2.0",
+          "artifacts": [
+            {
+              "name": "scala-native-crypto_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_2.13/0.2.0/scala-native-crypto_native0.5_2.13-0.2.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "dev.zio",
-          "name": "zio-test_native0.5_2.13",
+          "name": "zio-internal-macros_native0.5_2.13",
           "version": "2.1.19",
           "artifacts": [
             {
-              "name": "zio-test_native0.5_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_native0.5_2.13/2.1.19/zio-test_native0.5_2.13-2.1.19.jar"
+              "name": "zio-internal-macros_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_native0.5_2.13/2.1.19/zio-internal-macros_native0.5_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_2.13",
+          "version": "0.5.8",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.8/auxlib_native0.5_2.13-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_2.13",
+          "version": "0.5.8",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.8/nativelib_native0.5_2.13-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_native0.5_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_native0.5_2.13/1.1.10/magnolia_native0.5_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_native0.5_2.13",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "zio_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_native0.5_2.13/1.5.0/zio_native0.5_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-test-sbt_native0.5_2.13",
+          "version": "2.1.19",
+          "artifacts": [
+            {
+              "name": "zio-test-sbt_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test-sbt_native0.5_2.13/2.1.19/zio-test-sbt_native0.5_2.13-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_native0.5_2.13",
+          "version": "1.7.14",
+          "artifacts": [
+            {
+              "name": "core_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_native0.5_2.13/1.7.14/core_native0.5_2.13-1.7.14.jar"
             }
           ]
         }

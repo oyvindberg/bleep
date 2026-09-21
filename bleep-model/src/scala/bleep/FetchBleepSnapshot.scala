@@ -103,9 +103,9 @@ object FetchBleepSnapshot {
     }
 
   private def fetchJson(url: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, String] = {
-    val artifact = Artifact(url).withAuthentication(Some(auth(token)))
+    val artifact = Artifact(url).copy(authentication = Some(auth(token)))
     // `ttl = 0` so a snapshot published minutes ago is not hidden behind a cached listing from before it existed.
-    val cache = FileCache[Task]().withLogger(cacheLogger).withTtl(Duration.Zero)
+    val cache = FileCache().copy(logger = cacheLogger).withTtl(Duration.Zero)
     Await.result(cache.file(artifact).run.value(ec), Duration.Inf) match {
       case Left(err)   => Left(s"could not list artifacts: ${err.describe}")
       case Right(file) => Right(Files.readString(file.toPath))
@@ -177,8 +177,8 @@ object FetchBleepSnapshot {
 
   private def download(art: GhArtifact, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, File] = {
     // The zip endpoint 302s to a signed blob URL that rejects credentials, so they must not survive the redirect — which is coursier's default.
-    val artifact = Artifact(downloadUrl(art.id)).withAuthentication(Some(auth(token)))
-    val cache = ArchiveCache[Task]().withCache(FileCache().withLogger(cacheLogger))
+    val artifact = Artifact(downloadUrl(art.id)).copy(authentication = Some(auth(token)))
+    val cache = ArchiveCache().copy(cache = FileCache().copy(logger = cacheLogger))
     Await.result(cache.get(artifact).value(ec), Duration.Inf).left.map(err => s"could not download '${art.name}': ${err.describe}")
   }
 

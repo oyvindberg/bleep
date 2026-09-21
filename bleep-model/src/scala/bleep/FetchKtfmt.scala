@@ -11,7 +11,7 @@ object FetchKtfmt {
   val DefaultVersion = model.Versions.Ktfmt
 
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
-    val fileCache = BleepFileCache().withLogger(cacheLogger)
+    val fileCache = BleepFileCache().copy(logger = cacheLogger)
     val artifact = Artifact.apply(
       s"https://repo1.maven.org/maven2/com/facebook/ktfmt/$version/ktfmt-$version-with-dependencies.jar"
     )

@@ -131,39 +131,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_2.13",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_2.13",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jline",
-          "name": "jline",
-          "version": "3.25.1",
-          "artifacts": [
-            {
-              "name": "jline",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.25.1/jline-3.25.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.19.6",
@@ -175,79 +142,13 @@
           ]
         },
         {
-          "organization": "net.java.dev.jna",
-          "name": "jna",
-          "version": "5.14.0",
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "1.1.0",
           "artifacts": [
             {
-              "name": "jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.java-diff-utils",
-          "name": "java-diff-utils",
-          "version": "4.12",
-          "artifacts": [
-            {
-              "name": "java-diff-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.14",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.13.14",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.14/scala-compiler-2.13.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_2.13",
-          "version": "2.12.0",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "lenses_2.13",
-          "version": "0.11.17",
-          "artifacts": [
-            {
-              "name": "lenses_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "scalapb-runtime_2.13",
-          "version": "0.11.17",
-          "artifacts": [
-            {
-              "name": "scalapb-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
             }
           ]
         },
@@ -264,12 +165,45 @@
         },
         {
           "organization": "org.scala-lang",
-          "name": "scala-reflect",
+          "name": "scala-compiler",
           "version": "2.13.14",
           "artifacts": [
             {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.14/scala-reflect-2.13.14.jar"
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.14/scala-compiler-2.13.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.java-diff-utils",
+          "name": "java-diff-utils",
+          "version": "4.12",
+          "artifacts": [
+            {
+              "name": "java-diff-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.14.0",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.12.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar"
             }
           ]
         },
@@ -281,6 +215,72 @@
             {
               "name": "sourcecode_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.13",
+          "version": "0.11.17",
+          "artifacts": [
+            {
+              "name": "lenses_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.25.1",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.25.1/jline-3.25.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.13",
+          "version": "0.11.17",
+          "artifacts": [
+            {
+              "name": "scalapb-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.14",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.14/scala-reflect-2.13.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.14",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar"
             }
           ]
         }
