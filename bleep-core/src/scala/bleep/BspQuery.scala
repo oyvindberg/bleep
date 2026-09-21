@@ -49,7 +49,8 @@ object BspQuery {
             clientName = "bleep",
             clientVersion = model.BleepVersion.current.value,
             rootUri = started.buildPaths.buildDir.toUri.toString,
-            buildData = None,
+            // bleep-bsp never loads a build itself; without this it refuses the session and every query fails.
+            buildData = bsp.BspBuildData.Payload.from(started),
             listening = lifecycle.listening
           )
           .flatMap { _ =>

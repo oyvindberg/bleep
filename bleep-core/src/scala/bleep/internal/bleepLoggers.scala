@@ -9,14 +9,15 @@ import java.time.Instant
 
 object bleepLoggers {
 
-  /** Install JUL bridge to redirect java.util.logging through the given ryddig logger.
+  /** Redirect java.util.logging and SLF4J through the given ryddig logger, replacing any earlier target.
     *
     * Call with a file-only logger for TUI mode (prevents lsp4j warnings from clobbering the terminal). Call with a file+screen logger for non-TUI mode.
     */
-  def installJulBridge(logger: Logger): Unit = {
+  def installLoggingBridges(logger: Logger): Unit = {
     val rootLogger = java.util.logging.Logger.getLogger("")
     rootLogger.getHandlers.foreach(rootLogger.removeHandler)
     RyddigJulBridge.install(logger)
+    Slf4jBridge.install(logger)
   }
   /* Use this environment variable to communicate to subprocesses that parent accepts json events */
   val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
@@ -50,9 +51,9 @@ object bleepLoggers {
       baseStdout(bleepConfig, opts)
         .maybeZipWith(Some(fileLoggerResource))
         .map { logger =>
-          // Install JUL bridge to file+screen logger (non-TUI default).
+          // Install the logging bridges to the file+screen logger (non-TUI default).
           // ReactiveBsp reinstalls to file-only when entering TUI mode.
-          installJulBridge(logger)
+          installLoggingBridges(logger)
           Loggers.decodeJsonStream(BLEEP_JSON_EVENT, logger)
         }
     }
@@ -100,8 +101,8 @@ object bleepLoggers {
         .map(l => if (opts.debug) l else l.withMinLogLevel(LogLevel.info))
         .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
         .map { logger =>
-          // Install JUL bridge to capture java.util.logging to file
-          installJulBridge(logger)
+          // Install the logging bridges to capture java.util.logging and SLF4J to file
+          installLoggingBridges(logger)
           Loggers.decodeJsonStream(BLEEP_JSON_EVENT, logger)
         }
     }
