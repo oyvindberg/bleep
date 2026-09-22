@@ -2,7 +2,11 @@ package bleep.model
 
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 
-case class ProjectName(value: String) extends AnyVal
+case class ProjectName(value: String) extends AnyVal {
+
+  /** [[value]] usable as a single file-name segment: a project name may contain `/` (`dlab/version`), which would otherwise nest directories. */
+  def fileSafeValue: String = value.replace('/', '-')
+}
 
 object ProjectName {
   implicit val ordering: Ordering[ProjectName] = Ordering.by(_.value)

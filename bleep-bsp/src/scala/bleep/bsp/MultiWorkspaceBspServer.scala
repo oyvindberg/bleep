@@ -1253,7 +1253,7 @@ class MultiWorkspaceBspServer(
       .getOrElse(throw BspException(JsonRpcErrorCodes.InvalidParams, s"No main class for ${crossName.value}"))
 
     val resolved = started.resolvedProject(crossName)
-    val classpath = started.projectPaths(crossName).classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+    val classpath = started.projectPaths(crossName).classes :: resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
     val jvmOptions = scalaMainClass.map(_.jvmOptions).getOrElse(Nil)
     // Bloop reads program arguments only from the ScalaMainClass payload and spends `arguments` on
     // compile flags; we accept either, since the field is named for this. Clients commonly send both
@@ -1580,7 +1580,7 @@ class MultiWorkspaceBspServer(
           (TaskDag.TaskResult.Success, 0)
         } else {
           val resolvedProject = started.resolvedProject(crossName)
-          val depJars: List[Path] = resolvedProject.classpath.filter(_.toString.endsWith(".jar"))
+          val depJars: List[Path] = resolvedProject.classpath(Usage.Compile).filter(_.toString.endsWith(".jar"))
           val versionCombo = bleep.model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
           val genSourcesDir = started.buildPaths.generatedSourcesDir(crossName, "annotations")
           val result = AnnotationProcessorResolver.resolve(
@@ -1634,8 +1634,8 @@ class MultiWorkspaceBspServer(
         val ksp = SymbolProcessorResolver.resolve(
           crossName = cn,
           kotlin = kot,
-          resolvedDependencyJars = rp.classpath.filter(_.toString.endsWith(".jar")),
-          librariesClasspath = rp.classpath.toList,
+          resolvedDependencyJars = rp.classpath(Usage.Compile).filter(_.toString.endsWith(".jar")),
+          librariesClasspath = rp.classpath(Usage.Compile).toList,
           sourceRoots = sourceRoots,
           javaSourceRoots = sourceRoots.filter(_.getFileName.toString.matches("java|java\\..*")),
           moduleName = s"${cn.name.value}${cn.crossId.fold("")(c => s"_${c.value}")}",
@@ -1936,7 +1936,8 @@ class MultiWorkspaceBspServer(
         // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
         val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
-        val compileHandler = makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
+        val compileHandler =
+          makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
@@ -1944,7 +1945,9 @@ class MultiWorkspaceBspServer(
           val projectPaths = started.projectPaths(linkTask.project)
           val project = started.build.explodedProjects(linkTask.project)
           val resolved = started.resolvedProject(linkTask.project)
-          val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+          // What the linker gets is a runtime artifact's classpath, not the compiler's: the project's own resources and every stamp belong in it, so Scala Native
+          // can embed them. The same composition the test link path gets from `getTestClasspath`, minus the test runner.
+          val classpath = projectPaths.classes :: resolved.resources(Usage.Runtime) ::: resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
           val linkLogger = createLinkLogger()
           val outputDir = projectPaths.targetDir.resolve("link-output")
           withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
@@ -2496,7 +2499,7 @@ class MultiWorkspaceBspServer(
             val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
 
           val compileHandler =
-            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder)
+            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
           val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
           val includeTagsSet = testOptions.includeTags.toSet
@@ -2512,10 +2515,7 @@ class MultiWorkspaceBspServer(
                 val regexFiltered = filterSuites(suites, testOptions.only, testOptions.exclude)
                 val manifest: Map[String, Set[String]] =
                   started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
-                // Discovery runs on every target the client named, libraries included. Only a project that declared itself a test project is claiming there
-                // are suites here, so only that project's empty scan is a contradiction worth failing the run over.
                 val discoverProject = started.build.explodedProjects(discoverTask.project)
-                val isTestProject = discoverProject.isTestProject.getOrElse(false)
                 // How many of a project's suites run at once. Mode-aware default: per-project (the default mode) shares ONE fork and runs suites SEQUENTIALLY —
                 // maven's forkCount=1 reuseForks=true, the safe, memory-frugal default (one live suite's heap at a time; cores are saturated by running many
                 // projects' forks at once, not many suites within one). An unset value is 1. per-suite forks per suite, so an unset value stays unbounded — the
@@ -2619,9 +2619,9 @@ class MultiWorkspaceBspServer(
                     else "filter"
                   val msg =
                     s"$triggered matched no test suites in $projectName ($whichFilters): $pipeline. " + hints.mkString(" ")
-                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, isTestProject, suiteParallelism, batches = Nil))
+                  (TaskDag.TaskResult.Failure(msg, Nil), TaskDag.DiscoveryResult(Nil, suites.size, suiteParallelism, batches = Nil))
                 } else {
-                  (result, TaskDag.DiscoveryResult(tagFiltered.toList, suites.size, isTestProject, suiteParallelism, batches = batchGroups))
+                  (result, TaskDag.DiscoveryResult(tagFiltered.toList, suites.size, suiteParallelism, batches = batchGroups))
                 }
               }
 
@@ -3071,9 +3071,10 @@ class MultiWorkspaceBspServer(
       originId: Option[String],
       apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult],
       diagnosticTracker: BspDiagnosticTracker,
-      recorder: TranscriptRecorder
-  ): (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-    (compileTask, taskKillSignal) => {
+      recorder: TranscriptRecorder,
+      stamps: Stamps.Pass
+  ): (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
+    val compileOnly: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = (compileTask, taskKillSignal) => {
       val projectName = compileTask.project.value
       val wsStr = workspace.toString
       val token = CancellationToken.create()
@@ -3148,6 +3149,17 @@ class MultiWorkspaceBspServer(
           }
       }
     }
+
+    // Stamp before compiling, on every path including the noop one: a project restored from the remote cache compiles as a noop, and its stamp is not in the
+    // cache archive, so this is where it gets written. Every link, test fork and run depends on this task, so the stamp exists before anything can read it —
+    // and every client lands here, an IDE's `buildTarget/compile` included. A stamp that cannot be written (`git-sha` with no commit) fails the task by name.
+    (compileTask, taskKillSignal) =>
+      IO.blocking(stamps.write(compileTask.project)).attempt.flatMap {
+        case Right(())               => compileOnly(compileTask, taskKillSignal)
+        case Left(e: BleepException) => IO.pure(TaskDag.TaskResult.Failure(s"${compileTask.project.value}: could not write its stamps: ${e.getMessage}", Nil))
+        case Left(other)             => IO.raiseError(other)
+      }
+  }
 
   /** Compile a single project (dependencies handled by TaskDag ordering).
     *
@@ -3453,7 +3465,7 @@ class MultiWorkspaceBspServer(
           val projectPaths = started.projectPaths(project)
           val classesDir = projectPaths.classes
           val resolved = started.resolvedProject(project)
-          val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
+          val classpath = resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
 
           val suites = ClasspathTestDiscovery.discover(project, classesDir, classpath, resolved.testFrameworks, logger)
 
@@ -3522,8 +3534,8 @@ class MultiWorkspaceBspServer(
     val classesDir = projectPaths.classes
 
     val resolved = started.resolvedProject(project)
-    val resourceDirs = resolved.resources.getOrElse(Nil)
-    val dependencyClasspath = resolved.classpath.map(p => Path.of(p.toString)).toList
+    val resourceDirs = resolved.resources(Usage.Runtime)
+    val dependencyClasspath = resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
 
     // Try to find bleep-test-runner in the current build (when running bleep's own tests),
     // otherwise fetch via coursier
@@ -4464,14 +4476,14 @@ class MultiWorkspaceBspServer(
               )
             )
 
-          case TaskDag.DagEvent.SuitesDiscovered(project, suites, discoveredBeforeFilters, isTestProject, timestamp) =>
+          case TaskDag.DagEvent.SuitesDiscovered(project, suites, discoveredBeforeFilters, timestamp) =>
             for {
               total <- totalSuitesRef.updateAndGet(_ + suites.size)
               _ <- IO(
                 sendTestEvent(
                   originId,
                   s"discover:$project",
-                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, Some(discoveredBeforeFilters), isTestProject, timestamp),
+                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, Some(discoveredBeforeFilters), timestamp),
                   recorder
                 )
               )
@@ -4803,7 +4815,7 @@ class MultiWorkspaceBspServer(
           case s: ResolvedProject.Language.Scala => s.options
           case _                                 => Nil
         }
-        val classpath = p.classpath.map(_.toUri.toString)
+        val classpath = p.classpath(Usage.Compile).map(_.toUri.toString)
         val classDir = started.projectPaths(crossName).classes.toUri.toString
         ScalacOptionsItem(target = targetId, options = options, classpath = classpath, classDirectory = classDir)
       }).getOrElse(
@@ -4832,9 +4844,9 @@ class MultiWorkspaceBspServer(
         val classpath = maybePlugin match {
           case Some(pluginPath) =>
             val pluginUri = pluginPath.toUri.toString
-            if (p.classpath.exists(_.toString == pluginPath.toString)) p.classpath.map(_.toUri.toString)
-            else pluginUri :: p.classpath.map(_.toUri.toString)
-          case None => p.classpath.map(_.toUri.toString)
+            if (p.classpath(Usage.Compile).exists(_.toString == pluginPath.toString)) p.classpath(Usage.Compile).map(_.toUri.toString)
+            else pluginUri :: p.classpath(Usage.Compile).map(_.toUri.toString)
+          case None => p.classpath(Usage.Compile).map(_.toUri.toString)
         }
         val classDir = started.projectPaths(crossName).classes.toUri.toString
         JavacOptionsItem(target = targetId, options = options, classpath = classpath, classDirectory = classDir)
@@ -4852,7 +4864,7 @@ class MultiWorkspaceBspServer(
         started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
-      } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
+      } yield resolved.forceGet.classpath(Usage.Runtime).map(_.toUri.toString).toList).getOrElse(List.empty)
 
       JvmEnvironmentItem(
         target = targetId,
@@ -4873,7 +4885,7 @@ class MultiWorkspaceBspServer(
         started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
-      } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
+      } yield resolved.forceGet.classpath(Usage.Runtime).map(_.toUri.toString).toList).getOrElse(List.empty)
 
       JvmEnvironmentItem(
         target = targetId,
@@ -4893,8 +4905,8 @@ class MultiWorkspaceBspServer(
         started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
-      } yield resolved.forceGet.resources
-        .getOrElse(Nil)
+      } yield resolved.forceGet
+        .resources(Usage.Runtime)
         .map { res =>
           Uri(Paths.get(res.toString).toUri)
         }
@@ -4956,22 +4968,25 @@ class MultiWorkspaceBspServer(
         resolved <- started.resolvedProjects.get(crossName)
       } yield
         // Extract module info from classpath JARs
-        resolved.forceGet.classpath.flatMap { cp =>
-          val path = Paths.get(cp.toString)
-          val fileName = path.getFileName.toString
-          if (fileName.endsWith(".jar")) {
-            // Try to parse artifact info from filename (e.g., cats-core_3-2.9.0.jar)
-            val nameWithoutExt = fileName.stripSuffix(".jar")
-            Some(
-              DependencyModule(
-                name = nameWithoutExt,
-                version = "",
-                dataKind = Some(DependencyModuleDataKind.Maven),
-                data = None
+        resolved.forceGet
+          .classpath(Usage.Compile)
+          .flatMap { cp =>
+            val path = Paths.get(cp.toString)
+            val fileName = path.getFileName.toString
+            if (fileName.endsWith(".jar")) {
+              // Try to parse artifact info from filename (e.g., cats-core_3-2.9.0.jar)
+              val nameWithoutExt = fileName.stripSuffix(".jar")
+              Some(
+                DependencyModule(
+                  name = nameWithoutExt,
+                  version = "",
+                  dataKind = Some(DependencyModuleDataKind.Maven),
+                  data = None
+                )
               )
-            )
-          } else None
-        }.toList).getOrElse(List.empty)
+            } else None
+          }
+          .toList).getOrElse(List.empty)
 
       DependencyModulesItem(target = targetId, modules = modules)
     }
@@ -4984,7 +4999,7 @@ class MultiWorkspaceBspServer(
         started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
-      } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
+      } yield resolved.forceGet.classpath(Usage.Compile).map(_.toUri.toString).toList).getOrElse(List.empty)
 
       JvmCompileClasspathItem(target = targetId, classpath = classpath)
     }
@@ -5067,7 +5082,7 @@ class MultiWorkspaceBspServer(
         val projectPaths = started.projectPaths(crossName)
         val classesDir = projectPaths.classes
         val resolved = started.resolvedProject(crossName)
-        val classpath = resolved.classpath.map(p => Path.of(p.toString)).toList
+        val classpath = resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
 
         val suites = ClasspathTestDiscovery.discover(crossName, classesDir, classpath, resolved.testFrameworks, logger)
 

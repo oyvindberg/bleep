@@ -177,13 +177,12 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     verdict(List(E.SuiteFinished(proj("app"), SuiteName("EmptySuite"), SuiteOutcome.Empty, durationMs = 1L, timestamp = 1L))).isLeft shouldBe true
   }
 
-  private def discovered(p: String, suites: List[String], beforeFilters: Int, isTestProject: Boolean): E.SuitesDiscovered =
+  private def discovered(p: String, suites: List[String], beforeFilters: Int): E.SuitesDiscovered =
     E.SuitesDiscovered(
       proj(p),
       suites.map(SuiteName.apply),
       totalSuitesDiscovered = suites.size,
       discoveredBeforeFilters = Some(beforeFilters),
-      isTestProject = isTestProject,
       timestamp = 1L
     )
 
@@ -191,7 +190,7 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     leftMessage(
       List(
         compileFinished("tests", CompileStatus.Success, skippedBecause = None),
-        discovered("tests", suites = Nil, beforeFilters = 0, isTestProject = true)
+        discovered("tests", suites = Nil, beforeFilters = 0)
       )
     ) should include("No test suites found")
   }
@@ -199,8 +198,8 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
   test("the failure names the projects, so the user knows where to look") {
     val msg = leftMessage(
       List(
-        discovered("b-tests", suites = Nil, beforeFilters = 0, isTestProject = true),
-        discovered("a-tests", suites = Nil, beforeFilters = 0, isTestProject = true)
+        discovered("b-tests", suites = Nil, beforeFilters = 0),
+        discovered("a-tests", suites = Nil, beforeFilters = 0)
       )
     )
     msg should include("a-tests")
@@ -213,7 +212,7 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     verdict(
       List(
         compileFinished("tests", CompileStatus.Success, skippedBecause = None),
-        discovered("tests", suites = Nil, beforeFilters = 7, isTestProject = true)
+        discovered("tests", suites = Nil, beforeFilters = 7)
       )
     ) shouldBe Right(())
   }
@@ -223,24 +222,32 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     // nothing, or a filter emptied it — and replaying an old transcript must not turn that silence into a failure the run never had.
     import io.circe.syntax.*
     // Built by encoding a current event and deleting the field, so this stays a test about the missing field rather than about how the rest happens to encode.
-    val legacyWire = discovered("tests", suites = Nil, beforeFilters = 0, isTestProject = true).asJson
-      .mapObject(_.remove("discoveredBeforeFilters").remove("isTestProject"))
+    val legacyWire = discovered("tests", suites = Nil, beforeFilters = 0).asJson
+      .mapObject(_.remove("discoveredBeforeFilters"))
     legacyWire.hcursor.keys.map(_.toList) shouldBe Some(List("project", "suites", "totalSuitesDiscovered", "timestamp"))
     val decoded = legacyWire.as[E.SuitesDiscovered].getOrElse(fail("legacy SuitesDiscovered must still decode"))
     decoded.discoveredBeforeFilters shouldBe None
-    decoded.isTestProject shouldBe false
     verdict(List(decoded)) shouldBe Right(())
   }
 
-  test("a plain library named as a test target finds no suites, and that is not a fault") {
-    // `bleep test` and `bleep ci` pass every named target through discovery, libraries included — `testProjects` is what the client asked for, not the set that
-    // declared `isTestProject: true`. CiCommandIT caught this: its `myapp` is a library with no tests, and failing it made `bleep ci` unusable.
-    verdict(
-      List(
-        compileFinished("myapp", CompileStatus.Success, skippedBecause = None),
-        discovered("myapp", suites = Nil, beforeFilters = 0, isTestProject = false)
-      )
-    ) shouldBe Right(())
+  test("replaying a transcript from a server that still discovered libraries never invents a failure") {
+    // Servers used to run discovery on every target `bleep ci` named and marked libraries `isTestProject: false`; a library holding no suites was never a
+    // fault. Only test projects are discovered now and the field is gone, but those transcripts are still on disk and `--diff` replays them — typically the
+    // very first run after upgrading. So the decoder reads the legacy marker for exactly this case, and treats the empty count as no evidence.
+    import io.circe.Json
+    import io.circe.syntax.*
+    def legacy(markedTestProject: Boolean): E.SuitesDiscovered =
+      discovered("myapp", suites = Nil, beforeFilters = 0).asJson
+        .mapObject(_.add("isTestProject", Json.fromBoolean(markedTestProject)))
+        .as[E.SuitesDiscovered]
+        .getOrElse(fail("legacy SuitesDiscovered must still decode"))
+
+    legacy(markedTestProject = false).discoveredBeforeFilters shouldBe None
+    verdict(List(compileFinished("myapp", CompileStatus.Success, skippedBecause = None), legacy(markedTestProject = false))) shouldBe Right(())
+
+    // And the converse: an old run whose TEST project scanned empty still replays as the failure it was.
+    legacy(markedTestProject = true).discoveredBeforeFilters shouldBe Some(0)
+    verdict(List(legacy(markedTestProject = true))).isLeft shouldBe true
   }
 
   test("a run that completed fewer suites than it discovered is not a pass, even with zero failures") {

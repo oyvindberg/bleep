@@ -289,8 +289,6 @@ object TaskDag {
   case class DiscoveryResult(
       suites: List[(String, bleep.testing.FrameworkSelection)],
       discoveredBeforeFilters: Int,
-      /** Whether the project declares `isTestProject: true` — not whether it was named as a target, which every discovered project was. */
-      isTestProject: Boolean,
       /** The project's `maxConcurrentSuites`: how many of its suites may run in parallel forks. None = unbounded (the default). 1 = all suites run sequentially
         * through one warm fork, maven-style.
         */
@@ -448,7 +446,6 @@ object TaskDag {
         project: CrossProjectName,
         suites: List[SuiteName],
         discoveredBeforeFilters: Int,
-        isTestProject: Boolean,
         timestamp: Long
     ) extends DagEvent
 
@@ -847,11 +844,16 @@ object TaskDag {
 
   /** Build initial DAG for test execution.
     *
-    * Creates CompileTask and DiscoverTask for each test project. For non-JVM platforms, adds LinkTask between compile and discover. TestSuiteTasks are added
-    * dynamically after discovery completes.
+    * Every target and its transitive dependencies get a CompileTask. Only the targets that declared `isTestProject: true` get a DiscoverTask — and, on non-JVM
+    * platforms, the LinkTask between compile and discover. TestSuiteTasks are added dynamically after discovery completes.
+    *
+    * The two sets are not the same, which is why `targets` and `ctx.testProjects` are both consulted. `bleep ci` hands this *every* project in the build so
+    * that every project compiles in one pass; when `targets` alone decided where suites came from, a project carrying a test framework had its suites run by
+    * `bleep ci` despite `isTestProject: false` — while `bleep test` skipped it. `isTestProject` is the single answer to "are there suites here", whichever
+    * command is asking.
     */
-  def buildTestDag(testProjects: Set[CrossProjectName], ctx: BuildContext): Dag = {
-    val targetTransitive = transitiveDependencies(testProjects, ctx.allProjectDeps)
+  def buildTestDag(targets: Set[CrossProjectName], ctx: BuildContext): Dag = {
+    val targetTransitive = transitiveDependencies(targets, ctx.allProjectDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
     val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
     val allProjects = targetTransitive ++ scriptTransitive
@@ -861,7 +863,9 @@ object TaskDag {
       CompileTask(project, projectDeps, deps)
     }
 
-    val linkTasks = testProjects.flatMap { project =>
+    val suiteBearing = targets.filter(ctx.testProjects)
+
+    val linkTasks = suiteBearing.flatMap { project =>
       ctx.platforms.get(project) match {
         case Some(LinkPlatform.Jvm) | None => None
         case Some(platform)                =>
@@ -869,7 +873,7 @@ object TaskDag {
       }
     }
 
-    val discoverTasks = testProjects.map { project =>
+    val discoverTasks = suiteBearing.map { project =>
       DiscoverTask(project, ctx.platforms.get(project))
     }
 
@@ -1201,7 +1205,6 @@ object TaskDag {
                                   dt.project,
                                   discovery.suites.map(s => SuiteName(s._1)),
                                   discovery.discoveredBeforeFilters,
-                                  discovery.isTestProject,
                                   timestamp
                                 )
                               )

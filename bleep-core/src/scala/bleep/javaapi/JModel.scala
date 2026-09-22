@@ -1,6 +1,6 @@
 package bleep.javaapi
 
-import bleep.model
+import bleep.{model, Usage}
 import bleep.packaging.ManifestCreator
 
 import java.util
@@ -218,8 +218,8 @@ object JModel {
       pp.targetDir,
       pp.classes,
       pp.incrementalAnalysis,
-      pp.sourcesDirs.all.toList.asJava,
-      pp.resourcesDirs.all.toList.asJava,
+      pp.sourcesDirs.all(Usage.Runtime).toList.asJava,
+      pp.resourcesDirs.all(Usage.Runtime).toList.asJava,
       pp.isTestProject
     )
 
@@ -270,9 +270,9 @@ object JModel {
       rp.directory,
       rp.workspaceDir,
       rp.sources.asJava,
-      rp.classpath.asJava,
+      rp.classpath(Usage.Runtime).asJava,
       rp.classesDir,
-      rp.resources.map(_.asJava: java.util.List[java.nio.file.Path]).toJava,
+      java.util.Optional.of(rp.resources(Usage.Runtime).asJava: java.util.List[java.nio.file.Path]),
       language,
       rp.isTestProject,
       rp.dependencies.asJava,

@@ -61,7 +61,6 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
                 TaskDag.DiscoveryResult(
                   suiteNames.map(_ -> selection),
                   suiteNames.size,
-                  isTestProject = true,
                   suiteParallelism = parallelism,
                   batches = Nil
                 )

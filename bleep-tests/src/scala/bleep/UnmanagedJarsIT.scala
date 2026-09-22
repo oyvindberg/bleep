@@ -42,10 +42,10 @@ class UnmanagedJarsIT extends IntegrationTestHarness {
     assert(exploded.jars.values.size === 2, s"Expected 2 jars, got: ${exploded.jars.values}")
 
     val resolved = started.resolvedProjects(projectName).forceGet("test")
-    val fooJar = resolved.classpath.find(_.toString.contains("foo.jar"))
-    val barJar = resolved.classpath.find(_.toString.contains("bar.jar"))
-    assert(fooJar.isDefined, s"Expected foo.jar on classpath, got: ${resolved.classpath.mkString(", ")}")
-    assert(barJar.isDefined, s"Expected bar.jar on classpath, got: ${resolved.classpath.mkString(", ")}")
+    val fooJar = resolved.classpath(Usage.Compile).find(_.toString.contains("foo.jar"))
+    val barJar = resolved.classpath(Usage.Compile).find(_.toString.contains("bar.jar"))
+    assert(fooJar.isDefined, s"Expected foo.jar on classpath, got: ${resolved.classpath(Usage.Compile).mkString(", ")}")
+    assert(barJar.isDefined, s"Expected bar.jar on classpath, got: ${resolved.classpath(Usage.Compile).mkString(", ")}")
     assert(Files.exists(fooJar.get), s"Jar file does not exist: ${fooJar.get}")
     assert(Files.exists(barJar.get), s"Jar file does not exist: ${barJar.get}")
     succeed

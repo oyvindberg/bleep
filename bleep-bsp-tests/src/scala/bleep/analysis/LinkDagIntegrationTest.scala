@@ -42,7 +42,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(project)
       )
     )
 
@@ -68,7 +68,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(project)
       )
     )
 
@@ -97,7 +97,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(project)
       )
     )
 
@@ -119,7 +119,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(app)
       )
     )
 
@@ -149,7 +149,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(jvmProject, jsProject, nativeProject)
       )
     )
 
@@ -354,7 +354,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set(project)
       )
     )
 
@@ -363,7 +363,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, isTestProject = false, suiteParallelism = None, batches = Nil))),
+        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, suiteParallelism = None, batches = Nil))),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in this DAG"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear in this DAG"),
         sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),

@@ -40,6 +40,8 @@ case class PublishSonatype(options: PublishSonatype.Options, buildOpts: CommonBu
       .map { case () =>
         // One rule, in one place, for every publish command. See PublishVersion.resolve.
         val version = PublishVersion.resolve(options.version, started.buildPaths.buildDir, options.assertRelease).orThrow
+        // So the jar carries the coordinate it is published under, see `Publish`.
+        Stamps.materialize(started, publishingAs = Some(version))
 
         // The release plugin wants the dynver object, not a version string — it reads the git state again to decide whether to release or to publish a
         // snapshot. Built through the same function so `dynverSonatypeSnapshots = true` is stated once rather than in every place that needs a dynver.

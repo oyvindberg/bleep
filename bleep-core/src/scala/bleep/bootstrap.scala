@@ -67,8 +67,8 @@ object bootstrap {
                 finalBuild.explodedProjects.flatMap { case (crossProjectName, p) =>
                   val projectPaths = pre.buildPaths.project(crossProjectName, p)
                   val underFolder = projectPaths.dir.startsWith(pre.buildPaths.cwd)
-                  def underSources = projectPaths.sourcesDirs.all.exists(_.startsWith(pre.buildPaths.cwd))
-                  def underResources = projectPaths.resourcesDirs.all.exists(_.startsWith(pre.buildPaths.cwd))
+                  def underSources = projectPaths.sourcesDirs.all(Usage.Runtime).exists(_.startsWith(pre.buildPaths.cwd))
+                  def underResources = projectPaths.resourcesDirs.all(Usage.Runtime).exists(_.startsWith(pre.buildPaths.cwd))
                   val underAny = underFolder || underSources || underResources
                   if (underAny) Some(crossProjectName)
                   else None

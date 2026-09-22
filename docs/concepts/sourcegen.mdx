@@ -276,3 +276,5 @@ Sourcegen is the right tool when you have:
 - A task that historically lived in an sbt `Compile / sourceGenerators` hook
 
 For one-off code generation that doesn't need build integration, use a plain `scripts:` entry (see [Scripts](/docs/concepts/scripts)) and run it manually.
+
+> **A version string derived from git is the exception.** Git state isn't an input a sourcegen watches, so the generated constant goes stale silently; and because generated sources are part of the cache key, a file that changes on every commit makes its project and everything downstream miss the remote cache. For the version, the commit or a content digest, use [build stamps](/docs/usage/stamps) instead — they reach the artifact without entering the compile graph. A version string that comes from somewhere else in the repo, like a file you edit by hand, is fine here.

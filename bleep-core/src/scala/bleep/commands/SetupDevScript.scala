@@ -4,7 +4,7 @@ package commands
 import bleep.internal.{jvmRunCommand, FileUtils}
 
 class SetupDevScript(started: Started, project: model.CrossProjectName, overrideMainClass: Option[String]) extends BleepCommand {
-  private val safeName = project.value.replace('/', '-')
+  private val safeName = project.fileSafeValue
 
   override def run(): Either[BleepException, Unit] =
     OsArch.current.os match {

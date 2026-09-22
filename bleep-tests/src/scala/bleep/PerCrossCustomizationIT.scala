@@ -57,8 +57,8 @@ class PerCrossCustomizationIT extends IntegrationTestHarness {
     // The jvm213 variant resolves cats-core (declared per-cross), jvm3 doesn't.
     val cats213 = started.resolvedProjects(model.CrossProjectName(model.ProjectName("mylib"), Some(model.CrossId("jvm213")))).forceGet("test")
     val cats3 = started.resolvedProjects(model.CrossProjectName(model.ProjectName("mylib"), Some(model.CrossId("jvm3")))).forceGet("test")
-    assert(cats213.classpath.exists(_.toString.contains("cats-core_2.13")), "jvm213 should have cats-core_2.13")
-    assert(!cats3.classpath.exists(_.toString.contains("cats-core")), "jvm3 should NOT have cats-core")
+    assert(cats213.classpath(Usage.Compile).exists(_.toString.contains("cats-core_2.13")), "jvm213 should have cats-core_2.13")
+    assert(!cats3.classpath(Usage.Compile).exists(_.toString.contains("cats-core")), "jvm3 should NOT have cats-core")
 
     // Each variant sees its own scalac option.
     def scalaOptions(rp: ResolvedProject): List[String] = rp.language match {

@@ -45,11 +45,11 @@ object GenLayout {
       jarFile = createJar(
         JarType.Jar,
         manifestCreator,
-        Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all,
+        Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all(Usage.Runtime),
         projectName = Some(projectName),
         mainClass = mainClass
       ),
-      sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all, projectName = Some(projectName)),
+      sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all(Usage.Compile), projectName = Some(projectName)),
       pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.
       docFile = createJar(JarType.DocsJar, manifestCreator, Nil, projectName = Some(projectName))

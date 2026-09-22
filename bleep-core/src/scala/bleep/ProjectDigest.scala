@@ -7,7 +7,6 @@ import java.security.MessageDigest
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.jdk.StreamConverters.*
-import scala.util.control.NonFatal
 
 /** Computes a per-project SHA-256 digest capturing everything that affects compilation output.
   *
@@ -88,16 +87,17 @@ object ProjectDigest {
           md.update(jvm.name.getBytes("UTF-8"))
           md.update(jvmIndex.getBytes("UTF-8"))
 
-          // 2. Project config (deterministic YAML, excluding publish which doesn't affect compilation)
-          val configForDigest = project.copy(publish = None)
+          // 2. Project config (deterministic YAML). Excludes what cannot change a class file: `publish`, and `stamp` — declaring a stamp only decides what
+          // gets written into the artifact, so turning one on must not evict the project's cache entry.
+          val configForDigest = project.copy(publish = None, stamp = model.JsonSet.empty)
           val configYaml = yaml.encodeShortened(configForDigest)
           md.update(configYaml.getBytes("UTF-8"))
 
           // 3. Source file content hashes
-          hashDirectories(md, buildPaths.buildDir, projectPaths.sourcesDirs.all, dirtyPaths)
+          hashDirectories(md, buildPaths.buildDir, projectPaths.sourcesDirs.all(Usage.Input), dirtyPaths)
 
           // 4. Resource file content hashes (affects digest, but resources are not cached)
-          hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all, dirtyPaths)
+          hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all(Usage.Input), dirtyPaths)
 
           // 5. Directories this project declared as sourcegen inputs via `sourceGlobs`.
           // Kept as its own step rather than folded into 2/3 so the bytes fed for projects without
@@ -167,56 +167,67 @@ object ProjectDigest {
 
   /** Get all dirty (modified, staged, untracked) file paths in the repository. Returns None if not in a git repo.
     *
-    * Uses `git status --porcelain` which is fast and gives us all dirty paths in one call.
+    * Uses `git status --porcelain -z` which is fast and gives us all dirty paths in one call.
+    *
+    * ==Why `-z` is not optional==
+    *
+    * Without it, git *quotes* any path it considers unusual — a space is enough, and so is any byte above ASCII — and escapes the bytes in octal:
+    * {{{
+    *  M "shared-data/caf\303\251.txt"
+    *  M "shared-data/with space.txt"
+    * }}}
+    * Resolving that string gives a path matching no file on disk, so [[hashDirectories]] finds nothing dirty under the directory, takes the `git ls-tree` fast
+    * path, and hashes HEAD's blobs instead of the modified working tree. The digest then describes content other than what was compiled — which is precisely
+    * what a content-addressed cache exists to prevent. `-z` emits NUL-terminated records with paths verbatim, so there is nothing to unquote and
+    * `core.quotePath` cannot reach the digest.
     */
   private def gitDirtyPaths(buildDir: Path): Option[Set[Path]] =
-    try {
-      val output = scala.sys.process
-        .Process(
-          List("git", "status", "--porcelain", "-u"),
-          buildDir.toFile
-        )
-        .!!
-      val paths = output.linesIterator
-        .filter(_.length > 3)
-        .map { line =>
-          // Format: "XY <path>" or "XY <path> -> <path>" (for renames)
-          val pathPart = line.substring(3).split(" -> ").last
-          buildDir.resolve(pathPart).normalize()
-        }
-        .toSet
-      Some(paths)
-    } catch {
-      case NonFatal(_) => None // not in a git repo
+    internal.gitOutput.attempt(buildDir, List("git", "status", "--porcelain", "-u", "-z")).map { output =>
+      val fields = output.split('\u0000').iterator.filter(_.nonEmpty)
+      val paths = Set.newBuilder[Path]
+      while (fields.hasNext) {
+        // Format: "XY <path>", with renames and copies followed by a *second* NUL-terminated field holding the source path — `-z` has no " -> " infix.
+        val record = fields.next()
+        if (record.length < 4)
+          throw new BleepException.Text(s"could not parse `git status --porcelain -z` record ${'"'}$record${'"'}")
+        paths += buildDir.resolve(record.substring(3)).normalize()
+        val status = record.substring(0, 2)
+        // Both ends of a rename moved: the source directory lost a file.
+        if (status.contains('R') || status.contains('C'))
+          paths += buildDir.resolve(fields.next()).normalize()
+      }
+      paths.result()
     }
 
-  /** Use `git ls-tree -r HEAD -- <dir>` to get content hashes for all files under a directory.
+  /** Use `git ls-tree -r -z HEAD -- <dir>` to get content hashes for all files under a directory.
+    *
+    * `-z` for the same reason as in [[gitDirtyPaths]], and here it is worse than a missed dirty path: the quoted spelling of a file name goes *straight into
+    * the digest*. Whether a path arrives as `café.txt` or as `"caf\303\251.txt"` is decided by `core.quotePath` — a setting in the developer's own
+    * `~/.gitconfig` — so without `-z` the same commit hashes differently on two machines, and the cache key stops being portable. Note also that `status` and
+    * `ls-tree` do not quote alike, so there is no single unquoting rule to write even if we wanted one.
     *
     * @return
     *   sorted list of (relative-path, blob-hash) pairs, or empty if the directory isn't tracked by git
     */
   private def gitLsTree(buildDir: Path, dir: Path): List[(String, String)] =
-    try {
-      val output = scala.sys.process
-        .Process(
-          List("git", "ls-tree", "-r", "HEAD", "--", dir.toString),
-          buildDir.toFile
-        )
-        .!!
-      output.linesIterator
-        .filter(_.nonEmpty)
-        .map { line =>
-          // Format: <mode> <type> <hash>\t<path>
-          val tabIdx = line.indexOf('\t')
-          val hash = line.substring(12, tabIdx) // skip "<mode> blob "
-          val path = line.substring(tabIdx + 1)
-          (path, hash)
-        }
-        .toList
-        .sortBy(_._1)
-    } catch {
-      case NonFatal(_) => Nil
-    }
+    internal.gitOutput
+      .attempt(buildDir, List("git", "ls-tree", "-r", "-z", "HEAD", "--", dir.toString))
+      .getOrElse("")
+      .split('\u0000')
+      .iterator
+      .filter(_.nonEmpty)
+      .map { record =>
+        // Format: <mode> SP <type> SP <hash> TAB <path>. Split on the fields rather than a fixed offset: a submodule is `160000 commit <hash>`, whose type is
+        // two characters wider than `blob`, and slicing at 12 would have fed the digest a fragment of the sha.
+        val tabIdx = record.indexOf('\t')
+        if (tabIdx < 0)
+          throw new BleepException.Text(s"could not parse `git ls-tree -z` record ${'"'}$record${'"'}")
+        val hash = record.substring(0, tabIdx).split(' ').last
+        val path = record.substring(tabIdx + 1)
+        (path, hash)
+      }
+      .toList
+      .sortBy(_._1)
 
   /** Hash all files under a directory using git-compatible blob hashes. Files are sorted by relative path for determinism.
     *

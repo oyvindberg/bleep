@@ -31,7 +31,7 @@ object BleepBuildConverter {
       additionalJavaOptions: List[String]
   ): ProjectConfig = {
     val sources = resolved.sources.map(p => Paths.get(p.toString)).toSet
-    val classpath = resolved.classpath.map(p => Paths.get(p.toString)).toSeq
+    val classpath = resolved.classpath(Usage.Compile).map(p => Paths.get(p.toString)).toSeq
     // BuildPaths is the single authority for where a project's output lives. `resolved.classesDir`
     // normally says the same thing — ResolveProjects fills it from BuildPaths — but it arrives over
     // the wire from the client, while the analysis dir below, the compile lock, test discovery and

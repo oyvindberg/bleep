@@ -26,9 +26,14 @@ object ProjectInputs {
 
   /** Everything that counts as an input to this project: its own sources and resources, plus any directory it declared under `sourceGlobs`.
     *
+    * [[Usage.Input]] throughout, which is what "input" means. Derived directories — annotation-processor and KSP output, stamps — are excluded by that choice
+    * rather than by a subtraction here.
+    *
     * Deliberately *not* used by [[ProjectDigest]], which hashes sources, resources and declared inputs as three separate steps so the byte order fed to the
-    * digest — and therefore every published cache key — stays what it was.
+    * digest — and therefore every published cache key — stays what it was. It asks for the same usage.
     */
   def all(project: model.Project, projectPaths: ProjectPaths): SortedSet[Path] =
-    projectPaths.sourcesDirs.all ++ projectPaths.resourcesDirs.all ++ declaredSourcegenInputs(project, projectPaths)
+    projectPaths.sourcesDirs.all(Usage.Input) ++
+      projectPaths.resourcesDirs.all(Usage.Input) ++
+      declaredSourcegenInputs(project, projectPaths)
 }

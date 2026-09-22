@@ -109,9 +109,17 @@ Dependency upgrades cannot silently introduce new processors here, only what's i
 
 ## Where generated sources go
 
-`.bleep/generated-sources/<crossName>/annotations/`, a single directory per project per cross-id. All processors share this `-s` directory (per JSR 269). Output files separate naturally by Java package.
+`.bleep/projects/<crossName>/generated-sources/annotations/`, a single directory per project per cross-id. All processors share this `-s` directory (per JSR 269). Output files separate naturally by Java package.
 
 The directory is reserved at bootstrap whenever a project has any annotation-processor configuration, and added to the project's source set so downstream compile picks up the generated `.java` files. [`bleep clean`](/docs/reference/cli/clean/) wipes it.
+
+### Not part of the cache key
+
+What a processor generates is a function of your sources and the processor coordinates, and both of those already go into the [remote cache](/docs/usage/remote-cache) digest. So the generated output itself is left out — the same treatment a Scala macro's expansion has always had, since that is never written anywhere to hash. It also stays out of what `--watch` and `bleep build invalidated` look at.
+
+The practical effect: a processor that stamps a date into what it generates — MapStruct does, unless `mapstruct.suppressGeneratorTimestamp` is set — no longer moves the digest on every build and leaves the project, and everything downstream of it, permanently uncached. The option is still worth keeping on if you want byte-identical sources jars.
+
+The flip side is a trust assumption worth knowing: bleep assumes a processor depends only on what it is given. One that reads a file, an environment variable or the network at compile time will not invalidate the cache when that changes. That is the same assumption bleep makes of macros, and the same reason a generator that genuinely needs outside input belongs in a [sourcegen script](/docs/concepts/sourcegen), whose output *is* keyed.
 
 ## Kotlin: KSP
 
@@ -203,7 +211,7 @@ processor in the run can read them via
 ### Where generated sources go
 
 ```
-.bleep/generated-sources/<crossName>/ksp/
+.bleep/projects/<crossName>/generated-sources/ksp/
 ├── kotlin/        # KSP-emitted .kt files (read by kotlinc on the next compile)
 ├── java/          # KSP-emitted .java files (read by javac in mixed compilation)
 ├── classes/       # pre-compiled .class files (rare; some processors emit these)
@@ -213,7 +221,9 @@ processor in the run can read them via
 
 The `kotlin/`, `java/`, and `resources/` dirs are added to the
 project's source / resource set automatically.
-[`bleep clean`](/docs/reference/cli/clean/) wipes them.
+[`bleep clean`](/docs/reference/cli/clean/) wipes them. Like
+annotation-processor output, they are compiled but
+[not part of the cache key](#not-part-of-the-cache-key).
 
 ### Incrementality (current state)
 

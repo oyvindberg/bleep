@@ -16,7 +16,7 @@ class BomIT extends IntegrationTestHarness {
   private def jars(started: Started, project: String, contains: String): List[String] =
     started
       .resolvedProject(model.CrossProjectName(model.ProjectName(project), None))
-      .classpath
+      .classpath(Usage.Compile)
       .map(_.toString)
       .filter(_.contains(contains))
       .toList

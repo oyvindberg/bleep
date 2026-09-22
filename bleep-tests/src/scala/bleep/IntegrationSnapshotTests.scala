@@ -308,7 +308,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
         object AnalyzedClassPathDiff {
           val transitiveResources: Set[Path] =
-            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.resolvedProject(name).resources }.flatten.toSet
+            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.resolvedProject(name).resources(Usage.Runtime) }.toSet
 
           def from(paths: Set[Path]): AnalyzedClassPathDiff = {
             val (classes, jars) = paths

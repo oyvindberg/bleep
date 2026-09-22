@@ -36,7 +36,7 @@ class ScalaStdlibIT extends IntegrationTestHarness {
     commands.compile(List(projectName))
 
     val resolved = started.resolvedProjects(projectName).forceGet("test")
-    val classpath = resolved.classpath.map(_.toString)
+    val classpath = resolved.classpath(Usage.Compile).map(_.toString)
     assert(
       classpath.exists(p => p.contains("scala-library") && p.contains("3.8.1")),
       s"expected scala-library-3.8.1 on classpath for scala 3.8.1 project; got:\n${classpath.mkString("\n")}"

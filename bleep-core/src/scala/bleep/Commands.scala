@@ -24,6 +24,9 @@ class Commands(started: Started) {
     * know more than that — [[bleep.testing.BuildSummary.noOp]] answers "did anything actually recompile", which is the signal a deploy step needs to skip
     * itself when the previous run already produced the same artifacts.
     *
+    * "Can be ignored" is not the same as "compiles when ignored": a script built with `-Wconf:msg=.*unused.*:error` fails on the discarded value. Write
+    * `commands.compile(...).discard()` there.
+    *
     * Under `watch = true` there is no single run to summarise, so this returns [[bleep.testing.BuildSummary.empty]] when the watch ends.
     */
   def compile(projects: List[model.CrossProjectName], watch: Boolean = false): BuildSummary = {

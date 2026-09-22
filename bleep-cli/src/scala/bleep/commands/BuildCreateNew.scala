@@ -42,7 +42,7 @@ case class BuildCreateNew(
       val projects = started.resolvedProjects.values.toList.map(_.forceGet)
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
-      val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
+      val resourceDirs = projects.flatMap(_.resources(Usage.Runtime)).distinct
       sourceDirs.foreach { path =>
         logger.withContext("path", path).debug("Creating source directory")
         Files.createDirectories(path)
@@ -128,6 +128,7 @@ object BuildCreateNew {
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
+        stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
         publish = None
@@ -283,6 +284,7 @@ object BuildCreateNew {
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
+        stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
         publish = None

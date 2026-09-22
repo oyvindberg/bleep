@@ -216,6 +216,9 @@ case class Publish(watch: Boolean, options: Publish.Options, buildOpts: CommonBu
         )
         .run(started)
       version <- PublishVersion.resolve(options.version, started.buildPaths.buildDir, options.assertRelease)
+      // The compile above stamped the version git would give; this publish may be going out under `--version`. Rewrite before packaging so the jar carries
+      // the coordinate it is published under. A no-op when the two agree.
+      _ = Stamps.materialize(started, publishingAs = Some(version))
       _ <-
         if (options.dryRun) dryRun(started, projects, version)
         else

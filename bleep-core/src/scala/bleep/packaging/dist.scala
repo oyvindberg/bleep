@@ -29,14 +29,14 @@ object dist {
           createJar(
             JarType.Jar,
             ManifestCreator.default,
-            projectPaths.resourcesDirs.all + projectPaths.classes,
+            projectPaths.resourcesDirs.all(Usage.Runtime) + projectPaths.classes,
             Some(crossName),
             p.platform.flatMap(_.mainClass)
           )
         }
-        .map { case (crossName, bytes) => (RelPath.force(s"lib/${crossName.value.replace('/', '-')}.jar"), bytes) }
+        .map { case (crossName, bytes) => (RelPath.force(s"lib/${crossName.fileSafeValue}.jar"), bytes) }
 
-    val fromResolvedExternal = resolvedProject.classpath.collect {
+    val fromResolvedExternal = resolvedProject.classpath(Usage.Runtime).collect {
       case path if Files.isRegularFile(path) => (RelPath.force(s"lib/${path.getFileName}"), Files.readAllBytes(path))
     }
 
