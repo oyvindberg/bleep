@@ -184,4 +184,58 @@ class StampsIT extends IntegrationTestHarness {
     val thrown = intercept[BleepException](Stamps.materialize(started, publishingAs = Some("1.0\nsneaky=true")))
     assert(thrown.getMessage.contains("would not get back verbatim"), thrown.getMessage)
   }
+
+  integrationTest("a forked script JVM can read BleepVersion.current, which it now gets from bleep-model's stamp") { ws =>
+    // A sourcegen runs in its own JVM, on a classpath the parent builds from the script project's resolved dependencies — for a `build.bleep:*` dependency,
+    // bleep's own classes plus their resource directories (`ResolveProjects.ReplaceBleepDependencies`). bleep-model's stamps root has to be among those, or
+    // its classes arrive without the version they now read, and anything the script does that needs bleep's own version fails. This generator reads it and
+    // writes it out, so the test sees exactly what the forked JVM saw.
+    ws.yaml(
+      s"""projects:
+         |  myapp:
+         |    platform:
+         |      name: jvm
+         |    scala:
+         |      version: ${model.VersionScala.Scala3.scalaVersion}
+         |    sourcegen:
+         |      project: scripts
+         |      main: scripts.GenVersion
+         |  scripts:
+         |    dependencies:
+         |      - build.bleep::bleep-core:$${BLEEP_VERSION}
+         |    platform:
+         |      name: jvm
+         |    scala:
+         |      version: ${model.VersionScala.Scala3.scalaVersion}
+         |""".stripMargin
+    )
+    ws.file(
+      "scripts/src/scala/scripts/GenVersion.scala",
+      """package scripts
+        |
+        |import bleep.*
+        |
+        |import java.nio.file.Files
+        |
+        |object GenVersion extends BleepCodegenScript("GenVersion") {
+        |  override def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit =
+        |    targets.foreach { target =>
+        |      val file = target.sources.resolve("generated/SeenVersion.scala")
+        |      Files.createDirectories(file.getParent)
+        |      Files.writeString(file, s"package generated\nobject SeenVersion { val value = \"${model.BleepVersion.current.value}\" }\n")
+        |    }
+        |}
+        |""".stripMargin
+    )
+    ws.file("myapp/src/scala/App.scala", "object App { def seen: String = generated.SeenVersion.value }")
+
+    val (started, commands, _) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("myapp"), None))).discard()
+
+    val generatedFile = Using
+      .resource(Files.walk(started.buildPaths.dotBleepDir))(_.toScala(List))
+      .find(_.getFileName.toString == "SeenVersion.scala")
+      .getOrElse(fail("the generator did not run"))
+    assert(Files.readString(generatedFile).contains(s"\"${model.BleepVersion.current.value}\""), Files.readString(generatedFile))
+  }
 }

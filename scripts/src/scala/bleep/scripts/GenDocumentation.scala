@@ -9,13 +9,15 @@ object GenDocumentation extends BleepScript("GenDocumentation") {
     // The three docs-snippet projects MUST compile cleanly — that's how we verify every
     // code sample on the site still builds. Run their compile before npm picks the
     // snippets up.
-    commands.compile(
-      List(
-        model.CrossProjectName(model.ProjectName("docs-snippets-java"), crossId = None),
-        model.CrossProjectName(model.ProjectName("docs-snippets-kotlin"), crossId = None),
-        model.CrossProjectName(model.ProjectName("docs-snippets-scala"), crossId = None)
+    commands
+      .compile(
+        List(
+          model.CrossProjectName(model.ProjectName("docs-snippets-java"), crossId = None),
+          model.CrossProjectName(model.ProjectName("docs-snippets-kotlin"), crossId = None),
+          model.CrossProjectName(model.ProjectName("docs-snippets-scala"), crossId = None)
+        )
       )
-    )
+      .discard()
 
     val siteRoot = started.buildPaths.buildDir / "bleep-site"
 

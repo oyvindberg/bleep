@@ -5,7 +5,11 @@
     "native-image only keeps classes something references, so any event kind the Scala code does not mention by name is stripped",
     "and the lookup fails at runtime with NoClassDefFoundError - crashing the TUI the first time someone produces that event.",
     "Horizontal scroll (MouseEventKind$ScrollLeft) did exactly that. Registering the package removes the whole class of bug",
-    "rather than the one that was reported. CrosstermJniMetadataTest keeps this list in step with the jar."
+    "rather than the one that was reported. CrosstermJniMetadataTest keeps this list in step with the jar.",
+    "",
+    "resources: every bleep-stamp/*.properties on the classpath. BleepVersion.current reads bleep-model's dynver stamp at startup, and",
+    "native-image leaves classpath resources out of the binary unless they are registered — so without this the binary cannot tell its own",
+    "version and dies on its first line. A glob rather than the one file, so any stamped project bleep-cli links against is kept too."
   ],
   "jni": [
     {
@@ -1509,6 +1513,11 @@
       "allDeclaredConstructors": true,
       "allDeclaredMethods": true,
       "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {
+      "glob": "bleep-stamp/*.properties"
     }
   ]
 }

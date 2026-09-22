@@ -12,15 +12,17 @@ it native-image.
 ## The version invariant (read this first)
 
 The client binary, the `bleep-bsp` server jars, and `bleep-test-runner` must all be
-the **same** version. The client asks coursier for the server at the version baked
-into it by `bleep sourcegen` (`model.BleepVersion.current`). Publishing with an
-explicit `--version` changes only the coordinate the artifacts land under — not what
-the client looks for. Let everything default to the git-derived version and they line
-up; override one and the client silently fetches a stale server.
+the **same** version. The client asks coursier for the server at its own version,
+`model.BleepVersion.current`, which it reads from bleep-model's `dynver` stamp — and
+**every build rewrites that stamp**, not just `bleep sourcegen`. Publishing with
+`--version X` stamps the published jars with X, but not the binary, which is stamped
+by the build that images it. Let everything default to the git-derived version and
+they line up; override one and the client silently fetches a stale server.
 
 A **clean working tree** makes the version stable (e.g. `1.0.0-M12+15-b322f6f4-SNAPSHOT`).
-A dirty tree makes dynver append a minute-resolution timestamp, so `sourcegen` and
-`publish` minutes apart produce DIFFERENT versions. Prefer committing/stashing first.
+A dirty tree makes dynver append a minute-resolution timestamp, and since every build
+re-stamps, ANY two builds minutes apart — publish, the CLI compile, the native image —
+produce DIFFERENT versions. Commit first; this is effectively mandatory now.
 If you must deploy dirty: build the binary, read the version out of it with `strings`,
 and pin the publish to exactly that string with `--version` — the one case where
 `--version` is correct.
@@ -29,13 +31,13 @@ and pin the publish to exactly that string with `--version` — the one case whe
 
 All from the workspace root. Always `--no-color` (and `--no-tui` where accepted).
 
-1. **Bake the version**
+1. **Run sourcegen** (it still generates `Jvm.scala`; the version is no longer generated)
    ```
    bleep sourcegen --no-color
    ```
-   Confirm what got baked:
+   The version is stamped by the compile in step 2. Afterwards, confirm it:
    ```
-   grep -ho 'M[0-9][0-9]*+[^"]*' .bleep/projects/bleep-model/generated-sources/bleep.scripts.GenerateResources/bleep/model/BleepVersion.scala
+   cat .bleep/projects/bleep-model/generated-resources/bleep-stamps/bleep-stamp/bleep-model.properties
    ```
 
 2. **Compile the CLI** — mandatory. `GenNativeImage` never compiles anything; it

@@ -153,14 +153,14 @@ public interface BleepscriptServices {
 
     /**
      * Pick the bleepscript version to fetch a matching bleep-core for. {@link
-     * BleepscriptVersion#VALUE} is sourcegen'd into this jar at publish time from the same dynver
-     * call that stamps bleep-core, so the two stay locked in sync. The system property is an escape
-     * hatch for tests / bisecting.
+     * BleepscriptVersion#value} is this jar's dynver stamp, written by the same derivation that
+     * stamps and versions bleep-core, so the two agree — including under {@code bleep publish
+     * --version}. The system property is an escape hatch for tests / bisecting.
      */
     private static String resolveBleepscriptVersion() {
       String sys = System.getProperty("bleepscript.version");
       if (sys != null && !sys.isBlank()) return sys;
-      return BleepscriptVersion.VALUE;
+      return BleepscriptVersion.value();
     }
 
     private static URL toUrl(File f) {
