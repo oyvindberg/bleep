@@ -85,7 +85,10 @@ object BleepDevDeps {
   def resourceDirs(buildDir: Path, crossName: model.CrossProjectName): List[Path] =
     List(
       buildDir.resolve(crossName.name.value).resolve("src").resolve("resources"),
-      buildDir.resolve(crossName.name.value).resolve("src").resolve("main").resolve("resources")
+      buildDir.resolve(crossName.name.value).resolve("src").resolve("main").resolve("resources"),
+      // The project's stamps root, because a published jar carries it: `BleepVersion.current` reads bleep-model's, so a dev classpath without it is missing
+      // something every published one has. Same layout as `BuildPaths.generatedResourcesDir(crossName, StampFile.rootFolder)`.
+      buildDir.resolve(".bleep").resolve("projects").resolve(crossName.value).resolve("generated-resources").resolve(StampFile.rootFolder)
     ).filter(p => Files.isDirectory(p))
 
   /** Resolve all class dirs for a `build.bleep::*` dep with a `dev:` version.

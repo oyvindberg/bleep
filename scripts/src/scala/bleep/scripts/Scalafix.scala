@@ -10,7 +10,7 @@ object Scalafix extends BleepScript("Scalafix") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val projects = started.globs.projectNameMap.get("jvm3").toList.flatten
 
-    commands.compile(projects)
+    commands.compile(projects).discard()
 
     new ScalafixPlugin(
       started,

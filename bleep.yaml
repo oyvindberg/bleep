@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-M11
+$version: 1.0.0-M14
 jvm:
   # TODO: graalvm-community:25.0.2 is not available for macos-15-intel (x86_64) in coursier's JVM index.
   # Need to either wait for index update, pin x86 macOS to 25.0.1, or drop x86 macOS CI.
@@ -82,10 +82,9 @@ projects:
     extends:
     - template-common
     - template-java-17
-    sourcegen:
-      main: bleep.scripts.GenerateResources
-      project: scripts-init
     sources: ./src/main/java
+    # BleepscriptVersion reads this, instead of a version generated into a source. See BleepscriptVersion.
+    stamp: dynver
   docs-snippets-java:
     # Java code samples included in the documentation site. A normal
     # `bleep compile` verifies every snippet still compiles. Files must use
@@ -151,6 +150,8 @@ projects:
     sourcegen:
       main: bleep.scripts.GenerateResources
       project: scripts-init
+    # BleepVersion.current reads this, instead of a version generated into a source. See BleepVersion.
+    stamp: dynver
   bleep-nosbt:
     dependencies:
     - for3Use213: true
