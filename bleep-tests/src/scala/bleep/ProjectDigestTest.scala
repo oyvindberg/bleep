@@ -14,7 +14,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
   private def projectWithDeps(deps: String*): model.Project =
     model.Project.empty.copy(
-      dependsOn = model.JsonSet(SortedSet.from(deps.map(model.ProjectName.apply)))
+      dependsOn = model.JsonSet(SortedSet.from(deps.map(d => model.ProjectRef(model.ProjectName(d)))))
     )
 
   /** The toolchain every test build is pinned to unless it is testing what happens when that changes. */
@@ -116,6 +116,20 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val digest2 = ProjectDigest.computeAll(build2, buildPaths)(cpn("a"))
 
       digest1 should not be digest2
+    } finally deleteRecursively(workspace)
+  }
+
+  test("the templates a project was spelled with do not affect its digest, only the settings they carry") {
+    val workspace = createTempWorkspace()
+    try {
+      // exploded: the template's settings are already in the project; only the `extends` naming them differs
+      val settled = model.Project.empty.copy(dependencies = model.JsonSet(SortedSet(model.Dep.Java("org.example", "lib", "1.0"): model.Dep)))
+      val viaTemplate = settled.copy(`extends` = model.JsonSet(model.TemplateId("template-common")))
+      val viaRenamedTemplate = settled.copy(`extends` = model.JsonSet(model.TemplateId("template-renamed")))
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digests = List(settled, viaTemplate, viaRenamedTemplate).map(p => ProjectDigest.computeAll(makeBuild("a" -> p), buildPaths)(cpn("a")))
+      digests.distinct should have size 1
     } finally deleteRecursively(workspace)
   }
 
@@ -543,7 +557,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     // not know about into a cache miss, instead of a cache hit serving classes compiled from a stale value.
     val workspace = createTempWorkspace()
     try {
-      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty)
+      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty)
       val p = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(gen)))
       val build = makeBuild("scripts" -> model.Project.empty, "a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)

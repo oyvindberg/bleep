@@ -44,7 +44,8 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       sourcegen = SourcegenPlan.empty,
       apPlan = AnnotationProcessorPlan.empty,
       kspPlan = SymbolProcessorPlan.empty,
-      testProjects = Set.empty
+      testProjects = Set.empty,
+      postCompileProjects = Set.empty
     )
 
   test("buildCompileDag without KSP plan: no RunSymbolProcessorsTasks") {

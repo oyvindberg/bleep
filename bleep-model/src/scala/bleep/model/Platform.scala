@@ -12,6 +12,14 @@ case class Platform(
     jsEmitSourceMaps: Option[Boolean],
     jsJsdom: Option[Boolean],
     jsNodeVersion: Option[String],
+    /** Static methods the linked program calls on start, in order, after bleep's own. See [[ModuleInitializerJS]]. */
+    jsModuleInitializers: JsonList[ModuleInitializerJS],
+    /** The run-time class names the linked program reports: every name kept, then each rename applied in order. See [[ClassNameRenameJS]]. */
+    jsRuntimeClassNameMapper: JsonList[ClassNameRenameJS],
+    /** Scala.js test projects: JavaScript files loaded, in order, as plain scripts before the linked test program, named as resources of the project (its own
+      * resource folders, generated ones included). sbt's `Test / jsEnvInput := Input.Script(...) +: ...`.
+      */
+    jsTestScripts: JsonList[String],
     //      output: Option[Path],
     //      nodePath: Option[Path],
     //      toolchain: List[Path]
@@ -56,6 +64,9 @@ case class Platform(
       jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) jsEmitSourceMaps else None,
       jsJsdom = if (jsJsdom == other.jsJsdom) jsJsdom else None,
       jsNodeVersion = if (jsNodeVersion == other.jsNodeVersion) jsNodeVersion else None,
+      jsModuleInitializers = jsModuleInitializers.intersect(other.jsModuleInitializers),
+      jsRuntimeClassNameMapper = jsRuntimeClassNameMapper.intersect(other.jsRuntimeClassNameMapper),
+      jsTestScripts = jsTestScripts.intersect(other.jsTestScripts),
       //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
       jvmOptions = jvmOptions.intersect(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
@@ -82,6 +93,9 @@ case class Platform(
       jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) None else jsEmitSourceMaps,
       jsJsdom = if (jsJsdom == other.jsJsdom) None else jsJsdom,
       jsNodeVersion = if (jsNodeVersion == other.jsNodeVersion) None else jsNodeVersion,
+      jsModuleInitializers = jsModuleInitializers.removeAll(other.jsModuleInitializers),
+      jsRuntimeClassNameMapper = jsRuntimeClassNameMapper.removeAll(other.jsRuntimeClassNameMapper),
+      jsTestScripts = jsTestScripts.removeAll(other.jsTestScripts),
       //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
       jvmOptions = jvmOptions.removeAll(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
@@ -108,6 +122,9 @@ case class Platform(
       jsEmitSourceMaps = jsEmitSourceMaps.orElse(other.jsEmitSourceMaps),
       jsJsdom = jsJsdom.orElse(other.jsJsdom),
       jsNodeVersion = jsNodeVersion.orElse(other.jsNodeVersion),
+      jsModuleInitializers = jsModuleInitializers.union(other.jsModuleInitializers),
+      jsRuntimeClassNameMapper = jsRuntimeClassNameMapper.union(other.jsRuntimeClassNameMapper),
+      jsTestScripts = jsTestScripts.union(other.jsTestScripts),
       //          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
       jvmOptions = jvmOptions.union(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
@@ -125,7 +142,7 @@ case class Platform(
     )
 
   override def isEmpty: Boolean =
-    name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
+    name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty && jsModuleInitializers.isEmpty && jsRuntimeClassNameMapper.isEmpty && jsTestScripts.isEmpty &&
       jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty && jvmEnvironment.isEmpty && jvmAgents.isEmpty &&
       nativeVersion.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty && nativeLinkerReleaseMode.isEmpty && nativeLTO.isEmpty && nativeMultithreading.isEmpty && nativeOptimize.isEmpty && nativeEmbedResources.isEmpty && nativeUseIncrementalCompilation.isEmpty
 }
@@ -142,6 +159,9 @@ object Platform {
         jsEmitSourceMaps = None,
         jsJsdom = None,
         jsNodeVersion = None,
+        jsModuleInitializers = JsonList.empty,
+        jsRuntimeClassNameMapper = JsonList.empty,
+        jsTestScripts = JsonList.empty,
         jvmOptions = jvmOptions,
         jvmRuntimeOptions = jvmRuntimeOptions,
         jvmEnvironment = EnvironmentVars.empty,
@@ -184,6 +204,9 @@ object Platform {
         jsEmitSourceMaps = jsEmitSourceMaps,
         jsJsdom = jsJsdom,
         jsNodeVersion = jsNodeVersion,
+        jsModuleInitializers = JsonList.empty,
+        jsRuntimeClassNameMapper = JsonList.empty,
+        jsTestScripts = JsonList.empty,
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
         jvmEnvironment = EnvironmentVars.empty,
@@ -228,6 +251,9 @@ object Platform {
         jsEmitSourceMaps = None,
         jsJsdom = None,
         jsNodeVersion = None,
+        jsModuleInitializers = JsonList.empty,
+        jsRuntimeClassNameMapper = JsonList.empty,
+        jsTestScripts = JsonList.empty,
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
         jvmEnvironment = EnvironmentVars.empty,

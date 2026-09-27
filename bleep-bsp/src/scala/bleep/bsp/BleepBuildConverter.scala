@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.*
-import bleep.analysis.{CompilerResolver, ProjectConfig, ProjectLanguage}
+import bleep.analysis.{CompilerResolver, OutputDeterminants, ProjectConfig, ProjectLanguage}
 import bleep.model
 import bleep.model.{CrossProjectName, Java, Kotlin}
 
@@ -28,7 +28,8 @@ object BleepBuildConverter {
       crossName: CrossProjectName,
       resolved: ResolvedProject,
       started: Started,
-      additionalJavaOptions: List[String]
+      additionalJavaOptions: List[String],
+      determinants: OutputDeterminants
   ): ProjectConfig = {
     val sources = resolved.sources.map(p => Paths.get(p.toString)).toSet
     val classpath = resolved.classpath(Usage.Compile).map(p => Paths.get(p.toString)).toSeq
@@ -37,7 +38,8 @@ object BleepBuildConverter {
     // the wire from the client, while the analysis dir below, the compile lock, test discovery and
     // the test classpath are all derived locally from BuildPaths. Deriving output from the other
     // source would mean compiling into one directory and looking for the results in another.
-    val outputDir = started.projectPaths(crossName).classes
+    // The compiler's directory, which is `classes` unless a post-compile script owns that — see `ProjectPaths.compilerOutput`.
+    val outputDir = started.projectPaths(crossName).compilerOutput
 
     // Get explicit configs from bleep model (if defined)
     val bleepProject = started.build.explodedProjects.get(crossName)
@@ -66,7 +68,8 @@ object BleepBuildConverter {
       outputDir = outputDir,
       language = language,
       analysisDir = analysisDir,
-      buildDir = started.buildPaths.buildDir
+      buildDir = started.buildPaths.buildDir,
+      determinants = determinants
     )
   }
 
@@ -160,7 +163,8 @@ object BleepBuildConverter {
               scalaOptions = scalaLang.options,
               javaOptions = scalaLang.javaOptions ++ additionalJavaOptions,
               ecjVersion = javaConfig.flatMap(_.ecjVersion).map(_.version),
-              compileOrder = scalaLang.setup.map(_.order).getOrElse(model.CompileOrder.JavaThenScala)
+              compileOrder = scalaLang.setup.map(_.order).getOrElse(model.CompileOrder.JavaThenScala),
+              compilerProject = scalaLang.compilerProject
             )
 
           case javaLang: ResolvedProject.Language.Java =>
@@ -194,16 +198,11 @@ object BleepBuildConverter {
     * separate projects. The Kotlin compiler's -Xfriend-paths flag restores this access for the dependency's output directory.
     */
   private def computeFriendPaths(crossName: CrossProjectName, started: Started): List[String] =
-    started.build.explodedProjects.get(crossName) match {
-      case Some(project) =>
-        project.dependsOn.values.flatMap { depName =>
-          val depCrossName = CrossProjectName(depName, crossName.crossId)
-          val resolved =
-            if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName) else started.build.explodedProjects.keys.find(_.name == depName)
-          resolved.flatMap { cn =>
-            if (started.resolvedProjects.contains(cn)) Some(started.projectPaths(cn).classes.toString) else None
-          }
-        }.toList
+    started.build.resolvedDependsOn.get(crossName) match {
+      case Some(deps) =>
+        deps.toList.flatMap { cn =>
+          if (started.resolvedProjects.contains(cn)) Some(started.projectPaths(cn).classes.toString) else None
+        }
       case None =>
         Nil
     }
@@ -231,7 +230,7 @@ object BleepBuildConverter {
     xpluginOpt ++ presetOpts
   }
 
-  /** Get transitive dependencies for a set of projects. */
+  /** Everything that must be built before `projects`: `dependsOn` plus compiler projects (`scala.compilerProject`), transitively. */
   def transitiveDependencies(
       projects: Set[CrossProjectName],
       started: Started
@@ -244,7 +243,7 @@ object BleepBuildConverter {
         if (visited.contains(next)) {
           go(rest, visited)
         } else {
-          val deps = started.build.resolvedDependsOn.get(next) match {
+          val deps = started.build.resolvedBuildOrderDeps.get(next) match {
             case Some(resolvedDeps) => resolvedDeps.toSet
             case None               => Set.empty[CrossProjectName]
           }

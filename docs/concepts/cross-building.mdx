@@ -169,6 +169,56 @@ cannot satisfy. Declaring something else on a Kotlin/JS test project logs a
 warning and links UMD anyway rather than producing output the runner cannot
 load. The main link still honours the declaration.
 
+## More Scala.js linker settings
+
+### Module initializers
+
+`jsModuleInitializers` lists static methods the linked program calls on start,
+in order, after bleep's own initializer (the main class, or for a test project
+the test bridge). It is Scala.js's `ModuleInitializer`:
+
+```yaml
+platform:
+  name: js
+  jsModuleInitializers:
+    - className: example.Setup
+      method: init              # def init(): Unit
+    - className: example.Setup
+      method: configure         # def configure(args: Array[String]): Unit
+      args: [verbose]
+```
+
+Leave `args` out for a method with no parameters; write it, even as `[]`, for
+one that takes `Array[String]`.
+
+### Run-time class names
+
+`jsRuntimeClassNameMapper` changes what `getClass.getName` reports in the linked
+program, Scala.js's `RuntimeClassNameMapper`: every name is kept, then each
+rename is applied in order. `regex` is Java syntax, and `replacement` may refer
+to its groups as `$1`:
+
+```yaml
+platform:
+  name: js
+  jsRuntimeClassNameMapper:
+    - regex: ^com\.example\.internal\.
+      replacement: x.
+```
+
+### Scripts loaded before the tests
+
+`jsTestScripts` names JavaScript files a Scala.js test project loads, in order,
+as plain scripts before its linked test program, for globals the tests expect
+to find. Each is a resource of the project: a file in exactly one of its
+resource folders, generated ones included.
+
+```yaml
+platform:
+  name: js
+  jsTestScripts: natives.js     # e.g. src/resources/natives.js
+```
+
 ## Per-cross customization
 
 Anything settable at the project level can be overridden inside a `cross:` entry, dependencies, scalac/javac options, source layouts, platform settings. The cross block wins for that variant; everything outside it is shared.
@@ -226,6 +276,16 @@ projects:
 ```
 
 `app@jvm3` depends on `core@jvm3`, and `app@js3` depends on `core@js3`.
+
+Without a matching cross ID, bleep falls back to the cross version with the same Scala version and platform, then the same Scala binary version and platform. When that can't decide, or picks the wrong one, name the cross version yourself as `name@crossId`:
+
+```yaml
+projects:
+  app:
+    dependsOn: core@jvm3   # exactly core@jvm3, whatever app's own cross IDs are
+```
+
+A cross version named this way must exist; bleep does not fall back.
 
 ## Platform-Specific Sources
 

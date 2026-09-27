@@ -4,7 +4,7 @@ import cats.effect.{Deferred, IO, Resource}
 
 import java.io.{InputStream, OutputStream}
 import java.net.Socket
-import java.nio.channels.{Channels, SocketChannel}
+import java.nio.channels.SocketChannel
 import java.nio.file.Path
 
 /** A connection to a BSP server.
@@ -142,8 +142,8 @@ object BspConnection {
       exitDeferred: Deferred[IO, Int]
   ) extends BspConnection {
 
-    val input: InputStream = Channels.newInputStream(channel)
-    val output: OutputStream = Channels.newOutputStream(channel)
+    val input: InputStream = ChannelStreams.input(channel)
+    val output: OutputStream = ChannelStreams.output(channel)
 
     def serverExited: IO[Int] = exitDeferred.get
 

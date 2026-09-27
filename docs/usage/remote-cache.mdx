@@ -96,6 +96,8 @@ Cache entries are tar.gz archives stored at `s3://bucket/prefix/<project>/<diges
 - Uploads tar.gz of classes + zinc analysis for new entries
 - Skips projects that aren't compiled or are already cached (`--force` uploads anyway, overwriting the stored entry — see [Trust model](#trust-model))
 
+Neither command handles a project with [`postCompile`](/docs/appendix/post-compile), or a project that compiles against one; both skip them with a warning naming each.
+
 Who is allowed to push decides what everyone else executes: see [Trust model](#trust-model) before wiring this into CI.
 
 ## Trust model
@@ -120,7 +122,7 @@ Every project gets a SHA-256 **digest** over its compilation inputs
 5. content hashes of every resource file (resources are *not* stored in
    the archive, but they change the key),
 6. the digests of all transitive project dependencies,
-7. the digests of the projects backing its sourcegen scripts.
+7. the digests of the projects it is built with but not against: those backing its sourcegen scripts, and any others the build names (see [post-compile](/docs/appendix/post-compile)).
 
 `resolvers:` is deliberately **not** part of the key. A coordinate is
 expected to resolve to the same bytes from any repository, and an

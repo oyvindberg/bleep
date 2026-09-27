@@ -43,7 +43,8 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(project)
+        testProjects = Set(project),
+        postCompileProjects = Set.empty
       )
     )
 

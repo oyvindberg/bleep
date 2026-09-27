@@ -130,7 +130,9 @@ object buildFromMavenPom {
         options = model.Options.parse(compilerArgs, None),
         setup = None,
         compilerPlugins = model.JsonSet.empty,
-        strict = None
+        strict = None,
+        skipStdlib = None,
+        compilerProject = None
       )
     }
 
@@ -224,7 +226,7 @@ object buildFromMavenPom {
       `extends` = model.JsonSet.empty[model.TemplateId],
       cross = model.JsonMap.empty,
       folder = folder,
-      dependsOn = mainDependsOn,
+      dependsOn = mainDependsOn.map(model.ProjectRef(_)),
       `source-layout` = Some(mainSourceLayout),
       `sbt-scope` = Some("main"),
       sources = model.JsonSet.fromIterable(allExtraMainSources),
@@ -239,13 +241,15 @@ object buildFromMavenPom {
       isTestProject = None,
       testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
       testTags = model.JsonMap.empty,
+      testExclude = model.JsonSet.empty,
       maxConcurrentSuites = None,
       testFork = None,
       sourcegen = model.JsonSet.empty[model.ScriptDef],
       stamp = model.JsonSet.empty[model.StampKind],
       libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
       ignoreEvictionErrors = None,
-      publish = None
+      publish = None,
+      postCompile = None
     )
     result += (mainCrossName -> mainProject)
 
@@ -267,7 +271,7 @@ object buildFromMavenPom {
         `extends` = model.JsonSet.empty[model.TemplateId],
         cross = model.JsonMap.empty,
         folder = testFolder,
-        dependsOn = testDependsOn,
+        dependsOn = testDependsOn.map(model.ProjectRef(_)),
         `source-layout` = Some(testSourceLayout),
         `sbt-scope` = Some("test"),
         sources = model.JsonSet.fromIterable(allExtraTestSources),
@@ -282,13 +286,15 @@ object buildFromMavenPom {
         isTestProject = Some(true),
         testFrameworks = testFrameworks,
         testTags = model.JsonMap.empty,
+        testExclude = model.JsonSet.empty,
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
-        publish = None
+        publish = None,
+        postCompile = None
       )
       result += (testCrossName -> testProject)
     }

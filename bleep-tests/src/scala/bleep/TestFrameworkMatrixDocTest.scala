@@ -180,6 +180,13 @@ class TestFrameworkMatrixDocTest extends AnyFunSuite with Matchers {
       sb.append("| | |\n|---|---|\n")
       sb.append(s"| Can express a skipped test | ${if (f.skippedTestName.isDefined) "yes" else "no — the framework has no such concept"} |\n")
       sb.append(s"| Failure carries a stack trace | ${if (f.reportsStackFrames) "yes" else "no"} |\n")
+      // Said only when narrower than what its targets offer: a framework that is on the Scala.js column but not for every Scala version there would otherwise
+      // read as covering all of them.
+      if (f.language == FixtureLanguage.Scala) {
+        val offered = on.flatMap(_.scalaBinaryVersions).flatten.distinct
+        val supported = offered.filter(sbv => on.exists(t => f.supports(t.platformId, Some(sbv), f.currentVersion)))
+        if (supported.sizeIs < offered.size) sb.append(s"| Scala versions | ${supported.mkString(", ")} only |\n")
+      }
       sb.append("\n")
       // A framework that swallows construction failures entirely leaves a green build, which is worth saying next to the framework it is true of rather than
       // in a footnote somebody has to go and find.

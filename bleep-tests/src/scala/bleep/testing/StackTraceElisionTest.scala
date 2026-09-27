@@ -185,6 +185,28 @@ class StackTraceElisionTest extends AnyFunSuite with TripleEqualsSupport {
     assert(result(2) === "    ... 4 frames elided (kotlin, kotlin/native)")
   }
 
+  test("JUnit on Scala.js: the runtime's own runner is junit's, and is cut like it") {
+    val input =
+      """java.lang.RuntimeException: ctor boom
+        |	at example.CtorBoomScalajsJunitFixture.<init>(/link-output/main.js:1440)
+        |	at example.CtorBoomScalajsJunitFixture$scalajs$junit$bootstrapper$.newInstance(/link-output/main.js:14430)
+        |	at <jscode>.{anonymous}()(/link-output/main.js:17653)
+        |	at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/link-output/main.js:24393)
+        |	at org.scalajs.junit.JUnitTask.catchAll(/link-output/main.js:17888)
+        |	at <jscode>.{anonymous}()(/link-output/main.js:17651)
+        |	at scala.runtime.AbstractFunction0.$$Lambda$07eded5776954a9c145e92c329afd52873ad179c.apply(/link-output/main.js:24393)
+        |	at org.scalajs.junit.JUnitTask.runTestLifecycle(/link-output/main.js:17834)
+        |	at org.scalajs.junit.JUnitTask.executeTestMethod(/link-output/main.js:17649)
+        |	at org.scalajs.junit.JUnitTask.runTests$1(/link-output/main.js:17928)""".stripMargin
+
+    val result = StackTraceElision.elide(input)
+    // The bootstrapper is generated into your class's package, so it reads as yours; everything after it is the runtime.
+    assert(result.take(3) === input.split("\n").toList.take(3))
+    assert(result(3).startsWith("\t... 8 frames elided ("), result)
+    assert(result(3).contains("junit"), result)
+    assert(result.sizeIs == 4, result)
+  }
+
   test("Scala.js linked frames carry a `<jscode>.` prefix over an ordinary name") {
     val input =
       """java.lang.RuntimeException: boom

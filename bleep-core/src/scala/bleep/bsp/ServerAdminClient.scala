@@ -117,7 +117,7 @@ object ServerAdminClient {
     connection match {
       case BspServerOperations.Connection.FromSocket(socket)   => (socket.getInputStream, socket.getOutputStream)
       case BspServerOperations.Connection.FromChannel(channel) =>
-        (java.nio.channels.Channels.newInputStream(channel), java.nio.channels.Channels.newOutputStream(channel))
+        (ChannelStreams.input(channel), ChannelStreams.output(channel))
     }
 
   private def requestJson(method: String, params: io.circe.Json): String =

@@ -3,9 +3,35 @@ package bleep
 import java.nio.file.Path
 import scala.collection.immutable.SortedSet
 
-case class ProjectPaths(dir: Path, targetDir: Path, sourcesDirs: ProjectPaths.DirsByOrigin, resourcesDirs: ProjectPaths.DirsByOrigin, isTestProject: Boolean) {
+case class ProjectPaths(
+    dir: Path,
+    targetDir: Path,
+    sourcesDirs: ProjectPaths.DirsByOrigin,
+    resourcesDirs: ProjectPaths.DirsByOrigin,
+    isTestProject: Boolean,
+    hasPostCompile: Boolean
+) {
+
+  /** The project's classes, as everything outside the compile step sees them: classpaths, runners, test discovery, packaging, the IDE. */
   val classes: Path =
     targetDir / (if (isTestProject) "test-classes" else "classes")
+
+  /** Where the compiler writes. The same as [[classes]], unless the project has a `postCompile` script: then the compiler gets a private directory, the script
+    * reads it and writes [[classes]], and nothing else ever looks here. Anything the compiler emits — class files, SemanticDB, zinc's view of its products —
+    * belongs here, never in [[classes]], or the script's output would overwrite it.
+    */
+  val compilerOutput: Path =
+    if (hasPostCompile) targetDir / (if (isTestProject) "test-classes-pre" else "classes-pre") else classes
+
+  /** Fingerprint of the inputs [[classes]] was last produced from by the post-compile script. Absent while [[classes]] is not a finished product of the current
+    * inputs.
+    */
+  val postCompileStamp: Path =
+    targetDir / "post-compile.stamp"
+
+  /** What the post-compile script did to the API, as consumers are keyed on it. Written with [[postCompileStamp]], from the same run. */
+  val postCompileAbi: Path =
+    targetDir / "post-compile.abi"
 
   val incrementalAnalysis: Path =
     targetDir / s"inc_compile.zip"

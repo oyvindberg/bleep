@@ -109,6 +109,8 @@
         "-language:higherKinds",
         "-language:implicitConversions",
         "-source:future",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
         "-unchecked"
       ],
       "jars": [

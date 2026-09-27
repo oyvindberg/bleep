@@ -47,6 +47,7 @@ paths, not placeholders.
 | `${BUILD_DIR}`               | The folder containing `bleep.yaml`.                                     |
 | `${PROJECT_DIR}`             | The project's folder (default `${BUILD_DIR}/<project-name>`).           |
 | `${TARGET_DIR}`              | The bleep compile-output folder for this project.                       |
+| `${PROJECT_SOURCES}`         | All of the project's source folders, generated ones included, joined with the path separator. Expanded only, never written back. |
 | `${HOME_DIR}`                | The user's home directory (`$HOME`).                                    |
 | `${TEMP_DIR}`                | The system temp directory.                                              |
 | `${COURSIER_CACHE_DIR}`      | The coursier dependency cache.                                          |
@@ -100,7 +101,7 @@ placeholder vocabulary.
 
 ## When the placeholders earn their keep
 
-Three real cases.
+Four real cases.
 
 ### Versioned source layouts in cross-builds
 
@@ -134,6 +135,25 @@ relationship to `$HOME`.
 Tooling that consumes the compiled classes (a packaging script, a
 performance harness) can refer to `${TARGET_DIR}` rather than hard-coding
 bleep's internal layout, which is not stable API.
+
+### Handing a compiler its own sources
+
+Some compiler options take a list of source folders, most often
+`-sourcepath`. `${PROJECT_SOURCES}` expands to every source folder of the
+project, the ones [sourcegen](/docs/concepts/sourcegen) writes included,
+joined with the platform's path separator:
+
+```yaml
+projects:
+  my-stdlib:
+    scala:
+      options: -sourcepath ${PROJECT_SOURCES}
+```
+
+This is the only way to name a generated-sources folder, whose location is
+bleep's internal layout. Unlike the other placeholders, import never
+produces it: a joined list of paths can't be reliably recognised on write,
+so it only ever appears where you wrote it.
 
 ## Don't reach for it for
 

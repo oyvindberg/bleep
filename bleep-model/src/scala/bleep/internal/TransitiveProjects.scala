@@ -34,8 +34,8 @@ object TransitiveProjects {
 
       def recurse(depName: model.CrossProjectName): Unit = {
         deps += depName
-        build.resolvedDependsOn(depName).foreach(recurse)
-        build.explodedProjects(depName).sourcegen.values.foreach { case model.ScriptDef.Main(project, _, _) => recurse(project) }
+        // build order: `dependsOn` and every indirect dependency (sourcegen and post-compile scripts and their inputs, a compiler built in this build)
+        build.resolvedBuildOrderDeps(depName).foreach(recurse)
       }
 
       recurse(p)

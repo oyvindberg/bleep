@@ -14,7 +14,7 @@ import java.nio.file.{Files, Path, Paths}
 class TemplateTest extends SnapshotTest {
 
   override val outFolder = Paths.get("snapshot-tests").resolve("templates").toAbsolutePath
-  val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
+  val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None, None, None)
   val a = noCross("a")
   val aTest = noCross("aTest")
   val b = noCross("b")
@@ -34,11 +34,11 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should extract common template and a test template") {
-    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
+    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None, None, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
-      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name)),
-      bTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name))
+      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(model.ProjectRef(a.name))),
+      bTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(model.ProjectRef(a.name)))
     )
 
     val build = run(projects, "common_test_template.yaml")
@@ -49,11 +49,11 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should heed ignoreWhenInferringTemplates") {
-    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
+    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None, None, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
-      b -> p.copy(dependsOn = model.JsonSet(a.name)),
-      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name))
+      b -> p.copy(dependsOn = model.JsonSet(model.ProjectRef(a.name))),
+      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(model.ProjectRef(a.name)))
     )
 
     val build = run(projects, "template_ignore_b.yaml", ignoreWhenInferringTemplates = Set(b.name))
@@ -101,7 +101,7 @@ class TemplateTest extends SnapshotTest {
     assert(build.projects.value(a.name).dependencies.values.contains(depX), s"a lost its dependency: ${build.projects.value(a.name).dependencies.values}")
   }
 
-  private def scalaV(v: String) = model.Scala(Some(model.VersionScala(v)), model.Options.empty, None, model.JsonSet.empty, None)
+  private def scalaV(v: String) = model.Scala(Some(model.VersionScala(v)), model.Options.empty, None, model.JsonSet.empty, None, None, None)
   private def crossName(name: String, id: String) = model.CrossProjectName(model.ProjectName(name), Some(model.CrossId(id)))
 
   test("cross-projects sharing a dependency collapse without empty cross entries and keep the dependency") {

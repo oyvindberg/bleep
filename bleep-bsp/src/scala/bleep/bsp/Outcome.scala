@@ -221,7 +221,7 @@ object Outcome {
     */
   def runawayThreadsSnapshot: List[(String, Long)] = {
     val out = List.newBuilder[(String, Long)]
-    runawayThreads.forEach(t => out += ((t.getName, t.threadId())))
+    runawayThreads.forEach(t => out += ((t.getName, bleep.internal.threadId(t))))
     out.result()
   }
 

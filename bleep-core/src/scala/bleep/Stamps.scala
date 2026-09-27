@@ -56,6 +56,11 @@ object Stamps {
 
     private lazy val projectDigests: Map[model.CrossProjectName, String] = ProjectDigest.computeAll(started.build, started.buildPaths)
 
+    /** `crossName`'s content digest, computed once per pass for the whole build. Also what identifies a compiler built in the build — see
+      * [[bleep.analysis.OutputDeterminants]].
+      */
+    def projectDigest(crossName: model.CrossProjectName): String = projectDigests(crossName)
+
     // Over every project's portable digest, never over anything path-dependent. `BspBuildData.BuildId` would have been free, but it hashes absolute paths (it is
     // a machine-local daemon cache key), so two machines building one commit would stamp different values and the jars would stop being reproducible.
     private lazy val buildDigest: String = {

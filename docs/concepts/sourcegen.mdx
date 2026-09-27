@@ -115,7 +115,7 @@ These directories are automatically added to the consuming project's source/reso
 
 Before compilation, bleep decides whether each sourcegen script needs to run by comparing timestamps:
 
-- **Inputs** = all sources and resources of the script's project plus *all of its transitive dependencies*, plus any directory the consuming project declared under `sourceGlobs`
+- **Inputs** = all sources and resources of the script's project plus *all of its transitive dependencies*, plus any directory the consuming project declared under `sourceGlobs`, plus the compiled classes of any project listed under `inputs`
 - **Outputs** = the `.bleep/generated-sources/...` and `.bleep/generated-resources/...` directories for the consuming project
 
 If any input is newer than the most-recent output, the script re-runs. If the output directory doesn't exist, it runs. Otherwise, it's skipped.
@@ -128,7 +128,7 @@ This means: **if you change anything the script transitively depends on, it re-r
 
 Here is the rule, and it is worth committing to memory:
 
-> **A file is an input if and only if it lives under a directory you declared: a source or resource directory of the script project (or of one of that project's transitive dependencies), or a `sourceGlobs` entry on the `sourcegen:` block that names the script.**
+> **A file is an input if and only if it lives under a directory you declared: a source or resource directory of the script project (or of one of that project's transitive dependencies), a `sourceGlobs` entry on the `sourcegen:` block that names the script, or the compiled output of a project listed under `inputs` on it.**
 
 That is the *only* thing bleep looks at. It is not a heuristic and there is no filesystem tracing behind it: bleep does not observe which files your generator opens. It reads the build graph, and the build graph is the set of directories you declared.
 
@@ -215,6 +215,21 @@ projects:
 Here the path is relative to the *script* project's folder, and the effect reaches every consumer of that script, because each consumer's invalidation folds in the script project's. Use `resources: ../schema` instead of `sources:` if the generator loads the files with `getResourceAsStream` rather than reading from disk. For invalidation the two are equivalent; both are hashed, neither is treated as compilable code.
 
 Which to pick: `sourceGlobs` when one consumer has one external input and you want the declaration next to the `sourcegen:` entry that reads it; `sources` on the script project when the input belongs to the generator itself and every consumer should react to it. Both feed all four mechanisms, so there is no correctness difference — only blast radius, and which file you would rather read the declaration in.
+
+### Reading another project's compiled output
+
+A generator that reads what another project *compiles to* — its class files, a Scala.js IR directory, a list of the classes it defines — names that project under `inputs`:
+
+```yaml
+projects:
+  myapp:
+    sourcegen:
+      project: scripts
+      main: mypkg.GenRegistry
+      inputs: plugins   # the generator reads plugins' compiled classes
+```
+
+`plugins` is compiled before the generator runs, and a change to its classes runs the generator again. It does **not** land on `myapp`'s classpath: `inputs` orders the build, `dependsOn` is what makes classes visible to the compiler. The generator finds the output by path, from the build model (`started.projectPaths(...).classes()`).
 
 ### Concurrency
 

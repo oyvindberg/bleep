@@ -118,6 +118,12 @@ final class BleepscriptServicesImpl extends bleepscript.BleepscriptServices {
   ): java.util.List[java.nio.file.Path] =
     JCoursier.fetchClasspath(started, coordinates)
 
+  override def fetchSources(
+      started: bleepscript.Started,
+      coordinates: String
+  ): java.util.List[java.nio.file.Path] =
+    JCoursier.fetchSources(started, coordinates)
+
   override def runCli(
       started: bleepscript.Started,
       action: String,

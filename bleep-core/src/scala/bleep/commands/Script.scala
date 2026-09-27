@@ -13,7 +13,11 @@ object Script {
     CommonBuildOpts(DisplayMode.NoTui, flamegraph = false, cancel = false)
 
   def run(started: Started, scriptDefs: Seq[model.ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
-    traverseish.runAll(scriptDefs) { case model.ScriptDef.Main(project, main, _) =>
-      Run(project, Some(main), args = args, raw = true, watch = watch, buildOpts = scriptBuildOpts).run(started)
+    traverseish.runAll(scriptDefs) {
+      case model.ScriptDef.Main(_, main, _, inputs) if inputs.values.nonEmpty =>
+        // `inputs` orders a sourcegen script after the projects it reads; a script run from the command line has no build step to be ordered in
+        Left(new BleepException.Text(s"script $main declares `inputs`, which only applies to `sourcegen:` scripts"))
+      case model.ScriptDef.Main(project, main, _, _) =>
+        Run(project, Some(main), args = args, raw = true, watch = watch, buildOpts = scriptBuildOpts).run(started)
     }
 }

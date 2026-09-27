@@ -16,7 +16,11 @@ case class ScalaJsLinkConfig(
     prettyPrint: Boolean,
     esFeatures: ScalaJsLinkConfig.EsFeatures,
     checkIR: Boolean,
-    optimizer: Boolean
+    optimizer: Boolean,
+    /** Called on start, in order, after the main class or the test bridge. */
+    moduleInitializers: List[ScalaJsLinkConfig.ModuleInitializer],
+    /** `RuntimeClassNameMapper`: every name kept, then each `(regex, replacement)` applied in order. */
+    runtimeClassNameRenames: List[(String, String)]
 )
 
 object ScalaJsLinkConfig {
@@ -91,6 +95,9 @@ object ScalaJsLinkConfig {
     case object ES2021 extends EsVersion { val year = 2021 }
   }
 
+  /** A static method the linked program calls on start. `args` absent: `def m(): Unit`; present (even empty): `def m(args: Array[String]): Unit`. */
+  case class ModuleInitializer(className: String, method: String, args: Option[List[String]])
+
   /** Default debug configuration. */
   val Debug: ScalaJsLinkConfig = ScalaJsLinkConfig(
     mode = LinkerMode.Debug,
@@ -108,7 +115,9 @@ object ScalaJsLinkConfig {
     // (2,140,186 bytes against 3,034,721). It is off because none of that matters for a debug link — nobody ships one — while a Scala.js default that
     // disagreed with Scala Native, Kotlin/JS and Kotlin/Native made `--optimize` mean "on" everywhere except here, where it already was. Consistency is
     // worth more than 900KB of output nobody deploys, and the flag is there for anyone who wants it back.
-    optimizer = false
+    optimizer = false,
+    moduleInitializers = Nil,
+    runtimeClassNameRenames = Nil
   )
 
   /** Default release configuration. */
@@ -122,7 +131,9 @@ object ScalaJsLinkConfig {
     prettyPrint = false,
     esFeatures = EsFeatures.Defaults,
     checkIR = false,
-    optimizer = true
+    optimizer = true,
+    moduleInitializers = Nil,
+    runtimeClassNameRenames = Nil
   )
 }
 

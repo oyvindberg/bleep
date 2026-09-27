@@ -414,7 +414,7 @@ object CompilerResolver {
     *     - CompilerTopLoader (delegates xsbti.* to bleep)
     *       - URLClassLoader (compiler JARs)
     */
-  private def createCompilerClassLoader(jars: Seq[Path]): ClassLoader = {
+  private[analysis] def createCompilerClassLoader(jars: Seq[Path]): ClassLoader = {
     val urls = jars.map(_.toUri.toURL).toArray
     new URLClassLoader(urls, topClassLoader)
   }

@@ -68,7 +68,7 @@ object BspMetrics {
 
   private def readThreadAllocation(): ThreadAllocation = {
     val t = Thread.currentThread()
-    ThreadAllocation(t.threadId(), threadAllocatedBytes(), System.currentTimeMillis())
+    ThreadAllocation(bleep.internal.threadId(t), threadAllocatedBytes(), System.currentTimeMillis())
   }
 
   /** Cumulative bytes allocated by the CALLING thread, or -1 where the JVM does not report it.
@@ -77,7 +77,7 @@ object BspMetrics {
     * readings have to be taken. See [[recordCompileAllocation]].
     */
   def threadAllocatedBytes(): Long =
-    threadBeanForAllocation.map(_.getThreadAllocatedBytes(Thread.currentThread().threadId())).getOrElse(-1L)
+    threadBeanForAllocation.map(_.getThreadAllocatedBytes(bleep.internal.threadId(Thread.currentThread()))).getOrElse(-1L)
 
   /** Bytes a single compile allocated, measured across the blocking section that does the work.
     *

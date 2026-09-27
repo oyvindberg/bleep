@@ -40,7 +40,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     CrossProjectName(ProjectName(name), None)
 
   private def script(scriptProject: CrossProjectName, main: String): ScriptDef.Main =
-    ScriptDef.Main(scriptProject, main, JsonSet.empty)
+    ScriptDef.Main(scriptProject, main, JsonSet.empty, JsonSet.empty)
 
   // ==========================================================================
   // DAG Construction Tests
@@ -56,7 +56,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
     dag.tasks.values.collect { case t: SourcegenTask => t } shouldBe empty
@@ -81,13 +82,14 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
     val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
     sgTasks should have size 1
-    sgTasks.head.script shouldBe s
+    sgTasks.head.declarations shouldBe Map(s -> Set(target))
     sgTasks.head.forProjects shouldBe Set(target)
 
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
@@ -115,7 +117,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -149,7 +152,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -160,6 +164,44 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
     compileTasks(a).dependencies should contain(TaskId.Sourcegen(s))
     compileTasks(b).dependencies should contain(TaskId.Sourcegen(s))
+  }
+
+  test("one script declared differently by two projects: still one task, holding each declaration and depending on what either reads") {
+    val a = projectName("a")
+    val b = projectName("b")
+    val input = projectName("input")
+    val scriptsProject = projectName("scripts")
+    val plain = script(scriptsProject, "gen.Shared")
+    // same script and main, but `b` also declares a project the generator reads
+    val withInput = ScriptDef.Main(scriptsProject, "gen.Shared", JsonSet.empty, JsonSet(input))
+
+    val plan = SourcegenPlan(
+      perProject = Map(a -> Set(plain), b -> Set(withInput)),
+      scriptProjectDeps = Map(plain -> Set(scriptsProject), withInput -> Set(scriptsProject, input))
+    )
+
+    val dag = TaskDag.buildCompileDag(
+      Set(a, b),
+      BuildContext(
+        allProjectDeps = Map.empty,
+        platforms = Map.empty,
+        sourcegen = plan,
+        apPlan = AnnotationProcessorPlan.empty,
+        kspPlan = SymbolProcessorPlan.empty,
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
+      )
+    )
+
+    // Two tasks with one id used to be built here, and the DAG kept one: `b` compiled without its sourcegen running
+    val sgTasks = dag.tasks.values.collect { case t: SourcegenTask => t }.toList
+    sgTasks should have size 1
+    sgTasks.head.declarations shouldBe Map(plain -> Set(a), withInput -> Set(b))
+    sgTasks.head.dependencies shouldBe Set[TaskId](TaskId.Compile(scriptsProject), TaskId.Compile(input))
+
+    val compileTasks = dag.tasks.values.collect { case t: CompileTask => t.project -> t }.toMap
+    compileTasks(a).dependencies should contain(TaskId.Sourcegen(plain))
+    compileTasks(b).dependencies should contain(TaskId.Sourcegen(withInput))
   }
 
   test("mixed DAG: project with sourcegen + project without — only the one with sourcegen gets a SourcegenTask dep") {
@@ -181,7 +223,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -213,7 +256,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -242,7 +286,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -268,7 +313,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -298,7 +344,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -312,7 +359,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.script.main}"): Unit).as(TaskResult.Success),
+        sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.main}"): Unit).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
         symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
@@ -346,7 +393,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -400,7 +448,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -451,7 +500,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -504,7 +554,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -559,7 +610,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -608,7 +660,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -659,7 +712,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -711,7 +765,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 
@@ -766,7 +821,8 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = plan,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       )
     )
 

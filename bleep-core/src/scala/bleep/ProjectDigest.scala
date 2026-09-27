@@ -19,6 +19,7 @@ import scala.jdk.StreamConverters.*
   *   - Content hashes of directories declared under `sourceGlobs` on a `sourcegen:` entry, because a generator that reads them produces different sources when
   *     they change
   *   - Transitive dependency project digests (if B depends on A, B's digest includes A's digest)
+  *   - Indirect dependency project digests ([[model.IndirectDependency]]): whatever generates, compiles or rewrites this project's code
   *
   * What goes in is content, never location: every file contributes its path *relative to the declared directory* plus a git blob hash of its bytes. That is
   * what makes the digest a portable cache key — two checkouts of the same commit at different absolute paths, on different operating systems, must agree. Any
@@ -88,8 +89,9 @@ object ProjectDigest {
           md.update(jvmIndex.getBytes("UTF-8"))
 
           // 2. Project config (deterministic YAML). Excludes what cannot change a class file: `publish`, and `stamp` — declaring a stamp only decides what
-          // gets written into the artifact, so turning one on must not evict the project's cache entry.
-          val configForDigest = project.copy(publish = None, stamp = model.JsonSet.empty)
+          // gets written into the artifact, so turning one on must not evict the project's cache entry. And `extends`: the project is already exploded, so
+          // the templates' settings are in it; their names are only how the build file spells them, and renaming or inlining one changes no output.
+          val configForDigest = project.copy(publish = None, stamp = model.JsonSet.empty, `extends` = model.JsonSet.empty)
           val configYaml = yaml.encodeShortened(configForDigest)
           md.update(configYaml.getBytes("UTF-8"))
 
@@ -110,9 +112,10 @@ object ProjectDigest {
             md.update(compute(dep).getBytes("UTF-8"))
           }
 
-          // 7. Sourcegen dependency digests
-          project.sourcegen.values.foreach { case model.ScriptDef.Main(sourcegenProject, _, _) =>
-            md.update(compute(sourcegenProject).getBytes("UTF-8"))
+          // 7. Indirect dependency digests: a sourcegen script, a compiler, a post-compile script or its inputs each decide this project's output without
+          // reaching its classpath. Sourcegen scripts are listed first, so a project with nothing else feeds the same bytes as before the others existed.
+          build.resolvedIndirectDependencies(crossName).foreach { dep =>
+            md.update(compute(dep.project).getBytes("UTF-8"))
           }
 
           Checksums.byteArrayToHexString(md.digest())

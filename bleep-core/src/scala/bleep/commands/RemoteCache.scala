@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.analysis.{NoopManifestStore, ProjectCompileSuccess, ProjectLanguage}
+import bleep.analysis.{NoopManifestStore, OutputDeterminants, ProjectCompileSuccess, ProjectLanguage}
 
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
@@ -21,6 +21,7 @@ import scala.jdk.StreamConverters.*
   */
 object RemoteCache {
 
+  /** Transfers at once, pull and push alike: a pool of this many platform threads (bleep targets JDK 17, which has no virtual threads). */
   private val Parallelism = 16
 
   /** What goes in an archive is decided by [[bleep.StateSharing]] — the same allow-list copy-state uses. Deny by default: this used to be a name-based
@@ -44,13 +45,13 @@ object RemoteCache {
           val (client, prefix) = storeFor(started, config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
-          val projectsToPull = if (projects.nonEmpty) projects.toSet else digests.keySet
+          val projectsToPull = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
 
           val pulled = AtomicInteger(0)
           val skipped = AtomicInteger(0)
           val notFound = AtomicInteger(0)
 
-          val executor = Executors.newVirtualThreadPerTaskExecutor()
+          val executor = Executors.newFixedThreadPool(Parallelism)
           val futures = new java.util.ArrayList[JFuture[?]]()
 
           projectsToPull.toList.sorted.foreach { crossName =>
@@ -113,15 +114,14 @@ object RemoteCache {
           val (client, prefix) = storeFor(started, config)
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
-          val projectsToPush = if (projects.nonEmpty) projects.toSet else digests.keySet
+          val projectsToPush = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
 
           val pushed = AtomicInteger(0)
           val skipped = AtomicInteger(0)
           val notCompiled = AtomicInteger(0)
           val errors = new java.util.concurrent.ConcurrentLinkedQueue[String]()
 
-          val semaphore = new java.util.concurrent.Semaphore(Parallelism)
-          val executor = Executors.newVirtualThreadPerTaskExecutor()
+          val executor = Executors.newFixedThreadPool(Parallelism)
           val futures = new java.util.ArrayList[JFuture[?]]()
 
           projectsToPush.toList.sorted.foreach { crossName =>
@@ -153,12 +153,9 @@ object RemoteCache {
                         ): Unit
                       case Nil =>
                         val archive = TarGz.pack(projectPaths.targetDir, packFilter(projectPaths.targetDir))
-                        semaphore.acquire()
-                        try {
-                          client.putObject(key, archive)
-                          pushed.incrementAndGet()
-                          started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
-                        } finally semaphore.release()
+                        client.putObject(key, archive)
+                        pushed.incrementAndGet()
+                        started.logger.info(s"${crossName.value}: pushed to cache (${archive.length / 1024}KB)")
                     }
                   }
                 }): Runnable))
@@ -193,6 +190,32 @@ object RemoteCache {
     * `file://` is a directory on the local filesystem — no credentials, the uri path is the cache root and the key prefix is empty. Anything else goes through
     * [[S3Client]] (s3:// or an S3-compatible HTTP endpoint) and requires credentials.
     */
+  /** Why the remote cache does not handle `crossName` yet, if it does not.
+    *
+    * Projects compiled by a compiler built in the build, projects with a post-compile step, and projects compiled against one, all carry state the cache format
+    * has not been designed for: a compiler snapshot, a second classes directory and the transform's record, per-class views of transformed classes. Until it is
+    * decided how they should be cached, they are left out — named, never silently.
+    */
+  private[bleep] def unsupportedReason(build: model.Build, crossName: model.CrossProjectName): Option[String] = {
+    val project = build.explodedProjects(crossName)
+    if (project.scala.flatMap(_.compilerProject).isDefined) Some("it is compiled by a compiler built in this build (`scala.compilerProject`)")
+    else if (project.postCompile.isDefined) Some("it has a `postCompile` step")
+    else
+      build.transitiveDependenciesFor(crossName).collectFirst {
+        case (dep, depProject) if depProject.postCompile.isDefined => s"it compiles against ${dep.value}, which has a `postCompile` step"
+      }
+  }
+
+  private def withoutUnsupported(started: Started, requested: Set[model.CrossProjectName]): Set[model.CrossProjectName] =
+    requested.filter { crossName =>
+      started.build.explodedProjects.get(crossName).flatMap(_ => unsupportedReason(started.build, crossName)) match {
+        case Some(reason) =>
+          started.logger.warn(s"${crossName.value}: not handled by the remote cache yet, because $reason")
+          false
+        case None => true
+      }
+    }
+
   private def storeFor(started: Started, config: model.RemoteCacheConfig): (CacheStore, String) =
     config.uri.getScheme match {
       case "file" => (LocalDirStore.fromUri(started.logger, config.uri), "")
@@ -243,10 +266,12 @@ object RemoteCache {
       else Nil
     }.toArray
 
+    // The compiler's directory: what zinc and the noop manifest know about. `classes` differs only for a post-compile project, whose script output is not
+    // the compiler's.
     val classFiles =
-      if (Files.isDirectory(projectPaths.classes))
+      if (Files.isDirectory(projectPaths.compilerOutput))
         scala.util
-          .Using(Files.walk(projectPaths.classes)) { stream =>
+          .Using(Files.walk(projectPaths.compilerOutput)) { stream =>
             stream.toScala(List).filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class")).toSet
           }
           .getOrElse(Set.empty[Path])
@@ -259,7 +284,7 @@ object RemoteCache {
       Some(depPaths.classes -> depAnalysis)
     }.toMap
 
-    val result = ProjectCompileSuccess(projectPaths.classes, classFiles, Some(analysisFile))
+    val result = ProjectCompileSuccess(projectPaths.compilerOutput, classFiles, Some(analysisFile))
 
     NoopManifestStore.regenerateFromLocal(
       analysisFile = analysisFile,
@@ -268,6 +293,7 @@ object RemoteCache {
       dependencyAnalyses = dependencyAnalyses,
       language = maybeLanguage.get,
       ecjVersion = ecjVersion,
+      determinants = OutputDeterminants.none,
       result = result
     ): Unit
     started.logger.debug(s"${crossName.value}: regenerated noop manifest")

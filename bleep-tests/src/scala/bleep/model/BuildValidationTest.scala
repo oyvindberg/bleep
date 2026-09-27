@@ -10,7 +10,15 @@ class BuildValidationTest extends AnyFunSuite with Matchers {
   private val jsPlatform: Platform = Platform.Js(VersionScalaJs.ScalaJs1, None, None, None, None, None, None)
   private val nativePlatform: Platform = Platform.Native(VersionScalaNative.ScalaNative05, None, None, None, None, None, None, None, None, None)
 
-  private val scalaVersioned = Scala(version = Some(VersionScala.Scala3), options = Options.empty, setup = None, compilerPlugins = JsonSet.empty, strict = None)
+  private val scalaVersioned = Scala(
+    version = Some(VersionScala.Scala3),
+    options = Options.empty,
+    setup = None,
+    compilerPlugins = JsonSet.empty,
+    strict = None,
+    skipStdlib = None,
+    compilerProject = None
+  )
   private val scalaUnversioned = scalaVersioned.copy(version = None)
 
   private def build(projects: (String, Project)*): Build.Exploded =
@@ -62,5 +70,21 @@ class BuildValidationTest extends AnyFunSuite with Matchers {
   test("every offending project is reported, not just the first") {
     val bad = Project.empty.copy(platform = Some(jsPlatform.copy(jsVersion = None)), scala = Some(scalaVersioned))
     BuildValidation.missingVersions(build("b" -> bad, "a" -> bad)) should have size 2
+  }
+
+  private val kotlin = Kotlin.empty.copy(version = Some(VersionKotlin("2.3.0")))
+  private val postCompiled = Project.empty.copy(postCompile = Some(PostCompile(CrossProjectName(ProjectName("post"), None), "post.Main", JsonSet.empty)))
+
+  test("post-compile is refused on a Kotlin project, but a Kotlin project may depend on a post-compiled one") {
+    val errs = BuildValidation.unsupportedPostCompile(
+      build(
+        "kotlinPostCompiled" -> postCompiled.copy(kotlin = Some(kotlin)),
+        "lib" -> postCompiled,
+        "kotlinConsumer" -> Project.empty.copy(kotlin = Some(kotlin), dependsOn = JsonSet(ProjectRef(ProjectName("lib")))),
+        "javaConsumer" -> Project.empty.copy(dependsOn = JsonSet(ProjectRef(ProjectName("lib")))),
+        "post" -> Project.empty
+      )
+    )
+    errs shouldBe List("kotlinPostCompiled: `postCompile` is not supported on Kotlin projects yet")
   }
 }

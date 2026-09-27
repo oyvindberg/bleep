@@ -76,6 +76,8 @@
         "-Wconf:cat=deprecation:silent",
         "-Xfatal-warnings",
         "-feature",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
         "-unchecked"
       ],
       "jars": [

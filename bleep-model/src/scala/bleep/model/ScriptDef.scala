@@ -14,7 +14,11 @@ object ScriptDef {
   implicit val ordering: Ordering[ScriptDef] =
     Ordering.by(_.asJson.noSpaces)
 
-  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath]) extends ScriptDef {
+  /** @param inputs
+    *   projects whose output the script reads (their compiled classes, by path from the build model): built before it runs, a change to their classes re-runs
+    *   it, and never on anyone's classpath because of this. The `sourcegen:` counterpart of `postCompile.inputs`.
+    */
+  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath], inputs: JsonSet[CrossProjectName]) extends ScriptDef {
     def folderName: String = main
   }
 
@@ -28,7 +32,7 @@ object ScriptDef {
         str.split("/") match {
           case Array(projectName, main) =>
             CrossProjectName.decodes.decodeJson(Json.fromString(projectName)).map { crossProjectName =>
-              ScriptDef.Main(crossProjectName, main, JsonSet.empty)
+              ScriptDef.Main(crossProjectName, main, JsonSet.empty, JsonSet.empty)
             }
 
           case _ =>

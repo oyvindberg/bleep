@@ -81,7 +81,7 @@ object BspTestBuild {
   private def project(config: BspTestHarness.ProjectConfig, all: List[BspTestHarness.ProjectConfig]): model.Project = {
     // Only the fields the server actually reads off the model: dependsOn (for transitive ordering
     // and dependency locking), isTestProject, and the platform's main class for `buildTarget/run`.
-    val dependsOn = model.JsonSet(config.dependsOn.map(model.ProjectName.apply).toSeq.sorted*)
+    val dependsOn = model.JsonSet(config.dependsOn.map(d => model.ProjectRef(model.ProjectName(d))).toSeq.sorted*)
     val _ = all
     model.Project.empty.copy(
       dependsOn = dependsOn,
@@ -122,7 +122,8 @@ object BspTestBuild {
           compilerJars = Nil,
           analysisFile = None,
           setup = None,
-          javaOptions = Nil
+          javaOptions = Nil,
+          compilerProject = None
         )
       case kc: KotlinConfig =>
         ResolvedProject.Language.Kotlin(

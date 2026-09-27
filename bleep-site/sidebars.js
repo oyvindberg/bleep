@@ -420,6 +420,11 @@ const sidebars = {
         },
         {
           type: "doc",
+          label: "Post-compile",
+          id: "appendix/post-compile",
+        },
+        {
+          type: "doc",
           label: "Source layout: cross-builds & sbt",
           id: "appendix/source-layout-cross-builds",
         },

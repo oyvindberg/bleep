@@ -28,7 +28,7 @@ case class DiscoveredTestSuite(
 
 /** Discovers test suites by scanning compiled class files.
   *
-  * Three mechanisms, tried in order, each seeing only what the previous one did not claim:
+  * Four mechanisms, tried in order, each seeing only what the previous one did not claim: 0. Scala.js JUnit bootstrappers
   *   1. sbt-testing Framework fingerprints (ScalaTest, munit, utest, ZIO Test, specs2, etc.)
   *   2. Direct annotation scanning (JUnit 4/5, TestNG, kotlin.test)
   *   3. Base class detection (Kotest, Spock)
@@ -206,7 +206,14 @@ object ClasspathTestDiscovery {
 
     try {
       val classFiles = collectClassFiles(classesDir)
-      val classNames = classFiles.map(f => classFileToClassName(classesDir, f))
+      val allClassNames = classFiles.map(f => classFileToClassName(classesDir, f))
+
+      // Strategy 0: Scala.js JUnit. Its suites and their bootstrappers are claimed here, and seen by no other strategy.
+      val scalaJsJUnitDiscovered = discoverScalaJsJUnit(project, classesDir, classLoader)
+      val classNames = {
+        val claimed = scalaJsJUnitDiscovered.map(_.className).toSet
+        allClassNames.filterNot(name => claimed.contains(name) || name.endsWith(ScalaJsJUnitBootstrapperSuffix))
+      }
 
       // Strategy 1: sbt-testing Framework fingerprints
       val frameworkDiscovered = discoverViaFrameworks(project, classNames, classLoader, declaredFrameworks, logger)
@@ -226,7 +233,7 @@ object ClasspathTestDiscovery {
       val baseClassDiscovered = discoverViaBaseClasses(project, stillRemaining, classLoader)
 
       // Combine all discovered tests and deduplicate
-      val allDiscovered = frameworkDiscovered ++ annotationDiscovered ++ baseClassDiscovered
+      val allDiscovered = scalaJsJUnitDiscovered ++ frameworkDiscovered ++ annotationDiscovered ++ baseClassDiscovered
 
       // Deduplicate: when we have both X and X$ for the same framework, keep only X
       // (X is the module class, X$ is the object - specs2 expects X for objects)
@@ -240,6 +247,45 @@ object ClasspathTestDiscovery {
 
       deduped
     } finally classLoader.close()
+  }
+
+  // ============================================================================
+  // Strategy 0: Scala.js JUnit bootstrappers
+  // ============================================================================
+
+  /** What the Scala.js compiler generates for each JUnit test class `X`: a module `X$scalajs$junit$bootstrapper`, which the Scala.js JUnit runtime looks up to
+    * run `X`, since Scala.js has no runtime reflection over annotations.
+    */
+  private val ScalaJsJUnitBootstrapperSuffix = "$scalajs$junit$bootstrapper$"
+
+  /** The `Framework` the Scala.js JUnit runtime (`scalajs-junit-test-runtime`) provides, under the name of the JVM's junit-interface. */
+  private val ScalaJsJUnitFramework = "com.novocode.junit.JUnitFramework"
+
+  /** Scala.js JUnit suites, one per bootstrapper. Neither other route can find them: `org.junit.Test` is a Scala annotation there, invisible to reflection, and
+    * the fingerprint the framework declares asks for it on the class, where it never is. Its suites run through sbt test-interface on the linked program, not
+    * through the JUnit Platform, whose runtime does not exist on Scala.js.
+    */
+  private def discoverScalaJsJUnit(project: CrossProjectName, classesDir: Path, classLoader: URLClassLoader): List[DiscoveredTestSuite] = {
+    // Walked for here: `collectClassFiles` leaves out every `...$.class`, the bootstrappers among them
+    val suites = {
+      val stream = Files.walk(classesDir)
+      try
+        stream
+          .iterator()
+          .asScala
+          .filter(_.getFileName.toString.endsWith(ScalaJsJUnitBootstrapperSuffix + ".class"))
+          .map(f => classFileToClassName(classesDir, f).stripSuffix(ScalaJsJUnitBootstrapperSuffix))
+          .toList
+          .sorted
+      finally stream.close()
+    }
+    if (suites.isEmpty) Nil
+    else if (!onProjectClasspath(classLoader, ScalaJsJUnitFramework))
+      throw new RuntimeException(
+        s"${project.value}: has Scala.js JUnit tests (${suites.mkString(", ")}) but not $ScalaJsJUnitFramework on its classpath, which runs them. " +
+          "Add `org.scala-js:scalajs-junit-test-runtime_2.13:<scala.js version>` (published for 2.13 only, and without a platform suffix)."
+      )
+    else suites.map(suite => DiscoveredTestSuite(project, suite, FrameworkSelection.SbtTestInterface("Scala.js JUnit", ScalaJsJUnitFramework)))
   }
 
   // ============================================================================
@@ -380,14 +426,17 @@ object ClasspathTestDiscovery {
                   }
                 }.getOrElse(false)
 
+              // The class's own annotations, as sbt's discovery sees them. `getAnnotations` includes `@Inherited` ones: junit-interface fingerprints
+              // `@RunWith`, which is `@Inherited`, so every concrete subclass of a `@RunWith` base became a suite, including helpers with no tests of their own,
+              // and JUnit failed each with "No runnable methods". A subclass whose tests are inherited is still found, by its test methods.
               case afp: AnnotatedFingerprint =>
                 val annotationClass = Try(classLoader.loadClass(afp.annotationName())).toOption
                 annotationClass.exists { annClass =>
                   if (afp.isModule) {
                     val moduleClass = if (className.endsWith("$")) Some(cls) else Try(classLoader.loadClass(className + "$")).toOption
-                    moduleClass.exists(_.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
+                    moduleClass.exists(_.getDeclaredAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType())))
                   } else {
-                    cls.getAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
+                    cls.getDeclaredAnnotations.exists(a => annClass.isAssignableFrom(a.annotationType()))
                   }
                 }
 
@@ -492,10 +541,14 @@ object ClasspathTestDiscovery {
           // Check for class-level @Test annotation (TestNG style)
           val classLevelAnnotation = findTestAnnotation(cls.getAnnotations, classLoader)
 
-          // Check for method-level test annotations
-          val methodLevelAnnotation = cls.getDeclaredMethods.flatMap { method =>
-            findTestAnnotation(method.getAnnotations, classLoader)
-          }.headOption
+          // Check for method-level test annotations, the class's own and those it inherits: a subclass whose tests all live in an abstract base is a suite
+          val hierarchy = Iterator.iterate[Class[?]](cls)(_.getSuperclass).takeWhile(c => c != null && c != classOf[Object])
+          val methodLevelAnnotation = hierarchy
+            .flatMap(_.getDeclaredMethods)
+            .flatMap { method =>
+              findTestAnnotation(method.getAnnotations, classLoader)
+            }
+            .nextOption()
 
           // Determine framework from annotation
           (classLevelAnnotation orElse methodLevelAnnotation).map {

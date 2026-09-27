@@ -45,11 +45,18 @@ object ScalaJsTestRunner {
     *   how the linker emitted the program; decides which `Input` the JSEnv is given
     * @param scalaJsVersion
     *   the project's Scala.js version. The adapter and the linked program's bridge speak a version-coupled protocol, so the adapter is resolved to match.
+    * @param preloadScripts
+    *   JavaScript files loaded as plain scripts before the program, in order (the project's `jsTestScripts`)
+    * @param frameworkClass
+    *   the `sbt.testing.Framework` the suites were discovered with. Only that one is loaded: a linked program can hold several (a framework's Scala.js artifact
+    *   may bring JUnit's runtime along), and running a suite under another framework finds nothing to run or runs it wrong.
     */
   def runTests(
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite],
+      preloadScripts: List[Path],
+      frameworkClass: String,
       eventHandler: TestEventHandler,
       nodeEnv: NodeEnvironment,
       nodeBinary: String,
@@ -61,7 +68,10 @@ object ScalaJsTestRunner {
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure(TestResult(0, 0, 0, 0, TerminationReason.Killed(reason)))
       case None         =>
-        val work = IO.interruptible(runBlocking(linkedJs, moduleKind, suites, eventHandler, nodeEnv, nodeBinary, env, scalaJsVersion, classpath))
+        val work =
+          IO.interruptible(
+            runBlocking(linkedJs, moduleKind, suites, preloadScripts, frameworkClass, eventHandler, nodeEnv, nodeBinary, env, scalaJsVersion, classpath)
+          )
         Outcome
           .raceKill(killSignal)(work)
           .map {
@@ -74,6 +84,8 @@ object ScalaJsTestRunner {
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       suites: List[TestSuite],
+      preloadScripts: List[Path],
+      frameworkClass: String,
       eventHandler: TestEventHandler,
       nodeEnv: NodeEnvironment,
       nodeBinary: String,
@@ -83,28 +95,24 @@ object ScalaJsTestRunner {
   ): TestResult = {
     val loader = CompilerResolver.getScalaJsTestAdapter(scalaJsVersion).loader
     val suiteTag = suites.headOption.map(_.fullyQualifiedName).getOrElse("")
-    val adapter = newTestAdapter(loader, linkedJs, moduleKind, nodeEnv, nodeBinary, env, eventHandler, suiteTag, scalaJsVersion)
+    val adapter = newTestAdapter(loader, preloadScripts, linkedJs, moduleKind, nodeEnv, nodeBinary, env, eventHandler, suiteTag, scalaJsVersion)
 
     val outcome =
       try {
         eventHandler.onRunnerEvent(RunnerEvent.Started)
 
         val loadMethod = adapter.getClass.getMethod("loadFrameworks", loader.loadClass("scala.collection.immutable.List"))
-        val requested = SbtTestingBridge.ScalaColl.toList(
-          SbtTestingBridge.knownFrameworkClassNames.map(name => SbtTestingBridge.ScalaColl.toList(List(name), loader)),
-          loader
-        )
+        val requested = SbtTestingBridge.ScalaColl.toList(List(SbtTestingBridge.ScalaColl.toList(List(frameworkClass), loader)), loader)
         val loaded = SbtTestingBridge.ScalaColl
           .fromList[Any](loadMethod.invoke(adapter, requested), loader)
           .flatMap(opt => SbtTestingBridge.ScalaColl.fromOption[sbt.testing.Framework](opt, loader))
 
         loaded.headOption match {
           case None =>
-            // No fallback: the suites were discovered on the classpath, so a linked program containing none of the frameworks that can run them is a real defect
-            // and has to be reported as one.
+            // No fallback: the suites were discovered with this framework on the classpath, so a linked program without it is a real defect and has to be
+            // reported as one.
             val names = suites.map(_.fullyQualifiedName).mkString(", ")
-            val message =
-              s"No sbt-testing framework found in the linked Scala.js output for $names. Tried: ${SbtTestingBridge.knownFrameworkClassNames.mkString(", ")}"
+            val message = s"The linked Scala.js output for $names does not contain $frameworkClass, the test framework they were discovered with"
             eventHandler.onRunnerEvent(RunnerEvent.Error(message, None))
             TestResult(0, 0, 0, 0, TerminationReason.Error(message))
 
@@ -132,6 +140,7 @@ object ScalaJsTestRunner {
   /** Build `TestAdapter(jsEnv, input, config)` inside the adapter's own classloader. */
   private def newTestAdapter(
       loader: ClassLoader,
+      preloadScripts: List[Path],
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
       nodeEnv: NodeEnvironment,
@@ -151,7 +160,9 @@ object ScalaJsTestRunner {
       case ScalaJsLinkConfig.ModuleKind.ESModule       => "org.scalajs.jsenv.Input$ESModule"
     }
     val input = loader.loadClass(inputClassName).getConstructor(classOf[Path]).newInstance(linkedJs.toAbsolutePath).asInstanceOf[AnyRef]
-    val inputSeq = SbtTestingBridge.ScalaColl.toList(List(input), loader)
+    val scriptCtor = loader.loadClass("org.scalajs.jsenv.Input$Script").getConstructor(classOf[Path])
+    val preloaded = preloadScripts.map(p => scriptCtor.newInstance(p.toAbsolutePath).asInstanceOf[AnyRef])
+    val inputSeq = SbtTestingBridge.ScalaColl.toList(preloaded :+ input, loader)
 
     val configClass = loader.loadClass("org.scalajs.testing.adapter.TestAdapter$Config")
     var config = configClass.getConstructor().newInstance().asInstanceOf[AnyRef]

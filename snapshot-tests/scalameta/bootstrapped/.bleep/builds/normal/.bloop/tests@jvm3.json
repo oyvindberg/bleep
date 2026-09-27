@@ -133,6 +133,8 @@
         "extractor:s",
         "-Xcheck-macros",
         "-feature",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
         "-unchecked"
       ],
       "jars": [

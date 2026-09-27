@@ -103,6 +103,7 @@ object Replacements {
     val Platform = "${PLATFORM}"
     val PlatformVersion = "${PLATFORM_VERSION}"
     val ProjectDir = "${PROJECT_DIR}"
+    val ProjectSources = "${PROJECT_SOURCES}"
     val ScalaBinVersion = "${SCALA_BIN_VERSION}"
     val ScalaEpoch = "${SCALA_EPOCH}"
     val ScalaVersion = "${SCALA_VERSION}"
@@ -135,6 +136,15 @@ object Replacements {
 
   def projectPaths(project: Path): Replacements =
     ofReplacements(List(project.toString -> known.ProjectDir))
+
+  /** `${PROJECT_SOURCES}`: every source directory of the project, generated ones included, joined with the platform's path separator — what a compiler's
+    * `-sourcepath` wants, as sbt's `sourceDirectories` gives it.
+    *
+    * For filling only, never for templatizing: its value is a list, and read backwards a project with one source directory would have every mention of that
+    * directory rewritten into the whole list.
+    */
+  def projectSources(sourceDirs: Iterable[Path]): Replacements =
+    ofReplacements(List(sourceDirs.map(_.toString).mkString(File.pathSeparator) -> known.ProjectSources))
 
   def scope(scope: String): Replacements =
     ofReplacements(List(scope -> known.Scope))

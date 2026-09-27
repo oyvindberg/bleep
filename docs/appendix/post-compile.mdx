@@ -1,0 +1,94 @@
+---
+title: Post-compile
+---
+
+# Post-compile
+
+A project can name a program that rewrites its compiled classes after the
+compiler and before anything else sees them. This page documents the
+mechanism because it exists. The headline is short:
+
+:::warning Don't design your build around this.
+
+Post-compile is for builds that cannot work without it: patching classes
+into a standard library, or a bytecode enhancer with no compile-time
+alternative. If what you need can be a [sourcegen
+script](/docs/concepts/sourcegen), an [annotation
+processor](/docs/usage/annotation-processing) or a [script](/docs/concepts/scripts),
+make it one of those.
+:::
+
+Reasons to stay away:
+
+- **It hides what the compiler produced.** The classes everyone else sees
+  are not the ones your sources compile to. That is the whole point of the
+  mechanism, and also why it's confusing to debug.
+- **The remote cache skips it.** A project with `postCompile`, and every
+  project that compiles against one, is left out of
+  [`remote-cache pull` and `push`](/docs/usage/remote-cache), with a
+  warning naming each.
+- **Kotlin projects can't declare it.** They may depend on a project that
+  does.
+
+## Declaring it
+
+```yaml
+projects:
+  mylib:
+    postCompile:
+      project: enhancer          # the project holding the program
+      main: enhancer.Enhance     # its main class
+      inputs: [annotations]      # optional: other projects whose classes it reads
+```
+
+`project` and every entry in `inputs` are `name` or `name@crossId`. They
+are built before `mylib` but are never on its classpath.
+
+## What the program gets
+
+A plain `main`, forked in its own JVM on the runtime classpath of
+`project`, with the build directory as its working directory:
+
+```
+--from <dir>             the compiler's output; read it, don't write it
+--to <dir>               empty; write the project's COMPLETE output here
+--classpath <paths>      mylib's compile classpath, path-separated
+--input <name>=<dir>     once per entry in `inputs`: that project's classes
+```
+
+Whatever is in `--to` when the program exits with status 0 becomes
+`mylib`'s classes. A program that only changes a few classes must still
+copy the rest; anything it doesn't write is gone.
+
+## When it runs
+
+Before anything reads `mylib`'s classes, whenever any of these changed
+since the last successful run:
+
+- the compiler's output,
+- the program: `project`'s classpath and `main`,
+- the classes of any `inputs`,
+- the contents of `mylib`'s compile classpath,
+- the JDK.
+
+Files whose bytes the program didn't change keep their timestamps.
+
+## What recompiles downstream
+
+Projects that compile against `mylib` recompile the way they would
+without post-compile: zinc tracks changes to `mylib`'s sources as usual.
+What the program adds on top is measured class by class, and only its
+effect on each class's API counts:
+
+- A program that doesn't change the API (instrumentation, private
+  synthetic members, method bodies) recompiles no consumer, however often
+  it or its inputs change.
+- A program that changes the API of some classes recompiles only the
+  consumers that use those classes, and only when its contribution to
+  them changes.
+
+## Failure
+
+A non-zero exit, a crash or a kill fails `mylib`'s compile, and nothing
+compiles against it. The classes left behind are not trusted: the next
+build runs the program again.

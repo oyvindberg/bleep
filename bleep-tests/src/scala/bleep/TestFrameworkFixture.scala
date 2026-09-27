@@ -766,6 +766,44 @@ object TestFrameworkFixture {
     scalaBinaryVersions = _ => AllScalaBinaryVersions
   )
 
+  /** JUnit on Scala.js: `scalajs-junit-test-runtime`, which provides JUnit 4's API and a `Framework` under the JVM junit-interface's name. Its version is the
+    * Scala.js version, which is why that is what [[versions]] holds.
+    *
+    * Scala 3 only. The Scala 3 compiler generates the bootstrappers the runtime looks suites up by; Scala 2 needs `scalajs-junit-test-plugin` for that, which
+    * bleep does not add.
+    */
+  val scalajsJunit: TestFrameworkFixture = TestFrameworkFixture(
+    name = "scalajs-junit",
+    deps = v => List(s"org.scala-js:scalajs-junit-test-runtime_2.13:$v"),
+    versions = List(model.Versions.ScalaJs1),
+    language = FixtureLanguage.Scala,
+    relPath = "example/ScalajsJunitFixture.scala",
+    suiteFqn = "example.ScalajsJunitFixture",
+    source = """package example
+               |
+               |import org.junit.{Ignore, Test}
+               |import org.junit.Assert.assertEquals
+               |
+               |class ScalajsJunitFixture {
+               |  @Test def adds(): Unit = { println("hello from the test"); assertEquals(2, 1 + 1) }
+               |  @Test def measures(): Unit = assertEquals(5, "hello".length)
+               |  @Test def failsOnPurpose(): Unit = assertEquals(2, 1)
+               |  @Test def throwsOnPurpose(): Unit = throw new RuntimeException("boom")
+               |  @Ignore("skipped on purpose") @Test def skippedOnPurpose(): Unit = assertEquals(1, 1)
+               |}
+               |""".stripMargin,
+    extraFiles = Nil,
+    testNames = List("adds", "measures", "failsOnPurpose", "throwsOnPurpose", "skippedOnPurpose"),
+    failingTestName = "failsOnPurpose",
+    throwingTestName = "throwsOnPurpose",
+    skippedTestName = Some("skippedOnPurpose"),
+    failureReporting = (_, _) => FailureReporting.Full,
+    // Unlike the JVM's JUnit 4, the Scala.js runtime reports each test under the suite's fully qualified name, as munit does.
+    reportedName = name => s"example.ScalajsJunitFixture.$name",
+    platforms = _ => Set("js"),
+    scalaBinaryVersions = _ => Set("3")
+  )
+
   val zioTest: TestFrameworkFixture = TestFrameworkFixture(
     name = "zio-test",
     deps = v => List(s"dev.zio::zio-test:$v", s"dev.zio::zio-test-sbt:$v"),
@@ -1260,6 +1298,7 @@ object TestFrameworkFixture {
       junit5,
       junit4,
       junit3,
+      scalajsJunit,
       kotest,
       kotlinTest,
       testng,

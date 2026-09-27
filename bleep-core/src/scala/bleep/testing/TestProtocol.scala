@@ -70,7 +70,7 @@ object TestProtocol {
       val (runner, frameworkClass) = rs.selection match {
         case FrameworkSelection.JUnitPlatform(_)         => (RunnerWire.JUnitPlatform, None)
         case FrameworkSelection.SbtTestInterface(_, cls) => (RunnerWire.SbtTestInterface, Some(cls))
-        case FrameworkSelection.PlatformRunner(name)     =>
+        case FrameworkSelection.PlatformRunner(name, _)  =>
           // Unreachable by construction: the test handler routes JS/Native suites to their own runners before any fork exists. If it ever is reached, the
           // fork cannot run this suite and a placeholder command would only move the failure somewhere less obvious.
           sys.error(s"$name is run by its platform's own runner, not by a forked JVM — it must never be sent over TestProtocol (suite ${rs.className})")

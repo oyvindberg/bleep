@@ -232,7 +232,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         scalaOptions = Nil,
         javaOptions = Nil,
         ecjVersion = None,
-        compileOrder = bleep.model.CompileOrder.JavaThenScala
+        compileOrder = bleep.model.CompileOrder.JavaThenScala,
+        compilerProject = None
       )
 
       val config = ProjectConfig(
@@ -242,7 +243,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         outputDir = outputDir,
         language = language,
         analysisDir = Some(outputDir.resolve(".zinc")),
-        buildDir = outputDir.getParent
+        buildDir = outputDir.getParent,
+        determinants = OutputDeterminants.none
       )
 
       val (listener, compiledFiles, diagnostics) = trackingListener()
@@ -295,7 +297,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         scalaOptions = Nil,
         javaOptions = Nil,
         ecjVersion = None,
-        compileOrder = bleep.model.CompileOrder.JavaThenScala
+        compileOrder = bleep.model.CompileOrder.JavaThenScala,
+        compilerProject = None
       )
 
       val config = ProjectConfig(
@@ -305,7 +308,8 @@ class IncrementalTrackingTest extends AnyFunSuite with Matchers {
         outputDir = outputDir,
         language = language,
         analysisDir = Some(outputDir.resolve(".zinc")),
-        buildDir = outputDir.getParent
+        buildDir = outputDir.getParent,
+        determinants = OutputDeterminants.none
       )
 
       import cats.effect.unsafe.implicits.global

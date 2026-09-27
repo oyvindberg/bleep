@@ -42,7 +42,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(project)
+        testProjects = Set(project),
+        postCompileProjects = Set.empty
       )
     )
 
@@ -68,7 +69,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(project)
+        testProjects = Set(project),
+        postCompileProjects = Set.empty
       )
     )
 
@@ -97,7 +99,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(project)
+        testProjects = Set(project),
+        postCompileProjects = Set.empty
       )
     )
 
@@ -119,7 +122,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(app)
+        testProjects = Set(app),
+        postCompileProjects = Set.empty
       )
     )
 
@@ -149,7 +153,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(jvmProject, jsProject, nativeProject)
+        testProjects = Set(jvmProject, jsProject, nativeProject),
+        postCompileProjects = Set.empty
       )
     )
 
@@ -174,7 +179,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -199,7 +205,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = true
     )
@@ -219,7 +226,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -245,7 +253,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -299,7 +308,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set.empty
+        testProjects = Set.empty,
+        postCompileProjects = Set.empty
       ),
       releaseMode = false
     )
@@ -354,7 +364,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         sourcegen = SourcegenPlan.empty,
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
-        testProjects = Set(project)
+        testProjects = Set(project),
+        postCompileProjects = Set.empty
       )
     )
 

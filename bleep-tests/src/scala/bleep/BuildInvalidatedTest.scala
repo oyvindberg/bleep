@@ -14,7 +14,7 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
 
   private def projectWithDeps(deps: String*): model.Project =
     model.Project.empty.copy(
-      dependsOn = model.JsonSet(SortedSet.from(deps.map(model.ProjectName.apply)))
+      dependsOn = model.JsonSet(SortedSet.from(deps.map(d => model.ProjectRef(model.ProjectName(d)))))
     )
 
   private def makeBuild(projects: (String, model.Project)*): model.Build.Exploded =
@@ -64,8 +64,8 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
   test("computeReverseDeps: includes sourcegen dependencies") {
     val scripts = cpn("scripts")
     val app = model.Project.empty.copy(
-      dependsOn = model.JsonSet(SortedSet(model.ProjectName("lib"))),
-      sourcegen = model.JsonSet(SortedSet(model.ScriptDef.Main(scripts, "my.Gen", model.JsonSet.empty): model.ScriptDef))
+      dependsOn = model.JsonSet(SortedSet(model.ProjectRef(model.ProjectName("lib")))),
+      sourcegen = model.JsonSet(SortedSet(model.ScriptDef.Main(scripts, "my.Gen", model.JsonSet.empty, model.JsonSet.empty): model.ScriptDef))
     )
     val build = makeBuild(
       "lib" -> model.Project.empty,
@@ -75,6 +75,33 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
     val reverse = BuildInvalidated.computeReverseDeps(build)
     reverse(cpn("scripts")) shouldBe Set(cpn("app"))
     reverse(cpn("lib")) shouldBe Set(cpn("app"))
+  }
+
+  test("computeReverseDeps: includes post-compile scripts, post-compile inputs and compiler projects") {
+    val app = model.Project.empty.copy(
+      scala = Some(
+        model.Scala(
+          version = Some(model.VersionScala.Scala3),
+          options = model.Options.empty,
+          setup = None,
+          compilerPlugins = model.JsonSet.empty,
+          strict = None,
+          skipStdlib = None,
+          compilerProject = Some(cpn("compiler"))
+        )
+      ),
+      postCompile = Some(model.PostCompile(cpn("post"), "post.Main", model.JsonSet(cpn("input"))))
+    )
+    val build = makeBuild(
+      "compiler" -> model.Project.empty,
+      "post" -> model.Project.empty,
+      "input" -> model.Project.empty,
+      "app" -> app
+    )
+    val reverse = BuildInvalidated.computeReverseDeps(build)
+    reverse(cpn("compiler")) shouldBe Set(cpn("app"))
+    reverse(cpn("post")) shouldBe Set(cpn("app"))
+    reverse(cpn("input")) shouldBe Set(cpn("app"))
   }
 
   // ============================================================================

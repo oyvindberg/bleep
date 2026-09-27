@@ -117,8 +117,8 @@ object NoopManifestStore {
       }
     }
 
-  /** FNV-1a hash of compiler options for cheap equality check. */
-  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String]): Long = {
+  /** FNV-1a hash of compiler options — and of the [[OutputDeterminants]], which decide the output just as much — for cheap equality check. */
+  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long = {
     var hash = 0xcbf29ce484222325L
     val prime = 0x100000001b3L
 
@@ -137,6 +137,8 @@ object NoopManifestStore {
     language.scalaOptions.foreach(mix)
     language.javaOptions.foreach(mix)
     ecjVersion.foreach(mix)
+    determinants.asZincExtra.foreach { case (k, v) => mix(k); mix(v) }
+    determinants.transformedClasses.toList.sortBy(_._1).foreach { case (name, c) => mix(name); mix(c.kind.value); mix(c.hash) }
     hash
   }
 
@@ -151,6 +153,7 @@ object NoopManifestStore {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
+      determinants: OutputDeterminants,
       result: ProjectCompileSuccess
   ): Option[NoopManifest] = {
     if (!ctimeAvailable) return None
@@ -193,7 +196,7 @@ object NoopManifestStore {
       sourceDirStats = sourceDirStatsMap,
       outputDirStats = outputDirStatsMap,
       depAnalysisStats = depStats,
-      optionsHash = computeOptionsHash(language, ecjVersion),
+      optionsHash = computeOptionsHash(language, ecjVersion, determinants),
       cachedResult = result
     )
 

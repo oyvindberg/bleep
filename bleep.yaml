@@ -38,6 +38,10 @@ projects:
     sources: ./bleep-cli/src/scala-3
   bleep-core:
     dependencies:
+    # coursier-cache refers to GraalVM's native-image API, which the GraalVM JDK building bleep carries, but compiling against the JDK 17 API does not.
+    # Keep at the version in `jvm:`.
+    - configuration: provided
+      module: org.graalvm.sdk:nativeimage:25.0.1
     - ch.epfl.scala:bsp4j:2.2.0-M2
     - co.fs2::fs2-core:3.10.2
     - com.eed3si9n::gigahorse-okhttp:0.9.3
@@ -282,7 +286,7 @@ projects:
     - org.jetbrains.kotlin:kotlin-compiler:2.3.0
     - org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
     - ch.epfl.scala::tasty-query:1.9.0
-    - org.ow2.asm:asm:9.7.1
+    - org.ow2.asm:asm:9.9
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
     - org.typelevel::cats-effect:3.6.1
@@ -521,5 +525,7 @@ templates:
       options: -Wconf:id=E175:s -Wconf:id=E176:s -Wconf:msg=Alphanumeric.method.*is.not.declared.infix:s
   template-scala-3:
     scala:
-      options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error
+      # JDK 17 is the floor bleep runs on (the compile server runs on the build's own JVM), whichever newer JDK builds it: this compiles against the
+      # JDK 17 API, so a newer API is a compile error rather than a NoSuchMethodError in someone's JDK 17 build.
+      options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error -java-output-version:17
       version: 3.9.0

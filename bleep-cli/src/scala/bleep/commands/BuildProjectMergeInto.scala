@@ -12,12 +12,11 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
 
     def rewriteProject(p: model.Project): model.Project =
       p.copy(
-        dependsOn = p.dependsOn.map {
-          case `projectName` => into
-          case other         => other
-        },
-        sourcegen = p.sourcegen.map(rewriteScriptDef)
-      )
+        dependsOn = p.dependsOn.map(ref => if (ref.name == projectName) ref.copy(name = into) else ref)
+      ).mapIndirectReferences {
+        case model.CrossProjectName(`projectName`, crossId) => model.CrossProjectName(into, crossId)
+        case other                                          => other
+      }
 
     override protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.flatMap {
@@ -31,8 +30,8 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
           }
           // remove `dependsOn` from `projectName` and `into` or transitive dependencies of `into`
           val p2 = {
-            val removeDependsOn = oldBuild.transitiveDependenciesFor(crossName).keySet ++ Iterable(projectName, into)
-            p1.copy(dependsOn = p1.dependsOn.filterNot(removeDependsOn))
+            val removeDependsOn = oldBuild.transitiveDependenciesFor(crossName).keySet.map(_.name) ++ Iterable(projectName, into)
+            p1.copy(dependsOn = p1.dependsOn.filterNot(ref => removeDependsOn.contains(ref.name)))
           }
           Some(crossName -> p2)
         case (crossName, p) => Some((crossName, rewriteProject(p)))
@@ -41,7 +40,7 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
 
   def rewriteScriptDef(s: model.ScriptDef): model.ScriptDef =
     s match {
-      case s @ model.ScriptDef.Main(model.CrossProjectName(`projectName`, _), _, _) =>
+      case s @ model.ScriptDef.Main(model.CrossProjectName(`projectName`, _), _, _, _) =>
         s.copy(project = model.CrossProjectName(into, s.project.crossId))
       case s => s
     }
