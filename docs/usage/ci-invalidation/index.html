@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">CI project invalidation | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/usage/ci-invalidation/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="CI project invalidation | Bleep"><meta data-rh="true" name="description" content="Bleep can compute exactly which projects are affected by a set of changes, so your CI pipeline only rebuilds and retests what&#x27;s necessary."><meta data-rh="true" property="og:description" content="Bleep can compute exactly which projects are affected by a set of changes, so your CI pipeline only rebuilds and retests what&#x27;s necessary."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/usage/ci-invalidation/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/ci-invalidation/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/ci-invalidation/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CI Project Invalidation","item":"https://bleep.build/docs/usage/ci-invalidation"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.776fb35a.js" defer="defer"></script>
-<script src="/assets/js/main.2ba177a5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
+<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -36,7 +36,7 @@
 <ol>
 <li class=""><strong>Build configuration</strong>: dependencies, Scala/Java/Kotlin version, compiler options, platform settings, templates, or any other field in <code>bleep.yaml</code> that affects the project</li>
 <li class=""><strong>Source files</strong>: any file under the project&#x27;s source or resource directories was added, modified, or deleted (detected via <code>git diff</code>)</li>
-<li class=""><strong>Transitive dependents</strong>: if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes sourcegen script dependencies.</li>
+<li class=""><strong>Transitive dependents</strong>: if project A changed, every project that depends on A (directly or transitively) is also invalidated. This includes projects it is built with but not against, such as sourcegen scripts (see also <a class="" href="/docs/appendix/post-compile/">post-compile</a>).</li>
 <li class=""><strong>Build-level toolchain</strong>: a change to <code>jvm:</code> (the JDK that compiles everything) or to <code>$version</code> (the bleep that drives it) invalidates <em>every</em> project. Neither field belongs to any single project, so nothing in points 1-3 can see them.</li>
 </ol>
 <p>New projects (present in HEAD but not in the base) are always invalidated.</p>

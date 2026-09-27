@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Build cache | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/usage/remote-cache/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Build cache | Bleep"><meta data-rh="true" name="description" content="Bleep can cache compiled classes in S3 (or any S3-compatible storage like MinIO, Cloudflare R2) so CI pipelines skip compilation for unchanged projects, or in a local directory so multiple checkouts and git worktrees on one machine share compiled state."><meta data-rh="true" property="og:description" content="Bleep can cache compiled classes in S3 (or any S3-compatible storage like MinIO, Cloudflare R2) so CI pipelines skip compilation for unchanged projects, or in a local directory so multiple checkouts and git worktrees on one machine share compiled state."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/usage/remote-cache/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/remote-cache/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/usage/remote-cache/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Remote Build Cache","item":"https://bleep.build/docs/usage/remote-cache"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.776fb35a.js" defer="defer"></script>
-<script src="/assets/js/main.2ba177a5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
+<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -63,6 +63,7 @@
 <li class="">Uploads tar.gz of classes + zinc analysis for new entries</li>
 <li class="">Skips projects that aren&#x27;t compiled or are already cached (<code>--force</code> uploads anyway, overwriting the stored entry — see <a href="#trust-model" class="">Trust model</a>)</li>
 </ul>
+<p>Neither command handles a project with <a class="" href="/docs/appendix/post-compile/"><code>postCompile</code></a>, or a project that compiles against one; both skip them with a warning naming each.</p>
 <p>Who is allowed to push decides what everyone else executes: see <a href="#trust-model" class="">Trust model</a> before wiring this into CI.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="trust-model">Trust model<a href="#trust-model" class="hash-link" aria-label="Direct link to Trust model" title="Direct link to Trust model" translate="no">​</a></h2>
 <p>Read this before pointing CI at a shared cache. A build cache is a
@@ -83,7 +84,7 @@ directories,</li>
 <li class="">content hashes of every resource file (resources are <em>not</em> stored in
 the archive, but they change the key),</li>
 <li class="">the digests of all transitive project dependencies,</li>
-<li class="">the digests of the projects backing its sourcegen scripts.</li>
+<li class="">the digests of the projects it is built with but not against: those backing its sourcegen scripts, and any others the build names (see <a class="" href="/docs/appendix/post-compile/">post-compile</a>).</li>
 </ol>
 <p><code>resolvers:</code> is deliberately <strong>not</strong> part of the key. A coordinate is
 expected to resolve to the same bytes from any repository, and an
