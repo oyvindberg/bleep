@@ -162,7 +162,14 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, None, ksp, stamps)
     }
 
-    ProjectPaths(dir = dir, targetDir = targetDir, sourcesDirs = sources, resourcesDirs = resources, isTestProject = p.isTestProject.getOrElse(false))
+    ProjectPaths(
+      dir = dir,
+      targetDir = targetDir,
+      sourcesDirs = sources,
+      resourcesDirs = resources,
+      isTestProject = p.isTestProject.getOrElse(false),
+      hasPostCompile = p.postCompile.isDefined
+    )
   }
 }
 

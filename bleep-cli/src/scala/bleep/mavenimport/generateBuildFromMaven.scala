@@ -80,19 +80,21 @@ object generateBuildFromMaven {
         boms = model.JsonSet.empty,
         jars = model.JsonSet.empty,
         java = None,
-        scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
+        scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None, skipStdlib = None, compilerProject = None)),
         kotlin = None,
         platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
         isTestProject = None,
         testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
         testTags = model.JsonMap.empty,
+        testExclude = model.JsonSet.empty,
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
-        publish = None
+        publish = None,
+        postCompile = None
       )
 
       val generators =
@@ -104,7 +106,7 @@ object generateBuildFromMaven {
           .map { case (name, p) =>
             val newP = generators.get(name) match {
               case Some(foundGenerator) =>
-                val scriptDef = model.ScriptDef.Main(scriptProjectName, foundGenerator.qname, model.JsonSet.empty)
+                val scriptDef = model.ScriptDef.Main(scriptProjectName, foundGenerator.qname, model.JsonSet.empty, model.JsonSet.empty)
                 p.copy(sourcegen = model.JsonSet(scriptDef))
               case None => p
             }

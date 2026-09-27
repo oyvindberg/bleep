@@ -104,7 +104,8 @@
       "name": "scala3-compiler_3",
       "version": "3.9.0",
       "options": [
-        
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped"
       ],
       "jars": [
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.9.0/scala3-compiler_3-3.9.0.jar",

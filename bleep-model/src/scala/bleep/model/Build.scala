@@ -36,66 +36,116 @@ sealed trait Build {
       case build: Build.FileBacked => build
     }
 
-  // in BuildFile we just specify projectName, but in Build we need to know which cross version to pick
+  // A `dependsOn` entry names a project, and optionally which of its cross versions (`name@crossId`). Stated, that cross version is the one; left out, it is
+  // inferred here: the one with the same cross id, else the same Scala version and platform, and so on.
   lazy val resolvedDependsOn: Map[CrossProjectName, SortedSet[CrossProjectName]] = {
     val byName: Map[ProjectName, Iterable[CrossProjectName]] =
       explodedProjectsByName.map { case (k, v) => (k, v.keys) }
 
     explodedProjects.map { case (crossProjectName, p) =>
       val resolvedDependsOn: SortedSet[CrossProjectName] =
-        p.dependsOn.values.map { depName =>
-          byName.get(depName) match {
-            case None =>
-              throw new BleepException.Text(s"$crossProjectName: depends on non-existing project $depName")
-            case Some(unambiguous) if unambiguous.size == 1 => unambiguous.head
-            case Some(depCrossVersions)                     =>
-              val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
+        p.dependsOn.values.map {
+          case ProjectRef(depName, Some(crossId)) =>
+            val explicit = CrossProjectName(depName, Some(crossId))
+            if (explodedProjects.contains(explicit)) explicit
+            else throw new BleepException.Text(s"$crossProjectName: depends on non-existing project $explicit")
+          case ProjectRef(depName, None) =>
+            byName.get(depName) match {
+              case None =>
+                throw new BleepException.Text(s"$crossProjectName: depends on non-existing project $depName")
+              case Some(unambiguous) if unambiguous.size == 1 => unambiguous.head
+              case Some(depCrossVersions)                     =>
+                val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
-              val thisScalaVersion = p.scala.flatMap(_.version)
-              val thisPlatformName = p.platform.flatMap(_.name)
+                val thisScalaVersion = p.scala.flatMap(_.version)
+                val thisPlatformName = p.platform.flatMap(_.name)
 
-              def sameScalaAndPlatform: Option[CrossProjectName] =
-                depCrossVersions.find { crossName =>
-                  val depCross = explodedProjects(crossName)
-                  val thatScalaVersion = depCross.scala.flatMap(_.version)
-                  val thatPlatformName = depCross.platform.flatMap(_.name)
-                  thatScalaVersion == thisScalaVersion &&
-                  thatPlatformName == thisPlatformName
-                }
+                def sameScalaAndPlatform: Option[CrossProjectName] =
+                  depCrossVersions.find { crossName =>
+                    val depCross = explodedProjects(crossName)
+                    val thatScalaVersion = depCross.scala.flatMap(_.version)
+                    val thatPlatformName = depCross.platform.flatMap(_.name)
+                    thatScalaVersion == thisScalaVersion &&
+                    thatPlatformName == thisPlatformName
+                  }
 
-              def sameScalaBinVersionAndPlatform: Option[CrossProjectName] =
-                depCrossVersions.find { crossName =>
-                  val depCross = explodedProjects(crossName)
-                  val thatBinVersion = depCross.scala.flatMap(_.version).map(_.binVersion)
-                  val thatPlatformName = depCross.platform.flatMap(_.name)
+                def sameScalaBinVersionAndPlatform: Option[CrossProjectName] =
+                  depCrossVersions.find { crossName =>
+                    val depCross = explodedProjects(crossName)
+                    val thatBinVersion = depCross.scala.flatMap(_.version).map(_.binVersion)
+                    val thatPlatformName = depCross.platform.flatMap(_.name)
 
-                  thatBinVersion == thisScalaVersion.map(_.binVersion) &&
-                  thatPlatformName == thisPlatformName
-                }
+                    thatBinVersion == thisScalaVersion.map(_.binVersion) &&
+                    thatPlatformName == thisPlatformName
+                  }
 
-              def compatibleAndSamePlatform: Option[CrossProjectName] =
-                depCrossVersions.find { crossName =>
-                  val depCross = explodedProjects(crossName)
-                  val thatScala3Or213 = depCross.scala.flatMap(_.version).map(_.is3Or213)
-                  val thatPlatformName = depCross.platform.flatMap(_.name)
+                def compatibleAndSamePlatform: Option[CrossProjectName] =
+                  depCrossVersions.find { crossName =>
+                    val depCross = explodedProjects(crossName)
+                    val thatScala3Or213 = depCross.scala.flatMap(_.version).map(_.is3Or213)
+                    val thatPlatformName = depCross.platform.flatMap(_.name)
 
-                  thatScala3Or213 == thisScalaVersion.map(_.is3Or213) &&
-                  thatPlatformName == thisPlatformName
-                }
+                    thatScala3Or213 == thisScalaVersion.map(_.is3Or213) &&
+                    thatPlatformName == thisPlatformName
+                  }
 
-              sameCrossId
-                .orElse(sameScalaAndPlatform)
-                .orElse(sameScalaBinVersionAndPlatform)
-                .orElse(compatibleAndSamePlatform)
-                .toRight {
-                  s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}"
-                }
-                .orThrowText
-          }
+                sameCrossId
+                  .orElse(sameScalaAndPlatform)
+                  .orElse(sameScalaBinVersionAndPlatform)
+                  .orElse(compatibleAndSamePlatform)
+                  .toRight {
+                    s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}"
+                  }
+                  .orThrowText
+            }
         }
 
       (crossProjectName, resolvedDependsOn)
     }
+  }
+
+  /** Every [[IndirectDependency]] of every project, checked to exist. Written as exact cross names (`name` or `name@crossId`), like a script's `project`. */
+  lazy val resolvedIndirectDependencies: Map[CrossProjectName, List[IndirectDependency]] =
+    explodedProjects.map { case (crossProjectName, p) =>
+      val indirect = p.indirectReferences
+      indirect.foreach { dep =>
+        if (!explodedProjects.contains(dep.project))
+          throw new BleepException.Text(s"$crossProjectName: ${dep.reason} names non-existing project ${dep.project.value}")
+      }
+      (crossProjectName, indirect)
+    }
+
+  /** What must be built before each project: its `dependsOn` and its [[resolvedIndirectDependencies]]. Scheduling uses this; classpaths use
+    * [[resolvedDependsOn]]. Checked for cycles — a cycle through an indirect edge would otherwise wait forever instead of failing.
+    */
+  lazy val resolvedBuildOrderDeps: Map[CrossProjectName, SortedSet[CrossProjectName]] = {
+    val deps = resolvedDependsOn.map { case (crossProjectName, direct) =>
+      (crossProjectName, direct ++ resolvedIndirectDependencies(crossProjectName).map(_.project))
+    }
+    // Depth-first, three states: absent = unvisited, false = on the current path, true = finished.
+    val state = scala.collection.mutable.Map.empty[CrossProjectName, Boolean]
+    def visit(p: CrossProjectName, path: List[CrossProjectName]): Unit =
+      state.get(p) match {
+        case Some(true)  => ()
+        case Some(false) =>
+          // `path` is nearest-first, so the cycle is p, then the path back down to p, reversed
+          val cycle = (p :: path.takeWhile(_ != p).reverse) :+ p
+          throw new BleepException.Text(s"build order cycle: ${cycle.map(_.value).mkString(" -> ")}")
+        case None =>
+          state(p) = false
+          deps(p).foreach(visit(_, p :: path))
+          state(p) = true
+      }
+    deps.keys.foreach(visit(_, Nil))
+    deps
+  }
+
+  /** Everything that must be built before `name`, transitively through both `dependsOn` and indirect dependencies. Excludes `name` itself. */
+  def transitiveBuildOrderDepsFor(name: CrossProjectName): Set[CrossProjectName] = {
+    val seen = scala.collection.mutable.Set.empty[CrossProjectName]
+    def go(p: CrossProjectName): Unit = resolvedBuildOrderDeps(p).foreach(dep => if (seen.add(dep)) go(dep))
+    go(name)
+    seen.toSet
   }
 
   def transitiveDependenciesFor(name: CrossProjectName): Map[CrossProjectName, Project] = {

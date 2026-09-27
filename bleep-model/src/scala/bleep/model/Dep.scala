@@ -27,6 +27,9 @@ sealed trait Dep {
   def withVersion(version: String): Dep
   def withTransitive(value: Boolean): Dep
 
+  /** Also exclude `modules` of `organization` from what this dependency brings in transitively. */
+  def withExclusions(organization: Organization, modules: Set[ModuleName]): Dep
+
   def mapScala(f: Dep.ScalaDependency => Dep.ScalaDependency): Dep =
     this match {
       case java: Dep.JavaDependency   => java
@@ -38,6 +41,14 @@ sealed trait Dep {
 }
 
 object Dep {
+  private[model] def addExclusions(
+      existing: JsonMap[Organization, JsonSet[ModuleName]],
+      organization: Organization,
+      modules: Set[ModuleName]
+  ): JsonMap[Organization, JsonSet[ModuleName]] = {
+    val current = existing.value.getOrElse(organization, JsonSet.empty[ModuleName])
+    JsonMap(existing.value.updated(organization, current.union(JsonSet.fromIterable(modules))))
+  }
   def Java(org: String, name: String, version: String): Dep.JavaDependency =
     Dep.JavaDependency(Organization(org), ModuleName(name), version)
 
@@ -107,6 +118,8 @@ object Dep {
 
     override def withVersion(version: String): Dep.JavaDependency = copy(version = version)
     override def withTransitive(value: Boolean): Dep.JavaDependency = copy(transitive = value)
+    override def withExclusions(organization: Organization, modules: Set[ModuleName]): Dep.JavaDependency =
+      copy(exclusions = Dep.addExclusions(exclusions, organization, modules))
 
     def dependency: Dependency =
       new Dependency(
@@ -117,7 +130,9 @@ object Dep {
         ),
         version = VersionConstraint(version),
         configuration = configuration,
-        minimizedExclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
+        // Through a List: flatMap on the Map itself builds another Map keyed by organization, keeping one excluded module per organization.
+        minimizedExclusions =
+          exclusions.value.toList.flatMap { case (org, moduleNames) => moduleNames.values.toList.map(moduleName => (org, moduleName)) }.toSet,
         publication = publication,
         optional = false, // todo: we now express this in configuration. also here?
         transitive = transitive
@@ -156,6 +171,8 @@ object Dep {
 
     override def withVersion(version: String): Dep.ScalaDependency = copy(version = version)
     override def withTransitive(value: Boolean): Dep.ScalaDependency = copy(transitive = value)
+    override def withExclusions(organization: Organization, modules: Set[ModuleName]): Dep.ScalaDependency =
+      copy(exclusions = Dep.addExclusions(exclusions, organization, modules))
 
     def moduleName(combo: VersionCombo.Scala): ModuleName = {
       val platformSuffix: String =

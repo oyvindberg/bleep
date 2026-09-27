@@ -63,10 +63,26 @@ object ResolvedProject {
         compilerJars: List[Path],
         analysisFile: Option[Path],
         setup: Option[CompileSetup],
-        javaOptions: List[String]
+        javaOptions: List[String],
+        compilerProject: Option[ProjectCompiler]
     ) extends Language
 
     /** Kotlin project (may include Java files) */
+    /** A Scala compiler built by a project in this build (`scala.compilerProject`), not fetched from a repository.
+      *
+      * @param name
+      *   the project that builds it
+      * @param classpath
+      *   the compiler: that project's runtime classpath, without its own output
+      * @param bridge
+      *   that project's own output — classes and resources — which is the zinc compiler bridge
+      */
+    case class ProjectCompiler(
+        name: String,
+        classpath: List[Path],
+        bridge: List[Path]
+    )
+
     case class Kotlin(
         version: String,
         options: List[String],
@@ -74,6 +90,8 @@ object ResolvedProject {
         javaOptions: List[String]
     ) extends Language
 
+    implicit val encodesProjectCompiler: Encoder[ProjectCompiler] = deriveEncoder
+    implicit val decodesProjectCompiler: Decoder[ProjectCompiler] = deriveDecoder
     implicit val encodesJava: Encoder[Java] = deriveEncoder
     implicit val encodesScala: Encoder[Scala] = deriveEncoder
     implicit val encodesKotlin: Encoder[Kotlin] = deriveEncoder

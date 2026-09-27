@@ -138,7 +138,7 @@ object ExtractInfo {
       val build = started.build
 
       val scripts = build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
-        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _) =>
+        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _) =>
           ScriptInfo(
             name = scriptName.value,
             project = project.value,
@@ -159,7 +159,7 @@ object ExtractInfo {
       val build = started.build
 
       val sourcegens = build.explodedProjects.toList.sortBy(_._1.value).flatMap { case (crossName, project) =>
-        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _) =>
+        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _) =>
           SourceGenInfo(
             project = crossName.value,
             sourceGenProject = sourceGenProject.value,
@@ -208,7 +208,7 @@ object ExtractInfo {
 
       // Scripts
       val scripts = build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
-        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _) =>
+        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _) =>
           ScriptInfo(
             name = scriptName.value,
             project = project.value,
@@ -219,7 +219,7 @@ object ExtractInfo {
 
       // SourceGens
       val sourcegens = build.explodedProjects.toList.sortBy(_._1.value).flatMap { case (crossName, project) =>
-        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _) =>
+        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _) =>
           SourceGenInfo(
             project = crossName.value,
             sourceGenProject = sourceGenProject.value,

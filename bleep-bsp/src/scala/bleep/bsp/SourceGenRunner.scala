@@ -61,9 +61,13 @@ object SourceGenRunner {
     * preferred whenever it was non-empty, so a script that always prints warnings could never report why it actually died.
     */
   private[bsp] def failureMessage(scriptMain: String, cause: String, stderr: String): String =
+    forkFailureMessage(s"Sourcegen $scriptMain", cause, stderr)
+
+  /** [[failureMessage]] for any forked script, `what` naming it (`Sourcegen x.Main`, `Post-compile x.Main for p`). */
+  private[bsp] def forkFailureMessage(what: String, cause: String, stderr: String): String =
     meaningfulStderr(stderr) match {
-      case Some(detail) => s"Sourcegen $scriptMain failed: $cause\nstderr:\n$detail"
-      case None         => s"Sourcegen $scriptMain failed: $cause (no stderr beyond routine JVM warnings)"
+      case Some(detail) => s"$what failed: $cause\nstderr:\n$detail"
+      case None         => s"$what failed: $cause (no stderr beyond routine JVM warnings)"
     }
 
   /** Listener for sourcegen progress events */
@@ -158,10 +162,10 @@ object SourceGenRunner {
   ): Set[CrossProjectName] = {
     // Get input files: script project sources + dependencies
     val scriptProjectWithDeps = started.build.transitiveDependenciesFor(script.project).keySet + script.project
-    val scriptInputPaths: Array[Path] = scriptProjectWithDeps.flatMap { projectName =>
+    val scriptInputPaths: Array[Path] = (scriptProjectWithDeps.flatMap { projectName =>
       val paths = started.projectPaths(projectName)
       paths.sourcesDirs.all(Usage.Input) ++ paths.resourcesDirs.all(Usage.Input)
-    }.toArray
+    } ++ script.inputs.values.map(started.projectPaths(_).classes)).toArray
 
     projectsNeedingRegeneration(script, forProjects, scriptInputPaths, started.projectPaths)
   }

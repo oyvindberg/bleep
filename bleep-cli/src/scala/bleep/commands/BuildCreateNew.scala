@@ -125,20 +125,22 @@ object BuildCreateNew {
         isTestProject = None,
         testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
         testTags = model.JsonMap.empty,
+        testExclude = model.JsonSet.empty,
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
-        publish = None
+        publish = None,
+        postCompile = None
       )
 
     private def javaRecipe(name: String): Recipe = {
       val mainClass = s"$mainPkg.Main"
       val mainProject = emptyProject.copy(platform = Some(jvmPlatform(Some(mainClass))))
       val testProject = emptyProject.copy(
-        dependsOn = model.JsonSet(model.ProjectName(name)),
+        dependsOn = model.JsonSet(model.ProjectRef(model.ProjectName(name))),
         isTestProject = Some(true),
         platform = Some(jvmPlatform(None)),
         dependencies = model.JsonSet(model.Dep.Java("org.junit.jupiter", "junit-jupiter", model.Versions.JunitJupiter))
@@ -201,7 +203,7 @@ object BuildCreateNew {
         platform = Some(jvmPlatform(Some(mainClass)))
       )
       val testProject = emptyProject.copy(
-        dependsOn = model.JsonSet(model.ProjectName(name)),
+        dependsOn = model.JsonSet(model.ProjectRef(model.ProjectName(name))),
         isTestProject = Some(true),
         kotlin = Some(kotlin),
         platform = Some(jvmPlatform(None)),
@@ -275,23 +277,35 @@ object BuildCreateNew {
         boms = model.JsonSet.empty,
         jars = model.JsonSet.empty,
         java = None,
-        scala = Some(model.Scala(version = Some(mainScala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
+        scala = Some(
+          model.Scala(
+            version = Some(mainScala),
+            options = defaultOpts,
+            setup = None,
+            compilerPlugins = model.JsonSet.empty,
+            strict = Some(true),
+            skipStdlib = None,
+            compilerProject = None
+          )
+        ),
         kotlin = None,
         platform = Some(platformFor(mainPlatform, Some(mainClass))),
         isTestProject = None,
         testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
         testTags = model.JsonMap.empty,
+        testExclude = model.JsonSet.empty,
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
         ignoreEvictionErrors = None,
-        publish = None
+        publish = None,
+        postCompile = None
       )
 
       val testProj = mainProj.copy(
-        dependsOn = model.JsonSet(model.ProjectName(name)),
+        dependsOn = model.JsonSet(model.ProjectRef(model.ProjectName(name))),
         isTestProject = Some(true),
         dependencies = model.JsonSet(model.Dep.Scala("org.scalameta", "munit", model.Versions.Munit)),
         platform = Some(platformFor(mainPlatform, None))

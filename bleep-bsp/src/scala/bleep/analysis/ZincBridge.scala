@@ -76,7 +76,7 @@ object ZincBridge {
   /** Snapshot of currently-leaked ECJ compile threads. Intended for diagnostics (oncall, support). */
   def abandonedEcjThreadsSnapshot: List[(String, Long)] = {
     val out = List.newBuilder[(String, Long)]
-    abandonedEcjThreads.forEach(t => out += ((t.getName, t.threadId())))
+    abandonedEcjThreads.forEach(t => out += ((t.getName, bleep.internal.threadId(t))))
     out.result()
   }
 
@@ -221,7 +221,7 @@ object ZincBridge {
   ): Option[ProjectCompileSuccess] = {
     val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
     val analysisFile = analysisDir.resolve("analysis.zip")
-    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion).toOption
+    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion, config.determinants).toOption
   }
 
   /** Compile a Scala/Java project using Zinc.
@@ -272,7 +272,18 @@ object ZincBridge {
       val begin = bleep.bsp.BspMetrics.threadAllocatedBytes()
       val startMs = System.currentTimeMillis()
       val result =
-        compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile, analyses)
+        compileOnce(
+          config,
+          sources,
+          language,
+          diagnosticListener,
+          cancellationToken,
+          dependencyAnalyses,
+          progressListener,
+          ecjVersion,
+          analysisFile,
+          analyses
+        )
       val end = bleep.bsp.BspMetrics.threadAllocatedBytes()
       if (begin >= 0 && end >= begin)
         bleep.bsp.BspMetrics.recordCompileAllocation(config.name, end - begin, System.currentTimeMillis() - startMs)
@@ -290,7 +301,8 @@ object ZincBridge {
       analysisFile: Path,
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
-      ecjVersion: Option[String]
+      ecjVersion: Option[String],
+      determinants: OutputDeterminants
   ): Either[String, NoopManifest] = {
     if (!ctimeAvailable) return Left("ctime unavailable on this platform")
 
@@ -308,7 +320,7 @@ object ZincBridge {
     }
 
     // Options hash (cheap)
-    val currentHash = computeOptionsHash(language, ecjVersion)
+    val currentHash = computeOptionsHash(language, ecjVersion, determinants)
     if (currentHash != manifest.optionsHash) return Left("compiler options changed")
 
     // Dependency analysis mtimes
@@ -376,9 +388,10 @@ object ZincBridge {
       sourceDirs: Set[Path],
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
-      ecjVersion: Option[String]
+      ecjVersion: Option[String],
+      determinants: OutputDeterminants
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -433,9 +446,10 @@ object ZincBridge {
       sources: Array[VirtualFile],
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
-      ecjVersion: Option[String]
+      ecjVersion: Option[String],
+      determinants: OutputDeterminants
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -478,8 +492,8 @@ object ZincBridge {
   private def contentUnchanged(path: Path, expected: FileStatEntry): Boolean =
     expected.contentHash != 0L && NoopManifestStore.hashContent(path) == expected.contentHash
 
-  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String]): Long =
-    NoopManifestStore.computeOptionsHash(language, ecjVersion)
+  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long =
+    NoopManifestStore.computeOptionsHash(language, ecjVersion, determinants)
 
   // ─── Noop manifest: save ────────────────────────────────────────────────
 
@@ -491,6 +505,7 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
+      determinants: OutputDeterminants,
       result: ProjectCompileSuccess
   ): Unit = {
     val sourcePaths = new Array[Path](sources.length)
@@ -503,7 +518,7 @@ object ZincBridge {
       i += 1
     }
 
-    NoopManifestStore.regenerateFromLocal(analysisFile, sourceDirs, sourcePaths, dependencyAnalyses, language, ecjVersion, result) match {
+    NoopManifestStore.regenerateFromLocal(analysisFile, sourceDirs, sourcePaths, dependencyAnalyses, language, ecjVersion, determinants, result) match {
       case Some(manifest) => noopManifestCache.put(analysisFile, manifest): Unit
       case None           => () // ctime unavailable (Windows) — manifest disabled
     }
@@ -531,15 +546,23 @@ object ZincBridge {
     // project on noop builds by using unix:ctime as a reliable change detector.
     // Why the fast path declined, kept so it can be compared against zinc's own verdict below.
     val noopDeclinedBecause: String =
-      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion) match {
+      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, config.determinants) match {
         case Right(cachedResult) =>
           diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
           return cachedResult
         case Left(reason) => reason
       }
 
-    val scalaInstance = getScalaInstance(language.scalaVersion)
-    val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken, progressListener)
+    val (scalaInstance, bridgeJar) = language.compilerProject match {
+      case None     => (getScalaInstance(language.scalaVersion), getBridge(language.scalaVersion))
+      case Some(pc) =>
+        val identity = config.determinants.compiler.getOrElse(
+          throw new bleep.BleepException.Text(s"${config.name}: compiled by project ${pc.name}, but no identity was determined for that compiler")
+        )
+        val built = getProjectCompiler(language.scalaVersion, identity, pc, config.buildDir)
+        (built.scalaInstance, built.bridgeJar)
+    }
+    val compilers = createCompilers(scalaInstance, bridgeJar, ecjVersion, cancellationToken, progressListener)
     val logger = new BleepLogger(diagnosticListener)
     val reporter = new BleepReporter(diagnosticListener, config.buildDir)
 
@@ -672,7 +695,7 @@ object ZincBridge {
 
       val classFiles = collectClassFiles(config.outputDir)
       val success = ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
-      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, success)
+      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, config.determinants, success)
       success
     } catch {
       case e: xsbti.CompileFailed =>
@@ -821,6 +844,84 @@ object ZincBridge {
     }
   }
 
+  // ─── Compilers built by a project in the build (`scala.compilerProject`) ───
+
+  /** A compiler built in this build, loaded from a snapshot of its outputs. */
+  private case class ProjectCompilerInstance(scalaInstance: ZincScalaInstance, bridgeJar: Path)
+
+  /** Keyed by the compiler's identity (its project's content digest — see [[OutputDeterminants]]), so each distinct build of a compiler gets its own instance.
+    */
+  private val projectCompilerCache = new java.util.concurrent.ConcurrentHashMap[String, ProjectCompilerInstance]()
+
+  /** Load a compiler built by a project, from jars snapshotted under `.bleep/compiler-snapshots/<identity>`.
+    *
+    * Never from the live output directories: the classloader reads classes lazily, long after it is created, and by then the compiler project may have been
+    * rebuilt under it — a compiler assembled from two builds. Jars already in the classpath (coursier's) are immutable and used where they are.
+    */
+  private def getProjectCompiler(
+      declaredVersion: String,
+      identity: String,
+      pc: bleep.ResolvedProject.Language.ProjectCompiler,
+      buildDir: Path
+  ): ProjectCompilerInstance =
+    projectCompilerCache.computeIfAbsent(
+      identity,
+      _ => {
+        val fingerprint = identity.replaceAll("[^A-Za-z0-9._-]", "_")
+        val snapshotDir = buildDir.resolve(".bleep").resolve("compiler-snapshots").resolve(fingerprint)
+        if (!Files.isDirectory(snapshotDir)) {
+          val tmp = Files.createDirectories(snapshotDir.getParent).resolve(s"$fingerprint.tmp-${ProcessHandle.current().pid()}")
+          Files.createDirectories(tmp)
+          pc.classpath.zipWithIndex.foreach { case (entry, i) =>
+            if (Files.isDirectory(entry)) jarDirectories(List(entry), tmp.resolve(f"$i%03d-${entry.getFileName}.jar"))
+          }
+          jarDirectories(pc.bridge.filter(Files.isDirectory(_)), tmp.resolve("bridge.jar"))
+          try Files.move(tmp, snapshotDir, StandardCopyOption.ATOMIC_MOVE): Unit
+          catch { case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(snapshotDir) => () } // another daemon snapshotted the same build
+        }
+        val jars: Array[File] = pc.classpath.zipWithIndex.collect {
+          case (entry, i) if Files.isDirectory(entry)   => snapshotDir.resolve(f"$i%03d-${entry.getFileName}.jar").toFile
+          case (entry, _) if Files.isRegularFile(entry) => entry.toFile
+        }.toArray
+        val compilerLoader = CompilerResolver.createCompilerClassLoader(jars.toSeq.map(_.toPath))
+        val instance = new ZincScalaInstance {
+          override def version(): String = declaredVersion
+          override def libraryJars(): Array[File] = Array.empty
+          override def compilerJars(): Array[File] = jars
+          override def allJars(): Array[File] = jars
+          override def otherJars(): Array[File] = Array.empty
+          override def loaderLibraryOnly(): ClassLoader = compilerLoader
+          override def loaderCompilerOnly(): ClassLoader = compilerLoader
+          override def loader(): ClassLoader = compilerLoader
+          override def actualVersion(): String = declaredVersion
+        }
+        ProjectCompilerInstance(instance, snapshotDir.resolve("bridge.jar"))
+      }
+    )
+
+  /** Pack the contents of `dirs` into one jar. Later directories do not overwrite earlier ones' entries. */
+  private def jarDirectories(dirs: List[Path], jar: Path): Unit = {
+    val out = new java.util.zip.ZipOutputStream(Files.newOutputStream(jar))
+    try {
+      val seen = scala.collection.mutable.Set.empty[String]
+      dirs.foreach { dir =>
+        val stream = Files.walk(dir)
+        try
+          stream.iterator().asScala.filter(Files.isRegularFile(_)).toList.sortBy(_.toString).foreach { f =>
+            val name = dir.relativize(f).toString.replace(File.separatorChar, '/')
+            if (seen.add(name)) {
+              val entry = new java.util.zip.ZipEntry(name)
+              entry.setTime(0L)
+              out.putNextEntry(entry)
+              Files.copy(f, out)
+              out.closeEntry()
+            }
+          }
+        finally stream.close()
+      }
+    } finally out.close()
+  }
+
   private def getScalaInstance(scalaVersion: String): ZincScalaInstance =
     scalaInstanceCache.computeIfAbsent(
       scalaVersion,
@@ -856,12 +957,11 @@ object ZincBridge {
 
   private def createCompilers(
       scalaInstance: ZincScalaInstance,
-      language: ProjectLanguage.ScalaJava,
+      bridgeJar: Path,
       ecjVersion: Option[String],
       cancellationToken: CancellationToken,
       progressListener: ProgressListener
   ): Compilers = {
-    val bridgeJar = getBridge(language.scalaVersion)
     val classpathOptions = ClasspathOptionsUtil.noboot(scalaInstance.version)
     val cache = new ClassLoaderCache(new java.net.URLClassLoader(Array()))
 
@@ -1109,11 +1209,14 @@ object ZincBridge {
     // Extend ExternalLookup directly (not NoopExternalLookup) because NoopExternalLookup
     // narrows lookupAnalyzedClass return type to None.type which we can't widen back.
     val cycleGuard: ExternalLookup = new ExternalLookup {
-      // Return Some(emptyAnalyzedClass) so LookupImpl falls through to super.lookupAnalyzedClass
-      // (the normal dependency analysis path). Returning None would short-circuit the lookup,
-      // making Zinc think ALL external dependencies are missing → massive over-invalidation.
+      // A class a dependency's post-compile transform changed, added or removed is described as the consumer actually sees it — see TransformedClassView.
+      // Everything else: Some(emptyAnalyzedClass), so LookupImpl falls through to super.lookupAnalyzedClass (the normal dependency analysis path). Returning
+      // None would short-circuit the lookup, making Zinc think ALL external dependencies are missing → massive over-invalidation.
       override def lookupAnalyzedClass(binaryClassName: String, file: Option[VirtualFileRef]): Option[xsbti.api.AnalyzedClass] =
-        Some(APIs.emptyAnalyzedClass)
+        config.determinants.transformedClasses.get(binaryClassName) match {
+          case Some(transformed) => TransformedClassView(transformed, TransformedClassView.compilerView(loadedAnalyses.values, binaryClassName))
+          case None              => Some(APIs.emptyAnalyzedClass)
+        }
 
       override def changedSources(previousAnalysis: CompileAnalysis): Option[Changes[VirtualFileRef]] = None
       override def changedBinaries(previousAnalysis: CompileAnalysis): Option[Set[VirtualFileRef]] = None
@@ -1180,7 +1283,8 @@ object ZincBridge {
       incOptions,
       reporter,
       Optional.of(progress),
-      Array.empty[xsbti.T2[String, String]]
+      // What decides the output beyond sources, options and classpath: a difference is a full recompile — see OutputDeterminants
+      config.determinants.asZincExtra.map(sbt.util.InterfaceUtil.t2).toArray
     )
 
     // sourcePositionMapper: identity function

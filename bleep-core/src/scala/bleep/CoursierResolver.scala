@@ -472,13 +472,19 @@ object CoursierResolver {
     import scala.util.hashing.MurmurHash3
 
     // Fast hash computation using MurmurHash3 - no string/JSON allocation
+    /** Mixed into both hashes. The cache directory is shared by every bleep version, and a cached result is only as right as the code that computed it: bump
+      * this when a change to how bleep turns its model into a coursier request makes earlier results wrong. 2: exclusions of several modules from one
+      * organization used to reach coursier as only the last of them.
+      */
+    private val LogicVersion = 2
+
     def computeHash(
         deps: SortedSet[model.Dep],
         params: Params,
         versionCombo: model.VersionCombo,
         libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
     ): Int = {
-      var h = MurmurHash3.arraySeed
+      var h = MurmurHash3.mix(MurmurHash3.arraySeed, LogicVersion)
       // Deps are sorted, iterate deterministically
       deps.foreach { dep =>
         h = MurmurHash3.mix(h, dep.organization.value.hashCode)
@@ -545,7 +551,7 @@ object CoursierResolver {
         versionCombo: model.VersionCombo,
         libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
     ): Int = {
-      var h = 0x9e3779b9 // golden ratio bits — different seed than computeHash
+      var h = MurmurHash3.mix(0x9e3779b9, LogicVersion) // golden ratio bits — different seed than computeHash
       deps.foreach { dep =>
         h = MurmurHash3.mix(h, dep.organization.value.hashCode)
         h = MurmurHash3.mix(h, dep.baseModuleName.value.hashCode)

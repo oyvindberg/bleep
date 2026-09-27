@@ -67,6 +67,8 @@
         "-java-output-version",
         "8",
         "-language:implicitConversions",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
         "-unchecked"
       ],
       "jars": [

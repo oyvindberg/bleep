@@ -68,6 +68,8 @@
         "-language:higherKinds",
         "-language:implicitConversions",
         "-scalajs",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
         "-unchecked"
       ],
       "jars": [

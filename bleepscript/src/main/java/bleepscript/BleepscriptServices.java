@@ -94,6 +94,8 @@ public interface BleepscriptServices {
    */
   List<Path> fetchClasspath(Started started, String coordinates);
 
+  List<Path> fetchSources(Started started, String coordinates);
+
   /** Fork an external process and wait for it. Throws on non-zero exit. */
   Cli.Result runCli(
       Started started,

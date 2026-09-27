@@ -15,7 +15,8 @@ enum ProjectLanguage {
       scalaOptions: List[String],
       javaOptions: List[String],
       ecjVersion: Option[String],
-      compileOrder: bleep.model.CompileOrder
+      compileOrder: bleep.model.CompileOrder,
+      compilerProject: Option[ResolvedProject.Language.ProjectCompiler]
   )
 
   /** Kotlin/JVM compiled by K2JVMCompiler */
@@ -46,7 +47,8 @@ object ProjectLanguage {
             scalaOptions = scalaLang.options,
             javaOptions = scalaLang.javaOptions,
             ecjVersion = ecjVersion,
-            compileOrder = scalaLang.setup.map(_.order).getOrElse(bleep.model.CompileOrder.JavaThenScala)
+            compileOrder = scalaLang.setup.map(_.order).getOrElse(bleep.model.CompileOrder.JavaThenScala),
+            compilerProject = scalaLang.compilerProject
           )
         )
       case _ => None
@@ -61,8 +63,69 @@ case class ProjectConfig(
     outputDir: Path,
     language: ProjectLanguage,
     analysisDir: Option[Path],
-    buildDir: Path
+    buildDir: Path,
+    determinants: OutputDeterminants
 )
+
+/** What decides a project's output besides its sources, options and classpath — the things incremental compilation cannot see on its own.
+  *
+  *   - [[compiler]]: the compiler, when it is built in this build (`scala.compilerProject`). A new compiler may compile any source differently, so this is a
+  *     full recompile. Identified by the compiler project's content digest, so it is the same on every machine and a remote-cached project stays valid wherever
+  *     it is pulled. Passed to zinc as an `extra` setup pair.
+  *   - [[transformedClasses]]: the classes of dependencies that a post-compile transform changed, added or removed. Consumers compile against the transform's
+  *     output, but zinc's analysis of the dependency describes the compiler's. These are handed to zinc at its external lookup, folded into each class's
+  *     hashes, so zinc invalidates exactly the consumer sources that use a class the transform changed — the same way it does for a source change.
+  *
+  * Both are in the noop manifest's hash; a difference makes zinc look.
+  */
+case class OutputDeterminants(compiler: Option[String], transformedClasses: Map[String, TransformedClass]) {
+  def asZincExtra: List[(String, String)] = compiler.map("bleep.compiler" -> _).toList
+}
+
+object OutputDeterminants {
+  val none: OutputDeterminants = OutputDeterminants(compiler = None, transformedClasses = Map.empty)
+}
+
+/** A class a post-compile transform changed, added or removed — its effect on the API consumers compile against, as [[kind]] and [[hash]].
+  *
+  * @param binaryName
+  *   the JVM binary name, `lib.Outer$Inner`
+  * @param hash
+  *   of the API facts the transform added and removed for this class; changes exactly when the transform's effect on its API does
+  * @param names
+  *   every member name the transformed class exposes, and its simple name: the names a consumer can have used, so a change reaches every one of them
+  */
+case class TransformedClass(binaryName: String, kind: TransformedClass.Kind, hash: String, names: List[String])
+
+object TransformedClass {
+  sealed abstract class Kind(val value: String)
+  object Kind {
+    case object Changed extends Kind("changed")
+    case object Added extends Kind("added")
+    case object Removed extends Kind("removed")
+    val All: List[Kind] = List(Changed, Added, Removed)
+  }
+
+  /** One class per line: kind, binary name, hash, then its names — tab-separated. No compiler emits a tab in a class or member name, and bleep writes and reads
+    * both ends.
+    */
+  def write(classes: List[TransformedClass]): String =
+    classes.sortBy(_.binaryName).map(c => (c.kind.value :: c.binaryName :: c.hash :: c.names).mkString("\t")).mkString("", "\n", "\n")
+
+  def read(content: String): List[TransformedClass] =
+    content.linesIterator.filter(_.nonEmpty).toList.map { line =>
+      line.split('\t').toList match {
+        case kind :: binaryName :: hash :: names =>
+          TransformedClass(
+            binaryName,
+            Kind.All.find(_.value == kind).getOrElse(throw new IllegalArgumentException(s"unknown kind '$kind' in: $line")),
+            hash,
+            names
+          )
+        case _ => throw new IllegalArgumentException(s"malformed transformed-class line: $line")
+      }
+    }
+}
 
 /** Result of compiling a project */
 sealed trait ProjectCompileResult {

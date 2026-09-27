@@ -107,6 +107,8 @@
         "-language:implicitConversions",
         "-scalajs",
         "-scalajs-mapSourceURI:file:<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/->https://raw.githubusercontent.com/http4s/http4s/v1.0.0-M44/",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
         "-unchecked"
       ],
       "jars": [

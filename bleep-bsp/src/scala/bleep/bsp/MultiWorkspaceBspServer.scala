@@ -971,7 +971,7 @@ class MultiWorkspaceBspServer(
   ): Either[BleepException, Started] =
     // Before anything is cached or compiled. The compile path throws on a missing language or platform version, which is right but arrives mid-build as an
     // IllegalStateException about one project; this reports every offender at once, at load, through the channel the client already renders (`buildLoadError`).
-    model.BuildValidation.missingVersions(exploded) match {
+    (model.BuildValidation.missingVersions(exploded) ++ model.BuildValidation.unsupportedPostCompile(exploded)) match {
       case Nil    => createStartedFromValidatedBuild(buildRoot, variant, exploded, buildId)
       case errors => Left(new BleepException.Text(errors.mkString("\n")))
     }
@@ -1198,9 +1198,9 @@ class MultiWorkspaceBspServer(
     }
 
   /** Compute Java semanticdb javac options for IDE clients */
-  private def javaSemanticdbOptions(pluginPath: Path, workspaceDir: Path, classesDir: Path): List[String] = {
+  private def javaSemanticdbOptions(pluginPath: Path, workspaceDir: Path, compilerOutput: Path): List[String] = {
     val baseOptions = List(
-      s"-Xplugin:semanticdb -sourceroot:$workspaceDir -targetroot:$classesDir",
+      s"-Xplugin:semanticdb -sourceroot:$workspaceDir -targetroot:$compilerOutput",
       "-processorpath",
       pluginPath.toString
     )
@@ -1546,8 +1546,10 @@ class MultiWorkspaceBspServer(
       val allScripts = perProject.values.flatten.toSet
       val scriptProjectDeps: Map[bleep.model.ScriptDef.Main, Set[CrossProjectName]] =
         allScripts.iterator.map { script =>
-          val transitive = started.build.transitiveDependenciesFor(script.project).keySet + script.project
-          script -> transitive
+          // Build order, not just `dependsOn`: the script project may itself have indirect dependencies (its own compiler, say). Plus the projects the script
+          // reads (`inputs`), which must be compiled before it looks at them.
+          val needed = script.project :: script.inputs.values.toList
+          script -> needed.flatMap(p => started.build.transitiveBuildOrderDepsFor(p) + p).toSet
         }.toMap
       TaskDag.SourcegenPlan(perProject, scriptProjectDeps)
     }
@@ -1748,8 +1750,15 @@ class MultiWorkspaceBspServer(
           // No reservation here: the DAG admitted this task against its declared cost before starting
           // it, so reserving again would charge the machine twice for one fork.
           IO.unit.flatMap { _ =>
-            SourceGenRunner
-              .runOne(started, sgt.script, sgt.forProjects, killSignal, listener)
+            // Once per distinct declaration, each for the projects that declared it that way; the first failure stops the rest
+            sgt.declarations.toList
+              .sortBy { case (_, forProjects) => forProjects.map(_.value).min }
+              .foldLeft(IO.pure(Option.empty[String])) { case (acc, (script, forProjects)) =>
+                acc.flatMap {
+                  case failed @ Some(_) => IO.pure(failed)
+                  case None             => SourceGenRunner.runOne(started, script, forProjects, killSignal, listener)
+                }
+              }
               .map {
                 case None        => TaskDag.TaskResult.Success
                 case Some(error) => TaskDag.TaskResult.Failure(error, Nil)
@@ -1805,7 +1814,7 @@ class MultiWorkspaceBspServer(
 
       // Get all project dependencies (for TaskDag)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.resolvedDependsOn.map { case (crossName, deps) =>
+        started.build.resolvedBuildOrderDeps.map { case (crossName, deps) =>
           crossName -> deps.toSet
         }
 
@@ -1851,7 +1860,9 @@ class MultiWorkspaceBspServer(
                 emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
                 minify = linkOpts.minify.getOrElse(baseConfig.minify),
                 optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
-                moduleKind = scalaJsModuleKind(project, linkOpts.moduleKind, baseConfig.moduleKind)
+                moduleKind = scalaJsModuleKind(project, linkOpts.moduleKind, baseConfig.moduleKind),
+                moduleInitializers = scalaJsModuleInitializers(project),
+                runtimeClassNameRenames = scalaJsRuntimeClassNameRenames(project)
               )
               Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
@@ -1921,7 +1932,8 @@ class MultiWorkspaceBspServer(
           sourcegenPlan,
           apPlan,
           kspPlan,
-          testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false))
+          testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false)),
+          postCompileProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).postCompile.isDefined)
         )
         val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
         debugLog(
@@ -2346,7 +2358,7 @@ class MultiWorkspaceBspServer(
 
       // Get all project dependencies (for compile tasks)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.resolvedDependsOn.map { case (crossName, deps) =>
+        started.build.resolvedBuildOrderDeps.map { case (crossName, deps) =>
           crossName -> deps.toSet
         }
 
@@ -2388,7 +2400,11 @@ class MultiWorkspaceBspServer(
             // choice, it is what the build declared. `Debug` carries `CommonJSModule`, and taking that wholesale meant a project declaring `jsKind: esmodule`
             // had its tests linked as CommonJS with nothing to say so.
             val base = bleep.analysis.ScalaJsLinkConfig.Debug
-            val config = base.copy(moduleKind = scalaJsModuleKind(project, None, base.moduleKind))
+            val config = base.copy(
+              moduleKind = scalaJsModuleKind(project, None, base.moduleKind),
+              moduleInitializers = scalaJsModuleInitializers(project),
+              runtimeClassNameRenames = scalaJsRuntimeClassNameRenames(project)
+            )
             Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
           case (Some(model.PlatformId.Native), true) =>
@@ -2428,7 +2444,8 @@ class MultiWorkspaceBspServer(
         sourcegenPlan,
         apPlan,
         kspPlan,
-        testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false))
+        testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false)),
+        postCompileProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).postCompile.isDefined)
       )
       val initialDag = TaskDag.buildTestDag(testProjects, buildCtx)
       debugLog(
@@ -2512,7 +2529,12 @@ class MultiWorkspaceBspServer(
             (discoverTask, linkOutput, discoverKill) =>
               discoverTestSuites(started, discoverTask.project, linkOutput, discoverKill).map { case (result, suites) =>
                 val projectName = discoverTask.project.value
-                val regexFiltered = filterSuites(suites, testOptions.only, testOptions.exclude)
+                // The build's own exclusions first: a suite the project declares under `testExclude` is not run whatever the command line selects
+                val notExcludedByBuild = {
+                  val excluded = started.build.explodedProjects(discoverTask.project).testExclude.values.toList.map(bleep.testing.TestTagFilter.compileGlob)
+                  suites.filterNot { case (fqdn, _) => excluded.exists(_.matches(fqdn)) }
+                }
+                val regexFiltered = filterSuites(notExcludedByBuild, testOptions.only, testOptions.exclude)
                 val manifest: Map[String, Set[String]] =
                   started.build.explodedProjects(discoverTask.project).testTags.value.view.mapValues(_.values.toSet).toMap
                 val discoverProject = started.build.explodedProjects(discoverTask.project)
@@ -2712,7 +2734,7 @@ class MultiWorkspaceBspServer(
                         testArgs = testOptions.testArgs,
                         idleTimeout = idleTimeout,
                         environment = testEnv,
-                        workingDirectory = projectDir,
+                        workingDirectory = TestRunner.forkWorkingDirectory(projectJvmOptions ++ testOptions.jvmOptions, projectDir),
                         sharing = sharing
                       ),
                       resolveSourcePath = className =>
@@ -2757,7 +2779,7 @@ class MultiWorkspaceBspServer(
                     testArgs = testOptions.testArgs,
                     idleTimeout = idleTimeout,
                     environment = testEnv,
-                    workingDirectory = projectDir,
+                    workingDirectory = TestRunner.forkWorkingDirectory(declaredJvmOptions ++ sourcegenJvmOptions ++ testOptions.jvmOptions, projectDir),
                     sharing = bleep.testing.SessionSharing.Exclusive
                   ),
                   resolveSourcePath = className =>
@@ -3084,7 +3106,13 @@ class MultiWorkspaceBspServer(
           // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
           // Noop projects skip all waiting and don't consume concurrency slots.
           val apFlags: List[String] = Option(apResults.get(compileTask.project)).fold(List.empty[String])(_.javacFlags)
-          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started, apFlags)
+          val config = BleepBuildConverter.toProjectConfig(
+            compileTask.project,
+            started.resolvedProject(compileTask.project),
+            started,
+            apFlags,
+            OutputDeterminantsOf(started, compileTask.project, stamps.projectDigest)
+          )
           // Transitive, not `compileTask.projectDependencies` (direct edges only): the compile
           // classpath is transitive, so an API change two hops upstream is just as breaking as
           // one hop. It is also invisible via the intermediate project's analysis mtime, because
@@ -3094,7 +3122,10 @@ class MultiWorkspaceBspServer(
             case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
             case _                             => None
           }
-          if (noopResult.isDefined) {
+          // A noop compile of a post-compile project is only done once its classes are the script's output too; otherwise take the locked path, where zinc
+          // noops again and the script runs.
+          val postCompileDone = !compileTask.postCompile || PostCompileRunner.upToDate(started, compileTask.project)
+          if (noopResult.isDefined && postCompileDone) {
             // Say WHY nothing happened: without this event a noop's transcript is just Started/Finished, indistinguishable from a compile whose reason was
             // lost. With it, two noop runs of the same project carry identical logical facts — which is what lets a mechanical diff of two noop transcripts
             // report `identical` (the copy-state verification flow depends on exactly that).
@@ -3131,7 +3162,7 @@ class MultiWorkspaceBspServer(
                 // which is not the quantity anything wants to know.
                 val compileStartTime = System.currentTimeMillis()
                 IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, diagnosticTracker, recorder)
+                  compileProject(started, compileTask.project, originId, token, taskKillSignal, depAnalyses, apFlags, stamps, diagnosticTracker, recorder)
                     .guaranteeCase {
                       case cats.effect.Outcome.Succeeded(resultIO) =>
                         resultIO.flatMap { result =>
@@ -3171,12 +3202,20 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       originId: Option[String],
       cancellation: CancellationToken,
+      killSignal: Deferred[IO, KillReason],
       dependencyAnalyses: Map[Path, Path],
       additionalJavaOptions: List[String],
+      stamps: Stamps.Pass,
       diagnosticTracker: BspDiagnosticTracker,
       recorder: TranscriptRecorder
   ): IO[TaskDag.TaskResult] = {
-    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started, additionalJavaOptions)
+    val config = BleepBuildConverter.toProjectConfig(
+      project,
+      started.resolvedProject(project),
+      started,
+      additionalJavaOptions,
+      OutputDeterminantsOf(started, project, stamps.projectDigest)
+    )
     val compiler = ProjectCompiler.forLanguage(config.language)
 
     // We're actually compiling this target, so this cycle owns its diagnostics — including the case where it compiles clean and publishes nothing, which is
@@ -3315,8 +3354,9 @@ class MultiWorkspaceBspServer(
     // The dep's classes dir is read by javac/Zinc during this compile (classpath, JavaAnalyze
     // class loading), so we must block any concurrent writer on those deps for the duration.
     // Sort by project name to enforce a global lock order and prevent deadlock between concurrent
-    // compiles whose project sets overlap.
-    val transitiveDeps = started.build.transitiveDependenciesFor(project).keySet
+    // compiles whose project sets overlap. Indirect dependencies too: this compile reads their output
+    // just the same — a compiler it loads, a post-compile script it forks, an input that script reads.
+    val transitiveDeps = started.build.transitiveBuildOrderDepsFor(project)
     val ownSpec: (CrossProjectName, Path, ProjectLock.LockMode) =
       (project, outputDir, ProjectLock.LockMode.Exclusive)
     val depSpecs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
@@ -3356,28 +3396,38 @@ class MultiWorkspaceBspServer(
         acc.flatMap(_ => one)
       }
 
+    val hasPostCompile = started.projectPaths(project).hasPostCompile
     locksResource
       .use { _ =>
-        compiler.compile(
-          config,
-          diagnosticListener,
-          cancellation,
-          dependencyAnalyses,
-          progressListener,
-          // Bound to THIS build, so a compile can only ever read or charge analyses belonging to
-          // the workspace it is compiling.
-          bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey)
-        )
+        compiler
+          .compile(
+            config,
+            diagnosticListener,
+            cancellation,
+            dependencyAnalyses,
+            progressListener,
+            // Bound to THIS build, so a compile can only ever read or charge analyses belonging to
+            // the workspace it is compiling.
+            bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey)
+          )
+          .flatMap {
+            // Still under the exclusive lock: the script writes `classes`, which consumers read under their shared locks.
+            case success: ProjectCompileSuccess if hasPostCompile && !cancellation.isCancelled =>
+              PostCompileRunner.run(started, project, killSignal, line => bspInfo(line)).map(error => (success, error))
+            case other => IO.pure((other, None))
+          }
       }
       .map {
         case _ if cancellation.isCancelled =>
           TaskDag.TaskResult.Killed(KillReason.UserRequest)
-        case _: ProjectCompileSuccess =>
+        case (_: ProjectCompileSuccess, None) =>
           TaskDag.TaskResult.Success
-        case f: ProjectCompileFailure =>
+        case (_: ProjectCompileSuccess, Some(postCompileError)) =>
+          TaskDag.TaskResult.Failure(postCompileError, Nil)
+        case (f: ProjectCompileFailure, _) =>
           val errors = f.errors.map(toDiagnostic)
           TaskDag.TaskResult.Failure("Compilation failed", errors)
-        case ProjectCompileCancelled(reason) =>
+        case (ProjectCompileCancelled(reason), _) =>
           TaskDag.TaskResult.Killed(reason)
       }
   }
@@ -3476,7 +3526,15 @@ class MultiWorkspaceBspServer(
           // of the per-project JVM batch, which regroups SbtTestInterface selections into one fork and has no platform branch of its own.
           val isScalaJsOrNative = platformOpt.contains(model.PlatformId.Js) || platformOpt.contains(model.PlatformId.Native)
           def selectionOf(s: DiscoveredTestSuite): bleep.testing.FrameworkSelection =
-            if (isScalaJsOrNative) bleep.testing.FrameworkSelection.PlatformRunner(s.selection.displayName) else s.selection
+            if (isScalaJsOrNative) s.selection match {
+              case bleep.testing.FrameworkSelection.SbtTestInterface(displayName, cls) =>
+                bleep.testing.FrameworkSelection.PlatformRunner(displayName, Some(cls))
+              case other =>
+                throw new IllegalStateException(
+                  s"${project.value}: suite ${s.className} was discovered for $other, which cannot run on ${platformOpt.fold("")(_.value)}"
+                )
+            }
+            else s.selection
 
           if (suites.isEmpty) {
             debugLog(s"No test suites discovered in ${project.value}")
@@ -3513,7 +3571,7 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       syntheticSuffix: String
   ): IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] = {
-    val selection = bleep.testing.FrameworkSelection.PlatformRunner(runnerName)
+    val selection = bleep.testing.FrameworkSelection.PlatformRunner(runnerName, None)
     discovery.map {
       case ProcessRunner.DiscoveryResult.Found(Nil) =>
         debugLog(s"${project.value}: artifact cannot enumerate its suites; running it whole")
@@ -3645,7 +3703,17 @@ class MultiWorkspaceBspServer(
     */
   private def computeTestEnvironment(started: Started, project: CrossProjectName, requestEnv: Map[String, String]): Map[String, String] = {
     val projectEnv = started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
-    Map("NO_COLOR" -> "1") ++ requestEnv ++ projectEnv
+    // The fork runs on the build's JVM; so does whatever it starts. A test that execs `java` or `javac` otherwise gets the machine's own, and runs classes
+    // compiled for a newer JDK than the one it is on (a test harness that compiles Java fixtures with `javac` from PATH, say). So the build's JDK comes first
+    // on whichever PATH the fork gets — the client's, when it forwarded one, so every other tool resolves as it would for the developer — and is JAVA_HOME.
+    // Stated per project, it wins.
+    val withClient = Map("NO_COLOR" -> "1") ++ requestEnv
+    val managedJdk: Map[String, String] = {
+      val bin = started.resolvedJvm.forceGet.javaBin.getParent
+      val path = withClient.get("PATH").orElse(sys.env.get("PATH")).getOrElse("")
+      Map("JAVA_HOME" -> bin.getParent.toString, "PATH" -> (bin.toString + java.io.File.pathSeparator + path))
+    }
+    withClient ++ managedJdk ++ projectEnv
   }
 
   /** Create a TestEventHandler that offers events to the DAG queue via a Dispatcher.
@@ -3725,6 +3793,29 @@ class MultiWorkspaceBspServer(
     */
   private def nodeBinaryFor(started: Started, project: model.Project): String =
     started.pre.fetchNode(project.platform.flatMap(_.jsNodeVersion).getOrElse(bleep.constants.Node)).toAbsolutePath.toString
+
+  /** The files a Scala.js test project names under `jsTestScripts`, each found as a resource of that project: in exactly one of its own resource folders,
+    * generated ones included.
+    */
+  private def scalaJsTestScripts(started: Started, crossName: CrossProjectName): List[Path] = {
+    val resourceDirs = started.projectPaths(crossName).resourcesDirs.all(Usage.Runtime).toList
+    started.build.explodedProjects(crossName).platform.toList.flatMap(_.jsTestScripts.values).map { name =>
+      resourceDirs.map(_.resolve(name)).filter(Files.isRegularFile(_)) match {
+        case List(one) => one
+        case Nil       =>
+          throw new BleepException.Text(crossName, s"jsTestScripts names $name, which is in none of its resource folders: ${resourceDirs.mkString(", ")}")
+        case many => throw new BleepException.Text(crossName, s"jsTestScripts names $name, which is in more than one resource folder: ${many.mkString(", ")}")
+      }
+    }
+  }
+
+  /** The project's own module initializers (`jsModuleInitializers`), for its main link and its test link alike. */
+  private def scalaJsModuleInitializers(project: model.Project): List[ScalaJsLinkConfig.ModuleInitializer] =
+    project.platform.toList.flatMap(_.jsModuleInitializers.values).map(mi => ScalaJsLinkConfig.ModuleInitializer(mi.className, mi.method, mi.args))
+
+  /** The project's own run-time class name renames (`jsRuntimeClassNameMapper`), for its main link and its test link alike. */
+  private def scalaJsRuntimeClassNameRenames(project: model.Project): List[(String, String)] =
+    project.platform.toList.flatMap(_.jsRuntimeClassNameMapper.values).map(r => (r.regex, r.replacement))
 
   /** The module kind a Scala.js link emits for `project`: an explicit `--module-kind` first, then the project's own `jsKind`, and only then the base
     * configuration's own default.
@@ -3855,11 +3946,20 @@ class MultiWorkspaceBspServer(
             Dispatcher.sequential[IO].use { dispatcher =>
               val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project, lastActivityAt)
               val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName.value, testTask.suiteName.value))
+              val frameworkClass = testTask.selection match {
+                case bleep.testing.FrameworkSelection.PlatformRunner(_, Some(cls)) => cls
+                case other                                                         =>
+                  throw new IllegalStateException(
+                    s"${testTask.project.value}: suite ${testTask.suiteName.value} has selection $other, not a Scala.js framework"
+                  )
+              }
               ScalaJsTestRunner
                 .runTests(
                   mainModule,
                   moduleKind,
                   suites,
+                  scalaJsTestScripts(started, testTask.project),
+                  frameworkClass,
                   eventHandler,
                   ScalaJsTestRunner.NodeEnvironment.Node,
                   nodeBinary,
@@ -4129,7 +4229,7 @@ class MultiWorkspaceBspServer(
     case dt: TaskDag.DiscoverTask                     => (TraceCategory.Discover, dt.project.value)
     case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
     case bt: TaskDag.TestBatchTask                    => (TraceCategory.Test, s"${bt.project.value} (batch of ${bt.suites.size})")
-    case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.script.project.value}/${sgt.script.main}")
+    case sgt: TaskDag.SourcegenTask                   => (TraceCategory.Sourcegen, s"${sgt.scriptProject.value}/${sgt.main}")
     case apt: TaskDag.ResolveAnnotationProcessorsTask => (TraceCategory.ResolveAnnotationProcessors, apt.project.value)
     case kspt: TaskDag.RunSymbolProcessorsTask        => (TraceCategory.RunSymbolProcessors, kspt.project.value)
   }
@@ -4837,7 +4937,7 @@ class MultiWorkspaceBspServer(
         val baseOptions = p.language.javaOptions
         val options = maybePlugin match {
           case Some(pluginPath) =>
-            val sdOpts = javaSemanticdbOptions(pluginPath, started.buildPaths.buildDir, started.projectPaths(crossName).classes)
+            val sdOpts = javaSemanticdbOptions(pluginPath, started.buildPaths.buildDir, started.projectPaths(crossName).compilerOutput)
             sdOpts ::: baseOptions
           case None => baseOptions
         }
@@ -5035,6 +5135,14 @@ class MultiWorkspaceBspServer(
                 bleep.internal.FileUtils.deleteDirectory(classesDir)
                 cleaned = true
               }
+              // A post-compile project's compiler output and the stamp that vouches for `classes`
+              val projectPaths = started.projectPaths(crossName)
+              if (projectPaths.compilerOutput != classesDir && Files.exists(projectPaths.compilerOutput)) {
+                bleep.internal.FileUtils.deleteDirectory(projectPaths.compilerOutput)
+                cleaned = true
+              }
+              Files.deleteIfExists(projectPaths.postCompileStamp): Unit
+              Files.deleteIfExists(projectPaths.postCompileAbi): Unit
               // Also clean analysis dir - same path structure as BuildPaths.targetDir
               val targetDir = started.buildPaths.variantBuildDir(crossName)
               val analysisDir = targetDir.resolve(".zinc")

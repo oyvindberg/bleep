@@ -321,7 +321,8 @@ object Compiler {
       scalaOptions = c.options,
       javaOptions = Nil,
       ecjVersion = c.ecjVersion,
-      compileOrder = bleep.model.CompileOrder.JavaThenScala
+      compileOrder = bleep.model.CompileOrder.JavaThenScala,
+      compilerProject = None
     )
 
   private def toProjectLanguageJava(c: JavaConfig): ProjectLanguage.JavaOnly =
@@ -364,7 +365,8 @@ object Compiler {
             outputDir = input.outputDir,
             language = language,
             analysisDir = None, // No analysis persistence for single compilations
-            buildDir = input.outputDir // standalone compilation — use output dir as root
+            buildDir = input.outputDir, // standalone compilation — use output dir as root
+            determinants = OutputDeterminants.none
           )
 
           // Wrap DiagnosticListener in the adapter

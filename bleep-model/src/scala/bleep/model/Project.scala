@@ -9,7 +9,7 @@ case class Project(
     `extends`: JsonSet[TemplateId],
     cross: JsonMap[CrossId, Project],
     folder: Option[RelPath],
-    dependsOn: JsonSet[ProjectName],
+    dependsOn: JsonSet[ProjectRef],
     `source-layout`: Option[SourceLayout],
     `sbt-scope`: Option[String],
     sources: JsonSet[RelPath],
@@ -35,6 +35,10 @@ case class Project(
       * runner discovers. CLI surface: `bleep test --only-tag slow --exclude-tag flaky`.
       */
     testTags: JsonMap[String, JsonSet[String]],
+    /** Suites `bleep test` never runs in this project, as FQDN patterns with `testTags`'s syntax (`*` within one segment, `**` across dots). For a suite the
+      * build cannot run as it stands — sbt's `Test / testOptions += Tests.Filter(...)`. Applied before `--only` and `--exclude`, which cannot bring one back.
+      */
+    testExclude: JsonSet[String],
     /** Ceiling on how many of this project's test suites run at once. Default `1` — suites run one at a time. Its reach depends on `testFork`: in per-project
       * mode (the default) it only speeds up JUnit Platform suites (the JUnit engine runs that many of the project's JUnit classes at once inside the one shared
       * fork); sbt-interface frameworks always run sequentially there, so a value > 1 on an sbt-only project has no effect (bleep warns). In per-suite mode it
@@ -53,8 +57,33 @@ case class Project(
     stamp: JsonSet[StampKind],
     libraryVersionSchemes: JsonSet[LibraryVersionScheme],
     ignoreEvictionErrors: Option[IgnoreEvictionErrors],
-    publish: Option[PublishConfig]
+    publish: Option[PublishConfig],
+    /** Rewrite the compiled classes before anything else sees them — see [[PostCompile]]. */
+    postCompile: Option[PostCompile]
 ) extends SetLike[Project] {
+
+  /** Every project this one needs built first without having it on its classpath — see [[IndirectDependency]]. The one place that knows where such references
+    * live, so scheduling, validation and project renames cannot disagree about them.
+    */
+  def indirectReferences: List[IndirectDependency] =
+    sourcegen.values.toList.flatMap { case s: ScriptDef.Main =>
+      IndirectDependency(s.project, IndirectDependency.Reason.Sourcegen(s.main)) ::
+        s.inputs.values.toList.map(IndirectDependency(_, IndirectDependency.Reason.SourcegenInput(s.main)))
+    } ++
+      scala.flatMap(_.compilerProject).map(IndirectDependency(_, IndirectDependency.Reason.ScalaCompiler)) ++
+      postCompile.toList.flatMap { pc =>
+        IndirectDependency(pc.project, IndirectDependency.Reason.PostCompileScript(pc.main)) ::
+          pc.inputs.values.toList.map(IndirectDependency(_, IndirectDependency.Reason.PostCompileInput))
+      }
+
+  /** Rewrite every reference [[indirectReferences]] lists. */
+  def mapIndirectReferences(f: CrossProjectName => CrossProjectName): Project =
+    copy(
+      sourcegen = sourcegen.map { case s: ScriptDef.Main => s.copy(project = f(s.project), inputs = s.inputs.map(f)) },
+      scala = scala.map(s => s.copy(compilerProject = s.compilerProject.map(f))),
+      postCompile = postCompile.map(pc => pc.copy(project = f(pc.project), inputs = pc.inputs.map(f)))
+    )
+
   override def intersect(other: Project): Project =
     Project(
       `extends` = `extends`.intersect(other.`extends`),
@@ -75,13 +104,15 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
       testTags = testTags.intersect(other.testTags),
+      testExclude = testExclude.intersect(other.testExclude),
       maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) maxConcurrentSuites else None,
       testFork = if (testFork == other.testFork) testFork else None,
       sourcegen = sourcegen.intersect(other.sourcegen),
       stamp = stamp.intersect(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None,
-      publish = publish.zipCompat(other.publish).map { case (_1, _2) => _1.intersect(_2) }
+      publish = publish.zipCompat(other.publish).map { case (_1, _2) => _1.intersect(_2) },
+      postCompile = if (postCompile == other.postCompile) postCompile else None
     )
 
   override def removeAll(other: Project): Project =
@@ -107,13 +138,15 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
       testFrameworks = testFrameworks.removeAll(other.testFrameworks),
       testTags = testTags.removeAll(other.testTags),
+      testExclude = testExclude.removeAll(other.testExclude),
       maxConcurrentSuites = if (maxConcurrentSuites == other.maxConcurrentSuites) None else maxConcurrentSuites,
       testFork = if (testFork == other.testFork) None else testFork,
       sourcegen = sourcegen.removeAll(other.sourcegen),
       stamp = stamp.removeAll(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
       ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors,
-      publish = removeAllFrom(publish, other.publish)
+      publish = removeAllFrom(publish, other.publish),
+      postCompile = if (postCompile == other.postCompile) None else postCompile
     )
 
   override def union(other: Project): Project =
@@ -137,13 +170,15 @@ case class Project(
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
       testTags = testTags.union(other.testTags),
+      testExclude = testExclude.union(other.testExclude),
       maxConcurrentSuites = maxConcurrentSuites.orElse(other.maxConcurrentSuites),
       testFork = testFork.orElse(other.testFork),
       sourcegen = sourcegen.union(other.sourcegen),
       stamp = stamp.union(other.stamp),
       libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
       ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors),
-      publish = List(publish, other.publish).flatten.reduceOption(_ `union` _)
+      publish = List(publish, other.publish).flatten.reduceOption(_ `union` _),
+      postCompile = postCompile.orElse(other.postCompile)
     )
 
   override def isEmpty: Boolean = this match {
@@ -166,13 +201,15 @@ case class Project(
           isTestProject,
           testFrameworks,
           testTags,
+          testExclude,
           maxConcurrentSuites,
           testFork,
           sourceGeneratorsScripts,
           stamp,
           libraryVersionSchemes,
           ignoreEvictionErrors,
-          publish
+          publish,
+          postCompile
         ) =>
       extends_.isEmpty &&
       cross.isEmpty &&
@@ -192,13 +229,15 @@ case class Project(
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
       testTags.isEmpty &&
+      testExclude.isEmpty &&
       maxConcurrentSuites.isEmpty &&
       testFork.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
       stamp.isEmpty &&
       libraryVersionSchemes.isEmpty &&
       ignoreEvictionErrors.isEmpty &&
-      publish.fold(true)(_.isEmpty)
+      publish.fold(true)(_.isEmpty) &&
+      postCompile.isEmpty
   }
 }
 
@@ -222,13 +261,15 @@ object Project {
     isTestProject = None,
     testFrameworks = JsonSet.empty,
     testTags = JsonMap.empty,
+    testExclude = JsonSet.empty,
     maxConcurrentSuites = None,
     testFork = None,
     sourcegen = JsonSet.empty,
     stamp = JsonSet.empty,
     libraryVersionSchemes = JsonSet.empty,
     ignoreEvictionErrors = None,
-    publish = None
+    publish = None,
+    postCompile = None
   )
 
   implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = {

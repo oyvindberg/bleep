@@ -194,7 +194,8 @@ object BleepBspProtocol {
       *   - `PWD` / `OLDPWD` / `_`: shell bookkeeping describing the client's cwd, which is not the forked process's cwd (that is set per-project via
       *     `ProcessBuilder.directory`). Forwarding them hands subprocesses a path that disagrees with `getcwd`.
       *
-      * Notably NOT denied: `PATH` and `JAVA_HOME`. Tests that shell out should find the same tools the developer would.
+      * Notably NOT denied: `PATH` and `JAVA_HOME`. Tests that shell out should find the same tools the developer would — except the JDK's own: the server puts
+      * the build's JDK first on that `PATH` and makes it `JAVA_HOME`, so a `javac` a test execs compiles for the JVM the test runs on.
       */
     val denied: Set[String] = Set("CLASSPATH", "PWD", "OLDPWD", "_")
 

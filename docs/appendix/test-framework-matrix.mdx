@@ -31,6 +31,7 @@ import hedgehogJsCast from "!!file-loader!@site/static/demos/testfw-hedgehog-js.
 import junit5JvmCast from "!!file-loader!@site/static/demos/testfw-junit5-jvm.cast";
 import junit4JvmCast from "!!file-loader!@site/static/demos/testfw-junit4-jvm.cast";
 import junit3JvmCast from "!!file-loader!@site/static/demos/testfw-junit3-jvm.cast";
+import scalajsJunitJsCast from "!!file-loader!@site/static/demos/testfw-scalajs-junit-js.cast";
 import kotestJvmCast from "!!file-loader!@site/static/demos/testfw-kotest-jvm.cast";
 import kotlinTestJvmCast from "!!file-loader!@site/static/demos/testfw-kotlin-test-jvm.cast";
 import kotlinTestKotlinJsCast from "!!file-loader!@site/static/demos/testfw-kotlin-test-kotlin-js.cast";
@@ -61,6 +62,7 @@ matrix suites are generated from the same data this page is.
 | `junit5` | `5.14.4` | `5.10.1`, `5.7.2` | ✅ |  |  |  |  |  |  |
 | `junit4` | `4.13.2` | `4.12` | ✅ |  |  |  |  |  |  |
 | `junit3` | `4.13.2` | — | ✅ |  |  |  |  |  |  |
+| `scalajs-junit` | `1.22.0` | — |  |  |  | ✅ |  |  |  |
 | `kotest` | `6.2.4` | `5.9.1` |  | ✅ |  |  |  |  |  |
 | `kotlin.test` | `2.4.10` | `2.2.21` |  | ✅ |  |  | ✅ |  | ✅ |
 | `testng` | `7.10.2` | `7.5` | ✅ |  |  |  |  |  |  |
@@ -438,6 +440,7 @@ Recorded and checked on every build at `0.8.4`. Also tested against `0.8.3` when
 |---|---|
 | Can express a skipped test | no — the framework has no such concept |
 | Failure carries a stack trace | yes |
+| Scala versions | 3, 2.13 only |
 
 <PlainDetails summary="on JVM / Scala">
 
@@ -481,6 +484,7 @@ Recorded and checked on every build at `0.10.1`. Also tested against `0.9.0` whe
 |---|---|
 | Can express a skipped test | no — the framework has no such concept |
 | Failure carries a stack trace | yes |
+| Scala versions | 3, 2.13 only |
 
 <PlainDetails summary="on JVM / Scala">
 
@@ -584,6 +588,32 @@ Only `4.13.2` is tested.
 | A suite that fails to construct | reported with the thrown exception |
 
 <AsciinemaPlayer src={junit3JvmCast} cols={100} rows={87} fit="width" idleTimeLimit={1} />
+
+</PlainDetails>
+
+</PlainDetails>
+
+<PlainDetails summary={<><code>scalajs-junit</code> <code>1.22.0</code> — Scala.js</>}>
+
+Scala, via `org.scala-js:scalajs-junit-test-runtime_2.13:1.22.0`.
+
+Only `1.22.0` is tested.
+
+| | |
+|---|---|
+| Can express a skipped test | yes |
+| Failure carries a stack trace | yes |
+| Scala versions | 3 only |
+
+<PlainDetails summary="on Scala.js">
+
+| | |
+|---|---|
+| A failed assertion reports | the real exception |
+| An uncaught exception reports | the real exception |
+| A suite that fails to construct | reported with the thrown exception |
+
+<AsciinemaPlayer src={scalajsJunitJsCast} cols={100} rows={172} fit="width" idleTimeLimit={1} />
 
 </PlainDetails>
 

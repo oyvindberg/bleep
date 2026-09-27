@@ -388,7 +388,8 @@ object JavacProjectCompiler extends ProjectCompiler {
           scalaOptions = List.empty,
           javaOptions = javaLang.javaOptions,
           ecjVersion = javaLang.ecjVersion,
-          compileOrder = bleep.model.CompileOrder.JavaThenScala
+          compileOrder = bleep.model.CompileOrder.JavaThenScala,
+          compilerProject = None
         )
         val javaConfig = config.copy(language = scalaJavaLang)
         ZincBridge.compile(

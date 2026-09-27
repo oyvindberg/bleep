@@ -70,37 +70,63 @@ object ProcessMemory {
       * failing to find it throws rather than quietly degrading to "cannot measure".
       */
     private lazy val procPidRusage: java.lang.invoke.MethodHandle = {
-      val linker = java.lang.foreign.Linker.nativeLinker()
-      val symbol = linker
-        .defaultLookup()
-        .find("proc_pid_rusage")
+      val linker = Ffm.Linker.getMethod("nativeLinker").invoke(null)
+      val lookup = Ffm.Linker.getMethod("defaultLookup").invoke(linker)
+      val symbol = Ffm.SymbolLookup
+        .getMethod("find", classOf[String])
+        .invoke(lookup, "proc_pid_rusage")
+        .asInstanceOf[java.util.Optional[AnyRef]]
         .orElseThrow(() => new RuntimeException("proc_pid_rusage is missing from libSystem — cannot measure process memory on this macOS"))
-      linker.downcallHandle(
-        symbol,
-        java.lang.foreign.FunctionDescriptor.of(
-          java.lang.foreign.ValueLayout.JAVA_INT,
-          java.lang.foreign.ValueLayout.JAVA_INT,
-          java.lang.foreign.ValueLayout.JAVA_INT,
-          java.lang.foreign.ValueLayout.ADDRESS
-        )
-      )
+      val argLayouts = Ffm.array(Ffm.MemoryLayout, List(Ffm.layout("JAVA_INT"), Ffm.layout("JAVA_INT"), Ffm.layout("ADDRESS")))
+      val descriptor =
+        Ffm.FunctionDescriptor.getMethod("of", Ffm.MemoryLayout, Ffm.MemoryLayout.arrayType()).invoke(null, Ffm.layout("JAVA_INT"), argLayouts)
+      Ffm.Linker
+        .getMethod("downcallHandle", Ffm.MemorySegment, Ffm.FunctionDescriptor, Ffm.LinkerOption.arrayType())
+        .invoke(linker, symbol, descriptor, Ffm.array(Ffm.LinkerOption, Nil))
+        .asInstanceOf[java.lang.invoke.MethodHandle]
     }
 
     def footprintMb(pid: Long): Option[Long] = read(pid, PhysFootprintOffset)
     def peakFootprintMb(pid: Long): Option[Long] = read(pid, LifetimeMaxPhysFootprintOffset)
 
     private def read(pid: Long, offset: Long): Option[Long] = {
-      val arena = java.lang.foreign.Arena.ofConfined()
+      val arena = Ffm.Arena.getMethod("ofConfined").invoke(null)
       try {
-        val buffer = arena.allocate(StructBytes)
+        val buffer = Ffm.Arena.getMethod("allocate", java.lang.Long.TYPE).invoke(arena, java.lang.Long.valueOf(StructBytes))
         // invokeWithArguments rather than invokeExact: it boxes, but this runs a handful of times per
         // retune and the alternative depends on Scala's handling of signature-polymorphic calls.
         val rc = procPidRusage.invokeWithArguments(Integer.valueOf(pid.toInt), Integer.valueOf(RusageInfoV4), buffer).asInstanceOf[Integer]
         // Non-zero is ESRCH: the process exited between being listed and being measured. That is the
         // expected race in a tree sweep, not an error worth surfacing.
         if (rc.intValue() != 0) None
-        else Some(buffer.get(java.lang.foreign.ValueLayout.JAVA_LONG, offset) / (1024L * 1024L))
-      } finally arena.close()
+        else {
+          val bytes = Ffm.MemorySegment
+            .getMethod("get", Ffm.cls("ValueLayout$OfLong"), java.lang.Long.TYPE)
+            .invoke(buffer, Ffm.layout("JAVA_LONG"), java.lang.Long.valueOf(offset))
+            .asInstanceOf[java.lang.Long]
+          Some(bytes.longValue() / (1024L * 1024L))
+        }
+      } finally Ffm.Arena.getMethod("close").invoke(arena): Unit
+    }
+  }
+
+  /** `java.lang.foreign`, reached reflectively. bleep targets JDK 17, which has no such package, so it cannot be named in the source; the daemon only gets here
+    * on a JDK that has it (see [[system]]). Every call goes through the package's public interfaces.
+    */
+  private object Ffm {
+    def cls(name: String): Class[?] = Class.forName(s"java.lang.foreign.$name")
+    val Linker: Class[?] = cls("Linker")
+    val LinkerOption: Class[?] = cls("Linker$Option")
+    val SymbolLookup: Class[?] = cls("SymbolLookup")
+    val FunctionDescriptor: Class[?] = cls("FunctionDescriptor")
+    val MemoryLayout: Class[?] = cls("MemoryLayout")
+    val MemorySegment: Class[?] = cls("MemorySegment")
+    val Arena: Class[?] = cls("Arena")
+    def layout(name: String): AnyRef = cls("ValueLayout").getField(name).get(null)
+    def array(of: Class[?], elements: List[AnyRef]): AnyRef = {
+      val arr = java.lang.reflect.Array.newInstance(of, elements.size)
+      elements.zipWithIndex.foreach { case (e, i) => java.lang.reflect.Array.set(arr, i, e) }
+      arr
     }
   }
 
@@ -124,8 +150,11 @@ object ProcessMemory {
     def peakFootprintMb(pid: Long): Option[Long] = None
   }
 
+  /** The macOS reading is a foreign-function call, and the daemon runs on the build's own JVM. A JDK older than 21 has no `java.lang.foreign` at all (it is
+    * final from 22, and the preview in 21 is what this has always run on), so a build on JDK 17 cannot be measured here — like Windows.
+    */
   lazy val system: ProcessMemory =
-    if (Properties.isMac) MacOs
+    if (Properties.isMac && Runtime.version().feature() >= 21) MacOs
     else if (Properties.isLinux) Linux
     else Unavailable
 

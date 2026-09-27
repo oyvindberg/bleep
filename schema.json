@@ -328,6 +328,14 @@
               }
             }
           ]
+        },
+        "skipStdlib": {
+          "type": "boolean",
+          "description": "no Scala standard library from a repository: neither the one bleep adds nor one a dependency brings in transitively. For the project that IS the standard library, and for projects that reach it through `dependsOn` on such a project."
+        },
+        "compilerProject": {
+          "type": "string",
+          "description": "compile with the Scala compiler built by this project (`name` or `name@crossId`) instead of fetching `version`. Its runtime classpath is the compiler and its own classes the zinc compiler bridge, so name the bridge project. Built first; never on this project's classpath."
         }
       }
     },
@@ -385,6 +393,24 @@
         },
         "jsNodeVersion": {
           "type": "string"
+        },
+        "jsRuntimeClassNameMapper": {
+          "description": "Scala.js: what `getClass.getName` reports at run time. Every name is kept, then each rename applied in order: `regex` (Java syntax) replaced by `replacement` (`$1` for a group).",
+          "oneOf": [
+            { "$ref": "#/$defs/ClassNameRenameJS" },
+            { "type": "array", "items": { "$ref": "#/$defs/ClassNameRenameJS" } }
+          ]
+        },
+        "jsTestScripts": {
+          "description": "Scala.js test projects: JavaScript files loaded, in order, as plain scripts before the linked test program, each named as a resource of the project (a file in exactly one of its resource folders, generated ones included).",
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+        },
+        "jsModuleInitializers": {
+          "description": "Scala.js: static methods the linked program calls on start, in order, after the main class or the test bridge. Without `args` the method takes no parameters; with `args`, even empty, it takes `Array[String]`.",
+          "oneOf": [
+            { "$ref": "#/$defs/ModuleInitializerJS" },
+            { "type": "array", "items": { "$ref": "#/$defs/ModuleInitializerJS" } }
+          ]
         },
         "jvmOptions": {
           "$ref": "#/$defs/Options"
@@ -526,6 +552,7 @@
           "$ref": "#/$defs/RelPath"
         },
         "dependsOn": {
+          "description": "projects this one compiles against: `name`, and bleep picks among its cross versions (same cross id, else same Scala version and platform, ...), or `name@crossId` for exactly that cross version",
           "oneOf": [
             {
               "$ref": "#/$defs/ProjectName"
@@ -682,6 +709,10 @@
             }
           ]
         },
+        "testExclude": {
+          "description": "Suites `bleep test` never runs in this project: suite FQDN glob patterns with `testTags`'s syntax (`*` within a class-name segment, `**` spans dots). Applied before `--only` and `--exclude`, which cannot bring one back.",
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+        },
         "testTags": {
           "description": "Tag → suite FQDN glob patterns. Filters tests at the suite-dispatch boundary, so this works for any test framework. `*` matches within a class-name segment; `**` spans dots. CLI: `bleep test --only-tag slow --exclude-tag flaky`.",
           "type": "object",
@@ -720,8 +751,46 @@
         },
         "publish": {
           "$ref": "#/$defs/PublishConfig"
+        },
+        "postCompile": {
+          "description": "rewrite this project's compiled classes before anything else sees them. The compiler writes a private directory; the script gets it as `--from`, an empty `--to` to fill with the complete output, `--classpath` and `--input`s, and only a successful run becomes the project's classes.",
+          "$ref": "#/$defs/PostCompile"
         }
       }
+    },
+    "ClassNameRenameJS": {
+      "type": "object",
+      "properties": {
+        "regex": { "type": "string" },
+        "replacement": { "type": "string" }
+      },
+      "required": ["regex", "replacement"]
+    },
+    "ModuleInitializerJS": {
+      "type": "object",
+      "properties": {
+        "className": { "type": "string", "description": "the class; for a Scala `object`, its name without the trailing `$`" },
+        "method": { "type": "string" },
+        "args": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["className", "method"]
+    },
+    "PostCompile": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "the project whose `main` rewrites the compiled classes (`name` or `name@crossId`). Built first; never on this project's classpath."
+        },
+        "main": {
+          "type": "string"
+        },
+        "inputs": {
+          "description": "projects whose classes the script reads, passed as `--input <name>=<dir>`. Built first; never on this project's classpath.",
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+        }
+      },
+      "required": ["project", "main"]
     },
     "ScriptMain": {
       "type": "object",
@@ -745,6 +814,10 @@
               }
             }
           ]
+        },
+        "inputs": {
+          "description": "projects whose output the generator reads (their compiled classes, by path from the build model), `name` or `name@crossId`. Built before it runs, a change to their classes re-runs it, and never on this project's classpath because of this.",
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
         }
       },
       "required": [

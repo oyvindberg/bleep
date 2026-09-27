@@ -32,4 +32,15 @@ public final class Coursier {
     Objects.requireNonNull(coordinates, "coordinates");
     return BleepscriptServices.Holder.INSTANCE.fetchClasspath(started, coordinates);
   }
+
+  /**
+   * Resolve a dependency plus its transitive closure like {@link #fetchClasspath}, but return their
+   * sources jars — for a script that unpacks or reads sources. Through the build's own resolver, so
+   * its repositories, credentials and cache apply.
+   */
+  public static List<Path> fetchSources(Started started, String coordinates) {
+    Objects.requireNonNull(started, "started");
+    Objects.requireNonNull(coordinates, "coordinates");
+    return BleepscriptServices.Holder.INSTANCE.fetchSources(started, coordinates);
+  }
 }

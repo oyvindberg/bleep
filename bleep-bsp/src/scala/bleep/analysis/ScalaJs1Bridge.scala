@@ -52,7 +52,6 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     val moduleInitializerCompanion = loader.loadClass("org.scalajs.linker.interface.ModuleInitializer$")
     val pathIRContainerClass = loader.loadClass("org.scalajs.linker.PathIRContainer$")
     val pathOutputDirectoryClass = loader.loadClass("org.scalajs.linker.PathOutputDirectory$")
-    val levelClass = loader.loadClass("org.scalajs.logging.Level")
 
     // Get companion objects
     val standardConfigObj = standardConfigCompanion.getField("MODULE$").get(null)
@@ -73,7 +72,8 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     val linker = linkerMethod.invoke(linkerObj, linkerConfig)
 
     // Create logger adapter
-    val scalaJsLogger = createLoggerAdapter(loader, levelClass)
+    val linkerErrors = scala.collection.mutable.ListBuffer.empty[String]
+    val scalaJsLogger = createLoggerAdapter(loader, logger, linkerErrors)
 
     // Check cancellation
     checkCancellation(cancellation)
@@ -88,7 +88,7 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
     // Create module initializers
     logger.debug(s"[ScalaJs1Bridge] Creating module initializers for mainClass=$mainClass, isTest=$isTest")
-    val moduleInitializers = createModuleInitializers(mainClass, moduleInitializerObj, loader, isTest)
+    val moduleInitializers = createModuleInitializers(mainClass, config.moduleInitializers, moduleInitializerObj, loader, isTest)
 
     // Create output directory handler
     val outputDirectory = createOutputDirectory(outputDir, pathOutputDirectoryObj)
@@ -99,7 +99,11 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
     // Link
     logger.debug(s"[ScalaJs1Bridge] Starting linker...")
-    runLinker(linker, irFilesSeq, moduleInitializers, outputDirectory, scalaJsLogger, loader, cancellation)
+    try runLinker(linker, irFilesSeq, moduleInitializers, outputDirectory, scalaJsLogger, loader, cancellation)
+    catch {
+      // The linker reports what is wrong through its logger and then fails with only "There were linking errors"; the reasons belong in the failure
+      case e: Exception if linkerErrors.nonEmpty => throw new RuntimeException(s"${e.getMessage}:\n${linkerErrors.mkString("\n")}", e)
+    }
     logger.debug(s"[ScalaJs1Bridge] Linker completed")
 
     // Check cancellation after linking
@@ -185,6 +189,23 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
       linkerConfig = invokeWithMethod(linkerConfig, "withClosureCompilerIfAvailable", classOf[Boolean], closureAllowed)
     }
 
+    // The project's run-time class names, over whichever semantics the mode chose: keep every name, then each rename in order, as sbt's
+    // `RuntimeClassNameMapper.keepAll().andThen(regexReplace(...))...` does.
+    if (config.runtimeClassNameRenames.nonEmpty) {
+      val mapperClass = loader.loadClass("org.scalajs.linker.interface.Semantics$RuntimeClassNameMapper")
+      val mapperCompanion = loader.loadClass("org.scalajs.linker.interface.Semantics$RuntimeClassNameMapper$")
+      val mapperObj = mapperCompanion.getField("MODULE$").get(null)
+      val regexReplace = mapperCompanion.getMethod("regexReplace", classOf[java.util.regex.Pattern], classOf[String])
+      val andThen = mapperClass.getMethod("andThen", mapperClass)
+      val mapper = config.runtimeClassNameRenames.foldLeft(mapperCompanion.getMethod("keepAll").invoke(mapperObj)) { case (acc, (regex, replacement)) =>
+        andThen.invoke(acc, regexReplace.invoke(mapperObj, java.util.regex.Pattern.compile(regex), replacement))
+      }
+      val semanticsClass = loader.loadClass("org.scalajs.linker.interface.Semantics")
+      val semantics = linkerConfig.getClass.getMethod("semantics").invoke(linkerConfig)
+      val withMapper = semanticsClass.getMethod("withRuntimeClassNameMapper", mapperClass).invoke(semantics, mapper)
+      linkerConfig = invokeWithMethod(linkerConfig, "withSemantics", semanticsClass, withMapper)
+    }
+
     // Minification renames; it is the half of a release build that shortens the identifiers, and `ScalaJsLinkConfig.Release` has always declared it. The linker
     // only gained `withMinify` in 1.16, so the version decides whether it can be applied — checked rather than probed with an exception, the way mill checks it.
     if (config.minify && scalaJsMinorVersion.exists(_ >= 16))
@@ -228,14 +249,48 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
     method.invoke(obj, value.asInstanceOf[AnyRef])
   }
 
-  private def createLoggerAdapter(
-      loader: ClassLoader,
-      levelClass: Class[?]
-  ): Any = {
-    // Create ScalaConsoleLogger with Level.Debug (Debug is a nested case object)
-    val scalaLogger = loader.loadClass("org.scalajs.logging.ScalaConsoleLogger")
-    val debugLevel = loader.loadClass("org.scalajs.logging.Level$Debug$").getField("MODULE$").get(null)
-    scalaLogger.getDeclaredConstructor(levelClass).newInstance(debugLevel)
+  /** An `org.scalajs.logging.Logger` that reports to bleep's link logger, collecting error-level messages into `errors`.
+    *
+    * It used to be a `ScalaConsoleLogger`, printing to the stdout of the process the linker runs in — a detached compile server, whose output nobody reads — so
+    * a failed link said only "There were linking errors". Only the interface's two abstract methods are implemented; its default ones (`error`, `time`, ...)
+    * run as the interface defines them and end up here.
+    */
+  private def createLoggerAdapter(loader: ClassLoader, logger: ScalaJsToolchain.Logger, errors: scala.collection.mutable.ListBuffer[String]): Any = {
+    val loggerClass = loader.loadClass("org.scalajs.logging.Logger")
+    // On the `Function0` interface, not the thunk's own (synthetic, inaccessible) class
+    val applyMethod = loader.loadClass("scala.Function0").getMethod("apply")
+    def force(thunk: AnyRef): AnyRef = applyMethod.invoke(thunk)
+    val handler = new java.lang.reflect.InvocationHandler {
+      def invoke(proxy: Any, method: java.lang.reflect.Method, rawArgs: Array[AnyRef]): AnyRef = {
+        val args = if (rawArgs == null) Array.empty[AnyRef] else rawArgs
+        if (method.isDefault) java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args*)
+        else
+          method.getName match {
+            case "log" =>
+              val message = String.valueOf(force(args(1)))
+              // Level is a sealed object hierarchy whose `toString` is the level's name
+              args(0).toString match {
+                case "Error" => errors += message; logger.error(message)
+                case "Warn"  => logger.warn(message)
+                case "Info"  => logger.info(message)
+                case _       => logger.debug(message)
+              }
+              null
+            case "trace" =>
+              val t = force(args(0)).asInstanceOf[Throwable]
+              val out = new java.io.StringWriter()
+              t.printStackTrace(new java.io.PrintWriter(out))
+              logger.debug(out.toString)
+              null
+            case "toString" => "bleep-scalajs-linker-logger"
+            case "hashCode" => Integer.valueOf(System.identityHashCode(proxy))
+            case "equals"   => java.lang.Boolean.valueOf(proxy.asInstanceOf[AnyRef] eq args(0))
+            case other      =>
+              throw new UnsupportedOperationException(s"org.scalajs.logging.Logger.$other is abstract and not implemented by bleep's linker logger")
+          }
+      }
+    }
+    java.lang.reflect.Proxy.newProxyInstance(loader, Array(loggerClass), handler)
   }
 
   private def collectIRFiles(
@@ -318,37 +373,44 @@ class ScalaJs1Bridge(scalaJsVersion: String, scalaVersion: String) extends Scala
 
   private def createModuleInitializers(
       mainClass: Option[String],
+      extra: List[ScalaJsLinkConfig.ModuleInitializer],
       moduleInitializerObj: Any,
       loader: ClassLoader,
       isTest: Boolean
   ): Any = {
-    val nilClass = loader.loadClass("scala.collection.immutable.Nil$")
-    val nil = nilClass.getField("MODULE$").get(null)
-    val consMethod = nil.getClass.getMethod("$colon$colon", classOf[Object])
+    val nil = loader.loadClass("scala.collection.immutable.Nil$").getField("MODULE$").get(null)
+    // A Scala `List` in the linker's own class loader
+    def scalaList(xs: List[Any]): Any = xs.foldRight(nil)((x, acc) => acc.getClass.getMethod("$colon$colon", classOf[Object]).invoke(acc, x))
+    def method(name: String, arity: Int) =
+      moduleInitializerObj.getClass.getMethods
+        .find(m => m.getName == name && m.getParameterCount == arity)
+        .getOrElse(throw new IllegalStateException(s"this Scala.js linker has no ModuleInitializer.$name with $arity parameters"))
 
-    mainClass match {
+    val own: List[Any] = mainClass match {
       case Some(mc) =>
         // ModuleInitializer.mainMethodWithArgs(mainClass, "main")
-        val mainMethodWithArgs = moduleInitializerObj.getClass.getMethods.find(m => m.getName == "mainMethodWithArgs" && m.getParameterCount == 2).get
-        val initializer = mainMethodWithArgs.invoke(moduleInitializerObj, mc, "main")
-        consMethod.invoke(nil, initializer)
+        List(method("mainMethodWithArgs", 2).invoke(moduleInitializerObj, mc, "main"))
 
       case None if isTest =>
         // For test projects, use TestAdapterInitializer constants to create the test entry point
         // These are well-known values from org.scalajs.testing.adapter.TestAdapterInitializer
         // The test runner must provide the scalajsCom interface for communication
-        val moduleClassName = "org.scalajs.testing.bridge.Bridge"
-        val mainMethodName = "start"
-
-        // ModuleInitializer.mainMethod(moduleClassName, mainMethodName)
-        val mainMethod = moduleInitializerObj.getClass.getMethods.find(m => m.getName == "mainMethod" && m.getParameterCount == 2).get
-        val initializer = mainMethod.invoke(moduleInitializerObj, moduleClassName, mainMethodName)
-        consMethod.invoke(nil, initializer)
+        // ModuleInitializer.mainMethod("org.scalajs.testing.bridge.Bridge", "start")
+        List(method("mainMethod", 2).invoke(moduleInitializerObj, "org.scalajs.testing.bridge.Bridge", "start"))
 
       case None =>
-        // Return Nil - no module initializers (will produce empty output)
-        nil
+        // no module initializers (will produce empty output)
+        Nil
     }
+
+    // The project's own, after bleep's, as sbt's `scalaJSModuleInitializers ++= ...` orders them
+    val projects: List[Any] = extra.map {
+      case ScalaJsLinkConfig.ModuleInitializer(className, name, None)       => method("mainMethod", 2).invoke(moduleInitializerObj, className, name)
+      case ScalaJsLinkConfig.ModuleInitializer(className, name, Some(args)) =>
+        method("mainMethodWithArgs", 3).invoke(moduleInitializerObj, className, name, scalaList(args))
+    }
+
+    scalaList(own ++ projects)
   }
 
   private def createOutputDirectory(

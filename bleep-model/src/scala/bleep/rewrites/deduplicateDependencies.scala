@@ -13,7 +13,7 @@ object deduplicateDependencies extends BuildRewrite {
       val shortenedDeps: Map[model.CrossProjectName, model.Project] =
         oldBuild.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, eval(pn).forceGet(pn.value)) }
 
-      val shortenedDependsOn: model.JsonSet[model.ProjectName] =
+      val shortenedDependsOn: model.JsonSet[model.ProjectRef] =
         p.dependsOn.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependsOn.values }.toSet)
 
       val shortenedDependencies: model.JsonSet[model.Dep] = {

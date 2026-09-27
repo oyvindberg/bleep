@@ -203,15 +203,11 @@ object BuildInvalidated {
   ): Map[model.CrossProjectName, Set[model.CrossProjectName]] = {
     val builder = mutable.Map.empty[model.CrossProjectName, mutable.Set[model.CrossProjectName]]
 
-    build.resolvedDependsOn.foreach { case (project, deps) =>
+    // build order, not classpath: a project is also invalidated by the projects it is built with but not against (sourcegen and post-compile scripts,
+    // post-compile inputs, a compiler built in this build)
+    build.resolvedBuildOrderDeps.foreach { case (project, deps) =>
       deps.foreach { dep =>
         builder.getOrElseUpdate(dep, mutable.Set.empty) += project
-      }
-    }
-
-    build.explodedProjects.foreach { case (project, p) =>
-      p.sourcegen.values.foreach { case model.ScriptDef.Main(sourcegenProject, _, _) =>
-        builder.getOrElseUpdate(sourcegenProject, mutable.Set.empty) += project
       }
     }
 

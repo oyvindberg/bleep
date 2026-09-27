@@ -18,16 +18,15 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
 
     def rewriteProject(p: model.Project): model.Project =
       p.copy(
-        dependsOn = p.dependsOn.map {
-          case `from` => to
-          case other  => other
-        },
-        sourcegen = p.sourcegen.map(rewriteScriptDefs)
-      )
+        dependsOn = p.dependsOn.map(ref => if (ref.name == from) ref.copy(name = to) else ref)
+      ).mapIndirectReferences {
+        case model.CrossProjectName(`from`, crossId) => model.CrossProjectName(to, crossId)
+        case other                                   => other
+      }
 
     def rewriteScriptDefs(s: model.ScriptDef): model.ScriptDef =
       s match {
-        case s @ model.ScriptDef.Main(model.CrossProjectName(`from`, _), _, _) =>
+        case s @ model.ScriptDef.Main(model.CrossProjectName(`from`, _), _, _, _) =>
           s.copy(project = model.CrossProjectName(to, s.project.crossId))
         case s => s
       }

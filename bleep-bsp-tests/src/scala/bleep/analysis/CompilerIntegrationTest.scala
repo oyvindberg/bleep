@@ -1451,7 +1451,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
         outputDir = outputDir,
         language = language,
         analysisDir = None,
-        buildDir = outputDir.getParent
+        buildDir = outputDir.getParent,
+        determinants = OutputDeterminants.none
       )
 
       import cats.effect.unsafe.implicits.global

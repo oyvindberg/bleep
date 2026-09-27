@@ -21,6 +21,18 @@ import scala.concurrent.duration._
   */
 object TestRunner {
 
+  /** The test fork's process working directory: the `-Duser.dir` its options state (the last one, as the JVM takes it), else the project's folder.
+    *
+    * The two must agree. `user.dir` decides what `getAbsolutePath` reports, but the JDK hands relative paths straight to the operating system for everything
+    * else — `isDirectory`, opening a file — and those resolve against the process's own directory. bleep's defaults state `-Duser.dir=${BUILD_DIR}` (sbt's
+    * tests run from the build root), so a fork started in the project folder saw one directory through `getAbsolutePath` and another through every file access:
+    * a test reading `tests/pos` found nothing.
+    */
+  def forkWorkingDirectory(jvmOptions: List[String], projectDir: Option[java.nio.file.Path]): Option[java.nio.file.Path] =
+    jvmOptions.reverseIterator
+      .collectFirst { case opt if opt.startsWith("-Duser.dir=") => java.nio.file.Path.of(opt.stripPrefix("-Duser.dir=")) }
+      .orElse(projectDir)
+
   /** Options for the test runner */
   case class Options(
       jvmOptions: List[String],

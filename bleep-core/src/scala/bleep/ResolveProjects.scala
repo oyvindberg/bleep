@@ -3,7 +3,7 @@ package bleep
 import bleep.internal.rewriteDependentData
 import bleep.rewrites.Defaults
 import coursier.Classifier
-import coursier.core.{Configuration, Extension}
+import coursier.core.{Configuration, Extension, ModuleName, Organization}
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
 import java.io.File
@@ -226,6 +226,7 @@ object ResolveProjects {
     val templateDirs =
       model.Replacements.paths(build = pre.buildPaths.buildDir) ++
         model.Replacements.projectPaths(project = projectPaths.dir) ++
+        model.Replacements.projectSources(projectPaths.sourcesDirs.all(Usage.Compile)) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true, buildDir = Some(pre.buildPaths.buildDir))
 
@@ -311,8 +312,30 @@ object ResolveProjects {
     val bomResolver = if (boms.isEmpty) resolver else resolver.updatedParams(_.copy(boms = boms))
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
-      val fromPlatform =
-        versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      // `scala.skipStdlib`: this project is the standard library, or reaches it through `dependsOn`. So no standard library comes from a repository: not the
+      // one bleep would add, and not one a dependency drags in transitively either (the coursier interface jar does) — resolved from Maven it would sit next
+      // to the build's own on the classpath and shadow it. On Scala.js the standard library is `scala3-library_sjs1` and `scalajs-scalalib_2.13` (the
+      // Scala.js build of scala-library, which `scalajs-library` depends on); those go too. The rest of a platform's libraries (the Scala.js runtime and
+      // javalib, Scala Native's) are not the standard library and stay.
+      val skipStdlib = maybeScala.flatMap(_.skipStdlib).contains(true)
+      def withoutRepositoryStdlib(dep: model.Dep): model.Dep =
+        if (skipStdlib)
+          dep
+            .withExclusions(
+              Organization("org.scala-lang"),
+              Set(ModuleName("scala-library"), ModuleName("scala3-library_3"), ModuleName("scala3-library_sjs1_3"))
+            )
+            .withExclusions(Organization("org.scala-js"), Set(ModuleName("scalajs-scalalib_2.13")))
+        else dep
+
+      val fromPlatform = {
+        val all = versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+        val stdlib: Set[model.Dep] = versionCombo match {
+          case model.VersionCombo.Js(scalaVersion, _) if scalaVersion.is3 => (scalaVersion.libraries :+ scalaVersion.scala3JsLibrary).toSet
+          case _                                                          => scalaVersion.fold(Set.empty[model.Dep])(_.libraries.toSet)
+        }
+        if (skipStdlib) all.filterNot(stdlib) else all
+      }
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -322,7 +345,7 @@ object ResolveProjects {
       // `bleep-bsp`, which dependsOn it, does not end up carrying junit classes that would then shadow a project's own via classloader delegation.
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
-      val deps = explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)
+      val deps = (explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)).map(withoutRepositoryStdlib)
       val normal = bomResolver.force(
         deps,
         versionCombo,
@@ -342,7 +365,7 @@ object ResolveProjects {
           val noLongerOptionalsFromProject =
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
-          val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet
+          val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet.map(withoutRepositoryStdlib)
           bomResolver.force(
             deps,
             versionCombo,
@@ -425,7 +448,20 @@ object ResolveProjects {
       case Some(scalaVersion) =>
         val compiler = scalaVersion.compiler.mapScala(_.copy(forceJvm = true)).asJava(versionCombo).getOrElse(sys.error("unexpected"))
 
-        val resolvedScalaCompiler: List[Path] = {
+        // `scala.compilerProject`: the compiler is built here, by the named project. Its own output is the zinc bridge; the rest of its runtime classpath
+        // is the compiler. It is an indirect dependency, so ordering is `Build.resolvedBuildOrderDeps`' job — here it is only paths.
+        val projectCompiler: Option[ResolvedProject.Language.ProjectCompiler] =
+          maybeScala.flatMap(_.compilerProject).map { compilerName =>
+            val compilerProject = getResolvedProject(compilerName)
+            val bridge = compilerProject.classesDir :: compilerProject.resources(Usage.Runtime)
+            ResolvedProject.Language.ProjectCompiler(
+              name = compilerName.value,
+              classpath = compilerProject.classpath(Usage.Runtime).filterNot(bridge.toSet),
+              bridge = bridge
+            )
+          }
+
+        lazy val resolvedPublishedScalaCompiler: List[Path] = {
           val defaultCompilerJars =
             resolver
               .force(Set(compiler), versionCombo = versionCombo, libraryVersionSchemes = SortedSet.empty, crossName.value, model.IgnoreEvictionErrors.No)
@@ -462,6 +498,18 @@ object ResolveProjects {
             }
           }
         }
+
+        val resolvedScalaCompiler: List[Path] = projectCompiler match {
+          case Some(pc) => pc.classpath
+          case None     => resolvedPublishedScalaCompiler
+        }
+
+        // Scala 3 records every source path in TASTy relative to `-sourceroot`, which defaults to the compiler's working directory — for bleep a daemon's,
+        // wherever it was started. Unrelativizable, the paths went in absolute: output that differs by machine and checkout, and inlined code whose
+        // positions disagree with those of the same code read back from TASTy. The build directory is what sbt's in-process compile gets by default.
+        def sourceRoot(stated: model.Options): model.Options =
+          if (!scalaVersion.is3 || stated.values.exists(_.render.headOption.exists(_.startsWith("-sourceroot")))) model.Options.empty
+          else model.Options(Set(model.Options.Opt.WithArgs("-sourceroot", List(model.Replacements.known.BuildDir))))
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
@@ -519,7 +567,7 @@ object ResolveProjects {
         val scalacOptions: model.Options =
           maybeScala match {
             case Some(scala) =>
-              val base = scala.options.union(compilerPlugins).union(versionCombo.compilerOptions)
+              val base = scala.options.union(compilerPlugins).union(versionCombo.compilerOptions).union(sourceRoot(scala.options))
               if (scala.strict.getOrElse(false)) {
                 val tpolecat = new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion)
                 base.union(tpolecat)
@@ -535,7 +583,8 @@ object ResolveProjects {
           compilerJars = resolvedScalaCompiler,
           analysisFile = Some(projectPaths.incrementalAnalysis),
           setup = Some(setup),
-          javaOptions = resolvedJavaOptions
+          javaOptions = resolvedJavaOptions,
+          compilerProject = projectCompiler
         )
 
       case None =>

@@ -16,6 +16,9 @@ class StateSharingTest extends AnyFunSuite with Matchers {
     StateSharing.isShareableRel("classes/com/example/Main.class") shouldBe true
     StateSharing.isShareableRel("test-classes/SomeTest.class") shouldBe true
     StateSharing.isShareableRel(".zinc/analysis.zip") shouldBe true
+    // a post-compile project's compiler output, which is what its analysis describes
+    StateSharing.isShareableRel("classes-pre/com/example/Main.class") shouldBe true
+    StateSharing.isShareableRel("test-classes-pre/SomeTest.class") shouldBe true
   }
 
   test("deny by default: everything the old deny-list leaked, and anything new, is private") {
@@ -24,6 +27,8 @@ class StateSharingTest extends AnyFunSuite with Matchers {
     StateSharing.isShareableRel("ksp/caches/lookups.bin") shouldBe false
     StateSharing.isShareableRel(".bleep-lock") shouldBe false
     StateSharing.isShareableRel("bloop.json") shouldBe false
+    // absolute paths and mtimes: the receiving side reruns the post-compile script instead
+    StateSharing.isShareableRel("post-compile.stamp") shouldBe false
     // what both mechanisms always excluded
     StateSharing.isShareableRel(".zinc/noop-manifest.bin") shouldBe false
     // prefix confusion must not leak: "classes-something" is not "classes/"

@@ -14,7 +14,7 @@ class semanticDb(semanticDbVersion: String) extends BuildRewrite {
 
   def apply(name: model.CrossProjectName, explodedProject: model.Project, buildPaths: BuildPaths): model.Project =
     explodedProject.scala match {
-      case Some(s @ model.Scala(Some(version), _, _, _, _)) =>
+      case Some(s @ model.Scala(Some(version), _, _, _, _, _, _)) =>
         val projectPaths = buildPaths.project(name, explodedProject)
         val addedScalacOptions = List(
           Some(compilerOption(version)),
@@ -47,9 +47,9 @@ class semanticDb(semanticDbVersion: String) extends BuildRewrite {
 
   def targetRootOptions(version: model.VersionScala, projectPaths: ProjectPaths): Option[model.Options.Opt] =
     if (version.is3) {
-      Some(model.Options.Opt.WithArgs("-semanticdb-target", List(projectPaths.classes.toString)))
+      Some(model.Options.Opt.WithArgs("-semanticdb-target", List(projectPaths.compilerOutput.toString)))
     } else
-      Some(model.Options.Opt.Flag(s"-P:semanticdb:targetroot:${projectPaths.classes}"))
+      Some(model.Options.Opt.Flag(s"-P:semanticdb:targetroot:${projectPaths.compilerOutput}"))
 
   def sourceRootOptions(version: model.VersionScala, buildPaths: BuildPaths): model.Options.Opt =
     if (version.is3)

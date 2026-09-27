@@ -46,6 +46,8 @@
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped",
         "-unchecked"
       ],
       "jars": [

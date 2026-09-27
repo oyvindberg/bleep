@@ -19,6 +19,7 @@ import java.nio.file.Path
   *   - `.zinc/cache/` — regenerates; also full of absolute paths
   *   - `ksp/` — per-variant KSP caches, per-machine
   *   - `.bleep-lock` — a lock file must never be inherited
+  *   - `post-compile.stamp` — fingerprints absolute paths and mtimes; without it the post-compile script reruns once, from the shared `classes-pre`
   *   - `bloop.json` and anything else that regenerates on the next compile
   *
   * Workspace-level state (`.bleep/builds/<variant>/` — run history transcripts, logs) is ALL private and outside this classification entirely: both sharing
@@ -39,6 +40,9 @@ object StateSharing {
   val variantDirEntries: List[Shared] = List(
     SharedDir("classes"),
     SharedDir("test-classes"),
+    // A post-compile project's compiler output: what its analysis describes
+    SharedDir("classes-pre"),
+    SharedDir("test-classes-pre"),
     SharedFile(".zinc/analysis.zip")
   )
 

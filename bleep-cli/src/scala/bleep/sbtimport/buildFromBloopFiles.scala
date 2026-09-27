@@ -70,8 +70,8 @@ object buildFromBloopFiles {
           case relPath                              => Some(relPath)
         }
 
-      val dependsOn: model.JsonSet[model.ProjectName] =
-        model.JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(_.name))
+      val dependsOn: model.JsonSet[model.ProjectRef] =
+        model.JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(cn => model.ProjectRef(cn.name)))
 
       val scalaVersion: Option[model.VersionScala] =
         bloopProject.scala.map(s => model.VersionScala(s.version))
@@ -195,13 +195,15 @@ object buildFromBloopFiles {
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
         testTags = model.JsonMap.empty,
+        testExclude = model.JsonSet.empty,
         maxConcurrentSuites = None,
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
         libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
         ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),
-        publish = None
+        publish = None,
+        postCompile = None
       )
     }
 
@@ -595,7 +597,9 @@ object buildFromBloopFiles {
         )
       ),
       compilerPlugins = model.JsonSet.fromIterable(filteredCompilerPlugins),
-      strict = strict
+      strict = strict,
+      skipStdlib = None,
+      compilerProject = None
     )
   }
 

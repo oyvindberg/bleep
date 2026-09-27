@@ -60,8 +60,9 @@ object StackTraceElision {
     Owner("specs2", List("org.specs2.")),
     Owner("hedgehog", List("hedgehog.")),
     Owner("zio-test", List("zio.")),
-    // JUnit 3's `junit.framework`, JUnit 4's `org.junit.runners`, and the JUnit 5 platform all reach the console through the same runner.
-    Owner("junit", List("org.junit.", "junit.framework.", "junit.textui.")),
+    // JUnit 3's `junit.framework`, JUnit 4's `org.junit.runners`, and the JUnit 5 platform all reach the console through the same runner. On Scala.js the
+    // runner is `scalajs-junit-test-runtime`'s own, under `org.scalajs.junit`.
+    Owner("junit", List("org.junit.", "junit.framework.", "junit.textui.", "org.scalajs.junit.")),
     Owner("kotest", List("io.kotest.")),
     Owner("spek", List("org.spekframework.")),
     Owner("jqwik", List("net.jqwik.")),

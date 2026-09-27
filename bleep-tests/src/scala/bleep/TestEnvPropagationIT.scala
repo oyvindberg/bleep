@@ -101,6 +101,31 @@ class TestEnvPropagationIT extends IntegrationTestHarness {
     succeed
   }
 
+  integrationTest("the fork's own JDK is first on PATH and is JAVA_HOME, over the client's, whose PATH is kept behind it") { ws =>
+    ws.yaml(Yaml)
+    ws.file(
+      "mytest/src/scala/EnvTest.scala",
+      """package example
+        |
+        |import org.scalatest.funsuite.AnyFunSuite
+        |
+        |class EnvTest extends AnyFunSuite {
+        |  test("java and javac resolve to the jdk the fork runs on") {
+        |    val home = java.nio.file.Path.of(System.getProperty("java.home")).toRealPath()
+        |    assert(sys.env.get("JAVA_HOME").map(h => java.nio.file.Path.of(h).toRealPath()) == Some(home), sys.env.get("JAVA_HOME"))
+        |    val path = sys.env("PATH").split(java.io.File.pathSeparator).toList
+        |    assert(java.nio.file.Path.of(path.head).toRealPath() == home.resolve("bin"), path)
+        |    assert(path.contains("/client/bin"), path)
+        |  }
+        |}
+        |""".stripMargin
+    )
+    val (started, _, _) = ws.start()
+    // a developer's shell with another JDK: a harness that execs `javac` from PATH, and a newer one produces classes the fork cannot load
+    runTests(started, Map("PATH" -> "/client/bin", "JAVA_HOME" -> "/client/jdk")).orThrow
+    succeed
+  }
+
   integrationTest("client env does not disturb a build-declared var it never mentions") { ws =>
     assert(sys.env.get(VarName).isEmpty, s"$VarName must not be set in the harness JVM or this test proves nothing")
     ws.yaml(YamlWithBuildEnv)

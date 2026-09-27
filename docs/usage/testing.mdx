@@ -29,6 +29,12 @@ just compiles them. Test frameworks are **auto-detected** from the classpath —
 JUnit 4/5 (JUnit Platform), MUnit, utest, Specs2, ScalaCheck, and weaver all work without
 configuration.
 
+JUnit tests on Scala.js need the Scala.js JUnit runtime,
+`org.scala-js:scalajs-junit-test-runtime_2.13:<scala.js version>`, and Scala 3: on Scala 2
+the compiler plugin that registers the suites (`scalajs-junit-test-plugin`) is not added by
+bleep. The [test framework matrix](/docs/appendix/test-framework-matrix) has every
+framework and platform, with a recording of each.
+
 ## How a project's suites run
 
 Two knobs, each answering one question, plus one rule:
@@ -162,6 +168,18 @@ bleep test --test-arg -oD            # pass arguments straight to the framework
 
 For **tag-based** selection across frameworks (`--only-tag`, `--exclude-tag`, and the
 project pre-filter that skips compiling untagged projects), see [Test tags](/docs/usage/test-tags).
+
+A suite the build cannot run as it stands is left out in the build itself, with
+`testExclude`: suite patterns with the same syntax as `testTags` (`*` within one
+segment of the name, `**` across dots). No command line brings one back.
+
+```yaml
+projects:
+  mylib-test:
+    testExclude:
+      - com.example.FlakyOnCiSpec
+      - com.example.legacy.**
+```
 
 ## Reports and history
 

@@ -41,4 +41,18 @@ object BuildValidation {
           case _ => Nil
         }
       }
+
+  /** `postCompile` on a Kotlin project, which is not supported yet: one message per offending project.
+    *
+    * Untested rather than known broken: kotlinc writes the compiler output like any other compiler, and the post-compile step runs after it. Refused until it
+    * has been tried. Kotlin *consumers* of a post-compiled project are fine: they compile against the transformed classes, and notice changes to them by the
+    * same classpath mtime check they use for every other dependency — the post-compile sync rewrites exactly the files whose bytes changed.
+    */
+  def unsupportedPostCompile(build: Build): List[String] =
+    build.explodedProjects.toList
+      .sortBy { case (name, _) => name.value }
+      .collect {
+        case (crossName, project) if project.kotlin.flatMap(_.version).isDefined && project.postCompile.isDefined =>
+          s"${crossName.value}: `postCompile` is not supported on Kotlin projects yet"
+      }
 }

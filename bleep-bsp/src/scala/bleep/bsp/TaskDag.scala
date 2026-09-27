@@ -107,7 +107,9 @@ object TaskDag {
   def costOf(task: Task, forkHeaps: ForkHeaps): Cost =
     task match {
       // In-server work: a core, and no fork memory. Compile heap is watched separately by HeapPressureGate.
-      case _: CompileTask                     => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      case ct: CompileTask =>
+        // A post-compile script is a fork like a sourcegen script, run inside the compile task, so the task declares its memory up front.
+        Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = if (ct.postCompile) forkHeaps.sourcegenMb else 0L)
       case _: DiscoverTask                    => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       case _: ResolveAnnotationProcessorsTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       // Forks: charged the heap they are started with plus the non-heap a JVM also commits.
@@ -134,7 +136,9 @@ object TaskDag {
   case class CompileTask(
       project: CrossProjectName,
       projectDependencies: Set[CrossProjectName],
-      dependencies: Set[TaskId]
+      dependencies: Set[TaskId],
+      /** The project declares a `postCompile`, so a successful compile also forks its script — see [[bleep.bsp.PostCompileRunner]]. */
+      postCompile: Boolean
   ) extends Task {
     val id: TaskId = TaskId.Compile(project)
   }
@@ -150,13 +154,18 @@ object TaskDag {
     * up-to-date outputs).
     */
   case class SourcegenTask(
-      script: ScriptDef.Main,
-      forProjects: Set[CrossProjectName],
+      scriptProject: CrossProjectName,
+      main: String,
+      /** Each distinct declaration of the script, with the projects that declared it that way. Consumers of one script may declare it differently
+        * (`sourceGlobs`, `inputs`); the task is still one, and runs the script once per declaration, each for its own consumers.
+        */
+      declarations: Map[ScriptDef.Main, Set[CrossProjectName]],
       scriptProjectDeps: Set[CrossProjectName]
   ) extends Task {
-    val id: TaskId = TaskId.Sourcegen(script)
-    val project: CrossProjectName = script.project
+    val id: TaskId = TaskId.Sourcegen(scriptProject, main)
+    val project: CrossProjectName = scriptProject
     val dependencies: Set[TaskId] = scriptProjectDeps.map(p => TaskId.Compile(p): TaskId)
+    def forProjects: Set[CrossProjectName] = declarations.values.flatten.toSet
   }
 
   /** Resolve annotation processors for a project: fetch processor JARs from Coursier, scan resolved-`dependencies` JARs for `META-INF/services`, assemble the
@@ -657,8 +666,8 @@ object TaskDag {
   /** Plan for sourcegen DAG integration.
     *
     *   - `perProject` — for each target project that declared sourcegen in its config, the set of scripts that must run before it compiles.
-    *   - `scriptProjectDeps` — for each script, the script project + its transitive dependency projects. The DAG inserts `CompileTask`s for all of these, and
-    *     the `SourcegenTask` depends on their compiles.
+    *   - `scriptProjectDeps` — for each script, the script project and the projects it reads (`inputs`), with their transitive dependency projects. The DAG
+    *     inserts `CompileTask`s for all of these, and the `SourcegenTask` depends on their compiles.
     *
     * When `perProject` is empty, the DAG falls back to the original compile-only topology.
     */
@@ -714,7 +723,9 @@ object TaskDag {
         * test-only project it asked all four platforms to link a `main` that does not exist — Scala.js produced no output, Scala Native failed on "requires a
         * main class", and Kotlin/Native failed with "could not find '/main' function".
         */
-      testProjects: Set[CrossProjectName]
+      testProjects: Set[CrossProjectName],
+      /** Which of these projects declare a `postCompile` script. */
+      postCompileProjects: Set[CrossProjectName]
   )
 
   /** What each kind of forked JVM is charged: its heap plus the non-heap a JVM also commits (metaspace, code cache, stacks, GC structures). Resolved from
@@ -735,7 +746,8 @@ object TaskDag {
       platforms = Map.empty,
       sourcegen = SourcegenPlan.empty,
       apPlan = AnnotationProcessorPlan.empty,
-      kspPlan = SymbolProcessorPlan.empty
+      kspPlan = SymbolProcessorPlan.empty,
+      postCompileProjects = Set.empty
     )
   }
 
@@ -806,7 +818,7 @@ object TaskDag {
   ): (Seq[SourcegenTask], Set[CrossProjectName]) =
     if (sourcegen.isEmpty) (Seq.empty, Set.empty)
     else {
-      // Aggregate forProjects per script
+      // Aggregate forProjects per declaration
       val scriptToTargets: Map[ScriptDef.Main, Set[CrossProjectName]] =
         sourcegen.perProject.toSeq
           .flatMap { case (target, scripts) => scripts.map(s => s -> target) }
@@ -815,9 +827,11 @@ object TaskDag {
           .mapValues(_.toSet)
           .toMap
 
-      val tasks = scriptToTargets.toSeq.map { case (script, targets) =>
-        val deps = sourcegen.scriptProjectDeps.getOrElse(script, Set(script.project))
-        SourcegenTask(script, targets, deps)
+      // One task per task id. Grouping by the whole declaration made two tasks with one id whenever consumers declared the same script differently, and the
+      // DAG kept only one of them: the other's consumers compiled without their sourcegen ever running.
+      val tasks = scriptToTargets.toSeq.groupBy { case (script, _) => TaskId.Sourcegen(script) }.toSeq.map { case (id, declarations) =>
+        val deps = declarations.flatMap { case (script, _) => sourcegen.scriptProjectDeps.getOrElse(script, Set(script.project)) }.toSet
+        SourcegenTask(id.scriptProject, id.mainClass, declarations.toMap, deps)
       }
       val extraScriptProjects = tasks.flatMap(_.scriptProjectDeps).toSet -- inScope
       (tasks, extraScriptProjects)
@@ -833,7 +847,7 @@ object TaskDag {
 
     val compileTasks = allProjects.map { project =>
       val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps)
+      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
     }
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
@@ -860,7 +874,7 @@ object TaskDag {
 
     val compileTasks = allProjects.map { project =>
       val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps)
+      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
     }
 
     val suiteBearing = targets.filter(ctx.testProjects)
@@ -892,7 +906,7 @@ object TaskDag {
 
     val compileTasks = allProjects.map { project =>
       val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps)
+      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
     }
 
     val linkTasks = projects.flatMap { project =>
@@ -1242,12 +1256,12 @@ object TaskDag {
                     for {
                       sourcegenStartTs <- now
                       forProjectsList = sgt.forProjects.toList.sortBy(_.value)
-                      _ <- emit(DagEvent.SourcegenStarted(sgt.script.project, sgt.script.main, forProjectsList, sourcegenStartTs))
-                      result <- withRecovery(s"Sourcegen ${sgt.script.main}", taskKill)(handlers.sourcegen(sgt, taskKill))
+                      _ <- emit(DagEvent.SourcegenStarted(sgt.scriptProject, sgt.main, forProjectsList, sourcegenStartTs))
+                      result <- withRecovery(s"Sourcegen ${sgt.main}", taskKill)(handlers.sourcegen(sgt, taskKill))
                       sourcegenEndTs <- now
                       (success, errorMsg) = resultSummary(result)
                       _ <- emit(
-                        DagEvent.SourcegenFinished(sgt.script.project, sgt.script.main, success, sourcegenEndTs - sourcegenStartTs, errorMsg, sourcegenEndTs)
+                        DagEvent.SourcegenFinished(sgt.scriptProject, sgt.main, success, sourcegenEndTs - sourcegenStartTs, errorMsg, sourcegenEndTs)
                       )
                     } yield result
 

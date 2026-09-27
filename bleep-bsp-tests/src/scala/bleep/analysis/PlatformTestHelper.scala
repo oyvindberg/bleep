@@ -117,7 +117,8 @@ trait PlatformTestHelper {
       scalaOptions = scalaOptions,
       javaOptions = Nil,
       ecjVersion = None,
-      compileOrder = bleep.model.CompileOrder.JavaThenScala
+      compileOrder = bleep.model.CompileOrder.JavaThenScala,
+      compilerProject = None
     )
 
     val config = ProjectConfig(
@@ -127,7 +128,8 @@ trait PlatformTestHelper {
       outputDir = outDir,
       language = language,
       analysisDir = None,
-      buildDir = outDir.getParent
+      buildDir = outDir.getParent,
+      determinants = OutputDeterminants.none
     )
 
     val result = ZincBridge
@@ -188,7 +190,8 @@ trait PlatformTestHelper {
       scalaOptions = scalaOptions,
       javaOptions = Nil,
       ecjVersion = None,
-      compileOrder = bleep.model.CompileOrder.JavaThenScala
+      compileOrder = bleep.model.CompileOrder.JavaThenScala,
+      compilerProject = None
     )
 
     val fullClasspath = (scalaLibJars ++ snLibJars ++ extraDeps).distinct
@@ -200,7 +203,8 @@ trait PlatformTestHelper {
       outputDir = outDir,
       language = language,
       analysisDir = None,
-      buildDir = outDir.getParent
+      buildDir = outDir.getParent,
+      determinants = OutputDeterminants.none
     )
 
     val result = ZincBridge

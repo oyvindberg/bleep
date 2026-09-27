@@ -32,8 +32,12 @@ object FrameworkSelection {
     * These never reach `TestProtocol`: the test handler branches on the project's platform first, and only the JVM case talks to a fork. The case exists so
     * that "no JVM runner applies" is stated rather than encoded as a placeholder class name, and so that sending one to a fork fails loudly instead of
     * producing a command the other side would have to interpret.
+    *
+    * @param frameworkClass
+    *   the `sbt.testing.Framework` the suite was discovered with, which the Scala.js and Scala Native runners load from the linked program. Absent for the
+    *   Kotlin runners, which run the program's own test entry point and have no sbt framework.
     */
-  case class PlatformRunner(displayName: String) extends FrameworkSelection
+  case class PlatformRunner(displayName: String, frameworkClass: Option[String]) extends FrameworkSelection
 
   /** sbt frameworks that report a suite's failure detail from `Runner.done()` — called once per run — or on their own threads after the suite's tasks return,
     * so running a project's suites through one shared Runner (one `done()`, per-project mode) drops that per-suite output. Keyed by framework class, the real
