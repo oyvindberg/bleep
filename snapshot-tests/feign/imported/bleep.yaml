@@ -749,7 +749,7 @@ templates:
     extends: template-common
     isTestProject: true
     java:
-      options: -parameters -proc:full -source 25 -target 25
+      options: -parameters -source 25 -target 25
     sbt-scope: test
   template-java-25-add-opens:
     extends: template-java-25-dependencies

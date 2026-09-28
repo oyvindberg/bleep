@@ -129,7 +129,6 @@
     "java": {
       "options": [
         "-parameters",
-        "-proc:full",
         "-source",
         "25",
         "-target",
