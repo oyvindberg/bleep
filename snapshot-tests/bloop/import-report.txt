@@ -1,0 +1,45 @@
+# template inference
+templates: 9
+projects: 19
+settings: 222 (189 in projects, 33 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: benchmarks
+sbt bloop projects dropped by the import: benchmarkBridge, benchmarkBridge-test, benchmarks-test, bloopShared-test, buildpress-test, buildpressConfig-test, cli-test, docs-test, jsBridge1-test, nativeBridge04-test, nativeBridge05-test, sbtBloop-test
+compared: 18, identical: 14
+
+most common differences (projects, aspect, difference):
+    3  classpath + jar macro-compat_2.12:1.1.1
+    3  classpath ~ shapeless_2.12: 2.3.4 -> 2.3.3
+
+bloop-docs
+  classpath
+    ~ jboss-logging: 3.4.1.Final -> 3.4.3.Final
+
+bloop-frontend
+  classpath
+    + jar macro-compat_2.12:1.1.1
+    ~ shapeless_2.12: 2.3.4 -> 2.3.3
+
+bloop-frontend-it
+  classpath
+    + jar hamcrest-core:1.3
+    + jar junit-interface:0.13.3
+    + jar junit:4.13.2
+    + jar macro-compat_2.12:1.1.1
+    + jar portable-scala-reflect_2.12:1.1.3
+    + jar utest_2.12:0.8.5
+    ~ shapeless_2.12: 2.3.4 -> 2.3.3
+  isTestProject
+    - false
+    + true
+  testFrameworks
+    + hedgehog.sbt.Framework
+    + weaver.framework.CatsEffect
+    + zio.test.sbt.ZTestFramework
+
+bloop-frontend-test
+  classpath
+    + jar macro-compat_2.12:1.1.1
+    ~ shapeless_2.12: 2.3.4 -> 2.3.3

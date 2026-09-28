@@ -1,0 +1,450 @@
+# template inference
+templates: 11
+projects: 76
+settings: 736 (692 in projects, 44 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: bench-jmh-test, bill-of-materials, bill-of-materials-test, multi-node-testkit-test, protobuf-v3-test, scala-nightly, scala-nightly-test
+compared: 150, identical: 54
+
+most common differences (projects, aspect, difference):
+   46  classpath - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+   46  classpath - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    8  classpath + project pekko-actor-typed@jvm213
+    8  classpath + project pekko-actor-typed@jvm3
+    7  classpath + project pekko-slf4j@jvm213
+    7  classpath + project pekko-slf4j@jvm3
+    4  classpath - jar leveldb-api:0.12
+    4  classpath - jar leveldb:0.12
+    4  classpath - jar leveldbjni-all:1.8
+
+pekko-bench-jmh@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-bench-jmh@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-metrics@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-metrics@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-metrics-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+
+pekko-cluster-metrics-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+
+pekko-cluster-sharding@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-sharding@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-sharding-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-cluster-sharding-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-cluster-sharding-typed@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-sharding-typed@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-sharding-typed-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-sharding-typed-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-cluster-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-cluster-tools@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-tools@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-tools-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-cluster-tools-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-cluster-typed@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/stripped/stripped/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-typed@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/stripped/stripped/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-typed-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-cluster-typed-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-distributed-data@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-distributed-data@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-distributed-data-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-distributed-data-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-docs@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-docs@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-docs-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-docs-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-multi-node-testkit@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-multi-node-testkit@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-query@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-query@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-query-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-query-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-shared-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-shared-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-tck@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-tck@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-tck-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-tck-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-testkit@jvm213
+  classpath
+    - jar guava:21.0
+    - jar leveldb-api:0.12
+    - jar leveldb:0.12
+    - jar leveldbjni-all:1.8
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-testkit@jvm3
+  classpath
+    - jar guava:21.0
+    - jar leveldb-api:0.12
+    - jar leveldb:0.12
+    - jar leveldbjni-all:1.8
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-testkit-test@jvm213
+  classpath
+    - jar leveldb-api:0.12
+    - jar leveldb:0.12
+    - jar leveldbjni-all:1.8
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-testkit-test@jvm3
+  classpath
+    - jar leveldb-api:0.12
+    - jar leveldb:0.12
+    - jar leveldbjni-all:1.8
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-tests@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-tests@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-tests-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-persistence-typed-tests-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-protobuf-v3@jvm213
+  classpath
+    + jar scala-library:2.13.18
+
+pekko-protobuf-v3@jvm3
+  classpath
+    + jar scala-library:2.13.18
+    + jar scala3-library_3:3.3.8
+
+pekko-remote@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-remote@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-remote-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-remote-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-remote-tests@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-remote-tests@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-remote-tests-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-remote-tests-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-stream@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-testkit@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-testkit@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-testkit-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-testkit-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests-tck@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests-tck@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests-tck-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests-tck-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-tests-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm213
+    + project pekko-slf4j@jvm213
+
+pekko-stream-tests-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+    + project pekko-actor-typed@jvm3
+    + project pekko-slf4j@jvm3
+
+pekko-stream-typed@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-tests@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-tests@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-tests-test@jvm213
+  classpath
+    - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
+
+pekko-stream-typed-tests-test@jvm3
+  classpath
+    - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar

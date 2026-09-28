@@ -514,7 +514,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
       val apDir = buildPaths.generatedSourcesDir(cpn("a"), "annotations")
-      val projectPaths = buildPaths.project(cpn("a"), p)
+      val projectPaths = buildPaths.project(cpn("a"), p, build.crossPlatforms(cpn("a").name))
       assert(projectPaths.sourcesDirs.all(Usage.Compile).contains(apDir), "the compiler must still see AP output")
       // The same answer reaches `--watch` and `build invalidated` through `ProjectInputs`, not just the digest.
       assert(!ProjectInputs.all(p, projectPaths).contains(apDir), "AP output is not an input to watch or invalidate on")
@@ -581,7 +581,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val p = model.Project.empty.copy(stamp = model.JsonSet(model.StampKind.Dynver))
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
-      val stampsRoot = buildPaths.project(cpn("a"), p).resourcesDirs.stamps.getOrElse(fail("a declared stamps but has no stamps directory"))
+      val stampsRoot = buildPaths
+        .project(cpn("a"), p, build.crossPlatforms(cpn("a").name))
+        .resourcesDirs
+        .stamps
+        .getOrElse(fail("a declared stamps but has no stamps directory"))
 
       writeIn(stampsRoot, StampFile.resourcePath(cpn("a")), "dynver=1.0.0+1-aaaaaaa\n")
       val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))

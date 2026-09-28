@@ -1,0 +1,49 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-sax",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-sax/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/sax/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-sax/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-sax/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/sax/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/sax"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

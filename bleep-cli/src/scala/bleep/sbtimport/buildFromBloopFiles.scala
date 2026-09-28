@@ -38,10 +38,37 @@ object buildFromBloopFiles {
       sbtBuildDir: Path,
       destinationPaths: BuildPaths,
       inputProjects: ImportInputData,
-      bleepVersion: model.BleepVersion
+      bleepVersion: model.BleepVersion,
+      excludeProjects: Set[model.ProjectName]
   ): model.Build.Exploded = {
 
-    val projects = inputProjects.projects.map { case (crossName, inputProject) =>
+    // excluded projects are not imported, and neither is anything depending on them. Before anything else: an excluded project may be one the import cannot
+    // have, like bloop's benchmarks, which depends on a project in another sbt build
+    val excludedBloopNames: Set[String] = {
+      val direct = inputProjects.projects.collect { case (crossName, ip) if excludeProjects(crossName.name) => ip.bloopName }.toSet
+      @annotation.tailrec
+      def withDependents(acc: Set[String]): Set[String] = {
+        val next = acc ++ inputProjects.projects.values.collect { case ip if ip.bloopFile.project.dependencies.exists(acc) => ip.bloopName }
+        if (next == acc) acc else withDependents(next)
+      }
+      withDependents(direct)
+    }
+
+    // the platforms each project is built for, which say which directories the `cross-full` layout shares between them
+    val crossPlatforms: Map[model.ProjectName, Set[model.PlatformId]] =
+      inputProjects.projects.toList
+        .map { case (crossName, inputProject) =>
+          val platformId: Option[model.PlatformId] = inputProject.bloopFile.project.platform.map {
+            case _: Config.Platform.Js     => model.PlatformId.Js
+            case _: Config.Platform.Native => model.PlatformId.Native
+            case _: Config.Platform.Jvm    => model.PlatformId.Jvm
+          }
+          (crossName.name, platformId)
+        }
+        .groupMap(_._1)(_._2)
+        .map { case (name, platformIds) => (name, platformIds.flatten.toSet) }
+
+    val projects = inputProjects.projects.filterNot { case (_, ip) => excludedBloopNames(ip.bloopName) }.map { case (crossName, inputProject) =>
       val bloopProject = inputProject.bloopFile.project
 
       val projectType = inputProject.projectType
@@ -70,8 +97,18 @@ object buildFromBloopFiles {
           case relPath                              => Some(relPath)
         }
 
+      // a project sbt depends on, which the export has no bloop file for, would silently be missing from the build: play's `Play-Test`, whose bloop file the
+      // tests of `Play` overwrote on a case-insensitive filesystem
       val dependsOn: model.JsonSet[model.ProjectRef] =
-        model.JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(cn => model.ProjectRef(cn.name)))
+        model.JsonSet.fromIterable(bloopProject.dependencies.map { bloopName =>
+          val dependency = inputProjects.byBloopName.getOrElse(
+            bloopName,
+            throw new BleepException.Text(
+              s"${crossName.value} depends on the sbt project $bloopName, which was not exported. Check the output of the sbt export for errors"
+            )
+          )
+          model.ProjectRef(dependency.name)
+        })
 
       val scalaVersion: Option[model.VersionScala] =
         bloopProject.scala.map(s => model.VersionScala(s.version))
@@ -115,7 +152,7 @@ object buildFromBloopFiles {
 
         val inferredSourceLayout: model.SourceLayout =
           model.SourceLayout.All.values.maxBy { layout =>
-            val fromLayout = layout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope))
+            val fromLayout = layout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope))
             val fromProject = sourcesRelPaths
             val matching = fromLayout.intersect(fromProject).size
             val notMatching = fromLayout.removeAll(fromProject).size
@@ -124,13 +161,13 @@ object buildFromBloopFiles {
 
         val shortenedSourcesRelPaths =
           sourcesRelPaths
-            .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacementsWithVersions.templatize.relPath)
+            .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
+            .map(templatizeSourcePath(replacementsWithVersions))
 
         val shortenedResourcesRelPaths =
           resourcesRelPaths
-            .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacementsWithVersions.templatize.relPath)
+            .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
+            .map(templatizeSourcePath(replacementsWithVersions))
 
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
@@ -145,9 +182,21 @@ object buildFromBloopFiles {
           crossName,
           configuredPlatform.flatMap(_.name),
           providedDeps,
+          versionCombo,
           depReplacements
         )
       }
+
+      // sbt compiles and publishes a project without the scala library and without a scala suffix as a plain java artifact (`crossPaths := false`,
+      // `autoScalaLibrary := false`). A scala version would give it a scala library and publish it as `name_2.12`. It keeps one only if it depends on a scala
+      // library, which could not be resolved without one
+      val isJavaArtifact =
+        !inputProject.sbtExportFile.autoScalaLibrary &&
+          inputProject.sbtExportFile.crossVersion == librarymanagement.Disabled &&
+          dependencies.forall {
+            case _: model.Dep.JavaDependency  => true
+            case _: model.Dep.ScalaDependency => false
+          }
 
       val libraryVersionSchemes = {
         val (compilerPlugins, dependencies) = importDeps(
@@ -157,16 +206,33 @@ object buildFromBloopFiles {
           crossName,
           configuredPlatform.flatMap(_.name),
           Nil,
+          versionCombo,
           depReplacements
         )
-        (compilerPlugins ++ dependencies).map(dep => model.LibraryVersionScheme.from(dep).orThrowText)
+        // a scheme for a scala module has nothing to act on in a java artifact, and could not be resolved without a scala version
+        (compilerPlugins ++ dependencies)
+          .filter {
+            case _: model.Dep.ScalaDependency => !isJavaArtifact
+            case _: model.Dep.JavaDependency  => true
+          }
+          .map(dep => model.LibraryVersionScheme.from(dep).orThrowText)
       }
+
+      // An sbt 1.x plugin compiles against sbt, which brings scala-compiler and scala-xml 1.x. bleep keeps the scala artifacts of a 2.12 project at the
+      // project's scala version, and newer 2.12 compilers depend on scala-xml 2.x, so resolution reports a conflict the sbt build never had. It's the conflict
+      // every sbt plugin build knows, and the usual answer: scala-xml is not checked
+      val isSbtPlugin = dependencies.exists(dep => dep.organization.value == "org.scala-sbt" && dep.baseModuleName.value == "sbt")
+      val sbtPluginVersionSchemes =
+        if (isSbtPlugin && !libraryVersionSchemes.exists(_.dep.baseModuleName.value == "scala-xml"))
+          List(model.LibraryVersionScheme(model.LibraryVersionScheme.VersionScheme.Always, model.Dep.Scala("org.scala-lang.modules", "scala-xml", "always")))
+        else Nil
 
       val configuredJava: Option[model.Java] =
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacements, versionCombo, depReplacements))
+        if (isJavaArtifact) None
+        else bloopProject.scala.map(translateScala(compilerPlugins, replacements, versionCombo, depReplacements))
 
       val testFrameworks: model.JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
@@ -200,9 +266,26 @@ object buildFromBloopFiles {
         testFork = None,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         stamp = model.JsonSet.empty[model.StampKind],
-        libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
+        libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes ++ sbtPluginVersionSchemes),
         ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel),
-        publish = None,
+        // sbt publishes every main project under its organization. bleep needs the coordinates too: a library may depend on the published version of a
+        // module this build makes itself, and the project replaces it on the classpath
+        publish =
+          if (projectType.testLike) None
+          else
+            Some(
+              model.PublishConfig(
+                enabled = None,
+                groupId = Some(inputProject.sbtExportFile.organization),
+                description = None,
+                url = None,
+                organization = None,
+                developers = model.JsonSet.empty,
+                licenses = model.JsonSet.empty,
+                sonatypeProfileName = None,
+                sonatypeCredentialHost = None
+              )
+            ),
         postCompile = None
       )
     }
@@ -237,11 +320,17 @@ object buildFromBloopFiles {
       crossName: model.CrossProjectName,
       platformName: Option[model.PlatformId],
       providedDeps: Seq[model.Dep],
+      versionCombo: model.VersionCombo,
       replacements: model.Replacements
   ): (Seq[model.Dep], Seq[model.Dep]) = {
-    // compare by string to ignore things like configuration
-    val providedDepReprs: Set[String] =
-      providedDeps.map(_.repr).toSet
+    // compare by the module a dep resolves to, which ignores things like configuration and how it's written: sbt adds scala.js' test bridge to a scala 3
+    // project as `scalajs-test-bridge_2.13`, bleep as a scala dep for 2.13
+    def coordinates(dep: model.Dep): (String, String, String) = {
+      val java = dep.asJava(versionCombo).orThrowText
+      (java.organization.value, java.moduleName.value, java.version)
+    }
+    val provided: Set[(String, String, String)] =
+      providedDeps.map(coordinates).toSet
 
     val ctxLogger = logger.withContext("crossName", crossName.value)
 
@@ -250,7 +339,7 @@ object buildFromBloopFiles {
         case Left(err) =>
           ctxLogger.warn(s"Couldn't import dependency $moduleId. Dropping. Reason: $err")
           None
-        case Right(dep) if providedDepReprs(dep.repr) =>
+        case Right(dep) if provided.nonEmpty && provided(coordinates(dep)) =>
           None
         case Right(dep) => Some(replacements.templatize.dep(dep))
       }
@@ -314,9 +403,9 @@ object buildFromBloopFiles {
         case cs if cs.contains(Configuration.provided) =>
           Some(dep.withConfiguration(Configuration.provided))
 
-        // I have no idea why this is useful. lets simplify and say its main
+        // there when the code runs, not to compile against: a jdbc driver
         case cs if cs.contains(Configuration.runtime) =>
-          Some(dep.withConfiguration(Configuration.empty))
+          Some(dep.withConfiguration(Configuration.runtime))
 
         case cs =>
           ctxLogger.warn(s"dropping because unknown configuration '${cs.mkString(";")}': $dep")
@@ -561,7 +650,9 @@ object buildFromBloopFiles {
       s: Config.Scala
   ): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
-    val filteredOptions = options.removeAll(versionCombo.compilerOptions)
+    // what bleep adds itself: the platform's options, and the source directories the scala native plugin relativizes positions against
+    val filteredOptions =
+      model.Options(options.removeAll(versionCombo.compilerOptions).values.filterNot(model.VersionScalaNative.isPositionRelativizationPaths))
 
     val notCompilerPlugins = filteredOptions.values.filter {
       case model.Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false
@@ -602,6 +693,19 @@ object buildFromBloopFiles {
       compilerProject = None
     )
   }
+
+  /** Makes a source path the same for every cross project it applies to, `src/main/scala-${SCALA_BIN_VERSION}`. Except for a directory which names several
+    * platforms or several scala versions, `scala-js-jvm`, `js-native` or `scala-3-2.13+`: it holds the code they share, and says so. Written for the cross
+    * project it is on, `scala-js-${PLATFORM}` on jvm and `scala-${PLATFORM}-jvm` on js, or `scala-${SCALA_BIN_VERSION}-2.13+` on scala 3 only, it would say
+    * nothing, and differ between the cross projects which share it
+    */
+  def templatizeSourcePath(replacements: model.Replacements)(relPath: RelPath): RelPath =
+    relPath.mapSegments { segment =>
+      val tokens = segment.split('-').toList
+      val platforms = tokens.count(token => model.PlatformId.fromName(token).isDefined)
+      val scalaVersions = tokens.count(_.matches("""\d+(\.\d+)*\+?"""))
+      if (platforms > 1 || scalaVersions > 1) segment else replacements.templatize.string(segment)
+    }
 
   // semanticdb flags are added back when bleep is in IDE mode
   def parseOptionsDropSemanticDb(strings: List[String], maybeRelativize: Option[model.Replacements]) = {

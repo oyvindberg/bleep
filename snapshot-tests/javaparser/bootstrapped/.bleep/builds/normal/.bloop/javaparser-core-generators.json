@@ -1,0 +1,48 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javaparser-core-generators",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-generators/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-generators/src/main/java"
+    ],
+    "dependencies": [
+      "javaparser-core"
+    ],
+    "classpath": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.GenerateForJavaparserCore",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-generators/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-generators/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-generators/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-generators"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

@@ -1,0 +1,946 @@
+# template inference
+templates: 10
+projects: 98
+settings: 658 (623 in projects, 35 in templates)
+
+# roundtrip
+maven classpaths (dependency:build-classpath) vs bleep resolved projects, normalized. `-` only in maven, `+` only in bleep, `~` same jar at another version
+maven modules without a bleep project: none
+compared: 98, identical: 38
+
+most common differences (projects, aspect, difference):
+   39  classpath ~ jspecify: 1.0.0 -> 1.0.1
+   31  classpath + jar byte-buddy-agent:1.17.7
+   31  classpath + jar mockito-core:5.23.0
+   31  classpath + jar objenesis:3.3
+   29  classpath + jar micrometer-commons:1.16.7
+   29  classpath + jar micrometer-observation:1.16.7
+   29  classpath + jar spring-aop:7.0.9
+   29  classpath + jar spring-beans:7.0.9
+   29  classpath + jar spring-context:7.0.9
+   29  classpath + jar spring-core:7.0.9
+   29  classpath + jar spring-expression:7.0.9
+   26  classpath + jar commons-logging:1.3.5
+   24  classpath + jar jackson-databind:2.22.3
+   23  classpath + jar jackson-core:2.22.3
+   22  classpath + jar jackson-annotations:2.22
+   20  classpath + jar gson:2.14.0
+   18  classpath + jar error_prone_annotations:2.48.0
+   16  classpath + jar okhttp-jvm:5.5.0
+   15  classpath + jar annotations:13.0
+   15  classpath + jar kotlin-stdlib:2.1.21
+   15  classpath + jar okio-jvm:3.18.1
+   14  classpath + jar hamcrest-core:1.3
+   14  classpath + jar junit:4.13.2
+   14  classpath + jar mockwebserver3:5.5.0
+   14  classpath + jar mockwebserver:5.5.0
+    8  classpath + jar jsr311-api:1.1.1
+    4  classpath ~ byte-buddy: 1.17.7 -> 1.18.3
+    3  classpath + jar feign-slf4j:13.6.1
+    3  classpath + jar javax.ws.rs-api:2.1.1
+    3  classpath - project feign-slf4j
+
+feign-annotation-error-decoder-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-apt-test-generator
+  classpath
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-apt-test-generator-test
+  classpath
+    ~ asm: 7.3.1 -> 9.8
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ slf4j-api: 2.0.17 -> 2.0.19
+
+feign-benchmark
+  classpath
+    + jar numerus:1.1
+    + jar rxnetty-spectator-tcp:0.5.3
+    + jar spectator-api:0.50.0
+
+feign-core-test
+  classpath
+    ~ byte-buddy: 1.17.7 -> 1.18.3
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-dropwizard-metrics4-test
+  classpath
+    + jar annotations:13.0
+    + jar awaitility:4.3.0
+    + jar byte-buddy-agent:1.17.7
+    + jar hamcrest:2.1
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-observation-test:1.17.1
+    + jar micrometer-test:1.17.1
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar wiremock-jre8-standalone:2.35.2
+    + jar wiremock-junit5:1.3.1
+    + project feign-micrometer
+    + project feign-okhttp
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-dropwizard-metrics5-test
+  classpath
+    + jar annotations:13.0
+    + jar awaitility:4.3.0
+    + jar byte-buddy-agent:1.17.7
+    + jar hamcrest:2.1
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-observation-test:1.17.1
+    + jar micrometer-test:1.17.1
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar wiremock-jre8-standalone:2.35.2
+    + jar wiremock-junit5:1.3.1
+    + project feign-micrometer
+    + project feign-okhttp
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-example-github-with-coroutine
+  classpath
+    ~ annotations: 13.0 -> 23.0.0
+
+feign-example-github-with-coroutine-test
+  classpath
+    ~ annotations: 13.0 -> 23.0.0
+
+feign-example-wikipedia-with-springboot
+  classpath
+    - project feign-slf4j
+    + jar feign-slf4j:13.6.1
+    ~ commons-logging: 1.3.5 -> 1.3.6
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ micrometer-commons: 1.16.7 -> 1.17.1
+    ~ micrometer-observation: 1.16.7 -> 1.17.1
+    ~ slf4j-api: 2.0.19 -> 2.0.18
+    ~ snakeyaml: 2.5 -> 2.6
+    ~ spring-boot: 4.0.8 -> 4.1.1
+    ~ spring-boot-autoconfigure: 4.0.8 -> 4.1.1
+    ~ spring-boot-starter: 4.0.8 -> 4.1.1
+    ~ spring-boot-starter-logging: 4.0.8 -> 4.1.1
+    ~ spring-security-crypto: 7.0.7 -> 7.1.1
+
+feign-example-wikipedia-with-springboot-test
+  classpath
+    - project feign-slf4j
+    + jar feign-slf4j:13.6.1
+    ~ byte-buddy: 1.18.3 -> 1.18.11
+    ~ commons-logging: 1.3.5 -> 1.3.6
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ micrometer-commons: 1.16.7 -> 1.17.1
+    ~ micrometer-observation: 1.16.7 -> 1.17.1
+    ~ slf4j-api: 2.0.19 -> 2.0.18
+    ~ snakeyaml: 2.5 -> 2.6
+    ~ spring-boot: 4.0.8 -> 4.1.1
+    ~ spring-boot-autoconfigure: 4.0.8 -> 4.1.1
+    ~ spring-boot-starter: 4.0.8 -> 4.1.1
+    ~ spring-boot-starter-logging: 4.0.8 -> 4.1.1
+    ~ spring-security-crypto: 7.0.7 -> 7.1.1
+
+feign-fastjson2-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-form-test
+  classpath
+    + jar smallrye-common-expression:2.4.0
+    + jar smallrye-common-net:2.12.0
+    + jar smallrye-common-os:2.4.0
+    + jar smallrye-common-ref:2.4.0
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ slf4j-api: 2.0.17 -> 2.0.18
+    ~ smallrye-common-constraint: 2.14.0 -> 2.12.0
+    ~ wildfly-common: 1.5.4.Final -> 2.0.1
+
+feign-form-spring-test
+  classpath
+    - project feign-slf4j
+    + jar feign-slf4j:13.6.1
+    ~ jackson-annotations: 2.21 -> 2.22
+    ~ jackson-databind: 2.21.5 -> 2.22.3
+    ~ junit-platform-commons: 6.0.3 -> 6.1.3
+    ~ junit-platform-engine: 6.0.3 -> 6.1.3
+
+feign-googlehttpclient
+  classpath
+    + jar grpc-api:1.70.0
+    ~ commons-codec: 1.11 -> 1.14
+
+feign-googlehttpclient-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ commons-codec: 1.11 -> 1.14
+    ~ error_prone_annotations: 2.36.0 -> 2.48.0
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-graphql-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-graphql-apt-test
+  classpath
+    - jar checker-qual:3.33.0
+    - jar jsr305:3.0.2
+    ~ auto-common: 1.2.1 -> 1.2.2
+    ~ error_prone_annotations: 2.18.0 -> 2.41.0
+    ~ failureaccess: 1.0.1 -> 1.0.3
+    ~ guava: 32.0.1-jre -> 33.4.8-jre
+    ~ j2objc-annotations: 2.8 -> 3.0.0
+
+feign-gson-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-hc5-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar jsr311-api:1.1.1
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-http-cache-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-httpclient-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ commons-logging: 1.2 -> 1.3.5
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-hystrix
+  classpath
+    + jar archaius-core:0.4.1
+    + jar commons-configuration:1.8
+    + jar commons-lang:2.6
+    + jar commons-logging:1.1.1
+    + jar slf4j-api:1.7.0
+
+feign-hystrix-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ commons-logging: 1.1.1 -> 1.3.5
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jackson-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jackson-jaxb-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jackson-jr-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jackson3-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jakarta
+  classpath
+    + jar javax.ws.rs-api:2.1.1
+    + jar jsr311-api:1.1.1
+
+feign-java11-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxb-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxb-jakarta-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxrs-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxrs2
+  classpath
+    + jar jsr311-api:1.1.1
+
+feign-jaxrs2-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar jsr311-api:1.1.1
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxrs3
+  classpath
+    + jar javax.ws.rs-api:2.1.1
+    + jar jsr311-api:1.1.1
+
+feign-jaxrs3-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar jsr311-api:1.1.1
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-jaxrs4
+  classpath
+    + jar javax.ws.rs-api:2.1.1
+    + jar jsr311-api:1.1.1
+
+feign-jaxrs4-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar jsr311-api:1.1.1
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-json-test
+  classpath
+    ~ byte-buddy: 1.17.7 -> 1.18.3
+
+feign-kotlin
+  classpath
+    ~ annotations: 13.0 -> 23.0.0
+
+feign-micrometer
+  classpath
+    + jar HdrHistogram:2.2.2
+
+feign-micrometer-test
+  classpath
+    ~ byte-buddy: 1.17.7 -> 1.18.3
+
+feign-moshi-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ kotlin-stdlib: 1.9.21 -> 2.1.21
+    ~ okio-jvm: 3.7.0 -> 3.18.1
+
+feign-okhttp-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-reactive-wrappers-test
+  classpath
+    ~ byte-buddy: 1.17.7 -> 1.18.3
+
+feign-ribbon
+  classpath
+    + jar annotations:2.0.0
+    + jar archaius-core:0.7.6
+    + jar commons-configuration:1.8
+    + jar commons-lang:2.6
+    + jar commons-logging:1.1.1
+    + jar guava:33.7.1-jre
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar jsr305:3.0.1
+    + jar netflix-commons-util:0.1.1
+    + jar netflix-statistics:0.1.1
+    + jar rxjava:1.0.9
+    + jar servo-core:0.10.1
+    + jar servo-internal:0.10.1
+    + jar slf4j-api:1.7.12
+
+feign-ribbon-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar gson:2.14.0
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ commons-logging: 1.1.1 -> 1.3.5
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ slf4j-api: 1.7.2 -> 1.7.12
+
+feign-sax-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-slf4j-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-soap
+  classpath
+    + jar jakarta.activation:1.2.2
+
+feign-soap-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-soap-jakarta
+  classpath
+    + jar angus-activation:2.0.1
+    ~ jakarta.activation-api: 2.1.3 -> 2.1.4
+
+feign-soap-jakarta-test
+  classpath
+    + jar annotations:13.0
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar hamcrest-core:1.3
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar junit:4.13.2
+    + jar kotlin-stdlib:2.1.21
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar mockwebserver3:5.5.0
+    + jar mockwebserver:5.5.0
+    + jar objenesis:3.3
+    + jar okhttp-jvm:5.5.0
+    + jar okio-jvm:3.18.1
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jakarta.activation-api: 2.1.3 -> 2.1.4
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-spring
+  classpath
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-spring-test
+  classpath
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-validation-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-validation-jakarta-test
+  classpath
+    + jar byte-buddy-agent:1.17.7
+    + jar commons-logging:1.3.5
+    + jar error_prone_annotations:2.48.0
+    + jar gson:2.14.0
+    + jar jackson-annotations:2.22
+    + jar jackson-core:2.22.3
+    + jar jackson-databind:2.22.3
+    + jar micrometer-commons:1.16.7
+    + jar micrometer-observation:1.16.7
+    + jar mockito-core:5.23.0
+    + jar objenesis:3.3
+    + jar spring-aop:7.0.9
+    + jar spring-beans:7.0.9
+    + jar spring-context:7.0.9
+    + jar spring-core:7.0.9
+    + jar spring-expression:7.0.9
+    ~ jspecify: 1.0.0 -> 1.0.1
+
+feign-vertx-test
+  classpath
+    ~ accessors-smart: 2.4.9 -> 2.5.0
+    ~ json-smart: 2.4.10 -> 2.5.0
+
+feign-vertx4-test-test
+  classpath
+    - jar netty-codec:4.1.138.Final
+    - jar netty-tcnative-classes:2.0.84.Final
+    + jar netty-codec-base:4.2.5.Final
+    + jar netty-codec-compression:4.2.5.Final
+    + jar vertx-core-logging:5.0.4
+    ~ accessors-smart: 2.4.9 -> 2.5.0
+    ~ json-smart: 2.4.10 -> 2.5.0
+    ~ netty-buffer: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-codec-dns: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-codec-http: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-codec-http2: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-codec-socks: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-common: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-handler: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-handler-proxy: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-resolver: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-resolver-dns: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-transport: 4.1.138.Final -> 4.2.5.Final
+    ~ netty-transport-native-unix-common: 4.1.138.Final -> 4.2.5.Final
+    ~ vertx-core: 4.5.34 -> 5.0.4
+    ~ vertx-junit5: 4.5.34 -> 5.0.4

@@ -1,0 +1,60 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects: {}
+templates:
+  template-common:
+    dependencies:
+      configuration: provided
+      module: org.jetbrains:annotations:26.1.0
+    java:
+      options: --release 17
+    kotlin:
+      version: 2.2.20
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-jackson-databind:
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-databind:2.22.2
+    - com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
+    extends: template-common
+  template-common-main:
+    boms:
+    - org.eclipse.jetty:jetty-bom:12.1.12
+    - tools.jackson:jackson-bom:3.2.2
+    extends: template-common
+    publish:
+      groupId: io.javalin
+    sbt-scope: main
+  template-common-test:
+    dependencies:
+    - org.assertj:assertj-core:3.27.7
+    - org.junit.jupiter:junit-jupiter-api:6.1.3
+    - org.junit.jupiter:junit-jupiter-engine:6.1.3
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+  template-common-test-slf4j-simple:
+    dependencies: org.slf4j:slf4j-simple:2.0.18
+    extends: template-common-test
+  template-javalin:
+    dependencies:
+    - configuration: optional
+      module: com.aayushatharva.brotli4j:brotli4j:1.23.0
+    - configuration: optional
+      module: com.fasterxml.jackson.core:jackson-databind:2.22.2
+    - configuration: optional
+      module: com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
+    - configuration: optional
+      module: com.github.luben:zstd-jni:1.5.7-15
+    - configuration: optional
+      module: com.google.code.gson:gson:2.14.0
+    - configuration: optional
+      module: org.slf4j:slf4j-simple:2.0.18
+    - configuration: optional
+      module: tools.jackson.core:jackson-databind:3.2.2
+    - configuration: optional
+      module: tools.jackson.module:jackson-module-kotlin:3.2.2
+    extends: template-common

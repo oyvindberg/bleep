@@ -1,0 +1,144 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-hystrix",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/hystrix/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/archaius/archaius-core/0.4.1/archaius-core-0.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/hystrix/hystrix-core/1.5.18/hystrix-core-1.5.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-configuration/commons-configuration/1.8/commons-configuration-1.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava/1.2.0/rxjava-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.9/HdrHistogram-2.1.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.0/slf4j-api-1.7.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/hystrix/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/hystrix"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.netflix.hystrix",
+          "name": "hystrix-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "hystrix-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/hystrix/hystrix-core/1.5.18/hystrix-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.1.9",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.9/HdrHistogram-2.1.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.reactivex",
+          "name": "rxjava",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "rxjava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava/1.2.0/rxjava-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-lang",
+          "name": "commons-lang",
+          "version": "2.6",
+          "artifacts": [
+            {
+              "name": "commons-lang",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.0/slf4j-api-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.archaius",
+          "name": "archaius-core",
+          "version": "0.4.1",
+          "artifacts": [
+            {
+              "name": "archaius-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/archaius/archaius-core/0.4.1/archaius-core-0.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-configuration",
+          "name": "commons-configuration",
+          "version": "1.8",
+          "artifacts": [
+            {
+              "name": "commons-configuration",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-configuration/commons-configuration/1.8/commons-configuration-1.8.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

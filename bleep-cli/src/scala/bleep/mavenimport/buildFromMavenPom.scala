@@ -1,11 +1,11 @@
 package bleep
 package mavenimport
 
-import coursier.core.{Configuration, ModuleName, Organization}
+import coursier.core.{Classifier, Configuration, Extension, ModuleName, Organization, Publication, Type}
 import ryddig.Logger
 
 import java.net.URI
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
 object buildFromMavenPom {
 
@@ -43,8 +43,11 @@ object buildFromMavenPom {
 
   def apply(
       logger: Logger,
+      fs: MavenFs,
       destinationPaths: BuildPaths,
       mavenProjects: List[MavenProject],
+      /** what `mvn dependency:list` printed, see [[runMaven]] */
+      dependencyList: Path,
       bleepVersion: model.BleepVersion
   ): model.Build.Exploded = {
 
@@ -52,13 +55,17 @@ object buildFromMavenPom {
     val reactorModules: Map[(String, String), MavenProject] =
       mavenProjects.map(p => (p.groupId, p.artifactId) -> p).toMap
 
+    // only read when the build manages versions itself
+    lazy val resolved = parseDependencyList(fs.readString(dependencyList))
+    val management = new Management(fs, mavenProjects, () => resolved)
+
     val allProjects = mavenProjects.flatMap { mavenProject =>
-      // Skip parent/pom-only modules that have no source directories
+      // parents, aggregators and BOM modules. what they manage reaches the modules through `Management`
       if (mavenProject.packaging == "pom") {
         logger.info(s"Skipping pom-only module: ${mavenProject.artifactId}")
         Nil
       } else {
-        convertModule(logger, destinationPaths, mavenProject, reactorModules)
+        convertModule(logger, fs, destinationPaths, mavenProject, reactorModules, management)
       }
     }
 
@@ -78,11 +85,37 @@ object buildFromMavenPom {
     )
   }
 
+  private def publishAs(mavenProject: MavenProject): model.PublishConfig =
+    model.PublishConfig(
+      enabled = None,
+      groupId = Some(mavenProject.groupId),
+      description = None,
+      url = None,
+      organization = None,
+      developers = model.JsonSet.empty,
+      licenses = model.JsonSet.empty,
+      sonatypeProfileName = None,
+      sonatypeCredentialHost = None
+    )
+
+  private def folderOf(destinationPaths: BuildPaths, mavenProject: MavenProject, projectName: model.ProjectName): Option[RelPath] = {
+    // Resolve symlinks to avoid path type mismatches (e.g. macOS /tmp -> /private/tmp)
+    val buildDir =
+      if (destinationPaths.buildDir.toFile.exists()) destinationPaths.buildDir.toRealPath()
+      else destinationPaths.buildDir.toAbsolutePath.normalize()
+    RelPath.relativeTo(buildDir, mavenProject.directory) match {
+      case RelPath(Array(projectName.value)) => None
+      case relPath                           => Some(relPath)
+    }
+  }
+
   private def convertModule(
       logger: Logger,
+      fs: MavenFs,
       destinationPaths: BuildPaths,
       mavenProject: MavenProject,
-      reactorModules: Map[(String, String), MavenProject]
+      reactorModules: Map[(String, String), MavenProject],
+      management: Management
   ): List[(model.CrossProjectName, model.Project)] = {
 
     val projectName = model.ProjectName(sanitizeProjectName(mavenProject.artifactId))
@@ -93,31 +126,36 @@ object buildFromMavenPom {
     val mainSourceLayout = inferSourceLayout(mavenProject, scalaVersion)
     val testSourceLayout = mainSourceLayout
 
-    // Resolve symlinks to avoid path type mismatches (e.g. macOS /tmp -> /private/tmp)
-    val buildDir =
-      if (destinationPaths.buildDir.toFile.exists()) destinationPaths.buildDir.toRealPath()
-      else destinationPaths.buildDir.toAbsolutePath.normalize()
-
-    val folder: Option[RelPath] =
-      RelPath.relativeTo(buildDir, mavenProject.directory) match {
-        case RelPath(Array(projectName.value)) => None
-        case relPath                           => Some(relPath)
-      }
-
-    val testFolder: Option[RelPath] =
-      RelPath.relativeTo(buildDir, mavenProject.directory) match {
-        case RelPath(Array(testProjectName.value)) => None
-        case relPath                               => Some(relPath)
-      }
+    val folder: Option[RelPath] = folderOf(destinationPaths, mavenProject, projectName)
+    val testFolder: Option[RelPath] = folderOf(destinationPaths, mavenProject, testProjectName)
 
     // BOMs the module imports, and the coordinates whose version those (or any dependencyManagement) supply — a `<dependency>` written without a `<version>`
     // in the raw pom. `mvn help:effective-pom` fills those versions in, but the author wrote them BOM-managed; with a `boms:` block to supply the version, bleep
     // preserves that and emits the dependency version-less, so the imported build reads like the Maven one instead of freezing a version the BOM should own.
-    val boms = extractBoms(logger, mavenProject)
-    val bomManaged: Set[(String, String)] = if (boms.isEmpty) Set.empty else bomManagedCoordinates(mavenProject)
+    val boms = management.boms(mavenProject)
 
     // Separate main vs test dependencies
-    val (mainDeps, testDeps) = partitionDependencies(logger, mavenProject, reactorModules, bomManaged)
+    val (declaredMainDeps, declaredTestDeps) = partitionDependencies(logger, mavenProject, reactorModules)
+
+    // what the build manages itself, where the module uses it
+    val (usedManagedMain, usedManagedTest) = {
+      val deps = management.usedManaged(mavenProject).map { r =>
+        val exclusions = mavenProject.dependencyManagement.find(m => m.groupId == r.groupId && m.artifactId == r.artifactId).toList.flatMap(_.exclusions)
+        val dep = convertDependency(logger, MavenDependency(r.groupId, r.artifactId, r.version, r.scope, optional = false, exclusions, r.tpe, r.classifier))
+          .getOrElse(throw new BleepException.Text(s"${mavenProject.artifactId}: could not convert ${r.groupId}:${r.artifactId}:${r.version}"))
+        (r.scope, dep)
+      }
+      (
+        deps.collect {
+          case ("provided", dep)                                      => dep.withConfiguration(Configuration.provided)
+          case ("runtime", dep)                                       => dep.withConfiguration(Configuration.runtime)
+          case (scope, dep) if scope != "test" && scope != "provided" => dep
+        },
+        deps.collect { case ("test", dep) => dep }
+      )
+    }
+    val mainDeps = declaredMainDeps ++ usedManagedMain
+    val testDeps = declaredTestDeps ++ usedManagedTest
 
     // Inter-module dependsOn (main project)
     val mainDependsOn = detectInterModuleDeps(mavenProject, reactorModules, isTest = false)
@@ -181,35 +219,37 @@ object buildFromMavenPom {
 
     // No adapter injection. Scala frameworks implement sbt test-interface themselves, and junit needs no bridge because bleep runs the JUnit Platform
     // Launcher directly — whatever junit the pom already declares is what runs.
-    val allTestDeps = testDeps
+    //
+    // In maven the tests are part of the module, and see its `provided` and `optional` dependencies, which the test project does not inherit
+    val allTestDeps = testDeps ++ mainDeps.filter(ResolveProjects.providedOrOptional)
 
-    val testHasSources = hasSourceFiles(mavenProject.testSourceDirectory)
+    val testHasSources = hasSourceFiles(fs, mavenProject.testSourceDirectory)
 
     // Additional source dirs (from build-helper-maven-plugin) that are NOT under target/
     // Dirs under target/ are generated sources handled separately via sourcegen.
     val targetDir = mavenProject.directory.resolve("target")
     val extraMainSources = mavenProject.additionalSources
-      .filter(p => Files.isDirectory(p) && !p.startsWith(targetDir))
+      .filter(p => fs.isDirectory(p) && !p.startsWith(targetDir))
       .map(p => RelPath.relativeTo(mavenProject.directory, p))
     val extraTestSources = mavenProject.additionalTestSources
-      .filter(p => Files.isDirectory(p) && !p.startsWith(targetDir))
+      .filter(p => fs.isDirectory(p) && !p.startsWith(targetDir))
       .map(p => RelPath.relativeTo(mavenProject.directory, p))
 
     // If Maven's sourceDirectory is non-standard (doesn't match inferred source layout), add it explicitly.
     // E.g. connector-openapi uses <sourceDirectory>src/main/generated-kotlin</sourceDirectory>
-    val layoutMainDirs = mainSourceLayout.sources(scalaVersion, None, "main").values.map(mavenProject.directory / _).toSet
+    val layoutMainDirs = mainSourceLayout.sources(scalaVersion, None, Set.empty, "main").values.map(mavenProject.directory / _).toSet
     val customMainSource =
       if (
-        Files.isDirectory(mavenProject.sourceDirectory) && !layoutMainDirs
+        fs.isDirectory(mavenProject.sourceDirectory) && !layoutMainDirs
           .contains(mavenProject.sourceDirectory) && !mavenProject.sourceDirectory.startsWith(targetDir)
       )
         List(RelPath.relativeTo(mavenProject.directory, mavenProject.sourceDirectory))
       else Nil
 
-    val layoutTestDirs = testSourceLayout.sources(scalaVersion, None, "test").values.map(mavenProject.directory / _).toSet
+    val layoutTestDirs = testSourceLayout.sources(scalaVersion, None, Set.empty, "test").values.map(mavenProject.directory / _).toSet
     val customTestSource =
       if (
-        Files.isDirectory(mavenProject.testSourceDirectory) && !layoutTestDirs.contains(mavenProject.testSourceDirectory) && !mavenProject.testSourceDirectory
+        fs.isDirectory(mavenProject.testSourceDirectory) && !layoutTestDirs.contains(mavenProject.testSourceDirectory) && !mavenProject.testSourceDirectory
           .startsWith(targetDir)
       )
         List(RelPath.relativeTo(mavenProject.directory, mavenProject.testSourceDirectory))
@@ -248,7 +288,9 @@ object buildFromMavenPom {
       stamp = model.JsonSet.empty[model.StampKind],
       libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
       ignoreEvictionErrors = None,
-      publish = None,
+      // the module's coordinates. a library may depend on the published version of a module this build makes itself, and the module replaces it on the
+      // classpath, as in the maven reactor
+      publish = Some(publishAs(mavenProject)),
       postCompile = None
     )
     result += (mainCrossName -> mainProject)
@@ -475,8 +517,7 @@ object buildFromMavenPom {
   private def partitionDependencies(
       logger: Logger,
       mavenProject: MavenProject,
-      reactorModules: Map[(String, String), MavenProject],
-      bomManaged: Set[(String, String)]
+      reactorModules: Map[(String, String), MavenProject]
   ): (List[model.Dep], List[model.Dep]) = {
     val mainDeps = List.newBuilder[model.Dep]
     val testDeps = List.newBuilder[model.Dep]
@@ -490,17 +531,22 @@ object buildFromMavenPom {
       else if (isProvidedScalaArtifact(dep)) {
         // skip - bleep provides these
       } else {
-        // The author wrote this version-less in the pom (a BOM manages it); emit it version-less too, so the `boms:` block owns the version. `mvn
-        // help:effective-pom` handed us the resolved version, but re-freezing it here is exactly the redundancy the BOM exists to remove.
-        convertDependency(logger, dep).map(d => if (bomManaged((dep.groupId, dep.artifactId))) d.withVersion("") else d) match {
+        // the effective pom has the version of every dependency, managed or not
+        convertDependency(logger, dep) match {
           case Some(bleepDep) =>
             dep.scope match {
               case "test" =>
                 testDeps += bleepDep
               case "provided" =>
                 mainDeps += bleepDep.withConfiguration(Configuration.provided)
+              // what the module needs, but not its consumers. also when it is only needed at runtime: bleep has one configuration per dependency, and
+              // leaking a dependency to every consumer is the worse of the two
+              case _ if dep.optional =>
+                mainDeps += bleepDep.withConfiguration(Configuration.optional)
+              case "runtime" =>
+                mainDeps += bleepDep.withConfiguration(Configuration.runtime)
               case _ =>
-                // compile, runtime, system -> main deps
+                // compile, system -> main deps
                 mainDeps += bleepDep
             }
           case None =>
@@ -530,6 +576,16 @@ object buildFromMavenPom {
 
     val exclusions = convertExclusions(dep.exclusions)
 
+    // which artifact of the module. `test-jar` is published as classifier `tests`
+    val publication: Publication =
+      if (dep.tpe == "jar" && dep.classifier.isEmpty) Publication.empty
+      else {
+        val (tpe, ext, classifier) =
+          if (dep.tpe == "test-jar") (Type.jar, Extension.jar, Classifier.tests)
+          else (Type(dep.tpe), Extension(if (dep.tpe == "pom") "pom" else "jar"), Classifier(dep.classifier))
+        Publication(dep.artifactId, tpe, ext, classifier)
+      }
+
     val (baseName, crossInfo) = stripScalaSuffix(dep.artifactId)
 
     val result = crossInfo match {
@@ -539,14 +595,16 @@ object buildFromMavenPom {
           baseModuleName = ModuleName(baseName),
           version = dep.version,
           fullCrossVersion = fullCrossVersion,
-          exclusions = exclusions
+          exclusions = exclusions,
+          publication = publication
         )
       case None =>
         model.Dep.JavaDependency(
           organization = Organization(dep.groupId),
           moduleName = ModuleName(dep.artifactId),
           version = dep.version,
-          exclusions = exclusions
+          exclusions = exclusions,
+          publication = publication
         )
     }
 
@@ -601,7 +659,9 @@ object buildFromMavenPom {
           // For main project: only compile/runtime/provided scope inter-module deps
           // For test project: also include test scope inter-module deps
           if (isTest || (depScope != "test")) {
-            Some(model.ProjectName(sanitizeProjectName(dep.artifactId)))
+            // `test-jar` of a module is its tests, which are a project of their own
+            val name = sanitizeProjectName(dep.artifactId)
+            Some(model.ProjectName(if (dep.isTests) s"$name-test" else name))
           } else None
         case None => None
       }
@@ -624,9 +684,15 @@ object buildFromMavenPom {
     mavenProject.plugins.collectFirst {
       case plugin if plugin.artifactId == "maven-compiler-plugin" =>
         (plugin.configuration \ "release").headOption
-          .map(_.text.trim.toInt)
-          .orElse((plugin.configuration \ "target").headOption.map(_.text.trim.toInt))
+          .orElse((plugin.configuration \ "target").headOption)
+          .map(node => parseJavaVersion(mavenProject, node.text.trim))
     }.flatten
+
+  /** `17`, and the old spelling `1.8` for java 8 */
+  private def parseJavaVersion(mavenProject: MavenProject, version: String): Int =
+    version.stripPrefix("1.").toIntOption.getOrElse {
+      throw new BleepException.Text(s"${mavenProject.artifactId}: could not understand java version '$version' of maven-compiler-plugin")
+    }
 
   private def extractJavaCompilerArgs(mavenProject: MavenProject): List[String] =
     mavenProject.plugins.flatMap {
@@ -686,15 +752,10 @@ object buildFromMavenPom {
     model.JsonList(repos)
   }
 
-  private def hasSourceFiles(dir: Path): Boolean =
-    Files.isDirectory(dir) && {
-      val stream = Files.walk(dir)
-      try
-        stream.anyMatch { p =>
-          val name = p.getFileName.toString
-          name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
-        }
-      finally stream.close()
+  private def hasSourceFiles(fs: MavenFs, dir: Path): Boolean =
+    fs.isDirectory(dir) && fs.walk(dir).exists { p =>
+      val name = p.getFileName.toString
+      name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
     }
 
   /** Discover generated source files under target/generated-sources/ for each Maven module.
@@ -706,6 +767,7 @@ object buildFromMavenPom {
     */
   def discoverGeneratedFiles(
       logger: Logger,
+      fs: MavenFs,
       mavenProjects: List[MavenProject]
   ): Map[model.CrossProjectName, Vector[internal.GeneratedFile]] = {
     val result = Map.newBuilder[model.CrossProjectName, Vector[internal.GeneratedFile]]
@@ -719,8 +781,8 @@ object buildFromMavenPom {
         val mainGenDir = mavenProject.directory.resolve("target/generated-sources")
         val testGenDir = mavenProject.directory.resolve("target/generated-test-sources")
 
-        val mainFiles = collectGeneratedFiles(logger, mainGenDir, isResource = false)
-        val testFiles = collectGeneratedFiles(logger, testGenDir, isResource = false)
+        val mainFiles = collectGeneratedFiles(logger, fs, mainGenDir, isResource = false)
+        val testFiles = collectGeneratedFiles(logger, fs, testGenDir, isResource = false)
 
         if (mainFiles.nonEmpty) {
           val crossName = model.CrossProjectName(projectName, None)
@@ -736,123 +798,160 @@ object buildFromMavenPom {
     result.result()
   }
 
-  private def collectGeneratedFiles(logger: Logger, parentDir: Path, isResource: Boolean): Vector[internal.GeneratedFile] =
-    if (!Files.isDirectory(parentDir)) Vector.empty
-    else {
-      import scala.jdk.CollectionConverters.*
-
-      val subDirs = Files.list(parentDir)
-      try
-        subDirs
-          .iterator()
-          .asScala
-          .filter(Files.isDirectory(_))
-          // Skip "annotations" dirs — these are annotation processor outputs (empty marker dirs)
-          .filter(dir => dir.getFileName.toString != "annotations")
-          .flatMap { genDir =>
-            val fileStream = Files.walk(genDir)
-            try
-              fileStream
-                .iterator()
-                .asScala
-                .filter(Files.isRegularFile(_))
-                .filter { p =>
-                  val name = p.getFileName.toString
-                  name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
+  private def collectGeneratedFiles(logger: Logger, fs: MavenFs, parentDir: Path, isResource: Boolean): Vector[internal.GeneratedFile] =
+    if (!fs.isDirectory(parentDir)) Vector.empty
+    else
+      fs.list(parentDir)
+        .filter(fs.isDirectory)
+        // Skip "annotations" dirs — these are annotation processor outputs (empty marker dirs)
+        .filter(dir => dir.getFileName.toString != "annotations")
+        .flatMap { genDir =>
+          fs.walk(genDir)
+            .filter(fs.isRegularFile)
+            .filter { p =>
+              val name = p.getFileName.toString
+              name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
+            }
+            .flatMap { file =>
+              val content =
+                try Some(fs.readString(file))
+                catch {
+                  case e: Exception =>
+                    logger.warn(s"Failed to read generated file $file: $e")
+                    None
                 }
-                .flatMap { file =>
-                  val content =
-                    try Some(Files.readString(file))
-                    catch {
-                      case e: Exception =>
-                        logger.warn(s"Failed to read generated file $file: $e")
-                        None
-                    }
-                  content.map(c => internal.GeneratedFile(isResource, c, RelPath.relativeTo(genDir, file)))
-                }
-                .toVector
-            finally fileStream.close()
-          }
-          .toVector
-      finally subDirs.close()
-    }
-
-  /** BOM imports (`<dependencyManagement>` entries with `scope=import`) declared by the module or its parent chain.
-    *
-    * These cannot come from the effective pom: `mvn help:effective-pom` resolves imports away, leaving only the expanded version list — precisely the
-    * information-losing flattening `boms:` exists to avoid. So read the RAW pom.xml files, walking `<parent><relativePath>` while it stays inside the
-    * repository, and interpolate `${...}` property references from the same chain's `<properties>` sections.
-    */
-  private def extractBoms(logger: Logger, mavenProject: MavenProject): List[model.Dep] = {
-    val poms: List[scala.xml.Elem] = rawPomChain(mavenProject.directory.resolve("pom.xml"))
-
-    // parent properties first so a module can override its parent, matching Maven's rules
-    val props: Map[String, String] =
-      poms.reverse.flatMap { pom =>
-        (pom \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }
-      }.toMap ++ Map("project.version" -> mavenProject.version, "project.groupId" -> mavenProject.groupId)
-
-    val PropRef = "\\$\\{([^}]+)}".r
-    def interpolate(value: String): Option[String] = {
-      val out = PropRef.replaceAllIn(value, m => props.getOrElse(m.group(1), m.matched).replace("\\", "\\\\").replace("$", "\\$"))
-      if (out.contains("${")) None else Some(out)
-    }
-
-    poms.flatMap { pom =>
-      (pom \ "dependencyManagement" \ "dependencies" \ "dependency")
-        .filter(d => (d \ "scope").text.trim == "import")
-        .flatMap { d =>
-          val raw = ((d \ "groupId").text.trim, (d \ "artifactId").text.trim, (d \ "version").text.trim)
-          (interpolate(raw._1), interpolate(raw._2), interpolate(raw._3)) match {
-            case (Some(g), Some(a), Some(v)) => Some(model.Dep.Java(g, a, v))
-            case _                           =>
-              logger.warn(s"${mavenProject.artifactId}: skipping BOM import $raw: could not resolve all Maven property references from the raw pom chain")
-              None
-          }
+              content.map(c => internal.GeneratedFile(isResource, c, RelPath.relativeTo(genDir, file)))
+            }
         }
-    }.distinct
+        .toVector
+
+  /** Maven's `<dependencyManagement>`, which bleep has no equivalent of. It is expressed in two ways instead.
+    *
+    * BOMs published to a repository stay BOMs: `boms:` of every module lists the BOMs imported anywhere up its parent chain, those imported by the BOM modules
+    * of the build it imports in turn (dropwizard-dependencies), and the parent where the chain leaves the repository (spring-boot-starter-parent) - maven reads
+    * that one from a repository, and it manages versions exactly like an imported BOM does.
+    *
+    * Versions the build manages in its own poms become dependencies, but only where they are used: a managed library maven resolved for a module (directly or
+    * transitively, see `mvn dependency:list`) is declared on the module, at the version and scope maven resolved it at. The classpath gets nothing it did not
+    * have, and a transitive request for an older version no longer wins. One for a newer version still does - coursier takes the highest version asked for.
+    *
+    * Imports come from the RAW poms: `mvn help:effective-pom` resolves them away. Everything else comes from the effective pom, where maven has interpolated
+    * it.
+    */
+  private class Management(fs: MavenFs, mavenProjects: List[MavenProject], resolved: () => Map[String, List[MavenResolvedDependency]]) {
+    private val reactorModules: Map[(String, String), MavenProject] = mavenProjects.map(p => (p.groupId, p.artifactId) -> p).toMap
+    private val chains = scala.collection.mutable.Map.empty[Path, List[(Path, scala.xml.Elem)]]
+
+    /** The module's raw pom and its parent chain in the repository, innermost first */
+    private def chain(module: MavenProject): List[(Path, scala.xml.Elem)] =
+      chains.getOrElseUpdate(module.directory, rawPomChain(fs, module.directory.resolve("pom.xml").normalize()))
+
+    private def interpolator(module: MavenProject): String => Option[String] = {
+      // parent properties first so a module can override its parent, matching Maven's rules
+      val props: Map[String, String] =
+        chain(module).reverse.flatMap { case (_, pom) =>
+          (pom \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }
+        }.toMap ++ Map("project.version" -> module.version, "project.groupId" -> module.groupId)
+      val PropRef = "\\$\\{([^}]+)}".r
+      value => {
+        val out = PropRef.replaceAllIn(value, m => java.util.regex.Matcher.quoteReplacement(props.getOrElse(m.group(1), m.matched)))
+        if (out.contains("${")) None else Some(out)
+      }
+    }
+
+    private def coordinates(module: MavenProject, entry: scala.xml.Node, what: String): (String, String, String) = {
+      val interpolate = interpolator(module)
+      val raw = ((entry \ "groupId").text.trim, (entry \ "artifactId").text.trim, (entry \ "version").text.trim)
+      (interpolate(raw._1), interpolate(raw._2), interpolate(raw._3)) match {
+        case (Some(g), Some(a), Some(v)) => (g, a, v)
+        case _ => throw new BleepException.Text(s"${module.artifactId}: could not resolve the Maven property references in $what $raw from the raw pom chain")
+      }
+    }
+
+    private def managementEntries(module: MavenProject): List[scala.xml.Node] =
+      chain(module).flatMap { case (_, pom) => pom \ "dependencyManagement" \ "dependencies" \ "dependency" }
+
+    private def isImport(entry: scala.xml.Node): Boolean = (entry \ "scope").text.trim == "import"
+
+    /** BOM modules of the build the module imports, directly or up its chain */
+    private def importedBomModules(module: MavenProject): List[MavenProject] =
+      managementEntries(module).filter(isImport).flatMap { e =>
+        val (g, a, _) = coordinates(module, e, "BOM import")
+        reactorModules.get((g, a))
+      }
+
+    /** The published BOMs whose management applies to the module */
+    def boms(module: MavenProject): List[model.Dep] = {
+      def go(m: MavenProject, visited: Set[Path]): List[model.Dep] =
+        if (visited(m.directory)) Nil
+        else {
+          val imported = managementEntries(m).filter(isImport).flatMap { e =>
+            val (g, a, v) = coordinates(m, e, "BOM import")
+            reactorModules.get((g, a)) match {
+              case Some(bomModule) => go(bomModule, visited + m.directory)
+              case None            => List(model.Dep.Java(g, a, v))
+            }
+          }
+          val externalParent = chain(m).lastOption.flatMap { case (_, pom) => (pom \ "parent").headOption }.map { parent =>
+            val (g, a, v) = coordinates(m, parent, "parent")
+            model.Dep.Java(g, a, v)
+          }
+          imported ++ externalParent.toList
+        }
+      go(module, Set.empty).distinct
+    }
+
+    /** (groupId, artifactId) the build's own poms manage for the module: up its chain, and in the BOM modules it imports */
+    private def managedByBuild(module: MavenProject): Set[(String, String)] = {
+      def go(m: MavenProject, visited: Set[Path]): Set[(String, String)] =
+        if (visited(m.directory)) Set.empty
+        else {
+          val own = managementEntries(m)
+            .filterNot(isImport)
+            .map { e =>
+              val (g, a, _) = coordinates(m, e, "managed dependency")
+              (g, a)
+            }
+            .toSet
+          own ++ importedBomModules(m).flatMap(bom => go(bom, visited + m.directory))
+        }
+      go(module, Set.empty)
+    }
+
+    /** Libraries the build's own poms manage, which maven resolved for the module and the module does not declare itself */
+    def usedManaged(module: MavenProject): List[MavenResolvedDependency] = {
+      val managed = managedByBuild(module)
+      if (managed.isEmpty) Nil
+      else {
+        val declared = module.dependencies.map(d => (d.groupId, d.artifactId)).toSet
+        val forModule = resolved().getOrElse(module.artifactId, throw new BleepException.Text(s"mvn dependency:list printed nothing for ${module.artifactId}"))
+        forModule.filter { r =>
+          val key = (r.groupId, r.artifactId)
+          managed(key) && !declared(key) && !reactorModules.contains(key)
+        }
+      }
+    }
   }
 
   /** The module's raw pom plus its `<parent>` chain, innermost first, bounded to files that exist on disk (a parent outside the repository resolves from a
     * repository instead and is not read).
     */
-  /** Coordinates a module (or its parent chain) declares as a `<dependency>` with no `<version>` — left to `<dependencyManagement>`, in practice a BOM import,
-    * to supply the version. Read from the RAW poms because `mvn help:effective-pom` fills those versions in, erasing exactly the distinction we want to keep.
-    * Only the top-level `<dependencies>` is read, not `<dependencyManagement>`.
-    */
-  private def bomManagedCoordinates(mavenProject: MavenProject): Set[(String, String)] = {
-    val poms = rawPomChain(mavenProject.directory.resolve("pom.xml"))
-    val props: Map[String, String] =
-      poms.reverse.flatMap { pom =>
-        (pom \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }
-      }.toMap ++ Map("project.version" -> mavenProject.version, "project.groupId" -> mavenProject.groupId)
-    val PropRef = "\\$\\{([^}]+)}".r
-    def interpolate(value: String): String =
-      PropRef.replaceAllIn(value, m => java.util.regex.Matcher.quoteReplacement(props.getOrElse(m.group(1), m.matched)))
-    poms.flatMap { pom =>
-      (pom \ "dependencies" \ "dependency").collect {
-        case d if (d \ "version").text.trim.isEmpty =>
-          (interpolate((d \ "groupId").text.trim), interpolate((d \ "artifactId").text.trim))
-      }
-    }.toSet
-  }
-
-  private def rawPomChain(start: Path): List[scala.xml.Elem] = {
-    def go(pomFile: Path, acc: List[scala.xml.Elem]): List[scala.xml.Elem] =
-      if (!Files.isRegularFile(pomFile) || acc.length > 10) acc.reverse
+  private def rawPomChain(fs: MavenFs, start: Path): List[(Path, scala.xml.Elem)] = {
+    def go(pomFile: Path, acc: List[(Path, scala.xml.Elem)]): List[(Path, scala.xml.Elem)] =
+      if (!fs.isRegularFile(pomFile) || acc.length > 10) acc.reverse
       else {
-        val pom = scala.xml.XML.loadFile(pomFile.toFile)
+        val pom = scala.xml.XML.loadString(fs.readString(pomFile))
         val parentPom = (pom \ "parent").headOption.map { parent =>
           val relativePath = (parent \ "relativePath").text.trim match {
             case ""   => "../pom.xml"
             case path => path
           }
           val resolved = pomFile.getParent.resolve(relativePath).normalize()
-          if (Files.isDirectory(resolved)) resolved.resolve("pom.xml") else resolved
+          if (fs.isDirectory(resolved)) resolved.resolve("pom.xml") else resolved
         }
         parentPom match {
-          case Some(next) => go(next, pom :: acc)
-          case None       => (pom :: acc).reverse
+          case Some(next) => go(next, (pomFile, pom) :: acc)
+          case None       => ((pomFile, pom) :: acc).reverse
         }
       }
     go(start, Nil)

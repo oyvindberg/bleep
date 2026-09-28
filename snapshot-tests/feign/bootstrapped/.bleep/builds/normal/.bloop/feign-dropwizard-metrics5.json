@@ -1,0 +1,72 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-dropwizard-metrics5",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-dropwizard-metrics5/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/dropwizard-metrics5/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics5/metrics-core/5.0.8/metrics-core-5.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-dropwizard-metrics5/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-dropwizard-metrics5/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/dropwizard-metrics5/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/dropwizard-metrics5"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.dropwizard.metrics5",
+          "name": "metrics-core",
+          "version": "5.0.8",
+          "artifacts": [
+            {
+              "name": "metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics5/metrics-core/5.0.8/metrics-core-5.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

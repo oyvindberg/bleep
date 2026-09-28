@@ -51,7 +51,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     try {
       Files.writeString(tempFile, xml)
-      val projects = parsePom(tempFile)
+      val projects = parsePom(MavenFs.Real, tempFile)
 
       assert(projects.size === 1)
       val project = projects.head
@@ -111,7 +111,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     try {
       Files.writeString(tempFile, xml)
-      val projects = parsePom(tempFile)
+      val projects = parsePom(MavenFs.Real, tempFile)
 
       assert(projects.size === 2)
       assert(projects(0).artifactId === "parent")
@@ -156,7 +156,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempFile = Files.createTempFile("effective-pom", ".xml")
     try {
       Files.writeString(tempFile, xml)
-      val projects = parsePom(tempFile)
+      val projects = parsePom(MavenFs.Real, tempFile)
       val dep = projects.head.dependencies.head
 
       assert(dep.exclusions.size === 1)
@@ -205,12 +205,15 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempDir = Files.createTempDirectory("test-maven")
     try {
       Files.writeString(tempFile, pomIn(xml, tempDir))
-      val mavenProjects = parsePom(tempFile)
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
 
       val build = buildFromMavenPom(
         ryddig.Loggers.storing(),
+        MavenFs.Real,
         bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
         mavenProjects,
+        // these poms manage no versions, so the import never asks what maven resolved
+        tempDir.resolve("dependency-list.txt"),
         model.BleepVersion("1.0.0-M1")
       )
 
@@ -266,12 +269,15 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempDir = Files.createTempDirectory("test-maven")
     try {
       Files.writeString(tempFile, pomIn(xml, tempDir))
-      val mavenProjects = parsePom(tempFile)
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
 
       val build = buildFromMavenPom(
         ryddig.Loggers.storing(),
+        MavenFs.Real,
         bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
         mavenProjects,
+        // these poms manage no versions, so the import never asks what maven resolved
+        tempDir.resolve("dependency-list.txt"),
         model.BleepVersion("1.0.0-M1")
       )
 
@@ -330,12 +336,15 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempDir = Files.createTempDirectory("test-maven")
     try {
       Files.writeString(tempFile, pomIn(xml, tempDir))
-      val mavenProjects = parsePom(tempFile)
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
 
       val build = buildFromMavenPom(
         ryddig.Loggers.storing(),
+        MavenFs.Real,
         bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
         mavenProjects,
+        // these poms manage no versions, so the import never asks what maven resolved
+        tempDir.resolve("dependency-list.txt"),
         model.BleepVersion("1.0.0-M1")
       )
 
@@ -385,12 +394,15 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     val tempDir = Files.createTempDirectory("test-maven")
     try {
       Files.writeString(tempFile, pomIn(xml, tempDir))
-      val mavenProjects = parsePom(tempFile)
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
 
       val build = buildFromMavenPom(
         ryddig.Loggers.storing(),
+        MavenFs.Real,
         bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
         mavenProjects,
+        // these poms manage no versions, so the import never asks what maven resolved
+        tempDir.resolve("dependency-list.txt"),
         model.BleepVersion("1.0.0-M1")
       )
 

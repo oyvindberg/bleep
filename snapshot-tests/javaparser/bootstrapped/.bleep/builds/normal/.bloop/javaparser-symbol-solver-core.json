@@ -1,0 +1,143 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javaparser-symbol-solver-core",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-core/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-core/src/main/java"
+    ],
+    "dependencies": [
+      "javaparser-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/javassist/javassist/3.33.0-GA/javassist-3.33.0-GA.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.GenerateForJavaparserCore",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-core/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-core/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-core/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-core"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.55.1",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.50.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.7.1-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.javassist",
+          "name": "javassist",
+          "version": "3.33.0-GA",
+          "artifacts": [
+            {
+              "name": "javassist",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/javassist/javassist/3.33.0-GA/javassist-3.33.0-GA.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

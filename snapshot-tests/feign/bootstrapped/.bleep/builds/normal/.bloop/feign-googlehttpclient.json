@@ -1,0 +1,228 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-googlehttpclient",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-googlehttpclient/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/googlehttpclient/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.36.0/error_prone_annotations-2.36.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.8-android/guava-33.4.8-android.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/http-client/google-http-client/2.2.0/google-http-client-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.14/commons-codec-1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.70.0/grpc-api-1.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.70.0/grpc-context-1.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opencensus/opencensus-contrib-http-util/0.31.1/opencensus-contrib-http-util-0.31.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-googlehttpclient/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-googlehttpclient/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/googlehttpclient/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/googlehttpclient"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.grpc",
+          "name": "grpc-api",
+          "version": "1.70.0",
+          "artifacts": [
+            {
+              "name": "grpc-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.70.0/grpc-api-1.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opencensus",
+          "name": "opencensus-api",
+          "version": "0.31.1",
+          "artifacts": [
+            {
+              "name": "opencensus-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.36.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.36.0/error_prone_annotations-2.36.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opencensus",
+          "name": "opencensus-contrib-http-util",
+          "version": "0.31.1",
+          "artifacts": [
+            {
+              "name": "opencensus-contrib-http-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opencensus/opencensus-contrib-http-util/0.31.1/opencensus-contrib-http-util-0.31.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-context",
+          "version": "1.70.0",
+          "artifacts": [
+            {
+              "name": "grpc-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.70.0/grpc-context-1.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.14",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.14/commons-codec-1.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.4.8-android",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.8-android/guava-33.4.8-android.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.16",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.http-client",
+          "name": "google-http-client",
+          "version": "2.2.0",
+          "artifacts": [
+            {
+              "name": "google-http-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/http-client/google-http-client/2.2.0/google-http-client-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

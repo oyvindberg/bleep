@@ -10,7 +10,7 @@ object GenerateForSbtOpenapiCodegen extends BleepCodegenScript("GenerateForSbtOp
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set(s"""|sbt-openapi-codegen""".stripMargin).contains(target.project.value)) {
+      if (Set(s"""|sbt-openapi-codegen@jvm212""".stripMargin, s"""|sbt-openapi-codegen@jvm3""".stripMargin).contains(target.project.value)) {
         val to = target.resources.resolve(s"""|sbt/sbt.autoplugins""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|sttp.tapir.sbt.OpenapiCodegenPlugin

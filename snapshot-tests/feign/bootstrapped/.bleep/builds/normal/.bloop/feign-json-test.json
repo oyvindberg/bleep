@@ -1,0 +1,319 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-json-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-json-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/json/src/test/java"
+    ],
+    "dependencies": [
+      "feign-core",
+      "feign-json",
+      "feign-mock"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.3/byte-buddy-1.18.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20260814/json-20260814.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.1.3/junit-jupiter-params-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.1.3/junit-jupiter-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-json/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-mock/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/json/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/mock/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-json-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-json-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/json/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/json",
+          "-Duser.language=en"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.3",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.3/byte-buddy-1.18.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.3",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.17.7",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.skyscreamer",
+          "name": "jsonassert",
+          "version": "1.5.3",
+          "artifacts": [
+            {
+              "name": "jsonassert",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.1.3/junit-jupiter-params-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.json",
+          "name": "json",
+          "version": "20260814",
+          "artifacts": [
+            {
+              "name": "json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20260814/json-20260814.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.1.3/junit-jupiter-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vaadin.external.google",
+          "name": "android-json",
+          "version": "0.0.20131108.vaadin1",
+          "artifacts": [
+            {
+              "name": "android-json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

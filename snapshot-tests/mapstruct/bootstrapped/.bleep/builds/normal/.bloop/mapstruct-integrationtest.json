@@ -1,0 +1,55 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "mapstruct-integrationtest",
+    "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/integrationtest/src/main/java"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/integrationtest/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/integrationtest"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.3.1",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -27,14 +27,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_2.13/3.0.1/play-functional_2.13-3.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.1/play-json_2.13-3.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
@@ -48,9 +48,19 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.16",
+      "version": "2.13.18",
       "options": [
         "-Wconf:cat=other-match-analysis:error",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.Assertion:s",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.compatible.Assertion:s",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnonunit-statement",
@@ -83,7 +93,7 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.18/0.13.4/kind-projector_2.13.18-0.13.4.jar",
         "-Ywarn-macros:after",
         "-encoding",
         "utf8",
@@ -96,11 +106,11 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.18/scala-compiler-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.16/java-diff-utils-4.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.29.0/jline-3.29.0-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-json-play@jvm213/builds/normal/inc_compile.zip",
       "setup": {
@@ -166,11 +176,11 @@
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar"
             }
           ]
         },
@@ -199,11 +209,11 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar"
             }
           ]
         },
@@ -232,44 +242,44 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
-          "version": "1.1.10",
+          "version": "1.1.14",
           "artifacts": [
             {
               "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar"
             }
           ]
         }

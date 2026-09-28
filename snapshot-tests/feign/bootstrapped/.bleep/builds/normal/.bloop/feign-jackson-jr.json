@@ -1,0 +1,72 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-jackson-jr",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jr/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jr/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jr/jackson-jr-objects/2.22.3/jackson-jr-objects-2.22.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jr/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jr/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jr/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jr"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.fasterxml.jackson.jr",
+          "name": "jackson-jr-objects",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-jr-objects",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jr/jackson-jr-objects/2.22.3/jackson-jr-objects-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

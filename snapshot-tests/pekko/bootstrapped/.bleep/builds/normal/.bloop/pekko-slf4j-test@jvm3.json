@@ -1,0 +1,616 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "pekko-slf4j-test@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j-test@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/test/scala-3"
+    ],
+    "dependencies": [
+      "pekko-actor@jvm3",
+      "pekko-slf4j@jvm3",
+      "pekko-testkit-test@jvm3",
+      "pekko-testkit@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.40/metrics-core-4.2.40.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-jvm/4.2.40/metrics-jvm-4.2.40.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.1.3/junit-platform-launcher-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.GenerateForPekkoActor",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j@jvm3/generated-resources/scripts.GenerateForPekkoSlf4j",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm3/generated-resources/scripts.GenerateForPekkoTestkit",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/testkit/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/testkit/src/test/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j-test@jvm3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-Wconf:cat=deprecation:s",
+        "-Xtarget:17",
+        "-Yfuture-lazy-vals",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:higherKinds",
+        "-release",
+        "17",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j-test@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.github.sbt.junit.jupiter.api.JupiterFramework",
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "--add-opens=java.base/java.lang=ALL-UNNAMED",
+          "--add-opens=java.base/java.nio=ALL-UNNAMED",
+          "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+          "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+          "-Djava.security.egd=file:/dev/urandom",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j",
+          "-XX:+PerfDisableSharedMem",
+          "-XX:+UseG1GC",
+          "-XX:MaxDirectMemorySize=256m",
+          "-XX:MaxGCPauseMillis=300",
+          "-Xms3g",
+          "-Xmx3g",
+          "-Xss2m"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-launcher",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-launcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.1.3/junit-platform-launcher-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.latencyutils",
+          "name": "LatencyUtils",
+          "version": "2.0.3",
+          "artifacts": [
+            {
+              "name": "LatencyUtils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.dropwizard.metrics",
+          "name": "metrics-jvm",
+          "version": "4.2.40",
+          "artifacts": [
+            {
+              "name": "metrics-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-jvm/4.2.40/metrics-jvm-4.2.40.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.sbt.junit",
+          "name": "jupiter-interface",
+          "version": "0.19.0",
+          "artifacts": [
+            {
+              "name": "jupiter-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.dropwizard.metrics",
+          "name": "metrics-core",
+          "version": "4.2.40",
+          "artifacts": [
+            {
+              "name": "metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.40/metrics-core-4.2.40.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.9",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.20",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalactic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

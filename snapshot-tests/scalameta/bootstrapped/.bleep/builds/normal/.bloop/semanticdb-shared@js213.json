@@ -6,9 +6,11 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/semanticdb-shared@js213/generated-sources/scripts.GenerateForSemanticdbShared",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-jvm/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-jvm/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-native/src/main/scala-2.13",

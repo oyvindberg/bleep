@@ -1,0 +1,36 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "dev",
+  "projects" : {
+    "a" : {
+      "extends" : "template-common-kind-projector"
+    },
+    "b" : {
+      "extends" : "template-common-kind-projector"
+    },
+    "c" : {
+      "extends" : "template-common-kind-projector"
+    },
+    "d" : {
+      "extends" : "template-common-kind-projector"
+    },
+    "outlier" : {
+      "extends" : "template-common"
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
+      }
+    },
+    "template-common-kind-projector" : {
+      "extends" : "template-common",
+      "scala" : {
+        "compilerPlugins" : "org.typelevel:::kind-projector:0.13.3",
+        "options" : "-Wconf:cat=unused-nowarn:s -Xsource:3 -language:higherKinds"
+      }
+    }
+  }
+}

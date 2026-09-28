@@ -3,23 +3,14 @@
   "$version" : "dev",
   "projects" : {
     "a" : {
-      "extends" : "template-common"
-    },
-    "aTest" : {
-      "dependsOn" : "a",
-      "extends" : "template-common",
-      "isTestProject" : true,
       "scala" : {
-        "options" : "foo"
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
       }
     },
     "b" : {
-      "dependsOn" : "a"
-    }
-  },
-  "templates" : {
-    "template-common" : {
       "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
         "version" : "2.13.18"
       }
     }

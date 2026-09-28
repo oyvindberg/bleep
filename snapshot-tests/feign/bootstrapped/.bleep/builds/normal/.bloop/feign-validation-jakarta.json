@@ -1,0 +1,60 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-validation-jakarta",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-validation-jakarta/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/validation-jakarta/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-validation-jakarta/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-validation-jakarta/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/validation-jakarta/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/validation-jakarta"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "jakarta.validation",
+          "name": "jakarta.validation-api",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jakarta.validation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

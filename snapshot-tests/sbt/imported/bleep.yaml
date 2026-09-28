@@ -16,25 +16,17 @@ projects:
     - util-relation
     - util-tracking
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-actions
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
-        -language:postfixOps
+      options: -Xsource:3
     sources: ./src/${SCOPE}/contraband-scala
   actions-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: actions
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-actions
     scala:
@@ -46,28 +38,18 @@ projects:
     dependencies: com.eed3si9n::sjson-new-scalajson:0.10.1
     dependsOn: util-position
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-collection
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
     sourcegen:
       main: scripts.GenerateForCollections
       project: scripts
   collections-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: collections
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-collection
   command:
@@ -82,25 +64,17 @@ projects:
     - protocol
     - run
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-command
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   command-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: command
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-command
     scala:
@@ -113,60 +87,38 @@ projects:
     - util-control
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-complete
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
   completion-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: completion
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-complete
   core-macros:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: collections
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/core-macros
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic:
     dependsOn:
     - collections
     - util-relation
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-logic
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: logic
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-logic
   main:
@@ -186,15 +138,11 @@ projects:
     - scripted-plugin
     - zinc-lm-integration
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
     sources: ./src/${SCOPE}/contraband-scala
   main-settings:
     dependsOn:
@@ -202,49 +150,32 @@ projects:
     - task-system
     - util-relation
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-settings
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   main-settings-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: main-settings
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-settings
   main-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: main
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main
   protocol:
     dependencies: org.scala-sbt.ipcsocket:ipcsocket:1.6.3
     dependsOn: util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/protocol
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   run:
     dependencies: org.scala-sbt::zinc-classpath:1.10.8
@@ -252,28 +183,20 @@ projects:
     - util-control
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/run
     resources:
     - ../LICENSE
     - ../licenses/LICENSE_Apache
-    - ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   run-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: run
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/run
     scala:
@@ -282,15 +205,12 @@ projects:
     dependencies: org.scala-sbt::compiler-bridge:1.10.8
     dependsOn: main
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/sbt-app
     platform:
       jvmOptions: -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   sbt-client:
     dependencies: org.scalameta:svm-subs:101.0.0
     dependsOn: command
@@ -304,51 +224,37 @@ projects:
       module: org.scala-sbt:sbt:1.11.0
     dependsOn: sbt
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/dependency-tree
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
-        -language:postfixOps
+      options: -Xsource:3
     sourcegen:
       main: scripts.GenerateForSbtDependencyTree
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: sbt
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-scala-2.12
     folder: ../sbt-build/sbt-app
     platform:
       jvmOptions: -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
   scripted-plugin:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/scripted-plugin
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   scripted-sbt:
     dependsOn: scripted-sbt-redux
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/scripted-sbt-old
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   scripted-sbt-redux:
     dependencies:
       configuration: provided
@@ -357,15 +263,22 @@ projects:
     - sbt
     - util-scripted
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/scripted-sbt-redux
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
+  scripted-sbt-redux-test:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:launcher-interface:1.4.4
+    dependsOn:
+    - sbt-test
+    - scripted-sbt-redux
+    extends:
+    - template-common-test
+    - template-scala-2.12
+    folder: ../sbt-build/scripted-sbt-redux
   scripts:
     dependencies: build.bleep::bleep-core:0.0.12
     platform:
@@ -373,15 +286,12 @@ projects:
     scala:
       version: 2.13.16
   servertestproj:
-    dependsOn: sbt-test
+    dependsOn: scripted-sbt-redux-test
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/server-test
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   servertestproj-test:
     dependsOn: servertestproj
     extends:
@@ -395,15 +305,11 @@ projects:
     - util-cache
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/tasks-standard
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   task-system-test:
     dependsOn:
     - task-system
@@ -417,35 +323,21 @@ projects:
     - collections
     - util-control
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/tasks
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   tasks-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: tasks
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/tasks
   test-agent:
     dependencies: org.scala-sbt:test-interface:1.0
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-common-main
     folder: ../sbt-build/testing/agent
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
   testing:
     dependencies:
     - org.scala-lang.modules::scala-xml:2.2.0
@@ -455,16 +347,13 @@ projects:
     - test-agent
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/testing
-    resources:
-    - ../LICENSE
-    - ./NOTICE
+    resources: ../LICENSE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   util-cache:
     dependencies:
@@ -473,15 +362,11 @@ projects:
     - org.scala-lang:scala-reflect:${SCALA_VERSION}
     - org.scala-sbt::io:1.10.5
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/util-cache
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   util-cache-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-cache
@@ -491,25 +376,14 @@ projects:
     folder: ../sbt-build/util-cache
   util-control:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-control
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
   util-interface:
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-common-main-resources
     folder: ../sbt-build/internal/util-interface
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-    source-layout: java
   util-logging:
     cross:
       jvm212:
@@ -529,30 +403,20 @@ projects:
     - core-macros
     - util-interface
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-logging
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
     sources: ./src/${SCOPE}/contraband-scala
   util-logging-test:
     cross:
       jvm212:
         scala:
           options: -Ywarn-unused:-locals,-explicits,-privates
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: util-logging
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-logging
     platform:
@@ -560,14 +424,12 @@ projects:
   util-position:
     dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-position
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:experimental.macros
-        -language:postfixOps
+      options: -language:experimental.macros
   util-position-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-position
@@ -579,13 +441,10 @@ projects:
       options: -language:experimental.macros
   util-relation:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-relation
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-relation-test:
     dependencies: org.scalacheck::scalacheck:1.15.4
     dependsOn: util-relation
@@ -597,25 +456,18 @@ projects:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn: util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-scripted
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-tracking:
     dependsOn: util-cache
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/util-tracking
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   util-tracking-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-tracking
@@ -629,24 +481,15 @@ projects:
     - org.scala-sbt::zinc-compile-core:1.10.8
     - org.scala-sbt:launcher-interface:1.4.4
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/zinc-lm-integration
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   zinc-lm-integration-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scala-sbt::librarymanagement-ivy:1.11.2
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependencies: org.scala-sbt::librarymanagement-ivy:1.11.2
     dependsOn: zinc-lm-integration
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/zinc-lm-integration
 templates:
@@ -654,43 +497,62 @@ templates:
     ignoreEvictionErrors: no
     java:
       options: -Xlint -Xlint:-serial -source 1.8 -target 1.8
-    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     platform:
       name: jvm
-    scala:
-      options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding utf8 -feature -language:higherKinds -language:implicitConversions
-        -unchecked
-      setup:
-        order: mixed
   template-common-main:
     extends: template-common
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: org.scala-sbt
     sbt-scope: main
+  template-common-main-resources:
+    extends: template-common-main
+    resources: ./NOTICE
   template-common-test:
-    extends: template-common
+    extends: template-scala-2-kind-projector
     isTestProject: true
     sbt-scope: test
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
     testFrameworks:
     - hedgehog.sbt.Framework
     - verify.runner.Framework
     - weaver.framework.CatsEffect
     - zio.test.sbt.ZTestFramework
+  template-common-test-dependencies:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    extends: template-common-test
   template-cross-all:
     cross:
       jvm212:
         extends: template-scala-2.12
       jvm213:
         extends: template-scala-2.13
+  template-scala-2:
+    extends: template-common
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+    scala:
+      options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
+        -deprecation -encoding utf8 -feature -language:higherKinds -language:implicitConversions
+        -unchecked
+      setup:
+        order: mixed
+  template-scala-2-kind-projector:
+    extends: template-scala-2
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.3
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   template-scala-2.12:
+    extends: template-scala-2
     scala:
       options: -Xfatal-warnings -Yno-adapted-args -Ywarn-unused-import
       version: 2.12.20
   template-scala-2.13:
+    extends: template-scala-2
     scala:
       setup:
         addLibraryToBootClasspath: false

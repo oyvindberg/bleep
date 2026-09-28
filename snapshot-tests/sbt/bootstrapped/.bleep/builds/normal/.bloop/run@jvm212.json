@@ -40,7 +40,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.10.5/io_2.12-1.10.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.4.4/launcher-interface-1.4.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.12/1.10.8/zinc-classpath_2.12-1.10.8.jar",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/generated-resources/scripts.GenerateForCollections",
@@ -204,17 +203,6 @@
             {
               "name": "log4j-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-interface",
-          "version": "1.10.7",
-          "artifacts": [
-            {
-              "name": "util-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"
             }
           ]
         },

@@ -1,0 +1,825 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-openapi-codegen-core-test@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core-test@jvm212/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scala-2.13-",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/scalajvm-2.12"
+    ],
+    "dependencies": [
+      "tapir-core@jvm212",
+      "tapir-json-circe@jvm212",
+      "tapir-json-zio@jvm212",
+      "tapir-jsoniter-scala@jvm212",
+      "tapir-openapi-codegen-core@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/scalacheck-toolbox-datetime_2.12/0.7.0/scalacheck-toolbox-datetime_2.12-0.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-circe_2.12/1.9.8/enumeratum-circe_2.12-1.9.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.9.8/enumeratum-macros_2.12-1.9.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.9.8/enumeratum_2.12-1.9.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.41.0/jsoniter-scala-core_2.12-2.41.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.41.0/jsoniter-scala-macros_2.12-2.41.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.14/magnolia_2.12-1.1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.8.1/core_2.12-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.2/core_2.12-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.2/ws_2.12-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.9/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.9/izumi-reflect_2.12-3.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.26/zio-internal-macros_2.12-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.10.0/zio-json_2.12-0.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.26/zio-stacktracer_2.12-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.26/zio-streams_2.12-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.26/zio_2.12-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.16/circe-core_2.12-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.16/circe-generic_2.12-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.16/circe-jawn_2.12-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.16/circe-numbers_2.12-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.16/circe-parser_2.12-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_2.12/0.15.2/circe-yaml-common_2.12-0.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.12.2/joda-time-2.12.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.14.0/scala-collection-compat_2.12-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.19.0/scalacheck_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.20/scalactic_2.12-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.20/scalatest-core_2.12-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.12/3.2.20.0/scalacheck-1-19_2.12-3.2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.7.0/jawn-parser_2.12-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-json-circe@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-json-zio@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-jsoniter-scala@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/jsoniter/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/jsoniter/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core-test@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core-test@jvm212/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.21",
+      "options": [
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.Assertion:s",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.compatible.Assertion:s",
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.21/0.13.4/kind-projector_2.12.21-0.13.4.jar",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-macros:after",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:implicits",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
+        "-Ywarn-unused:params",
+        "-Ywarn-unused:patvars",
+        "-Ywarn-unused:privates",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-target:jvm-1.8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core-test@jvm212/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.sbt/matrix/openapiCodegenCore2_12"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-19_2.12",
+          "version": "3.2.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-19_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.12/3.2.20.0/scalacheck-1-19_2.12-3.2.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-macros_2.12",
+          "version": "2.41.0",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.41.0/jsoniter-scala-macros_2.12-2.41.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.16/circe-generic_2.12-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.8.1",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.8.1/core_2.12-1.8.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.26/zio-stacktracer_2.12-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.14",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.14/magnolia_2.12-1.1.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.14.0/scala-collection-compat_2.12-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.12",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/2.1.26/zio-streams_2.12-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.41.0",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.41.0/jsoniter-scala-core_2.12-2.41.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.18/scalatest-funspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.18/scalatest-funsuite_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+          "version": "3.0.9",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.9/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.16/circe-jawn_2.12-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.12",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.7.0/jawn-parser_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum-circe_2.12",
+          "version": "1.9.8",
+          "artifacts": [
+            {
+              "name": "enumeratum-circe_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-circe_2.12/1.9.8/enumeratum-circe_2.12-1.9.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.12",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalactic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.20/scalactic_2.12-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-json_2.12",
+          "version": "0.10.0",
+          "artifacts": [
+            {
+              "name": "zio-json_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.12/0.10.0/zio-json_2.12-0.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.26/zio_2.12-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml_2.12",
+          "version": "0.15.2",
+          "artifacts": [
+            {
+              "name": "circe-yaml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.15.2/circe-yaml_2.12-0.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.18/scalatest-mustmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.2",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml-common_2.12",
+          "version": "0.15.2",
+          "artifacts": [
+            {
+              "name": "circe-yaml-common_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_2.12/0.15.2/circe-yaml-common_2.12-0.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.18/scalatest-refspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.13",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.13/shapeless_2.12-2.3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.16/circe-numbers_2.12-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum-macros_2.12",
+          "version": "1.9.8",
+          "artifacts": [
+            {
+              "name": "enumeratum-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.9.8/enumeratum-macros_2.12-1.9.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.12",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.26/zio-internal-macros_2.12-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.12",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.20/scalatest-core_2.12-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.9",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.9/izumi-reflect_2.12-3.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.13.0/cats-core_2.12-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.beachape",
+          "name": "enumeratum_2.12",
+          "version": "1.9.8",
+          "artifacts": [
+            {
+              "name": "enumeratum_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.9.8/enumeratum_2.12-1.9.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.2",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.2/core_2.12-1.5.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.2",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.2/ws_2.12-1.5.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.18/scalatest-propspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.18/scalatest-matchers-core_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.18/scalatest-freespec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.12",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.16/circe-core_2.12-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.47deg",
+          "name": "scalacheck-toolbox-datetime_2.12",
+          "version": "0.7.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-toolbox-datetime_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/scalacheck-toolbox-datetime_2.12/0.7.0/scalacheck-toolbox-datetime_2.12-0.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.12",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.16/circe-parser_2.12-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_2.12",
+          "version": "1.19.0",
+          "artifacts": [
+            {
+              "name": "scalacheck_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.19.0/scalacheck_2.12-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "joda-time",
+          "name": "joda-time",
+          "version": "2.12.2",
+          "artifacts": [
+            {
+              "name": "joda-time",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.12.2/joda-time-2.12.2.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

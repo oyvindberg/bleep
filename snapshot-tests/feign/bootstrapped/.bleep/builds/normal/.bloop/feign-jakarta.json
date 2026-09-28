@@ -1,0 +1,93 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-jakarta",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jakarta/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jakarta/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core",
+      "feign-jaxrs",
+      "feign-jaxrs2",
+      "feign-jaxrs3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/ws/rs/jakarta.ws.rs-api/3.1.0/jakarta.ws.rs-api-3.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/javax.ws.rs-api/2.1.1/javax.ws.rs-api-2.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxrs/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxrs2/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxrs3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jaxrs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jaxrs2/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jaxrs3/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jakarta/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jakarta/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jakarta/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "11",
+        "-target",
+        "11",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/jakarta"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "javax.ws.rs",
+          "name": "jsr311-api",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "jsr311-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.ws.rs",
+          "name": "javax.ws.rs-api",
+          "version": "2.1.1",
+          "artifacts": [
+            {
+              "name": "javax.ws.rs-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/javax.ws.rs-api/2.1.1/javax.ws.rs-api-2.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.ws.rs",
+          "name": "jakarta.ws.rs-api",
+          "version": "3.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.ws.rs-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/ws/rs/jakarta.ws.rs-api/3.1.0/jakarta.ws.rs-api-3.1.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

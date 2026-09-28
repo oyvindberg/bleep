@@ -97,7 +97,11 @@ compile-and-runtime classpath. The cases that matter:
 - `optional`, treated exactly like `provided` inside a bleep
   build. The two differ only in the POM bleep publishes, which
   carries whichever you wrote.
-- `runtime`, present at runtime, not at compile time.
+- `runtime`, present at runtime, not at compile time: a JDBC driver,
+  a logging backend. Unlike `provided`, it **is** inherited, as
+  `runtime` again: a project depending on this one runs with it and
+  doesn't compile against it. Test projects compile against it too,
+  as in Maven, whose test classpath includes the runtime scope.
 - `test`, only resolves when the project is a test project.
 
 Worth calling out: when project A `dependsOn:` project B, deps that

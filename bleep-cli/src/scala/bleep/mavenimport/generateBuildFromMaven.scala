@@ -2,8 +2,8 @@ package bleep
 package mavenimport
 
 import bleep.internal.{BleepTemplateLogger, GeneratedFilesScript}
-import bleep.rewrites.{normalizeBuild, Defaults}
-import bleep.templates.templatesInfer
+import bleep.rewrites.normalizeBuild
+import bleep.templates.{mineTemplates, templatesInfer}
 import ryddig.Logger
 
 import java.nio.file.Path
@@ -15,27 +15,21 @@ object generateBuildFromMaven {
       options: MavenImportOptions,
       bleepVersion: model.BleepVersion,
       bleepTasksVersion: model.BleepVersion,
-      mavenProjects: List[MavenProject]
+      fs: MavenFs,
+      mavenProjects: List[MavenProject],
+      dependencyList: Path
   ): Map[Path, String] = {
 
-    val build0 = buildFromMavenPom(logger, destinationPaths, mavenProjects, bleepVersion)
+    val build0 = buildFromMavenPom(logger, fs, destinationPaths, mavenProjects, dependencyList, bleepVersion)
 
-    val generatedFiles = buildFromMavenPom.discoverGeneratedFiles(logger, mavenProjects)
+    val generatedFiles = buildFromMavenPom.discoverGeneratedFiles(logger, fs, mavenProjects)
     val nonEmptyGeneratedFiles = generatedFiles.filter { case (_, files) => files.nonEmpty }
 
     val filteredBuild = applyFiltering(build0, options.filtering, logger)
 
     val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
 
-    val buildFile1 = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates)
-
-    // Validate no illegal rewrites occurred during templating
-    model.Build.diffProjects(Defaults.add(normalizedBuild, destinationPaths), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
-      case empty if empty.isEmpty => ()
-      case diffs                  =>
-        logger.error("Project templating did illegal rewrites. Please report this as a bug")
-        diffs.foreach { case (projectName, msg) => logger.withContext("projectName", projectName.value).error(msg) }
-    }
+    val buildFile1 = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates, mineTemplates.Costs.default)
 
     logger.info(s"Imported ${filteredBuild.explodedProjects.size} projects for ${buildFile1.projects.value.size} project definitions")
 
@@ -117,7 +111,9 @@ object generateBuildFromMaven {
 
       val genFiles: Map[Path, String] =
         generators.map { case (_, gen) =>
-          destinationPaths.project(scriptProjectName, scriptsProject).dir / s"src/scala/scripts/${gen.className}.scala" -> gen.contents
+          destinationPaths
+            .project(scriptProjectName, scriptsProject, scriptsProject.platform.flatMap(_.name).toSet)
+            .dir / s"src/scala/scripts/${gen.className}.scala" -> gen.contents
         }
 
       if (genFiles.nonEmpty)

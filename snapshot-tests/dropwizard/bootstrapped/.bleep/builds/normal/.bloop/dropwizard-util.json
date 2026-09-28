@@ -1,0 +1,75 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "dropwizard-util",
+    "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-util/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-util/src/main/java"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-util/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-util/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-util/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--should-stop=ifError=FLOW",
+        "-XDcompilePolicy=simple",
+        "-Xep:EqualsGetClass:OFF",
+        "-Xep:NullAway:ERROR",
+        "-XepDisableWarningsInGeneratedCode",
+        "-XepOpt:NullAway:AnnotatedPackages=io.dropwizard",
+        "-XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock",
+        "-XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks",
+        "-Xplugin:ErrorProne",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-util"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -5,9 +5,11 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@jvm212/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/scala-2.12",

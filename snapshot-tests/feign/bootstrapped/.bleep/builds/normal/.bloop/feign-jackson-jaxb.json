@@ -1,0 +1,156 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-jackson-jaxb",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jaxb/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jaxb/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-base/2.22.3/jackson-jaxrs-base-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-json-provider/2.22.3/jackson-jaxrs-json-provider-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-jaxb-annotations/2.22.3/jackson-module-jaxb-annotations-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jaxb/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson-jaxb/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jaxb/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson-jaxb"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.2.12",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-jaxb-annotations",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-jaxb-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-jaxb-annotations/2.22.3/jackson-module-jaxb-annotations-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.jaxrs",
+          "name": "jackson-jaxrs-json-provider",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-jaxrs-json-provider",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-json-provider/2.22.3/jackson-jaxrs-json-provider-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.jaxrs",
+          "name": "jackson-jaxrs-base",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-jaxrs-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-base/2.22.3/jackson-jaxrs-base-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.activation",
+          "name": "jakarta.activation-api",
+          "version": "1.2.2",
+          "artifacts": [
+            {
+              "name": "jakarta.activation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.ws.rs",
+          "name": "jsr311-api",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "jsr311-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -167,6 +167,10 @@ sealed trait Build {
 
   lazy val explodedProjectsByName: Map[ProjectName, Map[CrossProjectName, Project]] =
     explodedProjects.groupBy { case (crossName, _) => crossName.name }
+
+  /** The platforms a project is built for, across its cross projects. The `cross-full` source layout shares sources between them, see [[SourceLayout]] */
+  lazy val crossPlatforms: Map[ProjectName, Set[PlatformId]] =
+    explodedProjectsByName.map { case (name, crossProjects) => (name, crossProjects.values.flatMap(_.platform.flatMap(_.name)).toSet) }
 }
 
 object Build {
@@ -254,11 +258,14 @@ object Build {
     }
   }
 
-  def diffProjects(before: Build, after: Build): SortedMap[CrossProjectName, String] = {
-    val allProjects = before.explodedProjects.keySet ++ after.explodedProjects.keySet
+  def diffProjects(before: Build, after: Build): SortedMap[CrossProjectName, String] =
+    diffProjects(before.explodedProjects, after.explodedProjects)
+
+  def diffProjects(before: Map[CrossProjectName, Project], after: Map[CrossProjectName, Project]): SortedMap[CrossProjectName, String] = {
+    val allProjects = before.keySet ++ after.keySet
     val diffs = SortedMap.newBuilder[CrossProjectName, String]
     allProjects.foreach { projectName =>
-      (before.explodedProjects.get(projectName), after.explodedProjects.get(projectName)) match {
+      (before.get(projectName), after.get(projectName)) match {
         case (Some(before), Some(after)) if after == before => ()
         case (Some(before), Some(after))                    =>
           val onlyInBefore = yaml.encodeShortened(before.removeAll(after))

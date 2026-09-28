@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/testkit@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm-native/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm/src/main/java",
@@ -25,12 +27,12 @@
       "trees@jvm213"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/rauschig/jarchivelib/1.2.0/jarchivelib-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@jvm213/generated-resources/scripts.GenerateForCommon",
@@ -96,7 +98,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
       ],
@@ -129,6 +131,17 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.0/geny_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.rauschig",
           "name": "jarchivelib",
           "version": "1.2.0",
@@ -140,35 +153,24 @@
           ]
         },
         {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.13",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "fastparse_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.13/3.1.1/fastparse_2.13-3.1.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.18",
+          "version": "2.13.16",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_3",
-          "version": "1.1.0",
-          "artifacts": [
-            {
-              "name": "geny_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_3",
-          "version": "0.4.2",
-          "artifacts": [
-            {
-              "name": "sourcecode_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
@@ -184,17 +186,6 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "fastparse_3",
-          "version": "3.1.1",
-          "artifacts": [
-            {
-              "name": "fastparse_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.apache.commons",
           "name": "commons-compress",
           "version": "1.21",
@@ -202,6 +193,17 @@
             {
               "name": "commons-compress",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.13",
+          "version": "0.4.2",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.2/sourcecode_2.13-0.4.2.jar"
             }
           ]
         }

@@ -6,9 +6,11 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/parsers@jvm212/generated-sources/scripts.GenerateForParsers",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/scala-2.12",

@@ -1,0 +1,219 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "dropwizard-validation",
+    "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-validation/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-validation/src/main/java"
+    ],
+    "dependencies": [
+      "dropwizard-util"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.3/classmate-1.7.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.47.0/error_prone_annotations-2.47.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/8.0.5.Final/hibernate-validator-8.0.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.3.Final/jboss-logging-3.6.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-util/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-util/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-validation/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-validation/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-validation/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--should-stop=ifError=FLOW",
+        "-XDcompilePolicy=simple",
+        "-Xep:EqualsGetClass:OFF",
+        "-Xep:NullAway:ERROR",
+        "-XepDisableWarningsInGeneratedCode",
+        "-XepOpt:NullAway:AnnotatedPackages=io.dropwizard",
+        "-XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock",
+        "-XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks",
+        "-Xplugin:ErrorProne",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-validation"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.47.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.47.0/error_prone_annotations-2.47.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hibernate.validator",
+          "name": "hibernate-validator",
+          "version": "8.0.5.Final",
+          "artifacts": [
+            {
+              "name": "hibernate-validator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/8.0.5.Final/hibernate-validator-8.0.5.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml",
+          "name": "classmate",
+          "version": "1.7.3",
+          "artifacts": [
+            {
+              "name": "classmate",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.3/classmate-1.7.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.glassfish.expressly",
+          "name": "expressly",
+          "version": "5.0.0",
+          "artifacts": [
+            {
+              "name": "expressly",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/expressly/expressly/5.0.0/expressly-5.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.logging",
+          "name": "jboss-logging",
+          "version": "3.6.3.Final",
+          "artifacts": [
+            {
+              "name": "jboss-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.3.Final/jboss-logging-3.6.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.6.0-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.validation",
+          "name": "jakarta.validation-api",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "jakarta.validation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.19",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.el",
+          "name": "jakarta.el-api",
+          "version": "5.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.el-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/el/jakarta.el-api/5.0.1/jakarta.el-api-5.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

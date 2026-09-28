@@ -18,9 +18,10 @@ object GenLayout {
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
+      bomImports: List[Dependency],
       mainClass: Option[String]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(manifestCreator, projectName, self, projectPaths, deps, Info.empty, mainClass)
+    val m = maven(manifestCreator, projectName, self, projectPaths, deps, bomImports, Info.empty, mainClass)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
@@ -37,6 +38,7 @@ object GenLayout {
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
+      bomImports: List[Dependency],
       info: Info,
       mainClass: Option[String]
   ): MavenLayout[RelPath, Array[Byte]] =
@@ -50,7 +52,7 @@ object GenLayout {
         mainClass = mainClass
       ),
       sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all(Usage.Compile), projectName = Some(projectName)),
-      pomFile = fromXml(pomFile(self, deps, info)),
+      pomFile = fromXml(pomFile(self, deps, bomImports, info)),
       // javadoc should never have existed.
       docFile = createJar(JarType.DocsJar, manifestCreator, Nil, projectName = Some(projectName))
     )
@@ -115,7 +117,36 @@ object GenLayout {
       if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
   }
 
-  def pomFile(self: Dependency, dependencies: List[Dependency], info: Info): Elem = {
+  private def dependencyXml(dep: Dependency, bomImport: Boolean): Elem =
+    <dependency>
+      <groupId>{dep.module.organization.value}</groupId>
+      <artifactId>{dep.module.name.value}</artifactId>
+      <version>{dep.versionConstraint.asString}</version>{
+      if (bomImport) List(<type>pom</type>, <scope>import</scope>)
+      else
+        dep.configurationOrThrow match {
+          case Configuration.empty => Nil
+          case other               =>
+            <scope>{other.value}</scope>
+        }
+    }
+      {
+      dep.minimizedExclusions.toSeq().render { exc =>
+        <exclusions>{
+          exc.map { case (org, thing) =>
+            <exclusion>
+              <groupId>{org.value}</groupId>
+              <artifactId>{thing.value}</artifactId>
+            </exclusion>
+          }
+        }</exclusions>
+      }
+    }</dependency>
+
+  /** @param bomImports
+    *   the BOMs the project imports. A consumer of the published pom needs them for any dependency declared without a version
+    */
+  def pomFile(self: Dependency, dependencies: List[Dependency], bomImports: List[Dependency], info: Info): Elem = {
     <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
       <modelVersion>4.0.0</modelVersion>
       <groupId>{self.module.organization.value}</groupId>
@@ -166,32 +197,14 @@ object GenLayout {
       </developers>
       }
     }
-      <dependencies>{
-      dependencies.map { dep =>
-        <dependency>
-          <groupId>{dep.module.organization.value}</groupId>
-          <artifactId>{dep.module.name.value}</artifactId>
-          <version>{dep.versionConstraint.asString}</version>{
-          dep.configurationOrThrow match {
-            case Configuration.empty => Nil
-            case other               => <scope>{other.value}</scope>
-          }
-        }
-          {
-          dep.minimizedExclusions.toSeq().render { exc =>
-            <exclusions>{
-              exc.map { case (org, thing) =>
-                <exclusion>
-                  <groupId>{org.value}</groupId>
-                  <artifactId>{thing.value}</artifactId>
-                </exclusion>
-              }
-            }</exclusions>
-          }
-        }</dependency>
+      {
+      bomImports.map(dependencyXml(_, bomImport = true)).render { entries =>
+        <dependencyManagement>
+          <dependencies>{entries}</dependencies>
+        </dependencyManagement>
       }
     }
-      </dependencies>
+      <dependencies>{dependencies.map(dependencyXml(_, bomImport = false))}</dependencies>
     </project>
   }
 }

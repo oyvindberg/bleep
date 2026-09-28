@@ -1,0 +1,84 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-jackson3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson3/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.2.3/jackson-core-3.2.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.2.3/jackson-databind-3.2.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson3/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson3/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson3"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-databind",
+          "version": "3.2.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.2.3/jackson-databind-3.2.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-core",
+          "version": "3.2.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.2.3/jackson-core-3.2.3.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -90,4 +90,39 @@ class BomIT extends IntegrationTestHarness {
       s"expected the library's BOM to pin the consumer's version-less databind to $bomVersion, got:\n${databind.mkString("\n")}"
     )
   }
+
+  integrationTest("a published pom imports the project's BOMs, so a dependency declared without a version resolves for consumers too") { ws =>
+    ws.yaml(
+      s"""projects:
+         |  app:
+         |    platform:
+         |      name: jvm
+         |    boms:
+         |      - com.fasterxml.jackson:jackson-bom:$bomVersion
+         |    dependencies:
+         |      - com.fasterxml.jackson.core:jackson-databind
+         |""".stripMargin
+    )
+    val (started, _, _) = ws.start()
+
+    val packaged = packaging.packageLibraries(
+      started,
+      packaging.CoordinatesFor.Default(groupId = "com.example", version = "1.0.0"),
+      shouldInclude = _ => true,
+      publishLayout = packaging.PublishLayout.Maven(coursier.core.Info.empty)
+    )
+    val pom = scala.xml.XML.loadString(
+      packaged(model.CrossProjectName(model.ProjectName("app"), None)).files.all.collectFirst {
+        case (path, bytes) if path.toString.endsWith(".pom") => new String(bytes)
+      }.get
+    )
+
+    val imports = pom \ "dependencyManagement" \ "dependencies" \ "dependency"
+    assert(
+      imports.exists(d => (d \ "artifactId").text == "jackson-bom" && (d \ "scope").text == "import" && (d \ "type").text == "pom"),
+      imports.toString
+    )
+    val databind = (pom \ "dependencies" \ "dependency").filter(d => (d \ "artifactId").text == "jackson-databind")
+    assert(databind.nonEmpty && (databind \ "version").text.isEmpty, databind.toString)
+  }
 }

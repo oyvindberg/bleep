@@ -30,8 +30,8 @@ object BuildMoveFilesIntoBleepLayout extends BleepBuildCommand {
     val newProjects = build.explodedProjects.map { case (crossName, p0) =>
       // compute paths for the same project after we remove `folder` and `sbt-scope`
       val p1 = p0.copy(folder = None, `sbt-scope` = None)
-      val fromDirs = buildPaths.project(crossName, p0)
-      val toDirs = buildPaths.project(crossName, p1)
+      val fromDirs = buildPaths.project(crossName, p0, build.crossPlatforms(crossName.name))
+      val toDirs = buildPaths.project(crossName, p1, build.crossPlatforms(crossName.name))
 
       // move source folders from source layout
       // assume ordering stays the same before and after removing `folder` and `sbt-scope` here. it should.

@@ -1,0 +1,133 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "mapstruct-distribution",
+    "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-distribution/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/distribution/src/main/java"
+    ],
+    "dependencies": [
+      "mapstruct",
+      "mapstruct-processor"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/jakarta.activation/2.0.1/jakarta.activation-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/freemarker/freemarker/2.3.34/freemarker-2.3.34.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-metadata-jvm/2.3.0/kotlin-metadata-jvm-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.0/kotlin-stdlib-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mapstruct/tools/gem/gem-api/1.0.0.Alpha3/gem-api-1.0.0.Alpha3.jar",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-distribution/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-distribution/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/distribution/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/distribution"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.3.1",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "13.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.freemarker",
+          "name": "freemarker",
+          "version": "2.3.34",
+          "artifacts": [
+            {
+              "name": "freemarker",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/freemarker/freemarker/2.3.34/freemarker-2.3.34.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mapstruct.tools.gem",
+          "name": "gem-api",
+          "version": "1.0.0.Alpha3",
+          "artifacts": [
+            {
+              "name": "gem-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mapstruct/tools/gem/gem-api/1.0.0.Alpha3/gem-api-1.0.0.Alpha3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-metadata-jvm",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-metadata-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-metadata-jvm/2.3.0/kotlin-metadata-jvm-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.xml.bind",
+          "name": "jakarta.xml.bind-api",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.xml.bind-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.0/kotlin-stdlib-2.3.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

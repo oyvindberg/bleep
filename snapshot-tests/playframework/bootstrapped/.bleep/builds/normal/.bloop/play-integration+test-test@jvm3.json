@@ -1,0 +1,2333 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "play-integration+test-test@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-integration+test-test@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test/src/test/scala-3"
+    ],
+    "dependencies": [
+      "play+test-test@jvm3",
+      "play+test@jvm3",
+      "play-ahc-ws-test@jvm3",
+      "play-ahc-ws@jvm3",
+      "play-build-link",
+      "play-cache@jvm3",
+      "play-caffeine-cache@jvm3",
+      "play-configuration@jvm3",
+      "play-exceptions",
+      "play-filters-helpers@jvm3",
+      "play-guice@jvm3",
+      "play-integration+test@jvm3",
+      "play-java-forms@jvm3",
+      "play-java@jvm3",
+      "play-logback-test@jvm3",
+      "play-logback@jvm3",
+      "play-netty-server@jvm3",
+      "play-pekko-http-server@jvm3",
+      "play-pekko-http2-support@jvm3",
+      "play-server-test@jvm3",
+      "play-server@jvm3",
+      "play-specs2@jvm3",
+      "play-streams@jvm3",
+      "play-test@jvm3",
+      "play-ws@jvm3",
+      "play@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/cglib/cglib/3.3.0/cglib-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.3/jackson-annotations-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.14.3/jackson-dataformat-cbor-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.14.3/jackson-module-parameter-names-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_3/2.14.3/jackson-module-scala_3-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.2.2/caffeine-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/jcache/3.2.2/jcache-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.10/gson-2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.40.0/error_prone_annotations-2.40.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.8-jre/guava-33.4.8-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/7.0.0/guice-assistedinject-7.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/7.0.0/guice-7.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.3.1/jimfs-1.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/shapesecurity/salvation2/3.0.1/salvation2-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.1.0/okhttp-jvm-5.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.15.0/okio-jvm-3.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.4/config-1.4.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-digester/commons-digester/2.1/commons-digester-2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-validator/commons-validator/1.7/commons-validator-1.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/failsafe/failsafe/3.3.2/failsafe-3.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/appium/java-client/8.2.1/java-client-8.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/fluentlenium/fluentlenium-core/6.0.0/fluentlenium-core-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-api/0.13.0/jjwt-api-0.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-impl/0.13.0/jjwt-impl-0.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-jackson/0.13.0/jjwt-jackson-0.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.4.Final/netty-buffer-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.4.Final/netty-codec-base-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.4.Final/netty-codec-compression-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.4.Final/netty-codec-http-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.4.Final/netty-common-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.4.Final/netty-handler-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.4.Final/netty-resolver-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.4.Final/netty-transport-classes-epoll-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-io_uring/4.2.4.Final/netty-transport-classes-io_uring-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.4.Final/netty-transport-classes-kqueue-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-riscv64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-riscv64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.4.Final/netty-transport-native-kqueue-4.2.4.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.4.Final/netty-transport-native-kqueue-4.2.4.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.4.Final/netty-transport-native-unix-common-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.4.Final/netty-transport-4.2.4.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-events/1.28.0-alpha/opentelemetry-api-events-1.28.0-alpha.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.28.0/opentelemetry-api-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.28.0/opentelemetry-context-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-logging/1.28.0/opentelemetry-exporter-logging-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-extension-incubator/1.28.0-alpha/opentelemetry-extension-incubator-1.28.0-alpha.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.28.0/opentelemetry-sdk-common-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.28.0/opentelemetry-sdk-extension-autoconfigure-spi-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.28.0/opentelemetry-sdk-extension-autoconfigure-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.28.0/opentelemetry-sdk-logs-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.28.0/opentelemetry-sdk-metrics-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.28.0/opentelemetry-sdk-trace-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.28.0/opentelemetry-sdk-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.28.0-alpha/opentelemetry-semconv-1.28.0-alpha.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/cache/cache-api/1.1.1/cache-api-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.17.6/byte-buddy-agent-1.17.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.17.6/byte-buddy-1.17.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/jodah/typetools/0.6.3/typetools-0.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/ehcache/ehcache/2.10.9.2/ehcache-2.10.9.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-core-js/2.70.0/htmlunit-core-js-2.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-cssparser/1.14.0/htmlunit-cssparser-1.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-xpath/2.70.0/htmlunit-xpath-2.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit/2.70.0/htmlunit-2.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/neko-htmlunit/2.70.0/neko-htmlunit-2.70.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-exec/1.3/commons-exec-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.14/httpmime-4.5.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.9.1/maven-model-3.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-testkit-typed_3/1.0.3/pekko-actor-testkit-typed_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-typed_3/1.0.3/pekko-actor-typed_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_3/1.0.3/pekko-actor_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_3/1.0.1/pekko-http-core_3-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_3/1.0.1/pekko-parsing_3-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_3/1.0.3/pekko-protobuf-v3_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-serialization-jackson_3/1.0.3/pekko-serialization-jackson_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_3/1.0.3/pekko-slf4j_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_3/1.0.3/pekko-stream_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-testkit_3/1.0.3/pekko-testkit_3-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.4/assertj-core-3.27.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/atteo/classindex/classindex/3.13/classindex-3.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/brotli/dec/0.1.2/dec-0.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.5.1/plexus-utils-3.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-client/9.4.50.v20221201/jetty-client-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/9.4.50.v20221201/jetty-http-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/9.4.50.v20221201/jetty-io-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/9.4.50.v20221201/jetty-util-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-api/9.4.50.v20221201/websocket-api-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-client/9.4.50.v20221201/websocket-client-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-common/9.4.50.v20221201/websocket-common-9.4.50.v20221201.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ehcache/jcache/1.0.1/jcache-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/9.0.1.Final/hibernate-validator-9.0.1.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.19.0/mockito-core-5.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.namespace.extender/1.0.1/org.osgi.namespace.extender-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.component.annotations/1.5.1/org.osgi.service.component.annotations-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.function/1.0.0/org.osgi.util.function-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.promise/1.0.0/org.osgi.util.promise-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/osgi.annotation/8.1.0/osgi.annotation-8.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.5/asm-9.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_3/2.5.0/parboiled_3-2.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/cachecontrol_3/3.1.0-M2/cachecontrol_3-3.1.0-M2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams-http/3.0.4/netty-reactive-streams-http-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams/3.0.4/netty-reactive-streams-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ahc-ws-standalone_3/3.1.0-M6/play-ahc-ws-standalone_3-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.1.0-M1/play-functional_3-3.1.0-M1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.1.0-M1/play-json_3-3.1.0-M1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone-json_3/3.1.0-M6/play-ws-standalone-json_3-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone-xml_3/3.1.0-M6/play-ws-standalone-xml_3-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone_3/3.1.0-M6/play-ws-standalone_3-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/shaded-asynchttpclient/3.1.0-M6/shaded-asynchttpclient-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/shaded-oauth/3.1.0-M6/shaded-oauth-3.1.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.1.0-M4/twirl-api_3-2.1.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.4.0/scala-parser-combinators_3-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.18.1/scalacheck_3-1.18.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/htmlunit-driver/4.13.0/htmlunit-driver-4.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-api/4.14.1/selenium-api-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-devtools-v85/4.14.1/selenium-devtools-v85-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-firefox-driver/4.14.1/selenium-firefox-driver-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-http/4.14.1/selenium-http-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-json/4.14.1/selenium-json-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-manager/4.14.1/selenium-manager-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-os/4.14.1/selenium-os-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-remote-driver/4.14.1/selenium-remote-driver-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-support/4.14.1/selenium-support-4.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-common_3/4.21.0/specs2-common_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-core_3/4.21.0/specs2-core_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-fp_3/4.21.0/specs2-fp_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-junit_3/4.21.0/specs2-junit_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-matcher_3/4.21.0/specs2-matcher_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-scalacheck_3/4.21.0/specs2-scalacheck_3-4.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/6.2.10/spring-beans-6.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/6.2.10/spring-context-6.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/6.2.10/spring-core-6.2.10.jar",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play+test-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play+test@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-ahc-ws-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-ahc-ws@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-build-link/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-cache@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-caffeine-cache@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-configuration@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-exceptions/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-filters-helpers@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-guice@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-integration+test@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-java-forms@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-java@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-logback-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-logback@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-netty-server@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-pekko-http-server@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-pekko-http2-support@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-server-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-server@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-specs2@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-streams@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-ws@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/generated-resources/scripts.GenerateForPlay",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/cache/play-cache/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/cache/play-caffeine-cache/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-guice/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-java/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-logback/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-logback/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-streams/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-build-link/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/testkit/play-specs2/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/testkit/play-test/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/testkit/play-test/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/client/play-ahc-ws/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/client/play-ahc-ws/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/client/play-ws/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/server/play-netty-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/server/play-pekko-http-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/server/play-pekko-http2-support/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/server/play-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/transport/server/play-server/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/web/play-filters-helpers/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/web/play-java-forms/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-integration+test-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-integration+test-test@jvm3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.6",
+      "options": [
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-release:17",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-integration+test-test@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:-options",
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Dfile.encoding=UTF8",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-integration-test",
+          "-XX:MaxMetaspaceSize=384m",
+          "-Xms128m",
+          "-Xmx512m"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.3/jackson-annotations-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.appium",
+          "name": "java-client",
+          "version": "8.2.1",
+          "artifacts": [
+            {
+              "name": "java-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/appium/java-client/8.2.1/java-client-8.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.cache",
+          "name": "cache-api",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "cache-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/cache/cache-api/1.1.1/cache-api-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.atteo.classindex",
+          "name": "classindex",
+          "version": "3.13",
+          "artifacts": [
+            {
+              "name": "classindex",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/atteo/classindex/classindex/3.13/classindex-3.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.17.6",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.17.6/byte-buddy-1.17.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject",
+          "name": "guice",
+          "version": "7.0.0",
+          "artifacts": [
+            {
+              "name": "guice",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/7.0.0/guice-7.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-scalacheck_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-scalacheck_3/4.21.0/specs2-scalacheck_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "websocket-client",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "websocket-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-client/9.4.50.v20221201/websocket-client-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.service.component.annotations",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "org.osgi.service.component.annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.component.annotations/1.5.1/org.osgi.service.component.annotations-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jul-to-slf4j",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "jul-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.3",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-functional_3",
+          "version": "3.1.0-M1",
+          "artifacts": [
+            {
+              "name": "play-functional_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.1.0-M1/play-functional_3-3.1.0-M1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-context",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.28.0/opentelemetry-context-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-model",
+          "version": "3.9.1",
+          "artifacts": [
+            {
+              "name": "maven-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.9.1/maven-model-3.9.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "osgi.annotation",
+          "version": "8.1.0",
+          "artifacts": [
+            {
+              "name": "osgi.annotation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/osgi.annotation/8.1.0/osgi.annotation-8.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.28.0/opentelemetry-sdk-extension-autoconfigure-spi-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-json_3",
+          "version": "3.1.0-M1",
+          "artifacts": [
+            {
+              "name": "play-json_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.1.0-M1/play-json_3-3.1.0-M1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "cglib",
+          "name": "cglib",
+          "version": "3.3.0",
+          "artifacts": [
+            {
+              "name": "cglib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/cglib/cglib/3.3.0/cglib-3.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-metrics",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.28.0/opentelemetry-sdk-metrics-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-riscv64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-riscv64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.4.Final/netty-transport-native-epoll-4.2.4.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-stream_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-stream_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_3/1.0.3/pekko-stream_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sourceforge.htmlunit",
+          "name": "htmlunit-cssparser",
+          "version": "1.14.0",
+          "artifacts": [
+            {
+              "name": "htmlunit-cssparser",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-cssparser/1.14.0/htmlunit-cssparser-1.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.10",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.10/gson-2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okio",
+          "name": "okio-jvm",
+          "version": "3.15.0",
+          "artifacts": [
+            {
+              "name": "okio-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.15.0/okio-jvm-3.15.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.netty",
+          "name": "netty-reactive-streams-http",
+          "version": "3.0.4",
+          "artifacts": [
+            {
+              "name": "netty-reactive-streams-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams-http/3.0.4/netty-reactive-streams-http-3.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-impl",
+          "version": "0.13.0",
+          "artifacts": [
+            {
+              "name": "jjwt-impl",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-impl/0.13.0/jjwt-impl-0.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-junit_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-junit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-junit_3/4.21.0/specs2-junit_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.failsafe",
+          "name": "failsafe",
+          "version": "3.3.2",
+          "artifacts": [
+            {
+              "name": "failsafe",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/failsafe/failsafe/3.3.2/failsafe-3.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-jackson",
+          "version": "0.13.0",
+          "artifacts": [
+            {
+              "name": "jjwt-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-jackson/0.13.0/jjwt-jackson-0.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.4.Final/netty-codec-base-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.4.Final/netty-common-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-validator",
+          "name": "commons-validator",
+          "version": "1.7",
+          "artifacts": [
+            {
+              "name": "commons-validator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-validator/commons-validator/1.7/commons-validator-1.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-io",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "jetty-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/9.4.50.v20221201/jetty-io-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.20.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-os",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-os",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-os/4.14.1/selenium-os-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.jodah",
+          "name": "typetools",
+          "version": "0.6.3",
+          "artifacts": [
+            {
+              "name": "typetools",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/jodah/typetools/0.6.3/typetools-0.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jcl-over-slf4j",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "jcl-over-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.shapesecurity",
+          "name": "salvation2",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "salvation2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/shapesecurity/salvation2/3.0.1/salvation2-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.brotli",
+          "name": "dec",
+          "version": "0.1.2",
+          "artifacts": [
+            {
+              "name": "dec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/brotli/dec/0.1.2/dec-0.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-utils",
+          "version": "3.5.1",
+          "artifacts": [
+            {
+              "name": "plexus-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.5.1/plexus-utils-3.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.4.Final/netty-transport-classes-kqueue-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.4.Final/netty-transport-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-serialization-jackson_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-serialization-jackson_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-serialization-jackson_3/1.0.3/pekko-serialization-jackson_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-beanutils",
+          "name": "commons-beanutils",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "commons-beanutils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.40.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.40.0/error_prone_annotations-2.40.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "5.19.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.19.0/mockito-core-5.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "websocket-common",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "websocket-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-common/9.4.50.v20221201/websocket-common-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-util",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "jetty-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/9.4.50.v20221201/jetty-util-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-json",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-json/4.14.1/selenium-json-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-support",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-support",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-support/4.14.1/selenium-support-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-common",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.28.0/opentelemetry-sdk-common-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-scala_3",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-scala_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_3/2.14.3/jackson-module-scala_3-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-logging",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-exporter-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-logging/1.28.0/opentelemetry-exporter-logging-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject.extensions",
+          "name": "guice-assistedinject",
+          "version": "7.0.0",
+          "artifacts": [
+            {
+              "name": "guice-assistedinject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/7.0.0/guice-assistedinject-7.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-ahc-ws-standalone_3",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "play-ahc-ws-standalone_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ahc-ws-standalone_3/3.1.0-M6/play-ahc-ws-standalone_3-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.12.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.28.0/opentelemetry-sdk-extension-autoconfigure-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "13.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.5.18",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.4.Final/netty-buffer-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.5",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-kqueue",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.4.Final/netty-transport-native-kqueue-4.2.4.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.4.Final/netty-transport-native-kqueue-4.2.4.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.ehcache",
+          "name": "ehcache",
+          "version": "2.10.9.2",
+          "artifacts": [
+            {
+              "name": "ehcache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/ehcache/ehcache/2.10.9.2/ehcache-2.10.9.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.4.Final/netty-transport-native-unix-common-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-firefox-driver",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-firefox-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-firefox-driver/4.14.1/selenium-firefox-driver-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.4.Final/netty-transport-classes-epoll-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-logs",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-logs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.28.0/opentelemetry-sdk-logs-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-fp_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-fp_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-fp_3/4.21.0/specs2-fp_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.fluentlenium",
+          "name": "fluentlenium-core",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "fluentlenium-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/fluentlenium/fluentlenium-core/6.0.0/fluentlenium-core-6.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-io_uring",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-io_uring",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-io_uring/4.2.4.Final/netty-transport-classes-io_uring-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sourceforge.htmlunit",
+          "name": "neko-htmlunit",
+          "version": "2.70.0",
+          "artifacts": [
+            {
+              "name": "neko-htmlunit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/neko-htmlunit/2.70.0/neko-htmlunit-2.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-collections",
+          "name": "commons-collections",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "commons-collections",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-core_3",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "pekko-http-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_3/1.0.1/pekko-http-core_3-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.sbt",
+          "name": "junit-interface",
+          "version": "0.13.3",
+          "artifacts": [
+            {
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "6.2.10",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/6.2.10/spring-core-6.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-context",
+          "version": "6.2.10",
+          "artifacts": [
+            {
+              "name": "spring-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/6.2.10/spring-context-6.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-core_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-core_3/4.21.0/specs2-core_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jdk8",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.netty",
+          "name": "netty-reactive-streams",
+          "version": "3.0.4",
+          "artifacts": [
+            {
+              "name": "netty-reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams/3.0.4/netty-reactive-streams-3.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-http",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-http/4.14.1/selenium-http-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.ben-manes.caffeine",
+          "name": "jcache",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "jcache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/jcache/3.2.2/jcache-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "shaded-oauth",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "shaded-oauth",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/shaded-oauth/3.1.0-M6/shaded-oauth-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okhttp3",
+          "name": "okhttp-jvm",
+          "version": "5.1.0",
+          "artifacts": [
+            {
+              "name": "okhttp-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.1.0/okhttp-jvm-5.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sourceforge.htmlunit",
+          "name": "htmlunit",
+          "version": "2.70.0",
+          "artifacts": [
+            {
+              "name": "htmlunit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit/2.70.0/htmlunit-2.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_3",
+          "version": "0.6.1",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hibernate.validator",
+          "name": "hibernate-validator",
+          "version": "9.0.1.Final",
+          "artifacts": [
+            {
+              "name": "hibernate-validator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/9.0.1.Final/hibernate-validator-9.0.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "htmlunit-driver",
+          "version": "4.13.0",
+          "artifacts": [
+            {
+              "name": "htmlunit-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/htmlunit-driver/4.13.0/htmlunit-driver-4.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-testkit_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-testkit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-testkit_3/1.0.3/pekko-testkit_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.17.6",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.17.6/byte-buddy-agent-1.17.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.jimfs",
+          "name": "jimfs",
+          "version": "1.3.1",
+          "artifacts": [
+            {
+              "name": "jimfs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.3.1/jimfs-1.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.4.Final/netty-codec-http-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-exec",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "commons-exec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-exec/1.3/commons-exec-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-text",
+          "version": "1.10.0",
+          "artifacts": [
+            {
+              "name": "commons-text",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "websocket-api",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "websocket-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-api/9.4.50.v20221201/websocket-api-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-api",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.28.0/opentelemetry-api-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-common_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-common_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-common_3/4.21.0/specs2-common_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-api-events",
+          "version": "1.28.0-alpha",
+          "artifacts": [
+            {
+              "name": "opentelemetry-api-events",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-events/1.28.0-alpha/opentelemetry-api-events-1.28.0-alpha.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.4",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.4/assertj-core-3.27.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "cachecontrol_3",
+          "version": "3.1.0-M2",
+          "artifacts": [
+            {
+              "name": "cachecontrol_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/cachecontrol_3/3.1.0-M2/cachecontrol_3-3.1.0-M2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-actor_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_3/1.0.3/pekko-actor_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.15",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-ws-standalone-json_3",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "play-ws-standalone-json_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone-json_3/3.1.0-M6/play-ws-standalone-json_3-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-beans",
+          "version": "6.2.10",
+          "artifacts": [
+            {
+              "name": "spring-beans",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/6.2.10/spring-beans-6.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml",
+          "name": "classmate",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "classmate",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.5",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.5/asm-9.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_3",
+          "version": "1.18.1",
+          "artifacts": [
+            {
+              "name": "scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.18.1/scalacheck_3-1.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-protobuf-v3_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-protobuf-v3_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_3/1.0.3/pekko-protobuf-v3_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.logging",
+          "name": "jboss-logging",
+          "version": "3.6.1.Final",
+          "artifacts": [
+            {
+              "name": "jboss-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.4.8-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.8-jre/guava-33.4.8-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.4.Final/netty-handler-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.validation",
+          "name": "jakarta.validation-api",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jakarta.validation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-client",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "jetty-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-client/9.4.50.v20221201/jetty-client-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-ws-standalone-xml_3",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "play-ws-standalone-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone-xml_3/3.1.0-M6/play-ws-standalone-xml_3-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-parsing_3",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "pekko-parsing_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_3/1.0.1/pekko-parsing_3-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-parameter-names",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-parameter-names",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.14.3/jackson-module-parameter-names-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.lz4",
+          "name": "lz4-java",
+          "version": "1.8.0",
+          "artifacts": [
+            {
+              "name": "lz4-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-http",
+          "version": "9.4.50.v20221201",
+          "artifacts": [
+            {
+              "name": "jetty-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/9.4.50.v20221201/jetty-http-9.4.50.v20221201.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-ws-standalone_3",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "play-ws-standalone_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-ws-standalone_3/3.1.0-M6/play-ws-standalone_3-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.util.promise",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.util.promise",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.promise/1.0.0/org.osgi.util.promise-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.twirl",
+          "name": "twirl-api_3",
+          "version": "2.1.0-M4",
+          "artifacts": [
+            {
+              "name": "twirl-api_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.1.0-M4/twirl-api_3-2.1.0-M4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.namespace.extender",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "org.osgi.namespace.extender",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.namespace.extender/1.0.1/org.osgi.namespace.extender-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-digester",
+          "name": "commons-digester",
+          "version": "2.1",
+          "artifacts": [
+            {
+              "name": "commons-digester",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-digester/commons-digester/2.1/commons-digester-2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.parboiled",
+          "name": "parboiled_3",
+          "version": "2.5.0",
+          "artifacts": [
+            {
+              "name": "parboiled_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_3/2.5.0/parboiled_3-2.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.16",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-io_uring",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-riscv64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-riscv64.jar"
+            },
+            {
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.4.Final/netty-transport-native-io_uring-4.2.4.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.2.0",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.dataformat",
+          "name": "jackson-dataformat-cbor",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-dataformat-cbor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.14.3/jackson-dataformat-cbor-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.4",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.4/config-1.4.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-manager",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-manager",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-manager/4.14.1/selenium-manager-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ehcache",
+          "name": "jcache",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jcache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ehcache/jcache/1.0.1/jcache-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sourceforge.htmlunit",
+          "name": "htmlunit-core-js",
+          "version": "2.70.0",
+          "artifacts": [
+            {
+              "name": "htmlunit-core-js",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-core-js/2.70.0/htmlunit-core-js-2.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thoughtworks.paranamer",
+          "name": "paranamer",
+          "version": "2.8",
+          "artifacts": [
+            {
+              "name": "paranamer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-trace",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-trace",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.28.0/opentelemetry-sdk-trace-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-extension-incubator",
+          "version": "1.28.0-alpha",
+          "artifacts": [
+            {
+              "name": "opentelemetry-extension-incubator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-extension-incubator/1.28.0-alpha/opentelemetry-extension-incubator-1.28.0-alpha.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor-typed_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-actor-typed_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-typed_3/1.0.3/pekko-actor-typed_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.4.Final/netty-codec-compression-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-semconv",
+          "version": "1.28.0-alpha",
+          "artifacts": [
+            {
+              "name": "opentelemetry-semconv",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.28.0-alpha/opentelemetry-semconv-1.28.0-alpha.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.4.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.4.Final/netty-resolver-4.2.4.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_3",
+          "version": "2.4.0",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.4.0/scala-parser-combinators_3-2.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.specs2",
+          "name": "specs2-matcher_3",
+          "version": "4.21.0",
+          "artifacts": [
+            {
+              "name": "specs2-matcher_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-matcher_3/4.21.0/specs2-matcher_3-4.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpmime",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpmime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.14/httpmime-4.5.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-slf4j_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-slf4j_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_3/1.0.3/pekko-slf4j_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.h2database",
+          "name": "h2",
+          "version": "2.3.232",
+          "artifacts": [
+            {
+              "name": "h2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-devtools-v85",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-devtools-v85",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-devtools-v85/4.14.1/selenium-devtools-v85-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.util.function",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.util.function",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.function/1.0.0/org.osgi.util.function-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.14.3",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sourceforge.htmlunit",
+          "name": "htmlunit-xpath",
+          "version": "2.70.0",
+          "artifacts": [
+            {
+              "name": "htmlunit-xpath",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sourceforge/htmlunit/htmlunit-xpath/2.70.0/htmlunit-xpath-2.70.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-api",
+          "version": "0.13.0",
+          "artifacts": [
+            {
+              "name": "jjwt-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-api/0.13.0/jjwt-api-0.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.28.0/opentelemetry-sdk-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "aopalliance",
+          "name": "aopalliance",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "aopalliance",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-api",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-api/4.14.1/selenium-api-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-remote-driver",
+          "version": "4.14.1",
+          "artifacts": [
+            {
+              "name": "selenium-remote-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-remote-driver/4.14.1/selenium-remote-driver-4.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor-testkit-typed_3",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "pekko-actor-testkit-typed_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-testkit-typed_3/1.0.3/pekko-actor-testkit-typed_3-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "shaded-asynchttpclient",
+          "version": "3.1.0-M6",
+          "artifacts": [
+            {
+              "name": "shaded-asynchttpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/shaded-asynchttpclient/3.1.0-M6/shaded-asynchttpclient-3.1.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-net",
+          "name": "commons-net",
+          "version": "3.9.0",
+          "artifacts": [
+            {
+              "name": "commons-net",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.auto.service",
+          "name": "auto-service-annotations",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "auto-service-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.ben-manes.caffeine",
+          "name": "caffeine",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "caffeine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.2.2/caffeine-3.2.2.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

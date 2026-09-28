@@ -1,0 +1,164 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "scalafixinput",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixinput/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/input/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/input/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/input/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/input/src/main/scala-2.13"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/2.2.5/izumi-reflect-thirdparty-boopickle-shaded_2.13-2.2.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/2.2.5/izumi-reflect_2.13-2.2.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/1.0.18/zio-stacktracer_2.13-1.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/1.0.18/zio-streams_2.13-1.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_2.13/1.0.18/zio-test_2.13-1.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/1.0.18/zio_2.13-1.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.2/portable-scala-reflect_2.13-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixinput/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixinput/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/input/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.18",
+      "options": [
+        "-Yrangepos"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.18/scala-compiler-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.16/java-diff-utils-4.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.29.0/jline-3.29.0-jdk8.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixinput/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+          "version": "2.2.5",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/2.2.5/izumi-reflect-thirdparty-boopickle-shaded_2.13-2.2.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.13",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.2/portable-scala-reflect_2.13-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.13",
+          "version": "1.0.18",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/1.0.18/zio-stacktracer_2.13-1.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.13",
+          "version": "2.2.5",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/2.2.5/izumi-reflect_2.13-2.2.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.13",
+          "version": "1.0.18",
+          "artifacts": [
+            {
+              "name": "zio_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/1.0.18/zio_2.13-1.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-test_2.13",
+          "version": "1.0.18",
+          "artifacts": [
+            {
+              "name": "zio-test_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-test_2.13/1.0.18/zio-test_2.13-1.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.13",
+          "version": "1.0.18",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/1.0.18/zio-streams_2.13-1.0.18.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -9,7 +9,7 @@ object BleepFileWatching {
     val sourceProjectPairs: Iterator[(Path, model.CrossProjectName)] =
       projects.all.iterator.flatMap { name =>
         val p = started.build.explodedProjects(name)
-        val paths = started.buildPaths.project(name, p)
+        val paths = started.buildPaths.project(name, p, started.build.crossPlatforms(name.name))
         ProjectInputs.all(p, paths).iterator.map(path => (path, name))
       }
 

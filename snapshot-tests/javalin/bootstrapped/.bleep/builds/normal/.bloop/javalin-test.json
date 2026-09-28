@@ -1,0 +1,1849 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javalin-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-sources/scripts.GenerateForJavalinTest",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/kotlin"
+    ],
+    "dependencies": [
+      "javalin"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.23.0/brotli4j-1.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/native-osx-aarch64/1.23.0/native-osx-aarch64-1.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.23.0/service-1.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.2/jackson-databind-2.22.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.2/jackson-datatype-jsr310-2.22.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-kotlin/2.22.2/jackson-module-kotlin-2.22.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-core/3.7.1/docker-java-core-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-httpclient5/3.7.1/docker-java-transport-httpclient5-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java/3.7.1/docker-java-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.7-15/zstd-jni-1.5.7-15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.14.0/gson-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.48.0/error_prone_annotations-2.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/konghq/unirest-java/3.14.5/unirest-java-3.14.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi-kotlin/1.15.2/moshi-kotlin-1.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi/1.15.2/moshi-1.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.5.0/okhttp-jvm-5.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.18.1/okio-jvm-3.18.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.21.0/commons-io-2.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/bonigarcia/webdrivermanager/6.3.4/webdrivermanager-6.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-agent-api-jvm/1.14.11/mockk-agent-api-jvm-1.14.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-agent-jvm/1.14.11/mockk-agent-jvm-1.14.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-core-jvm/1.14.11/mockk-core-jvm-1.14.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-dsl-jvm/1.14.11/mockk-dsl-jvm-1.14.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-jvm/1.14.11/mockk-jvm-1.14.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.65.0/opentelemetry-api-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-common/1.65.0/opentelemetry-common-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.65.0/opentelemetry-context-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-logging/1.65.0/opentelemetry-exporter-logging-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.65.0/opentelemetry-sdk-common-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.65.0/opentelemetry-sdk-extension-autoconfigure-spi-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.65.0/opentelemetry-sdk-extension-autoconfigure-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.65.0/opentelemetry-sdk-logs-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.65.0/opentelemetry-sdk-metrics-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.65.0/opentelemetry-sdk-trace-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.65.0/opentelemetry-sdk-1.65.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.2/byte-buddy-agent-1.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.11/byte-buddy-1.18.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.6/httpclient5-5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.4/httpcore5-h2-5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.4/httpcore5-5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpasyncclient/4.1.5/httpasyncclient-4.1.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.13/httpcore-nio-4.4.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/brotli/dec/0.1.2/dec-0.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/compression/jetty-compression-common/12.1.12/jetty-compression-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/compression/jetty-compression-gzip/12.1.12/jetty-compression-gzip-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee/jetty-ee-webapp/12.1.12/jetty-ee-webapp-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-annotations/12.1.12/jetty-ee10-annotations-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-plus/12.1.12/jetty-ee10-plus-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlet/12.1.12/jetty-ee10-servlet-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-webapp/12.1.12/jetty-ee10-webapp-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-jetty-server/12.1.12/jetty-ee10-websocket-jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-servlet/12.1.12/jetty-ee10-websocket-servlet-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-client-transport/12.1.12/jetty-http2-client-transport-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-client/12.1.12/jetty-http2-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-common/12.1.12/jetty-http2-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-hpack/12.1.12/jetty-http2-hpack-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-server/12.1.12/jetty-http2-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-client/12.1.12/jetty-alpn-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-java-client/12.1.12/jetty-alpn-java-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-java-server/12.1.12/jetty-alpn-java-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-server/12.1.12/jetty-alpn-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-annotations/12.1.12/jetty-annotations-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-client/12.1.12/jetty-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/12.1.12/jetty-http-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/12.1.12/jetty-io-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-jndi/12.1.12/jetty-jndi-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-plus/12.1.12/jetty-plus-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/12.1.12/jetty-security-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/12.1.12/jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-session/12.1.12/jetty-session-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-unixdomain-server/12.1.12/jetty-unixdomain-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/12.1.12/jetty-util-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-xml/12.1.12/jetty-xml-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-client/12.1.12/jetty-websocket-core-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-common/12.1.12/jetty-websocket-core-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-server/12.1.12/jetty-websocket-core-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-api/12.1.12/jetty-websocket-jetty-api-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-client/12.1.12/jetty-websocket-jetty-client-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-common/12.1.12/jetty-websocket-jetty-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-server/12.1.12/jetty-websocket-jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.6.0/Java-WebSocket-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/26.1.0/annotations-26.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.2.21/kotlin-reflect-2.2.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.21/kotlin-stdlib-jdk7-1.8.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.21/kotlin-stdlib-2.2.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.1.3/junit-jupiter-params-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.4/objenesis-3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-api/4.48.0/selenium-api-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-chrome-driver/4.48.0/selenium-chrome-driver-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-chromium-driver/4.48.0/selenium-chromium-driver-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-http/4.48.0/selenium-http-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-json/4.48.0/selenium-json-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-manager/4.48.0/selenium-manager-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-os/4.48.0/selenium-os-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-remote-driver/4.48.0/selenium-remote-driver-4.48.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.18/slf4j-simple-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/swagger-ui/4.10.3/swagger-ui-4.10.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.2.2/jackson-core-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.2.2/jackson-databind-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/module/jackson-module-kotlin/3.2.2/jackson-module-kotlin-3.2.2.jar",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-resources/scripts.GenerateForJavalinTest",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.11",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.11/byte-buddy-1.18.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-alpn-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-alpn-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-client/12.1.12/jetty-alpn-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.auto.service",
+          "name": "auto-service-annotations",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "auto-service-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.4",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.4/objenesis-3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-metrics",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.65.0/opentelemetry-sdk-metrics-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore-nio",
+          "version": "4.4.13",
+          "artifacts": [
+            {
+              "name": "httpcore-nio",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.13/httpcore-nio-4.4.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-context",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.65.0/opentelemetry-context-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.65.0/opentelemetry-sdk-extension-autoconfigure-spi-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.webjars",
+          "name": "swagger-ui",
+          "version": "4.10.3",
+          "artifacts": [
+            {
+              "name": "swagger-ui",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/swagger-ui/4.10.3/swagger-ui-4.10.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-core-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-core-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-server/12.1.12/jetty-websocket-core-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.moshi",
+          "name": "moshi-kotlin",
+          "version": "1.15.2",
+          "artifacts": [
+            {
+              "name": "moshi-kotlin",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi-kotlin/1.15.2/moshi-kotlin-1.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.14.0/gson-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okio",
+          "name": "okio-jvm",
+          "version": "3.18.1",
+          "artifacts": [
+            {
+              "name": "okio-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.18.1/okio-jvm-3.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.13",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.mockk",
+          "name": "mockk-dsl-jvm",
+          "version": "1.14.11",
+          "artifacts": [
+            {
+              "name": "mockk-dsl-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-dsl-jvm/1.14.11/mockk-dsl-jvm-1.14.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.mockk",
+          "name": "mockk-core-jvm",
+          "version": "1.14.11",
+          "artifacts": [
+            {
+              "name": "mockk-core-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-core-jvm/1.14.11/mockk-core-jvm-1.14.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-core-jvm",
+          "version": "1.10.2",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-core-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-api",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-api/12.1.12/jetty-websocket-jetty-api-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-commons",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-math3",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "commons-math3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-io",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/12.1.12/jetty-io-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.21.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.21.0/commons-io-2.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-os",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-os",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-os/4.48.0/selenium-os-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jcl-over-slf4j",
+          "version": "1.7.30",
+          "artifacts": [
+            {
+              "name": "jcl-over-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.brotli",
+          "name": "dec",
+          "version": "0.1.2",
+          "artifacts": [
+            {
+              "name": "dec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/brotli/dec/0.1.2/dec-0.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.compression",
+          "name": "jetty-compression-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-compression-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/compression/jetty-compression-common/12.1.12/jetty-compression-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-chromium-driver",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-chromium-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-chromium-driver/4.48.0/selenium-chromium-driver-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.48.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.48.0/error_prone_annotations-2.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.client5",
+          "name": "httpclient5",
+          "version": "5.6",
+          "artifacts": [
+            {
+              "name": "httpclient5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.6/httpclient5-5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-alpn-java-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-alpn-java-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-java-server/12.1.12/jetty-alpn-java-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-common",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.65.0/opentelemetry-sdk-common-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.22.2",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.2/jackson-databind-2.22.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-security",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-security",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/12.1.12/jetty-security-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-util",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/12.1.12/jetty-util-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-json",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-json/4.48.0/selenium-json-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.bonigarcia",
+          "name": "webdrivermanager",
+          "version": "6.3.4",
+          "artifacts": [
+            {
+              "name": "webdrivermanager",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/bonigarcia/webdrivermanager/6.3.4/webdrivermanager-6.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-logging",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-exporter-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-logging/1.65.0/opentelemetry-exporter-logging-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-extension-autoconfigure",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-extension-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure/1.65.0/opentelemetry-sdk-extension-autoconfigure-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10.websocket",
+          "name": "jetty-ee10-websocket-jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-websocket-jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-jetty-server/12.1.12/jetty-ee10-websocket-jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "26.1.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/26.1.0/annotations-26.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.20.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpasyncclient",
+          "version": "4.1.5",
+          "artifacts": [
+            {
+              "name": "httpasyncclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpasyncclient/4.1.5/httpasyncclient-4.1.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.jopt-simple",
+          "name": "jopt-simple",
+          "version": "5.0.4",
+          "artifacts": [
+            {
+              "name": "jopt-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/12.1.12/jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-logs",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-logs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.65.0/opentelemetry-sdk-logs-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-core",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.http2",
+          "name": "jetty-http2-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http2-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-common/12.1.12/jetty-http2-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk7",
+          "version": "1.8.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk7",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.21/kotlin-stdlib-jdk7-1.8.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.lang-model",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.lang-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.moshi",
+          "name": "moshi",
+          "version": "1.15.2",
+          "artifacts": [
+            {
+              "name": "moshi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi/1.15.2/moshi-1.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-core-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-core-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-client/12.1.12/jetty-websocket-core-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-session",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-session",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-session/12.1.12/jetty-session-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-http",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-http/4.48.0/selenium-http-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-reflect",
+          "version": "2.2.21",
+          "artifacts": [
+            {
+              "name": "kotlin-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.2.21/kotlin-reflect-2.2.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okhttp3",
+          "name": "okhttp-jvm",
+          "version": "5.5.0",
+          "artifacts": [
+            {
+              "name": "okhttp-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.5.0/okhttp-jvm-5.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-generator-annprocess",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-generator-annprocess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-databind",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.2.2/jackson-databind-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.annotation",
+          "name": "jakarta.annotation-api",
+          "version": "2.1.1",
+          "artifacts": [
+            {
+              "name": "jakarta.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee",
+          "name": "jetty-ee-webapp",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee-webapp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee/jetty-ee-webapp/12.1.12/jetty-ee-webapp-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-tree",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm-tree",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-xml",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-xml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-xml/12.1.12/jetty-xml-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.18.2",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.2/byte-buddy-agent-1.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "brotli4j",
+          "version": "1.23.0",
+          "artifacts": [
+            {
+              "name": "brotli4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.23.0/brotli4j-1.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.18.1",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-annotations",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-annotations/12.1.12/jetty-annotations-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-kotlin",
+          "version": "2.22.2",
+          "artifacts": [
+            {
+              "name": "jackson-module-kotlin",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-kotlin/2.22.2/jackson-module-kotlin-2.22.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-api",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.65.0/opentelemetry-api-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-webapp",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-webapp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-webapp/12.1.12/jetty-ee10-webapp-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10.websocket",
+          "name": "jetty-ee10-websocket-servlet",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-websocket-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-servlet/12.1.12/jetty-ee10-websocket-servlet-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.http2",
+          "name": "jetty-http2-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http2-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-client/12.1.12/jetty-http2-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.19.0",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.servlet",
+          "name": "jakarta.servlet-api",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "jakarta.servlet-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-plus",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-plus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-plus/12.1.12/jetty-plus-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.mockk",
+          "name": "mockk-agent-api-jvm",
+          "version": "1.14.11",
+          "artifacts": [
+            {
+              "name": "mockk-agent-api-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-agent-api-jvm/1.14.11/mockk-agent-api-jvm-1.14.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-chrome-driver",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-chrome-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-chrome-driver/4.48.0/selenium-chrome-driver-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.mockk",
+          "name": "mockk-agent-jvm",
+          "version": "1.14.11",
+          "artifacts": [
+            {
+              "name": "mockk-agent-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-agent-jvm/1.14.11/mockk-agent-jvm-1.14.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.6.0-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "native-osx-aarch64",
+          "version": "1.23.0",
+          "artifacts": [
+            {
+              "name": "native-osx-aarch64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/native-osx-aarch64/1.23.0/native-osx-aarch64-1.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-unixdomain-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-unixdomain-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-unixdomain-server/12.1.12/jetty-unixdomain-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-client/12.1.12/jetty-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-common/12.1.12/jetty-websocket-jetty-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-annotations",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-annotations/12.1.12/jetty-ee10-annotations-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-http",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/12.1.12/jetty-http-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-alpn-java-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-alpn-java-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-java-client/12.1.12/jetty-alpn-java-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-core",
+          "version": "1.10.2",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-api",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.java-websocket",
+          "name": "Java-WebSocket",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "Java-WebSocket",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.6.0/Java-WebSocket-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java/3.7.1/docker-java-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.1.3/junit-jupiter-params-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.2",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "service",
+          "version": "1.23.0",
+          "artifacts": [
+            {
+              "name": "service",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.23.0/service-1.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-plus",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-plus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-plus/12.1.12/jetty-ee10-plus-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.core5",
+          "name": "httpcore5-h2",
+          "version": "5.4",
+          "artifacts": [
+            {
+              "name": "httpcore5-h2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.4/httpcore5-h2-5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.13",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.http2",
+          "name": "jetty-http2-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http2-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-server/12.1.12/jetty-http2-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.2.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.21/kotlin-stdlib-2.2.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.module",
+          "name": "jackson-module-kotlin",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "jackson-module-kotlin",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/module/jackson-module-kotlin/3.2.2/jackson-module-kotlin-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.mockk",
+          "name": "mockk-jvm",
+          "version": "1.14.11",
+          "artifacts": [
+            {
+              "name": "mockk-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/mockk/mockk-jvm/1.14.11/mockk-jvm-1.14.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-alpn-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-alpn-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-alpn-server/12.1.12/jetty-alpn-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-core",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-core/3.7.1/docker-java-core-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.core5",
+          "name": "httpcore5",
+          "version": "5.4",
+          "artifacts": [
+            {
+              "name": "httpcore5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.4/httpcore5-5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-trace",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-trace",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.65.0/opentelemetry-sdk-trace-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-manager",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-manager",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-manager/4.48.0/selenium-manager-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-common",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-common/1.65.0/opentelemetry-common-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.luben",
+          "name": "zstd-jni",
+          "version": "1.5.7-15",
+          "artifacts": [
+            {
+              "name": "zstd-jni",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.7-15/zstd-jni-1.5.7-15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.transaction",
+          "name": "jakarta.transaction-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.transaction-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.compression",
+          "name": "jetty-compression-gzip",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-compression-gzip",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/compression/jetty-compression-gzip/12.1.12/jetty-compression-gzip-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.http2",
+          "name": "jetty-http2-client-transport",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http2-client-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-client-transport/12.1.12/jetty-http2-client-transport-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpmime",
+          "version": "4.5.13",
+          "artifacts": [
+            {
+              "name": "httpmime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.interceptor",
+          "name": "jakarta.interceptor-api",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.interceptor-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.22.2",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.2/jackson-datatype-jsr310-2.22.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-remote-driver",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-remote-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-remote-driver/4.48.0/selenium-remote-driver-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.konghq",
+          "name": "unirest-java",
+          "version": "3.14.5",
+          "artifacts": [
+            {
+              "name": "unirest-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/konghq/unirest-java/3.14.5/unirest-java-3.14.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-client",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-client/12.1.12/jetty-websocket-jetty-client-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk",
+          "version": "1.65.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.65.0/opentelemetry-sdk-1.65.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-core-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-core-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-common/12.1.12/jetty-websocket-core-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.seleniumhq.selenium",
+          "name": "selenium-api",
+          "version": "4.48.0",
+          "artifacts": [
+            {
+              "name": "selenium-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-api/4.48.0/selenium-api-4.48.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-servlet",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlet/12.1.12/jetty-ee10-servlet-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk8",
+          "version": "1.8.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-server/12.1.12/jetty-websocket-jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.http2",
+          "name": "jetty-http2-hpack",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http2-hpack",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/http2/jetty-http2-hpack/12.1.12/jetty-http2-hpack-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-core",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.2.2/jackson-core-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.cdi-api",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.cdi-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport-httpclient5",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport-httpclient5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-httpclient5/3.7.1/docker-java-transport-httpclient5-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-simple",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.18/slf4j-simple-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-jndi",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-jndi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-jndi/12.1.12/jetty-jndi-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# template inference
+templates: 3
+projects: 12
+settings: 84 (73 in projects, 11 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: cli-test, core-test, docs, docs-test, import-scalajs-definitions-test, importer-portable-test, logging-test, phases-test, sbt-converter-test, scalajs-test, ts-test
+compared: 11, identical: 10
+
+sbt-converter
+  classpath
+    ~ httpcore: 4.4.13 -> 4.4.11

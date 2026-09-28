@@ -1,0 +1,85 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-reactive-wrappers",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-reactive-wrappers/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/reactive/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.21/rxjava-2.2.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-reactive-wrappers/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-reactive-wrappers/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/reactive/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/reactive"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.reactivex.rxjava2",
+          "name": "rxjava",
+          "version": "2.2.21",
+          "artifacts": [
+            {
+              "name": "rxjava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.21/rxjava-2.2.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.projectreactor",
+          "name": "reactor-core",
+          "version": "3.8.7",
+          "artifacts": [
+            {
+              "name": "reactor-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

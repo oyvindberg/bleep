@@ -1,0 +1,96 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-httpclient",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/httpclient/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.1/commons-codec-1.22.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/httpclient/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/httpclient"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.22.1",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.1/commons-codec-1.22.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.16",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

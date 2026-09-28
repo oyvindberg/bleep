@@ -39,7 +39,7 @@ case class Started(
     )
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
-    buildPaths.project(crossName, build.explodedProjects(crossName))
+    buildPaths.project(crossName, build.explodedProjects(crossName), build.crossPlatforms(crossName.name))
 
   lazy val globs: model.ProjectGlobs =
     new model.ProjectGlobs(activeProjectsFromPath, build.explodedProjects)

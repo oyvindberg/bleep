@@ -1,0 +1,1595 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "mapstruct-processor-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/test/kotlin"
+    ],
+    "dependencies": [
+      "mapstruct",
+      "mapstruct-processor"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo.gradle.org/artifactory/libs-releases/org/slf4j/slf4j-api/1.7.29/slf4j-api-1.7.29.jar",
+      "<COURSIER>/https/repo.gradle.org/artifactory/libs-releases/org/slf4j/slf4j-simple/1.7.29/slf4j-simple-1.7.29.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/collections/google-collections/1.0/google-collections-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.5.0-jre/guava-33.5.0-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.1/guice-4.2.1-no_aop.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/puppycrawl/tools/checkstyle/13.0.0/checkstyle-13.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/jakarta.activation/2.0.1/jakarta.activation-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.15.0/commons-io-2.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/de/pdark/decentxml/1.4/decentxml-1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/info/picocli/picocli/4.7.7/picocli-4.7.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.16.2/micrometer-commons-1.16.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.16.2/micrometer-observation-1.16.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.0/jakarta.annotation-api-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/el/jakarta.el-api/5.0.0/jakarta.el-api-5.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/el/javax.el-api/3.0.0/javax.el-api-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/enterprise/cdi-api/2.0.SP1/cdi-api-2.0.SP1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/interceptor/javax.interceptor-api/1.2/javax.interceptor-api-1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.12.5/joda-time-2.12.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.3/byte-buddy-1.18.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/saxon/Saxon-HE/12.9/Saxon-HE-12.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.18/commons-compress-1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-exec/1.3/commons-exec-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.3/commons-text-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.14/httpcore-4.4.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-core/1.12.0/doxia-core-1.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-logging-api/1.12.0/doxia-logging-api-1.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.12.0/doxia-module-xdoc-1.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-sink-api/1.12.0/doxia-sink-api-1.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-artifact/3.6.3/maven-artifact-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-builder-support/3.6.3/maven-builder-support-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-compat/3.6.3/maven-compat-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-core/3.6.3/maven-core-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model-builder/3.6.3/maven-model-builder-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.6.3/maven-model-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-plugin-api/3.6.3/maven-plugin-api-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-repository-metadata/3.6.3/maven-repository-metadata-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-resolver-provider/3.6.3/maven-resolver-provider-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings-builder/3.6.3/maven-settings-builder-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings/3.6.3/maven-settings-3.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-api/1.4.1/maven-resolver-api-1.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-impl/1.4.1/maven-resolver-impl-1.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-spi/1.4.1/maven-resolver-spi-1.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-util/1.4.1/maven-resolver-util-1.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/shared/maven-shared-utils/3.2.1/maven-shared-utils-3.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/wagon/wagon-provider-api/3.3.4/wagon-provider-api-3.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.52.1/checker-qual-3.52.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.2.1/plexus-archiver-4.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-compiler-api/2.8.5/plexus-compiler-api-2.8.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-component-annotations/2.1.0/plexus-component-annotations-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.0/plexus-container-default-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-interpolation/1.25/plexus-interpolation-1.25.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.2.0/plexus-io-3.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.2.1/plexus-utils-3.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jdt/ecj/3.20.0/ecj-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.osgi.compatibility.state/1.1.600/org.eclipse.osgi.compatibility.state-1.1.600.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.osgi/3.15.100/org.eclipse.osgi-3.15.100.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/0.3.4/org.eclipse.sisu.inject-0.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/0.3.4/org.eclipse.sisu.plexus-0.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.core.shared/1.6.0/org.eclipse.tycho.core.shared-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.embedder.shared/1.6.0/org.eclipse.tycho.embedder.shared-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.p2.tools.shared/1.6.0/org.eclipse.tycho.p2.tools.shared-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/sisu-equinox-api/1.6.0/sisu-equinox-api-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/sisu-equinox-embedder/1.6.0/sisu-equinox-embedder-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-compiler-jdt/1.6.0/tycho-compiler-jdt-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-core/1.6.0/tycho-core-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-embedder-api/1.6.0/tycho-embedder-api-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-lib-detector/1.6.0/tycho-lib-detector-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-metadata-model/1.6.0/tycho-metadata-model-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/freemarker/freemarker/2.3.34/freemarker-2.3.34.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/javassist/javassist/3.28.0-GA/javassist-3.28.0-GA.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.3.0/kotlin-compiler-embeddable-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.3.0/kotlin-daemon-embeddable-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-metadata-jvm/2.3.0/kotlin-metadata-jvm-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.3.0/kotlin-reflect-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.3.0/kotlin-script-runtime-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.0/kotlin-stdlib-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit-pioneer/junit-pioneer/2.2.0/junit-pioneer-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/5.14.1/junit-jupiter-api-5.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.14.1/junit-jupiter-engine-5.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/5.14.1/junit-jupiter-params-5.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/1.14.1/junit-platform-commons-1.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/1.14.1/junit-platform-engine-1.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/1.14.1/junit-platform-launcher-1.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mapstruct/tools/gem/gem-api/1.0.0.Alpha3/gem-api-1.0.0.Alpha3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reflections/reflections/0.10.2/reflections-0.10.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/sonatype/plexus/plexus-cipher/1.7/plexus-cipher-1.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/sonatype/plexus/plexus-sec-dispatcher/1.4/plexus-sec-dispatcher-1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.3/spring-aop-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.3/spring-beans-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.3/spring-context-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.3/spring-core-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.3/spring-expression-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.3/spring-test-7.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/tukaani/xz/1.8/xz-1.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3-data.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor",
+          "-Xms1024m",
+          "-Xmx3072m"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.13",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-expression",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-expression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.3/spring-expression-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.3.1",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-plugin-api",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-plugin-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-plugin-api/3.6.3/maven-plugin-api-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.3",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.3/byte-buddy-1.18.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject",
+          "name": "guice",
+          "version": "4.2.1",
+          "artifacts": [
+            {
+              "name": "guice",
+              "classifier": "no_aop",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.1/guice-4.2.1-no_aop.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-io",
+          "version": "3.2.0",
+          "artifacts": [
+            {
+              "name": "plexus-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.2.0/plexus-io-3.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-settings",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-settings",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings/3.6.3/maven-settings-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.tukaani",
+          "name": "xz",
+          "version": "1.8",
+          "artifacts": [
+            {
+              "name": "xz",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tukaani/xz/1.8/xz-1.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.el",
+          "name": "javax.el-api",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "javax.el-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/el/javax.el-api/3.0.0/javax.el-api-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-model",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.6.3/maven-model-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.inject",
+          "name": "javax.inject",
+          "version": "1",
+          "artifacts": [
+            {
+              "name": "javax.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "tycho-compiler-jdt",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "tycho-compiler-jdt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-compiler-jdt/1.6.0/tycho-compiler-jdt-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "org.eclipse.tycho.core.shared",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "org.eclipse.tycho.core.shared",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.core.shared/1.6.0/org.eclipse.tycho.core.shared-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-core-jvm",
+          "version": "1.8.0",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-core-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "tycho-embedder-api",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "tycho-embedder-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-embedder-api/1.6.0/tycho-embedder-api-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.15.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.15.0/commons-io-2.15.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-builder-support",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-builder-support",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-builder-support/3.6.3/maven-builder-support-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.52.1",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.52.1/checker-qual-3.52.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.interceptor",
+          "name": "javax.interceptor-api",
+          "version": "1.2",
+          "artifacts": [
+            {
+              "name": "javax.interceptor-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/interceptor/javax.interceptor-api/1.2/javax.interceptor-api-1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-utils",
+          "version": "3.2.1",
+          "artifacts": [
+            {
+              "name": "plexus-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.2.1/plexus-utils-3.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-artifact",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-artifact",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-artifact/3.6.3/maven-artifact-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-beanutils",
+          "name": "commons-beanutils",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "commons-beanutils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.41.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-api",
+          "version": "1.4.1",
+          "artifacts": [
+            {
+              "name": "maven-resolver-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-api/1.4.1/maven-resolver-api-1.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "5.14.1",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/5.14.1/junit-jupiter-api-5.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-resolver-provider",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-resolver-provider",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-resolver-provider/3.6.3/maven-resolver-provider-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.sonatype.plexus",
+          "name": "plexus-cipher",
+          "version": "1.7",
+          "artifacts": [
+            {
+              "name": "plexus-cipher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/sonatype/plexus/plexus-cipher/1.7/plexus-cipher-1.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.platform",
+          "name": "org.eclipse.osgi",
+          "version": "3.15.100",
+          "artifacts": [
+            {
+              "name": "org.eclipse.osgi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.osgi/3.15.100/org.eclipse.osgi-3.15.100.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.platform",
+          "name": "org.eclipse.osgi.compatibility.state",
+          "version": "1.1.600",
+          "artifacts": [
+            {
+              "name": "org.eclipse.osgi.compatibility.state",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.osgi.compatibility.state/1.1.600/org.eclipse.osgi.compatibility.state-1.1.600.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.8.1",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.xmlresolver",
+          "name": "xmlresolver",
+          "version": "5.3.3",
+          "artifacts": [
+            {
+              "name": "xmlresolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.jar"
+            },
+            {
+              "name": "xmlresolver",
+              "classifier": "data",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3-data.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.doxia",
+          "name": "doxia-sink-api",
+          "version": "1.12.0",
+          "artifacts": [
+            {
+              "name": "doxia-sink-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-sink-api/1.12.0/doxia-sink-api-1.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "13.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-daemon-embeddable",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-daemon-embeddable",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.3.0/kotlin-daemon-embeddable-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.5",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.sisu",
+          "name": "org.eclipse.sisu.inject",
+          "version": "0.3.4",
+          "artifacts": [
+            {
+              "name": "org.eclipse.sisu.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/0.3.4/org.eclipse.sisu.inject-0.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.doxia",
+          "name": "doxia-logging-api",
+          "version": "1.12.0",
+          "artifacts": [
+            {
+              "name": "doxia-logging-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-logging-api/1.12.0/doxia-logging-api-1.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-compat",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-compat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-compat/3.6.3/maven-compat-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.freemarker",
+          "name": "freemarker",
+          "version": "2.3.34",
+          "artifacts": [
+            {
+              "name": "freemarker",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/freemarker/freemarker/2.3.34/freemarker-2.3.34.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-compiler-embeddable",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-compiler-embeddable",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.3.0/kotlin-compiler-embeddable-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "sisu-equinox-api",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "sisu-equinox-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/sisu-equinox-api/1.6.0/sisu-equinox-api-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-compiler-api",
+          "version": "2.8.5",
+          "artifacts": [
+            {
+              "name": "plexus-compiler-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-compiler-api/2.8.5/plexus-compiler-api-2.8.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-collections",
+          "name": "commons-collections",
+          "version": "3.2.2",
+          "artifacts": [
+            {
+              "name": "commons-collections",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-aop",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-aop",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.3/spring-aop-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.3/spring-core-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-context",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.3/spring-context-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.doxia",
+          "name": "doxia-core",
+          "version": "1.12.0",
+          "artifacts": [
+            {
+              "name": "doxia-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-core/1.12.0/doxia-core-1.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.lang-model",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.lang-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.iq80.snappy",
+          "name": "snappy",
+          "version": "0.4",
+          "artifacts": [
+            {
+              "name": "snappy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-core",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-core/3.6.3/maven-core-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.annotation",
+          "name": "jakarta.annotation-api",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.0/jakarta.annotation-api-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "org.eclipse.tycho.embedder.shared",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "org.eclipse.tycho.embedder.shared",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.embedder.shared/1.6.0/org.eclipse.tycho.embedder.shared-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-launcher",
+          "version": "1.14.1",
+          "artifacts": [
+            {
+              "name": "junit-platform-launcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/1.14.1/junit-platform-launcher-1.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.puppycrawl.tools",
+          "name": "checkstyle",
+          "version": "13.0.0",
+          "artifacts": [
+            {
+              "name": "checkstyle",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/puppycrawl/tools/checkstyle/13.0.0/checkstyle-13.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-reflect",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.3.0/kotlin-reflect-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.doxia",
+          "name": "doxia-module-xdoc",
+          "version": "1.12.0",
+          "artifacts": [
+            {
+              "name": "doxia-module-xdoc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/doxia/doxia-module-xdoc/1.12.0/doxia-module-xdoc-1.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-repository-metadata",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-repository-metadata",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-repository-metadata/3.6.3/maven-repository-metadata-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.antlr",
+          "name": "antlr4-runtime",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "antlr4-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "tycho-lib-detector",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "tycho-lib-detector",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-lib-detector/1.6.0/tycho-lib-detector-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-interpolation",
+          "version": "1.25",
+          "artifacts": [
+            {
+              "name": "plexus-interpolation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-interpolation/1.25/plexus-interpolation-1.25.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.xbean",
+          "name": "xbean-reflect",
+          "version": "3.7",
+          "artifacts": [
+            {
+              "name": "xbean-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.enterprise",
+          "name": "cdi-api",
+          "version": "2.0.SP1",
+          "artifacts": [
+            {
+              "name": "cdi-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/enterprise/cdi-api/2.0.SP1/cdi-api-2.0.SP1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "5.14.1",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.14.1/junit-jupiter-engine-5.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-exec",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "commons-exec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-exec/1.3/commons-exec-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-text",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "commons-text",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.3/commons-text-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "info.picocli",
+          "name": "picocli",
+          "version": "4.7.7",
+          "artifacts": [
+            {
+              "name": "picocli",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/info/picocli/picocli/4.7.7/picocli-4.7.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-component-annotations",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "plexus-component-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-component-annotations/2.1.0/plexus-component-annotations-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.11",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-beans",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-beans",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.3/spring-beans-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "tycho-metadata-model",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "tycho-metadata-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-metadata-model/1.6.0/tycho-metadata-model-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.5.0-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.5.0-jre/guava-33.5.0-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.wagon",
+          "name": "wagon-provider-api",
+          "version": "3.3.4",
+          "artifacts": [
+            {
+              "name": "wagon-provider-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/wagon/wagon-provider-api/3.3.4/wagon-provider-api-3.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-test",
+          "version": "7.0.3",
+          "artifacts": [
+            {
+              "name": "spring-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.3/spring-test-7.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-util",
+          "version": "1.4.1",
+          "artifacts": [
+            {
+              "name": "maven-resolver-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-util/1.4.1/maven-resolver-util-1.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mapstruct.tools.gem",
+          "name": "gem-api",
+          "version": "1.0.0.Alpha3",
+          "artifacts": [
+            {
+              "name": "gem-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mapstruct/tools/gem/gem-api/1.0.0.Alpha3/gem-api-1.0.0.Alpha3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit-pioneer",
+          "name": "junit-pioneer",
+          "version": "2.2.0",
+          "artifacts": [
+            {
+              "name": "junit-pioneer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit-pioneer/junit-pioneer/2.2.0/junit-pioneer-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.javassist",
+          "name": "javassist",
+          "version": "3.28.0-GA",
+          "artifacts": [
+            {
+              "name": "javassist",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/javassist/javassist/3.28.0-GA/javassist-3.28.0-GA.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "5.14.1",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/5.14.1/junit-jupiter-params-5.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-metadata-jvm",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-metadata-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-metadata-jvm/2.3.0/kotlin-metadata-jvm-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.saxon",
+          "name": "Saxon-HE",
+          "version": "12.9",
+          "artifacts": [
+            {
+              "name": "Saxon-HE",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/saxon/Saxon-HE/12.9/Saxon-HE-12.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-classworlds",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "plexus-classworlds",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.14",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.14/httpcore-4.4.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-script-runtime",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-script-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.3.0/kotlin-script-runtime-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.xml.bind",
+          "name": "jakarta.xml.bind-api",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.xml.bind-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-archiver",
+          "version": "4.2.1",
+          "artifacts": [
+            {
+              "name": "plexus-archiver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.2.1/plexus-archiver-4.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.0/kotlin-stdlib-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "1.14.1",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/1.14.1/junit-platform-engine-1.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "de.pdark",
+          "name": "decentxml",
+          "version": "1.4",
+          "artifacts": [
+            {
+              "name": "decentxml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/de/pdark/decentxml/1.4/decentxml-1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "org.eclipse.tycho.p2.tools.shared",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "org.eclipse.tycho.p2.tools.shared",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/org.eclipse.tycho.p2.tools.shared/1.6.0/org.eclipse.tycho.p2.tools.shared-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-container-default",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "plexus-container-default",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.0/plexus-container-default-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.18",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.18/commons-compress-1.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "sisu-equinox-embedder",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "sisu-equinox-embedder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/sisu-equinox-embedder/1.6.0/sisu-equinox-embedder-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reflections",
+          "name": "reflections",
+          "version": "0.10.2",
+          "artifacts": [
+            {
+              "name": "reflections",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reflections/reflections/0.10.2/reflections-0.10.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.29",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo.gradle.org/artifactory/libs-releases/org/slf4j/slf4j-api/1.7.29/slf4j-api-1.7.29.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.interceptor",
+          "name": "jakarta.interceptor-api",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.interceptor-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.sisu",
+          "name": "org.eclipse.sisu.plexus",
+          "version": "0.3.4",
+          "artifacts": [
+            {
+              "name": "org.eclipse.sisu.plexus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/0.3.4/org.eclipse.sisu.plexus-0.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-impl",
+          "version": "1.4.1",
+          "artifacts": [
+            {
+              "name": "maven-resolver-impl",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-impl/1.4.1/maven-resolver-impl-1.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-model-builder",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-model-builder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model-builder/3.6.3/maven-model-builder-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "1.14.1",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/1.14.1/junit-platform-commons-1.14.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.shared",
+          "name": "maven-shared-utils",
+          "version": "3.2.1",
+          "artifacts": [
+            {
+              "name": "maven-shared-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/shared/maven-shared-utils/3.2.1/maven-shared-utils-3.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "aopalliance",
+          "name": "aopalliance",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "aopalliance",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jdt",
+          "name": "ecj",
+          "version": "3.20.0",
+          "artifacts": [
+            {
+              "name": "ecj",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jdt/ecj/3.20.0/ecj-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.sonatype.plexus",
+          "name": "plexus-sec-dispatcher",
+          "version": "1.4",
+          "artifacts": [
+            {
+              "name": "plexus-sec-dispatcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/sonatype/plexus/plexus-sec-dispatcher/1.4/plexus-sec-dispatcher-1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "joda-time",
+          "name": "joda-time",
+          "version": "2.12.5",
+          "artifacts": [
+            {
+              "name": "joda-time",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.12.5/joda-time-2.12.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.cdi-api",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.cdi-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.el",
+          "name": "jakarta.el-api",
+          "version": "5.0.0",
+          "artifacts": [
+            {
+              "name": "jakarta.el-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/el/jakarta.el-api/5.0.0/jakarta.el-api-5.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-simple",
+          "version": "1.7.29",
+          "artifacts": [
+            {
+              "name": "slf4j-simple",
+              "path": "<COURSIER>/https/repo.gradle.org/artifactory/libs-releases/org/slf4j/slf4j-simple/1.7.29/slf4j-simple-1.7.29.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.16.2",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.16.2/micrometer-observation-1.16.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.tycho",
+          "name": "tycho-core",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "tycho-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/tycho/tycho-core/1.6.0/tycho-core-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-settings-builder",
+          "version": "3.6.3",
+          "artifacts": [
+            {
+              "name": "maven-settings-builder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings-builder/3.6.3/maven-settings-builder-3.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-spi",
+          "version": "1.4.1",
+          "artifacts": [
+            {
+              "name": "maven-resolver-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-spi/1.4.1/maven-resolver-spi-1.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.16.2",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.16.2/micrometer-commons-1.16.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.collections",
+          "name": "google-collections",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "google-collections",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/collections/google-collections/1.0/google-collections-1.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

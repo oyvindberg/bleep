@@ -8,6 +8,7 @@ import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 object runSbt {
@@ -67,6 +68,31 @@ object runSbt {
       }
 
       result
+    }
+
+    // bloop names its files after the project, and a test configuration `<project>-test`. Where the filesystem ignores case, play's `Play-Test` and the test
+    // configuration of `Play` are one file, and one of them silently goes missing
+    // asked of the build's own directory, which may be on another filesystem than its parent
+    val caseInsensitive: Boolean = {
+      val entries = Files.list(sbtBuildDir)
+      val someName =
+        try entries.iterator().asScala.map(_.getFileName.toString).find(name => name.toUpperCase != name.toLowerCase)
+        finally entries.close()
+      someName.exists { name =>
+        val otherCase = if (name == name.toUpperCase) name.toLowerCase else name.toUpperCase
+        otherCase != name && Files.exists(sbtBuildDir.resolve(otherCase))
+      }
+    }
+    if (caseInsensitive) {
+      allProjectNamesByBuild.foreach { case (buildDir, projectNames) =>
+        val fileNames = projectNames.flatMap(p => List(p, s"$p-test", s"$p-it"))
+        val clashes = fileNames.groupBy(_.toLowerCase).values.filter(_.distinct.size > 1).toList
+        if (clashes.nonEmpty)
+          throw new BleepException.Text(
+            s"The sbt build in $buildDir has projects whose bloop files would overwrite each other on this case-insensitive filesystem: " +
+              clashes.map(_.distinct.mkString(" and ")).mkString(", ") + ". Import it on a case-sensitive filesystem"
+          )
+      }
     }
 
     allProjectNamesByBuild.foreach { case ( /* shadow*/ sbtBuildDir, projectNames) =>

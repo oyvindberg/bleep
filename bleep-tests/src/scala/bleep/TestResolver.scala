@@ -79,6 +79,11 @@ object TestResolver {
   def withFactory[T](isCi: Boolean, cacheFolder: Path, replacements: model.Replacements)(f: CoursierResolver.Factory => T): T = {
     val cacheFile = cacheFolder / "resolve-cache.json.gz"
 
+    // written with paths only: an os mask cannot be undone, and a jar for `linux-aarch_64` came back from the cache as `darwin-aarch_64`. Reading still fills
+    // the masks of caches written before
+    val writeReplacements: model.Replacements =
+      model.Replacements.ofReplacements(replacements.sortedValues.filterNot { case (_, placeholder) => placeholder.startsWith("<MASKED_") })
+
     val inMemoryCache: mutable.Map[Cached.Request, CoursierResolver.Result] = {
       val existing =
         if (FileUtils.exists(cacheFile)) {
@@ -123,7 +128,7 @@ object TestResolver {
         val vector = inMemoryCache.toVector.map { case (req, res) =>
           val trimmedRes = res.copy(fullDetailedArtifacts = res.fullDetailedArtifacts.map { case (dep, p, a, of) =>
             val slimmedArtifact = a.copy(extra = Map.empty, checksumUrls = Map.empty)
-            val templatedFile = of.map(replacements.templatize.file)
+            val templatedFile = of.map(writeReplacements.templatize.file)
             (dep, p, slimmedArtifact, templatedFile)
           })
           (req, trimmedRes)

@@ -2,8 +2,8 @@ package bleep
 package sbtimport
 
 import bleep.internal.{BleepTemplateLogger, GeneratedFilesScript}
-import bleep.rewrites.{normalizeBuild, Defaults}
-import bleep.templates.templatesInfer
+import bleep.rewrites.normalizeBuild
+import bleep.templates.{mineTemplates, templatesInfer}
 import ryddig.Logger
 
 import java.nio.file.Path
@@ -20,28 +20,20 @@ object generateBuild {
       maybeExistingBuildFile: Option[model.BuildFile]
   ): Map[Path, String] = {
 
-    val build0 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion)
+    val build0 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion, options.filtering.excludeProjects)
 
     // Apply project name and platform filtering
     val filteredBuild = applyFiltering(build0, options.filtering, logger)
 
     val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
 
-    val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates)
+    val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates, mineTemplates.Costs.default)
 
     val buildFile1 =
       maybeExistingBuildFile match {
         case Some(existingBuild) => buildFile.copy(scripts = existingBuild.scripts)
         case None                => buildFile
       }
-
-    // complain if we have done illegal rewrites during templating
-    model.Build.diffProjects(Defaults.add(normalizedBuild, destinationPaths), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
-      case empty if empty.isEmpty => ()
-      case diffs                  =>
-        logger.error("Project templating did illegal rewrites. Please report this as a bug")
-        diffs.foreach { case (projectName, msg) => logger.withContext("projectName", projectName.value).error(msg) }
-    }
 
     logger.info(s"Imported ${filteredBuild.explodedProjects.size} cross targets for ${buildFile1.projects.value.size} projects")
 
@@ -113,7 +105,9 @@ object generateBuild {
 
         val genFiles: Map[Path, String] =
           generators.map { case (_, gen) =>
-            destinationPaths.project(scriptProjectName, scriptsProject).dir / s"src/scala/scripts/${gen.className}.scala" -> gen.contents
+            destinationPaths
+              .project(scriptProjectName, scriptsProject, scriptsProject.platform.flatMap(_.name).toSet)
+              .dir / s"src/scala/scripts/${gen.className}.scala" -> gen.contents
           }
 
         logger

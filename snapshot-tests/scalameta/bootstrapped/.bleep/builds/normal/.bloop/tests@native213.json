@@ -6,9 +6,11 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/tests@native213/generated-sources/scripts.GenerateForTests",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala-2.13",
@@ -134,7 +136,7 @@
       "name": "scala-compiler",
       "version": "2.13.16",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/${SCOPE}/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/tests@native213/builds/normal/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/tests@native213/generated-sources/scripts.GenerateForTests;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/main/scala-2.13",
         "-Wconf:cat=deprecation:is",
         "-Xfatal-warnings",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.13.16/0.5.6/nscplugin_2.13.16-0.5.6.jar",

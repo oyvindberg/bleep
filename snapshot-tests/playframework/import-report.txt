@@ -1,0 +1,291 @@
+# template inference
+templates: 17
+projects: 69
+settings: 586 (531 in projects, 55 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: Play-Bom, Play-Bom-test, Play-Build-Link-test, Play-Cache-test, Play-Cluster-Sharding-test, Play-Docs-Sbt-Plugin-test, Play-Docs-test, Play-Exceptions-test, Play-JDBC-Api-test, Play-Java-Cluster-Sharding-test, Play-Joda-Forms-test, Play-Pekko-Http2-Support-test, Play-WS-test, Sbt-Scripted-Tools-test
+compared: 126, identical: 80
+
+most common differences (projects, aspect, difference):
+   38  classpath ~ asm: 7.1 -> 9.5
+    4  classpath ~ asm: 9.0 -> 9.5
+    4  scala - version=2.12.20
+    4  scala.compilerJars - jar scala-compiler:2.12.20
+    4  scala.compilerJars - jar scala-library:2.12.20
+    4  scala.compilerJars - jar scala-reflect:2.12.20
+    4  scala.compilerJars - jar scala-xml_2.12:2.3.0
+    4  scala.options - -Xsource:3
+    4  scala.options - -deprecation
+    4  scala.options - -encoding utf8
+    4  scala.options - -feature
+    4  scala.options - -release:17
+    4  scala.options - -unchecked
+    4  scala.setup - addCompilerToClasspath=false
+    4  scala.setup - addExtraJarsToClasspath=false
+    4  scala.setup - addLibraryToBootClasspath=true
+    4  scala.setup - filterLibraryFromClasspath=true
+    4  scala.setup - manageBootClasspath=true
+    4  scala.setup - order=mixed
+
+play+test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play+test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play+test-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play+test-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-ahc-ws-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-ahc-ws-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-build-link
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Xsource:3
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -release:17
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed
+
+play-caffeine-cache-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-caffeine-cache-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-ehcache-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-ehcache-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-exceptions
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Xsource:3
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -release:17
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed
+
+play-filters-helpers-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-filters-helpers-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-integration+test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-integration+test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-integration+test-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-integration+test-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-forms-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-forms-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-jdbc-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-jdbc-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-jpa-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-jpa-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-java-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jcache-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jcache-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jdbc-evolutions-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jdbc-evolutions-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jdbc-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-jdbc-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-logback-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-logback-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-microbenchmark@jvm213
+  classpath
+    ~ asm: 9.0 -> 9.5
+
+play-microbenchmark@jvm3
+  classpath
+    ~ asm: 9.0 -> 9.5
+
+play-microbenchmark-test@jvm213
+  classpath
+    ~ asm: 9.0 -> 9.5
+
+play-microbenchmark-test@jvm3
+  classpath
+    ~ asm: 9.0 -> 9.5
+
+play-openid-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-openid-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-run-support
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Xsource:3
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -release:17
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed
+
+play-run-support-test
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Xsource:3
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -release:17
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed
+
+play-specs2@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-specs2@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-specs2-test@jvm213
+  classpath
+    ~ asm: 7.1 -> 9.5
+
+play-specs2-test@jvm3
+  classpath
+    ~ asm: 7.1 -> 9.5

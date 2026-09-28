@@ -18,7 +18,7 @@ case class ImportMaven(
     }
 
     val effectivePomPath = destinationPaths.bleepImportMavenDir / "effective-pom.xml"
-    val mavenProjects = mavenimport.parsePom(effectivePomPath)
+    val mavenProjects = mavenimport.parsePom(mavenimport.MavenFs.Real, effectivePomPath)
 
     logger.info(s"Parsed ${mavenProjects.size} Maven module(s)")
 
@@ -29,7 +29,9 @@ case class ImportMaven(
         options = options,
         bleepVersion = bleepVersion,
         bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
-        mavenProjects = mavenProjects
+        fs = mavenimport.MavenFs.Real,
+        mavenProjects = mavenProjects,
+        dependencyList = destinationPaths.bleepImportMavenDir / "dependency-list.txt"
       )
       .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 

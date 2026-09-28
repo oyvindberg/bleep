@@ -1,0 +1,21 @@
+# template inference
+templates: 0
+projects: 2
+settings: 51 (51 in projects, 0 in templates)
+
+# roundtrip
+maven classpaths (dependency:build-classpath) vs bleep resolved projects, normalized. `-` only in maven, `+` only in bleep, `~` same jar at another version
+maven modules without a bleep project: none
+compared: 2, identical: 1
+
+spring-petclinic
+  classpath
+    + jar HdrHistogram:2.2.2
+    + jar angus-activation:2.0.3
+    + jar byte-buddy:1.18.10
+    + jar hibernate-models:1.1.1
+    + jar istack-commons-runtime:4.1.2
+    + jar jakarta.inject-api:2.0.1
+    + jar jaxb-core:4.0.9
+    + jar jaxb-runtime:4.0.9
+    + jar txw2:4.0.9

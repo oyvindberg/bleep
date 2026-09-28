@@ -1,0 +1,62 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+projects:
+  spring-petclinic:
+    boms: org.springframework.boot:spring-boot-starter-parent:4.1.0
+    dependencies:
+    - configuration: runtime
+      module: com.github.ben-manes.caffeine:caffeine:3.2.4
+    - configuration: runtime
+      module: com.h2database:h2:2.4.240
+    - configuration: runtime
+      exclusions:
+        com.google.protobuf: protobuf-java
+      module: com.mysql:mysql-connector-j:9.7.0
+    - jakarta.xml.bind:jakarta.xml.bind-api:4.0.5
+    - javax.cache:cache-api:1.1.1
+    - configuration: runtime
+      module: org.postgresql:postgresql:42.7.11
+    - configuration: optional
+      module: org.springframework.boot:spring-boot-devtools:4.1.0
+    - org.springframework.boot:spring-boot-starter-actuator:4.1.0
+    - org.springframework.boot:spring-boot-starter-cache:4.1.0
+    - org.springframework.boot:spring-boot-starter-data-jpa:4.1.0
+    - org.springframework.boot:spring-boot-starter-thymeleaf:4.1.0
+    - org.springframework.boot:spring-boot-starter-validation:4.1.0
+    - org.springframework.boot:spring-boot-starter-webmvc:4.1.0
+    - configuration: runtime
+      module: org.webjars.npm:bootstrap:5.3.8
+    - configuration: runtime
+      module: org.webjars.npm:font-awesome:4.7.0
+    - configuration: runtime
+      module: org.webjars:webjars-locator-lite:1.1.3
+    folder: ../maven-build
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+    publish:
+      groupId: org.springframework.samples
+    sbt-scope: main
+  spring-petclinic-test:
+    dependencies:
+    - configuration: optional
+      module: org.springframework.boot:spring-boot-devtools:4.1.0
+    - org.springframework.boot:spring-boot-docker-compose:4.1.0
+    - org.springframework.boot:spring-boot-starter-actuator-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-cache-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-data-jpa-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-restclient-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-restclient:4.1.0
+    - org.springframework.boot:spring-boot-starter-thymeleaf-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-validation-test:4.1.0
+    - org.springframework.boot:spring-boot-starter-webmvc-test:4.1.0
+    - org.springframework.boot:spring-boot-testcontainers:4.1.0
+    - org.testcontainers:testcontainers-junit-jupiter:2.0.5
+    - org.testcontainers:testcontainers-mysql:2.0.5
+    dependsOn: spring-petclinic
+    folder: ../maven-build
+    isTestProject: true
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+    sbt-scope: test

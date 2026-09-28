@@ -1,0 +1,250 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-apt-test-generator",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-apt-test-generator/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/apt-test-generator/src/main/java"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/jknack/handlebars/4.5.5/handlebars-4.5.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/nashorn/nashorn-core/15.4/nashorn-core-15.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.3.1/asm-commons-7.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.3.1/asm-tree-7.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.3.1/asm-util-7.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.3.1/asm-7.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-apt-test-generator/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-apt-test-generator/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/apt-test-generator/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/apt-test-generator"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-commons",
+          "version": "7.3.1",
+          "artifacts": [
+            {
+              "name": "asm-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.3.1/asm-commons-7.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.50.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.20.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-text",
+          "version": "1.15.0",
+          "artifacts": [
+            {
+              "name": "commons-text",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "7.3.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.3.1/asm-7.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.7.1-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-analysis",
+          "version": "7.3.1",
+          "artifacts": [
+            {
+              "name": "asm-analysis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.jknack",
+          "name": "handlebars",
+          "version": "4.5.5",
+          "artifacts": [
+            {
+              "name": "handlebars",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/jknack/handlebars/4.5.5/handlebars-4.5.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-tree",
+          "version": "7.3.1",
+          "artifacts": [
+            {
+              "name": "asm-tree",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.3.1/asm-tree-7.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-util",
+          "version": "7.3.1",
+          "artifacts": [
+            {
+              "name": "asm-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.3.1/asm-util-7.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.auto.service",
+          "name": "auto-service-annotations",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "auto-service-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.nashorn",
+          "name": "nashorn-core",
+          "version": "15.4",
+          "artifacts": [
+            {
+              "name": "nashorn-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/nashorn/nashorn-core/15.4/nashorn-core-15.4.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

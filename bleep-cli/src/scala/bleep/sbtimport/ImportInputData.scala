@@ -222,9 +222,10 @@ object ImportInputData {
       projects: Map[model.CrossProjectName, ImportInputData.InputProject],
       hasSources: Path => Boolean
   ): Map[model.CrossProjectName, InputProject] = {
-    // not transitive
+    // not transitive. from a list: pairs from a `Map` make a `Map`, which kept one dependent of each project and dropped projects others depend on (pekko's
+    // protobuf-v3)
     val reverseBloopDeps: Map[String, Iterable[String]] =
-      projects
+      projects.toList
         .flatMap { case (_, f) => f.bloopFile.project.dependencies.map(from => (from, f.bloopFile.project.name)) }
         .groupBy { case (from, _) => from }
         .map { case (name, tuples) => (name, tuples.map { case (_, to) => to }.toSet) }

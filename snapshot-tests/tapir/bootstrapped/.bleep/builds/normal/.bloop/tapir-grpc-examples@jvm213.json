@@ -42,15 +42,15 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/31.1-android/guava-31.1-android.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.21.1/protobuf-java-3.21.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.8/protobuf-java-3.25.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-runtime_2.13/2.1.6/akka-grpc-runtime_2.13-2.1.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.2/akka_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.20/lenses_2.13-0.11.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.20/scalapb-runtime_2.13-0.11.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.20/akka-actor_2.13-2.6.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-discovery_2.13/2.6.20/akka-discovery_2.13-2.6.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.10/akka-http-core_2.13-10.2.10.jar",
@@ -72,12 +72,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.12.0/checker-qual-3.12.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.21/animal-sniffer-annotations-1.21.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
@@ -111,9 +111,19 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.16",
+      "version": "2.13.18",
       "options": [
         "-Wconf:cat=other-match-analysis:error",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.Assertion:s",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.compatible.Assertion:s",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnonunit-statement",
@@ -146,7 +156,7 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.18/0.13.4/kind-projector_2.13.18-0.13.4.jar",
         "-Ywarn-macros:after",
         "-encoding",
         "utf8",
@@ -159,11 +169,11 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.18/scala-compiler-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.16/java-diff-utils-4.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.29.0/jline-3.29.0-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/builds/normal/inc_compile.zip",
       "setup": {
@@ -263,7 +273,7 @@
         {
           "organization": "io.grpc",
           "name": "grpc-core",
-          "version": "1.48.1",
+          "version": "[1.48.1,1.48.1]&1.48.1",
           "artifacts": [
             {
               "name": "grpc-core",
@@ -285,18 +295,18 @@
         {
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.13",
-          "version": "0.11.17",
+          "version": "0.11.20",
           "artifacts": [
             {
               "name": "lenses_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.20/lenses_2.13-0.11.20.jar"
             }
           ]
         },
         {
           "organization": "io.grpc",
           "name": "grpc-api",
-          "version": "1.48.1",
+          "version": "[1.48.1,1.48.1]&1.48.1",
           "artifacts": [
             {
               "name": "grpc-api",
@@ -307,11 +317,11 @@
         {
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
-          "version": "3.21.1",
+          "version": "3.25.8",
           "artifacts": [
             {
               "name": "protobuf-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.21.1/protobuf-java-3.21.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.8/protobuf-java-3.25.8.jar"
             }
           ]
         },
@@ -439,11 +449,11 @@
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar"
             }
           ]
         },
@@ -516,33 +526,33 @@
         {
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.13",
-          "version": "0.11.17",
+          "version": "0.11.20",
           "artifacts": [
             {
               "name": "scalapb-runtime_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.20/scalapb-runtime_2.13-0.11.20.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         },
@@ -615,11 +625,11 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar"
             }
           ]
         },
@@ -637,11 +647,11 @@
         {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
-          "version": "1.1.10",
+          "version": "1.1.14",
           "artifacts": [
             {
               "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar"
             }
           ]
         },
@@ -681,22 +691,22 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "akka_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.2/akka_2.13-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar"
             }
           ]
         },
@@ -736,22 +746,22 @@
         {
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
-          "version": "2.12.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "2.0.17",
+          "version": "2.0.19",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar"
             }
           ]
         },

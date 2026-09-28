@@ -1,0 +1,108 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-micrometer",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-micrometer/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/micrometer/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.1/micrometer-core-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-micrometer/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-micrometer/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/micrometer/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/micrometer"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-core",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.1/micrometer-core-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

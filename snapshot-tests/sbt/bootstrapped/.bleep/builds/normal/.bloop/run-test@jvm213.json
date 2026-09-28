@@ -48,7 +48,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.4.4/launcher-interface-1.4.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.13/1.10.8/zinc-classpath_2.13-1.10.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.15.4/scalacheck_2.13-1.15.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar",
@@ -282,17 +281,6 @@
             {
               "name": "scalatest-funsuite_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.10/scalatest-funsuite_2.13-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-interface",
-          "version": "1.10.7",
-          "artifacts": [
-            {
-              "name": "util-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"
             }
           ]
         },

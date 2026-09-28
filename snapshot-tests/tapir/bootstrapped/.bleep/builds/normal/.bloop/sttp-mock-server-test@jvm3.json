@@ -12,7 +12,8 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scala-3-2.13+",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scalajvm",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scalajvm-3"
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scalajvm-3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/test/scalajvm-3-2.13+"
     ],
     "dependencies": [
       "sttp-mock-server@jvm3",
@@ -29,22 +30,23 @@
       "tapir-tests@jvm3"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.12.0/fs2-core_3-3.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.12.0/fs2-io_3-3.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_3/3.12.0/fs2-reactive-streams_3-3.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_3/1.7.5/enumeratum-macros_3-1.7.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_3/1.7.6/enumeratum_3-1.7.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.6.0/ip4s-core_3-3.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/ethlo/time/itu/1.7.0/itu-1.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.14.1/jackson-dataformat-yaml-2.14.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.0/jackson-datatype-jsr310-2.14.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/uuid/java-uuid-generator/4.1.0/java-uuid-generator-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.13.0/fs2-core_3-3.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.13.0/fs2-io_3-3.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_3/3.13.0/fs2-reactive-streams_3-3.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_3/1.9.8/enumeratum-macros_3-1.9.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_3/1.9.8/enumeratum_3-1.9.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.8.0/ip4s-core_3-3.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/ethlo/time/itu/1.14.0/itu-1.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.0/jackson-core-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.0/jackson-databind-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.22.0/jackson-dataformat-yaml-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.0/jackson-datatype-jsr310-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/uuid/java-uuid-generator/5.2.0/java-uuid-generator-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/cliftonlabs/json-simple/3.0.2/json-simple-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/curious-odd-man/rgxgen/3.1/rgxgen-3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/btf/1.3/btf-1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/jackson-coreutils-equivalence/1.0/jackson-coreutils-equivalence-1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/jackson-coreutils/2.0/jackson-coreutils-2.0.jar",
@@ -53,113 +55,145 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/json-schema-validator/2.2.14/json-schema-validator-2.2.14.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/msg-simple/1.2/msg-simple-1.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/uri-template/0.10/uri-template-0.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/github/stephenc/jcip/jcip-annotations/1.0-1/jcip-annotations-1.0-1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.11.0/error_prone_annotations-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.49.0/error_prone_annotations-2.49.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/libphonenumber/libphonenumber/8.11.1/libphonenumber-8.11.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.7.0/json-path-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/4.35.0/protobuf-java-util-4.35.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.35.0/protobuf-java-4.35.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/libphonenumber/libphonenumber/9.0.32/libphonenumber-9.0.32.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/3.0.0/json-path-3.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jzlib/1.1.3/jzlib-1.1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.4/disruptor-3.4.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/networknt/json-schema-validator/1.0.76/json-schema-validator-1.0.76.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/nimbusds/nimbus-jose-jwt/9.28/nimbus-jose-jwt-9.28.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/samskivert/jmustache/1.15/jmustache-1.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/4.0.0/disruptor-4.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/networknt/json-schema-validator/3.0.3/json-schema-validator-3.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/samskivert/jmustache/1.16/jmustache-1.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_3/2.3.5/tagging_3-2.3.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_3/4.0.8/cats_3-4.0.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_3/4.0.8/core_3-4.0.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_3/4.0.8/fs2_3-4.0.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_3/1.5.0/fs2_3-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/jakarta.activation/2.0.1/jakarta.activation-2.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/mail/mailapi/1.6.2/mailapi-1.6.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/4.0.1/jaxb-core-4.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/4.0.1/jaxb-impl-4.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.23/magnolia_3-1.3.23.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_3/4.0.26/cats_3-4.0.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_3/4.0.26/core_3-4.0.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_3/4.0.26/fs2_3-4.0.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.8.1/core_3-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.2/core_3-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_3/1.5.2/fs2_3-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.2/ws_3-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/4.0.9/jaxb-core-4.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/4.0.9/jaxb-impl-4.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.0/commons-codec-1.22.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.14/circe-core_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.14/circe-generic_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.14/circe-jawn_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_3/0.14.14/circe-literal_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.14/circe-numbers_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.14/circe-parser_3-0.14.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/classgraph/classgraph/4.8.154/classgraph-4.8.154.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.86.Final/netty-buffer-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.86.Final/netty-codec-http-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.86.Final/netty-codec-http2-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.86.Final/netty-codec-socks-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.86.Final/netty-codec-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.86.Final/netty-common-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.86.Final/netty-handler-proxy-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.86.Final/netty-handler-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.86.Final/netty-resolver-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-osx-aarch_64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-osx-x86_64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-<MASKED_OS>-aarch_64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-<MASKED_OS>-x86_64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.56.Final/netty-tcnative-classes-2.0.56.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.86.Final/netty-transport-native-unix-common-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.86.Final/netty-transport-4.1.86.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.16.0/simpleclient-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.16.0/simpleclient_common-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_httpserver/0.16.0/simpleclient_httpserver-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.16.0/simpleclient_tracer_common-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.16.0/simpleclient_tracer_otel-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.16.0/simpleclient_tracer_otel_agent-0.16.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-annotations/2.2.8/swagger-annotations-2.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-core/2.2.8/swagger-core-2.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-models/2.2.8/swagger-models-2.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-core/2.1.10/swagger-parser-core-2.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v2-converter/2.1.10/swagger-parser-v2-converter-2.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v3/2.1.10/swagger-parser-v3-2.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser/2.1.10/swagger-parser-2.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-annotations/1.6.9/swagger-annotations-1.6.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-compat-spec-parser/1.0.64/swagger-compat-spec-parser-1.0.64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-core/1.6.9/swagger-core-1.6.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-models/1.6.9/swagger-models-1.6.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser/1.0.64/swagger-parser-1.0.64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.0/jakarta.activation-api-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.22.0/commons-io-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.16/circe-jawn_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_3/0.14.16/circe-literal_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.16/circe-parser_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/classgraph/classgraph/4.8.184/classgraph-4.8.184.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.15.Final/netty-buffer-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.15.Final/netty-codec-base-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/4.2.15.Final/netty-codec-classes-quic-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.15.Final/netty-codec-compression-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.2.15.Final/netty-codec-dns-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.15.Final/netty-codec-http-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.2.15.Final/netty-codec-http2-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http3/4.2.15.Final/netty-codec-http3-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-marshalling/4.2.15.Final/netty-codec-marshalling-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-protobuf/4.2.15.Final/netty-codec-protobuf-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.15.Final/netty-codec-socks-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.2.15.Final/netty-codec-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.15.Final/netty-common-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.15.Final/netty-handler-proxy-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.15.Final/netty-handler-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.15.Final/netty-resolver-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.77.Final/netty-tcnative-classes-2.0.77.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.15.Final/netty-transport-classes-epoll-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.15.Final/netty-transport-native-epoll-4.2.15.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.15.Final/netty-transport-native-epoll-4.2.15.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.15.Final/netty-transport-native-unix-common-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.15.Final/netty-transport-4.2.15.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.63.0/opentelemetry-api-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-common/1.63.0/opentelemetry-common-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.63.0/opentelemetry-context-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-common/1.63.0/opentelemetry-exporter-common-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp-common/1.63.0/opentelemetry-exporter-otlp-common-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp/1.63.0/opentelemetry-exporter-otlp-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-sender-jdk/1.63.0/opentelemetry-exporter-sender-jdk-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.63.0/opentelemetry-sdk-common-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.63.0/opentelemetry-sdk-logs-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.63.0/opentelemetry-sdk-metrics-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.63.0/opentelemetry-sdk-trace-1.63.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.7.0/prometheus-metrics-config-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.7.0/prometheus-metrics-core-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.7.0/prometheus-metrics-exposition-formats-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.7.0/prometheus-metrics-exposition-textformats-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.7.0/prometheus-metrics-model-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.7.0/prometheus-metrics-tracer-common-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.7.0/prometheus-metrics-tracer-initializer-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.7.0/prometheus-metrics-tracer-otel-agent-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.7.0/prometheus-metrics-tracer-otel-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-annotations/2.2.50/swagger-annotations-2.2.50.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-core/2.2.50/swagger-core-2.2.50.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-models/2.2.50/swagger-models-2.2.50.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-core/2.1.43/swagger-parser-core-2.1.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-safe-url-resolver/2.1.43/swagger-parser-safe-url-resolver-2.1.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v2-converter/2.1.43/swagger-parser-v2-converter-2.1.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v3/2.1.43/swagger-parser-v3-2.1.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser/2.1.43/swagger-parser-2.1.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-annotations/1.6.16/swagger-annotations-1.6.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-compat-spec-parser/1.0.76/swagger-compat-spec-parser-1.0.76.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-core/1.6.16/swagger-core-1.6.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-models/1.6.16/swagger-models-1.6.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser-safe-url-resolver/1.0.76/swagger-parser-safe-url-resolver-1.0.76.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser/1.0.76/swagger-parser-1.0.76.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.1.0/jakarta.servlet-api-6.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/2.0.2/jakarta.validation-api-2.0.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.5/joda-time-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/javacrumbs/json-unit/json-unit-core/2.36.0/json-unit-core-2.36.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.4.7/accessors-smart-2.4.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.4.7/json-smart-2.4.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/datafaker/datafaker/2.5.4/datafaker-2.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.19.0/jna-5.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/javacrumbs/json-unit/json-unit-core/5.1.2/json-unit-core-5.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-digester3/3.2/commons-digester3-3.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/tools/velocity-tools-generic/3.1/velocity-tools-generic-3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-core/2.3/velocity-engine-core-2.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-scripting/2.3/velocity-engine-scripting-2.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.72/bcpkix-jdk18on-1.72.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.72/bcprov-jdk18on-1.72.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.72/bcutil-jdk18on-1.72.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.12.0/checker-qual-3.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/1.0.0/angus-activation-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-client-java/5.15.0/mockserver-client-java-5.15.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-core/5.15.0/mockserver-core-5.15.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-netty/5.15.0/mockserver-netty-5.15.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/mozilla/rhino/1.7.14/rhino-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.1/asm-9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-core/2.4.1/velocity-engine-core-2.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-scripting/2.4.1/velocity-engine-scripting-2.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.84/bcpkix-jdk18on-1.84.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.84/bcprov-jdk18on-1.84.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.84/bcutil-jdk18on-1.84.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/2.0.3/angus-activation-2.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-client-java/7.0.0/mockserver-client-java-7.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-core/7.0.0/mockserver-core-7.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-netty/7.0.0/mockserver-netty-7.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mozilla/rhino/1.9.1/rhino-1.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.18/scalactic_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.18/scalatest-compatible-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.18/scalatest-core_3-3.2.18.jar",
@@ -176,19 +210,26 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.18/scalatest-shouldmatchers_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.18/scalatest-wordspec_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.18/scalatest_3-3.2.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.4/scodec-bits_3-1.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/3.0.1/snakeyaml-engine-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.13.0/algebra_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-collections-core_3/0.9.10/cats-collections-core_3-0.9.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.6.1/cats-effect-kernel_3-3.6.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.6.1/cats-effect-std_3-3.6.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.6.1/cats-effect_3-3.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.1/cats-mtl_3-1.3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.6.0/jawn-parser_3-1.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.9.1/xmlunit-core-2.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-placeholders/2.9.1/xmlunit-placeholders-2.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.6.0/cats-mtl_3-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_3/0.1.0/idna4s-core_3-0.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.7.0/jawn-parser_3-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.2.0/literally_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.12.0/xmlunit-core-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-placeholders/2.12.0/xmlunit-placeholders-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.1/jackson-core-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.1/jackson-databind-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/dataformat/jackson-dataformat-yaml/3.1.1/jackson-dataformat-yaml-3.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sttp-mock-server@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-cats@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-client@jvm3/builds/normal/classes",
@@ -235,7 +276,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala3-compiler_3",
-      "version": "3.3.6",
+      "version": "3.3.8",
       "options": [
         "-Wconf:msg=unused",
         "value",
@@ -257,11 +298,14 @@
         "-Wvalue-discard",
         "-Xmax-inlines",
         "64",
+        "-Yfuture-lazy-vals",
         "-Ykind-projector",
         "-deprecation",
         "-encoding",
         "utf8",
         "-feature",
+        "-java-output-version",
+        "11",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
@@ -270,18 +314,18 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sttp-mock-server-test@jvm3/builds/normal/inc_compile.zip",
       "setup": {
@@ -343,22 +387,33 @@
         {
           "organization": "com.comcast",
           "name": "ip4s-core_3",
-          "version": "3.6.0",
+          "version": "3.8.0",
           "artifacts": [
             {
               "name": "ip4s-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.6.0/ip4s-core_3-3.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.8.0/ip4s-core_3-3.8.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_3",
-          "version": "4.0.8",
+          "version": "4.0.26",
           "artifacts": [
             {
               "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_3/4.0.8/core_3-4.0.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/core_3/4.0.26/core_3-4.0.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-collections-core_3",
+          "version": "0.9.10",
+          "artifacts": [
+            {
+              "name": "cats-collections-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-collections-core_3/0.9.10/cats-collections-core_3-0.9.10.jar"
             }
           ]
         },
@@ -376,11 +431,11 @@
         {
           "organization": "co.fs2",
           "name": "fs2-core_3",
-          "version": "3.12.0",
+          "version": "3.13.0",
           "artifacts": [
             {
               "name": "fs2-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.12.0/fs2-core_3-3.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.13.0/fs2-core_3-3.13.0.jar"
             }
           ]
         },
@@ -398,77 +453,88 @@
         {
           "organization": "io.swagger.core.v3",
           "name": "swagger-annotations",
-          "version": "2.2.8",
+          "version": "2.2.50",
           "artifacts": [
             {
               "name": "swagger-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-annotations/2.2.8/swagger-annotations-2.2.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-annotations/2.2.50/swagger-annotations-2.2.50.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-core",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.7.0/prometheus-metrics-core-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.apache.velocity",
           "name": "velocity-engine-core",
-          "version": "2.3",
+          "version": "2.4.1",
           "artifacts": [
             {
               "name": "velocity-engine-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-core/2.3/velocity-engine-core-2.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "2.2",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-core/2.4.1/velocity-engine-core-2.4.1.jar"
             }
           ]
         },
         {
           "organization": "org.mock-server",
           "name": "mockserver-netty",
-          "version": "5.15.0",
+          "version": "7.0.0",
           "artifacts": [
             {
               "name": "mockserver-netty",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-netty/5.15.0/mockserver-netty-5.15.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-netty/7.0.0/mockserver-netty-7.0.0.jar"
             }
           ]
         },
         {
           "organization": "io.swagger",
           "name": "swagger-models",
-          "version": "1.6.9",
+          "version": "1.6.16",
           "artifacts": [
             {
               "name": "swagger-models",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-models/1.6.9/swagger-models-1.6.9.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-models/1.6.16/swagger-models-1.6.16.jar"
             }
           ]
         },
         {
           "organization": "org.mozilla",
           "name": "rhino",
-          "version": "1.7.14",
+          "version": "1.9.1",
           "artifacts": [
             {
               "name": "rhino",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mozilla/rhino/1.7.14/rhino-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mozilla/rhino/1.9.1/rhino-1.9.1.jar"
             }
           ]
         },
         {
           "organization": "org.mock-server",
           "name": "mockserver-core",
-          "version": "5.15.0",
+          "version": "7.0.0",
           "artifacts": [
             {
               "name": "mockserver-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-core/5.15.0/mockserver-core-5.15.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-core/7.0.0/mockserver-core-7.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcpkix-jdk18on",
+          "version": "1.84",
+          "artifacts": [
+            {
+              "name": "bcpkix-jdk18on",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.84/bcpkix-jdk18on-1.84.jar"
             }
           ]
         },
@@ -484,46 +550,96 @@
           ]
         },
         {
-          "organization": "org.bouncycastle",
-          "name": "bcpkix-jdk18on",
-          "version": "1.72",
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-tracer-otel",
+          "version": "1.7.0",
           "artifacts": [
             {
-              "name": "bcpkix-jdk18on",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.72/bcpkix-jdk18on-1.72.jar"
+              "name": "prometheus-metrics-tracer-otel",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.7.0/prometheus-metrics-tracer-otel-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.hamcrest",
           "name": "hamcrest",
-          "version": "2.2",
+          "version": "3.0",
           "artifacts": [
             {
               "name": "hamcrest",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-metrics",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.63.0/opentelemetry-sdk-metrics-1.63.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.15.Final/netty-transport-native-epoll-4.2.15.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.15.Final/netty-transport-native-epoll-4.2.15.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-context",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.63.0/opentelemetry-context-1.63.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "4.35.0",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.35.0/protobuf-java-4.35.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-generic_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-generic_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.14/circe-generic_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.angus",
           "name": "angus-activation",
-          "version": "1.0.0",
+          "version": "2.0.3",
           "artifacts": [
             {
               "name": "angus-activation",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/1.0.0/angus-activation-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/2.0.3/angus-activation-2.0.3.jar"
             }
           ]
         },
@@ -539,13 +655,24 @@
           ]
         },
         {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.8.9",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-core",
-          "version": "2.1.10",
+          "version": "2.1.43",
           "artifacts": [
             {
               "name": "swagger-parser-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-core/2.1.10/swagger-parser-core-2.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-core/2.1.43/swagger-parser-core-2.1.43.jar"
             }
           ]
         },
@@ -563,297 +690,319 @@
         {
           "organization": "io.swagger",
           "name": "swagger-core",
-          "version": "1.6.9",
+          "version": "1.6.16",
           "artifacts": [
             {
               "name": "swagger-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-core/1.6.9/swagger-core-1.6.9.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-core/1.6.16/swagger-core-1.6.16.jar"
             }
           ]
         },
         {
           "organization": "org.apache.velocity",
           "name": "velocity-engine-scripting",
-          "version": "2.3",
+          "version": "2.4.1",
           "artifacts": [
             {
               "name": "velocity-engine-scripting",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-scripting/2.3/velocity-engine-scripting-2.3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/velocity/velocity-engine-scripting/2.4.1/velocity-engine-scripting-2.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.15.Final/netty-codec-base-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-common",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.86.Final/netty-common-4.1.86.Final.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.checkerframework",
-          "name": "checker-qual",
-          "version": "3.12.0",
-          "artifacts": [
-            {
-              "name": "checker-qual",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.12.0/checker-qual-3.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.15.Final/netty-common-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.8.1/core_3-1.8.1.jar"
             }
           ]
         },
         {
           "organization": "com.beachape",
           "name": "enumeratum_3",
-          "version": "1.7.6",
+          "version": "1.9.8",
           "artifacts": [
             {
               "name": "enumeratum_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_3/1.7.6/enumeratum_3-1.7.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_3/1.9.8/enumeratum_3-1.9.8.jar"
             }
           ]
         },
         {
           "organization": "commons-io",
           "name": "commons-io",
-          "version": "2.11.0",
+          "version": "2.22.0",
           "artifacts": [
             {
               "name": "commons-io",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.22.0/commons-io-2.22.0.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.uuid",
           "name": "java-uuid-generator",
-          "version": "4.1.0",
+          "version": "5.2.0",
           "artifacts": [
             {
               "name": "java-uuid-generator",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/uuid/java-uuid-generator/4.1.0/java-uuid-generator-4.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/uuid/java-uuid-generator/5.2.0/java-uuid-generator-5.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-classes-quic",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-classes-quic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/4.2.15.Final/netty-codec-classes-quic-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser",
-          "version": "2.1.10",
+          "version": "2.1.43",
           "artifacts": [
             {
               "name": "swagger-parser",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser/2.1.10/swagger-parser-2.1.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.prometheus",
-          "name": "simpleclient_httpserver",
-          "version": "0.16.0",
-          "artifacts": [
-            {
-              "name": "simpleclient_httpserver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_httpserver/0.16.0/simpleclient_httpserver-0.16.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser/2.1.43/swagger-parser-2.1.43.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.2/core_3-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "commons-beanutils",
           "name": "commons-beanutils",
-          "version": "1.9.4",
+          "version": "1.11.0",
           "artifacts": [
             {
               "name": "commons-beanutils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar"
             }
           ]
         },
         {
           "organization": "com.sun.xml.bind",
           "name": "jaxb-impl",
-          "version": "4.0.1",
+          "version": "4.0.9",
           "artifacts": [
             {
               "name": "jaxb-impl",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/4.0.1/jaxb-impl-4.0.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/4.0.9/jaxb-impl-4.0.9.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-transport",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-transport",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.86.Final/netty-transport-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.15.Final/netty-transport-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "com.networknt",
           "name": "json-schema-validator",
-          "version": "1.0.76",
+          "version": "3.0.3",
           "artifacts": [
             {
               "name": "json-schema-validator",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/networknt/json-schema-validator/1.0.76/json-schema-validator-1.0.76.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/networknt/json-schema-validator/3.0.3/json-schema-validator-3.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-tracer-common",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-tracer-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.7.0/prometheus-metrics-tracer-common-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
-          "version": "2.11.0",
+          "version": "2.49.0",
           "artifacts": [
             {
               "name": "error_prone_annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.11.0/error_prone_annotations-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.49.0/error_prone_annotations-2.49.0.jar"
             }
           ]
         },
         {
           "organization": "ch.qos.logback",
           "name": "logback-core",
-          "version": "1.5.18",
+          "version": "1.6.3",
           "artifacts": [
             {
               "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar"
             }
           ]
         },
         {
           "organization": "io.swagger",
           "name": "swagger-compat-spec-parser",
-          "version": "1.0.64",
+          "version": "1.0.76",
           "artifacts": [
             {
               "name": "swagger-compat-spec-parser",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-compat-spec-parser/1.0.64/swagger-compat-spec-parser-1.0.64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-compat-spec-parser/1.0.76/swagger-compat-spec-parser-1.0.76.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
-          "version": "1.6.0",
+          "version": "1.7.0",
           "artifacts": [
             {
               "name": "jawn-parser_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.6.0/jawn-parser_3-1.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.7.0/jawn-parser_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-common",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.63.0/opentelemetry-sdk-common-1.63.0.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
-          "version": "2.14.1",
+          "version": "2.22.0",
           "artifacts": [
             {
               "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.0/jackson-databind-2.22.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-literal_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-literal_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_3/0.14.14/circe-literal_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_3/0.14.16/circe-literal_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "com.samskivert",
           "name": "jmustache",
-          "version": "1.15",
+          "version": "1.16",
           "artifacts": [
             {
               "name": "jmustache",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/samskivert/jmustache/1.15/jmustache-1.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/samskivert/jmustache/1.16/jmustache-1.16.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_3",
-          "version": "4.0.8",
+          "version": "4.0.26",
           "artifacts": [
             {
               "name": "fs2_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_3/4.0.8/fs2_3-4.0.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/fs2_3/4.0.26/fs2_3-4.0.26.jar"
             }
           ]
         },
         {
           "organization": "org.mock-server",
           "name": "mockserver-client-java",
-          "version": "5.15.0",
+          "version": "7.0.0",
           "artifacts": [
             {
               "name": "mockserver-client-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-client-java/5.15.0/mockserver-client-java-5.15.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mock-server/mockserver-client-java/7.0.0/mockserver-client-java-7.0.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-core_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.14/circe-core_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-numbers_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-numbers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.14/circe-numbers_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "org.yaml",
           "name": "snakeyaml",
-          "version": "1.33",
+          "version": "2.6",
           "artifacts": [
             {
               "name": "snakeyaml",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar"
             }
           ]
         },
@@ -869,24 +1018,24 @@
           ]
         },
         {
-          "organization": "org.apache.commons",
-          "name": "commons-lang3",
-          "version": "3.12.0",
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-sender-jdk",
+          "version": "1.63.0",
           "artifacts": [
             {
-              "name": "commons-lang3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar"
+              "name": "opentelemetry-exporter-sender-jdk",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-sender-jdk/1.63.0/opentelemetry-exporter-sender-jdk-1.63.0.jar"
             }
           ]
         },
         {
-          "organization": "javax.servlet",
-          "name": "javax.servlet-api",
-          "version": "4.0.1",
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.20.0",
           "artifacts": [
             {
-              "name": "javax.servlet-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar"
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar"
             }
           ]
         },
@@ -904,44 +1053,66 @@
         {
           "organization": "net.javacrumbs.json-unit",
           "name": "json-unit-core",
-          "version": "2.36.0",
+          "version": "5.1.2",
           "artifacts": [
             {
               "name": "json-unit-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/javacrumbs/json-unit/json-unit-core/2.36.0/json-unit-core-2.36.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/javacrumbs/json-unit/json-unit-core/5.1.2/json-unit-core-5.1.2.jar"
             }
           ]
         },
         {
           "organization": "ch.qos.logback",
           "name": "logback-classic",
-          "version": "1.5.18",
+          "version": "1.6.3",
           "artifacts": [
             {
               "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-buffer",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-buffer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.86.Final/netty-buffer-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.15.Final/netty-buffer-4.2.15.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http3",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http3/4.2.15.Final/netty-codec-http3-4.2.15.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-otlp",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-exporter-otlp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp/1.63.0/opentelemetry-exporter-otlp-1.63.0.jar"
             }
           ]
         },
         {
           "organization": "commons-logging",
           "name": "commons-logging",
-          "version": "1.2",
+          "version": "1.3.6",
           "artifacts": [
             {
               "name": "commons-logging",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar"
             }
           ]
         },
@@ -981,11 +1152,22 @@
         {
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-v2-converter",
-          "version": "2.1.10",
+          "version": "2.1.43",
           "artifacts": [
             {
               "name": "swagger-parser-v2-converter",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v2-converter/2.1.10/swagger-parser-v2-converter-2.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v2-converter/2.1.43/swagger-parser-v2-converter-2.1.43.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.swagger",
+          "name": "swagger-parser-safe-url-resolver",
+          "version": "1.0.76",
+          "artifacts": [
+            {
+              "name": "swagger-parser-safe-url-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser-safe-url-resolver/1.0.76/swagger-parser-safe-url-resolver-1.0.76.jar"
             }
           ]
         },
@@ -1014,33 +1196,55 @@
         {
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.86.Final/netty-transport-native-unix-common-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.15.Final/netty-transport-native-unix-common-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "io.swagger.core.v3",
           "name": "swagger-models",
-          "version": "2.2.8",
+          "version": "2.2.50",
           "artifacts": [
             {
               "name": "swagger-models",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-models/2.2.8/swagger-models-2.2.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-models/2.2.50/swagger-models-2.2.50.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.15.Final/netty-transport-classes-epoll-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_3",
-          "version": "3.12.0",
+          "version": "3.13.0",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_3/3.12.0/fs2-reactive-streams_3-3.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_3/3.13.0/fs2-reactive-streams_3-3.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-logs",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-logs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.63.0/opentelemetry-sdk-logs-1.63.0.jar"
             }
           ]
         },
@@ -1058,11 +1262,11 @@
         {
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-v3",
-          "version": "2.1.10",
+          "version": "2.1.43",
           "artifacts": [
             {
               "name": "swagger-parser-v3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v3/2.1.10/swagger-parser-v3-2.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-v3/2.1.43/swagger-parser-v3-2.1.43.jar"
             }
           ]
         },
@@ -1080,11 +1284,11 @@
         {
           "organization": "org.xmlunit",
           "name": "xmlunit-core",
-          "version": "2.9.1",
+          "version": "2.12.0",
           "artifacts": [
             {
               "name": "xmlunit-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.9.1/xmlunit-core-2.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.12.0/xmlunit-core-2.12.0.jar"
             }
           ]
         },
@@ -1102,11 +1306,22 @@
         {
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
-          "version": "3.6.1",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.6.1/cats-effect-kernel_3-3.6.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.swagger.parser.v3",
+          "name": "swagger-parser-safe-url-resolver",
+          "version": "2.1.43",
+          "artifacts": [
+            {
+              "name": "swagger-parser-safe-url-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/parser/v3/swagger-parser-safe-url-resolver/2.1.43/swagger-parser-safe-url-resolver-2.1.43.jar"
             }
           ]
         },
@@ -1124,44 +1339,98 @@
         {
           "organization": "io.netty",
           "name": "netty-codec",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-codec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.86.Final/netty-codec-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.2.15.Final/netty-codec-4.2.15.Final.jar"
             }
           ]
         },
         {
-          "organization": "io.prometheus",
-          "name": "simpleclient_tracer_common",
-          "version": "0.16.0",
+          "organization": "io.netty",
+          "name": "netty-codec-native-quic",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
-              "name": "simpleclient_tracer_common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.16.0/simpleclient_tracer_common-0.16.0.jar"
+              "name": "netty-codec-native-quic",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-<MASKED_OS>-aarch_64.jar"
+            },
+            {
+              "name": "netty-codec-native-quic",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-codec-native-quic",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-osx-aarch_64.jar"
+            },
+            {
+              "name": "netty-codec-native-quic",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-codec-native-quic",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.15.Final/netty-codec-native-quic-4.2.15.Final-<MASKED_OS>-x86_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-common",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-exporter-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-common/1.63.0/opentelemetry-exporter-common-1.63.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.dataformat",
+          "name": "jackson-dataformat-yaml",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jackson-dataformat-yaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/dataformat/jackson-dataformat-yaml/3.1.1/jackson-dataformat-yaml-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-databind",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.1/jackson-databind-3.1.1.jar"
             }
           ]
         },
         {
           "organization": "io.swagger",
           "name": "swagger-parser",
-          "version": "1.0.64",
+          "version": "1.0.76",
           "artifacts": [
             {
               "name": "swagger-parser",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser/1.0.64/swagger-parser-1.0.64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-parser/1.0.76/swagger-parser-1.0.76.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "literally_3",
-          "version": "1.1.0",
+          "version": "1.2.0",
           "artifacts": [
             {
               "name": "literally_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.2.0/literally_3-1.2.0.jar"
             }
           ]
         },
@@ -1201,99 +1470,143 @@
         {
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
-          "version": "1.3.18",
+          "version": "1.3.23",
           "artifacts": [
             {
               "name": "magnolia_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.23/magnolia_3-1.3.23.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java-util",
+          "version": "4.35.0",
+          "artifacts": [
+            {
+              "name": "protobuf-java-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/4.35.0/protobuf-java-util-4.35.0.jar"
             }
           ]
         },
         {
           "organization": "com.lmax",
           "name": "disruptor",
-          "version": "3.4.4",
+          "version": "4.0.0",
           "artifacts": [
             {
               "name": "disruptor",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.4/disruptor-3.4.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/4.0.0/disruptor-4.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.curious-odd-man",
+          "name": "rgxgen",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "rgxgen",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/curious-odd-man/rgxgen/3.1/rgxgen-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.19.0",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.19.0/jna-5.19.0.jar"
             }
           ]
         },
         {
           "organization": "org.bouncycastle",
           "name": "bcutil-jdk18on",
-          "version": "1.72",
+          "version": "1.84",
           "artifacts": [
             {
               "name": "bcutil-jdk18on",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.72/bcutil-jdk18on-1.72.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.84/bcutil-jdk18on-1.84.jar"
             }
           ]
         },
         {
           "organization": "org.bouncycastle",
           "name": "bcprov-jdk18on",
-          "version": "1.72",
+          "version": "1.84",
           "artifacts": [
             {
               "name": "bcprov-jdk18on",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.72/bcprov-jdk18on-1.72.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.84/bcprov-jdk18on-1.84.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-codec-http",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-codec-http",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.86.Final/netty-codec-http-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.15.Final/netty-codec-http-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_3",
-          "version": "4.0.8",
+          "version": "4.0.26",
           "artifacts": [
             {
               "name": "cats_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_3/4.0.8/cats_3-4.0.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client4/cats_3/4.0.26/cats_3-4.0.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-api",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.63.0/opentelemetry-api-1.63.0.jar"
             }
           ]
         },
         {
           "organization": "org.apache.commons",
           "name": "commons-text",
-          "version": "1.10.0",
+          "version": "1.15.0",
           "artifacts": [
             {
               "name": "commons-text",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
-          "name": "simpleclient_tracer_otel",
-          "version": "0.16.0",
+          "name": "prometheus-metrics-exposition-textformats",
+          "version": "1.7.0",
           "artifacts": [
             {
-              "name": "simpleclient_tracer_otel",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.16.0/simpleclient_tracer_otel-0.16.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.prometheus",
-          "name": "simpleclient_tracer_otel_agent",
-          "version": "0.16.0",
-          "artifacts": [
-            {
-              "name": "simpleclient_tracer_otel_agent",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.16.0/simpleclient_tracer_otel_agent-0.16.0.jar"
+              "name": "prometheus-metrics-exposition-textformats",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.7.0/prometheus-metrics-exposition-textformats-1.7.0.jar"
             }
           ]
         },
@@ -1311,22 +1624,11 @@
         {
           "organization": "commons-codec",
           "name": "commons-codec",
-          "version": "1.15",
+          "version": "1.22.0",
           "artifacts": [
             {
               "name": "commons-codec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.sun.mail",
-          "name": "mailapi",
-          "version": "1.6.2",
-          "artifacts": [
-            {
-              "name": "mailapi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/mail/mailapi/1.6.2/mailapi-1.6.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.0/commons-codec-1.22.0.jar"
             }
           ]
         },
@@ -1342,24 +1644,35 @@
           ]
         },
         {
+          "organization": "jakarta.servlet",
+          "name": "jakarta.servlet-api",
+          "version": "6.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.servlet-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.1.0/jakarta.servlet-api-6.1.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.ow2.asm",
           "name": "asm",
-          "version": "9.1",
+          "version": "9.10.1",
           "artifacts": [
             {
               "name": "asm",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.1/asm-9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-parser_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-parser_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.14/circe-parser_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.16/circe-parser_3-0.14.16.jar"
             }
           ]
         },
@@ -1375,90 +1688,68 @@
           ]
         },
         {
-          "organization": "com.github.stephenc.jcip",
-          "name": "jcip-annotations",
-          "version": "1.0-1",
-          "artifacts": [
-            {
-              "name": "jcip-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/stephenc/jcip/jcip-annotations/1.0-1/jcip-annotations-1.0-1.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.netty",
           "name": "netty-handler-proxy",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.86.Final/netty-handler-proxy-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.15.Final/netty-handler-proxy-4.2.15.Final.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.jackson.dataformat",
           "name": "jackson-dataformat-yaml",
-          "version": "2.14.1",
+          "version": "2.22.0",
           "artifacts": [
             {
               "name": "jackson-dataformat-yaml",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.14.1/jackson-dataformat-yaml-2.14.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.sun.activation",
-          "name": "jakarta.activation",
-          "version": "2.0.1",
-          "artifacts": [
-            {
-              "name": "jakarta.activation",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/jakarta.activation/2.0.1/jakarta.activation-2.0.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.22.0/jackson-dataformat-yaml-2.22.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
-          "version": "1.3.1",
+          "version": "1.6.0",
           "artifacts": [
             {
               "name": "cats-mtl_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.1/cats-mtl_3-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.guava",
-          "name": "guava",
-          "version": "31.1-jre",
-          "artifacts": [
-            {
-              "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.6.0/cats-mtl_3-1.6.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-effect_3",
-          "version": "3.6.1",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.6.1/cats-effect_3-3.6.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-model",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.7.0/prometheus-metrics-model-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-handler",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-handler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.86.Final/netty-handler-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.15.Final/netty-handler-4.2.15.Final.jar"
             }
           ]
         },
@@ -1474,13 +1765,13 @@
           ]
         },
         {
-          "organization": "io.prometheus",
-          "name": "simpleclient_common",
-          "version": "0.16.0",
+          "organization": "org.snakeyaml",
+          "name": "snakeyaml-engine",
+          "version": "3.0.1",
           "artifacts": [
             {
-              "name": "simpleclient_common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.16.0/simpleclient_common-0.16.0.jar"
+              "name": "snakeyaml-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/3.0.1/snakeyaml-engine-3.0.1.jar"
             }
           ]
         },
@@ -1509,44 +1800,66 @@
         {
           "organization": "co.fs2",
           "name": "fs2-io_3",
-          "version": "3.12.0",
+          "version": "3.13.0",
           "artifacts": [
             {
               "name": "fs2-io_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.12.0/fs2-io_3-3.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.13.0/fs2-io_3-3.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.6.0-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-tracer-initializer",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-tracer-initializer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.7.0/prometheus-metrics-tracer-initializer-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
-          "version": "3.3.6",
+          "version": "3.3.8",
           "artifacts": [
             {
               "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
             }
           ]
         },
         {
           "organization": "org.xmlunit",
           "name": "xmlunit-placeholders",
-          "version": "2.9.1",
+          "version": "2.12.0",
           "artifacts": [
             {
               "name": "xmlunit-placeholders",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-placeholders/2.9.1/xmlunit-placeholders-2.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-placeholders/2.12.0/xmlunit-placeholders-2.12.0.jar"
             }
           ]
         },
         {
           "organization": "com.beachape",
           "name": "enumeratum-macros_3",
-          "version": "1.7.5",
+          "version": "1.9.8",
           "artifacts": [
             {
               "name": "enumeratum-macros_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_3/1.7.5/enumeratum-macros_3-1.7.5.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_3/1.9.8/enumeratum-macros_3-1.9.8.jar"
             }
           ]
         },
@@ -1564,33 +1877,44 @@
         {
           "organization": "com.googlecode.libphonenumber",
           "name": "libphonenumber",
-          "version": "8.11.1",
+          "version": "9.0.32",
           "artifacts": [
             {
               "name": "libphonenumber",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/libphonenumber/libphonenumber/8.11.1/libphonenumber-8.11.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/libphonenumber/libphonenumber/9.0.32/libphonenumber-9.0.32.jar"
             }
           ]
         },
         {
           "organization": "com.ethlo.time",
           "name": "itu",
-          "version": "1.7.0",
+          "version": "1.14.0",
           "artifacts": [
             {
               "name": "itu",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/ethlo/time/itu/1.7.0/itu-1.7.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/ethlo/time/itu/1.14.0/itu-1.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "algebra_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "algebra_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.13.0/algebra_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
-          "version": "2.14.1",
+          "version": "2.22.0",
           "artifacts": [
             {
               "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.0/jackson-core-2.22.0.jar"
             }
           ]
         },
@@ -1602,6 +1926,17 @@
             {
               "name": "json-patch",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/java-json-tools/json-patch/1.13/json-patch-1.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "idna4s-core_3",
+          "version": "0.1.0",
+          "artifacts": [
+            {
+              "name": "idna4s-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_3/0.1.0/idna4s-core_3-0.1.0.jar"
             }
           ]
         },
@@ -1619,44 +1954,55 @@
         {
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
-          "version": "3.6.1",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.6.1/cats-effect-std_3-3.6.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.scodec",
           "name": "scodec-bits_3",
-          "version": "1.1.38",
+          "version": "1.2.4",
           "artifacts": [
             {
               "name": "scodec-bits_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.4/scodec-bits_3-1.2.4.jar"
             }
           ]
         },
         {
           "organization": "com.sun.xml.bind",
           "name": "jaxb-core",
-          "version": "4.0.1",
+          "version": "4.0.9",
           "artifacts": [
             {
               "name": "jaxb-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/4.0.1/jaxb-core-4.0.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/4.0.9/jaxb-core-4.0.9.jar"
             }
           ]
         },
         {
           "organization": "io.swagger.core.v3",
           "name": "swagger-core",
-          "version": "2.2.8",
+          "version": "2.2.50",
           "artifacts": [
             {
               "name": "swagger-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-core/2.2.8/swagger-core-2.2.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/core/v3/swagger-core/2.2.50/swagger-core-2.2.50.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-protobuf",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-protobuf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-protobuf/4.2.15.Final/netty-codec-protobuf-4.2.15.Final.jar"
             }
           ]
         },
@@ -1674,22 +2020,55 @@
         {
           "organization": "jakarta.xml.bind",
           "name": "jakarta.xml.bind-api",
-          "version": "3.0.1",
+          "version": "4.0.5",
           "artifacts": [
             {
               "name": "jakarta.xml.bind-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/3.0.1/jakarta.xml.bind-api-3.0.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar"
             }
           ]
         },
         {
           "organization": "net.minidev",
           "name": "accessors-smart",
-          "version": "2.4.7",
+          "version": "2.6.0",
           "artifacts": [
             {
               "name": "accessors-smart",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.4.7/accessors-smart-2.4.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.2.15.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.2.15.Final/netty-codec-dns-4.2.15.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-exporter-otlp-common",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-exporter-otlp-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp-common/1.63.0/opentelemetry-exporter-otlp-common-1.63.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-common",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-common/1.63.0/opentelemetry-common-1.63.0.jar"
             }
           ]
         },
@@ -1705,6 +2084,50 @@
           ]
         },
         {
+          "organization": "io.swagger",
+          "name": "swagger-annotations",
+          "version": "1.6.16",
+          "artifacts": [
+            {
+              "name": "swagger-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-annotations/1.6.16/swagger-annotations-1.6.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.opentelemetry",
+          "name": "opentelemetry-sdk-trace",
+          "version": "1.63.0",
+          "artifacts": [
+            {
+              "name": "opentelemetry-sdk-trace",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.63.0/opentelemetry-sdk-trace-1.63.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.jayway.jsonpath",
+          "name": "json-path",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "json-path",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/3.0.0/json-path-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.github.java-json-tools",
           "name": "json-schema-core",
           "version": "1.2.14",
@@ -1716,24 +2139,13 @@
           ]
         },
         {
-          "organization": "io.swagger",
-          "name": "swagger-annotations",
-          "version": "1.6.9",
+          "organization": "net.datafaker",
+          "name": "datafaker",
+          "version": "2.5.4",
           "artifacts": [
             {
-              "name": "swagger-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/swagger/swagger-annotations/1.6.9/swagger-annotations-1.6.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.jayway.jsonpath",
-          "name": "json-path",
-          "version": "2.7.0",
-          "artifacts": [
-            {
-              "name": "json-path",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.7.0/json-path-2.7.0.jar"
+              "name": "datafaker",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/datafaker/datafaker/2.5.4/datafaker-2.5.4.jar"
             }
           ]
         },
@@ -1751,11 +2163,11 @@
         {
           "organization": "io.github.classgraph",
           "name": "classgraph",
-          "version": "4.8.154",
+          "version": "4.8.184",
           "artifacts": [
             {
               "name": "classgraph",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/classgraph/classgraph/4.8.154/classgraph-4.8.154.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/classgraph/classgraph/4.8.184/classgraph-4.8.184.jar"
             }
           ]
         },
@@ -1773,47 +2185,47 @@
         {
           "organization": "io.netty",
           "name": "netty-tcnative-boringssl-static",
-          "version": "2.0.56.Final",
+          "version": "2.0.77.Final",
           "artifacts": [
             {
               "name": "netty-tcnative-boringssl-static",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final.jar"
             },
             {
               "name": "netty-tcnative-boringssl-static",
               "classifier": "<MASKED_OS>-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-<MASKED_OS>-x86_64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-<MASKED_OS>-x86_64.jar"
             },
             {
               "name": "netty-tcnative-boringssl-static",
               "classifier": "<MASKED_OS>-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-<MASKED_OS>-aarch_64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-<MASKED_OS>-aarch_64.jar"
             },
             {
               "name": "netty-tcnative-boringssl-static",
               "classifier": "osx-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-osx-x86_64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-osx-x86_64.jar"
             },
             {
               "name": "netty-tcnative-boringssl-static",
               "classifier": "osx-aarch_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-osx-aarch_64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-osx-aarch_64.jar"
             },
             {
               "name": "netty-tcnative-boringssl-static",
               "classifier": "<MASKED_OS>-x86_64",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.56.Final/netty-tcnative-boringssl-static-2.0.56.Final-<MASKED_OS>-x86_64.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.77.Final/netty-tcnative-boringssl-static-2.0.77.Final-<MASKED_OS>-x86_64.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-resolver",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-resolver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.86.Final/netty-resolver-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.15.Final/netty-resolver-4.2.15.Final.jar"
             }
           ]
         },
@@ -1829,24 +2241,35 @@
           ]
         },
         {
-          "organization": "com.google.guava",
-          "name": "failureaccess",
-          "version": "1.0.1",
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
-              "name": "failureaccess",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.15.Final/netty-codec-compression-4.2.15.Final.jar"
             }
           ]
         },
         {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "2.0.17",
+          "organization": "io.netty",
+          "name": "netty-codec-marshalling",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+              "name": "netty-codec-marshalling",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-marshalling/4.2.15.Final/netty-codec-marshalling-4.2.15.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
             }
           ]
         },
@@ -1864,11 +2287,11 @@
         {
           "organization": "io.netty",
           "name": "netty-codec-http2",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-codec-http2",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.86.Final/netty-codec-http2-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.2.15.Final/netty-codec-http2-4.2.15.Final.jar"
             }
           ]
         },
@@ -1880,6 +2303,28 @@
             {
               "name": "scala-xml_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-config",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.7.0/prometheus-metrics-config-1.7.0.jar"
             }
           ]
         },
@@ -1897,55 +2342,44 @@
         {
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
-          "version": "2.14.0",
+          "version": "2.22.0",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.0/jackson-datatype-jsr310-2.14.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.0/jackson-datatype-jsr310-2.22.0.jar"
             }
           ]
         },
         {
           "organization": "net.minidev",
           "name": "json-smart",
-          "version": "2.4.7",
+          "version": "2.6.0",
           "artifacts": [
             {
               "name": "json-smart",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.4.7/json-smart-2.4.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-codec-socks",
-          "version": "4.1.86.Final",
+          "version": "4.2.15.Final",
           "artifacts": [
             {
               "name": "netty-codec-socks",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.86.Final/netty-codec-socks-4.1.86.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.15.Final/netty-codec-socks-4.2.15.Final.jar"
             }
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-annotations",
-          "version": "2.14.1",
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-exposition-formats",
+          "version": "1.7.0",
           "artifacts": [
             {
-              "name": "jackson-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-tcnative-classes",
-          "version": "2.0.56.Final",
-          "artifacts": [
-            {
-              "name": "netty-tcnative-classes",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.56.Final/netty-tcnative-classes-2.0.56.Final.jar"
+              "name": "prometheus-metrics-exposition-formats",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.7.0/prometheus-metrics-exposition-formats-1.7.0.jar"
             }
           ]
         },
@@ -1961,57 +2395,90 @@
           ]
         },
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "fs2_3",
-          "version": "1.5.0",
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
           "artifacts": [
             {
-              "name": "fs2_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_3/1.5.0/fs2_3-1.5.0.jar"
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-core",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.1/jackson-core-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-tcnative-classes",
+          "version": "2.0.77.Final",
+          "artifacts": [
+            {
+              "name": "netty-tcnative-classes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.77.Final/netty-tcnative-classes-2.0.77.Final.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
-          "name": "simpleclient",
-          "version": "0.16.0",
+          "name": "prometheus-metrics-tracer-otel-agent",
+          "version": "1.7.0",
           "artifacts": [
             {
-              "name": "simpleclient",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.16.0/simpleclient-0.16.0.jar"
+              "name": "prometheus-metrics-tracer-otel-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.7.0/prometheus-metrics-tracer-otel-agent-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "fs2_3",
+          "version": "1.5.2",
+          "artifacts": [
+            {
+              "name": "fs2_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_3/1.5.2/fs2_3-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
-          "version": "1.3",
+          "version": "3.1",
           "artifacts": [
             {
               "name": "j2objc-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-jawn_3",
-          "version": "0.14.14",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-jawn_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.14/circe-jawn_3-0.14.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.16/circe-jawn_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "com.nimbusds",
           "name": "nimbus-jose-jwt",
-          "version": "9.28",
+          "version": "10.9.1",
           "artifacts": [
             {
               "name": "nimbus-jose-jwt",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/nimbusds/nimbus-jose-jwt/9.28/nimbus-jose-jwt-9.28.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar"
             }
           ]
         },
@@ -2040,11 +2507,11 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.2/ws_3-1.5.2.jar"
             }
           ]
         },
@@ -2073,11 +2540,11 @@
         {
           "organization": "jakarta.activation",
           "name": "jakarta.activation-api",
-          "version": "2.1.0",
+          "version": "2.1.4",
           "artifacts": [
             {
               "name": "jakarta.activation-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.0/jakarta.activation-api-2.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar"
             }
           ]
         }

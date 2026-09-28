@@ -2,10 +2,6 @@ $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
   bench:
-    cross:
-      jvm213:
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependencies:
     - org.openjdk.jmh:jmh-core:1.37
     - org.openjdk.jmh:jmh-generator-bytecode:1.37
@@ -14,12 +10,11 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/bench/suite
-    resources: ./src/${SCOPE}/protobuf
     sourcegen:
       main: scripts.GenerateForBench
       project: scripts
-    sources: ./src/${SCOPE}/protobuf
   common:
     cross:
       jvm213:
@@ -28,49 +23,43 @@ projects:
       configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/common
-    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sourcegen:
       main: scripts.GenerateForCommon
       project: scripts
-    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   communitytest:
     cross:
       jvm213:
         dependencies: org.scalameta::munit:1.1.0
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependsOn: scalameta
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/community-test
-    resources: ./src/${SCOPE}/protobuf
-    sources: ./src/${SCOPE}/protobuf
   communitytest-test:
-    cross:
-      jvm213:
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependsOn: communitytest
     extends:
-    - template-common-test
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/community-test
-    resources: ./src/${SCOPE}/protobuf
-    sources: ./src/${SCOPE}/protobuf
+    isTestProject: true
+    sbt-scope: test
   io:
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/io
-    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
-    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   metac:
     dependsOn: semanticdb-scalac-core
-    extends: template-cross-jvm-2.11.12-2.12.17-2.12.18-2.12.19-2.12.20-2.13.13-2.13.14-2.13.15-2.13.16
+    extends:
+    - template-common-main
+    - template-cross-jvm-full-all
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/metac
   parsers:
     cross:
@@ -88,8 +77,9 @@ projects:
         - ../transversers/shared/src/${SCOPE}/scala-2
     dependsOn: trees
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-3-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/parsers
     sourcegen:
       main: scripts.GenerateForParsers
@@ -102,13 +92,12 @@ projects:
     dependsOn: scala3treeliftsmacro
     extends:
     - template-common-main
-    - template-scala-2.13-jvm
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13.16
     folder: ../sbt-build/scala3-tree-lifts/impl
     ignoreEvictionErrors: no
-    resources: ./src/${SCOPE}/protobuf
-    scala:
-      version: 2.13.16
-    sources: ./src/${SCOPE}/protobuf
+    publish:
+      groupId: scala3treeliftscodegen
   scala3treeliftsmacro:
     dependencies:
       configuration: provided
@@ -116,21 +105,21 @@ projects:
     dependsOn: trees
     extends:
     - template-common-main
-    - template-scala-2.13-jvm
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13.16
     folder: ../sbt-build/scala3-tree-lifts/macro
     ignoreEvictionErrors: no
-    resources: ./src/${SCOPE}/protobuf
-    scala:
-      version: 2.13.16
-    sources: ./src/${SCOPE}/protobuf
+    publish:
+      groupId: scala3treeliftsmacro
   scalameta:
     cross:
       jvm213:
         sources: ../contrib/shared/src/${SCOPE}/scala-2
     dependsOn: parsers
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-3-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/scalameta
     sources:
     - ../contrib/${PLATFORM}/src/${SCOPE}/scala
@@ -140,18 +129,13 @@ projects:
     dependencies: org.scalameta::mdoc:2.7.1
     extends:
     - template-common-main
-    - template-scala-2.13-jvm
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13-wconf
+    - template-scala-2.13.16
     folder: ../sbt-build/scalameta-docs
-    ignoreEvictionErrors: warn
-    resources: ./src/${SCOPE}/protobuf
-    scala:
-      options: -Wconf:cat=deprecation:is -Xfatal-warnings -Ymacro-annotations -feature
-        -unchecked
-      version: 2.13.16
     sourcegen:
       main: scripts.GenerateForScalametaDocs
       project: scripts
-    sources: ./src/${SCOPE}/protobuf
   scripts:
     dependencies: build.bleep::bleep-core:0.0.12
     platform:
@@ -160,16 +144,32 @@ projects:
       version: 3.9.0
   semanticdb-metacp:
     dependsOn: semanticdb-scalac-core
-    extends: template-cross-jvm-2.11.12-2.12.17-2.12.18-2.12.19-2.12.20-2.13.13-2.13.14-2.13.15-2.13.16
+    extends:
+    - template-common-main
+    - template-cross-jvm-full-all
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/metacp
   semanticdb-metap:
     dependsOn: semanticdb-shared
-    extends: template-cross-jvm-2.11.12-2.12.17-2.12.18-2.12.19-2.12.20-2.13.13-2.13.14-2.13.15-2.13.16
+    extends:
+    - template-common-main
+    - template-cross-jvm-full-all
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/metap
+  semanticdb-scalac:
+    dependsOn: semanticdb-scalac-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-full-all
+    - template-scala-2-jvm-protobuf
+    folder: ../sbt-build/semanticdb/scalac/plugin
   semanticdb-scalac-core:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: semanticdb-shared
-    extends: template-cross-jvm-2.11.12-2.12.17-2.12.18-2.12.19-2.12.20-2.13.13-2.13.14-2.13.15-2.13.16
+    extends:
+    - template-common-main
+    - template-cross-jvm-full-all
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/scalac/library
   semanticdb-shared:
     cross:
@@ -179,12 +179,13 @@ projects:
     dependsOn: scalameta
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/semanticdb/semanticdb
     resources:
     - ./shared/src/${SCOPE}/proto
     - ./shared/src/${SCOPE}/proto/semanticdb.proto
     - ./shared/src/${SCOPE}/proto/semanticidx.proto
+    source-layout: cross-full
     sourcegen:
       main: scripts.GenerateForSemanticdbShared
       project: scripts
@@ -192,41 +193,40 @@ projects:
   semanticdbintegration:
     cross:
       jvm213:
+        extends:
+        - template-scala-2.13
+        - template-scala-2.13.16
         scala:
           options: -Wunused:imports -Xsource-features:leading-infix
-    dependsOn: semanticdbintegrationmacros
+    dependsOn:
+    - semanticdb-scalac
+    - semanticdbintegrationmacros
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/integration
     java:
       options: -parameters
-    resources: ./src/${SCOPE}/protobuf
     scala:
       options: -Yrangepos -deprecation
-    sources: ./src/${SCOPE}/protobuf
   semanticdbintegrationmacros:
-    cross:
-      jvm213:
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependencies:
       configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/integration-macros
-    resources: ./src/${SCOPE}/protobuf
-    sources: ./src/${SCOPE}/protobuf
   testkit:
     cross:
       jvm213:
         dependencies: org.rauschig:jarchivelib:1.2.0
     dependsOn: scalameta
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-3-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/testkit
   tests:
     cross:
@@ -239,8 +239,10 @@ projects:
         - org.scalameta::munit:1.1.0
     dependsOn: testkit
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-3-native-all-js-all
+    - template-cross-js-all-jvm-212-213-3-native-all
+    - template-cross-jvm-211-212-213
     folder: ../sbt-build/tests
     sourcegen:
       main: scripts.GenerateForTests
@@ -253,9 +255,12 @@ projects:
         - org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: tests
     extends:
-    - template-common-test
-    - template-cross-jvm-211-212-213-3-native-all-js-all
+    - template-common-cross-full
+    - template-cross-js-all-jvm-212-213-3-native-all
+    - template-cross-jvm-211-212-213
     folder: ../sbt-build/tests
+    isTestProject: true
+    sbt-scope: test
     sources: ./${PLATFORM}/src/${SCOPE}/scala-${SCALA_VERSION}
   testssemanticdb:
     cross:
@@ -264,8 +269,6 @@ projects:
         - for3Use213: true
           module: io.get-coursier::coursier:2.1.24
         - org.scalameta::munit:1.1.0
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependsOn:
     - metac
     - semanticdb-metacp
@@ -275,26 +278,20 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/tests-semanticdb
-    resources: ./src/${SCOPE}/protobuf
     sourcegen:
       main: scripts.GenerateForTestssemanticdb
       project: scripts
-    sources: ./src/${SCOPE}/protobuf
   testssemanticdb-test:
-    cross:
-      jvm213:
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
     dependsOn: testssemanticdb
     extends:
-    - template-common-test
     - template-cross-jvm-211-212-213
+    - template-scala-2-jvm-protobuf
     folder: ../sbt-build/tests-semanticdb
-    resources: ./src/${SCOPE}/protobuf
-    sources:
-    - ./src/${SCOPE}/protobuf
-    - ./src/${SCOPE}/scala-${SCALA_VERSION}
+    isTestProject: true
+    sbt-scope: test
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
   trees:
     cross:
       jvm213:
@@ -308,12 +305,11 @@ projects:
     - common
     - io
     extends:
+    - template-common-cross-full
     - template-common-main
-    - template-cross-jvm-211-212-213-native-all-js-all
+    - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/trees
-    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
-    - ./${PLATFORM}/src/${SCOPE}/protobuf
     - ../dialects/${PLATFORM}/src/${SCOPE}/scala
     - ../dialects/shared/src/${SCOPE}/scala
     - ../dialects/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
@@ -332,62 +328,50 @@ projects:
     - ../tokens/shared/src/${SCOPE}/scala-2
 templates:
   template-common:
+    ignoreEvictionErrors: warn
     scala:
       setup:
         order: mixed
+  template-common-cross-full:
+    extends: template-common-feature
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    source-layout: cross-full
+    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
+  template-common-feature:
+    extends: template-common
+    scala:
+      options: -feature -unchecked
   template-common-main:
     extends: template-common
+    publish:
+      groupId: org.scalameta
     sbt-scope: main
-  template-common-test:
-    extends: template-common
-    isTestProject: true
-    sbt-scope: test
-  template-cross-jvm-2.11.12-2.12.17-2.12.18-2.12.19-2.12.20-2.13.13-2.13.14-2.13.15-2.13.16:
+  template-cross-js-all-jvm-211-212-213-native-all:
     cross:
-      jvm2.13.16:
-        extends: template-scala-2.13-jvm
-        ignoreEvictionErrors: warn
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings -Ymacro-annotations
-            -feature -unchecked
-          version: 2.13.16
-    extends: template-common-main
-    resources: ./src/${SCOPE}/protobuf
-    sources:
-    - ./src/${SCOPE}/protobuf
-    - ./src/${SCOPE}/scala-${SCALA_VERSION}
+      jvm213:
+        extends:
+        - template-jvm
+        - template-scala-2.13-wconf
+        - template-scala-2.13.16
+  template-cross-js-all-jvm-212-213-3-native-all:
+    cross:
+      jvm213:
+        extends: template-jvm
   template-cross-jvm-211-212-213:
     cross:
       jvm213:
-        extends: template-scala-2.13-jvm
-        ignoreEvictionErrors: warn
-        scala:
-          options: -Ymacro-annotations -feature -unchecked
-          version: 2.13.16
-  template-cross-jvm-211-212-213-3-native-all-js-all:
+        extends:
+        - template-scala-2.13-wconf
+        - template-scala-2.13.16
+  template-cross-jvm-full-all:
     cross:
-      jvm213:
-        resources: ./${PLATFORM}/src/${SCOPE}/protobuf
-        sources: ./${PLATFORM}/src/${SCOPE}/protobuf
-    extends: template-cross-jvm-211-212-213-native-all-js-all
-  template-cross-jvm-211-212-213-native-all-js-all:
-    cross:
-      jvm213:
-        resources:
-        - ./${PLATFORM}-native/src/${SCOPE}/resources
-        - ./js-${PLATFORM}/src/${SCOPE}/resources
-        scala:
-          options: -Wconf:cat=deprecation:is -Xfatal-warnings
-        source-layout: cross-full
-        sources:
-        - ./${PLATFORM}-native/src/${SCOPE}/scala
-        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
-        - ./js-${PLATFORM}/src/${SCOPE}/scala
-        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
-    extends: template-cross-jvm-211-212-213
+      jvm2.13.16:
+        extends:
+        - template-scala-2.13-wconf
+        - template-scala-2.13.16
+        sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
   template-js:
+    extends: template-common-feature
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
@@ -395,20 +379,14 @@ templates:
       jsNodeVersion: 24.18.0
       jsVersion: 1.18.2
       name: js
-    resources:
-    - ./${PLATFORM}-jvm/src/${SCOPE}/resources
-    - ./${PLATFORM}-native/src/${SCOPE}/resources
     scala:
       options: -P:scalajs:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/scalameta/scalameta/v4.13.7-SNAPSHOT/
-    source-layout: cross-full
-    sources:
-    - ./${PLATFORM}-jvm/src/${SCOPE}/scala
-    - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-    - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
-    - ./${PLATFORM}-native/src/${SCOPE}/scala
-    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-    - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+  template-jvm:
+    extends: template-common
+    platform:
+      name: jvm
   template-native:
+    extends: template-common-feature
     platform:
       name: native
       nativeEmbedResources: false
@@ -416,92 +394,97 @@ templates:
       nativeOptimize: true
       nativeUseIncrementalCompilation: true
       nativeVersion: 0.5.6
-    resources:
-    - ./js-${PLATFORM}/src/${SCOPE}/resources
-    - ./jvm-${PLATFORM}/src/${SCOPE}/resources
-    source-layout: cross-full
-    sources:
-    - ./js-${PLATFORM}/src/${SCOPE}/scala
-    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-    - ./js-${PLATFORM}/src/${SCOPE}/scala-2
-    - ./jvm-${PLATFORM}/src/${SCOPE}/scala
-    - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-    - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+  template-scala-2-jvm-protobuf:
+    extends: template-jvm
+    resources: ./src/${SCOPE}/protobuf
+    sources: ./src/${SCOPE}/protobuf
   template-scala-2.11:
-    ignoreEvictionErrors: warn
-    platform:
-      name: jvm
+    extends:
+    - template-jvm
+    - template-scala-2.11-and-2.12
     scala:
-      compilerPlugins: org.scalamacros:::paradise:2.1.1
-      options: -feature -unchecked
       version: 2.11.12
-  template-scala-2.12:
-    ignoreEvictionErrors: warn
+  template-scala-2.11-and-2.12:
+    extends: template-common-feature
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
-      options: -feature -unchecked
-  template-scala-2.12-js:
+  template-scala-2.12.17:
     extends:
-    - template-js
-    - template-scala-2.12
+    - template-common-main
+    - template-jvm
+    - template-scala-2.11-and-2.12
     scala:
-      version: 2.12.20
-  template-scala-2.12-jvm:
-    extends: template-scala-2.12
-    platform:
-      name: jvm
-  template-scala-2.12-native:
+      version: 2.12.17
+  template-scala-2.12.18:
     extends:
-    - template-native
-    - template-scala-2.12
+    - template-common-main
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.11-and-2.12
+    scala:
+      version: 2.12.18
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
+  template-scala-2.12.19:
+    extends:
+    - template-common-main
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.11-and-2.12
+    scala:
+      version: 2.12.19
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
+  template-scala-2.12.20:
+    extends: template-scala-2.11-and-2.12
     scala:
       version: 2.12.20
   template-scala-2.13:
+    extends:
+    - template-common-feature
+    - template-scala-2.13-and-3
+    scala:
+      options: -Ymacro-annotations
+  template-scala-2.13-and-3:
+    extends: template-common
     scala:
       setup:
         addLibraryToBootClasspath: false
         filterLibraryFromClasspath: false
         manageBootClasspath: false
-  template-scala-2.13-js:
+  template-scala-2.13-and-3.3.6:
     extends:
-    - template-js
-    - template-scala-2.13
-    ignoreEvictionErrors: warn
+    - template-common-feature
+    - template-scala-2.13-and-3
     scala:
-      options: -Wconf:cat=deprecation:is -Xfatal-warnings -Ymacro-annotations -feature
-        -unchecked
-      version: 2.13.16
-  template-scala-2.13-jvm:
-    extends: template-scala-2.13
-    platform:
-      name: jvm
-  template-scala-2.13-native:
+      options: -Xfatal-warnings
+  template-scala-2.13-wconf:
     extends:
-    - template-native
     - template-scala-2.13
-    ignoreEvictionErrors: warn
+    - template-scala-2.13-and-3.3.6
     scala:
-      options: -Wconf:cat=deprecation:is -Xfatal-warnings -Ymacro-annotations -feature
-        -unchecked
+      options: -Wconf:cat=deprecation:is
+  template-scala-2.13.13:
+    extends:
+    - template-common-main
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13-wconf
+    scala:
+      version: 2.13.13
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
+  template-scala-2.13.14:
+    extends:
+    - template-common-main
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13-wconf
+    scala:
+      version: 2.13.14
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
+  template-scala-2.13.15:
+    extends:
+    - template-common-main
+    - template-scala-2-jvm-protobuf
+    - template-scala-2.13-wconf
+    scala:
+      version: 2.13.15
+    sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
+  template-scala-2.13.16:
+    extends: template-scala-2.13-and-3
+    scala:
       version: 2.13.16
-  template-scala-3:
-    ignoreEvictionErrors: warn
-    platform:
-      name: jvm
-    resources:
-    - ./${PLATFORM}-native/src/${SCOPE}/resources
-    - ./${PLATFORM}/src/${SCOPE}/protobuf
-    - ./js-${PLATFORM}/src/${SCOPE}/resources
-    scala:
-      options: -Wconf:cat=deprecation:silent -feature -unchecked
-      setup:
-        addLibraryToBootClasspath: false
-        filterLibraryFromClasspath: false
-        manageBootClasspath: false
-    source-layout: cross-full
-    sources:
-    - ./${PLATFORM}-native/src/${SCOPE}/scala
-    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-    - ./${PLATFORM}/src/${SCOPE}/protobuf
-    - ./js-${PLATFORM}/src/${SCOPE}/scala
-    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}

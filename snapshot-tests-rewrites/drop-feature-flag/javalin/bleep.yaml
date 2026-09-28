@@ -1,0 +1,320 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  javalin:
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-core:2.22.2
+    - org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:12.1.12
+    - org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.12
+    - org.eclipse.jetty:jetty-server:12.1.12
+    - org.jetbrains.kotlin:kotlin-stdlib:2.2.20
+    - org.slf4j:slf4j-api:2.0.18
+    extends:
+    - template-common-main
+    - template-javalin
+    folder: ../maven-build/javalin
+  javalin-bundle:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.6.3
+    - com.aayushatharva.brotli4j:brotli4j:1.23.0
+    - com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.2
+    - org.eclipse.jetty.http2:jetty-http2-server:12.1.12
+    dependsOn:
+    - javalin-context-mock
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-main
+    folder: ../maven-build/javalin-bundle
+  javalin-context-mock:
+    dependencies: org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-context-mock
+  javalin-context-mock-test:
+    dependencies:
+    - com.google.code.gson:gson:2.14.0
+    - com.konghq:unirest-java:3.14.5
+    dependsOn: javalin-context-mock
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-context-mock
+  javalin-micrometer:
+    dependencies:
+    - io.micrometer:micrometer-core:1.17.1
+    - io.micrometer:micrometer-jetty12:1.17.1
+    - configuration: optional
+      module: io.micrometer:micrometer-registry-prometheus:1.17.1
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-micrometer
+  javalin-micrometer-test:
+    dependencies:
+    - configuration: optional
+      module: io.micrometer:micrometer-registry-prometheus:1.17.1
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn:
+    - javalin-micrometer
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-micrometer
+  javalin-rendering-commonmark:
+    dependencies:
+    - org.commonmark:commonmark:0.30.0
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark
+  javalin-rendering-commonmark-test:
+    dependencies:
+      configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn:
+    - javalin-rendering-commonmark
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark
+  javalin-rendering-freemarker:
+    dependencies:
+    - org.freemarker:freemarker:2.3.35
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker
+  javalin-rendering-freemarker-test:
+    dependencies:
+      configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn:
+    - javalin-rendering-freemarker
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker
+  javalin-rendering-handlebars:
+    dependencies: com.github.jknack:handlebars:4.5.4
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars
+  javalin-rendering-handlebars-test:
+    dependsOn:
+    - javalin-rendering-handlebars
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars
+  javalin-rendering-jte:
+    dependencies:
+    - gg.jte:jte:3.2.3
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte
+  javalin-rendering-jte-test:
+    dependencies:
+      configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn:
+    - javalin-rendering-jte
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte
+  javalin-rendering-mustache:
+    dependencies:
+    - com.github.spullara.mustache.java:compiler:0.9.14
+    - configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache
+  javalin-rendering-mustache-test:
+    dependencies:
+      configuration: provided
+      module: org.slf4j:slf4j-api:2.0.18
+    dependsOn:
+    - javalin-rendering-mustache
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache
+  javalin-rendering-pebble:
+    dependencies: io.pebbletemplates:pebble:4.1.2
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble
+  javalin-rendering-pebble-test:
+    dependsOn:
+    - javalin-rendering-pebble
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble
+  javalin-rendering-thymeleaf:
+    dependencies: org.thymeleaf:thymeleaf:3.1.5.RELEASE
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf
+  javalin-rendering-thymeleaf-test:
+    dependsOn:
+    - javalin-rendering-thymeleaf
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf
+  javalin-rendering-velocity:
+    dependencies: org.apache.velocity:velocity-engine-core:2.4.1
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity
+  javalin-rendering-velocity-test:
+    dependsOn:
+    - javalin-rendering-velocity
+    - javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity
+  javalin-ssl:
+    dependencies:
+    - io.github.hakky54:ayza-for-jetty:10.0.7
+    - io.github.hakky54:ayza-for-pem:10.0.7
+    - io.github.hakky54:ayza:10.0.7
+    - org.eclipse.jetty.http2:jetty-http2-client-transport:12.1.12
+    - org.eclipse.jetty.http2:jetty-http2-server:12.1.12
+    - org.eclipse.jetty:jetty-alpn-java-server:12.1.12
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-ssl
+    publish:
+      groupId: io.javalin.community.ssl
+  javalin-ssl-test:
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-databind:2.22.2
+    - com.squareup.okhttp3:okhttp-jvm:5.5.0
+    - com.squareup.okhttp3:okhttp-tls:5.5.0
+    dependsOn: javalin-ssl
+    extends: template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-ssl
+  javalin-test:
+    dependencies:
+    - com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.2
+    - com.konghq:unirest-java:3.14.5
+    - com.squareup.moshi:moshi-kotlin:1.15.2
+    - com.squareup.moshi:moshi:1.15.2
+    - com.squareup.okhttp3:okhttp-jvm:5.5.0
+    - io.github.bonigarcia:webdrivermanager:6.3.4
+    - io.mockk:mockk-jvm:1.14.11
+    - org.eclipse.jetty.http2:jetty-http2-client-transport:12.1.12
+    - org.eclipse.jetty.http2:jetty-http2-server:12.1.12
+    - org.eclipse.jetty.websocket:jetty-websocket-jetty-client:12.1.12
+    - org.eclipse.jetty:jetty-alpn-java-server:12.1.12
+    - org.eclipse.jetty:jetty-unixdomain-server:12.1.12
+    - org.java-websocket:Java-WebSocket:1.6.0
+    - org.junit.jupiter:junit-jupiter-params:6.1.3
+    - org.mockito:mockito-core:5.23.0
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-annprocess:1.37
+    - org.seleniumhq.selenium:selenium-chrome-driver:4.48.0
+    - exclusions:
+        '*': '*'
+      module: org.webjars:swagger-ui:4.10.3
+    dependsOn: javalin
+    extends:
+    - template-common-test
+    - template-javalin
+    folder: ../maven-build/javalin
+    sourcegen:
+      main: scripts.GenerateForJavalinTest
+      project: scripts
+  javalin-testtools:
+    dependsOn: javalin
+    extends: template-common-main
+    folder: ../maven-build/javalin-testtools
+  javalin-testtools-test:
+    dependencies: org.eclipse.jetty.websocket:jetty-websocket-core-server:12.1.12
+    dependsOn: javalin-testtools
+    extends:
+    - template-common-jackson-databind
+    - template-common-test-slf4j-simple
+    folder: ../maven-build/javalin-testtools
+  scripts:
+    dependencies: build.bleep::bleep-core:0.0.12
+    platform:
+      name: jvm
+    scala:
+      version: 3.9.0
+templates:
+  template-common:
+    dependencies:
+      configuration: provided
+      module: org.jetbrains:annotations:26.1.0
+    java:
+      options: --release 17
+    kotlin:
+      version: 2.2.20
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-jackson-databind:
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-databind:2.22.2
+    - com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
+    extends: template-common
+  template-common-main:
+    boms:
+    - org.eclipse.jetty:jetty-bom:12.1.12
+    - tools.jackson:jackson-bom:3.2.2
+    extends: template-common
+    publish:
+      groupId: io.javalin
+    sbt-scope: main
+  template-common-test:
+    dependencies:
+    - org.assertj:assertj-core:3.27.7
+    - org.junit.jupiter:junit-jupiter-api:6.1.3
+    - org.junit.jupiter:junit-jupiter-engine:6.1.3
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+  template-common-test-slf4j-simple:
+    dependencies: org.slf4j:slf4j-simple:2.0.18
+    extends: template-common-test
+  template-javalin:
+    dependencies:
+    - configuration: optional
+      module: com.aayushatharva.brotli4j:brotli4j:1.23.0
+    - configuration: optional
+      module: com.fasterxml.jackson.core:jackson-databind:2.22.2
+    - configuration: optional
+      module: com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
+    - configuration: optional
+      module: com.github.luben:zstd-jni:1.5.7-15
+    - configuration: optional
+      module: com.google.code.gson:gson:2.14.0
+    - configuration: optional
+      module: org.slf4j:slf4j-simple:2.0.18
+    - configuration: optional
+      module: tools.jackson.core:jackson-databind:3.2.2
+    - configuration: optional
+      module: tools.jackson.module:jackson-module-kotlin:3.2.2
+    extends: template-common

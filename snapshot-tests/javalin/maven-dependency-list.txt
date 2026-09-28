@@ -1,0 +1,2021 @@
+[INFO] Scanning for projects...
+[INFO] Inspecting build with total of 19 modules
+[INFO] Installing Central Publishing features
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Javalin (parent)                                                   [pom]
+[INFO] Javalin                                                            [jar]
+[INFO] Javalin BOM (Bill of Materials)                                    [pom]
+[INFO] Javalin Utils (parent)                                             [pom]
+[INFO] Javalin Context Mock                                               [jar]
+[INFO] Javalin Test Tools                                                 [jar]
+[INFO] Javalin Bundle                                                     [jar]
+[INFO] Javalin Rendering - Velocity                                       [jar]
+[INFO] Javalin Rendering - FreeMarker                                     [jar]
+[INFO] Javalin Rendering - Thymeleaf                                      [jar]
+[INFO] Javalin Rendering - Mustache                                       [jar]
+[INFO] Javalin Rendering - Handlebars                                     [jar]
+[INFO] Javalin Rendering - Pebble                                         [jar]
+[INFO] Javalin Rendering - CommonMark                                     [jar]
+[INFO] Javalin Rendering - JTE                                            [jar]
+[INFO] Javalin Rendering (parent)                                         [pom]
+[INFO] Javalin SSL                                                        [jar]
+[INFO] Javalin Micrometer Plugin                                          [jar]
+[INFO] JaCoCo Coverage Report                                             [pom]
+[INFO] 
+[INFO] ---------------------< io.javalin:javalin-parent >----------------------
+[INFO] Building Javalin (parent) 7.2.4-SNAPSHOT                          [1/19]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-parent ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-parent ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-parent ---
+[INFO] Copying 1 resource from . to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-parent ---
+[INFO] Copying 1 resource from . to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-parent ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/target/jacoco.exec
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-parent ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-parent ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-parent ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-parent ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-parent ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-parent ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] -------------------------< io.javalin:javalin >-------------------------
+[INFO] Building Javalin 7.2.4-SNAPSHOT                                   [2/19]
+[INFO]   from javalin/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/config/AppDataManager.kt:24:26 Unchecked cast of 'Any?' to 'T? (of fun <T> get)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/config/RouterConfig.kt:1:28 Suppression of error 'INVISIBLE_REFERENCE' might compile and work, but the compiler behavior is UNSPECIFIED and WILL NOT BE PRESERVED. Please report your use case to the Kotlin issue tracker instead: https://kotl.in/issue
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/config/RoutesConfig.kt:1:28 Suppression of error 'INVISIBLE_REFERENCE' might compile and work, but the compiler behavior is UNSPECIFIED and WILL NOT BE PRESERVED. Please report your use case to the Kotlin issue tracker instead: https://kotl.in/issue
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/http/HttpResponseException.kt:187:23 'static enum entry USE_PROXY: HttpStatus' is deprecated. It has been deprecated due to security concerns regarding in-band configuration of a proxy.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/http/HttpResponseException.kt:189:27 'static enum entry USE_PROXY: HttpStatus' is deprecated. It has been deprecated due to security concerns regarding in-band configuration of a proxy.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/plugin/PluginApi.kt:52:89 Unchecked cast of 'CONFIG? (of class Plugin<CONFIG>)' to 'CONFIG (of class Plugin<CONFIG>)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/plugin/PluginManager.kt:45:102 Unchecked cast of 'Plugin<*>' to 'ContextPlugin<*, T (of fun <T> getContextPlugin)>'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/validation/Validation.kt:23:61 Unchecked cast of 'Class<T (of fun <T> convertValue)>' to 'Class<out Enum<*>>'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/validation/Validation.kt:50:97 Projection is redundant: the corresponding type parameter of 'ValidationError<out Any?>' has the same variance.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/validation/Validation.kt:63:78 Projection is redundant: the corresponding type parameter of 'ValidationError<out Any?>' has the same variance.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/main/java/io/javalin/websocket/WsContext.kt:117:62 Unchecked cast of 'Any?' to 'T? (of fun <T> attribute)'.
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 14 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin ---
+[INFO] Copying 42 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin ---
+[WARNING] Using experimental Kotlin incremental compilation
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestGlobalGlobalHeaderConfigPlugin.kt:61:28 'fun xFrameOptions(domain: String): Unit' is deprecated. This is an obsolete directive that no longer works in modern browsers.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJavalinJackson.kt:50:19 'fun setSerializationInclusion(p0: JsonInclude.Include!): ObjectMapper!' is deprecated. Deprecated in Java.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJson.kt:166:104 Unchecked cast of 'String' to 'T (of fun <T : Any> fromJsonString)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJson.kt:177:109 Unchecked cast of 'String' to 'T (of fun <T : Any> fromJsonStream)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJson.kt:197:133 Unchecked cast of 'Any?' to 'T (of fun <T : Any> fromJsonString)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJsonMapperExtensions.kt:35:109 Unchecked cast of 'TestJsonMapperExtensions.TestData' to 'T (of fun <T : Any> fromJsonString)'.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/src/test/java/io/javalin/TestJsonMapperExtensions.kt:44:114 Unchecked cast of 'TestJsonMapperExtensions.TestData' to 'T (of fun <T : Any> fromJsonStream)'.
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 42 source files with javac [debug release 17] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/target/javalin-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- jar:3.5.1:test-jar (default) @ javalin ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/target/javalin-7.2.4-SNAPSHOT-tests.jar
+[INFO] 
+[INFO] --- moditect:1.3.0.Final:add-module-info (add-module-infos) @ javalin ---
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin/target/javalin-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:compile (optional) -- module org.slf4j.simple
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:compile -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:compile -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:compile -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:compile -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:compile -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:compile -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:compile -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:compile -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:compile -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:compile -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:compile -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:compile -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:compile -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:compile -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:compile -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:compile -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:compile -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.server
+[INFO]    com.aayushatharva.brotli4j:brotli4j:jar:1.23.0:compile (optional) -- module com.aayushatharva.brotli4j
+[INFO]    com.aayushatharva.brotli4j:service:jar:1.23.0:compile (optional) -- module com.aayushatharva.brotli4j.service
+[INFO]    com.aayushatharva.brotli4j:native-osx-aarch64:jar:1.23.0:compile (optional) -- module com.aayushatharva.brotli4j.macos.aarch64
+[INFO]    com.github.luben:zstd-jni:jar:1.5.7-15:compile (optional) -- module com.github.luben.zstd_jni
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:compile (optional) -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:compile -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:compile -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:compile (optional) -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:compile -- module kotlin.reflect
+[INFO]    tools.jackson.core:jackson-databind:jar:3.2.2:compile (optional) -- module tools.jackson.databind
+[INFO]    tools.jackson.core:jackson-core:jar:3.2.2:compile (optional) -- module tools.jackson.core
+[INFO]    tools.jackson.module:jackson-module-kotlin:jar:3.2.2:compile (optional) -- module tools.jackson.module.kotlin
+[INFO]    com.google.code.gson:gson:jar:2.14.0:compile (optional) -- module com.google.gson
+[INFO]    com.google.errorprone:error_prone_annotations:jar:2.48.0:compile -- module com.google.errorprone.annotations
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.junit.jupiter:junit-jupiter-params:jar:6.1.3:test -- module org.junit.jupiter.params
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.openjdk.jmh:jmh-core:jar:1.37:test -- module jmh.core (auto)
+[INFO]    net.sf.jopt-simple:jopt-simple:jar:5.0.4:test -- module jopt.simple (auto)
+[INFO]    org.apache.commons:commons-math3:jar:3.6.1:test -- module commons.math3 (auto)
+[INFO]    org.openjdk.jmh:jmh-generator-annprocess:jar:1.37:test -- module jmh.generator.annprocess (auto)
+[INFO]    org.mockito:mockito-core:jar:5.23.0:test -- module org.mockito
+[INFO]    net.bytebuddy:byte-buddy-agent:jar:1.17.7:test -- module net.bytebuddy.agent
+[INFO]    org.objenesis:objenesis:jar:3.3:test -- module org.objenesis [auto]
+[INFO]    io.mockk:mockk-jvm:jar:1.14.11:test -- module mockk.jvm (auto)
+[INFO]    io.mockk:mockk-dsl-jvm:jar:1.14.11:test -- module mockk.dsl.jvm (auto)
+[INFO]    io.mockk:mockk-agent-jvm:jar:1.14.11:test -- module mockk.agent.jvm (auto)
+[INFO]    io.mockk:mockk-agent-api-jvm:jar:1.14.11:test -- module mockk.agent.api.jvm (auto)
+[INFO]    io.mockk:mockk-core-jvm:jar:1.14.11:test -- module mockk.core.jvm (auto)
+[INFO]    org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:1.10.2:test -- module kotlinx.coroutines.core (auto)
+[INFO]    org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:1.10.2:test -- module kotlinx.coroutines.core
+[INFO]    com.konghq:unirest-java:jar:3.14.5:test -- module unirest.java (auto)
+[INFO]    org.apache.httpcomponents:httpclient:jar:4.5.13:test -- module org.apache.httpcomponents.httpclient [auto]
+[INFO]    org.apache.httpcomponents:httpcore:jar:4.4.13:test -- module org.apache.httpcomponents.httpcore [auto]
+[INFO]    commons-logging:commons-logging:jar:1.2:test -- module commons.logging (auto)
+[INFO]    org.apache.httpcomponents:httpmime:jar:4.5.13:test -- module org.apache.httpcomponents.httpmime [auto]
+[INFO]    org.apache.httpcomponents:httpcore-nio:jar:4.4.13:test -- module org.apache.httpcomponents.httpcore.nio [auto]
+[INFO]    org.apache.httpcomponents:httpasyncclient:jar:4.1.5:test -- module org.apache.httpcomponents.httpasyncclient [auto]
+[INFO]    commons-codec:commons-codec:jar:1.15:test -- module org.apache.commons.codec [auto]
+[INFO]    org.java-websocket:Java-WebSocket:jar:1.6.0:test -- module org.java_websocket
+[INFO]    com.squareup.okhttp3:okhttp-jvm:jar:5.5.0:test -- module okhttp3
+[INFO]    com.squareup.okio:okio-jvm:jar:3.18.1:test -- module okio [auto]
+[INFO]    com.squareup.moshi:moshi:jar:1.15.2:test -- module com.squareup.moshi [auto]
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.8.21:test -- module kotlin.stdlib.jdk8
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.8.21:test -- module kotlin.stdlib.jdk7
+[INFO]    com.squareup.moshi:moshi-kotlin:jar:1.15.2:test -- module com.squareup.moshi.kotlin [auto]
+[INFO]    org.eclipse.jetty:jetty-unixdomain-server:jar:12.1.12:test -- module org.eclipse.jetty.unixdomain.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-server:jar:12.1.12:test -- module org.eclipse.jetty.http2.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-common:jar:12.1.12:test -- module org.eclipse.jetty.http2.common
+[INFO]    org.eclipse.jetty.http2:jetty-http2-hpack:jar:12.1.12:test -- module org.eclipse.jetty.http2.hpack
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-client:jar:12.1.12:test -- module org.eclipse.jetty.websocket.client
+[INFO]    org.eclipse.jetty:jetty-client:jar:12.1.12:test -- module org.eclipse.jetty.client
+[INFO]    org.eclipse.jetty:jetty-alpn-client:jar:12.1.12:test -- module org.eclipse.jetty.alpn.client
+[INFO]    org.eclipse.jetty.compression:jetty-compression-gzip:jar:12.1.12:test -- module org.eclipse.jetty.compression.gzip
+[INFO]    org.eclipse.jetty.compression:jetty-compression-common:jar:12.1.12:test -- module org.eclipse.jetty.compression
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-client:jar:12.1.12:test -- module org.eclipse.jetty.websocket.core.client
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client-transport:jar:12.1.12:test -- module org.eclipse.jetty.http2.client.transport
+[INFO]    org.eclipse.jetty:jetty-alpn-java-client:jar:12.1.12:test -- module org.eclipse.jetty.alpn.java.client
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client:jar:12.1.12:test -- module org.eclipse.jetty.http2.client
+[INFO]    org.eclipse.jetty:jetty-alpn-java-server:jar:12.1.12:test -- module org.eclipse.jetty.alpn.java.server
+[INFO]    org.eclipse.jetty:jetty-alpn-server:jar:12.1.12:test -- module org.eclipse.jetty.alpn.server
+[INFO]    org.seleniumhq.selenium:selenium-chrome-driver:jar:4.48.0:test -- module org.seleniumhq.selenium.chrome_driver
+[INFO]    com.google.auto.service:auto-service-annotations:jar:1.1.1:test -- module com.google.auto.service [auto]
+[INFO]    org.seleniumhq.selenium:selenium-api:jar:4.48.0:test -- module org.seleniumhq.selenium.api
+[INFO]    org.seleniumhq.selenium:selenium-chromium-driver:jar:4.48.0:test -- module org.seleniumhq.selenium.chromium_driver
+[INFO]    org.seleniumhq.selenium:selenium-json:jar:4.48.0:test -- module org.seleniumhq.selenium.json
+[INFO]    org.seleniumhq.selenium:selenium-manager:jar:4.48.0:test -- module org.seleniumhq.selenium.manager
+[INFO]    org.seleniumhq.selenium:selenium-os:jar:4.48.0:test -- module org.seleniumhq.selenium.os
+[INFO]    org.seleniumhq.selenium:selenium-remote-driver:jar:4.48.0:test -- module org.seleniumhq.selenium.remote_driver
+[INFO]    com.google.guava:guava:jar:33.6.0-jre:test -- module com.google.common
+[INFO]    com.google.guava:failureaccess:jar:1.0.3:test -- module com.google.common.util.concurrent.internal
+[INFO]    com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:test -- module listenablefuture (auto)
+[INFO]    com.google.j2objc:j2objc-annotations:jar:3.1:test -- module com.google.j2objc.annotations
+[INFO]    io.opentelemetry:opentelemetry-api:jar:1.65.0:test -- module io.opentelemetry.api [auto]
+[INFO]    io.opentelemetry:opentelemetry-context:jar:1.65.0:test -- module io.opentelemetry.context [auto]
+[INFO]    io.opentelemetry:opentelemetry-common:jar:1.65.0:test -- module io.opentelemetry.common [auto]
+[INFO]    io.opentelemetry:opentelemetry-exporter-logging:jar:1.65.0:test -- module io.opentelemetry.exporter.logging [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-common:jar:1.65.0:test -- module io.opentelemetry.sdk.common [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:jar:1.65.0:test -- module io.opentelemetry.sdk.autoconfigure.spi [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:jar:1.65.0:test -- module io.opentelemetry.sdk.autoconfigure [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-trace:jar:1.65.0:test -- module io.opentelemetry.sdk.trace [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk:jar:1.65.0:test -- module io.opentelemetry.sdk [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-metrics:jar:1.65.0:test -- module io.opentelemetry.sdk.metrics [auto]
+[INFO]    io.opentelemetry:opentelemetry-sdk-logs:jar:1.65.0:test -- module io.opentelemetry.sdk.logs [auto]
+[INFO]    org.seleniumhq.selenium:selenium-http:jar:4.48.0:test -- module org.seleniumhq.selenium.http
+[INFO]    io.github.bonigarcia:webdrivermanager:jar:6.3.4:test -- module io.github.bonigarcia.webdrivermanager [auto]
+[INFO]    com.github.docker-java:docker-java:jar:3.7.1:test -- module com.github.dockerjava [auto]
+[INFO]    com.github.docker-java:docker-java-core:jar:3.7.1:test -- module com.github.dockerjava.core [auto]
+[INFO]    com.github.docker-java:docker-java-api:jar:3.7.1:test -- module com.github.dockerjava.api [auto]
+[INFO]    org.slf4j:jcl-over-slf4j:jar:1.7.30:test -- module org.apache.commons.logging [auto]
+[INFO]    com.github.docker-java:docker-java-transport-httpclient5:jar:3.7.1:test -- module com.github.dockerjava.transport.httpclient5 [auto]
+[INFO]    com.github.docker-java:docker-java-transport:jar:3.7.1:test -- module com.github.dockerjava.transport [auto]
+[INFO]    net.java.dev.jna:jna:jar:5.18.1:test -- module com.sun.jna [auto]
+[INFO]    org.brotli:dec:jar:0.1.2:test -- module dec (auto)
+[INFO]    org.apache.commons:commons-lang3:jar:3.20.0:test -- module org.apache.commons.lang3
+[INFO]    org.apache.commons:commons-compress:jar:1.28.0:test -- module org.apache.commons.compress
+[INFO]    commons-io:commons-io:jar:2.20.0:test -- module org.apache.commons.io
+[INFO]    org.apache.httpcomponents.client5:httpclient5:jar:5.6:test -- module org.apache.httpcomponents.client5.httpclient5 [auto]
+[INFO]    org.apache.httpcomponents.core5:httpcore5:jar:5.4:test -- module org.apache.httpcomponents.core5.httpcore5 [auto]
+[INFO]    org.apache.httpcomponents.core5:httpcore5-h2:jar:5.4:test -- module org.apache.httpcomponents.core5.httpcore5.h2 [auto]
+[INFO]    org.webjars:swagger-ui:jar:4.10.3:test -- module swagger.ui (auto)
+[INFO]    com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.22.2:test -- module com.fasterxml.jackson.datatype.jsr310
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO] 
+[INFO] 
+[INFO] -----------------------< io.javalin:javalin-bom >-----------------------
+[INFO] Building Javalin BOM (Bill of Materials) 7.2.4-SNAPSHOT           [3/19]
+[INFO]   from javalin-bom/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-bom ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bom/target
+[INFO] 
+[INFO] --- flatten:1.8.0:clean (flatten-clean) @ javalin-bom ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bom/.flattened-pom.xml
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-bom ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-bom ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-bom ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-bom ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bom/target/jacoco.exec
+[INFO] 
+[INFO] --- flatten:1.8.0:flatten (flatten) @ javalin-bom ---
+[INFO] Generating flattened POM of project io.javalin:javalin-bom:pom:7.2.4-SNAPSHOT...
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-bom ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-bom ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-bom ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-bom ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-bom ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-bom ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ----------------------< io.javalin:javalin-utils >----------------------
+[INFO] Building Javalin Utils (parent) 7.2.4-SNAPSHOT                    [4/19]
+[INFO]   from javalin-utils/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-utils ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-utils ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-utils ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-utils ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-utils ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/target/jacoco.exec
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-utils ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-utils ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-utils ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-utils ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-utils ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-utils ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ------------------< io.javalin:javalin-context-mock >-------------------
+[INFO] Building Javalin Context Mock 7.2.4-SNAPSHOT                      [5/19]
+[INFO]   from javalin-utils/javalin-context-mock/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-context-mock ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-context-mock ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-context-mock ---
+[INFO] Copying 1 resource from ../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-context-mock ---
+[INFO] Copying 1 resource from ../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-context-mock ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-context-mock ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-context-mock ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/java/io/javalin/mock/ContextMockConfig.kt:10:30 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/java/io/javalin/mock/servlet/InMemoryHttpSession.kt:6:8 'interface HttpSessionContext : Any' is deprecated. Deprecated in Java.
+[WARNING] file:///Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/java/io/javalin/mock/servlet/InMemoryHttpSession.kt:46:39 'interface HttpSessionContext : Any' is deprecated. Deprecated in Java.
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-context-mock ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-context-mock ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/test/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-context-mock ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-context-mock ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-context-mock ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-context-mock ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/target/javalin-context-mock-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-context-mock ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/target/javalin-context-mock-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-context-mock ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:compile -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:jar:5.0.2:compile -- module jetty.servlet.api
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:test -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:test -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:test -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:test -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:test -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:test -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:test -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:test -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:test -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:test -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:test -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:test -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:test -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:test -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:test -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:test -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:test -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:test -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:test -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:test -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:test -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:test -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:test -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:test -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:test -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:test -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:test -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:test -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:test -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.websocket.server
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    com.konghq:unirest-java:jar:3.14.5:test -- module unirest.java (auto)
+[INFO]    org.apache.httpcomponents:httpclient:jar:4.5.13:test -- module org.apache.httpcomponents.httpclient [auto]
+[INFO]    org.apache.httpcomponents:httpcore:jar:4.4.13:test -- module org.apache.httpcomponents.httpcore [auto]
+[INFO]    commons-logging:commons-logging:jar:1.2:test -- module commons.logging (auto)
+[INFO]    org.apache.httpcomponents:httpmime:jar:4.5.13:test -- module org.apache.httpcomponents.httpmime [auto]
+[INFO]    org.apache.httpcomponents:httpcore-nio:jar:4.4.13:test -- module org.apache.httpcomponents.httpcore.nio [auto]
+[INFO]    org.apache.httpcomponents:httpasyncclient:jar:4.1.5:test -- module org.apache.httpcomponents.httpasyncclient [auto]
+[INFO]    commons-codec:commons-codec:jar:1.15:test -- module org.apache.commons.codec [auto]
+[INFO]    com.google.code.gson:gson:jar:2.14.0:test -- module com.google.gson
+[INFO]    com.google.errorprone:error_prone_annotations:jar:2.48.0:test -- module com.google.errorprone.annotations
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] --------------------< io.javalin:javalin-testtools >--------------------
+[INFO] Building Javalin Test Tools 7.2.4-SNAPSHOT                        [6/19]
+[INFO]   from javalin-testtools/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-testtools ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-testtools ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-testtools ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-testtools ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-testtools ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-testtools ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-testtools ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-testtools ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-testtools ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/src/test/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-testtools ---
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-testtools ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug release 17] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-testtools ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-testtools ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/target/javalin-testtools-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-testtools ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-testtools/target/javalin-testtools-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-testtools ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:compile -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:test -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:test -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:test -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:test -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:test -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:test -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:test -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:test -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:test -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:test -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:test -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:test -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:test -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:test -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:test -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:test -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:test -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:test -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:test -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:test -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:test -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:test -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:test -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:test -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:test -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:test -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:test -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:test -- module org.eclipse.jetty.websocket.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:test -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:test -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ---------------------< io.javalin:javalin-bundle >----------------------
+[INFO] Building Javalin Bundle 7.2.4-SNAPSHOT                            [7/19]
+[INFO]   from javalin-bundle/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-bundle ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-bundle ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-bundle ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-bundle ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-bundle ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-bundle ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-bundle ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-bundle ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-bundle ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/src/test/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-bundle ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-bundle ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-bundle ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-bundle ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/target/javalin-bundle-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-bundle ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/target/javalin-bundle-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- jar:3.5.1:jar (empty-javadoc-jar) @ javalin-bundle ---
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-bundle/target/javalin-bundle-7.2.4-SNAPSHOT-javadoc.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-bundle ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:compile -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:compile -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:compile -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:compile -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:compile -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:compile -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:compile -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:compile -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:compile -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:compile -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:compile -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:compile -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:compile -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:compile -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:compile -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:compile -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:compile -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:compile -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.server
+[INFO]    io.javalin:javalin-context-mock:jar:7.2.4-SNAPSHOT:compile -- module javalin.context.mock (auto)
+[INFO]    org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:jar:5.0.2:compile -- module jetty.servlet.api
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:compile -- module javalin.testtools (auto)
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:compile -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:compile -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:compile -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:compile -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:compile -- module kotlin.reflect
+[INFO]    com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.22.2:compile -- module com.fasterxml.jackson.datatype.jsr310
+[INFO]    com.aayushatharva.brotli4j:brotli4j:jar:1.23.0:compile -- module com.aayushatharva.brotli4j
+[INFO]    com.aayushatharva.brotli4j:service:jar:1.23.0:compile -- module com.aayushatharva.brotli4j.service
+[INFO]    com.aayushatharva.brotli4j:native-osx-aarch64:jar:1.23.0:compile -- module com.aayushatharva.brotli4j.macos.aarch64
+[INFO]    org.eclipse.jetty.http2:jetty-http2-server:jar:12.1.12:compile -- module org.eclipse.jetty.http2.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-common:jar:12.1.12:compile -- module org.eclipse.jetty.http2.common
+[INFO]    org.eclipse.jetty.http2:jetty-http2-hpack:jar:12.1.12:compile -- module org.eclipse.jetty.http2.hpack
+[INFO]    ch.qos.logback:logback-classic:jar:1.6.3:compile -- module ch.qos.logback.classic
+[INFO]    ch.qos.logback:logback-core:jar:1.6.3:compile -- module ch.qos.logback.core
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ---------------< io.javalin:javalin-rendering-velocity >----------------
+[INFO] Building Javalin Rendering - Velocity 7.2.4-SNAPSHOT              [8/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-velocity/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-velocity ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-velocity ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-velocity ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-velocity ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-velocity ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-velocity ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-velocity ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-velocity ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-velocity ---
+[INFO] Copying 4 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-velocity ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-velocity ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-velocity ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-velocity ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/target/javalin-rendering-velocity-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-velocity ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity/target/javalin-rendering-velocity-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-velocity ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    org.apache.velocity:velocity-engine-core:jar:2.4.1:compile -- module velocity.engine.core (auto)
+[INFO]    org.apache.commons:commons-lang3:jar:3.17.0:compile -- module org.apache.commons.lang3
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] --------------< io.javalin:javalin-rendering-freemarker >---------------
+[INFO] Building Javalin Rendering - FreeMarker 7.2.4-SNAPSHOT            [9/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-freemarker/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-freemarker ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-freemarker ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-freemarker ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-freemarker ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-freemarker ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-freemarker ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-freemarker ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-freemarker ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-freemarker ---
+[INFO] Copying 4 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-freemarker ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-freemarker ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-freemarker ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-freemarker ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/target/javalin-rendering-freemarker-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-freemarker ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker/target/javalin-rendering-freemarker-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-freemarker ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:provided -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    org.freemarker:freemarker:jar:2.3.35:compile -- module freemarker [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ---------------< io.javalin:javalin-rendering-thymeleaf >---------------
+[INFO] Building Javalin Rendering - Thymeleaf 7.2.4-SNAPSHOT            [10/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-thymeleaf ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-thymeleaf ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-thymeleaf ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-thymeleaf ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-thymeleaf ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-thymeleaf ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-thymeleaf ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-thymeleaf ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-thymeleaf ---
+[INFO] Copying 4 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-thymeleaf ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-thymeleaf ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-thymeleaf ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-thymeleaf ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/target/javalin-rendering-thymeleaf-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-thymeleaf ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf/target/javalin-rendering-thymeleaf-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-thymeleaf ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    org.thymeleaf:thymeleaf:jar:3.1.5.RELEASE:compile -- module thymeleaf [auto]
+[INFO]    ognl:ognl:jar:3.3.4:compile -- module ognl [auto]
+[INFO]    org.javassist:javassist:jar:3.29.0-GA:compile -- module javassist (auto)
+[INFO]    org.attoparser:attoparser:jar:2.0.7.RELEASE:compile -- module attoparser [auto]
+[INFO]    org.unbescape:unbescape:jar:1.1.6.RELEASE:compile -- module unbescape [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ---------------< io.javalin:javalin-rendering-mustache >----------------
+[INFO] Building Javalin Rendering - Mustache 7.2.4-SNAPSHOT             [11/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-mustache/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-mustache ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-mustache ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-mustache ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-mustache ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-mustache ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-mustache ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-mustache ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-mustache ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-mustache ---
+[INFO] Copying 2 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-mustache ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-mustache ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-mustache ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-mustache ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/target/javalin-rendering-mustache-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-mustache ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache/target/javalin-rendering-mustache-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-mustache ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:provided -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    com.github.spullara.mustache.java:compiler:jar:0.9.14:compile -- module com.github.mustachejava [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] --------------< io.javalin:javalin-rendering-handlebars >---------------
+[INFO] Building Javalin Rendering - Handlebars 7.2.4-SNAPSHOT           [12/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-handlebars/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-handlebars ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-handlebars ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-handlebars ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-handlebars ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-handlebars ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-handlebars ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-handlebars ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-handlebars ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-handlebars ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-handlebars ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-handlebars ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-handlebars ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-handlebars ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/target/javalin-rendering-handlebars-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-handlebars ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/target/javalin-rendering-handlebars-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-handlebars ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    com.github.jknack:handlebars:jar:4.5.4:compile -- module com.github.jknack.handlebars
+[INFO]    org.apache.commons:commons-lang3:jar:3.20.0:compile -- module org.apache.commons.lang3
+[INFO]    org.apache.commons:commons-text:jar:1.15.0:compile -- module org.apache.commons.text
+[INFO]    org.openjdk.nashorn:nashorn-core:jar:15.4:compile -- module org.openjdk.nashorn
+[INFO]    org.ow2.asm:asm:jar:7.3.1:compile -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:7.3.1:compile -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-analysis:jar:7.3.1:compile -- module org.objectweb.asm.tree.analysis
+[INFO]    org.ow2.asm:asm-tree:jar:7.3.1:compile -- module org.objectweb.asm.tree
+[INFO]    org.ow2.asm:asm-util:jar:7.3.1:compile -- module org.objectweb.asm.util
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ----------------< io.javalin:javalin-rendering-pebble >-----------------
+[INFO] Building Javalin Rendering - Pebble 7.2.4-SNAPSHOT               [13/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-pebble/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-pebble ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-pebble ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-pebble ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-pebble ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-pebble ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-pebble ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-pebble ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-pebble ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-pebble ---
+[INFO] Copying 4 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-pebble ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-pebble ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-pebble ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-pebble ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/target/javalin-rendering-pebble-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-pebble ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble/target/javalin-rendering-pebble-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-pebble ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    io.pebbletemplates:pebble:jar:4.1.2:compile -- module io.pebbletemplates [auto]
+[INFO]    org.unbescape:unbescape:jar:1.1.6.RELEASE:compile -- module unbescape [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] --------------< io.javalin:javalin-rendering-commonmark >---------------
+[INFO] Building Javalin Rendering - CommonMark 7.2.4-SNAPSHOT           [14/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-commonmark/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-commonmark ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-commonmark ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-commonmark ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-commonmark ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-commonmark ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-commonmark ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-commonmark ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-commonmark ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-commonmark ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-commonmark ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-commonmark ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-commonmark ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-commonmark ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/target/javalin-rendering-commonmark-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-commonmark ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark/target/javalin-rendering-commonmark-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-commonmark ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:provided -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    org.commonmark:commonmark:jar:0.30.0:compile -- module org.commonmark
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ------------------< io.javalin:javalin-rendering-jte >------------------
+[INFO] Building Javalin Rendering - JTE 7.2.4-SNAPSHOT                  [15/19]
+[INFO]   from javalin-utils/javalin-rendering/javalin-rendering-jte/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering-jte ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering-jte ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering-jte ---
+[INFO] Copying 1 resource from ../../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering-jte ---
+[INFO] Copying 1 resource from ../../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering-jte ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-rendering-jte ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering-jte ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/src/main/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering-jte ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-rendering-jte ---
+[INFO] Copying 2 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering-jte ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/src/test/kotlin
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering-jte ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-rendering-jte ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-rendering-jte ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/target/javalin-rendering-jte-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering-jte ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte/target/javalin-rendering-jte-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering-jte ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:provided -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    gg.jte:jte:jar:3.2.3:compile -- module gg.jte [auto]
+[INFO]    gg.jte:jte-runtime:jar:3.2.3:compile -- module gg.jte.runtime [auto]
+[INFO]    gg.jte:jte-extension-api:jar:3.2.3:compile -- module gg.jte.extension.api [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] --------------------< io.javalin:javalin-rendering >--------------------
+[INFO] Building Javalin Rendering (parent) 7.2.4-SNAPSHOT               [16/19]
+[INFO]   from javalin-utils/javalin-rendering/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-rendering ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-rendering ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-rendering ---
+[INFO] Copying 1 resource from ../.. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-rendering ---
+[INFO] Copying 1 resource from ../.. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-rendering ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/target/jacoco.exec
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-rendering ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-rendering ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-rendering ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-rendering ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-rendering ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-rendering ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] ----------------< io.javalin.community.ssl:javalin-ssl >----------------
+[INFO] Building Javalin SSL 7.2.4-SNAPSHOT                              [17/19]
+[INFO]   from javalin-ssl/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-ssl ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-ssl ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-ssl ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-ssl ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-ssl ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-ssl ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-ssl ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/src/main/java
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-ssl ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-ssl ---
+[INFO] Copying 26 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-ssl ---
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-ssl ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-ssl ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-ssl ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/target/javalin-ssl-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-ssl ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-ssl/target/javalin-ssl-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- moditect:1.3.0.Final:add-module-info (add-module-infos) @ javalin-ssl ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-ssl ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:compile -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client-transport:jar:12.1.12:compile -- module org.eclipse.jetty.http2.client.transport
+[INFO]    org.eclipse.jetty:jetty-alpn-java-client:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.java.client
+[INFO]    org.eclipse.jetty:jetty-alpn-client:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.client
+[INFO]    org.eclipse.jetty:jetty-client:jar:12.1.12:compile -- module org.eclipse.jetty.client
+[INFO]    org.eclipse.jetty.compression:jetty-compression-gzip:jar:12.1.12:compile -- module org.eclipse.jetty.compression.gzip
+[INFO]    org.eclipse.jetty.compression:jetty-compression-common:jar:12.1.12:compile -- module org.eclipse.jetty.compression
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client:jar:12.1.12:compile -- module org.eclipse.jetty.http2.client
+[INFO]    org.eclipse.jetty.http2:jetty-http2-server:jar:12.1.12:compile -- module org.eclipse.jetty.http2.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-common:jar:12.1.12:compile -- module org.eclipse.jetty.http2.common
+[INFO]    org.eclipse.jetty.http2:jetty-http2-hpack:jar:12.1.12:compile -- module org.eclipse.jetty.http2.hpack
+[INFO]    org.eclipse.jetty:jetty-alpn-java-server:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.java.server
+[INFO]    org.eclipse.jetty:jetty-alpn-server:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.server
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:compile -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:compile -- module org.eclipse.jetty.util
+[INFO]    io.github.hakky54:ayza:jar:10.0.7:compile -- module nl.altindag.ssl
+[INFO]    io.github.hakky54:sude:jar:2.0.2:compile -- module nl.altindag.sude
+[INFO]    io.github.hakky54:laleler:jar:1.0.0:compile -- module nl.altindag.laleler
+[INFO]    io.github.hakky54:desidero:jar:1.0.1:compile -- module nl.altindag.desidero
+[INFO]    io.github.hakky54:ayza-for-pem:jar:10.0.7:compile -- module nl.altindag.ssl.pem
+[INFO]    org.bouncycastle:bcpkix-jdk18on:jar:1.85:compile -- module org.bouncycastle.pkix
+[INFO]    org.bouncycastle:bcutil-jdk18on:jar:1.85:compile -- module org.bouncycastle.util
+[INFO]    org.bouncycastle:bcprov-jdk18on:jar:1.85:compile -- module org.bouncycastle.provider
+[INFO]    io.github.hakky54:ayza-for-jetty:jar:10.0.7:compile -- module nl.altindag.ssl.jetty
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.jspecify:jspecify:jar:1.0.0:test -- module org.jspecify
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    com.squareup.okhttp3:okhttp-jvm:jar:5.5.0:test -- module okhttp3
+[INFO]    com.squareup.okio:okio-jvm:jar:3.18.1:test -- module okio [auto]
+[INFO]    com.squareup.okhttp3:okhttp-tls:jar:5.5.0:test -- module okhttp3.tls
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] -------------------< io.javalin:javalin-micrometer >--------------------
+[INFO] Building Javalin Micrometer Plugin 7.2.4-SNAPSHOT                [18/19]
+[INFO]   from javalin-micrometer/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ javalin-micrometer ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ javalin-micrometer ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ javalin-micrometer ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ javalin-micrometer ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- jacoco:0.8.15:prepare-agent (default) @ javalin-micrometer ---
+[INFO] argLine set to -javaagent:/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-repo/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ javalin-micrometer ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/src/main/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ javalin-micrometer ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/src/main/java
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ javalin-micrometer ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ javalin-micrometer ---
+[INFO] skip non existing resourceDirectory /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/src/test/resources
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ javalin-micrometer ---
+[WARNING] Source root doesn't exist: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/src/test/java
+[WARNING] Using experimental Kotlin incremental compilation
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ javalin-micrometer ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ javalin-micrometer ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ javalin-micrometer ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/target/javalin-micrometer-7.2.4-SNAPSHOT.jar
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ javalin-micrometer ---
+[INFO] Building jar: /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/javalin-micrometer/target/javalin-micrometer-7.2.4-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- moditect:1.3.0.Final:add-module-info (add-module-infos) @ javalin-micrometer ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ javalin-micrometer ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:provided -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:provided -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:provided -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:provided -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:provided -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:provided -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:provided -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:provided -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:provided -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:provided -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:provided -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:provided -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:provided -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:provided -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:provided -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:provided -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:provided -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:provided -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:provided -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:provided -- module org.objectweb.asm.commons
+[INFO]    org.ow2.asm:asm-tree:jar:9.10.1:provided -- module org.objectweb.asm.tree
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:provided -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:provided -- module org.eclipse.jetty.websocket.server
+[INFO]    io.micrometer:micrometer-core:jar:1.17.1:compile -- module micrometer.core [auto]
+[INFO]    org.jspecify:jspecify:jar:1.0.1:compile -- module org.jspecify
+[INFO]    io.micrometer:micrometer-commons:jar:1.17.1:compile -- module micrometer.commons [auto]
+[INFO]    io.micrometer:micrometer-observation:jar:1.17.1:compile -- module micrometer.observation [auto]
+[INFO]    org.hdrhistogram:HdrHistogram:jar:2.2.2:runtime -- module HdrHistogram (auto)
+[INFO]    io.micrometer:micrometer-jetty12:jar:1.17.1:compile -- module micrometer.jetty12 [auto]
+[INFO]    io.micrometer:micrometer-registry-prometheus:jar:1.17.1:compile (optional) -- module micrometer.registry.prometheus [auto]
+[INFO]    io.prometheus:prometheus-metrics-core:jar:1.7.0:compile (optional) -- module io.prometheus.metrics.core [auto]
+[INFO]    io.prometheus:prometheus-metrics-model:jar:1.7.0:compile (optional) -- module io.prometheus.metrics.model [auto]
+[INFO]    io.prometheus:prometheus-metrics-config:jar:1.7.0:compile (optional) -- module io.prometheus.metrics.config [auto]
+[INFO]    io.prometheus:prometheus-metrics-tracer-common:jar:1.7.0:compile (optional) -- module io.prometheus.metrics.tracer.common [auto]
+[INFO]    io.prometheus:prometheus-metrics-exposition-formats:jar:1.7.0:runtime (optional) -- module io.prometheus.metrics.expositionformats [auto]
+[INFO]    io.prometheus:prometheus-metrics-exposition-textformats:jar:1.7.0:runtime (optional) -- module io.prometheus.writer.text [auto]
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:test -- module javalin.testtools (auto)
+[INFO]    com.fasterxml.jackson.module:jackson-module-kotlin:jar:2.22.2:test -- module com.fasterxml.jackson.kotlin
+[INFO]    com.fasterxml.jackson.core:jackson-databind:jar:2.22.2:test -- module com.fasterxml.jackson.databind
+[INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.22.2:test -- module com.fasterxml.jackson.core
+[INFO]    com.fasterxml.jackson.core:jackson-annotations:jar:2.22:test -- module com.fasterxml.jackson.annotation
+[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:2.1.21:test -- module kotlin.reflect
+[INFO]    org.junit.jupiter:junit-jupiter-api:jar:6.1.3:test -- module org.junit.jupiter.api
+[INFO]    org.opentest4j:opentest4j:jar:1.3.0:test -- module org.opentest4j
+[INFO]    org.junit.platform:junit-platform-commons:jar:6.1.3:test -- module org.junit.platform.commons
+[INFO]    org.apiguardian:apiguardian-api:jar:1.1.2:test -- module org.apiguardian.api
+[INFO]    org.junit.jupiter:junit-jupiter-engine:jar:6.1.3:test -- module org.junit.jupiter.engine
+[INFO]    org.junit.platform:junit-platform-engine:jar:6.1.3:test -- module org.junit.platform.engine
+[INFO]    org.assertj:assertj-core:jar:3.27.7:test -- module org.assertj.core
+[INFO]    net.bytebuddy:byte-buddy:jar:1.18.3:test -- module net.bytebuddy
+[INFO]    org.slf4j:slf4j-simple:jar:2.0.18:test -- module org.slf4j.simple
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] 
+[INFO] -----------------< io.javalin:jacoco-coverage-report >------------------
+[INFO] Building JaCoCo Coverage Report 7.2.4-SNAPSHOT                   [19/19]
+[INFO]   from jacoco-coverage-report/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ jacoco-coverage-report ---
+[INFO] Deleting /Users/oyvind/pr/bleep/worktrees/import-templates/snapshot-tests/javalin/maven-build/jacoco-coverage-report/target
+[INFO] 
+[INFO] --- git-commit-id:10.0.0:revision (default) @ jacoco-coverage-report ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-license) @ jacoco-coverage-report ---
+[INFO] Copying 1 resource from .. to target/classes/META-INF
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-pom-properties) @ jacoco-coverage-report ---
+[INFO] Copying 1 resource from .. to target
+[INFO] 
+[INFO] --- kotlin:2.2.20:compile (compile) @ jacoco-coverage-report ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (java-compile) @ jacoco-coverage-report ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- kotlin:2.2.20:test-compile (test-compile) @ jacoco-coverage-report ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (java-test-compile) @ jacoco-coverage-report ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- source:3.4.0:jar-no-fork (attach-sources) @ jacoco-coverage-report ---
+[INFO] 
+[INFO] --- dependency:3.7.0:list (default-cli) @ jacoco-coverage-report ---
+[INFO] 
+[INFO] The following files have been resolved:
+[INFO]    io.javalin:javalin:jar:7.2.4-SNAPSHOT:compile -- module io.javalin
+[INFO]    org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+[INFO]    org.eclipse.jetty:jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.server
+[INFO]    org.eclipse.jetty:jetty-http:jar:12.1.12:compile -- module org.eclipse.jetty.http
+[INFO]    org.eclipse.jetty:jetty-util:jar:12.1.12:compile -- module org.eclipse.jetty.util
+[INFO]    org.eclipse.jetty:jetty-io:jar:12.1.12:compile -- module org.eclipse.jetty.io
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.servlet
+[INFO]    jakarta.servlet:jakarta.servlet-api:jar:6.0.0:compile -- module jakarta.servlet
+[INFO]    org.eclipse.jetty:jetty-security:jar:12.1.12:compile -- module org.eclipse.jetty.security
+[INFO]    org.eclipse.jetty:jetty-session:jar:12.1.12:compile -- module org.eclipse.jetty.session
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.jetty.server
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.annotations
+[INFO]    jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile -- module jakarta.annotation
+[INFO]    org.eclipse.jetty:jetty-annotations:jar:12.1.12:compile -- module org.eclipse.jetty.annotations
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-plus:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.plus
+[INFO]    jakarta.enterprise:jakarta.enterprise.cdi-api:jar:4.0.1:compile -- module jakarta.cdi
+[INFO]    jakarta.enterprise:jakarta.enterprise.lang-model:jar:4.0.1:compile -- module jakarta.cdi.lang.model
+[INFO]    jakarta.inject:jakarta.inject-api:jar:2.0.1:compile -- module jakarta.inject
+[INFO]    jakarta.interceptor:jakarta.interceptor-api:jar:2.1.0:compile -- module jakarta.interceptor
+[INFO]    jakarta.transaction:jakarta.transaction-api:jar:2.0.1:compile -- module jakarta.transaction
+[INFO]    org.eclipse.jetty:jetty-jndi:jar:12.1.12:compile -- module org.eclipse.jetty.jndi
+[INFO]    org.eclipse.jetty:jetty-plus:jar:12.1.12:compile -- module org.eclipse.jetty.plus
+[INFO]    org.eclipse.jetty.ee10:jetty-ee10-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.webapp
+[INFO]    org.eclipse.jetty:jetty-xml:jar:12.1.12:compile -- module org.eclipse.jetty.xml
+[INFO]    org.eclipse.jetty.ee:jetty-ee-webapp:jar:12.1.12:compile -- module org.eclipse.jetty.ee.webapp
+[INFO]    org.ow2.asm:asm:jar:9.10.1:compile -- module org.objectweb.asm
+[INFO]    org.ow2.asm:asm-commons:jar:9.10.1:compile -- module org.objectweb.asm.commons
+[INFO]    org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-servlet:jar:12.1.12:compile -- module org.eclipse.jetty.ee10.websocket.servlet
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.server
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-api:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.api
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-core-common:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.core.common
+[INFO]    org.eclipse.jetty.websocket:jetty-websocket-jetty-server:jar:12.1.12:compile -- module org.eclipse.jetty.websocket.server
+[INFO]    io.javalin:javalin-testtools:jar:7.2.4-SNAPSHOT:compile -- module javalin.testtools (auto)
+[INFO]    io.javalin:javalin-context-mock:jar:7.2.4-SNAPSHOT:compile -- module javalin.context.mock (auto)
+[INFO]    org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:jar:5.0.2:compile -- module jetty.servlet.api
+[INFO]    io.javalin:javalin-rendering-velocity:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.velocity (auto)
+[INFO]    org.apache.velocity:velocity-engine-core:jar:2.4.1:compile -- module velocity.engine.core (auto)
+[INFO]    org.apache.commons:commons-lang3:jar:3.17.0:compile -- module org.apache.commons.lang3
+[INFO]    io.javalin:javalin-rendering-freemarker:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.freemarker (auto)
+[INFO]    org.freemarker:freemarker:jar:2.3.35:compile -- module freemarker [auto]
+[INFO]    io.javalin:javalin-rendering-thymeleaf:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.thymeleaf (auto)
+[INFO]    org.thymeleaf:thymeleaf:jar:3.1.5.RELEASE:compile -- module thymeleaf [auto]
+[INFO]    ognl:ognl:jar:3.3.4:compile -- module ognl [auto]
+[INFO]    org.javassist:javassist:jar:3.29.0-GA:compile -- module javassist (auto)
+[INFO]    org.attoparser:attoparser:jar:2.0.7.RELEASE:compile -- module attoparser [auto]
+[INFO]    org.unbescape:unbescape:jar:1.1.6.RELEASE:compile -- module unbescape [auto]
+[INFO]    io.javalin:javalin-rendering-mustache:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.mustache (auto)
+[INFO]    com.github.spullara.mustache.java:compiler:jar:0.9.14:compile -- module com.github.mustachejava [auto]
+[INFO]    io.javalin:javalin-rendering-pebble:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.pebble (auto)
+[INFO]    io.pebbletemplates:pebble:jar:4.1.2:compile -- module io.pebbletemplates [auto]
+[INFO]    io.javalin:javalin-rendering-commonmark:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.commonmark (auto)
+[INFO]    org.commonmark:commonmark:jar:0.30.0:compile -- module org.commonmark
+[INFO]    io.javalin:javalin-rendering-handlebars:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.handlebars (auto)
+[INFO]    com.github.jknack:handlebars:jar:4.5.4:compile -- module com.github.jknack.handlebars
+[INFO]    org.apache.commons:commons-text:jar:1.15.0:compile -- module org.apache.commons.text
+[INFO]    org.openjdk.nashorn:nashorn-core:jar:15.4:compile -- module org.openjdk.nashorn
+[INFO]    org.ow2.asm:asm-tree:jar:7.3.1:compile -- module org.objectweb.asm.tree
+[INFO]    org.ow2.asm:asm-util:jar:7.3.1:compile -- module org.objectweb.asm.util
+[INFO]    org.ow2.asm:asm-analysis:jar:7.3.1:compile -- module org.objectweb.asm.tree.analysis
+[INFO]    io.javalin:javalin-rendering-jte:jar:7.2.4-SNAPSHOT:compile -- module javalin.rendering.jte (auto)
+[INFO]    gg.jte:jte:jar:3.2.3:compile -- module gg.jte [auto]
+[INFO]    gg.jte:jte-runtime:jar:3.2.3:compile -- module gg.jte.runtime [auto]
+[INFO]    gg.jte:jte-extension-api:jar:3.2.3:compile -- module gg.jte.extension.api [auto]
+[INFO]    io.javalin.community.ssl:javalin-ssl:jar:7.2.4-SNAPSHOT:compile -- module io.javalin.community.ssl
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client-transport:jar:12.1.12:compile -- module org.eclipse.jetty.http2.client.transport
+[INFO]    org.eclipse.jetty:jetty-alpn-java-client:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.java.client
+[INFO]    org.eclipse.jetty:jetty-alpn-client:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.client
+[INFO]    org.eclipse.jetty:jetty-client:jar:12.1.12:compile -- module org.eclipse.jetty.client
+[INFO]    org.eclipse.jetty.compression:jetty-compression-gzip:jar:12.1.12:compile -- module org.eclipse.jetty.compression.gzip
+[INFO]    org.eclipse.jetty.compression:jetty-compression-common:jar:12.1.12:compile -- module org.eclipse.jetty.compression
+[INFO]    org.eclipse.jetty.http2:jetty-http2-client:jar:12.1.12:compile -- module org.eclipse.jetty.http2.client
+[INFO]    org.eclipse.jetty.http2:jetty-http2-server:jar:12.1.12:compile -- module org.eclipse.jetty.http2.server
+[INFO]    org.eclipse.jetty.http2:jetty-http2-common:jar:12.1.12:compile -- module org.eclipse.jetty.http2.common
+[INFO]    org.eclipse.jetty.http2:jetty-http2-hpack:jar:12.1.12:compile -- module org.eclipse.jetty.http2.hpack
+[INFO]    org.eclipse.jetty:jetty-alpn-java-server:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.java.server
+[INFO]    org.eclipse.jetty:jetty-alpn-server:jar:12.1.12:compile -- module org.eclipse.jetty.alpn.server
+[INFO]    io.github.hakky54:ayza:jar:10.0.7:compile -- module nl.altindag.ssl
+[INFO]    io.github.hakky54:sude:jar:2.0.2:compile -- module nl.altindag.sude
+[INFO]    io.github.hakky54:laleler:jar:1.0.0:compile -- module nl.altindag.laleler
+[INFO]    io.github.hakky54:desidero:jar:1.0.1:compile -- module nl.altindag.desidero
+[INFO]    io.github.hakky54:ayza-for-pem:jar:10.0.7:compile -- module nl.altindag.ssl.pem
+[INFO]    org.bouncycastle:bcpkix-jdk18on:jar:1.85:compile -- module org.bouncycastle.pkix
+[INFO]    org.bouncycastle:bcutil-jdk18on:jar:1.85:compile -- module org.bouncycastle.util
+[INFO]    org.bouncycastle:bcprov-jdk18on:jar:1.85:compile -- module org.bouncycastle.provider
+[INFO]    io.github.hakky54:ayza-for-jetty:jar:10.0.7:compile -- module nl.altindag.ssl.jetty
+[INFO]    io.javalin:javalin-micrometer:jar:7.2.4-SNAPSHOT:compile -- module io.javalin.micrometer
+[INFO]    io.micrometer:micrometer-core:jar:1.17.1:compile -- module micrometer.core [auto]
+[INFO]    org.jspecify:jspecify:jar:1.0.1:compile -- module org.jspecify
+[INFO]    io.micrometer:micrometer-commons:jar:1.17.1:compile -- module micrometer.commons [auto]
+[INFO]    io.micrometer:micrometer-observation:jar:1.17.1:compile -- module micrometer.observation [auto]
+[INFO]    org.hdrhistogram:HdrHistogram:jar:2.2.2:runtime -- module HdrHistogram (auto)
+[INFO]    io.micrometer:micrometer-jetty12:jar:1.17.1:compile -- module micrometer.jetty12 [auto]
+[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:2.2.20:compile -- module kotlin.stdlib
+[INFO]    org.jetbrains:annotations:jar:26.1.0:provided -- module org.jetbrains.annotations
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Javalin (parent) 7.2.4-SNAPSHOT:
+[INFO] 
+[INFO] Javalin (parent) ................................... SUCCESS [  0.862 s]
+[INFO] Javalin ............................................ SUCCESS [ 50.865 s]
+[INFO] Javalin BOM (Bill of Materials) .................... SUCCESS [  0.110 s]
+[INFO] Javalin Utils (parent) ............................. SUCCESS [  0.017 s]
+[INFO] Javalin Context Mock ............................... SUCCESS [  2.750 s]
+[INFO] Javalin Test Tools ................................. SUCCESS [  2.302 s]
+[INFO] Javalin Bundle ..................................... SUCCESS [  0.451 s]
+[INFO] Javalin Rendering - Velocity ....................... SUCCESS [  1.209 s]
+[INFO] Javalin Rendering - FreeMarker ..................... SUCCESS [  0.805 s]
+[INFO] Javalin Rendering - Thymeleaf ...................... SUCCESS [  0.845 s]
+[INFO] Javalin Rendering - Mustache ....................... SUCCESS [  0.767 s]
+[INFO] Javalin Rendering - Handlebars ..................... SUCCESS [  0.711 s]
+[INFO] Javalin Rendering - Pebble ......................... SUCCESS [  0.748 s]
+[INFO] Javalin Rendering - CommonMark ..................... SUCCESS [  1.027 s]
+[INFO] Javalin Rendering - JTE ............................ SUCCESS [  1.096 s]
+[INFO] Javalin Rendering (parent) ......................... SUCCESS [  0.017 s]
+[INFO] Javalin SSL ........................................ SUCCESS [  2.073 s]
+[INFO] Javalin Micrometer Plugin .......................... SUCCESS [  0.843 s]
+[INFO] JaCoCo Coverage Report ............................. SUCCESS [  0.058 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:07 min
+[INFO] Finished at: 2026-09-27T16:52:07+02:00
+[INFO] ------------------------------------------------------------------------

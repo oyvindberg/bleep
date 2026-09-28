@@ -1,0 +1,547 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "test-tests-test@native3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-tests-test@native3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/scala-3"
+    ],
+    "dependencies": [
+      "test-tests@native3",
+      "zio+test@native3",
+      "zio-internal-macros@native3",
+      "zio-stacktracer@native3",
+      "zio-streams@native3",
+      "zio-test-sbt@native3",
+      "zio@native3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_3/0.3.0/scala-native-crypto_native0.5_3-0.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_3/3.0.10/izumi-reflect_native0.5_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_3/4.5.0/cldr-api_native0.5_3-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_3/1.5.4/scala-java-locales_native0.5_3-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_native0.5_3/2.7.0/scala-java-time-tzdb_native0.5_3-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_3/2.7.0/scala-java-time_native0.5_3-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jcstress/jcstress-core/0.3/jcstress-core-0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_3/2.14.0/scala-collection-compat_native0.5_3-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.12/auxlib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_3/0.5.12/auxlib_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.12/clib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_3/0.5.12/clib_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.2/javalib_native0.5_2.13-0.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_3/0.5.12/javalib_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.12/nativelib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_3/0.5.12/nativelib_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.2/posixlib_native0.5_2.13-0.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_3/0.5.12/posixlib_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.5_3/3.3.8%2B0.5.12/scala3lib_native0.5_3-3.3.8%2B0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.18%2B0.5.12/scalalib_native0.5_2.13-2.13.18%2B0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_3/0.5.12/test-interface-sbt-defs_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.5_3/0.5.12/test-interface_native0.5_3-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.13/0.5.2/windowslib_native0.5_2.13-0.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_3/0.5.12/windowslib_native0.5_3-0.5.12.jar",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-tests@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio+test@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-resources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@native3/generated-resources/scripts.GenerateForZioStreams",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@native3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@native3/generated-resources/scripts.GenerateForZio",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/shared/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-tests-test@native3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-tests-test@native3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-P:scalanative:genStaticForwardersForNonTopLevelObjects",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/js-native/src/test/scala-3;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/jvm-native/src/test/scala-3;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/native/src/test/scala-3;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-tests/shared/src/test/scala-3",
+        "-Xignore-scala2-macros",
+        "-Xmax-inlines:64",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.8/0.5.12/nscplugin_3.3.8-0.5.12.jar",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:implicitConversions",
+        "-language:noAutoTupling",
+        "-noindent",
+        "-release",
+        "11",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-tests-test@native3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "native",
+      "config": {
+        "version": "0.5.12",
+        "mode": "debug",
+        "gc": "",
+        "clang": "clang",
+        "clangpp": "clang++",
+        "toolchain": [
+          
+        ],
+        "options": {
+          "linker": [
+            
+          ],
+          "compiler": [
+            
+          ]
+        },
+        "linkStubs": false,
+        "check": false,
+        "dump": false
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time-tzdb_native0.5_3",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time-tzdb_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_native0.5_3/2.7.0/scala-java-time-tzdb_native0.5_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jcstress",
+          "name": "jcstress-core",
+          "version": "0.3",
+          "artifacts": [
+            {
+              "name": "jcstress-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jcstress/jcstress-core/0.3/jcstress-core-0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_native0.5_3",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_3/2.14.0/scala-collection-compat_native0.5_3-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_native0.5_3",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_3/2.7.0/scala-java-time_native0.5_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "clib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "clib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_3/0.5.12/clib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_3/0.5.12/posixlib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scala3lib_native0.5_3",
+          "version": "3.3.8+0.5.12",
+          "artifacts": [
+            {
+              "name": "scala3lib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.5_3/3.3.8%2B0.5.12/scala3lib_native0.5_3-3.3.8%2B0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_native0.5_3",
+          "version": "4.5.0",
+          "artifacts": [
+            {
+              "name": "cldr-api_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_3/4.5.0/cldr-api_native0.5_3-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_native0.5_3",
+          "version": "1.5.4",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_3/1.5.4/scala-java-locales_native0.5_3-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.lolgab",
+          "name": "scala-native-crypto_native0.5_3",
+          "version": "0.3.0",
+          "artifacts": [
+            {
+              "name": "scala-native-crypto_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_3/0.3.0/scala-native-crypto_native0.5_3-0.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "clib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "clib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.12/clib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.jopt-simple",
+          "name": "jopt-simple",
+          "version": "4.6",
+          "artifacts": [
+            {
+              "name": "jopt-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_3/0.5.12/auxlib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "windowslib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "windowslib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_3/0.5.12/windowslib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_3/0.5.12/nativelib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "javalib_native0.5_2.13",
+          "version": "0.5.2",
+          "artifacts": [
+            {
+              "name": "javalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.2/javalib_native0.5_2.13-0.5.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "windowslib_native0.5_2.13",
+          "version": "0.5.2",
+          "artifacts": [
+            {
+              "name": "windowslib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.13/0.5.2/windowslib_native0.5_2.13-0.5.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_native0.5_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_2.13",
+          "version": "0.5.2",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.2/posixlib_native0.5_2.13-0.5.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "javalib_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "javalib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_3/0.5.12/javalib_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface-sbt-defs_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "test-interface-sbt-defs_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_3/0.5.12/test-interface-sbt-defs_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface_native0.5_3",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "test-interface_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.5_3/0.5.12/test-interface_native0.5_3-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.5_2.13",
+          "version": "2.13.18+0.5.12",
+          "artifacts": [
+            {
+              "name": "scalalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.18%2B0.5.12/scalalib_native0.5_2.13-2.13.18%2B0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_native0.5_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_3/3.0.10/izumi-reflect_native0.5_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.12/auxlib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.12/nativelib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

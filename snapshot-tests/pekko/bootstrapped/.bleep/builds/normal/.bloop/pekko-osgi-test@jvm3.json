@@ -1,0 +1,945 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "pekko-osgi-test@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi-test@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/test/scala-3"
+    ],
+    "dependencies": [
+      "pekko-actor@jvm3",
+      "pekko-osgi@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/biz/aQute/bnd/biz.aQute.bnd.util/7.4.0/biz.aQute.bnd.util-7.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/biz/aQute/bnd/biz.aQute.bndlib/7.4.0/biz.aQute.bndlib-7.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/pojosr/de.kalpatec.pojosr.framework/0.2.1/de.kalpatec.pojosr.framework-0.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.22.0/commons-io-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.0.3/junit-platform-launcher-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-exec/1.5.1/ops4j-base-exec-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-io/1.5.1/ops4j-base-io-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-lang/1.5.1/ops4j-base-lang-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-monitors/1.5.1/ops4j-base-monitors-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-net/1.5.1/ops4j-base-net-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-spi/1.5.1/ops4j-base-spi-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-store/1.5.1/ops4j-base-store-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-util-property/1.5.1/ops4j-base-util-property-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-cm/4.14.0/pax-exam-cm-4.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-container-forked/4.14.0/pax-exam-container-forked-4.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-spi/4.14.0/pax-exam-spi-4.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam/4.14.0/pax-exam-4.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-framework/1.9.0/pax-swissbox-framework-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-lifecycle/1.9.0/pax-swissbox-lifecycle-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-tracker/1.9.0/pax-swissbox-tracker-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/tinybundles/tinybundles/4.0.1/tinybundles-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.compendium/5.0.0/org.osgi.compendium-5.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.core/6.0.0/org.osgi.core-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.dto/1.0.0/org.osgi.dto-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.framework/1.8.0/org.osgi.framework-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.resource/1.0.0/org.osgi.resource-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.log/1.3.0/org.osgi.service.log-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.repository/1.1.0/org.osgi.service.repository-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.serviceloader/1.0.0/org.osgi.service.serviceloader-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.function/1.2.0/org.osgi.util.function-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.promise/1.3.0/org.osgi.util.promise-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.tracker/1.5.4/org.osgi.util.tracker-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/osgi.annotation/8.1.0/osgi.annotation-8.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.GenerateForPekkoActor",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-resources/scripts.GenerateForPekkoOsgi",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi-test@jvm3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-Wconf:cat=deprecation:s",
+        "-Xtarget:17",
+        "-Yfuture-lazy-vals",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:higherKinds",
+        "-release",
+        "17",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi-test@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.github.sbt.junit.jupiter.api.JupiterFramework",
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "--add-opens=java.base/java.lang=ALL-UNNAMED",
+          "--add-opens=java.base/java.nio=ALL-UNNAMED",
+          "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+          "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+          "-Djava.security.egd=file:/dev/urandom",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi",
+          "-XX:+PerfDisableSharedMem",
+          "-XX:+UseG1GC",
+          "-XX:MaxDirectMemorySize=256m",
+          "-XX:MaxGCPauseMillis=300",
+          "-Xms3g",
+          "-Xmx3g",
+          "-Xss2m"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "osgi.annotation",
+          "version": "8.1.0",
+          "artifacts": [
+            {
+              "name": "osgi.annotation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/osgi.annotation/8.1.0/osgi.annotation-8.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.22.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.22.0/commons-io-2.22.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.dto",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.dto",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.dto/1.0.0/org.osgi.dto-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.resource",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.resource",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.resource/1.0.0/org.osgi.resource-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.swissbox",
+          "name": "pax-swissbox-tracker",
+          "version": "1.9.0",
+          "artifacts": [
+            {
+              "name": "pax-swissbox-tracker",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-tracker/1.9.0/pax-swissbox-tracker-1.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-util-property",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-util-property",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-util-property/1.5.1/ops4j-base-util-property-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.exam",
+          "name": "pax-exam-spi",
+          "version": "4.14.0",
+          "artifacts": [
+            {
+              "name": "pax-exam-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-spi/4.14.0/pax-exam-spi-4.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-exec",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-exec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-exec/1.5.1/ops4j-base-exec-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.googlecode.pojosr",
+          "name": "de.kalpatec.pojosr.framework",
+          "version": "0.2.1",
+          "artifacts": [
+            {
+              "name": "de.kalpatec.pojosr.framework",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/pojosr/de.kalpatec.pojosr.framework/0.2.1/de.kalpatec.pojosr.framework-0.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-monitors",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-monitors",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-monitors/1.5.1/ops4j-base-monitors-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-spi",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-spi/1.5.1/ops4j-base-spi-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.service.log",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.service.log",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.log/1.3.0/org.osgi.service.log-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.framework",
+          "version": "1.8.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.framework",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.framework/1.8.0/org.osgi.framework-1.8.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-launcher",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-launcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.0.3/junit-platform-launcher-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-io",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-io/1.5.1/ops4j-base-io-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.exam",
+          "name": "pax-exam-cm",
+          "version": "4.14.0",
+          "artifacts": [
+            {
+              "name": "pax-exam-cm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-cm/4.14.0/pax-exam-cm-4.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.swissbox",
+          "name": "pax-swissbox-framework",
+          "version": "1.9.0",
+          "artifacts": [
+            {
+              "name": "pax-swissbox-framework",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-framework/1.9.0/pax-swissbox-framework-1.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.sbt.junit",
+          "name": "jupiter-interface",
+          "version": "0.19.0",
+          "artifacts": [
+            {
+              "name": "jupiter-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "biz.aQute.bnd",
+          "name": "biz.aQute.bndlib",
+          "version": "7.4.0",
+          "artifacts": [
+            {
+              "name": "biz.aQute.bndlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/biz/aQute/bnd/biz.aQute.bndlib/7.4.0/biz.aQute.bndlib-7.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-net",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-net",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-net/1.5.1/ops4j-base-net-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.core",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.core/6.0.0/org.osgi.core-6.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-lang",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-lang",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-lang/1.5.1/ops4j-base-lang-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.compendium",
+          "version": "5.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.compendium",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.compendium/5.0.0/org.osgi.compendium-5.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.util.tracker",
+          "version": "1.5.4",
+          "artifacts": [
+            {
+              "name": "org.osgi.util.tracker",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.tracker/1.5.4/org.osgi.util.tracker-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.exam",
+          "name": "pax-exam-container-forked",
+          "version": "4.14.0",
+          "artifacts": [
+            {
+              "name": "pax-exam-container-forked",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam-container-forked/4.14.0/pax-exam-container-forked-4.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.util.promise",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.util.promise",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.promise/1.3.0/org.osgi.util.promise-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "biz.aQute.bnd",
+          "name": "biz.aQute.bnd.util",
+          "version": "7.4.0",
+          "artifacts": [
+            {
+              "name": "biz.aQute.bnd.util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/biz/aQute/bnd/biz.aQute.bnd.util/7.4.0/biz.aQute.bnd.util-7.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.9",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.service.serviceloader",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.service.serviceloader",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.serviceloader/1.0.0/org.osgi.service.serviceloader-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.exam",
+          "name": "pax-exam",
+          "version": "4.14.0",
+          "artifacts": [
+            {
+              "name": "pax-exam",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/exam/pax-exam/4.14.0/pax-exam-4.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.util.function",
+          "version": "1.2.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.util.function",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.util.function/1.2.0/org.osgi.util.function-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.swissbox",
+          "name": "pax-swissbox-lifecycle",
+          "version": "1.9.0",
+          "artifacts": [
+            {
+              "name": "pax-swissbox-lifecycle",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/swissbox/pax-swissbox-lifecycle/1.9.0/pax-swissbox-lifecycle-1.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.base",
+          "name": "ops4j-base-store",
+          "version": "1.5.1",
+          "artifacts": [
+            {
+              "name": "ops4j-base-store",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/base/ops4j-base-store/1.5.1/ops4j-base-store-1.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.osgi",
+          "name": "org.osgi.service.repository",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "org.osgi.service.repository",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/osgi/org.osgi.service.repository/1.1.0/org.osgi.service.repository-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ops4j.pax.tinybundles",
+          "name": "tinybundles",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "tinybundles",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ops4j/pax/tinybundles/tinybundles/4.0.1/tinybundles-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalactic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

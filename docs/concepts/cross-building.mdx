@@ -229,7 +229,7 @@ A small example covering three common axes:
 
 Reading it variant by variant:
 
-- **`source-layout: cross-pure`**: adds a per-platform source root next to the shared one. Files under `mylib/src/scala/` are shared by both variants; files under `mylib/src/scala.jvm/` are only seen by the jvm variants. Other layouts: `cross-full` (separate `shared/` + `<platform>/` roots, the sbt-cross style), `sbt-matrix` (Scala-version-suffixed roots), `normal` (no per-cross sources).
+- **`source-layout: cross-pure`**: adds a per-platform source root next to the shared one. Files under `mylib/src/scala/` are shared by both variants; files under `mylib/src/scala.jvm/` are only seen by the jvm variants. Other layouts: `cross-full` (separate `shared/` + `<platform>/` roots, plus `js-jvm/`-style roots for code only some platforms share, the sbt-crossproject style), `sbt-matrix` (Scala-version-suffixed roots), `normal` (no per-cross sources).
 - **Per-variant `dependencies`**: `jvm213` pulls `cats-core`, `jvm3` doesn't. The 2.13-only macro library would go here too.
 - **Per-variant `scala.options`**: each variant gets only its declared flags. `-Ymacro-annotations` is a 2.13 thing; `-Yretain-trees` is a 3 thing. Putting them at the project level instead would warn-or-fail on the wrong variant.
 

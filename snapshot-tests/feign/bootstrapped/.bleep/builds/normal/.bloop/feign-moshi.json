@@ -1,0 +1,120 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-moshi",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-moshi/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/moshi/src/main/java"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi/1.15.2/moshi-1.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.7.0/okio-jvm-3.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.21/kotlin-stdlib-jdk7-1.8.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.21/kotlin-stdlib-1.9.21.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-moshi/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-moshi/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/moshi/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/moshi"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.squareup.okio",
+          "name": "okio-jvm",
+          "version": "3.7.0",
+          "artifacts": [
+            {
+              "name": "okio-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.7.0/okio-jvm-3.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "13.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk7",
+          "version": "1.8.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk7",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.21/kotlin-stdlib-jdk7-1.8.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.moshi",
+          "name": "moshi",
+          "version": "1.15.2",
+          "artifacts": [
+            {
+              "name": "moshi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/moshi/moshi/1.15.2/moshi-1.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "1.9.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.21/kotlin-stdlib-1.9.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk8",
+          "version": "1.8.21",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

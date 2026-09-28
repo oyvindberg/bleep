@@ -10,12 +10,12 @@ class semanticDb(semanticDbVersion: String) extends BuildRewrite {
   override val name = model.BuildRewriteName("semanticdb")
 
   protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
-    oldBuild.explodedProjects.map { case (name, p) => (name, apply(name, p, buildPaths)) }
+    oldBuild.explodedProjects.map { case (name, p) => (name, apply(name, p, oldBuild.crossPlatforms(name.name), buildPaths)) }
 
-  def apply(name: model.CrossProjectName, explodedProject: model.Project, buildPaths: BuildPaths): model.Project =
+  def apply(name: model.CrossProjectName, explodedProject: model.Project, crossPlatforms: Set[model.PlatformId], buildPaths: BuildPaths): model.Project =
     explodedProject.scala match {
       case Some(s @ model.Scala(Some(version), _, _, _, _, _, _)) =>
-        val projectPaths = buildPaths.project(name, explodedProject)
+        val projectPaths = buildPaths.project(name, explodedProject, crossPlatforms)
         val addedScalacOptions = List(
           Some(compilerOption(version)),
           targetRootOptions(version, projectPaths),

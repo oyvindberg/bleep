@@ -1,0 +1,219 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "zio-test-sbt@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@jvm212/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      "zio+test@jvm212",
+      "zio-internal-macros@jvm212",
+      "zio-stacktracer@jvm212",
+      "zio-streams@jvm212",
+      "zio@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.10/izumi-reflect_2.12-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/1.1.3/portable-scala-reflect_2.12-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.14.0/scala-collection-compat_2.12-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio+test@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm212/generated-resources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm212/generated-resources/scripts.GenerateForZioStreams",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm212/generated-resources/scripts.GenerateForZio",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/shared/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@jvm212/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.21",
+      "options": [
+        "-Wconf:msg=[@nowarn",
+        "annotation",
+        "does",
+        "not",
+        "suppress",
+        "any",
+        "warnings]:silent",
+        "-Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent",
+        "-Xfatal-warnings",
+        "-Xfuture",
+        "-Xlint:_,-missing-interpolator,-type-parameter-shadow,-infer-any",
+        "-Xmax-classfile-name",
+        "242",
+        "-Xsource:2.13",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Yrangepos",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-inaccessible",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:_,imports",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:params,-implicits",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-opt-warnings",
+        "-release",
+        "11",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@jvm212/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.12",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/1.1.3/portable-scala-reflect_2.12-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.14.0/scala-collection-compat_2.12-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.10/izumi-reflect_2.12-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

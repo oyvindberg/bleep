@@ -20,16 +20,15 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |case object BuildInfo {
       |  /** The value is "tapir-netty-server". */
       |  val name: String = "tapir-netty-server"
-      |  /** The value is "1.11.34+0-fdf0f99a+20250622-0023-SNAPSHOT". */
-      |  val version: String = "1.11.34+0-fdf0f99a+20250622-0023-SNAPSHOT"
-      |  /** The value is "2.13.16". */
-      |  val scalaVersion: String = "2.13.16"
-      |  /** The value is "1.11.0". */
-      |  val sbtVersion: String = "1.11.0"
+      |  /** The value is "1.13.32+1-918a0741-SNAPSHOT". */
+      |  val version: String = "1.13.32+1-918a0741-SNAPSHOT"
+      |  /** The value is "2.13.18". */
+      |  val scalaVersion: String = "2.13.18"
+      |  /** The value is "1.13.0". */
+      |  val sbtVersion: String = "1.13.0"
       |  override val toString: String = {
-      |    "name: %s, version: %s, scalaVersion: %s, sbtVersion: %s".format(
-      |      name, version, scalaVersion, sbtVersion
-      |    )
+      |    import _root_.scala.StringContext
+      |    s"name: $${name}, version: $${version}, scalaVersion: $${scalaVersion}, sbtVersion: $${sbtVersion}"
       |  }
       |}
       |// $$COVERAGE-ON$$
@@ -52,16 +51,15 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |case object BuildInfo {
       |  /** The value is "tapir-netty-server". */
       |  val name: String = "tapir-netty-server"
-      |  /** The value is "1.11.34+0-fdf0f99a+20250622-0021-SNAPSHOT". */
-      |  val version: String = "1.11.34+0-fdf0f99a+20250622-0021-SNAPSHOT"
-      |  /** The value is "2.12.20". */
-      |  val scalaVersion: String = "2.12.20"
-      |  /** The value is "1.11.0". */
-      |  val sbtVersion: String = "1.11.0"
+      |  /** The value is "1.13.32+1-918a0741-SNAPSHOT". */
+      |  val version: String = "1.13.32+1-918a0741-SNAPSHOT"
+      |  /** The value is "2.12.21". */
+      |  val scalaVersion: String = "2.12.21"
+      |  /** The value is "1.13.0". */
+      |  val sbtVersion: String = "1.13.0"
       |  override val toString: String = {
-      |    "name: %s, version: %s, scalaVersion: %s, sbtVersion: %s".format(
-      |      name, version, scalaVersion, sbtVersion
-      |    )
+      |    import _root_.scala.StringContext
+      |    s"name: $${name}, version: $${version}, scalaVersion: $${scalaVersion}, sbtVersion: $${sbtVersion}"
       |  }
       |}
       |// $$COVERAGE-ON$$
@@ -84,16 +82,15 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |case object BuildInfo {
       |  /** The value is "tapir-netty-server". */
       |  val name: String = "tapir-netty-server"
-      |  /** The value is "1.11.34+0-fdf0f99a+20250622-0026-SNAPSHOT". */
-      |  val version: String = "1.11.34+0-fdf0f99a+20250622-0026-SNAPSHOT"
-      |  /** The value is "3.3.6". */
-      |  val scalaVersion: String = "3.3.6"
-      |  /** The value is "1.11.0". */
-      |  val sbtVersion: String = "1.11.0"
+      |  /** The value is "1.13.32+1-918a0741-SNAPSHOT". */
+      |  val version: String = "1.13.32+1-918a0741-SNAPSHOT"
+      |  /** The value is "3.3.8". */
+      |  val scalaVersion: String = "3.3.8"
+      |  /** The value is "1.13.0". */
+      |  val sbtVersion: String = "1.13.0"
       |  override val toString: String = {
-      |    "name: %s, version: %s, scalaVersion: %s, sbtVersion: %s".format(
-      |      name, version, scalaVersion, sbtVersion
-      |    )
+      |    import _root_.scala.StringContext
+      |    s"name: $${name}, version: $${version}, scalaVersion: $${scalaVersion}, sbtVersion: $${sbtVersion}"
       |  }
       |}
       |// $$COVERAGE-ON$$
