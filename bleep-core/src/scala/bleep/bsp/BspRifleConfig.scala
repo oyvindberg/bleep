@@ -33,6 +33,8 @@ case class BspRifleConfig(
     jvmKey: JvmKey,
     javaPath: Path,
     javaOpts: Seq[String],
+    /** `--add-opens` for every package of `jdk.compiler`, see [[JdkCompilerOpens]]. Not part of the JVM key: it follows from the JDK */
+    jdkCompilerOpens: Seq[String],
     serverMainClass: String,
     serverClasspath: Seq[Path],
     workingDir: Path,
@@ -144,6 +146,7 @@ object BspRifleConfig {
   def default(
       jvmKey: JvmKey,
       javaPath: Path,
+      jdkCompilerOpens: Seq[String],
       serverMainClass: String,
       serverClasspath: Seq[Path],
       workingDir: Path,
@@ -156,6 +159,7 @@ object BspRifleConfig {
       jvmKey = jvmKey,
       javaPath = javaPath,
       javaOpts = defaultJavaOpts :+ defaultMaxHeapOpt,
+      jdkCompilerOpens = jdkCompilerOpens,
       serverMainClass = serverMainClass,
       serverClasspath = serverClasspath,
       workingDir = workingDir,

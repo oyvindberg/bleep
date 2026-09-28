@@ -183,6 +183,7 @@ object BspServerOperations {
 
     Seq(config.javaPath.toString) ++
       config.javaOpts ++
+      config.jdkCompilerOpens ++
       Seq(NativeAccessFlag, "-cp", classpath, config.serverMainClass) ++
       socketArg ++
       dieWithParentArg
