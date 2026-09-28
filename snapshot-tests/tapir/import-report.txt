@@ -1,26 +1,45 @@
 # template inference
 templates: 30
 projects: 176
-settings: 1524 (1407 in projects, 117 in templates)
+settings: 1536 (1419 in projects, 117 in templates)
 
 # roundtrip
 sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
 imported from sbt but not in the bleep build: tapir-finatra-server@jvm212, tapir-finatra-server@jvm213, tapir-finatra-server-cats@jvm212, tapir-finatra-server-cats@jvm213, tapir-finatra-server-cats-test@jvm212, tapir-finatra-server-cats-test@jvm213, tapir-finatra-server-test@jvm212, tapir-finatra-server-test@jvm213
 sbt bloop projects dropped by the import: akkaGrpcServer-test, akkaGrpcServer2_12-test, awsExamples-test, awsExamples2_12-test, awsExamplesJS-test, awsExamplesJS2_12-test, awsLambdaCatsEffectJS-test, awsLambdaCatsEffectJS2_12-test, awsLambdaCoreJS-test, awsLambdaCoreJS2_12-test, awsLambdaZio-test, awsLambdaZio2_12-test, awsLambdaZio3-test, catsEffect-test, catsEffect2_12-test, catsEffect3-test, catsEffectJS-test, catsEffectJS2_12-test, catsEffectJS3-test, catsEffectNative3-test, circeJsonJS-test, circeJsonJS2_12-test, circeJsonJS3-test, circeJsonNative3-test, clientCore-test, clientCore2_12-test, clientCore3-test, clientCoreJS-test, clientCoreJS2_12-test, clientCoreJS3-test, clientCoreNative3-test, clientTestServer-test, clientTestServer2_12-test, clientTestServer3-test, clientTests-test, clientTests2_12-test, clientTests3-test, clientTestsJS-test, clientTestsJS2_12-test, clientTestsJS3-test, clientTestsNative3-test, documentation3, documentation3-test, examples3-test, filesJS-test, filesJS2_12-test, filesJS3-test, filesNative3-test, grpcExamples-test, grpcExamples2_12-test, json4s3-test, openapiCodegenCli2_12-test, openapiCodegenCli3-test, openapiCodegenSbt2_12-test, openapiCodegenSbt3-test, openapiDocsJS-test, openapiDocsJS2_12-test, openapiDocsJS3-test, pbDirectProtobuf-test, pbDirectProtobuf2_12-test, pekkoGrpcExamples-test, pekkoGrpcExamples2_12-test, pekkoGrpcServer-test, pekkoGrpcServer2_12-test, pekkoGrpcServer3-test, perfTestsE2e-it, perfTestsMicro3-test, redoc-test, redoc2_12-test, redoc3-test, redocJS-test, redocJS2_12-test, redocJS3-test, scalar-test, scalar2_12-test, scalar3-test, scalarJS-test, scalarJS2_12-test, scalarJS3-test, serverTests-test, serverTests2_12-test, serverTests3-test, tests-test, tests2_12-test, tests3-test, testsJS-test, testsJS2_12-test, testsJS3-test, testsNative3-test
-compared: 672, identical: 645
+compared: 672, identical: 603
 
 most common differences (projects, aspect, difference):
-   14  classpath - jar vertx-codegen-api:5.2.0
-   14  classpath - jar vertx-codegen-json:5.2.0
-   14  classpath - jar vertx-codegen-processor:5.2.0
-   14  classpath - jar vertx-codegen:5.2.0
+   37  classpath + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+   37  classpath + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+   37  classpath - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+   37  classpath - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+   21  classpath + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+   21  classpath + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+   21  classpath + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+   21  classpath + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+   21  classpath + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+   21  classpath - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+   21  classpath - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+   21  classpath - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+   21  classpath - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+   21  classpath - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+   21  classpath - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+   19  classpath + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+   19  classpath - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+   19  classpath - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+   18  classpath + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+   18  classpath + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+   18  classpath + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+   18  classpath + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+   18  classpath - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+   18  classpath - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+   18  classpath - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+   18  classpath - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
     4  classpath ~ asm: 9.7.1 -> 9.10.1
     4  classpath ~ commons-beanutils: 1.9.4 -> 1.11.0
     4  classpath ~ commons-logging: 1.2 -> 1.3.6
     4  classpath ~ error_prone_annotations: 2.47.0 -> 2.49.0
-    4  classpath ~ jackson-dataformat-yaml: 2.21.1 -> 2.22.0
-    4  classpath ~ libphonenumber: 9.0.23 -> 9.0.32
-    3  classpath ~ jackson-datatype-jsr310: 2.21.1 -> 2.22.0
 
 sbt-openapi-codegen@jvm3
   scala.compilerJars
@@ -28,6 +47,16 @@ sbt-openapi-codegen@jvm3
 
 sttp-mock-server-test@jvm212
   classpath
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-x86_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
     ~ asm: 9.7.1 -> 9.10.1
     ~ commons-beanutils: 1.9.4 -> 1.11.0
     ~ commons-logging: 1.2 -> 1.3.6
@@ -38,6 +67,16 @@ sttp-mock-server-test@jvm212
 
 sttp-mock-server-test@jvm213
   classpath
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-x86_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
     ~ asm: 9.7.1 -> 9.10.1
     ~ commons-beanutils: 1.9.4 -> 1.11.0
     ~ commons-logging: 1.2 -> 1.3.6
@@ -48,6 +87,16 @@ sttp-mock-server-test@jvm213
 
 sttp-mock-server-test@jvm3
   classpath
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-x86_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-tcnative-boringssl-static:2.0.77.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.15.Final-<MASKED_OS>-x86_64
     ~ asm: 9.7.1 -> 9.10.1
     ~ commons-beanutils: 1.9.4 -> 1.11.0
     ~ commons-logging: 1.2 -> 1.3.6
@@ -56,8 +105,331 @@ sttp-mock-server-test@jvm3
     ~ jackson-datatype-jsr310: 2.21.1 -> 2.22.0
     ~ libphonenumber: 9.0.23 -> 9.0.32
 
+tapir-armeria-server@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats-test@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats-test@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-cats-test@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-test@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-test@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-test@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio-test@jvm212
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio-test@jvm213
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-armeria-server-zio-test@jvm3
+  classpath
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.16.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.16.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio@jvm212
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio@jvm213
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio@jvm3
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio-tests@jvm212
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio-tests@jvm213
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio-tests-test@jvm212
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-aws-lambda-zio-tests-test@jvm213
+  classpath
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+
 tapir-examples
   classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    - jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-unix-common:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-unix-common:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-tcnative-boringssl-static:2.0.78.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-unix-common:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-unix-common:4.2.18.Final-<MASKED_OS>-x86_64
     ~ asm: 9.7.1 -> 9.10.1
     ~ commons-beanutils: 1.9.4 -> 1.11.0
     ~ commons-logging: 1.2 -> 1.3.6
@@ -77,6 +449,366 @@ tapir-grpc-examples@jvm213
   platform
     - jvmOptions -Duser.dir=sbt-build/.sbt/matrix/grpcExamples
     + jvmOptions -Duser.dir=bleep/.sbt/matrix/grpcExamples
+
+tapir-netty-server@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats-test@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats-test@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-cats-test@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-sync
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-sync-test
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-test@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-test@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-test@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio-test@jvm212
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio-test@jvm213
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+
+tapir-netty-server-zio-test@jvm3
+  classpath
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    - jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-codec-native-quic:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-riscv64
+    + jar netty-transport-native-io_uring:4.2.18.Final-<MASKED_OS>-x86_64
 
 tapir-openapi-codegen-core-test@jvm212
   platform
@@ -99,21 +831,11 @@ tapir-pekko-grpc-examples@jvm213
     + jvmOptions -Duser.dir=bleep/.sbt/matrix/pekkoGrpcExamples
 
 tapir-perf-tests-e2e
-  classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
   platform
     - jvmOptions -Duser.dir=sbt-build/.sbt/matrix/perfTestsE2e
     + jvmOptions -Duser.dir=bleep/.sbt/matrix/perfTestsE2e
 
 tapir-perf-tests-e2e-test
-  classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
   platform
     - jvmOptions -Duser.dir=sbt-build/.sbt/matrix/perfTestsE2e
     + jvmOptions -Duser.dir=bleep/.sbt/matrix/perfTestsE2e
@@ -142,86 +864,65 @@ tapir-play29-server-test@jvm3
     + jar scala-java8-compat_3:1.0.0
     + jar ssl-config-core_3:0.6.1
 
-tapir-vertx-server-cats@jvm212
+tapir-zio-http-server@jvm212
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-cats@jvm213
+tapir-zio-http-server@jvm213
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-cats@jvm3
+tapir-zio-http-server@jvm3
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-cats-test@jvm212
+tapir-zio-http-server-test@jvm212
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-cats-test@jvm213
+tapir-zio-http-server-test@jvm213
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-cats-test@jvm3
+tapir-zio-http-server-test@jvm3
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-zio@jvm212
+tapir-zio-opentelemetry-test@jvm212
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-zio@jvm213
+tapir-zio-opentelemetry-test@jvm213
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
 
-tapir-vertx-server-zio@jvm3
+tapir-zio-opentelemetry-test@jvm3
   classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
-
-tapir-vertx-server-zio-test@jvm212
-  classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
-
-tapir-vertx-server-zio-test@jvm213
-  classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
-
-tapir-vertx-server-zio-test@jvm3
-  classpath
-    - jar vertx-codegen-api:5.2.0
-    - jar vertx-codegen-json:5.2.0
-    - jar vertx-codegen-processor:5.2.0
-    - jar vertx-codegen:5.2.0
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.18.Final-<MASKED_OS>-x86_64

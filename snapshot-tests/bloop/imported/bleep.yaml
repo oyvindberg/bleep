@@ -20,8 +20,8 @@ projects:
     - org.zeroturnaround:zt-zip:1.17
     dependsOn: bloop-shared
     extends:
-    - template-common-main-resources
-    - template-scala-2.12-xlint
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/backend
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
@@ -33,7 +33,7 @@ projects:
     dependsOn: bloop-backend
     extends:
     - template-common-test
-    - template-scala-2.12-xlint
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/backend
     sbt-scope: test
   bloop-cli:
@@ -51,7 +51,7 @@ projects:
       module: org.graalvm.nativeimage:svm:24.2.1
     dependsOn: bloop-rifle
     extends:
-    - template-common-main-resources
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/cli
     platform:
@@ -63,8 +63,8 @@ projects:
     dependencies: org.scalameta::mdoc:2.7.1
     dependsOn: bloop-frontend
     extends:
-    - template-common-main-resources
-    - template-scala-2.12-xlint
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/docs-gen
     resources: ../docs
     sourcegen:
@@ -80,7 +80,7 @@ projects:
     dependsOn: bloop-backend
     extends:
     - template-bloop-frontend
-    - template-common-main-resources
+    - template-scala-2-main-resources
     folder: ../sbt-build/frontend
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
@@ -118,7 +118,7 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-tools:0.6.33
     dependsOn: bloop-frontend
-    extends: template-scala-2.12-main-resources
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scalajs-0.6
   bloop-js-bridge-0-6-test:
     dependencies:
@@ -133,7 +133,7 @@ projects:
     - bloop-js-bridge-0-6
     extends:
     - template-common-test
-    - template-scala-2.12
+    - template-scala-2.12.20
     folder: ../sbt-build/bridges/scalajs-0.6
     sbt-scope: test
   bloop-js-bridge-1:
@@ -152,7 +152,7 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-sbt-test-adapter:1.19.0
     dependsOn: bloop-shared
-    extends: template-scala-2.12-main-resources
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scalajs-1
   bloop-native-bridge-0-4:
     dependencies:
@@ -160,7 +160,7 @@ projects:
     - configuration: provided
       module: org.scala-native::tools:0.4.17
     dependsOn: bloop-shared
-    extends: template-scala-2.12-main-resources
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scala-native-0.4
   bloop-native-bridge-0-5:
     dependencies:
@@ -168,7 +168,7 @@ projects:
     - configuration: provided
       module: org.scala-native::tools:0.5.7
     dependsOn: bloop-shared
-    extends: template-scala-2.12-main-resources
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scala-native-0.5
   bloop-rifle:
     dependencies:
@@ -177,7 +177,7 @@ projects:
     - io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2
     - org.scala-lang.modules::scala-collection-compat:2.13.0
     extends:
-    - template-common-main-resources
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/bloop-rifle
     sourcegen:
@@ -211,8 +211,8 @@ projects:
     - org.scala-sbt:test-agent:1.10.11
     - org.scala-sbt:test-interface:1.0
     extends:
-    - template-common-main-resources
-    - template-scala-2.12-xlint
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/shared
   buildpress:
     dependencies:
@@ -222,8 +222,8 @@ projects:
     - bloop-shared
     - buildpressconfig
     extends:
-    - template-common-main-resources
-    - template-scala-2.12-xlint
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/buildpress
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -233,17 +233,72 @@ projects:
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     extends:
-    - template-common-main-resources
-    - template-scala-2.12-xlint
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/buildpress-config
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
+  compilation:
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    dependsOn: infrastructure
+    extends:
+    - template-common-main-git.localdir
+    - template-scala-2-main
+    folder: ../sbt-build/benchmark-bridge/compilation
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: compilation
+    scala:
+      version: 2.12.19
+    sources: ./src/${SCOPE}/scalac
+  infrastructure:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.2.1
+    - com.google.guava:guava:21.0
+    - com.typesafe:config:1.3.1
+    - org.apache.commons:commons-lang3:3.5
+    - org.eclipse.jgit:org.eclipse.jgit:4.6.0.201612231935-r
+    - org.influxdb:influxdb-java:2.5
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    - org.slf4j:log4j-over-slf4j:1.7.24
+    - org.slf4j:slf4j-api:1.7.24
+    extends: template-common-main
+    folder: ../sbt-build/benchmark-bridge/infrastructure
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: infrastructure
+  jvm:
+    dependsOn: infrastructure
+    extends: template-common-main-git.localdir
+    folder: ../sbt-build/benchmark-bridge
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: jvm
+    source-layout: cross-full
+  micro:
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    dependsOn: infrastructure
+    extends:
+    - template-common-main-git.localdir
+    - template-scala-2-main
+    folder: ../sbt-build/benchmark-bridge/micro
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: micro
+    scala:
+      version: 2.12.19
   sbt-bloop:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
       module: org.scala-sbt:sbt:1.5.8
-    extends: template-scala-2.12-main-resources
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/integrations/sbt-bloop
     libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     scala:
@@ -262,7 +317,7 @@ templates:
     dependencies:
       configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    extends: template-scala-2.12-xlint
+    extends: template-scala-2.12.20-xlint
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
@@ -270,47 +325,63 @@ templates:
     ignoreEvictionErrors: no
     platform:
       name: jvm
-    scala:
-      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
-        -feature -language:existentials -language:higherKinds -language:implicitConversions
-        -unchecked
-      setup:
-        order: mixed
   template-common-main:
     extends: template-common
-    publish:
-      groupId: ch.epfl.scala
     sbt-scope: main
-  template-common-main-resources:
+  template-common-main-git.localdir:
     extends: template-common-main
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
+    platform:
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.zip/sbt/bin/sbt-launch.jar
+        -DscalaRef=v2.12.19 -DscalaVersion=2.12.19
   template-common-test:
-    extends: template-common
+    extends: template-scala-2.12.20-and-2.13
     isTestProject: true
     testFrameworks:
     - hedgehog.sbt.Framework
     - weaver.framework.CatsEffect
     - zio.test.sbt.ZTestFramework
-  template-scala-2.12:
+  template-scala-2:
     extends: template-common
+    scala:
+      setup:
+        order: mixed
+  template-scala-2-main:
+    extends:
+    - template-common-main
+    - template-scala-2
+    publish:
+      groupId: ch.epfl.scala
+  template-scala-2-main-resources:
+    extends:
+    - template-scala-2-main
+    - template-scala-2.12.20-and-2.13
+    resources:
+    - ../LICENSE.md
+    - ../NOTICE.md
+  template-scala-2.12.20:
+    extends: template-scala-2.12.20-and-2.13
     scala:
       options: -Yno-adapted-args -deprecation
       version: 2.12.20
-  template-scala-2.12-main-resources:
+  template-scala-2.12.20-and-2.13:
+    extends: template-scala-2
+    scala:
+      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
+        -feature -language:existentials -language:higherKinds -language:implicitConversions
+        -unchecked
+  template-scala-2.12.20-main-resources:
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main
+    - template-scala-2.12.20
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
-  template-scala-2.12-xlint:
-    extends: template-scala-2.12
+  template-scala-2.12.20-xlint:
+    extends: template-scala-2.12.20
     scala:
       options: -Xlint:unused -Yrangepos -Ywarn-unused
   template-scala-2.13:
-    extends: template-common
+    extends: template-scala-2.12.20-and-2.13
     scala:
       setup:
         addLibraryToBootClasspath: false

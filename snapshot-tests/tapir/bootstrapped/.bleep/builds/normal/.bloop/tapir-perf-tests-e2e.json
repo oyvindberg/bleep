@@ -117,9 +117,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-marshalling/4.2.18.Final/netty-codec-marshalling-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-memcache/4.2.18.Final/netty-codec-memcache-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-mqtt/4.2.18.Final/netty-codec-mqtt-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-<MASKED_OS>-x86_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-osx-aarch_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-osx-x86_64.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-<MASKED_OS>-aarch_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-native-quic/4.2.18.Final/netty-codec-native-quic-4.2.18.Final-<MASKED_OS>-x86_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-protobuf/4.2.18.Final/netty-codec-protobuf-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-redis/4.2.18.Final/netty-codec-redis-4.2.18.Final.jar",
@@ -156,6 +157,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/5.2.0/vertx-auth-common-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/5.2.0/vertx-bridge-common-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-api/5.2.0/vertx-codegen-api-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-json/5.2.0/vertx-codegen-json-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-processor/5.2.0/vertx-codegen-processor-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core-logging/5.2.0/vertx-core-logging-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/5.2.0/vertx-core-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-eventbus-bridge-common/5.2.0/vertx-eventbus-bridge-common-5.2.0.jar",
@@ -470,6 +475,17 @@
             {
               "name": "jul-to-slf4j",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-codegen",
+          "version": "5.2.0",
+          "artifacts": [
+            {
+              "name": "vertx-codegen",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar"
             }
           ]
         },

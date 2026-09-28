@@ -1472,6 +1472,8 @@ projects:
     dependencies:
     - com.fasterxml.jackson.module::jackson-module-scala:2.22.3
     - io.github.classgraph:classgraph:4.8.195
+    - configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     - org.http4s::http4s-core:0.23.37
     dependsOn:
     - tapir-http4s-server
@@ -1497,6 +1499,8 @@ projects:
     - exclusions:
         com.fasterxml.jackson.core: jackson-databind
       module: io.gatling:gatling-test-framework:3.15.1
+    - configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     - nl.grons::metrics4-scala:4.3.7
     - org.hdrhistogram:HdrHistogram:2.2.2
     dependsOn:
@@ -1992,12 +1996,17 @@ projects:
     dependencies:
     - co.fs2::fs2-reactive-streams:3.14.0
     - com.softwaremill.sttp.shared::fs2:1.5.2
+    - configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     dependsOn: tapir-vertx-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server/cats
   tapir-vertx-server-cats-test:
+    dependencies:
+      configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     dependsOn:
     - tapir-cats-effect
     - tapir-vertx-server-cats
@@ -2018,6 +2027,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server
   tapir-vertx-server-zio:
+    dependencies:
+      configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     dependsOn:
     - tapir-vertx-server
     - tapir-zio
@@ -2026,7 +2038,10 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server/zio
   tapir-vertx-server-zio-test:
-    dependencies: dev.zio::zio-interop-cats:23.1.0.13
+    dependencies:
+    - dev.zio::zio-interop-cats:23.1.0.13
+    - configuration: provided
+      module: io.vertx:vertx-codegen:5.2.0
     dependsOn:
     - tapir-vertx-server-test
     - tapir-vertx-server-zio

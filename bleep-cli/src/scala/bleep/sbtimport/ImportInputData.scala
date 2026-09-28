@@ -54,6 +54,28 @@ case class ImportInputData(
   lazy val sbtExportFiles: Vector[ReadSbtExportFile.ExportedProject] =
     sbtExportFilePaths.map { case (path, contents) => ReadSbtExportFile.parse(path, contents) }
 
+  /** `provided` dependencies a project gets from the projects it depends on with `provided->provided`, and which they get the same way, as sbt puts them on
+    * its classpath. bloop's export shows them on the classpath, but only the mapping says they are `provided` and where they come from
+    */
+  def inheritedProvided(exportFile: ReadSbtExportFile.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] = {
+    def isProvided(dep: bleep.nosbt.librarymanagement.ModuleID): Boolean =
+      dep.configurations.exists(_.split(";").map(_.trim).contains("provided"))
+    val own = exportFile.dependencies.map(d => (d.organization, d.name)).toSet
+    val seen = scala.collection.mutable.Set.empty[String]
+    def go(from: ReadSbtExportFile.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] =
+      from.projectDependencies.toList.filter(_.passesOnProvided).flatMap { dep =>
+        if (!seen.add(dep.project)) Nil
+        else {
+          // the other project's main code, at the same scala version
+          val upstream = sbtExportFiles.find(f => f.bloopName == dep.project && f.scalaVersion.full == exportFile.scalaVersion.full).getOrElse {
+            throw new BleepException.Text(s"${exportFile.bloopName} depends on ${dep.project}, which sbt did not export for scala ${exportFile.scalaVersion.full}")
+          }
+          upstream.dependencies.toList.filter(isProvided) ++ go(upstream)
+        }
+      }
+    go(exportFile).filterNot(d => own((d.organization, d.name))).distinctBy(d => (d.organization, d.name))
+  }
+
   lazy val projects: Map[model.CrossProjectName, ImportInputData.InputProject] = {
     val all = bloopFiles
       .collect { case bloopFile =>

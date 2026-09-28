@@ -80,6 +80,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/5.2.0/vertx-auth-common-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/5.2.0/vertx-bridge-common-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-api/5.2.0/vertx-codegen-api-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-json/5.2.0/vertx-codegen-json-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-processor/5.2.0/vertx-codegen-processor-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core-logging/5.2.0/vertx-core-logging-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/5.2.0/vertx-core-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-eventbus-bridge-common/5.2.0/vertx-eventbus-bridge-common-5.2.0.jar",
@@ -340,6 +344,17 @@
             {
               "name": "idna4s-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_2.13/0.1.0/idna4s-core_2.13-0.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-codegen",
+          "version": "5.2.0",
+          "artifacts": [
+            {
+              "name": "vertx-codegen",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar"
             }
           ]
         },

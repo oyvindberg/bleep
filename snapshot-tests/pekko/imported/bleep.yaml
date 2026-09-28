@@ -587,7 +587,11 @@ projects:
         scala:
           options: -Ywarn-numeric-widen
     dependencies:
-      configuration: optional
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
       module: org.jspecify:jspecify:1.0.1
     dependsOn:
     - pekko-actor-testkit-typed
@@ -603,7 +607,11 @@ projects:
         scala:
           options: -Ywarn-numeric-widen
     dependencies:
-      configuration: optional
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
       module: org.jspecify:jspecify:1.0.1
     dependsOn:
     - pekko-persistence-tck

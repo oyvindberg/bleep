@@ -76,6 +76,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/5.2.0/vertx-auth-common-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-bridge-common/5.2.0/vertx-bridge-common-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-api/5.2.0/vertx-codegen-api-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-json/5.2.0/vertx-codegen-json-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen-processor/5.2.0/vertx-codegen-processor-5.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core-logging/5.2.0/vertx-core-logging-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/5.2.0/vertx-core-5.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-eventbus-bridge-common/5.2.0/vertx-eventbus-bridge-common-5.2.0.jar",
@@ -272,17 +276,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "io.circe",
-          "name": "circe-generic_3",
-          "version": "0.14.16",
-          "artifacts": [
-            {
-              "name": "circe-generic_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_3",
           "version": "3.2.18",
@@ -422,6 +415,28 @@
             {
               "name": "scalatest-freespec_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.18/scalatest-freespec_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-codegen",
+          "version": "5.2.0",
+          "artifacts": [
+            {
+              "name": "vertx-codegen",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-codegen/5.2.0/vertx-codegen-5.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_3",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-generic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar"
             }
           ]
         },

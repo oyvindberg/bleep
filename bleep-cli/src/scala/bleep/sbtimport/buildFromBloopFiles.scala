@@ -177,7 +177,7 @@ object buildFromBloopFiles {
         val providedDeps = versionCombo.libraries(isTest = projectType.testLike)
         importDeps(
           logger,
-          inputProject.sbtExportFile.dependencies,
+          inputProject.sbtExportFile.dependencies ++ inputProjects.inheritedProvided(inputProject.sbtExportFile),
           inputProject.projectType,
           crossName,
           configuredPlatform.flatMap(_.name),

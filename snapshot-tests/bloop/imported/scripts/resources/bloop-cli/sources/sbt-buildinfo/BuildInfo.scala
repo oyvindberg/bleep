@@ -5,8 +5,8 @@ package buildinfo
 case object BuildInfo {
   /** The value is "bloop-cli". */
   val name: String = "bloop-cli"
-  /** The value is "2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT". */
-  val version: String = "2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT"
+  /** The value is "2.0.10". */
+  val version: String = "2.0.10"
   /** The value is "2.13.16". */
   val scalaVersion: String = "2.13.16"
   /** The value is "1.10.11". */

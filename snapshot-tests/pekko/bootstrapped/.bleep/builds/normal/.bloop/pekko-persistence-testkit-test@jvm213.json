@@ -117,8 +117,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.82/bcpkix-jdk18on-1.82.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.82/bcprov-jdk18on-1.82.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.82/bcutil-jdk18on-1.82.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/leveldbjni/leveldbjni-all/1.8/leveldbjni-all-1.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb-api/0.12/leveldb-api-0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb/0.12/leveldb-0.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar",
@@ -485,6 +488,17 @@
           ]
         },
         {
+          "organization": "org.iq80.leveldb",
+          "name": "leveldb-api",
+          "version": "0.12",
+          "artifacts": [
+            {
+              "name": "leveldb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb-api/0.12/leveldb-api-0.12.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.github.docker-java",
           "name": "docker-java-transport",
           "version": "3.7.1",
@@ -624,6 +638,17 @@
             {
               "name": "lz4-java",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/at/yawk/lz4/lz4-java/1.11.3/lz4-java-1.11.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.leveldbjni",
+          "name": "leveldbjni-all",
+          "version": "1.8",
+          "artifacts": [
+            {
+              "name": "leveldbjni-all",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/leveldbjni/leveldbjni-all/1.8/leveldbjni-all-1.8.jar"
             }
           ]
         },
@@ -800,6 +825,17 @@
             {
               "name": "lmdbjava",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/lmdbjava/lmdbjava/0.9.3/lmdbjava-0.9.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.iq80.snappy",
+          "name": "snappy",
+          "version": "0.4",
+          "artifacts": [
+            {
+              "name": "snappy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar"
             }
           ]
         },
@@ -1013,6 +1049,17 @@
           ]
         },
         {
+          "organization": "org.iq80.leveldb",
+          "name": "leveldb",
+          "version": "0.12",
+          "artifacts": [
+            {
+              "name": "leveldb",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb/0.12/leveldb-0.12.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.20",
@@ -1163,6 +1210,17 @@
             {
               "name": "docker-java-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.xerial.snappy",
+          "name": "snappy-java",
+          "version": "1.1.2.6",
+          "artifacts": [
+            {
+              "name": "snappy-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.2.6/snappy-java-1.1.2.6.jar"
             }
           ]
         },

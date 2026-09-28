@@ -28,9 +28,13 @@
       "pekko-testkit@jvm213"
     ],
     "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/hierynomus/asn-one/0.6.0/asn-one-0.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/agrona/agrona/2.6.1/agrona-2.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/leveldbjni/leveldbjni-all/1.8/leveldbjni-all-1.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb-api/0.12/leveldb-api-0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb/0.12/leveldb-0.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
@@ -145,6 +149,39 @@
     "resolution": {
       "modules": [
         {
+          "organization": "org.iq80.leveldb",
+          "name": "leveldb-api",
+          "version": "0.12",
+          "artifacts": [
+            {
+              "name": "leveldb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb-api/0.12/leveldb-api-0.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.leveldbjni",
+          "name": "leveldbjni-all",
+          "version": "1.8",
+          "artifacts": [
+            {
+              "name": "leveldbjni-all",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/leveldbjni/leveldbjni-all/1.8/leveldbjni-all-1.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.iq80.snappy",
+          "name": "snappy",
+          "version": "0.4",
+          "artifacts": [
+            {
+              "name": "snappy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
@@ -167,6 +204,17 @@
           ]
         },
         {
+          "organization": "org.iq80.leveldb",
+          "name": "leveldb",
+          "version": "0.12",
+          "artifacts": [
+            {
+              "name": "leveldb",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/leveldb/leveldb/0.12/leveldb-0.12.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.18",
@@ -174,6 +222,28 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "21.0",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.xerial.snappy",
+          "name": "snappy-java",
+          "version": "1.1.2.6",
+          "artifacts": [
+            {
+              "name": "snappy-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.2.6/snappy-java-1.1.2.6.jar"
             }
           ]
         },

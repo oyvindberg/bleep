@@ -29,8 +29,49 @@ object ReadSbtExportFile {
       excludeDependencies: Seq[ExclusionRule],
       crossVersion: CrossVersion,
       libraryDependencySchemes: Seq[ModuleID],
-      evictionErrorLevel: Level.Value
+      evictionErrorLevel: Level.Value,
+      projectDependencies: Seq[ProjectDependency]
   )
+
+  /** A project of the same build this one depends on, and how its configurations map to this one's (`compile->compile;provided->provided`). None is sbt's
+    * default, `compile->compile`
+    */
+  case class ProjectDependency(project: String, configuration: Option[String]) {
+
+    /** `provided->provided`: the other project's `provided` dependencies are this one's too */
+    def passesOnProvided: Boolean =
+      configuration.exists(_.split(";").exists { mapping =>
+        mapping.split("->").map(_.trim) match {
+          case Array("provided", to) => to.split(",").exists(_.trim.takeWhile(_ != '(') == "provided")
+          case _                     => false
+        }
+      })
+  }
+
+  object ProjectDependency {
+    import bleep.nosbt.librarymanagement.LibraryManagementCodec.*
+
+    implicit val format: JsonFormat[ProjectDependency] = new JsonFormat[ProjectDependency] {
+      override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): ProjectDependency =
+        jsOpt match {
+          case Some(j) =>
+            unbuilder.beginObject(j): Unit
+            val project = unbuilder.readField[String]("project")
+            val configuration = unbuilder.readField[Option[String]]("configuration")
+            unbuilder.endObject()
+            ProjectDependency(project, configuration)
+          case None =>
+            sjsonnew.deserializationError("expected a json value to read")
+        }
+
+      override def write[J](obj: ProjectDependency, builder: Builder[J]): Unit = {
+        builder.beginObject()
+        builder.addField("project", obj.project)
+        builder.addField("configuration", obj.configuration)
+        builder.endObject()
+      }
+    }
+  }
 
   object ExportedProject {
 
@@ -70,6 +111,7 @@ object ReadSbtExportFile {
             val crossVersion = unbuilder.readField[CrossVersion]("crossVersion")
             val libraryDependencySchemes = unbuilder.readField[Seq[ModuleID]]("libraryDependencySchemes")
             val evictionErrorLevel = unbuilder.readField[Level.Value]("evictionErrorLevel")
+            val projectDependencies = unbuilder.readField[Seq[ProjectDependency]]("projectDependencies")
             unbuilder.endObject()
 
             ExportedProject(
@@ -82,7 +124,8 @@ object ReadSbtExportFile {
               excludeDependencies,
               crossVersion,
               libraryDependencySchemes,
-              evictionErrorLevel
+              evictionErrorLevel,
+              projectDependencies
             )
           case None =>
             sjsonnew.deserializationError("expected a json value to read")
@@ -101,6 +144,7 @@ object ReadSbtExportFile {
         builder.addField("crossVersion", obj.crossVersion)
         builder.addField("libraryDependencySchemes", obj.libraryDependencySchemes)
         builder.addField("evictionErrorLevel", obj.evictionErrorLevel)
+        builder.addField("projectDependencies", obj.projectDependencies)
         builder.endObject()
       }
     }

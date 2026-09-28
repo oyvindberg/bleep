@@ -1,7 +1,7 @@
 # template inference
 templates: 11
 projects: 76
-settings: 736 (692 in projects, 44 in templates)
+settings: 744 (700 in projects, 44 in templates)
 
 # roundtrip
 sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
@@ -16,9 +16,6 @@ most common differences (projects, aspect, difference):
     8  classpath + project pekko-actor-typed@jvm3
     7  classpath + project pekko-slf4j@jvm213
     7  classpath + project pekko-slf4j@jvm3
-    4  classpath - jar leveldb-api:0.12
-    4  classpath - jar leveldb:0.12
-    4  classpath - jar leveldbjni-all:1.8
 
 pekko-bench-jmh@jvm213
   classpath
@@ -240,32 +237,18 @@ pekko-persistence-test@jvm3
 
 pekko-persistence-testkit@jvm213
   classpath
-    - jar guava:21.0
-    - jar leveldb-api:0.12
-    - jar leveldb:0.12
-    - jar leveldbjni-all:1.8
     - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
 
 pekko-persistence-testkit@jvm3
   classpath
-    - jar guava:21.0
-    - jar leveldb-api:0.12
-    - jar leveldb:0.12
-    - jar leveldbjni-all:1.8
     - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
 
 pekko-persistence-testkit-test@jvm213
   classpath
-    - jar leveldb-api:0.12
-    - jar leveldb:0.12
-    - jar leveldbjni-all:1.8
     - sbt-build/protobuf-v3/target/scala-2.13/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
 
 pekko-persistence-testkit-test@jvm3
   classpath
-    - jar leveldb-api:0.12
-    - jar leveldb:0.12
-    - jar leveldbjni-all:1.8
     - sbt-build/protobuf-v3/target/scala-3.3.8/pekko-protobuf-v3-assembly-2.0.0-M4+81-c2bc0f1c-SNAPSHOT.jar
 
 pekko-persistence-typed@jvm213

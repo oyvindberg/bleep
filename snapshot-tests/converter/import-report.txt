@@ -12,3 +12,4 @@ compared: 11, identical: 10
 sbt-converter
   classpath
     ~ httpcore: 4.4.13 -> 4.4.11
+    ~ netty-transport-native-epoll: 4.1.53.Final-<MASKED_OS>-x86_64 -> 4.1.53.Final-<MASKED_OS>-x86_64
