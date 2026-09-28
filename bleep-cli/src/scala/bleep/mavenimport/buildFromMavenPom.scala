@@ -167,7 +167,7 @@ object buildFromMavenPom {
       val compilerArgs = extractScalaCompilerArgs(mavenProject)
       model.Scala(
         version = Some(sv),
-        options = model.Options.parse(compilerArgs, None),
+        options = model.Options.fromArgs(compilerArgs, None),
         setup = None,
         compilerPlugins = model.JsonSet.empty,
         strict = None,
@@ -186,7 +186,7 @@ object buildFromMavenPom {
       val plugins = extractKotlinCompilerPlugins(mavenProject)
       model.Kotlin(
         version = Some(kv),
-        options = model.Options.parse(kotlinArgs ++ pluginOptionArgs, None),
+        options = model.Options.fromArgs(kotlinArgs ++ pluginOptionArgs, None),
         jvmTarget = jvmTarget,
         compilerPlugins = model.JsonSet.fromIterable(plugins),
         kspVersion = None,
@@ -726,8 +726,9 @@ object buildFromMavenPom {
         if (annotationProcessors.isEmpty && !processingOff) Some(model.ScanForAnnotationProcessors.IfPresent) else None
       // `-proc:full` asks javac to run processors, which bleep now wires itself. it refuses `-proc:` options next to its own: feign's tests
       val args = if (scan.isDefined || annotationProcessors.nonEmpty) compilerArgs.filterNot(_ == "-proc:full") else compilerArgs
+      // one argument per `<arg>`: `-Xplugin:ErrorProne -Xep:NullAway:ERROR` is one, and javac hands it to the plugin
       val java = model.Java(
-        options = model.Options.parse(versionArgs ++ args, None),
+        options = model.Options.fromArgs(versionArgs ++ args, None),
         scanForAnnotationProcessors = scan,
         annotationProcessors = model.JsonSet.fromIterable(annotationProcessors),
         annotationProcessorOptions = model.AnnotationProcessorOptions.empty,

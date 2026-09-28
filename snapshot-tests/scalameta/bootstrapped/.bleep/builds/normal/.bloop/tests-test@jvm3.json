@@ -135,11 +135,7 @@
       "version": "3.7.1",
       "options": [
         "-Wconf:cat=deprecation:silent",
-        "-Wconf:msg=pattern",
-        "binding",
-        "uses",
-        "refutable",
-        "extractor:s",
+        "-Wconf:msg=pattern binding uses refutable extractor:s",
         "-Xcheck-macros",
         "-feature",
         "-sourceroot",

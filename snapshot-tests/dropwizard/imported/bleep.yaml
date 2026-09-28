@@ -850,10 +850,10 @@ templates:
       - com.google.errorprone:error_prone_core:2.42.0
       - com.uber.nullaway:nullaway:0.13.8
       - jp.skypencil.errorprone.slf4j:errorprone-slf4j:0.1.29
-      options: --release 17 --should-stop=ifError=FLOW -XDcompilePolicy=simple -Xep:EqualsGetClass:OFF
-        -Xep:NullAway:ERROR -XepDisableWarningsInGeneratedCode -XepOpt:NullAway:AnnotatedPackages=io.dropwizard
-        -XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock -XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks
-        -Xplugin:ErrorProne
+      options: --release 17 --should-stop=ifError=FLOW -XDcompilePolicy=simple "-Xplugin:ErrorProne
+        -XepDisableWarningsInGeneratedCode -Xep:EqualsGetClass:OFF -Xep:NullAway:ERROR
+        -XepOpt:NullAway:AnnotatedPackages=io.dropwizard -XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock
+        -XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks"
   template-java-17-logback-classic:
     dependencies:
     - ch.qos.logback:logback-classic:1.5.38

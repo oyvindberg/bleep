@@ -35,7 +35,7 @@ projects:
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
   core-tests:
     cross:
       js212:
@@ -791,8 +791,8 @@ projects:
     - template-cross-js-212-213-jvm-212-213-native-212-213
     folder: ../sbt-build/test
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
     source-layout: cross-full
   zio-concurrent:
     cross:
@@ -811,7 +811,7 @@ projects:
     - template-cross-all
     folder: ../sbt-build/concurrent
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
     source-layout: cross-pure
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
@@ -835,7 +835,7 @@ projects:
     - template-cross-all
     folder: ../sbt-build/concurrent
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
     source-layout: cross-pure
   zio-internal-macros:
     cross:
@@ -916,8 +916,8 @@ projects:
     - template-cross-js-212-213-jvm-212-213-native-212-213
     folder: ../sbt-build/macros
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -language:experimental.macros
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -language:experimental.macros'
     source-layout: cross-pure
   zio-managed:
     cross:
@@ -937,8 +937,8 @@ projects:
     - template-cross-js-212-213-jvm-212-213-native-212-213
     folder: ../sbt-build/managed
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
     source-layout: cross-full
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
@@ -995,8 +995,8 @@ projects:
     - template-cross-js-212-213-jvm-212-213-native-212-213
     folder: ../sbt-build/streams
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
     source-layout: cross-full
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
@@ -1128,8 +1128,8 @@ projects:
     - template-cross-all
     folder: ../sbt-build/test-sbt
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent'
     source-layout: cross-full
   zio-test-sbt-test:
     cross:
@@ -1148,8 +1148,8 @@ projects:
     - template-cross-all
     folder: ../sbt-build/test-sbt
     scala:
-      options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
-        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent'
     source-layout: cross-full
   zio-test-scalacheck:
     cross:

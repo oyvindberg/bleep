@@ -2183,8 +2183,8 @@ templates:
     ignoreEvictionErrors: yes
     resources: ./src/${SCOPE}/protobuf
     scala:
-      options: -Wconf:msg=unused value of type org.scalatest.Assertion:s -Wconf:msg=unused
-        value of type org.scalatest.compatible.Assertion:s
+      options: '"-Wconf:msg=unused value of type org.scalatest.Assertion:s" "-Wconf:msg=unused
+        value of type org.scalatest.compatible.Assertion:s"'
       setup:
         order: mixed
       strict: true

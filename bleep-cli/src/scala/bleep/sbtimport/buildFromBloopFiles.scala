@@ -709,7 +709,8 @@ object buildFromBloopFiles {
 
   // semanticdb flags are added back when bleep is in IDE mode
   def parseOptionsDropSemanticDb(strings: List[String], maybeRelativize: Option[model.Replacements]) = {
-    val opts = model.Options.parse(strings, maybeRelativize)
+    // one argument per element, as sbt passes them to the compiler. `-Wconf:msg=unused value:s` is one argument
+    val opts = model.Options.fromArgs(strings, maybeRelativize)
     val filtered = opts.values.filterNot(_.render.mkString.contains("semanticdb"))
     model.Options(filtered)
   }

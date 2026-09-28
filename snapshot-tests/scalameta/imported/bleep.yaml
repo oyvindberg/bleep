@@ -513,8 +513,8 @@ templates:
         - template-jvm
         - template-scala-2.13-and-3
         scala:
-          options: -Wconf:cat=deprecation:silent -Wconf:msg=pattern binding uses refutable
-            extractor:s -Xcheck-macros
+          options: -Wconf:cat=deprecation:silent "-Wconf:msg=pattern binding uses
+            refutable extractor:s" -Xcheck-macros
           version: 3.7.1
       native212:
         extends:

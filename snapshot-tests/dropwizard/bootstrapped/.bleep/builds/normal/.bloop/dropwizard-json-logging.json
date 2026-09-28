@@ -65,13 +65,7 @@
         "17",
         "--should-stop=ifError=FLOW",
         "-XDcompilePolicy=simple",
-        "-Xep:EqualsGetClass:OFF",
-        "-Xep:NullAway:ERROR",
-        "-XepDisableWarningsInGeneratedCode",
-        "-XepOpt:NullAway:AnnotatedPackages=io.dropwizard",
-        "-XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock",
-        "-XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks",
-        "-Xplugin:ErrorProne"
+        "-Xplugin:ErrorProne -XepDisableWarningsInGeneratedCode -Xep:EqualsGetClass:OFF -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=io.dropwizard -XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock -XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks"
       ]
     },
     "platform": {
