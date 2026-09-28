@@ -9,6 +9,9 @@ Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, â€
 > for the user surface, scan vs. explicit mode, version pairing, and
 > current limitations. KAPT is not supported; migrate to KSP first.
 
+>
+> The `java:` fields below also work in a Kotlin project: they run on its `.java` sources, which javac compiles after kotlinc. Kotlin code can use what they generate from the second compile on, since kotlinc runs first.
+
 Resolution and processor-jar discovery happen lazily during compile as a first-class DAG task (`bleep:resolve-annotation-processors:<project>`), not at bootstrap. Failures are isolated per project and surface as a build failure with the project name in the message.
 
 ## Quick start: Lombok

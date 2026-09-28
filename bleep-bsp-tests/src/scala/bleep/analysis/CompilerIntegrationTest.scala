@@ -1441,7 +1441,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
         kotlinVersion = "2.3.0",
         jvmTarget = "11",
         kotlinOptions = Nil,
-        javaRelease = None
+        javaRelease = None,
+        javaOptions = Nil
       )
 
       val config = ProjectConfig(

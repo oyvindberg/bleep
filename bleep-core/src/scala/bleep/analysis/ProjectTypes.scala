@@ -19,8 +19,9 @@ enum ProjectLanguage {
       compilerProject: Option[ResolvedProject.Language.ProjectCompiler]
   )
 
-  /** Kotlin/JVM compiled by K2JVMCompiler */
-  case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String], javaRelease: Option[Int])
+  /** Kotlin/JVM compiled by K2JVMCompiler, and its `.java` sources by javac with `javaOptions`: the project's java options, and the annotation processing flags
+    */
+  case Kotlin(kotlinVersion: String, jvmTarget: String, kotlinOptions: List[String], javaRelease: Option[Int], javaOptions: List[String])
 
   /** Kotlin/JS compiled by K2JSCompiler */
   case KotlinJs(kotlinVersion: String, kotlinOptions: List[String], isTest: Boolean)

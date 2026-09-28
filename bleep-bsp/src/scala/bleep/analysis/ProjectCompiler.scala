@@ -276,12 +276,22 @@ object KotlinProjectCompiler extends ProjectCompiler {
     * known-None-upfront finalizer). See `InterruptibleRaceReproTest` A4–A7 for the bisection.
     */
   private def compileJavaSources(
-      javaSources: Seq[SourceFile],
+      allJavaSources: Seq[SourceFile],
       config: ProjectConfig,
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken
-  ): IO[ProjectCompileResult] =
+  ): IO[ProjectCompileResult] = {
+    // the project's java options, with `-processorpath`/`-s`/`-A..` when annotation processing is configured, or `-proc:none` when it is not
+    val javaOptions: List[String] = config.language match {
+      case kt: ProjectLanguage.Kotlin => kt.javaOptions
+      case other                      => throw new IllegalArgumentException(s"KotlinProjectCompiler cannot compile $other")
+    }
+    // where processors write, `-s`. It is also a source directory, so what the last compile generated would be sources javac is asked to generate again, and
+    // javac refuses to. javac compiles all `.java` sources on every compile here, so the processors generate all of it again
+    val processorOutput: Option[Path] = javaOptions.sliding(2).collectFirst { case List("-s", dir) => Path.of(dir) }
+    val javaSources = processorOutput.fold(allJavaSources)(dir => allJavaSources.filterNot(_.path.startsWith(dir)))
     if (cancellationToken.isCancelled) IO.pure(ProjectCompileCancelled(KillReason.UserRequest))
+    else if (javaSources.isEmpty) IO.blocking(ProjectCompileSuccess(config.outputDir, Compiler.collectClassFilesStatic(config.outputDir), None))
     else
       Outcome.fromCancellationToken(cancellationToken).flatMap { killSignal =>
         val work: IO[ProjectCompileResult] = IO.interruptibleMany {
@@ -299,6 +309,10 @@ object KotlinProjectCompiler extends ProjectCompiler {
               }
 
               Files.createDirectories(config.outputDir)
+              processorOutput.foreach { dir =>
+                if (Files.exists(dir)) scala.util.Using.resource(Files.walk(dir))(_.iterator().asScala.toList.reverse.filterNot(_ == dir).foreach(Files.delete))
+                Files.createDirectories(dir)
+              }
               val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
               val fullClasspath = config.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
               // Use --release from the project's Java config (imported from maven.compiler.source/target/release). Fall back to Kotlin's jvmTarget when no
@@ -307,15 +321,10 @@ object KotlinProjectCompiler extends ProjectCompiler {
                 case kt: ProjectLanguage.Kotlin => kt.javaRelease.orElse(kt.jvmTarget.toIntOption.filter(_ >= 9))
                 case _                          => None
               }
-              val baseOptions = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
-              val options = javaRelease match {
-                case Some(rel) =>
-                  val list = new java.util.ArrayList[String](baseOptions)
-                  list.add("--release")
-                  list.add(rel.toString)
-                  list
-                case None => baseOptions
-              }
+              // the project's own options say which java version, if they say
+              val statesVersion = javaOptions.exists(o => o == "--release" || o == "-source" || o == "-target" || o.startsWith("--release="))
+              val releaseOptions = javaRelease.filterNot(_ => statesVersion).toList.flatMap(rel => List("--release", rel.toString))
+              val options = (List("-d", config.outputDir.toString, "-classpath", fullClasspath) ++ releaseOptions ++ javaOptions).asJava
 
               val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
               if (task.call().booleanValue) {
@@ -349,6 +358,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
           case Right(reason) => ProjectCompileCancelled(reason)
         }
       }
+  }
 
 }
 

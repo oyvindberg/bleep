@@ -226,4 +226,44 @@ class AnnotationProcessingIT extends IntegrationTestHarness {
     commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None))).discard()
     assert(storingLogger.underlying.exists(_.message.plainText.contains("auto-discovered annotation processor")))
   }
+
+  integrationTest("the java sources of a kotlin project are processed too, and again on the next compile") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: org.mapstruct:mapstruct:1.5.5.Final
+        |    source-layout: kotlin
+        |    kotlin:
+        |      version: 2.1.20
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      annotationProcessors:
+        |        - org.mapstruct:mapstruct-processor:1.5.5.Final
+        |      annotationProcessorOptions:
+        |        mapstruct.suppressGeneratorTimestamp: "true"
+        |""".stripMargin
+    )
+    ws.file("a/src/kotlin/test/Hello.kt", "package test\n\nfun greet(name: String): String = \"Hello, $name!\"\n")
+    ws.file("a/src/java/test/User.java", "package test; public class User { public String name; }")
+    ws.file("a/src/java/test/UserDto.java", "package test; public class UserDto { public String name; }")
+    ws.file(
+      "a/src/java/test/UserMapper.java",
+      """package test;
+        |@org.mapstruct.Mapper
+        |public interface UserMapper {
+        |    UserDto userToUserDto(User user);
+        |}""".stripMargin
+    )
+    val (started, commands, _) = ws.start()
+    val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+    commands.compile(List(projectName)).discard()
+    val classes = started.projectPaths(projectName).classes
+    assert(Files.isRegularFile(classes.resolve("test/UserMapperImpl.class")), s"expected UserMapperImpl.class in $classes")
+
+    // the generated sources are now in a source directory. compiling again must not ask javac to generate what it is given as a source
+    ws.file("a/src/java/test/UserDto.java", "package test; public class UserDto { public String name; public int age; }")
+    commands.compile(List(projectName)).discard()
+    assert(Files.isRegularFile(classes.resolve("test/UserMapperImpl.class")))
+  }
 }
