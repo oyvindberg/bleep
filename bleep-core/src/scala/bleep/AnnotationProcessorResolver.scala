@@ -95,7 +95,9 @@ object AnnotationProcessorResolver {
         s"project ${crossName.value}: scanForAnnotationProcessors: true was set but no annotation processor JARs were found in dependencies and annotationProcessors is empty"
       )
 
-    val processorJars: List[Path] = (scannedJars ++ explicitJars).distinct
+    // a processor found on the classpath is loaded from the classpath, as javac does without a processor path: jmh's needs jmh-generator-core, auto-service's
+    // needs auto-service-annotations
+    val processorJars: List[Path] = (if (scannedJars.isEmpty) explicitJars else resolvedDependencyJars ++ explicitJars).distinct
     AnnotationProcessorResult(
       processorJars = processorJars,
       genSourcesDir = genSourcesDir,

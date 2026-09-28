@@ -27,13 +27,13 @@ projects:
       scanForAnnotationProcessors: true
 ```
 
-Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts it on javac's `-processorpath`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
+Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts the classpath on javac's `-processorpath`, as javac does itself without one: a processor usually needs other jars to run, JMH's needs `jmh-generator-core`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
 
 ## Three knobs
 
 | Field | Default | Purpose |
 | --- | --- | --- |
-| `scanForAnnotationProcessors: true \| false \| if-present` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. Matches found jars get added to `-processorpath`. `true` fails when it finds none, `if-present` doesn't. |
+| `scanForAnnotationProcessors: true \| false \| if-present` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. When it finds any, the classpath goes on `-processorpath`. `true` fails when it finds none, `if-present` doesn't. |
 | `annotationProcessors: [Dep]` | `[]` | Explicit processor-only deps. Always added to `-processorpath`; never on the runtime/compile classpath of the project. |
 | `annotationProcessorOptions: {key: value}` | `{}` | `-A<key>=<value>` flags. Visible to every configured processor (JSR 269 has no per-processor `-A`). |
 

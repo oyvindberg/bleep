@@ -266,4 +266,29 @@ class AnnotationProcessingIT extends IntegrationTestHarness {
     commands.compile(List(projectName)).discard()
     assert(Files.isRegularFile(classes.resolve("test/UserMapperImpl.class")))
   }
+
+  integrationTest("a processor found on the classpath runs with the rest of the classpath: auto-service needs auto-common") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: com.google.auto.service:auto-service:1.1.1
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: true
+        |""".stripMargin
+    )
+    ws.file(
+      "a/src/java/test/Task.java",
+      """package test;
+        |@com.google.auto.service.AutoService(Runnable.class)
+        |public class Task implements Runnable { public void run() {} }""".stripMargin
+    )
+    val (started, commands, _) = ws.start()
+    val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+    commands.compile(List(projectName)).discard()
+    val registration = started.projectPaths(projectName).classes.resolve("META-INF/services/java.lang.Runnable")
+    assert(Files.readString(registration).contains("test.Task"), s"expected auto-service to register test.Task in $registration")
+  }
 }
