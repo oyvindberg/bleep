@@ -198,6 +198,39 @@ you want for deciding which tool above to reach for.
 
 [Reference &rarr;](/docs/reference/cli/build/evicted/)
 
+## Coming from Maven: nearest wins, highest wins
+
+Maven and bleep pick a different version when two dependencies ask for
+different versions of the same library:
+
+- **Maven: the nearest wins.** The version declared closest to your
+  module in the dependency tree is used, and at equal depth the one
+  declared first. A version you declare yourself always wins, even
+  over a newer one some dependency asks for.
+- **bleep (Coursier): the highest wins.** Every request counts, and the
+  newest version asked for anywhere is used.
+
+So a build imported with
+[`bleep import-maven`](/docs/reference/cli/import-maven/) can resolve
+some libraries at a newer version than Maven did. Usually that's
+harmless. When it isn't, code that compiled under Maven fails to
+compile, or fails at runtime: dropwizard compiles against
+`logback-core` 1.5.38 under Maven, where Coursier picks 1.6.3, and an
+`@Override` of a method 1.6 removed no longer compiles.
+
+Declaring the older version yourself does not help: it is one more
+request, and the higher one still wins. What does:
+
+- **Find where the newer version comes from** with
+  [`bleep build evicted`](#inspecting-conflicts-bleep-build-evicted), and
+  [exclude](#exclusions) it from the dependency which brings it in.
+  Then the version you want is the highest left.
+- **Move your code to the newer version**, which is what you'd have to
+  do anyway once whatever asks for it is updated under Maven too.
+
+Maven's own choice isn't something bleep can be told to make; there is
+no setting for "nearest wins".
+
 ## Picking the right tool
 
 | When | Reach for |

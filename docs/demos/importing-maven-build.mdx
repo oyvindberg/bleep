@@ -85,9 +85,15 @@ bleep test
 Both should work without further changes for the common case. If you
 hit gaps:
 
-- **Annotation processors**: Lombok, MapStruct, Dagger. Add
-  `java.annotationProcessing.enabled: true` per project. See
-  [Annotation Processing](/docs/usage/annotation-processing).
+- **Annotation processors**: the import carries them over. Processors
+  listed in `<annotationProcessorPaths>` become `java.annotationProcessors`,
+  and a module without that list scans its dependencies for processors, as
+  javac does (`scanForAnnotationProcessors: if-present`), which picks up
+  Lombok. See [Annotation Processing](/docs/usage/annotation-processing).
+- **Dependency versions**: Maven lets the nearest declaration win, bleep the
+  highest version asked for, so some libraries can resolve newer than under
+  Maven. See
+  [Coming from Maven](/docs/usage/conflict-resolution#coming-from-maven-nearest-wins-highest-wins).
 - **Custom packaging**: fat JAR, shade, executable JAR. Convert the
   Maven plugin invocation into a [bleep script](/docs/tutorials/your-first-script).
 - **Generated sources** (e.g. JAXB, OpenAPI codegen via plugin), same
@@ -102,8 +108,8 @@ hit gaps:
 - **Gradle import is not yet implemented, and there is no Gradle
   exporter either.** Multi-tool repos that mix Maven and Gradle
   modules can import the Maven half today; the Gradle half is a hand
-  port, in both directions. The only mechanical paths are `bleep
-  import` (sbt), [`bleep import-maven`](/docs/reference/cli/import-maven/),
+  port, in both directions. The only mechanical paths are
+  [`bleep import-sbt`](/docs/reference/cli/import-sbt/), [`bleep import-maven`](/docs/reference/cli/import-maven/),
   and out again via
   [`bleep export-maven`](/docs/reference/cli/export-maven/) — see the
   [exit strategy](/docs/guides/exit-strategy).
