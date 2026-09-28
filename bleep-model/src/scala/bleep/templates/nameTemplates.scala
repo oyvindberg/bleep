@@ -153,7 +153,15 @@ object nameTemplates {
 
     // what a setting is called, for what it says: `strict`, `jvmOptions`, `sources`. not the ones every template has
     val generic = Set("name", "version", "options", "order", "module", "configuration")
-    val settingHints = mineTemplates.settings(p).toList.map(_.path.split('.').last).filterNot(generic).distinct.sorted
+    // publishing coordinates say nothing one by one (`url`, `developers`, a license's `distribution`): a template of them is `publish`
+    val settingHints = mineTemplates
+      .settings(p)
+      .toList
+      .filterNot(setting => Facet.of(setting.path) == Facet.Publishing)
+      .map(_.path.split('.').last)
+      .filterNot(generic)
+      .distinct
+      .sorted
 
     (plugins ++ deps ++ boms ++ optionHints ++ layoutHints ++ settingHints ++ byFacet ++ depsLast).map(sanitize).filter(_.length >= 2).distinct
   }

@@ -195,7 +195,8 @@ bleep projects  # List all projects
 bleep build update-deps  # Update dependencies
 
 # Import from sbt
-bleep import  # Convert sbt build to bleep
+bleep import-sbt  # Convert sbt build to bleep
+bleep import-maven  # Convert maven build to bleep
 ```
 
 ## Development Workflow
@@ -261,7 +262,7 @@ bleep import  # Convert sbt build to bleep
 
 ## Tips for Porting sbt Projects
 
-1. Start with `bleep import` for automatic conversion
+1. Start with `bleep import-sbt` for automatic conversion
 2. Move plugins to scripts in separate project
 3. Replace sbt keys with constructor parameters
 4. Use bleep's model types instead of sbt types

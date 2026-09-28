@@ -1255,17 +1255,20 @@ object Main {
       ).foldK
     )
 
-  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
-    Opts.subcommand("import", "import an existing sbt build by reading the Bloop JSON files in .bloop (run after `sbt bloopInstall`)")(
-      sbtimport.ImportOptions.opts.map { opts =>
-        val cacheLogger = new BleepCacheLogger(logger)
-        val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
+  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] = {
+    def importSbt(opts: sbtimport.ImportOptions): BleepCommand = {
+      val cacheLogger = new BleepCacheLogger(logger)
+      val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
 
-        val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
+      val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
-        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
-      }
+      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
+    }
+
+    Opts.subcommand("import-sbt", "import an existing sbt build into a bleep.yaml in the same directory. bleep runs sbt itself to read the build")(
+      sbtimport.ImportOptions.opts.map(importSbt)
     )
+  }
 
   def importMavenCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand(

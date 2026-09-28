@@ -58,7 +58,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     // the demo workspaces must pin `$version` to exactly the recorded binary, or bleep relaunches/warns on camera
     val bleepVersion = detectBleepVersion(bleepBinary, logger)
 
-    // `bleep import` shells out to sbt, which needs a JVM: the machine may have no system JVM. older sbt releases
+    // `bleep import-sbt` shells out to sbt, which needs a JVM: the machine may have no system JVM. older sbt releases
     // (scala 2.12 compiler) crash on very new JDKs, so fetch an LTS one instead of lending it the build's
     val javaHome = started.pre.fetchJvm(model.Jvm("temurin:17", None)).javaBin.getParent.getParent
 
@@ -113,10 +113,10 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       .log(started.logger, "wrote videos")
   }
 
-  /** `bleep import` makes the imported sbt build resolve `sbt-export-dependencies`, which was published to Maven Central with maven-style artifact filenames
-    * (`sbt-export-dependencies_2.12_1.0-0.4.0.jar`). sbt older than 1.9 only knows the legacy sbt-plugin filename convention and cannot resolve that — and the
-    * import demo clones a build pinned to sbt 1.7. Seed the local ivy repository (which old sbt checks with its own layout) with the artifact, so the demo
-    * records the same import experience users with modern sbt get. Idempotent: does nothing when the artifact is already there.
+  /** `bleep import-sbt` makes the imported sbt build resolve `sbt-export-dependencies`, which was published to Maven Central with maven-style artifact
+    * filenames (`sbt-export-dependencies_2.12_1.0-0.4.0.jar`). sbt older than 1.9 only knows the legacy sbt-plugin filename convention and cannot resolve that
+    * — and the import demo clones a build pinned to sbt 1.7. Seed the local ivy repository (which old sbt checks with its own layout) with the artifact, so the
+    * demo records the same import experience users with modern sbt get. Idempotent: does nothing when the artifact is already there.
     */
   def ensureSbtExportDependenciesInIvyLocal(logger: Logger): Unit = {
     val version = "0.4.0"

@@ -150,7 +150,7 @@ you do, you walk the build model directly in your script.
   IDE refactors all work without compiling project code.
 - **Scripts as plain Java/Scala**, debuggable in your IDE, not
   macro-evaluated DSL.
-- **Built-in [`bleep import`](/docs/reference/cli/import/) from sbt and Maven.** Convert an existing
+- **Built-in [`bleep import-sbt`](/docs/reference/cli/import-sbt/) and [`bleep import-maven`](/docs/reference/cli/import-maven/).** Convert an existing
   build to bleep in one command.
 - **First-class cross-building axes** for Java release, Kotlin version,
   and Scala version (plus platform). sbt's cross-building axes are Scala
@@ -161,7 +161,7 @@ you do, you walk the build model directly in your script.
 
 ## Migrating from sbt
 
-[`bleep import`](/docs/reference/cli/import/) reads your sbt build (via `sbt bloopInstall`) and
+[`bleep import-sbt`](/docs/reference/cli/import-sbt/) runs sbt to read your build and
 generates a `bleep.yaml`. See [Import from sbt](/docs/demos/importing-sbt-build).
 
 Once imported, the parts that won't carry over are sbt-specific build

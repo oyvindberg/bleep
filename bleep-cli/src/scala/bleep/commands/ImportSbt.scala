@@ -5,7 +5,7 @@ import ryddig.Logger
 
 import java.nio.file.Path
 
-case class Import(
+case class ImportSbt(
     existingBuild: Option[model.BuildFile],
     sbtBuildDir: Path,
     fetchJvm: FetchJvm,

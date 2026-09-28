@@ -139,7 +139,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       imports = "",
       body = """## Getting in and out
                |
-               |Mechanical paths in: [`bleep import`](/docs/reference/cli/import/) (sbt) and
+               |Mechanical paths in: [`bleep import-sbt`](/docs/reference/cli/import-sbt/) (sbt) and
                |[`bleep import-maven`](/docs/reference/cli/import-maven/) (Maven). Mechanical path out:
                |[`bleep export-maven`](/docs/reference/cli/export-maven/), a proof-of-concept script — see the
                |[exit strategy](/docs/guides/exit-strategy).

@@ -48,7 +48,7 @@ beyond Android, which is "not his department".
 
 ### Bull case
 
-- `bleep import` reads his `pom.xml` and produces a working build —
+- `bleep import-maven` reads his `pom.xml` and produces a working build —
   including the multi-module hierarchy, `dependencyManagement`, and the
   Spring Boot main class. He can keep his existing CI step that runs
   `mvn package`.
@@ -320,7 +320,7 @@ fighting Scala or Java idiom for years.
 - Bleep treats Java/Kotlin/Scala as peers. The script API is Java
   (consumed from any language). Templates work across teams. The same
   CI step works for any project.
-- `bleep import` from both Maven and sbt (already shipping) makes
+- `bleep import-maven` and `bleep import-sbt` (already shipping) makes
   one-team-at-a-time migration plausible.
 - Cross-language ergonomics: a Kotlin team and a Scala team can read
   each other's `bleep.yaml` without learning a new tool.
@@ -329,8 +329,8 @@ fighting Scala or Java idiom for years.
 
 - Any language gets second-class treatment in practice. "Bleep can
   technically do Kotlin but the docs are all Scala" is rejection-level.
-- Migration from Gradle is harder than from Maven (no `bleep import`
-  for Gradle today) — that's one of his three teams.
+- Migration from Gradle is harder than from Maven (no `bleep import-gradle`
+  today) — that's one of his three teams.
 - Kotlin/JS gap, KSP gap, Android gap — any one of these blocks one of
   his teams.
 

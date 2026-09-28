@@ -140,7 +140,7 @@ test code is its own project, with `isTestProject: true`. There is no
 bleep-native build the `<scope>` segment is empty, and the layout
 produces short folder names (`src/scala`, not `src/main/scala`).
 
-When you run [`bleep import`](/docs/reference/cli/import/) on an sbt build, however, bleep preserves the
+When you run [`bleep import-sbt`](/docs/reference/cli/import-sbt/) on an sbt build, however, bleep preserves the
 original `src/main/...` / `src/test/...` shape. Each imported project
 gets an `sbt-scope` of `main`, `test`, or `it`, and the layout fills the
 segment in:
